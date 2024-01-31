@@ -62,20 +62,20 @@
 #define NCZM_FILE_V1 1
 
 #ifdef S_IRUSR
-static int NC_DEFAULT_CREATE_PERMS =
+static mode_t NC_DEFAULT_CREATE_PERMS =
            (S_IRUSR|S_IWUSR        |S_IRGRP|S_IWGRP);
-static int NC_DEFAULT_RWOPEN_PERMS =
+static mode_t NC_DEFAULT_RWOPEN_PERMS =
            (S_IRUSR|S_IWUSR        |S_IRGRP|S_IWGRP);
-static int NC_DEFAULT_ROPEN_PERMS =
+static mode_t NC_DEFAULT_ROPEN_PERMS =
 //           (S_IRUSR                |S_IRGRP);
            (S_IRUSR|S_IWUSR        |S_IRGRP|S_IWGRP);
-static int NC_DEFAULT_DIR_PERMS =
+static mode_t NC_DEFAULT_DIR_PERMS =
   	   (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IWGRP);
 #else
-static int NC_DEFAULT_CREATE_PERMS = 0660;
-static int NC_DEFAULT_RWOPEN_PERMS = 0660;
-static int NC_DEFAULT_ROPEN_PERMS = 0660;
-static int NC_DEFAULT_DIR_PERMS = 0770;
+static mode_t NC_DEFAULT_CREATE_PERMS = 0660;
+static mode_t NC_DEFAULT_RWOPEN_PERMS = 0660;
+static mode_t NC_DEFAULT_ROPEN_PERMS = 0660;
+static mode_t NC_DEFAULT_DIR_PERMS = 0770;
 #endif
 
 /*
@@ -129,9 +129,9 @@ static void zfrelease(ZFMAP* zfmap, FD* fd);
 static void zfunlink(const char* canonpath);
 
 static int platformerr(int err);
-static int platformcreatefile(mode_t mode, const char* truepath,FD*);
-static int platformcreatedir(mode_t mode, const char* truepath);
-static int platformopenfile(mode_t mode, const char* truepath, FD* fd);
+static int platformcreatefile(int mode, const char* truepath,FD*);
+static int platformcreatedir(int mode, const char* truepath);
+static int platformopenfile(int mode, const char* truepath, FD* fd);
 static int platformopendir(const char* truepath);
 static int platformdircontent(const char* path, NClist* contents);
 static int platformdelete(const char* path, int delroot);
@@ -153,7 +153,7 @@ zfileinitialize(void)
     if(!zfinitialized) {
         ZTRACE(5,NULL);
 	const char* env = NULL;
-	int perms = 0;
+	mode_t perms = 0;
 	env = getenv("NC_DEFAULT_CREATE_PERMS");
 	if(env != NULL && strlen(env) > 0) {
 	    if(sscanf(env,"%d",&perms) == 1) NC_DEFAULT_CREATE_PERMS = perms;
@@ -704,12 +704,12 @@ platformtestcontentbearing(const char* canonpath)
 
 /* Create a file */
 static int
-platformcreatefile(mode_t mode, const char* canonpath, FD* fd)
+platformcreatefile(int mode, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
     int createflags = 0;
-    int permissions = NC_DEFAULT_ROPEN_PERMS;
+    mode_t permissions = NC_DEFAULT_ROPEN_PERMS;
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
     
@@ -745,11 +745,11 @@ done:
 
 /* Open a file; fail if it does not exist */
 static int
-platformopenfile(mode_t mode, const char* canonpath, FD* fd)
+platformopenfile(int mode, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
-    int permissions = 0;
+    mode_t permissions = 0;
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
@@ -781,7 +781,7 @@ done:
 
 /* Create a dir */
 static int
-platformcreatedir(mode_t mode, const char* canonpath)
+platformcreatedir(int mode, const char* canonpath)
 {
     int ret = NC_NOERR;
 
