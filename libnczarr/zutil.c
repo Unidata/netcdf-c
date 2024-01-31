@@ -860,7 +860,7 @@ done:
 }
 
 int
-NCZ_swapatomicdata(size_t datalen, void* data, int typesize)
+NCZ_swapatomicdata(size_t datalen, void* data, size_t typesize)
 {
     int stat = NC_NOERR;
 

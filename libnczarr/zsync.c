@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+#include "ncconfigure.h"
 #include "zincludes.h"
 #include "zfilter.h"
 #include <stddef.h>
@@ -22,7 +23,7 @@ static int ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** j
 static int ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose);
 
 static int load_jatts(NCZMAP* map, NC_OBJ* container, int nczarrv1, NCjson** jattrsp, NClist** atypes);
-static int zconvert(NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes* dst);
+static int zconvert(NCjson* src, nc_type typeid, size_t typelen, size_t* countp, NCbytes* dst);
 static int computeattrinfo(const char* name, NClist* atypes, nc_type typehint, int purezarr, NCjson* values,
 		nc_type* typeidp, size_t* typelenp, size_t* lenp, void** datap);
 static int parse_group_content(NCjson* jcontent, NClist* dimdefs, NClist* varnames, NClist* subgrps);
@@ -970,11 +971,11 @@ done:
 
 /* Convert a json value to actual data values of an attribute. */
 static int
-zconvert(NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes* dst)
+zconvert(NCjson* src, nc_type typeid, size_t typelen, size_t* countp, NCbytes* dst)
 {
     int stat = NC_NOERR;
     int i;
-    int count = 0;
+    size_t count = 0;
     
     ZTRACE(3,"src=%s typeid=%d typelen=%u",NCJtotext(src),typeid,typelen);
 	    
@@ -1081,7 +1082,7 @@ computeattrdata(nc_type typehint, nc_type* typeidp, NCjson* values, size_t* type
     NCjson* jtext = NULL;
     int reclaimvalues = 0;
     int isjson = 0; /* 1 => attribute value is neither scalar nor array of scalars */
-    int count = 0; /* no. of attribute values */
+    size_t count = 0; /* no. of attribute values */
 
     ZTRACE(3,"typehint=%d typeid=%d values=|%s|",typehint,*typeidp,NCJtotext(values));
 

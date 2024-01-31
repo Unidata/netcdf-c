@@ -82,7 +82,7 @@ This is somewhat complex because:
 */
 
 int
-NCZ_compute_projections(struct Common* common,  int r, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections)
+NCZ_compute_projections(struct Common* common, size_t r, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections)
 {
     int stat = NC_NOERR;
     NCZProjection* projection = NULL;
@@ -213,7 +213,7 @@ Create a vector of projections wrt a slice and a sequence of chunks.
 int
 NCZ_compute_per_slice_projections(
 	struct Common* common,
-	int r, /* which dimension are we projecting? */
+	size_t r, /* which dimension are we projecting? */
         const NCZSlice* slice, /* the slice for which projections are computed */
 	const NCZChunkRange* range, /* range */
 	NCZSliceProjections* slp)
@@ -288,7 +288,7 @@ verifyslice(const NCZSlice* slice)
 }
 
 void
-NCZ_clearsliceprojections(int count, NCZSliceProjections* slpv)
+NCZ_clearsliceprojections(size_t count, NCZSliceProjections* slpv)
 {
     if(slpv != NULL) {
 	int i;

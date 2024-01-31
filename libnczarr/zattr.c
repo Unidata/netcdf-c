@@ -377,7 +377,7 @@ NCZ_del_att(int ncid, int varid, const char *name)
  * @return Type size in bytes, or -1 if type not found.
  * @author Dennis Heimbigner, Ed Hartnett
  */
-static int
+static size_t
 nc4typelen(nc_type type)
 {
     switch(type){
@@ -397,7 +397,7 @@ nc4typelen(nc_type type)
     case NC_UINT64:
         return 8;
     }
-    return -1;
+    return 0;
 }
 
 /**

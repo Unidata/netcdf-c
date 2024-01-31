@@ -156,7 +156,7 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
     }
 
     if(wdebug >= 1) {
-        fprintf(stderr,"\trank=%d",common.rank);
+        fprintf(stderr,"\trank=%zu",common.rank);
         if(!common.scalar) {
   	    fprintf(stderr," dimlens=%s",nczprint_vector(common.rank,dimlens));
             fprintf(stderr," chunklens=%s",nczprint_vector(common.rank,chunklens));
@@ -684,7 +684,7 @@ NCZ_offset2indices(size_t R, size64_t offset, const size64_t* dimlens, size64_t*
 /* Unit test entry points */
 
 int
-NCZ_chunkindexodom(int rank, const NCZChunkRange* ranges, size64_t* chunkcounts, NCZOdometer** odomp)
+NCZ_chunkindexodom(size_t rank, const NCZChunkRange* ranges, size64_t* chunkcounts, NCZOdometer** odomp)
 {
     int stat = NC_NOERR;
     int r;

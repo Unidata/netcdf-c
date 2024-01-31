@@ -12,6 +12,9 @@
 #ifndef ZINTERNAL_H
 #define ZINTERNAL_H
 
+#include "nc4internal.h"
+#include "zmap.h"
+
 #define ZARRVERSION "2"
 
 /* NCZARRVERSION is independent of Zarr version,
@@ -190,7 +193,7 @@ typedef struct NCZ_VAR_INFO {
     size64_t chunkproduct; /* product of chunksizes */
     size64_t chunksize; /* chunkproduct * typesize */
     int order; /* 1=>column major, 0=>row major (default); not currently enforced */
-    size_t scalar;
+    int scalar;
     struct NCZChunkCache* cache;
     struct NClist* xarray; /* names from _ARRAY_DIMENSIONS */
     char dimension_separator; /* '.' | '/' */

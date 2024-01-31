@@ -12,6 +12,12 @@
 #ifndef ZARR_H
 #define ZARR_H
 
+#include "nc4internal.h"
+#include "ncbytes.h"
+#include "ncjson.h"
+#include "netcdf.h"
+#include "zinternal.h"
+
 struct ChunkKey;
 struct S3credentials;
 
@@ -78,7 +84,7 @@ EXTERNL int NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, cha
 EXTERNL int NCZ_grpname_full(int gid, char** pathp);
 EXTERNL int ncz_get_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var);
 EXTERNL int NCZ_comma_parse(const char* s, NClist* list);
-EXTERNL int NCZ_swapatomicdata(size_t datalen, void* data, int typesize);
+EXTERNL int NCZ_swapatomicdata(size_t datalen, void* data, size_t typesize);
 EXTERNL char** NCZ_clonestringvec(size_t len, const char** vec);
 EXTERNL void NCZ_freestringvec(size_t len, char** vec);
 EXTERNL int NCZ_ischunkname(const char* name,char dimsep);
