@@ -1,0 +1,27 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: 'NetCDF-C '
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - name: NSF Unidata
+    website: 'https://unidata.ucar.edu'
+identifiers:
+  - type: doi
+    value: 10.5065/D6H70CW6
+    description: NetCDF-C library
+  - type: url
+    value: 'https://www.unidata.ucar.edu/software/netcdf/'
+    description: NetCDF Homepage
+repository-code: 'https://github.com/Unidata/netcdf-c'
+keywords:
+  - data
+  - netcdf
+  - netcdf-c
+  - data model
+  - software
+  - NSF
