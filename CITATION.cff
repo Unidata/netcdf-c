@@ -10,6 +10,9 @@ type: software
 authors:
   - name: NSF Unidata
     website: 'https://unidata.ucar.edu'
+  - given-names: Glenn
+    family-names: Davis
+    affiliation: UCAR/Unidata
   - given-names: Russ
     family-names: Rew
     affiliation: UCAR/Unidata
