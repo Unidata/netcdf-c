@@ -568,7 +568,7 @@ if(DEFINED PLUGIN_INSTALL_DIR)
   if(boolval)
     set(ENABLE_PLUGIN_INSTALL YES)
     # No actual value was specified
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR CACHE)
   else()
     if(boolval STREQUAL "NOTFOUND")
       # Must be an actual value
@@ -583,7 +583,7 @@ endif()
 
 # Ensure no defined plugin dir if not enabled
 if(NOT ENABLE_PLUGIN_INSTALL)
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR CACHE)
 endif()
 
 if(ENABLE_PLUGIN_INSTALL)
@@ -615,8 +615,8 @@ if(ENABLE_PLUGIN_INSTALL)
   set(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
   message("Final value of-DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
 else() # No option specified
-    UNset(PLUGIN_INSTALL_DIR)
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR)
+    unset(PLUGIN_INSTALL_DIR CACHE)
     set(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 endif()
 
@@ -696,7 +696,7 @@ endif()
 if (NOT ENABLE_S3 AND ENABLE_NCZARR_S3)
   set(ENABLE_S3 ON CACHE BOOL "NCARR S3" FORCE) # For back compatibility
 endif()
-UNset(ENABLE_NCZARR_S3)
+unset(ENABLE_NCZARR_S3)
 
 if(NOT ENABLE_REMOTE_FUNCTIONALITY)
   message(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => disable all s3 functionality")
