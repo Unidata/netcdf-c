@@ -282,7 +282,7 @@ NC_readfileF(FILE* stream, NCbytes* content, long long amount)
 {
 #define READ_BLOCK_SIZE 4194304
     int ret = NC_NOERR;
-    long long red = 0;
+    size_t red = 0;
     char *part = (char*) malloc(READ_BLOCK_SIZE);
 
     while(amount < 0 || red < amount) {
@@ -294,7 +294,7 @@ NC_readfileF(FILE* stream, NCbytes* content, long long amount)
     }
     /* Keep only amount */
     if(amount >= 0) {
-	if(red > amount) ncbytessetlength(content,amount); /* read too much */
+	if(red > amount) ncbytessetlength(content, (unsigned long)amount); /* read too much */
 	if(red < amount) ret = NC_ETRUNC; /* |file| < amount */
     }
     ncbytesnull(content);
@@ -405,7 +405,6 @@ NC_addmodetag(NCURI* uri, const char* tag)
 {
     int stat = NC_NOERR;
     int found = 0;
-    int i;
     const char* modestr = NULL;
     char* modevalue = NULL;
     NClist* modelist = NULL;
@@ -417,7 +416,7 @@ NC_addmodetag(NCURI* uri, const char* tag)
     } else
         modelist = nclistnew();
     /* Search for tag */
-    for(i=0;i<nclistlength(modelist);i++) {
+    for(size_t i=0;i<nclistlength(modelist);i++) {
         const char* mode = (const char*)nclistget(modelist,i);
 	if(strcasecmp(mode,tag)==0) {found = 1; break;}
     }
