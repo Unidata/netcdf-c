@@ -1763,8 +1763,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
         LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
              "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[0]));
     }
-    if (var->ndims > 1 && var->ndims == num_unlim) { /* all dims unlimited */
-        suggested_size = pow((double)DEFAULT_CHUNK_SIZE/type_size, 1.0/(double)(var->ndims));
+    if (var->ndims > 1 && (float)var->ndims == num_unlim) { /* all dims unlimited */
+        suggested_size = (size_t)pow((double)DEFAULT_CHUNK_SIZE/(double)type_size, 1.0/(double)(var->ndims));
         for (d = 0; d < var->ndims; d++)
         {
             var->chunksizes[d] = suggested_size ? suggested_size : 1;
@@ -1778,8 +1778,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     for (d = 0; d < var->ndims; d++)
         if (!var->chunksizes[d])
         {
-            suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size),
-                                  1.0/(double)(var->ndims - num_unlim)) * var->dim[d]->len - .5);
+            suggested_size = (size_t)(pow((double)DEFAULT_CHUNK_SIZE/(num_values * (double)type_size),
+                                        1.0/(double)((double)var->ndims - num_unlim)) * (double)var->dim[d]->len - .5);
             if (suggested_size > var->dim[d]->len)
                 suggested_size = var->dim[d]->len;
             var->chunksizes[d] = suggested_size ? suggested_size : 1;
