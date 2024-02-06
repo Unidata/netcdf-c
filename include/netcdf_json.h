@@ -15,14 +15,7 @@ and do the command:
     make makepluginjson
 */
 
-/* Inside libnetcdf and for plugins, export the json symbols */
-#ifndef DLLEXPORT
-#ifdef _WIN32
-#define DLLEXPORT __declspec(dllexport)
-#else
-#define DLLEXPORT
-#endif
-#endif
+#include "ncexternl.h"
 
 /* Override for plugins */
 #ifdef NETCDF_JSON_H
