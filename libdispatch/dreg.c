@@ -15,10 +15,10 @@
 #include <wchar.h>
 #include <locale.h>
 //#include <direct.h>
+#include "ncexternl.h"
 
-#ifdef _WIN32
-__declspec(dllexport)
-#endif
+
+EXTERNL
 int
 getmountpoint(char* keyvalue, size_t size)
 {
