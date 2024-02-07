@@ -6,10 +6,11 @@
 # See netcdf-c/COPYRIGHT file for more info.
 add_library(dispatch OBJECT)
 
-target_sources(dispatch
-  dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8.c dinternal.c doffsets.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c utf8proc.h utf8proc.c dpathmgr.c dutil.c drc.c dauth.c dreadonly.c dnotnc4.c dnotnc3.c dinfermodel.c
-  daux.c dinstance.c dinstance_intern.c
-  dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c
+target_sources(dispatch 
+  PRIVATE
+    dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8.c dinternal.c doffsets.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c utf8proc.h utf8proc.c dpathmgr.c dutil.c drc.c dauth.c dreadonly.c dnotnc4.c dnotnc3.c dinfermodel.c
+    daux.c dinstance.c dinstance_intern.c
+    dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c
 )
 
 ## 
@@ -27,36 +28,42 @@ set_property(SOURCE dinstance_intern.c dinstance.c dvarput.c
 
 # Netcdf-4 only functions. Must be defined even if not used
 target_sources(dispatch
-  dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c
+  PRIVATE
+    dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c
 )
 
 if(BUILD_V2)
   target_sources(dispatch
-    dv2i.c
+    PRIVATE
+      dv2i.c
   )
 endif(BUILD_V2)
 
 if(ENABLE_BYTERANGE)
   target_sources(dispatch
-    dhttp.c
+    PRIVATE
+      dhttp.c
   )
 ENDIF(ENABLE_BYTERANGE)
 
 IF(ENABLE_S3)
   if(ENABLE_S3_INTERNAL)
     target_sources(dispatch
-      ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h nccurl_sha256.c nccurl_sha256.h nccurl_hmac.c nccurl_hmac.h nccurl_setup.h
+      PRIVATE
+        ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h nccurl_sha256.c nccurl_sha256.h nccurl_hmac.c nccurl_hmac.h nccurl_setup.h
     )
   else()
     target_sources(dispatch
-      ncs3sdk_aws.cpp awsincludes.h 
+      PRIVATE
+        ncs3sdk_aws.cpp awsincludes.h 
     )
   endif()
 endif()
 
 if(REGEDIT)
   target_sources(dispatch
-    dreg.c
+    PRIVATE
+      dreg.c
   )
 endif(REGEDIT)
 
