@@ -10,72 +10,72 @@
 #####
 target_link_libraries(netcdf
   PRIVATE
-    netcdf3
-    dispatch
+    $<TARGET_OBJECTS:netcdf3>
+    $<TARGET_OBJECTS:dispatch>
 )
 
 if(USE_NETCDF4)
   target_link_libraries(netcdf
     PRIVATE
-      netcdf4
+      $<TARGET_OBJECTS:netcdf4>
   )
 endif()
 
 if(USE_HDF5)
   target_link_libraries(netcdf
     PRIVATE
-      netcdfhdf5
+      $<TARGET_OBJECTS:netcdfhdf5>
   )
 endif()
 
 if(USE_PNETCDF)
   target_link_libraries(netcdf
     PRIVATE
-      netcdfp
+      $<TARGET_OBJECTS:netcdfp>
   )
 endif()
 
 if(USE_HDF4)
   target_link_libraries(netcdf
     PRIVATE
-      netcdfhdf4
+      $<TARGET_OBJECTS:netcdfhdf4>
   )
 endif()
 
 if(ENABLE_DAP2)
   target_link_libraries(netcdf
     PRIVATE
-      oc2
-      dap2
+      $<TARGET_OBJECTS:oc2>
+      $<TARGET_OBJECTS:dap2>
   )
 endif()
 
 if(ENABLE_DAP4)
   target_link_libraries(netcdf
     PRIVATE
-      dap4
-      ncxml
+      $<TARGET_OBJECTS:dap4>
+      $<TARGET_OBJECTS:ncxml>
   )
 endif()
 
 if(ENABLE_NCZARR)
   target_link_libraries(netcdf
     PRIVATE
-      nczarr
+      $<TARGET_OBJECTS:nczarr>
   )
 endif()
 
 if(ENABLE_S3_INTERNAL)
   target_link_libraries(netcdf
     PRIVATE
-      ncxml
+      $<TARGET_OBJECTS:ncxml>
   )
 endif()
 
 if(ENABLE_PLUGINS)
   target_link_libraries(netcdf
     PRIVATE
-      ncpoco
+      $<TARGET_OBJECTS:ncpoco>
   )
 endif()
 
