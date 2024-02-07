@@ -14,6 +14,7 @@
 
 #include "zincludes.h"
 #include "zfilter.h"
+#include <stddef.h>
 
 /* Forward */
 static int NCZ_enddef(NC_FILE_INFO_T* h5);
@@ -103,7 +104,7 @@ static int
 NCZ_enddef(NC_FILE_INFO_T* h5)
 {
     NC_VAR_INFO_T *var;
-    int i,j;
+    size_t i,j;
     int stat = NC_NOERR;
 
     ZTRACE(1,"h5=%s",h5->hdr.name);

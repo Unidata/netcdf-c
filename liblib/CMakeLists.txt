@@ -8,74 +8,74 @@
 #####
 # Add target objects/modules based on options.
 #####
-target_sources(netcdf
+target_link_libraries(netcdf
   PRIVATE
-    $<TARGET_OBJECTS:netcdf3>
-    $<TARGET_OBJECTS:dispatch>
+    netcdf3
+    dispatch
 )
 
 if(USE_NETCDF4)
-  target_sources(netcdf
+  target_link_libraries(netcdf
     PRIVATE
-      $<TARGET_OBJECTS:netcdf4>
+      netcdf4
   )
 endif()
 
 if(USE_HDF5)
-  target_sources(netcdf
+  target_link_libraries(netcdf
     PRIVATE
-      $<TARGET_OBJECTS:netcdfhdf5>
+      netcdfhdf5
   )
 endif()
 
 if(USE_PNETCDF)
-  target_sources(netcdf
+  target_link_libraries(netcdf
     PRIVATE
-      $<TARGET_OBJECTS:netcdfp>
+      netcdfp
   )
 endif()
 
 if(USE_HDF4)
-  target_sources(netcdf
+  target_link_libraries(netcdf
     PRIVATE
-      $<TARGET_OBJECTS:netcdfhdf4>
+      netcdfhdf4
   )
 endif()
 
 if(ENABLE_DAP2)
-  target_sources(netcdf
+  target_link_libraries(netcdf
     PRIVATE
-      $<TARGET_OBJECTS:oc2>
-      $<TARGET_OBJECTS:dap2>
+      oc2
+      dap2
   )
 endif()
 
 if(ENABLE_DAP4)
-  target_sources(netcdf
+  target_link_libraries(netcdf
     PRIVATE
-      $<TARGET_OBJECTS:dap4>
-      $<TARGET_OBJECTS:ncxml>
+      dap4
+      ncxml
   )
 endif()
 
 if(ENABLE_NCZARR)
-  target_sources(netcdf
+  target_link_libraries(netcdf
     PRIVATE
-      $<TARGET_OBJECTS:nczarr>
+      nczarr
   )
 endif()
 
 if(ENABLE_S3_INTERNAL)
-  target_sources(netcdf
+  target_link_libraries(netcdf
     PRIVATE
-      $<TARGET_OBJECTS:ncxml>
+      ncxml
   )
 endif()
 
 if(ENABLE_PLUGINS)
-  target_sources(netcdf
+  target_link_libraries(netcdf
     PRIVATE
-      $<TARGET_OBJECTS:ncpoco>
+      ncpoco
   )
 endif()
 
@@ -85,18 +85,14 @@ target_sources(netcdf
 )
 
 if(STATUS_PARALLEL)
-  # TODO: Make PUBLIC when other dependencies have PUBLIC/PRIVATE specified
-  target_link_libraries(netcdf MPI::MPI_C)
+  target_link_libraries(netcdf PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
 
-if(TARGET MPI::MPI_C)
-  target_link_libraries(netcdf MPI::MPI_C)
-endif(TARGET MPI::MPI_C)
-
 if(MOD_NETCDF_NAME)
-  set_target_properties(netcdf PROPERTIES LIBRARY_OUTPUT_NAME ${NETCDF_LIB_NAME})
-  set_target_properties(netcdf PROPERTIES ARCHIVE_OUTPUT_NAME ${NETCDF_LIB_NAME})
-  set_target_properties(netcdf PROPERTIES RUNTIME_OUTPUT_NAME ${NETCDF_LIB_NAME})
+  set_target_properties(netcdf 
+    PROPERTIES 
+      OUTPUT_NAME ${NETCDF_LIB_NAME}
+  )
 endif()
 
 # Make sure that netcdf.dll path does not include the build configuration

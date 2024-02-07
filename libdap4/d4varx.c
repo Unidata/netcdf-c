@@ -9,6 +9,7 @@
 #include "nc4internal.h"
 #include "d4includes.h"
 #include "d4odom.h"
+#include <stddef.h>
 
 /* Forward */
 static int getvarx(int gid, int varid, NCD4INFO**, NCD4node** varp, nc_type* xtypep, size_t*, nc_type* nc4typep, size_t*);
@@ -31,7 +32,8 @@ NCD4_get_vars(int gid, int varid,
 	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
             void *memoryin, nc_type xtype)
 {
-    int i,ret;
+    size_t i;
+    int ret;
     NCD4INFO* info;
     NCD4meta* meta;
     NCD4node* ncvar;
@@ -41,7 +43,7 @@ NCD4_get_vars(int gid, int varid,
     size_t nc4size, xsize, dapsize;
     void* instance = NULL; /* Staging area in case we have to convert */
     NClist* blobs = NULL;
-    int rank;
+    size_t rank;
     size_t dimsizes[NC_MAX_VAR_DIMS];
     d4size_t dimproduct;
     size_t dstpos;
@@ -246,7 +248,8 @@ findbyname(const char* name, NClist* nodes)
 static int
 matchvar(NCD4meta* dmrmeta, NCD4node* dapvar, NCD4node** dmrvarp)
 {
-    int i,ret = NC_NOERR;
+    size_t i;
+    int ret = NC_NOERR;
     NCD4node* x = NULL;
     NClist* dappath = nclistnew();
     NClist* dmrpath = nclistnew(); /* compute path for this dmr var */
@@ -259,7 +262,7 @@ matchvar(NCD4meta* dmrmeta, NCD4node* dapvar, NCD4node** dmrvarp)
     for(i=0;i<nclistlength(dmrmeta->allnodes);i++) {
 	NCD4node* node = (NCD4node*)nclistget(dmrmeta->allnodes,i);
 	if(ISVAR(node->sort) && strcmp(node->name,dapvar->name)==0) { /* possible candidate */
-	    int j;
+	    size_t j;
     	    found = 0;
 	    nclistclear(dmrpath);
 	    for(x=node;x != NULL;x=x->container) nclistinsert(dmrpath,0,x);
@@ -292,7 +295,8 @@ toplevel dmr var and transfer necessary info;
 static int
 mapvars(NCD4meta* dapmeta, NCD4meta* dmrmeta, int inferredchecksumming)
 {
-    int i, ret = NC_NOERR;
+    size_t i;
+    int ret = NC_NOERR;
     NCD4node* daproot = dapmeta->root;
     NClist* daptop = NULL; /* top variables in dap tree */
 
