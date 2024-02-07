@@ -20,19 +20,6 @@ You can find the documentation for netCDF-Fortran here:
 - \subpage RELEASE_NOTES
 - <A href="https://docs.unidata.ucar.edu/nug/current/getting_and_building_netcdf.html">Getting and Building NetCDF</A>
 
-\subsection nightly_status The Latest NetCDF Build Status
-
-\subsubsection NetCDF-C
-
-- <A href="http://cdash.unidata.ucar.edu/index.php?project=netcdf-c">The netCDF-C Nightly and Continuous Integration Dashboard</A>
-- <A href="https://travis-ci.org/Unidata/netcdf-c">NetCDF-C at Travis-CI</A>
-
-\subsubsection NetCDF-Fortran
-
-
-- <A href="http://cdash.unidata.ucar.edu/index.php?project=netcdf-fortran">The netCDF-Fortran Nightly and Continuous Integration Dashboard</A>
-- <A href="https://travis-ci.org/Unidata/netcdf-c">NetCDF-Fortran at Travis-CI</A>
-
 \section learn-more Learn more about using NetCDF-C
 
 - \ref sec_tut
