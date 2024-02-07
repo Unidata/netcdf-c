@@ -8,42 +8,42 @@
 #####
 # Add target objects/modules based on options.
 #####
-target_link_libraries(netcdf
+target_sources(netcdf
   PRIVATE
     $<TARGET_OBJECTS:netcdf3>
     $<TARGET_OBJECTS:dispatch>
 )
 
 if(USE_NETCDF4)
-  target_link_libraries(netcdf
+  target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:netcdf4>
   )
 endif()
 
 if(USE_HDF5)
-  target_link_libraries(netcdf
+  target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:netcdfhdf5>
   )
 endif()
 
 if(USE_PNETCDF)
-  target_link_libraries(netcdf
+  target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:netcdfp>
   )
 endif()
 
 if(USE_HDF4)
-  target_link_libraries(netcdf
+  target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:netcdfhdf4>
   )
 endif()
 
 if(ENABLE_DAP2)
-  target_link_libraries(netcdf
+  target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:oc2>
       $<TARGET_OBJECTS:dap2>
@@ -51,7 +51,7 @@ if(ENABLE_DAP2)
 endif()
 
 if(ENABLE_DAP4)
-  target_link_libraries(netcdf
+  target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:dap4>
       $<TARGET_OBJECTS:ncxml>
@@ -59,21 +59,21 @@ if(ENABLE_DAP4)
 endif()
 
 if(ENABLE_NCZARR)
-  target_link_libraries(netcdf
+  target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:nczarr>
   )
 endif()
 
 if(ENABLE_S3_INTERNAL)
-  target_link_libraries(netcdf
+  target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:ncxml>
   )
 endif()
 
 if(ENABLE_PLUGINS)
-  target_link_libraries(netcdf
+  target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:ncpoco>
   )
