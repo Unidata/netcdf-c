@@ -3,6 +3,7 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#include <stddef.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -18,6 +19,9 @@
 #include "XGetopt.h"
 #endif
 
+#include <stddef.h>
+
+#include "ncconfigure.h"
 #include "zincludes.h"
 #include "ncpathmgr.h"
 #include "nclog.h"
@@ -54,7 +58,7 @@ static struct Mops {
 static struct Type {
     const char* typename;
     nc_type nctype;
-    int typesize;
+    size_t typesize;
     const char format[16];
 } types[] = {
 {"ubyte",NC_UBYTE,1,"%u"},
@@ -249,7 +253,7 @@ implfor(const char* path)
     NCURI* uri = NULL;
     const char* mode = NULL;
     NClist* segments = nclistnew();
-    int i;
+
     NCZM_IMPL impl = NCZM_UNDEF;
 
     ncuriparse(path,&uri);
@@ -258,7 +262,7 @@ implfor(const char* path)
     if(mode == NULL) goto done;
     /* split on commas */
     NCCHECK(nczm_split_delim(mode,',',segments));
-    for(i=0;i<nclistlength(segments);i++) {
+    for(size_t i=0;i<nclistlength(segments);i++) {
         const char* value = nclistget(segments,i);
 	if(strcmp(value,"file")==0) {impl = NCZM_FILE; goto done;}
 	if(strcmp(value,"zip")==0) {impl = NCZM_ZIP; goto done;}
@@ -318,7 +322,7 @@ objdump(void)
     NClist* stack = nclistnew();
     char* obj = NULL;
     char* content = NULL;
-    int depth;
+
 
     if((stat=nczmap_open(dumpoptions.impl, dumpoptions.infile, NC_NOCLOBBER, 0, NULL, &map)))
         goto done;
@@ -327,12 +331,13 @@ objdump(void)
     if((stat = breadthfirst(map,"/",stack))) goto done;
 
     if(dumpoptions.debug) {
-	int i;
+
         fprintf(stderr,"stack:\n");
-        for(i=0;i<nclistlength(stack);i++)
-            fprintf(stderr,"[%d] %s\n",i,(char*)nclistget(stack,i));
+        for(size_t i=0;i<nclistlength(stack);i++)
+
+            fprintf(stderr,"[%zu] %s\n",i,(char*)nclistget(stack,i));
     }    
-    for(depth=0;depth < nclistlength(stack);depth++) {
+    for(size_t depth=0;depth < nclistlength(stack);depth++) {
         size64_t len = 0;
 	OBJKIND kind = 0;
 	int hascontent = 0;
@@ -359,7 +364,7 @@ objdump(void)
 		if(kind == OK_CHUNK) {
 		    len = ceildiv(len,dumpoptions.nctype->typesize);
 		}
-                printf("[%d] %s : (%llu)",depth,obj,len);
+                printf("[%zu] %s : (%llu)",depth,obj,len);
 		if(kind == OK_CHUNK &&  dumpoptions.nctype->nctype != NC_STRING)
                     printf(" (%s)",dumpoptions.nctype->typename);
                 printf(" |");
@@ -369,19 +374,20 @@ objdump(void)
 	            printcontent(len,content,kind);
 		    break;
 		case OK_CHUNK:
-	    	    if(dumpoptions.meta_only)
+		    if(dumpoptions.meta_only) {
 			printf("...");
-		    else
+		    } else {
 	                printcontent(len,content,kind);
+		    }
 		    break;
 		default: break;
 		}
 	        printf("|\n");
 	    } else {
-	        printf("[%d] %s : (%llu) ||\n",depth,obj,len);
+	        printf("[%zu] %s : (%llu) ||\n",depth,obj,len);
 	    }
 	} else {
-	    printf("[%d] %s\n",depth,obj);
+	    printf("[%zu] %s\n",depth,obj);
 	}
     }
 done:
@@ -441,21 +447,18 @@ breadthfirst(NCZMAP* map, const char* key, NClist* stack)
     return stat;
 }
 
-static char hex[16] = "0123456789abcdef";
 
 static void
 printcontent(size64_t len, const char* content, OBJKIND kind)
 {
     size64_t i, count;
-    unsigned int c0,c1;
 
     const char* format = NULL;
-    int strlen = 1;
+    size64_t strlen = (size64_t)dumpoptions.strlen;
 
     format = dumpoptions.nctype->format;
     if(dumpoptions.format[0] != '\0')
         format = dumpoptions.format;
-    strlen = dumpoptions.strlen;
     count = len;
 
 #ifdef DEBUG
@@ -487,12 +490,7 @@ printcontent(size64_t len, const char* content, OBJKIND kind)
 	    printf("%c",content[i]);
 	    break;
 	default:
-	    c1 = (unsigned char)(content[i]);
-            c0 = c1 & 0xf;
-	    c1 = (c1 >> 4);
-            c0 = hex[c0];
-            c1 = hex[c1];
-	    printf("%c%c",(char)c1,(char)c0);
+	    printf("%.2hhx", content[i]);
         }
     }
 }

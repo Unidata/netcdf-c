@@ -4,34 +4,62 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-set(libdispatch_SOURCES dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8.c dinternal.c doffsets.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c utf8proc.h utf8proc.c dpathmgr.c dutil.c drc.c dauth.c dreadonly.c dnotnc4.c dnotnc3.c dinfermodel.c
-daux.c dinstance.c dinstance_intern.c
-dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c)
+add_library(dispatch OBJECT)
+
+target_sources(dispatch
+  dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8.c dinternal.c doffsets.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c utf8proc.h utf8proc.c dpathmgr.c dutil.c drc.c dauth.c dreadonly.c dnotnc4.c dnotnc3.c dinfermodel.c
+  daux.c dinstance.c dinstance_intern.c
+  dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c
+)
+
+## 
+# Turn off inclusion of particular files when using the cmake-native
+# option to turn on Unity Builds.  
+#
+# For more information, see:
+#  * https://github.com/Unidata/netcdf-c/pull/2839/
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD_MODE.html#prop_tgt:UNITY_BUILD_MODE
+##
+set_property(SOURCE dinstance_intern.c dinstance.c dvarput.c
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)
 
 # Netcdf-4 only functions. Must be defined even if not used
-set(libdispatch_SOURCES ${libdispatch_SOURCES} dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c)
+target_sources(dispatch
+  dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c
+)
 
 if(BUILD_V2)
-  set(libdispatch_SOURCES ${libdispatch_SOURCES} dv2i.c)
+  target_sources(dispatch
+    dv2i.c
+  )
 endif(BUILD_V2)
 
 if(ENABLE_BYTERANGE)
-  set(libdispatch_SOURCES ${libdispatch_SOURCES} dhttp.c)
+  target_sources(dispatch
+    dhttp.c
+  )
 ENDIF(ENABLE_BYTERANGE)
 
 IF(ENABLE_S3)
   if(ENABLE_S3_INTERNAL)
-    set(libdispatch_SOURCES ${libdispatch_SOURCES} ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h nccurl_sha256.c nccurl_sha256.h nccurl_hmac.c nccurl_hmac.h nccurl_setup.h)
+    target_sources(dispatch
+      ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h nccurl_sha256.c nccurl_sha256.h nccurl_hmac.c nccurl_hmac.h nccurl_setup.h
+    )
   else()
-    set(libdispatch_SOURCES ${libdispatch_SOURCES} ncs3sdk_aws.cpp awsincludes.h)
+    target_sources(dispatch
+      ncs3sdk_aws.cpp awsincludes.h 
+    )
   endif()
 endif()
 
 if(REGEDIT)
-  set(libdispatch_SOURCES ${libdispatch_SOURCES} dreg.c)
+  target_sources(dispatch
+    dreg.c
+  )
 endif(REGEDIT)
 
-add_library(dispatch OBJECT ${libdispatch_SOURCES})
 
 if (USE_HDF5)
   target_include_directories(dispatch PRIVATE ${HDF5_INCLUDE_DIR})

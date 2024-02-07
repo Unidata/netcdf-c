@@ -2,6 +2,7 @@
 #include "config.h"
 #endif
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -59,7 +60,7 @@ typedef struct Format {
 } Format;
 
 typedef struct Odometer {
-  size_t rank; /*rank */
+  int rank; /*rank */
   size_t start[NC_MAX_VAR_DIMS];
   size_t stop[NC_MAX_VAR_DIMS];
   size_t max[NC_MAX_VAR_DIMS]; /* max size of ith index */
@@ -74,7 +75,7 @@ static int ncap = 0;
 
 extern int nc__testurl(const char*,char**);
 
-Odometer* odom_new(size_t rank, const size_t* stop, const size_t* max);
+Odometer* odom_new(int rank, const size_t* stop, const size_t* max);
 void odom_free(Odometer* odom);
 int odom_more(Odometer* odom);
 int odom_next(Odometer* odom);
@@ -119,7 +120,7 @@ cleanup(void)
 }
 
 Odometer*
-odom_new(size_t rank, const size_t* stop, const size_t* max)
+odom_new(int rank, const size_t* stop, const size_t* max)
 {
      int i;
      Odometer* odom = NULL;
@@ -150,7 +151,7 @@ odom_more(Odometer* odom)
 int
 odom_next(Odometer* odom)
 {
-     size_t i;
+     int i;
      for(i=odom->rank-1;i>=0;i--) {
 	 odom->index[i]++;
 	 if(odom->index[i] < odom->stop[i]) break;
@@ -265,7 +266,7 @@ printchunk(Format* format, int* chunkdata, size_t indent)
 {
     size_t k[3];
     int rank = format->rank;
-    unsigned cols[3], pos;
+    size_t cols[3], pos;
     size_t* chl = format->chunklens;
 
     memset(cols,0,sizeof(cols));

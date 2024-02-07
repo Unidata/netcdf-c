@@ -8,6 +8,7 @@
 */
 
 
+#include <stddef.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -93,7 +94,7 @@ main(int argc, char** argv)
     int stat = NC_NOERR;
     char text[MAXREAD+1];
     NCjson* json = NULL;
-    int i, red, c;
+    int i, c;
     FILE* f = NULL;
 
     nc_initialize();
@@ -127,7 +128,7 @@ main(int argc, char** argv)
     /* Read json from stdin */
     for(i=0;;i++) {
 	unsigned char c;
-	red = fread(&c, 1, 1, f);
+	size_t red = fread(&c, 1, 1, f);
 	if(red != 1) break;
 	if(i < MAXREAD) text[i] = (char)c;
     }

@@ -575,7 +575,7 @@ if(DEFINED PLUGIN_INSTALL_DIR)
   if(boolval)
     set(ENABLE_PLUGIN_INSTALL YES)
     # No actual value was specified
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR CACHE)
   else()
     if(boolval STREQUAL "NOTFOUND")
       # Must be an actual value
@@ -590,7 +590,7 @@ endif()
 
 # Ensure no defined plugin dir if not enabled
 if(NOT ENABLE_PLUGIN_INSTALL)
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR CACHE)
 endif()
 
 if(ENABLE_PLUGIN_INSTALL)
@@ -622,8 +622,8 @@ if(ENABLE_PLUGIN_INSTALL)
   set(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
   message("Final value of-DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
 else() # No option specified
-    UNset(PLUGIN_INSTALL_DIR)
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR)
+    unset(PLUGIN_INSTALL_DIR CACHE)
     set(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 endif()
 
@@ -703,7 +703,7 @@ endif()
 if (NOT ENABLE_S3 AND ENABLE_NCZARR_S3)
   set(ENABLE_S3 ON CACHE BOOL "NCARR S3" FORCE) # For back compatibility
 endif()
-UNset(ENABLE_NCZARR_S3)
+unset(ENABLE_NCZARR_S3)
 
 if(NOT ENABLE_REMOTE_FUNCTIONALITY)
   message(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => disable all s3 functionality")
@@ -1853,23 +1853,14 @@ install(EXPORT netCDFTargets
   NAMESPACE netCDF::
   )
 
+export(EXPORT netCDFTargets FILE netCDFTargets.cmake NAMESPACE netCDF::)
+
 include(CMakePackageConfigHelpers)
-CONFIGURE_PACKAGE_CONFIG_file(
+configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
   INSTALL_DESTINATION "${ConfigPackageLocation}"
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO
-  PATH_VARS
-  CMAKE_INSTALL_PREFIX
-  CMAKE_INSTALL_INCLUDEDIR
-  CMAKE_INSTALL_LIBDIR
-  )
-
-install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
-  DESTINATION "${ConfigPackageLocation}"
-  COMPONENT headers
-  )
+)
 
 target_include_directories(netcdf
     PUBLIC
@@ -1879,17 +1870,18 @@ target_include_directories(netcdf
 
 # Create export configuration
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
+  netCDFConfigVersion.cmake
   VERSION ${netCDF_VERSION}
   COMPATIBILITY SameMajorVersion
-  )
+)
 
 install(
   FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfigVersion.cmake"
   DESTINATION ${ConfigPackageLocation}
   COMPONENT headers
-  )
+)
 
 ####
 # End export files

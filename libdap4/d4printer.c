@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "d4includes.h"
+#include <stddef.h>
 
 /**
 This provides a simple dap4  metadata -> xml printer.
@@ -87,7 +88,7 @@ static int
 printNode(D4printer* out, NCD4node* node, int depth)
 {
     int ret = NC_NOERR;
-    int i;
+    size_t i;
     char* fqn = NULL;
 
     switch (node->sort) {
@@ -297,13 +298,12 @@ static int
 printGroupBody(D4printer* out, NCD4node* node, int depth)
 {
     int ret = NC_NOERR;
-    int i,ngroups,nvars,ntypes,ndims,nattrs;
-
-    ngroups = nclistlength(node->groups);
-    nvars = nclistlength(node->vars);
-    ntypes = nclistlength(node->types);
-    ndims = nclistlength(node->dims);
-    nattrs = nclistlength(node->attributes);
+    size_t i;
+    size_t ngroups = nclistlength(node->groups);
+    size_t nvars = nclistlength(node->vars);
+    size_t ntypes = nclistlength(node->types);
+    size_t ndims = nclistlength(node->dims);
+    size_t nattrs = nclistlength(node->attributes);
 
     if(ndims > 0) {
 	INDENT(depth);
@@ -371,7 +371,7 @@ static int
 printMetaData(D4printer* out, NCD4node* node, int depth)
 {
     int ret = NC_NOERR;
-    int i;
+    size_t i;
 
     if(nclistlength(node->dims) > 0) {
 	for(i=0;i<nclistlength(node->dims);i++) {
@@ -456,7 +456,7 @@ static int
 printAttribute(D4printer* out, NCD4node* attr, int depth)
 {
     int ret = NC_NOERR;
-    int i = 0;
+    size_t i = 0;
     char* fqn = NULL;
 
     INDENT(depth); CAT("<Attribute");

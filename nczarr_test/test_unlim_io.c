@@ -1,6 +1,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -22,15 +23,15 @@
 #define NDATA MAX_DATA
 static int data[NDATA];
 
-static unsigned chunkprod;
-static unsigned dimprod;
+static size_t chunkprod;
+static size_t dimprod;
 static size_t datasize = 0;
 
 static int
 writedata(void)
 {
     int ret = NC_NOERR;
-    size_t i;
+    int i;
 
     for(i=0;i<NDATA;i++) data[i] = (options->data == 0x7fffffff ? i: options->data);
  
