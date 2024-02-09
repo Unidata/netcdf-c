@@ -169,8 +169,7 @@ dumpgroup(Symbol* g)
     if(debug <= 1) return; 
     fdebug("group %s {\n",(g==NULL?"null":g->name));
     if(g != NULL && g->subnodes != NULL) {    
-	int i;
-	for(i=0;i<listlength(g->subnodes);i++) {
+	for(size_t i=0;i<listlength(g->subnodes);i++) {
 	    Symbol* sym = (Symbol*)listget(g->subnodes,i);
 	    char* tname;
 	    if(sym->objectclass == NC_PRIM
@@ -178,7 +177,7 @@ dumpgroup(Symbol* g)
 		tname = nctypename(sym->subclass);
 	    } else
 		tname = nctypename(sym->objectclass);
-	    fdebug("    %3d:  %s\t%s\t%s\n",
+	    fdebug("    %3zu:  %s\t%s\t%s\n",
 		i,
 		sym->name,
 		tname,

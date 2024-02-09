@@ -5,6 +5,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 
 #include "config.h"
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -429,7 +430,7 @@ pr_att_string(
     while (len != 0 && *sp-- == '\0')
 	len--;
     for (iel = 0; iel < len; iel++)
-	switch (uc = *cp++ & 0377) {
+	switch (uc = (unsigned char)(*cp++ & 0377)) {
 	case '\b':
 	    printf ("\\b");
 	    break;
@@ -500,7 +501,7 @@ pr_attx_string(
     while (len != 0 && *sp-- == '\0')
 	len--;
     for (iel = 0; iel < len; iel++)
-	switch (uc = *cp++ & 0377) {
+	switch (uc = (unsigned char)*cp++ & 0377) {
 	case '\"':
 	    printf ("&quot;");
 	    break;
@@ -908,7 +909,7 @@ pr_att(
 		   value = *((int64_t *)data + i);
 		   break;
 	       case NC_UINT64:
-		   value = *((uint64_t *)data + i);
+		   value = (int64_t)*((uint64_t *)data + i);
 		   break;
 	       default:
 		   error("enum must have an integer base type: %d", base_nc_type);
@@ -1395,7 +1396,7 @@ print_enum_type(int ncid, nc_type typeid) {
 	    memval = *(int64_t *)raw;
 	    break;
 	case NC_UINT64:
-	    memval = *(uint64_t *)raw;
+	    memval = (int64_t)*(uint64_t *)raw;
 	    break;
 	default:
 	    error("Bad base type for enum!");
@@ -2567,7 +2568,7 @@ searchgrouptreedim(int ncid, int dimid, int* parentidp)
     int gid;
     uintptr_t id;
 
-    id = ncid;
+    id = (uintptr_t)ncid;
     nclistpush(queue,(void*)id); /* prime the queue */
     while(nclistlength(queue) > 0) {
         id = (uintptr_t)nclistremove(queue,0);
@@ -2589,7 +2590,7 @@ searchgrouptreedim(int ncid, int dimid, int* parentidp)
             goto done;
 	/* push onto the end of the queue */
         for(i=0;i<nids;i++) {
-	    id = ids[i];
+	    id = (uintptr_t)ids[i];
 	    nclistpush(queue,(void*)id);
 	}
 	free(ids); ids = NULL;
