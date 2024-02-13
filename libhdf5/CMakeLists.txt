@@ -29,7 +29,7 @@ if(STATUS_PARALLEL)
 endif(STATUS_PARALLEL)
 
 message(STATUS "HDF5 INCLUDE FOR KYLE: ${HDF5_INCLUDE_DIR}")
-target_include_directories(netcdfhdf5 INTERFACE ${HDF5_INCLUDE_DIR})
+target_include_directories(netcdfhdf5 PRIVATE ${HDF5_INCLUDE_DIR})
 
 # Remember to package this file for CMake builds.
 add_extra_dist(${libnchdf5_SOURCES} CMakeLists.txt)
