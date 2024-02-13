@@ -28,7 +28,6 @@ if(STATUS_PARALLEL)
     target_link_libraries(netcdfhdf5 PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
 
-message(STATUS "HDF5 INCLUDE FOR KYLE: ${HDF5_INCLUDE_DIR}")
 target_include_directories(netcdfhdf5 PRIVATE ${HDF5_INCLUDE_DIR})
 
 # Remember to package this file for CMake builds.

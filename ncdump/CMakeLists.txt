@@ -53,6 +53,7 @@ if(ENABLE_DAP)
   add_executable(ocprint ${ocprint_FILES})
 endif(ENABLE_DAP)
 
+message(STATUS "ALL_TLL_LIBS INCLUDE FOR KYLE: ${ALL_TLL_LIBS}")
 target_link_libraries(ncdump netcdf ${ALL_TLL_LIBS})
 target_link_libraries(nccopy netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncvalidator netcdf ${ALL_TLL_LIBS})
