@@ -65,6 +65,7 @@ if(USE_HDF5)
   target_link_libraries(nc4print netcdf ${ALL_TLL_LIBS})
   target_link_libraries(printfqn netcdf ${ALL_TLL_LIBS})
   target_link_libraries(nchdf5version netcdf ${ALL_TLL_LIBS})
+  target_include_directories(ncdump PRIVATE ${HDF5_INCLUDE_DIR})
 endif(USE_HDF5)
 
 if(ENABLE_DAP)
