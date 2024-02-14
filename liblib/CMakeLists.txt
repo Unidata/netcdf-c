@@ -26,6 +26,7 @@ if(USE_HDF5)
     PRIVATE
       $<TARGET_OBJECTS:netcdfhdf5>
   )
+  target_include_directories(netcdf PUBLIC ${HDF5_INCLUDE_DIR})
 endif()
 
 if(USE_PNETCDF)
