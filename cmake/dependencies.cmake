@@ -124,7 +124,7 @@ if(USE_HDF5)
     set(HDF5_C_LIBRARY_hdf5 ${HDF5_C_LIBRARY} )
     set(HDF5_HL_LIBRARIES ${HDF5_HL_LIBRARY} )
     target_include_directories(netcdf
-      PUBLIC
+      PRIVATE
         ${HDF5_INCLUDE_DIR}
     )
     message(STATUS "Using HDF5 C Library: ${HDF5_C_LIBRARY}")
@@ -243,7 +243,7 @@ if(USE_HDF5)
     endif()
     message(STATUS "Using HDF5 include dir: ${HDF5_INCLUDE_DIR}")
     target_include_directories(netcdf
-      PUBLIC
+      PRIVATE
         ${HDF5_INCLUDE_DIR}
     )
 
@@ -415,14 +415,14 @@ if(USE_HDF5)
     message(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
   else(NOT HAVE_HDF5_H)
     target_include_directories(netcdf
-      PUBLIC
+      PRIVATE
         ${HAVE_HDF5_H}
     )
   endif(NOT HAVE_HDF5_H)
 
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   target_include_directories(netcdf
-    PUBLIC
+    PRIVATE
       ${HDF5_HL_INCLUDE_DIR}
   )
 
