@@ -124,7 +124,7 @@ if(USE_HDF5)
     set(HDF5_C_LIBRARY_hdf5 ${HDF5_C_LIBRARY} )
     set(HDF5_HL_LIBRARIES ${HDF5_HL_LIBRARY} )
     target_include_directories(netcdf
-      PRIVATE
+      PUBLIC
         ${HDF5_INCLUDE_DIR}
     )
     message(STATUS "Using HDF5 C Library: ${HDF5_C_LIBRARY}")
