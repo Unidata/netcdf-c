@@ -293,13 +293,13 @@ if(USE_HDF5)
   set(HDF5_PARALLEL ${HDF5_IS_PARALLEL})
 
   #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
+  check_library_exists(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
 
   # Check to see if H5Dread_chunk is available
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Dread_chunk "" HAS_READCHUNKS)
+  check_library_exists(${HDF5_C_LIBRARY_hdf5} H5Dread_chunk "" HAS_READCHUNKS)
 
   # Check to see if H5Pset_fapl_ros3 is available
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_fapl_ros3 "" HAS_HDF5_ROS3)
+  check_library_exists(${HDF5_C_LIBRARY_hdf5} H5Pset_fapl_ros3 "" HAS_HDF5_ROS3)
 
   # Check to see if this is hdf5-1.10.3 or later.
   if(HAS_READCHUNKS)
