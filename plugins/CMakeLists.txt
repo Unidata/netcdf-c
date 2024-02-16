@@ -72,7 +72,7 @@ macro(buildplugin TARGET TARGETLIB)
   endif(STATUS_PARALLEL)
 
   if (USE_HDF5)
-    target_include_directories(${TARGET} PRIVATE ${HDF5_INCLUDE_DIR})
+    target_link_libraries(${TARGET} PRIVATE HDF5::HDF5)
   endif(USE_HDF5)
 endmacro()
 
