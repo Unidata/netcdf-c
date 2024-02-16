@@ -45,8 +45,13 @@ add_executable(ncfilteravail ${ncfilteravail_FILES})
 
 if(USE_HDF5)
   add_executable(nc4print nc4print.c nc4printer.c)
+  target_link_libraries(nc4print netcdf ${ALL_TLL_LIBS})
+
   add_executable(printfqn  ${printfqn_FILES})
+  target_link_libraries(printfqn netcdf ${ALL_TLL_LIBS})
+
   add_executable(nchdf5version ${nchdf5version_FILES})
+  target_link_libraries(nchdf5version netcdf ${ALL_TLL_LIBS})
 endif(USE_HDF5)
 
 if(ENABLE_DAP)
@@ -59,13 +64,6 @@ target_link_libraries(nccopy netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncvalidator netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncpathcvt netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncfilteravail netcdf ${ALL_TLL_LIBS})
-
-if(USE_HDF5)
-  target_link_libraries(nc4print netcdf ${ALL_TLL_LIBS})
-  target_link_libraries(printfqn netcdf ${ALL_TLL_LIBS})
-  target_link_libraries(nchdf5version netcdf ${ALL_TLL_LIBS})
-  target_include_directories(ncdump PRIVATE ${HDF5_INCLUDE_DIR})
-endif(USE_HDF5)
 
 if(ENABLE_DAP)
   target_link_libraries(ocprint netcdf ${ALL_TLL_LIBS})
@@ -127,7 +125,7 @@ endif()
 
   IF(USE_HDF5)
     add_executable(tst_fileinfo tst_fileinfo.c)
-    target_link_libraries(tst_fileinfo netcdf)
+    target_link_libraries(tst_fileinfo netcdf ${ALL_TLL_LIBS})
   ENDIF()
 
   IF(MSVC)
