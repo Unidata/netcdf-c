@@ -62,7 +62,7 @@ add_library(nczarr OBJECT ${libnczarr_SOURCES})
 target_include_directories(nczarr PUBLIC ../libncpoco)
 
 if (USE_HDF5)
-    target_include_directories(nczarr PRIVATE ${HDF5_INCLUDE_DIR})
+    target_link_libraries(nczarr PRIVATE HDF5::HDF5)
 endif(USE_HDF5)
 
 if(STATUS_PARALLEL)

@@ -23,7 +23,7 @@
 #include "ncpathmgr.h"
 #include "nclog.h"
 
-#ifdef HAVE_HDF5_H
+#ifdef USE_HDF5
 #include <hdf5.h>
 #include <H5DSpublic.h>
 #endif
