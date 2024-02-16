@@ -320,16 +320,9 @@ if(USE_HDF5)
     set(HAS_PAR_FILTERS no CACHE STRING "" )
   endif()
 
-  set(HAVE_HDF5_H ${HDF5_C_INCLUDE_DIR})
   target_include_directories(netcdf
     PRIVATE
-    ${HAVE_HDF5_H}
-  )
-
-  #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
-  target_include_directories(netcdf
-    PRIVATE
-      ${HDF5_HL_INCLUDE_DIR}
+    ${HDF5_INCLUDE_DIRS}
   )
 
 endif(USE_HDF5)
