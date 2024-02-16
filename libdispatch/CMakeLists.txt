@@ -69,7 +69,7 @@ endif(REGEDIT)
 
 
 if (USE_HDF5)
-  target_include_directories(dispatch PRIVATE ${HDF5_INCLUDE_DIR})
+  target_link_libraries(dispatch PRIVATE HDF5::HDF5)
 endif(USE_HDF5)
 
 if(STATUS_PARALLEL)

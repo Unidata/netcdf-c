@@ -140,23 +140,7 @@ if(ENABLE_NCZARR_ZIP)
 endif()
 
 if(USE_HDF5)
-  if(NOT MSVC)
-    # Some version of cmake define HDF5_hdf5_LIBRARY instead of
-    # HDF5_LIBRARY. Same with HDF5_HL_LIBRARIES
-    if(HDF5_hdf5_LIBRARY AND NOT HDF5_C_LIBRARIES)
-      set(HDF5_C_LIBRARIES ${HDF5_hdf5_LIBRARY})
-    endif()
-    if(HDF5_hdf5_hl_LIBRARY AND NOT HDF5_HL_LIBRARIES)
-      set(HDF5_HL_LIBRARIES ${HDF5_hdf5_hl_LIBRARY})
-    endif()
-    # The order of the libraries is important here for static
-    # builds:
-    # Make sure that HDF5_C_LIBRARY appears *after*
-    # HDF5_HL_LIBRARY.
-    set(TLL_LIBS ${HDF5_HL_LIBRARIES} ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${TLL_LIBS} ${Szip_LIBRARY})
-  else() # Windows CMake defines HDF5_LIBRARIES.
-    set(TLL_LIBS ${HDF5_LIBRARIES} ${TLL_LIBS} ${Szip_LIBRARY})
-  endif()
+  set(TLL_LIBS HDF5::HDF5 hdf5::hdf5_hl ${TLL_LIBS} ${Szip_LIBRARY})
 endif()
 
 if(FOUND_CURL)

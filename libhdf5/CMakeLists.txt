@@ -28,7 +28,7 @@ if(STATUS_PARALLEL)
     target_link_libraries(netcdfhdf5 PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
 
-target_include_directories(netcdfhdf5 PUBLIC ${HDF5_INCLUDE_DIR})
+target_link_libraries(netcdfhdf5 PUBLIC HDF5::HDF5)
 
 # Remember to package this file for CMake builds.
 add_extra_dist(${libnchdf5_SOURCES} CMakeLists.txt)

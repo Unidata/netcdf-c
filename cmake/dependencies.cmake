@@ -128,9 +128,9 @@ if(USE_HDF5)
   find_package(HDF5 ${HDF5_VERSION_REQUIRED} COMPONENTS C HL REQUIRED)
 
   message(STATUS "Using HDF5 include dir: ${HDF5_INCLUDE_DIRS}")
-  target_include_directories(netcdf
+  target_link_libraries(netcdf
     PRIVATE
-    ${HDF5_INCLUDE_DIRS}
+    HDF5::HDF5
   )
 
   find_package(Threads)
@@ -209,12 +209,6 @@ if(USE_HDF5)
     set(HDF5_HAS_PAR_FILTERS FALSE CACHE BOOL "" )
     set(HAS_PAR_FILTERS no CACHE STRING "" )
   endif()
-
-  target_include_directories(netcdf
-    PRIVATE
-    ${HDF5_INCLUDE_DIRS}
-  )
-
 endif(USE_HDF5)
 
 ################################
