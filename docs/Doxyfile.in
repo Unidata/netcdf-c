@@ -1404,7 +1404,7 @@ HTML_COLORSTYLE        = LIGHT
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = images/uniLogo.png \
+HTML_EXTRA_FILES       = @abs_top_srcdir@/docs/images/uniLogo.png \
                 @abs_top_srcdir@/docs/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js
 
 # The HTML_COLORSTYLE tag can be used to specify if the generated HTML output
