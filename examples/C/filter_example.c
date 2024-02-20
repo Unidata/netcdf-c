@@ -9,7 +9,7 @@ This file is the same as nc_test4/test_filter.c
 /*! \file
 Example program for write then read of a variable using bzip2 compression.
 
-\ingroup tutorial
+@ingroup tutorial
 
 This is an example which 
 creates a file with a variable that is compressed using bzip2.

@@ -14,7 +14,9 @@ notes.md install-fortran.md credits.md auth.md filters.md		\
 obsolete/fan_utils.html indexing.dox inmemory.md FAQ.md			\
 known_problems.md COPYRIGHT.md inmeminternal.dox testserver.dox		\
 byterange.md nczarr.md quantize.md all-error-codes.md                   \
-quickstart_paths.md cloud.md
+quickstart_paths.md cloud.md header.html attribute_conventions.md \
+file_format_specifications.md quickstart_filters.md \
+doxygen-awesome-css netcdf-50x50.png
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
@@ -54,8 +56,7 @@ endif
 # includes them in the documentation.
 
 doxyfile.stamp:
-	$(DOXYGEN) Doxyfile \
-	cp auth.md obsolete/fan_utils.html html
+	$(DOXYGEN) Doxyfile && cp $(top_srcdir)/docs/auth.md $(top_srcdir)/docs/obsolete/fan_utils.html html
 
 CLEANFILES = doxyfile.stamp
 
