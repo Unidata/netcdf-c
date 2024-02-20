@@ -38,7 +38,7 @@ endif ()
 # The target
 ################################
 
-add_library(netcdf)
+add_library(netcdf SHARED)
 add_library(netCDF::netcdf ALIAS netcdf)
 
 set_target_properties(netcdf PROPERTIES
