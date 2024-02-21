@@ -287,12 +287,12 @@ endif()
 # Suppress CRT Warnings.
 # Only necessary for Windows
 if(MSVC)
-  target_compile_definitions(netcdf PRIVATE -D_CRT_SECURE_NO_WARNINGS)
+  target_compile_definitions(netcdf PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
 # Support ANSI format specifiers for *printf on MINGW:
 if(MINGW)
-  target_compile_definitions(netcdf PRIVATE -D__USE_MINGW_ANSI_STDIO=1)
+  target_compile_definitions(netcdf PRIVATE __USE_MINGW_ANSI_STDIO=1)
 endif()
 
 #####
@@ -468,8 +468,7 @@ if(WIN32)
   option(ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
   if(ENABLE_DLL)
     set(BUILD_DLL ON CACHE BOOL "")
-    add_compile_definitions(-DDLL_NETCDF)
-    add_compile_definitions(-DDLL_EXPORT)
+    target_compile_definitions(netcdf PRIVATE DLL_NETCDF DLL_EXPORT)
   endif()
 endif()
 # Did the user specify a default minimum blocksize for posixio?
@@ -492,8 +491,7 @@ if(NOT ENABLE_NETCDF_4)
 set(ENABLE_LOGGING OFF)
 endif()
 if(ENABLE_LOGGING)
-  target_compile_definitions(netcdf PRIVATE -DLOGGING)
-  target_compile_definitions(netcdf PRIVATE -DENABLE_SET_LOG_LEVEL)
+  target_compile_definitions(netcdf PRIVATE LOGGING ENABLE_SET_LOG_LEVEL)
   set(LOGGING ON)
   set(ENABLE_SET_LOG_LEVEL ON)
 endif()
@@ -992,7 +990,7 @@ endif()
 
 if(ENABLE_ZERO_LENGTH_COORD_BOUND)
   message(STATUS "Enabling a more relaxed check for NC_EINVALCOORDS")
-  target_compile_definitions(netcdf PRIVATE -DRELAX_COORD_BOUND)
+  target_compile_definitions(netcdf PRIVATE RELAX_COORD_BOUND)
 endif()
 
 # Enable Parallel Tests.
