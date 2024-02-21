@@ -309,7 +309,6 @@ jobs:
             *.tgz
 
 
-
   ##
   # Parallel
   ##
@@ -496,6 +495,7 @@ jobs:
 
       - run: echo "CMAKE_PREFIX_PATH=${HOME}/environments/${{ matrix.hdf5 }}/" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
+      - run: echo "CMAKE_C_FLAGS=-fPIC" >> $GITHUB_ENV
 
       ###
       # Fetch Cache
@@ -521,7 +521,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -DENABLE_DAP_LONG_TESTS=TRUE -DENABLE_XML2=FALSE -DBUILD_SHARED_LIBS=FALSE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -DENABLE_DAP_LONG_TESTS=TRUE -DENABLE_XML2=FALSE -DBUILD_SHARED_LIBS=FALSE -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
 
       - name: Print Summary
         shell: bash -l {0}
