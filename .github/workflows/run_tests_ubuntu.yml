@@ -356,7 +356,7 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make VERBOSE=1
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j 12
         if: ${{ success() }}
 
       - name: Run Tests

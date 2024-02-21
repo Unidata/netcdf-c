@@ -41,10 +41,6 @@ endif ()
 add_library(netcdf SHARED)
 add_library(netCDF::netcdf ALIAS netcdf)
 
-set_target_properties(netcdf PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-)
-
 #####
 # Version Info:
 #
