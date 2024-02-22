@@ -334,7 +334,7 @@ jobs:
   nc-cmake-tests-oneoff-osx-shared:
 
     needs: build-deps-osx
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
