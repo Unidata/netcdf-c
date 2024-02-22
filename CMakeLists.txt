@@ -38,7 +38,17 @@ endif ()
 # The target
 ################################
 
-add_library(netcdf SHARED)
+##
+# Default building shared libraries.
+# BUILD_SHARED_LIBS is provided by/used by
+# CMake directly.
+##
+option(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
+if(BUILD_SHARED_LIBS)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
+add_library(netcdf)
 add_library(netCDF::netcdf ALIAS netcdf)
 
 #####
@@ -212,16 +222,6 @@ include(GenerateExportHeader)
 ################################
 # Compiler and Linker Configuration
 ################################
-
-##
-# Default building shared libraries.
-# BUILD_SHARED_LIBS is provided by/used by
-# CMake directly.
-##
-option(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
-if(BUILD_SHARED_LIBS)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
 
 option(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
 
