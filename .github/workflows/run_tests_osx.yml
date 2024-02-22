@@ -412,7 +412,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
 
     steps:
 
