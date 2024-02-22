@@ -16,7 +16,7 @@ jobs:
 
   build-deps-osx:
 
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
@@ -52,7 +52,7 @@ jobs:
   nc-autotools-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
@@ -158,7 +158,7 @@ jobs:
   nc-cmake-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
@@ -253,7 +253,7 @@ jobs:
   nc-ac-tests-oneoff-osx:
 
     needs: build-deps-osx
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
@@ -408,7 +408,7 @@ jobs:
   nc-cmake-tests-oneoff-osx-static:
 
     needs: build-deps-osx
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
