@@ -2,7 +2,7 @@
    Research/Unidata.  See COPYRIGHT file for conditions of use. */
 /**
  * @file
- * @ingroup tutorial
+ * @defgroup tutorial Tutorial Examples
  * A more complex example of writing a netCDF file.
  *
  * This is an example program which writes some 4D pressure and

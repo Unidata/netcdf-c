@@ -24,6 +24,7 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <netcdf.h>
+#include "nctime.h"
 #include "utils.h"
 #include "nccomps.h"
 #include "dumplib.h"		/* for sbuf_... prototypes */
@@ -55,12 +56,11 @@ bounds_add(char *bounds_name, int ncid, int varid) {
  * calendar type, if present. */
 cdCalenType
 calendar_type(int ncid, int varid) {
-    int ctype;
     int stat;
     ncatt_t catt;
     static struct {
 	char* attname;
-	int type;
+	cdCalenType type;
     } calmap[] = {
 	{"gregorian", cdMixed},
 	{"standard", cdMixed}, /* synonym */
@@ -77,7 +77,7 @@ calendar_type(int ncid, int varid) {
     };
 #define CF_CAL_ATT_NAME "calendar"
     int ncals = (sizeof calmap)/(sizeof calmap[0]);
-    ctype = cdMixed;  /* default mixed Gregorian/Julian ala udunits */
+    cdCalenType ctype = cdMixed;  /* default mixed Gregorian/Julian ala udunits */
     stat = nc_inq_att(ncid, varid, CF_CAL_ATT_NAME, &catt.type, &catt.len);
     if(stat == NC_NOERR && (catt.type == NC_CHAR || catt.type == NC_STRING) && catt.len > 0) {
 	char *calstr;
@@ -88,7 +88,7 @@ calendar_type(int ncid, int varid) {
 	nc_get_att_single_string(ncid, varid, &catt, &calstr);
 
 	int itype;
-	int calstr_len = strlen(calstr);
+	size_t calstr_len = strlen(calstr);
 	for(itype = 0; itype < ncals; itype++) {
 	    if(strncasecmp(calstr, calmap[itype].attname, calstr_len) == 0) {
 		ctype = calmap[itype].type;
