@@ -627,8 +627,11 @@ endif()
 # Try to enable NCZarr zip support
 option(ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
 
+include(CMakeDependentOption)
+
 # libdl is always available; built-in in Windows and OSX
-option(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)." ON)
+cmake_dependent_option(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
+  ON "BUILD_SHARED_LIBS" OFF)
 if(MINGW)
     set(ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
 else()
