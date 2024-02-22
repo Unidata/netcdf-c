@@ -15,7 +15,7 @@ main(int argc, char** argv)
     char vn[256];  
     char* major, *minor, *patch;
     char* p;
-    int i;
+    size_t i;
 
     strcpy(v5,H5_VERSION);
     major = v5; minor = NULL; patch = NULL;
