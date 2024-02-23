@@ -1478,12 +1478,6 @@ if(ENABLE_PLUGINS)
   add_subdirectory(plugins)
 endif()
 
-# For tests and utilities, we are no longer
-# exporting symbols but rather importing them.
-if(BUILD_DLL)
-  remove_definitions(-DDLL_EXPORT)
-endif()
-
 # Enable Utilities.
 if(BUILD_UTILITIES)
   include_directories(ncdump)
