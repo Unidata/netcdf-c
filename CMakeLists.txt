@@ -132,7 +132,7 @@ include(GNUInstallDirs)
 
 if(MSVC)
   set(GLOBAL PROPERTY USE_FOLDERS ON)
-  target_compile_options(netcdf "/utf-8")
+  target_compile_options(netcdf PUBLIC "/utf-8")
 endif()
 
 # auto-configure style checks, other CMake modules.
