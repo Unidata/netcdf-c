@@ -192,12 +192,6 @@ if(MSVC)
     )
 endif()
 
-if(NOT MSVC)
-  if(BUILD_SHARED_LIBS)
-    set_target_properties(netcdf PROPERTIES LINK_FLAGS -shared)
-  endif()
-endif()
-
 if(ENABLE_SHARED_LIBRARY_VERSION)
   set_target_properties(netcdf PROPERTIES
     VERSION ${netCDF_LIB_VERSION}
