@@ -227,6 +227,9 @@ target_include_directories(netcdf
     ${CURL_INCLUDE_DIRS}
 )
 
+
+
+MESSAGE(STATUS "Found CURL_INCLUDE_DIRS: ${CURL_INCLUDE_DIRS}")
 # Define a test flag for have curl library
 if(CURL_LIBRARIES OR CURL_LIBRARY)
   set(FOUND_CURL TRUE)

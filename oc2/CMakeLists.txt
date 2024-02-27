@@ -6,12 +6,17 @@
 # See netcdf-c/COPYRIGHT file for more info.
 SET(oc_SOURCES oc.c daplex.c dapparse.c dapy.c occompile.c occurlfunctions.c ocdata.c ocdebug.c ocdump.c ocinternal.c ocnode.c ochttp.c ocread.c ocutil.c xxdr.c)
 
-
 add_library(oc2 OBJECT ${oc_SOURCES})
 
 IF(STATUS_PARALLEL)
   target_link_libraries(oc2 PUBLIC MPI::MPI_C)
 ENDIF(STATUS_PARALLEL)
+target_link_libraries(oc2 PUBLIC ${CURL_LIBRARIES})
+target_include_directories(oc2 PUBLIC ${CURL_INCLUDE_DIRS})
+target_compile_options(oc2
+  PRIVATE
+    -DCURL_STATICLIB=1
+)
 
 # Apparently fails under cmake
 #set(ocprint_FILES ocprint.c )
