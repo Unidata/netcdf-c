@@ -96,12 +96,12 @@ if(MOD_NETCDF_NAME)
 endif()
 
 # Make sure that netcdf.dll path does not include the build configuration
-if(MSVC)
-  set_target_properties(netcdf PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
-endif()
+#if(MSVC)
+#  set_target_properties(netcdf PROPERTIES
+#    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+#    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+#    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+#endif()
 
 #####
 # Add dependencies required for linking.

@@ -49,6 +49,14 @@ endif(ENABLE_BYTERANGE)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES})
 
+if (ENABLE_BYTERANGE)
+  target_include_directories(netcdf3 PUBLIC ${CURL_INCLUDE_DIRS})
+  target_compile_options(netcdf3
+    PRIVATE
+      -DCURL_STATICLIB=1
+  )
+endif (ENABLE_BYTERANGE)
+
 if(STATUS_PARALLEL)
   target_link_libraries(netcdf3 PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
