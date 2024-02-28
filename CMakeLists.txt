@@ -1474,8 +1474,20 @@ endif()
 
 add_subdirectory(liblib)
 
+# For tests and utilities, we are no longer
+# exporting symbols but rather importing them.
+if(BUILD_DLL)
+  REMOVE_DEFINITIONS(-DDLL_EXPORT)
+endif()
+
 if(ENABLE_PLUGINS)
   add_subdirectory(plugins)
+endif()
+
+# For tests and utilities, we are no longer
+# exporting symbols but rather importing them.
+if(BUILD_DLL)
+  REMOVE_DEFINITIONS(-DDLL_EXPORT)
 endif()
 
 # Enable Utilities.
