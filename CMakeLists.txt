@@ -468,7 +468,7 @@ if(WIN32)
   option(ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
   if(ENABLE_DLL)
     set(BUILD_DLL ON CACHE BOOL "")
-    target_compile_definitions(netcdf PRIVATE DLL_NETCDF DLL_EXPORT)
+    add_definitions(-DDLL_NETCDF -DDLL_EXPORT)
   endif()
 endif()
 # Did the user specify a default minimum blocksize for posixio?
@@ -1406,7 +1406,7 @@ endif(ENABLE_BASH_SCRIPT_TESTING)
 configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
   "${netCDF_BINARY_DIR}/config.h")
 
-add_compile_definitions(-DHAVE_CONFIG_H)
+add_definitions(-DHAVE_CONFIG_H)
 
 include_directories(${netCDF_BINARY_DIR})
 # End autotools-style checks for config.h
