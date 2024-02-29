@@ -11,6 +11,10 @@ nc4internal.c nc4type.c nc4var.c ncfunc.c ncindex.c nc4cache.c)
 
 add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
 
+if (ENABLE_DLL)
+  target_compile_definitions(netcdf4 PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
+
 if(STATUS_PARALLEL)
   target_link_libraries(netcdf4 PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
