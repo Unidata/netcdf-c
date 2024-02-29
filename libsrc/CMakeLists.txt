@@ -49,6 +49,10 @@ endif(ENABLE_BYTERANGE)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES})
 
+if (ENABLE_DLL)
+  target_compile_definitions(netcdf3 PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
+
 if (ENABLE_BYTERANGE)
   target_include_directories(netcdf3 PUBLIC ${CURL_INCLUDE_DIRS})
   target_compile_options(netcdf3

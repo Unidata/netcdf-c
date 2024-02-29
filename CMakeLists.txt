@@ -468,7 +468,7 @@ if(WIN32)
   option(ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
   if(ENABLE_DLL)
     set(BUILD_DLL ON CACHE BOOL "")
-    add_definitions(-DDLL_NETCDF -DDLL_EXPORT)
+    target_compile_definitions(netcdf PRIVATE DLL_NETCDF DLL_EXPORT)
   endif()
 endif()
 # Did the user specify a default minimum blocksize for posixio?
