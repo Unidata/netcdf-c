@@ -69,5 +69,9 @@ if(STATUS_PARALLEL)
     target_link_libraries(nczarr PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
 
+if (ENABLE_DLL)
+    target_compile_definitions(nczarr PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
+
 # Remember to package this file for CMake builds.
 ADD_EXTRA_DIST(${libnczarr_SOURCES} CMakeLists.txt)

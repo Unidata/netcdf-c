@@ -13,6 +13,10 @@ target_sources(dispatch
     dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c
 )
 
+if (ENABLE_DLL)
+  target_compile_definitions(dispatch PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
+
 ## 
 # Turn off inclusion of particular files when using the cmake-native
 # option to turn on Unity Builds.  
