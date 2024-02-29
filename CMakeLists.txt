@@ -632,7 +632,9 @@ include(CMakeDependentOption)
 # libdl is always available; built-in in Windows and OSX
 cmake_dependent_option(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
   ON "BUILD_SHARED_LIBS" OFF)
+MESSAGE(STATUS "ENABLE_PLUGINS: ${ENABLE_PLUGINS}")
 if(MINGW)
+    message(STATUS "MINGW Detected, disabling plugins.")
     set(ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
 else()
   if(NOT WIN32)
@@ -641,6 +643,7 @@ else()
     endif()
   endif()
 endif()
+
 if(ENABLE_PLUGINS)
   set(USEPLUGINS yes)
 endif()
@@ -1028,8 +1031,8 @@ option(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ON)
 option(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ON)
 
 # Constraints
-IF (NOT ENABLE_PLUGINS)
-  message(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
+if (NOT ENABLE_PLUGINS AND ENABLE_NCZARR_FILTERS)
+  message(WARNING "ENABLE_NCZARR_FILTERS requires ENABLE_PLUGINS. Disabling.")
   set(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 endif()
 
