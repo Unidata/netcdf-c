@@ -1013,7 +1013,7 @@ IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
 endif()
 
 # Enable special filter test; experimental when using cmake.
-option(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ON)
+option(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_PLUGINS})
 
 if(ENABLE_FILTER_TESTING)
   if(NOT ENABLE_HDF5 AND NOT ENABLE_NCZARR)
@@ -1027,8 +1027,8 @@ if(NOT BUILD_SHARED_LIBS)
   set(ENABLE_FILTER_TESTING OFF)
 endif()
 
-option(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ON)
-option(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ON)
+option(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ${ENABLE_PLUGINS})
+option(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ${ENABLE_NCZARR_FILTERS})
 
 # Constraints
 if (NOT ENABLE_PLUGINS AND ENABLE_NCZARR_FILTERS)
