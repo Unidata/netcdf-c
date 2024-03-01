@@ -18,9 +18,9 @@ function(check_hdf5_feature_header)
 
   message(STATUS "Checking for HDF5 config header")
   foreach(_h5_header "H5public.h" "H5pubconf.h" "H5pubconf-64.h" "H5pubconf-32.h")
-    check_include_file(${_h5_header} _can_include_h5_header)
+    check_include_file(${_h5_header} _can_include_h5_header${_h5_header})
 
-    if (_can_include_h5_header)
+    if (_can_include_h5_header${_h5_header})
       message(STATUS "Using ${_h5_header} to check for feature macros")
       set(_H5_FEATURE_HEADER ${_h5_header} CACHE INTERNAL "")
       return()
