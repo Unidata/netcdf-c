@@ -1214,7 +1214,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
                 hsize_t dims[NC_MAX_VAR_DIMS];
 
                 for (d = 0; d < field->ndims; d++)
-                    dims[d] = field->dim_size[d];
+                    dims[d] = (hsize_t)field->dim_size[d];
                 if ((hdf_typeid = H5Tarray_create1(hdf_base_typeid, field->ndims,
 						   dims, NULL)) < 0)
                 {
@@ -2350,7 +2350,6 @@ reportopenobjectsT(int uselog, hid_t fid, int ntypes, unsigned int* otypes)
 {
     int t,i;
     ssize_t ocount;
-    size_t maxobjs = -1;
     hid_t* idlist = NULL;
 
     /* Always report somehow */
@@ -2360,7 +2359,7 @@ reportopenobjectsT(int uselog, hid_t fid, int ntypes, unsigned int* otypes)
     else
 #endif
         fprintf(stdout,"\nReport: open objects on %lld\n",(long long)fid);
-    maxobjs = H5Fget_obj_count(fid,H5F_OBJ_ALL);
+    size_t maxobjs = (size_t)H5Fget_obj_count(fid,H5F_OBJ_ALL);
     if(idlist != NULL) free(idlist);
     idlist = (hid_t*)malloc(sizeof(hid_t)*maxobjs);
     for(t=0;t<ntypes;t++) {
@@ -2573,7 +2572,7 @@ static int
 NC4_walk(hid_t gid, int* countp)
 {
     int ncstat = NC_NOERR;
-    int i,j,na;
+    int j,na;
     ssize_t len;
     hsize_t nobj;
     herr_t err;
@@ -2585,12 +2584,12 @@ NC4_walk(hid_t gid, int* countp)
     err = H5Gget_num_objs(gid, &nobj);
     if(err < 0) return err;
 
-    for(i = 0; i < nobj; i++) {
+    for(hsize_t i = 0; i < nobj; i++) {
         /* Get name & kind of object in the group */
-        len = H5Gget_objname_by_idx(gid,(hsize_t)i,name,(size_t)NC_HDF5_MAX_NAME);
-        if(len < 0) return len;
+        len = H5Gget_objname_by_idx(gid,i,name,(size_t)NC_HDF5_MAX_NAME);
+        if(len < 0) return (int)len;
 
-        otype =  H5Gget_objtype_by_idx(gid,(size_t)i);
+        otype =  H5Gget_objtype_by_idx(gid, i);
         switch(otype) {
         case H5G_GROUP:
 	    grpid = H5Gopen1(gid,name);
