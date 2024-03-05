@@ -14,7 +14,7 @@ cd $ISOPATH
 # Test ability to detect NCZarr/Zarr files
 
 URL="${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
-KEY="/${S3ISOPATH}"
+KEY="${S3ISOPATH}"
 
 sometestfailed=
 
@@ -30,7 +30,7 @@ cp ${srcdir}/ref_notzarr.tar.gz .
 gunzip ref_notzarr.tar.gz
 tar -xf ref_notzarr.tar
 if test "x$FEATURE_S3TESTS" = xyes ; then
-    ${execdir}/s3util -f notzarr.file/notzarr.txt -u "https://${URL}" -k "//${S3ISOPATH}/notzarr.s3/notzarr.txt" upload
+    ${execdir}/s3util -f notzarr.file/notzarr.txt -u "https://${URL}" -k "${S3ISOPATH}/notzarr.s3/notzarr.txt" upload
 fi
 
 echo "Test empty file"

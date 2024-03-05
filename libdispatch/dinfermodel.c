@@ -902,13 +902,16 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
         ncurisetfragments(uri,sfrag);
         nullfree(sfrag); sfrag = NULL;
 
+#ifdef ENABLE_S3
 	/* If s3, then rebuild the url */
-	if(NC_iss3(uri)) {
+	if(NC_iss3(uri,NULL)) {
 	    NCURI* newuri = NULL;
 	    if((stat = NC_s3urlrebuild(uri,NULL,&newuri))) goto done;
 	    ncurifree(uri);
 	    uri = newuri;
-	} else if(strcmp(uri->protocol,"file")==0) {
+	} else
+#endif
+	if(strcmp(uri->protocol,"file")==0) {
             /* convert path to absolute */
 	    char* canon = NULL;
 	    abspath = NCpathabsolute(uri->path);
