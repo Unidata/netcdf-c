@@ -542,7 +542,7 @@ ncurirebuild(NCURI* duri)
 
 /* Replace a specific fragment key*/
 int
-ncurisetfragmentkey(NCURI* duri,const char* key, const char* value)
+ncurisetfragmentkey(NCURI* duri, const char* key, const char* value)
 {
     int ret = NC_NOERR;
     int pos = -1;
@@ -551,8 +551,8 @@ ncurisetfragmentkey(NCURI* duri,const char* key, const char* value)
     pos = ncfind(duri->fraglist, key);
     if(pos < 0) { /* does not exist */
 	if(duri->fraglist == NULL) duri->fraglist = nclistnew();
-	nclistpush(duri->fraglist,key);
-	nclistpush(duri->fraglist,value);
+	nclistpush(duri->fraglist,strdup(key));
+	nclistpush(duri->fraglist,strdup(value));
     } else {
         nullfree(nclistget(duri->fraglist,(size_t)pos+1));
         nclistset(duri->fraglist,(size_t)pos+1,strdup(value));

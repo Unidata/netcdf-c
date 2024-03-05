@@ -2109,8 +2109,15 @@ NC_freeglobalstate(void)
         nullfree(nc_globalstate->tempdir);
         nullfree(nc_globalstate->home);
         nullfree(nc_globalstate->cwd);
-        NC_rcclear(nc_globalstate->rcinfo);
-	free(nc_globalstate->rcinfo);
+	nullfree(nc_globalstate->aws.default_region);
+	nullfree(nc_globalstate->aws.config_file);
+	nullfree(nc_globalstate->aws.profile);
+	nullfree(nc_globalstate->aws.access_key_id);
+	nullfree(nc_globalstate->aws.secret_access_key);
+        if(nc_globalstate->rcinfo) {
+	    NC_rcclear(nc_globalstate->rcinfo);
+	    free(nc_globalstate->rcinfo);
+	}
 	free(nc_globalstate);
 	nc_globalstate = NULL;
     }
