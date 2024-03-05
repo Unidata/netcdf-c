@@ -141,7 +141,7 @@ main(int argc, char **argv)
       /* Create some HDF4 datasets. */
       for (t = 0; t < NUM_TYPES; t++)
       {
-	 sprintf(tmp_name, "hdf4_dataset_type_%d", t);
+	 snprintf(tmp_name, sizeof(tmp_name), "hdf4_dataset_type_%d", t);
 	 if ((sds_id = SDcreate(sd_id, tmp_name, hdf4_type[t],
 				DIMS_3, dim_size)) == FAIL) ERR;
 	 /* Set up dimensions. By giving them the same names for each

@@ -7,6 +7,7 @@
 #include "ncd4dispatch.h"
 #include "d4includes.h"
 #include "d4curlfunctions.h"
+#include <stddef.h>
 
 #ifdef _MSC_VER
 #include <process.h>
@@ -301,7 +302,7 @@ set_curl_properties(NCD4INFO* d4info)
 	/* If no cookie file was defined, define a default */
         char* path = NULL;
         char* newpath = NULL;
-        int len;
+        size_t len;
 	errno = 0;
 	NCglobalstate* globalstate = NC_getglobalstate();
 
@@ -678,7 +679,7 @@ NCD4_newMeta(NCD4INFO* info, NCD4meta** metap)
 void
 NCD4_reclaimMeta(NCD4meta* dataset)
 {
-    int i;
+    size_t i;
     if(dataset == NULL) return;
 
     for(i=0;i<nclistlength(dataset->allnodes);i++) {

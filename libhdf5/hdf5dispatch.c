@@ -142,6 +142,9 @@ NC_HDF5_initialize(void)
 int
 NC_HDF5_finalize(void)
 {
+#ifdef ENABLE_BYTERANGE
+    (void)H5FD_http_finalize();
+#endif
     (void)nc4_hdf5_finalize();
     return NC_NOERR;
 }

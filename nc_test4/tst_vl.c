@@ -8,6 +8,7 @@
 */
 
 #include <nc_tests.h>
+#include <stddef.h>
 #include "err_macros.h"
 #include "netcdf.h"
 
@@ -38,7 +39,7 @@ main(int argc, char **argv)
       char name_in[NC_MAX_NAME + 1];
       int *phony, class_in;
       size_t len_in;
-      int i, j;
+      size_t i, j;
 
       /* Create phony data. */
       for (i=0; i<DIM_LEN; i++)
@@ -77,7 +78,7 @@ main(int argc, char **argv)
 	 for (j = 0; j < data_in[i].len; j++)
 	    if (*((int *)data_in[i].p) != PHONY_VAL)
 	    {
-	       printf("*((int *)data_in[%d].p = %d (0x%x)\n", i, *((int *)data_in[i].p),
+	       printf("*((int *)data_in[%zu].p = %d (0x%x)\n", i, *((int *)data_in[i].p),
 		      *((int *)data_in[i].p));
 	       ERR;
 	       return 2;
@@ -110,7 +111,7 @@ main(int argc, char **argv)
       int ncid, typeid;
       nc_vlen_t data[DIM_LEN], data_in[DIM_LEN];
       int *phony;
-      int i, j;
+      size_t i, j;
 
       /* Create phony data. */
       for (i=0; i<DIM_LEN; i++)
@@ -142,7 +143,7 @@ main(int argc, char **argv)
 	 for (j=0; j<data_in[i].len; j++)
 	    if (*((int *)data_in[i].p) != *((int *)data[i].p))
 	    {
-	       printf("*((int *)data_in[%d].p = %d (0x%x)\n", i, *((int *)data_in[i].p),
+	       printf("*((int *)data_in[%zu].p = %d (0x%x)\n", i, *((int *)data_in[i].p),
 		      *((int *)data_in[i].p));
 	       ERR;
 	       return 2;
@@ -164,7 +165,7 @@ main(int argc, char **argv)
       char name_in[NC_MAX_NAME + 1];
       int *phony, class_in;
       size_t len_in;
-      int i, j;
+      size_t i, j;
 
       /* Create phony data. */
       for (i=0; i<DIM_LEN; i++)
@@ -201,7 +202,7 @@ main(int argc, char **argv)
 	 for (j = 0; j < data_in[i].len; j++)
 	    if (*((int *)data_in[i].p) != PHONY_VAL)
 	    {
-	       printf("*((int *)data_in[%d].p = %d (0x%x)\n", i, *((int *)data_in[i].p),
+	       printf("*((int *)data_in[%zu].p = %d (0x%x)\n", i, *((int *)data_in[i].p),
 		      *((int *)data_in[i].p));
 	       ERR;
 	       return 2;

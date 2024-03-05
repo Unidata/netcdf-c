@@ -115,7 +115,7 @@ static const char nada[4] = {0, 0, 0, 0};
 /* useful for aligning memory */
 #define _RNDUP(x, unit) ((((x) + (unit) - 1) / (unit)) * (unit))
 
-#define ERR_ADDR (((size_t) gbp->pos - (size_t) gbp->base) + gbp->offset - gbp->size)
+#define ERR_ADDR (((size_t) gbp->pos - (size_t) gbp->base) + (size_t) gbp->offset - gbp->size)
 
 #define IS_RECVAR(vp) ((vp)->shape != NULL ? (*(vp)->shape == NC_UNLIMITED) : 0 )
 
@@ -425,7 +425,7 @@ hdr_len_NC_name(size_t nchars,
     long long sz = sizeof_t; /* nelems */
 
     if (nchars != 0)  /* namestring */
-        sz += _RNDUP(nchars, X_ALIGN);
+        sz += _RNDUP((long long)nchars, X_ALIGN);
 
     return sz;
 }
@@ -815,7 +815,7 @@ compute_var_shape(NC *ncp)
     ncp->recsize   = 0;
 
     for (i=0; i<ncp->vars.ndefined; i++) {
-        sprintf(xloc,"var %s:",ncp->vars.value[i]->name);
+        snprintf(xloc,sizeof(xloc),"var %s:",ncp->vars.value[i]->name);
         /* check if dimids are valid */
         for (j=0; j<ncp->vars.value[i]->ndims; j++) {
             if (ncp->vars.value[i]->dimids[j] < 0) {
@@ -951,7 +951,7 @@ val_fetch(int fd, bufferinfo *gbp) {
         fprintf(stderr,"Error at line %d: read %s\n",__LINE__,strerror(errno));
         return -1;
     }
-    gbp->offset += (gbp->size - slack);
+    gbp->offset += (off_t)(gbp->size - (size_t)slack);
 
     return NC_NOERR;
 }
@@ -962,7 +962,7 @@ val_fetch(int fd, bufferinfo *gbp) {
 static int
 val_check_buffer(int         fd,
                  bufferinfo *gbp,
-                 long long  nextread)
+                 size_t  nextread)
 {
     size_t pos_addr, base_addr;
 
@@ -1014,12 +1014,12 @@ hdr_get_NON_NEG(int fd, bufferinfo *gbp, long long *sp)
      * NON_NEG    = <non-negative INT> |  // CDF-1 and CDF-2
      *              <non-negative INT64>  // CDF-5
      */
-    int sizeof_NON_NEG, status;
+    int status;
 
-    sizeof_NON_NEG = (gbp->version < 5) ? 4 : 8;
+    size_t sizeof_NON_NEG = (gbp->version < 5) ? 4 : 8;
     status = val_check_buffer(fd, gbp, sizeof_NON_NEG);
     if (status != NC_NOERR) {
-        if (verbose) printf("%d-byte size is expected for ", sizeof_NON_NEG);
+        if (verbose) printf("%zu-byte size is expected for ", sizeof_NON_NEG);
         return status;
     }
     if (gbp->version < 5)
@@ -1070,13 +1070,13 @@ hdr_get_name(int          fd,
     padding   = _RNDUP(nchars, X_ALIGN) - nchars;
     pos_addr  = (size_t) gbp->pos;
     base_addr = (size_t) gbp->base;
-    bufremain = gbp->size - (pos_addr - base_addr);
+    bufremain = (long long)(gbp->size - (pos_addr - base_addr));
     cpos = *namep;
 
     while (nchars > 0) {
         if (bufremain > 0) {
             strcount = MIN(bufremain, nchars);
-            (void) memcpy(cpos, gbp->pos, strcount);
+            (void) memcpy(cpos, gbp->pos, (size_t)strcount);
             nchars -= strcount;
             gbp->pos = (void *)((char *)gbp->pos + strcount);
             cpos += strcount;
@@ -1091,20 +1091,20 @@ hdr_get_name(int          fd,
                 *namep = NULL;
                 return err;
             }
-            bufremain = gbp->size;
+            bufremain = (long long)gbp->size;
         }
     }
 
     if (padding > 0) {
         err_addr = ERR_ADDR;
-        err = val_check_buffer(fd, gbp, padding);
+        err = val_check_buffer(fd, gbp, (size_t)padding);
         if (err != NC_NOERR) {
             if (verbose) printf("Error @ [0x%8.8zx]:\n", err_addr);
             if (verbose) printf("\t%s - fetching name string padding\n", loc);
             return err;
         }
         memset(pad, 0, X_ALIGN-1);
-        if (memcmp(gbp->pos, pad, padding) != 0) {
+        if (memcmp(gbp->pos, pad, (size_t)padding) != 0) {
             /* This is considered not a fatal error, we continue to validate */
             if (verbose) printf("Error @ [0x%8.8zx]:\n", err_addr);
             if (verbose) printf("\t%s \"%s\": name padding is non-null byte\n", loc, *namep);
@@ -1112,7 +1112,7 @@ hdr_get_name(int          fd,
                *namep = NULL; */
             DEBUG_ASSIGN_ERROR(err, NC_ENULLPAD)
             if (repair) {
-                val_repair(fd, err_addr, (size_t)padding, (void*)nada);
+                val_repair(fd, (off_t)err_addr, (size_t)padding, (void*)nada);
                 if (verbose)
                     printf("\t%s \"%s\": name padding error has been **repaired**\n",loc,*namep);
             }
@@ -1335,12 +1335,12 @@ val_get_NC_attrV(int         fd,
     padding = attrp->xsz - nvalues;
     pos_addr  = (size_t) gbp->pos;
     base_addr = (size_t) gbp->base;
-    bufremain = gbp->size - (pos_addr - base_addr);
+    bufremain = (long long)(gbp->size - (pos_addr - base_addr));
 
     while (nvalues > 0) {
         if (bufremain > 0) {
             attcount = MIN(bufremain, nvalues);
-            (void) memcpy(value, gbp->pos, attcount);
+            (void) memcpy(value, gbp->pos, (size_t)attcount);
             nvalues -= attcount;
             gbp->pos = (void *)((char *)gbp->pos + attcount);
             value = (void *)((char *)value + attcount);
@@ -1353,19 +1353,19 @@ val_get_NC_attrV(int         fd,
                 if (verbose) printf("\t%s: Failed to fetch next chunk into a buffer\n", loc);
                 return status;
             }
-            bufremain = gbp->size;
+            bufremain = (long long)gbp->size;
         }
     }
 
     if (padding > 0) {
         memset(pad, 0, X_ALIGN-1);
-        if (memcmp(gbp->pos, pad, padding) != 0) {
+        if (memcmp(gbp->pos, pad, (size_t)padding) != 0) {
             /* This is considered not a fatal error, we continue to validate */
             if (verbose) printf("Error @ [0x%8.8zx]:\n", (size_t)ERR_ADDR);
             if (verbose) printf("\t%s: value padding is non-null byte\n", loc);
             DEBUG_ASSIGN_ERROR(status, NC_ENULLPAD)
             if (repair) {
-                val_repair(fd, ERR_ADDR, (size_t)padding, (void*)nada);
+                val_repair(fd, (off_t)ERR_ADDR, (size_t)padding, (void*)nada);
                 if (verbose)
                     printf("\t%s: value padding has been **repaired**\n",loc);
             }
@@ -1464,7 +1464,7 @@ val_get_NC_attr(int          fd,
         return status;
     }
 
-    sprintf(xloc,"%s \"%s\"",loc,name);
+    snprintf(xloc,sizeof(xloc),"%s \"%s\"",loc,name);
     err = val_get_nc_type(fd, gbp, &xtype, xloc);
     if (err != NC_NOERR) {
         if (name != NULL) free(name);
@@ -1575,7 +1575,7 @@ val_get_NC_attrarray(int           fd,
         }
 #endif
     } else {
-        sprintf(xloc, "%s attribute", loc);
+        snprintf(xloc, sizeof(xloc), "%s attribute", loc);
         if (tag != NC_ATTRIBUTE) {
             if (verbose) printf("Error @ [0x%8.8zx]:\n", tag_err_addr);
             if (verbose) printf("\t%s: Invalid NC component tag (%d), expecting NC_ATTRIBUTE (%d)\n",xloc,tag,NC_ATTRIBUTE);
@@ -1622,9 +1622,9 @@ val_new_NC_var(char *name, int ndims)
     if (varp == NULL) return NULL;
 
     if (ndims > 0) {
-        varp->shape  = (long long*)calloc(ndims, sizeof(long long));
-        varp->dsizes = (long long*)calloc(ndims, sizeof(long long));
-        varp->dimids = (int *)     calloc(ndims, sizeof(int));
+        varp->shape  = (long long*)calloc((size_t)ndims, sizeof(long long));
+        varp->dsizes = (long long*)calloc((size_t)ndims, sizeof(long long));
+        varp->dimids = (int *)     calloc((size_t)ndims, sizeof(int));
     }
 
     varp->name     = name;
@@ -1698,7 +1698,7 @@ val_get_NC_var(int          fd,
     if (trace) printf("\t\tname = \"%s\"\n", name);
 
     /* read number of dimensions */
-    sprintf(xloc,"%s \"%s\"",loc,name);
+    snprintf(xloc,sizeof(xloc),"%s \"%s\"",loc,name);
     err_addr = ERR_ADDR;
     err = hdr_get_NON_NEG(fd, gbp, &ndims);
     if (err != NC_NOERR) {
@@ -1720,7 +1720,7 @@ val_get_NC_var(int          fd,
     if (trace) printf("\t\tnumber of dimensions = %lld\n", ndims);
 
     /* allocate variable object */
-    varp = val_new_NC_var(name, ndims);
+    varp = val_new_NC_var(name, (int)ndims);
     if (varp == NULL) {
         if (name != NULL) free(name);
         DEBUG_RETURN_ERROR(NC_ENOMEM)
@@ -1760,7 +1760,7 @@ val_get_NC_var(int          fd,
 
     /* var = name nelems [dimid ...] vatt_list nc_type vsize begin
      *                               ^^^^^^^^^                     */
-    sprintf(xloc,"%s \"%s\"",loc,name);
+    snprintf(xloc,sizeof(xloc),"%s \"%s\"",loc,name);
     err = val_get_NC_attrarray(fd, gbp, &varp->attrs, xloc);
     if (err != NC_NOERR && err != NC_ENULLPAD) {
         free_NC_var(varp);

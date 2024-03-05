@@ -33,7 +33,7 @@ cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in		\
 cmake_uninstall.cmake.in FixBundle.cmake.in nc-config.cmake.in		\
 RELEASE_NOTES.md CTestConfig.cmake.in CTestCustom.cmake.in		\
 libnetcdf.settings.in netCDFConfig.cmake.in CMakeInstallation.cmake	\
-test-driver-verbose test_common.in fuzz
+test-driver-verbose test_common.in fuzz CITATION.cff
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc

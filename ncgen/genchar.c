@@ -245,8 +245,8 @@ makeconst(int lineno, int len, char* str)
     con->filled = 0;
     con->value.stringv.len = len;
     /* We cannot use strdup because str might have embedded nuls */
-    con->value.stringv.stringv = (char*)ecalloc(len+1);
-    memcpy((void*)con->value.stringv.stringv,(void*)str,len);
+    con->value.stringv.stringv = (char*)ecalloc((size_t)len+1);
+    memcpy((void*)con->value.stringv.stringv,(void*)str, (size_t)len);
     con->value.stringv.stringv[len] = '\0';
     return con;
 }

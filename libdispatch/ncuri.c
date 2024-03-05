@@ -4,6 +4,7 @@
  *   $Header$
  *********************************************************************/
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -431,7 +432,7 @@ static void
 freestringlist(NClist* list)
 {
     if(list != NULL) {
-	int i;
+	size_t i;
 	for(i=0;i<nclistlength(list);i++) {
 	    void* p = nclistget(list,i);
 	    nullfree(p);
@@ -553,8 +554,8 @@ ncurisetfragmentkey(NCURI* duri, const char* key, const char* value)
 	nclistpush(duri->fraglist,strdup(key));
 	nclistpush(duri->fraglist,strdup(value));
     } else {
-        nullfree(nclistget(duri->fraglist,pos+1));
-        nclistset(duri->fraglist,pos+1,strdup(value));
+        nullfree(nclistget(duri->fraglist,(size_t)pos+1));
+        nclistset(duri->fraglist,(size_t)pos+1,strdup(value));
     }
     /* Rebuild the fragment */
     nullfree(duri->fragment); duri->fragment = NULL;
@@ -576,8 +577,8 @@ ncuriappendfragmentkey(NCURI* duri,const char* key, const char* value)
 	nclistpush((NClist*)duri->fraglist,strdup(key));
 	nclistpush((NClist*)duri->fraglist,nulldup(value));
     } else {
-        nullfree(nclistget(duri->fraglist,pos+1));
-	nclistset(duri->fraglist,pos+1,nulldup(value));
+        nullfree(nclistget(duri->fraglist,(size_t)pos+1));
+	nclistset(duri->fraglist,(size_t)pos+1,nulldup(value));
     }
     /* Rebuild the fragment */
     nullfree(duri->fraglist); duri->fraglist = NULL;
@@ -600,8 +601,8 @@ ncurisetquerykey(NCURI* duri,const char* key, const char* value)
 	nclistpush(duri->querylist,key);
 	nclistpush(duri->querylist,value);
     } else {
-        nullfree(nclistget(duri->querylist,pos+1));
-        nclistset(duri->querylist,pos+1,strdup(value));
+        nullfree(nclistget(duri->querylist,(size_t)pos+1));
+        nclistset(duri->querylist,(size_t)pos+1,strdup(value));
     }
     /* Rebuild the query */
     nullfree(duri->query); duri->query = NULL;
@@ -623,8 +624,8 @@ ncuriappendquerykey(NCURI* duri,const char* key, const char* value)
 	nclistpush((NClist*)duri->querylist,strdup(key));
 	nclistpush((NClist*)duri->querylist,nulldup(value));
     } else {
-        nullfree(nclistget(duri->querylist,pos+1));
-	nclistset(duri->querylist,pos+1,nulldup(value));
+        nullfree(nclistget(duri->querylist,(size_t)pos+1));
+	nclistset(duri->querylist,(size_t)pos+1,nulldup(value));
     }
     /* Rebuild the query */
     nullfree(duri->querylist); duri->querylist = NULL;
@@ -768,7 +769,7 @@ ncurifragmentlookup(NCURI* uri, const char* key)
   if(ensurefraglist(uri)) return NULL;
   i = ncfind(uri->fraglist,key);
   if(i < 0) return NULL;
-  value = nclistget(uri->fraglist,i+1);
+  value = nclistget(uri->fraglist,(size_t)i+1);
   return value;
 }
 
@@ -781,7 +782,7 @@ ncuriquerylookup(NCURI* uri, const char* key)
   if(ensurequerylist(uri)) return NULL;
   i = ncfind(uri->querylist,key);
   if(i < 0) return NULL;
-  value = nclistget(uri->querylist,i+1);
+  value = nclistget(uri->querylist,(size_t)i+1);
   return value;
 }
 
@@ -832,7 +833,7 @@ ncfind(NClist* params, const char* key)
     if(key == NULL) return -1;
     if(params == NULL) return -1;
     for(i=0;i<nclistlength(params);i+=2) {
-        char* p=nclistget(params,i);
+        char* p=nclistget(params,(size_t)i);
 	if(strcasecmp(key,p)==0) return i;
     }
     return -1;
@@ -1274,7 +1275,7 @@ done:
 static void
 removedups(NClist* list)
 {
-    int i,j;
+    size_t i,j;
 
     if(nclistlength(list) <= 2) return; /* need at least 2 pairs */
     for(i=0;i<nclistlength(list);i+=2) {

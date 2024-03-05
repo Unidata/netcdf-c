@@ -5,6 +5,7 @@
 
 #include "zincludes.h"
 #include "zfilter.h"
+#include <stddef.h>
 
 #ifndef nulldup
  #define nulldup(x) ((x)?strdup(x):(x))
@@ -277,7 +278,8 @@ done:
 static int
 ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NCZ_FILE_INFO_T* zinfo = NULL;
     char number[1024];
     NCZMAP* map = NULL;
@@ -435,7 +437,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     if((stat = NCJaddstring(jvar,NCJ_STRING,"filters"))) goto done;
 #ifdef ENABLE_NCZARR_FILTERS
     if(nclistlength(filterchain) > 1) {
-	int k;
+	size_t k;
 	/* jtmp holds the array of filters */
 	if((stat = NCJnew(NCJ_ARRAY,&jtmp))) goto done;
 	for(k=0;k<nclistlength(filterchain)-1;k++) {
@@ -1029,7 +1031,7 @@ computeattrinfo(const char* name, NClist* atypes, nc_type typehint, int purezarr
 		nc_type* typeidp, size_t* typelenp, size_t* lenp, void** datap)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     size_t len, typelen;
     void* data = NULL;
     nc_type typeid;
@@ -1401,7 +1403,8 @@ done:
 static int
 define_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* diminfo)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
 
     ZTRACE(3,"file=%s grp=%s |diminfo|=%u",file->controller->path,grp->hdr.name,nclistlength(diminfo));
 
@@ -1447,7 +1450,7 @@ static int
 define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 {
     int stat = NC_NOERR;
-    int i,j;
+    size_t i,j;
     NCZ_FILE_INFO_T* zinfo = NULL;
     NCZMAP* map = NULL;
     int purezarr = 0;
@@ -1676,7 +1679,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
   	        /* Save the rank of the variable */
 	        if((stat = nc4_var_set_ndims(var, rank))) goto done;
 	        /* extract the shapes */
-	        if((shapes = (size64_t*)malloc(sizeof(size64_t)*zarr_rank)) == NULL)
+	        if((shapes = (size64_t*)malloc(sizeof(size64_t)*(size_t)zarr_rank)) == NULL)
 	            {stat = (THROW(NC_ENOMEM)); goto done;}
 	        if((stat = decodeints(jvalue, shapes))) goto done;
 	    }
@@ -1702,7 +1705,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		var->storage = NC_CHUNKED;
 		if(var->ndims != rank)
 		    {stat = (THROW(NC_ENCZARR)); goto done;}
-		if((var->chunksizes = malloc(sizeof(size_t)*zarr_rank)) == NULL)
+		if((var->chunksizes = malloc(sizeof(size_t)*(size_t)zarr_rank)) == NULL)
 		    {stat = NC_ENOMEM; goto done;}
 		if((stat = decodeints(jvalue, chunks))) goto done;
 		/* validate the chunk sizes */
@@ -1823,7 +1826,8 @@ done:
 static int
 define_subgrps(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* subgrpnames)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
 
     ZTRACE(3,"file=%s grp=%s |subgrpnames|=%u",file->controller->path,grp->hdr.name,nclistlength(subgrpnames));
 
@@ -2059,7 +2063,8 @@ done:
 static int
 searchvars(NCZ_FILE_INFO_T* zfile, NC_GRP_INFO_T* grp, NClist* varnames)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     char* grpkey = NULL;
     char* varkey = NULL;
     char* zarray = NULL;
@@ -2093,7 +2098,8 @@ done:
 static int
 searchsubgrps(NCZ_FILE_INFO_T* zfile, NC_GRP_INFO_T* grp, NClist* subgrpnames)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     char* grpkey = NULL;
     char* subkey = NULL;
     char* zgroup = NULL;
@@ -2177,7 +2183,8 @@ Given a list of segments, find corresponding group.
 static int
 locategroup(NC_FILE_INFO_T* file, size_t nsegs, NClist* segments, NC_GRP_INFO_T** grpp)
 {
-    int i, j, found, stat = NC_NOERR;
+    size_t i, j;
+    int found, stat = NC_NOERR;
     NC_GRP_INFO_T* grp = NULL;
 
     grp = file->root_grp;
@@ -2206,13 +2213,14 @@ done:
 static int
 parsedimrefs(NC_FILE_INFO_T* file, NClist* dimnames, size64_t* shape, NC_DIM_INFO_T** dims, int create)
 {
-    int i, stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NClist* segments = NULL;
 
     for(i=0;i<nclistlength(dimnames);i++) {
 	NC_GRP_INFO_T* g = NULL;
 	NC_DIM_INFO_T* d = NULL;
-	int j;
+	size_t j;
 	const char* dimpath = nclistget(dimnames,i);
 	const char* dimname = NULL;
 
@@ -2369,7 +2377,7 @@ static int
 computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarray, int ndims, NClist* dimnames, size64_t* shapes, NC_DIM_INFO_T** dims)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     int createdims = 0; /* 1 => we need to create the dims in root if they do not already exist */
     NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
     NCZ_VAR_INFO_T* zvar = (NCZ_VAR_INFO_T*)(var->format_var_info);

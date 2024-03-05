@@ -2,7 +2,10 @@
 #
 #   Szip_FOUND              Set to true to indicate the szip library was found
 #   Szip_INCLUDE_DIRS       The directory containing the header file szip/szip.h
-#   Szip_LIBRARIES          The libraries needed to use the szip library
+#   Szip_LIBRARIES          The libraries needed to use the szip library with the word "debug" and "optimized" when both are found
+#   Szip_RELEASE_LIBRARY    The path to the Szip release library if available
+#   Szip_DEBUG_LIBRARY      The path to the Szip debug library if available
+#   Szip_LIBRARY            The path to a Szip library, preferentially release but fallback to debug
 #
 # To specify an additional directory to search, set Szip_ROOT.
 #
@@ -38,13 +41,17 @@ IF(Szip_INCLUDE_DIRS)
                PATH_SUFFIXES Release ${CMAKE_LIBRARY_ARCHITECTURE} ${CMAKE_LIBRARY_ARCHITECTURE}/Release
                PATHS ${Szip_LIBRARY_DIRS} NO_DEFAULT_PATH)
 
-  SET(Szip_LIBRARIES )
+  SET(Szip_LIBRARIES)
+  SET(Szip_LIBRARY)
   IF(Szip_DEBUG_LIBRARY AND Szip_RELEASE_LIBRARY)
     SET(Szip_LIBRARIES debug ${Szip_DEBUG_LIBRARY} optimized ${Szip_RELEASE_LIBRARY})
+    SET(Szip_LIBRARY ${Szip_RELEASE_LIBRARY})
   ELSEIF(Szip_DEBUG_LIBRARY)
     SET(Szip_LIBRARIES ${Szip_DEBUG_LIBRARY})
+    SET(Szip_LIBRARY ${Szip_DEBUG_LIBRARY})
   ELSEIF(Szip_RELEASE_LIBRARY)
     SET(Szip_LIBRARIES ${Szip_RELEASE_LIBRARY})
+    SET(Szip_LIBRARY ${Szip_RELEASE_LIBRARY})
   ENDIF(Szip_DEBUG_LIBRARY AND Szip_RELEASE_LIBRARY)
 
   IF(Szip_LIBRARIES)

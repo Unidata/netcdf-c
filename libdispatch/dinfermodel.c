@@ -9,6 +9,7 @@
 */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -320,8 +321,8 @@ parsepair(const char* pair, char** keyp, char** valuep)
 	key = strdup(pair);
     } else {
 	ptrdiff_t len = (p-pair);
-	if((key = malloc(len+1))==NULL) return NC_ENOMEM;
-	memcpy(key,pair,len);
+	if((key = malloc((size_t)len+1))==NULL) return NC_ENOMEM;
+	memcpy(key,pair,(size_t)len);
 	key[len] = '\0';
 	if(p[1] == '\0')
 	    value = NULL;
@@ -383,8 +384,8 @@ parseonchar(const char* s, int ch, NClist* segments)
 	endp = strchr(p,ch);
 	if(endp == NULL) endp = p + strlen(p);
 	slen = (endp - p);
-	if((q = malloc(slen+1)) == NULL) {stat = NC_ENOMEM; goto done;}
-	memcpy(q,p,slen);
+	if((q = malloc((size_t)slen+1)) == NULL) {stat = NC_ENOMEM; goto done;}
+	memcpy(q,p,(size_t)slen);
 	q[slen] = '\0';
 	nclistpush(segments,q);
 	if(*endp == '\0') break;
@@ -399,7 +400,7 @@ done:
 static char*
 envvlist2string(NClist* envv, const char* delim)
 {
-    int i;
+    size_t i;
     NCbytes* buf = NULL;
     char* result = NULL;
 
@@ -441,7 +442,8 @@ processmodearg(const char* arg, NCmodel* model)
 static int
 processmacros(NClist* fraglenv, NClist* expanded)
 {
-    int i, stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     const struct MACRODEF* macros = NULL;
 
     for(i=0;i<nclistlength(fraglenv);i+=2) {
@@ -478,7 +480,7 @@ processinferences(NClist* fraglenv)
     NClist* newmodes = nclistnew();
     NClist* currentmodes = NULL;
     NClist* nextmodes = nclistnew();
-    int i;
+    size_t i;
     char* newmodeval = NULL;
 
     /* Get "mode" entry */
@@ -574,7 +576,7 @@ negateone(const char* mode, NClist* newmodes)
 static void
 infernext(NClist* current, NClist* next)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(current);i++) {
         const struct MODEINFER* tests = NULL;
 	const char* cur = nclistget(current,i);
@@ -594,7 +596,7 @@ Given a list of strings, remove nulls and duplicates
 static int
 mergelist(NClist** valuesp)
 {
-    int i,j;
+    size_t i,j;
     int stat = NC_NOERR;
     NClist* values = *valuesp;
     NClist* allvalues = nclistnew();
@@ -634,7 +636,7 @@ done:
 static int
 lcontains(NClist* l, const char* key0)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(l);i++) {
         const char* key1 = nclistget(l,i);
 	if(strcasecmp(key0,key1)==0) return 1;
@@ -646,7 +648,7 @@ lcontains(NClist* l, const char* key0)
 static void
 collectvaluesbykey(NClist* fraglenv, const char* key, NClist* values)
 {
-    int i;
+    size_t i;
     /* collect all the values with the same key (including this one) */
     for(i=0;i<nclistlength(fraglenv);i+=2) {
         const char* key2 = nclistget(fraglenv,i);
@@ -661,7 +663,7 @@ collectvaluesbykey(NClist* fraglenv, const char* key, NClist* values)
 static void
 collectallkeys(NClist* fraglenv, NClist* allkeys)
 {
-    int i;
+    size_t i;
     /* collect all the distinct keys */
     for(i=0;i<nclistlength(fraglenv);i+=2) {
 	char* key = nclistget(fraglenv,i);
@@ -675,7 +677,8 @@ collectallkeys(NClist* fraglenv, NClist* allkeys)
 static int
 cleanfragments(NClist* fraglenv, NClist* newlist)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NClist* tmp = NULL;
     NClist* allkeys = NULL;
     NCbytes* buf = NULL;
@@ -836,7 +839,8 @@ set_default_mode(int* modep)
 int
 NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void* params, NCmodel* model, char** newpathp)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NCURI* uri = NULL;
     int omode = *omodep;
     NClist* fraglenv = nclistnew();
@@ -1103,7 +1107,7 @@ done:
 static const char*
 getmodekey(const NClist* envv)
 {
-    int i;
+    size_t i;
     /* Get "mode" entry */
     for(i=0;i<nclistlength(envv);i+=2) {
 	char* key = NULL;
@@ -1117,7 +1121,7 @@ getmodekey(const NClist* envv)
 static int
 replacemode(NClist* envv, const char* newval)
 {
-    int i;
+    size_t i;
     /* Get "mode" entry */
     for(i=0;i<nclistlength(envv);i+=2) {
 	char* key = NULL;
@@ -1146,7 +1150,7 @@ parsemode(const char* modeval)
 static char*
 list2string(NClist* list)
 {
-    int i;
+    size_t i;
     NCbytes* buf = NULL;
     char* result = NULL;
 

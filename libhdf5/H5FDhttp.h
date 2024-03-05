@@ -42,9 +42,11 @@ extern "C" {
 
 #if 0
 H5_DLL hid_t H5FD_http_init(void);
+H5_DLL hid_t H5FD_http_finalize(void);
 H5_DLL herr_t H5Pset_fapl_http(hid_t fapl_id);
 #else
 EXTERNL hid_t H5FD_http_init(void);
+EXTERNL hid_t H5FD_http_finalize(void);
 EXTERNL herr_t H5Pset_fapl_http(hid_t fapl_id);
 #endif
 

@@ -30,6 +30,7 @@
  */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 
 #ifdef HAVE_SYS_STAT_H
@@ -287,7 +288,8 @@ static int pluginnamecheck(const char* name);
 int
 NCZ_filter_freelists(NC_VAR_INFO_T* var)
 {
-    int i, stat=NC_NOERR;
+    size_t i;
+    int stat=NC_NOERR;
     NClist* filters = NULL;
     NCZ_VAR_INFO_T* zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
 
@@ -444,7 +446,7 @@ done:
 static int
 NCZ_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, struct NCZ_Filter** specp)
 {
-    int i;
+    size_t i;
     NClist* flist = (NClist*)var->filters;
     
     ZTRACE(6,"var=%s id=%u",var->hdr.name,id);
@@ -652,7 +654,7 @@ NCZ_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int* ids
 
     nfilters = nclistlength(flist); /* including incomplets */
     if(nfilters > 0 && ids != NULL) {
-	int k;
+	size_t k;
 	for(k=0;k<nfilters;k++) {
 	    struct NCZ_Filter* f = (struct NCZ_Filter*)nclistget(flist,k);
             ids[k] = f->hdf5.id;
@@ -842,7 +844,8 @@ done:
 int
 NCZ_applyfilterchain(const NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NClist* chain, size_t inlen, void* indata, size_t* outlenp, void** outdatap, int encode)
 {
-    int i, stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     void* lastbuffer = NULL; /* if not null, then last allocated buffer */
     
     ZTRACE(6,"|chain|=%u inlen=%u indata=%p encode=%d", (unsigned)nclistlength(chain), (unsigned)inlen, indata, encode);
@@ -893,8 +896,9 @@ fprintf(stderr,">>> next: alloc=%u used=%u buf=%p\n",(unsigned)next_alloc,(unsig
 	    }
 	} else {
 	    /* Apply in reverse order */
-            for(i=nclistlength(chain)-1;i>=0;i--) {
-	        f = (struct NCZ_Filter*)nclistget(chain,i);	
+            int k;
+            for(k=(int)nclistlength(chain)-1;k>=0;k--) {
+              f = (struct NCZ_Filter*)nclistget(chain,(size_t)k);	
 		if(f->flags & FLAG_SUPPRESS) continue; /* this filter should not be applied */
 	        ff = f->plugin->hdf5.filter;
 	        /* code can be simplified */
@@ -1151,7 +1155,8 @@ done:
 static int
 NCZ_load_all_plugins(void)
 {
-    int i,j,ret = NC_NOERR;
+    size_t i,j;
+    int ret = NC_NOERR;
     char* pluginroots = NULL;
     struct stat buf;
     NClist* dirs = nclistnew();
@@ -1330,7 +1335,8 @@ done:
 static int
 NCZ_load_plugin_dir(const char* path)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     size_t pathlen;
     NClist* contents = nclistnew();
     char* file = NULL;
@@ -1605,7 +1611,8 @@ pluginnamecheck(const char* name)
 int
 NCZ_codec_attr(const NC_VAR_INFO_T* var, size_t* lenp, void* data)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     size_t len;
     char* contents = NULL;
     NCbytes* buf = NULL;
@@ -1761,7 +1768,8 @@ done:
 int
 NCZ_filter_setup(NC_VAR_INFO_T* var)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NClist* filters = NULL;
 
     ZTRACE(6,"var=%s",var->hdr.name);

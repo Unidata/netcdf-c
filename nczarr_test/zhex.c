@@ -7,6 +7,7 @@
 
 #include "stdlib.h"
 #include "stdio.h"
+#include <stddef.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -14,13 +15,10 @@
 
 #undef DEBUG
 
-static char hex[16] = "0123456789abcdef";
-
 int
 main(int argc, char** argv)
 {
     unsigned char c;
-    unsigned int c0,c1;
     FILE* f = NULL;
 
     if(argc > 1) {
@@ -31,14 +29,9 @@ main(int argc, char** argv)
         f = stdin;
 
     for(;;) {
-	int ret = fread(&c, 1, 1, f);
+	size_t ret = fread(&c, 1, 1, f);
 	if(ret != 1) break;
-        c1 = c;
-        c0 = c1 & 0xf;
-	c1 = (c1 >> 4);
-        c0 = hex[c0];
-        c1 = hex[c1];
-        printf("%c%c",(char)c1,(char)c0);
+        printf("%.2hhx", c);
     }
     if(f != stdin) fclose(f);
     return 0;

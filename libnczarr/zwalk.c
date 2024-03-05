@@ -586,7 +586,7 @@ NCZ_projectslices(struct Common* common,
     size64_t stride[NC_MAX_VAR_DIMS];
     size64_t len[NC_MAX_VAR_DIMS];
 
-    if((allprojections = calloc(common->rank,sizeof(NCZSliceProjections))) == NULL)
+    if((allprojections = calloc((size_t)common->rank, sizeof(NCZSliceProjections))) == NULL)
         {stat = NC_ENOMEM; goto done;}
     memset(ranges,0,sizeof(ranges));
 

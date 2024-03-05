@@ -6,6 +6,7 @@
 #include "includes.h"
 #include "ncoffsets.h"
 #include "netcdf_aux.h"
+#include <stddef.h>
 
 /**************************************************/
 /* Code for generating data lists*/
@@ -251,22 +252,22 @@ generate_fieldarray(Symbol* basetype, NCConstant* con, Dimset* dimset,
 static void
 normalizeopaquelength(NCConstant* prim, unsigned long nbytes)
 {
-    int nnibs = 2*nbytes;
+    size_t nnibs = 2*nbytes;
     ASSERT(prim->nctype==NC_OPAQUE);
     if(prim->value.opaquev.len == nnibs) {
         /* do nothing*/
     } else if(prim->value.opaquev.len > nnibs) { /* truncate*/
         prim->value.opaquev.stringv[nnibs] = '\0';
-        prim->value.opaquev.len = nnibs;
+        prim->value.opaquev.len = (int)nnibs;
     } else {/* prim->value.opaquev.len < nnibs => expand*/
         char* s;
         s = (char*)ecalloc(nnibs+1);
         memset(s,'0',nnibs);    /* Fill with '0' characters */
-        memcpy(s,prim->value.opaquev.stringv,prim->value.opaquev.len);
+        memcpy(s,prim->value.opaquev.stringv, (size_t)prim->value.opaquev.len);
         s[nnibs] = '\0';
         efree(prim->value.opaquev.stringv);
         prim->value.opaquev.stringv=s;
-        prim->value.opaquev.len = nnibs;
+        prim->value.opaquev.len = (int)nnibs;
     }
 }
 

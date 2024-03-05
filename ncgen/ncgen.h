@@ -173,7 +173,7 @@ typedef struct Typeinfo {
 	int             hasvlen;  /* 1 => this type contains a vlen*/
 	nc_type         typecode;
         unsigned long   offset;   /* fields in struct*/
-        unsigned long   alignment;/* fields in struct*/
+        size_t          alignment;/* fields in struct*/
         NCConstant*     econst;   /* for enum values*/
         Dimset          dimset;     /* for NC_VAR/NC_FIELD/NC_ATT*/
         size_t   size;     /* for opaque, compound, etc.*/

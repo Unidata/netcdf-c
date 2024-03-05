@@ -105,8 +105,7 @@ init_epsilons()
  *    try in data mode, check error
  */
 int
-test_ncvardef(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncvardef(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     int cdfid;			/* netcdf id */
@@ -166,7 +165,7 @@ test_ncvardef(path)
     /* in define mode, add variables of each type with various shapes */
     for (iv = 0; iv < nv; iv++) {
 	/* set shape to use subset of dimensions previously defined */
-	va[iv].dims = (int *) emalloc(sizeof(int) * va[iv].ndims);
+	va[iv].dims = (int *) emalloc(sizeof(int) * (size_t)va[iv].ndims);
 	for (id = 0; id < va[iv].ndims; id++)
 	  va[iv].dims[id] = di_id[id];
 	if ((va_id[iv] = ncvardef(cdfid, va[iv].name, va[iv].type,

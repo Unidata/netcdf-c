@@ -88,7 +88,7 @@ main(int argc, char **argv)
    if(array == NULL) ERR;
    for (i = 0; i < NROWS; i++) {
        int ncolumns = NROWS - i;
-       array[i] = (float *) malloc(ncolumns * sizeof(float));
+       array[i] = (float *) malloc((size_t)ncolumns * sizeof(float));
        if(array[i] == NULL) ERR;
        for (j = 0; j < ncolumns; j++) {
 	   array[i][j] = 10.0f * (float)(i + 1) + (float)j;
@@ -96,7 +96,7 @@ main(int argc, char **argv)
    }
    array[4][0] = missing_value; /* overwrite last row with missing for equality test */
 
-   for (i = 0; i < DIM5_LEN; i++) {
+   for (size_t i = 0; i < DIM5_LEN; i++) {
        ragged_data[i].p = array[i];
        ragged_data[i].len = NROWS - i;
    }
@@ -137,7 +137,7 @@ main(int argc, char **argv)
    if (nc_free_vlen(&val_in)) ERR;
 
    /* Read in each row, check its length and values */
-   for (i = 0; i < DIM5_LEN; i++) {
+   for (size_t i = 0; i < DIM5_LEN; i++) {
        size_t index[VAR5_RANK];
        float *fvals;
        index[0] = i;

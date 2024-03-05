@@ -633,6 +633,7 @@ main()
 	 hsize_t h5dimlen[DIMS2], h5dimlenmax[DIMS2], xtend_size[DIMS2] = {1, NUM_VALS};
 	 hsize_t start[DIMS2] = {0, 0};
 	 hsize_t count[DIMS2] = {1, NUM_VALS};
+	 hsize_t ones[DIMS2] = {1, 1};
 	 double value[NUM_VALS];
 	 int dataset_ndims;
 	 int i;
@@ -661,7 +662,7 @@ main()
 
 	 /* Set up the file and memory spaces. */
 	 if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
-				 start, NULL, count, NULL) < 0) ERR;
+				 start, NULL, ones, count) < 0) ERR;
 	 if ((mem_spaceid = H5Screate_simple(DIMS2, count, NULL)) < 0) ERR;
 
 	 /* Write a slice of data. */
@@ -683,7 +684,7 @@ main()
 	 /* Set up the file and memory spaces for a second slice. */
 	 start[0]++;
 	 if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
-				 start, NULL, count, NULL) < 0) ERR;
+				 start, NULL, ones, count) < 0) ERR;
 	 if ((mem_spaceid = H5Screate_simple(DIMS2, count, NULL)) < 0) ERR;
 
 	 /* Write a second slice of data. */
