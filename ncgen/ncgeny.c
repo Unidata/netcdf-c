@@ -1543,7 +1543,7 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
       return -1;
     }
 
-  /* Avoid sprintf, as that infringes on the user's name space.
+  /* Avoid snprintf, as that infringes on the user's name space.
      Don't have undefined behavior even if the translation
      produced a string with the wrong number of "%s"s.  */
   {
@@ -2409,7 +2409,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
             {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
 	     char anon[32];
-	     sprintf(anon,"const%u",uint32_val);
+	     snprintf(anon,sizeof(anon),"const%u",uint32_val);
 	     (yyval.sym) = install(anon);
 	     (yyval.sym)->objectclass = NC_DIM;
 	     (yyval.sym)->dim.isconstant = 1;
@@ -2427,7 +2427,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		derror("field dimension must be positive");
 		YYABORT;
 	     }
-	     sprintf(anon,"const%d",int32_val);
+	     snprintf(anon,sizeof(anon),"const%d",int32_val);
 	     (yyval.sym) = install(anon);
 	     (yyval.sym)->objectclass = NC_DIM;
 	     (yyval.sym)->dim.isconstant = 1;
@@ -3318,13 +3318,12 @@ makeconstdata(nc_type nctype)
 #ifdef USE_NETCDF4
 	case NC_OPAQUE: {
 	    char* s;
-	    int len;
-	    len = bbLength(lextext);
+	    size_t len = bbLength(lextext);
 	    s = (char*)ecalloc(len+1);
 	    strncpy(s,bbContents(lextext),len);
 	    s[len] = '\0';
 	    con->value.opaquev.stringv = s;
-	    con->value.opaquev.len = len;
+	    con->value.opaquev.len = (int)len;
 	    } break;
 
 	case NC_NIL:

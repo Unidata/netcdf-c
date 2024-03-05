@@ -5,6 +5,7 @@
 
 #include "config.h"
 #include "netcdf.h"
+#include <stddef.h>
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
@@ -38,7 +39,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
         fprintf(stdout,"ncid=%d ngatts=%d ndims=%d nvars=%d unlimid=%d\n",
 		hdr->ncid,hdr->ngatts,hdr->ndims,hdr->nvars,hdr->unlimid);
 #endif
-    hdr->gatts = (NCattribute*)calloc(1,hdr->ngatts*sizeof(NCattribute));
+    hdr->gatts = (NCattribute*)calloc(1, (size_t)hdr->ngatts*sizeof(NCattribute));
     MEMCHECK(hdr->gatts,NC_ENOMEM);
     if(hdr->ngatts > 0)
 	fprintf(stdout,"global attributes:\n");
@@ -81,7 +82,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	fprintf(stdout,"\n");
     }
 
-    hdr->dims = (Dim*)malloc(hdr->ndims*sizeof(Dim));
+    hdr->dims = (Dim*)malloc((size_t)hdr->ndims*sizeof(Dim));
     MEMCHECK(hdr->dims,NC_ENOMEM);
     for(i=0;i<hdr->ndims;i++) {
 	hdr->dims[i].dimid = i;
@@ -93,7 +94,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	fprintf(stdout,"dim[%d]: name=%s size=%lu\n",
 		i,hdr->dims[i].name,(unsigned long)hdr->dims[i].size);
     }
-    hdr->vars = (Var*)malloc(hdr->nvars*sizeof(Var));
+    hdr->vars = (Var*)malloc((size_t)hdr->nvars*sizeof(Var));
     MEMCHECK(hdr->vars,NC_ENOMEM);
     for(i=0;i<hdr->nvars;i++) {
 	Var* var = &hdr->vars[i];
@@ -118,7 +119,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	    fprintf(stdout," %d",var->dimids[j]);
 	}
 	fprintf(stdout,"}\n");
-	var->atts = (NCattribute*)malloc(var->natts*sizeof(NCattribute));
+	var->atts = (NCattribute*)malloc((size_t)var->natts*sizeof(NCattribute));
         MEMCHECK(var->atts,NC_ENOMEM);
         for(j=0;j<var->natts;j++) {
 	    NCattribute* att = &var->atts[j];
@@ -247,7 +248,7 @@ dumppath(CDFnode* leaf)
     NClist* path = nclistnew();
     NCbytes* buf = ncbytesnew();
     char* result;
-    int i;
+    size_t i;
 
     if(leaf == NULL) return nulldup("");
     collectnodepath(leaf,path,!WITHDATASET);
@@ -272,7 +273,7 @@ dumpindent(int indent, NCbytes* buf)
 static void
 dumptreer1(CDFnode* root, NCbytes* buf, int indent, char* tag, int visible)
 {
-    int i;
+    size_t i;
     dumpindent(indent,buf);
     ncbytescat(buf,tag);
     ncbytescat(buf," {\n");
@@ -300,7 +301,7 @@ dumptreer1(CDFnode* root, NCbytes* buf, int indent, char* tag, int visible)
 static void
 dumptreer(CDFnode* root, NCbytes* buf, int indent, int visible)
 {
-    int i;
+    size_t i;
     char* primtype = NULL;
     NClist* dimset = NULL;
 
@@ -389,7 +390,7 @@ dumpnode(CDFnode* node)
 {
     NCbytes* buf = ncbytesnew();
     char* result;
-    int i;
+    size_t i;
     char* nctype = NULL;
     char* primtype = NULL;
     char tmp[1024];
@@ -456,7 +457,7 @@ dumpnode(CDFnode* node)
     ncbytescat(buf,tmp);
     for(i=0;i<nclistlength(node->array.dimset0);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(node->array.dimset0,i);
-        snprintf(tmp,sizeof(tmp),"dims[%d]={\n",i);
+        snprintf(tmp,sizeof(tmp),"dims[%zu]={\n",i);
         ncbytescat(buf,tmp);
 	snprintf(tmp,sizeof(tmp),"    ocname=%s\n",dim->ocname);
         ncbytescat(buf,tmp);
@@ -497,7 +498,7 @@ dumpcachenode(NCcachenode* node)
 {
     char* result = NULL;
     char tmp[8192];
-    int i;
+    size_t i;
     NCbytes* buf;
 
     if(node == NULL) return strdup("cachenode{null}");
@@ -527,7 +528,7 @@ dumpcache(NCcache* cache)
 {
     char* result = NULL;
     char tmp[8192];
-    int i;
+    size_t i;
     NCbytes* buf;
 
     if(cache == NULL) return strdup("cache{null}");
@@ -619,10 +620,10 @@ dumplistraw(NClist* l)
 void
 dumpstringlist(NClist* l)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(l);i++) {
 	const char* s = (const char*)nclistget(l,i);
-	fprintf(stderr,"[%d]: |%s|\n",i,s);
+	fprintf(stderr,"[%zu]: |%s|\n",i,s);
     }
     fflush(stderr);
 }

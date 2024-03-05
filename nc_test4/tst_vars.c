@@ -1279,7 +1279,7 @@ main(int argc, char **argv)
       /* Create a large number of variables. */
       for (i = 0; i < NUM_VARS; i++)
       {
-	 sprintf(varname, "a_%d", i);
+	 snprintf(varname, sizeof(varname), "a_%d", i);
 	 if (nc_def_var(ncid, varname, NC_FLOAT, 1, dimids, &varids[i])) {
 	    ERR;
 	    break;

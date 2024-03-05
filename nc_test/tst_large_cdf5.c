@@ -149,7 +149,7 @@ main(int argc, char **argv) {
     int i;
     char testfile[NC_MAX_NAME + 1];
 
-    sprintf(testfile, "%s/%s", TEMP_LARGE, FILE_NAME);
+    snprintf(testfile, sizeof(testfile), "%s/%s", TEMP_LARGE, FILE_NAME);
 
     printf("\n*** Testing fix for 3.6.2 large file bug in %s.\n",
 	   testfile);

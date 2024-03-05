@@ -50,7 +50,7 @@ main(int argc, char **argv)
 
        /* User TEMP_LARGE as the directory. */
        if (strlen(TEMP_LARGE) + strlen(LARGE_FILE) > NC_MAX_NAME * 2) ERR;
-       sprintf(file_name, "%s/%s", TEMP_LARGE, LARGE_FILE);
+       snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, LARGE_FILE);
 
        /* Create file with 3 dims, one variable. */
        if (nc_create(file_name, NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
@@ -171,11 +171,11 @@ main(int argc, char **argv)
 	   * dimensions. */
 	  for (ndims = 1; ndims <= MAX_DIMS; ndims++)
 	  {
-	     sprintf(file_name, "tst_%s2_%dD.nc", type_name[t], ndims);
+	     snprintf(file_name, sizeof(file_name), "tst_%s2_%dD.nc", type_name[t], ndims);
 	     if (nc_create(file_name, 0, &ncid)) ERR;
 	     for (len = pow(TOTAL_SIZE, (float)1/ndims), d = 0; d < ndims; d++)
 	     {
-		sprintf(dim_name, "dim_%d", d);
+		snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 		if (nc_def_dim(ncid, dim_name, len, &dimids[d])) ERR;
 	     }
 	     if (nc_def_var(ncid, VAR_NAME, typeid[t], ndims, dimids, &varid)) ERR;
@@ -284,11 +284,11 @@ main(int argc, char **argv)
 	   * dimensions. */
 	  for (ndims = 1; ndims <= MAX_DIMS; ndims++)
 	  {
-	     sprintf(file_name, "tst_%s2_%dD.nc", type_name[t], ndims);
+	     snprintf(file_name, sizeof(file_name), "tst_%s2_%dD.nc", type_name[t], ndims);
 	     if (nc_create(file_name, 0, &ncid)) ERR;
 	     for (len = pow(TOTAL_SIZE, (float)1/ndims), d = 0; d < ndims; d++)
 	     {
-		sprintf(dim_name, "dim_%d", d);
+		snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 		if (nc_def_dim(ncid, dim_name, len, &dimids[d])) ERR;
 	     }
 	     if (nc_def_var(ncid, SIMPLE_VAR_NAME, typeid[t], ndims, dimids, &varid)) ERR;

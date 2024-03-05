@@ -1110,7 +1110,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
       return 1;
     }
 
-  /* Avoid sprintf, as that infringes on the user's name space.
+  /* Avoid snprintf, as that infringes on the user's name space.
      Don't have undefined behavior even if the translation
      produced a string with the wrong number of "%s"s.  */
   {

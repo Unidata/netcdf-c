@@ -46,8 +46,9 @@ int main(int argc, char** argv) {
     if (argc == 2) snprintf(filename, 256, "%s", argv[1]);
     else           strcpy(filename, "tst_def_var_fill.nc");
 
-    char *cmd_str = (char*)malloc(strlen(argv[0]) + 256);
-    sprintf(cmd_str, "*** TESTING C   %s for def_var_fill ", argv[0]);
+    size_t cmd_str_len = strlen(argv[0]) + 256;
+    char *cmd_str = (char*)malloc(cmd_str_len);
+    snprintf(cmd_str, cmd_str_len, "*** TESTING C   %s for def_var_fill ", argv[0]);
     printf("%-66s ------ ", cmd_str); fflush(stdout);
     free(cmd_str);
 

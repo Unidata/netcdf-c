@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -218,7 +219,7 @@ Dst will be modified.
 int
 dcemergeprojectionlists(NClist* dst, NClist* src)
 {
-    int i;
+    size_t i;
     NClist* cat = nclistnew();
     int ncstat = NC_NOERR;
 
@@ -272,7 +273,7 @@ int
 dcemergeprojections(DCEprojection* merged, DCEprojection* addition)
 {
     int ncstat = NC_NOERR;
-    int i,j;
+    size_t i,j;
 
     ASSERT((merged->discrim == CES_VAR && addition->discrim == CES_VAR));
     ASSERT((nclistlength(merged->var->segments) == nclistlength(addition->var->segments)));    
@@ -432,7 +433,7 @@ done:
 NClist*
 dceclonelist(NClist* list)
 {
-    int i;
+    size_t i;
     NClist* clone;
     if(list == NULL) return NULL;
     clone = nclistnew();
@@ -519,7 +520,7 @@ dcefree(DCEnode* node)
 void
 dcefreelist(NClist* list)
 {
-    int i;
+    size_t i;
     if(list == NULL) return;
     for(i=0;i<nclistlength(list);i++) {
 	DCEnode* node = (DCEnode*)nclistget(list,i);
@@ -717,7 +718,7 @@ dcelisttostring(NClist* list, char* sep)
 void
 dcelisttobuffer(NClist* list, NCbytes* buf, char* sep)
 {
-    int i;
+    size_t i;
     if(list == NULL || buf == NULL) return;
     if(sep == NULL) sep = ",";
     for(i=0;i<nclistlength(list);i++) {
@@ -741,7 +742,7 @@ dceallnodes(DCEnode* node, CEsort which)
 static void
 ceallnodesr(DCEnode* node, NClist* allnodes, CEsort which)
 {
-    int i;
+    size_t i;
     if(node == NULL) return;
     if(nclistcontains(allnodes,(void*)node)) return;
     if(which == CES_NIL || node->sort == which)
@@ -920,8 +921,8 @@ dcemakewholeprojection(DCEprojection* p)
 int
 dcesamepath(NClist* list1, NClist* list2)
 {
-    int i;
-    int len = nclistlength(list1);
+    size_t i;
+    size_t len = nclistlength(list1);
     if(len != nclistlength(list2)) return 0;
     for(i=0;i<len;i++) {
 	DCEsegment* s1 = (DCEsegment*)nclistget(list1,i);
@@ -1162,7 +1163,7 @@ dcedumpraw(DCEnode* node, NCbytes* buf)
 static void
 dcedumprawlist(NClist* list, NCbytes* buf)
 {
-    int i;
+    size_t i;
     if(list == NULL || buf == NULL) return;
     ncbytescat(buf,"(");
     for(i=0;i<nclistlength(list);i++) {

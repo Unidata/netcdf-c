@@ -15,20 +15,24 @@ and do the command:
     make makepluginjson
 */
 
-/* Inside libnetcdf and for plugins, export the json symbols */
-#ifndef DLLEXPORT
-#ifdef _WIN32
-#define DLLEXPORT __declspec(dllexport)
+#if defined(DLL_NETCDF) /* define when library is a DLL */
+#  if defined(DLL_EXPORT) /* define when building the library */
+#   define MSC_EXTRA __declspec(dllexport)
+#  else
+#   define MSC_EXTRA __declspec(dllimport)
+#  endif
 #else
-#define DLLEXPORT
-#endif
+#  define MSC_EXTRA
+#endif	/* defined(DLL_NETCDF) */
+#ifndef EXTERNL
+# define EXTERNL MSC_EXTRA extern
 #endif
 
 /* Override for plugins */
 #ifdef NETCDF_JSON_H
 #define OPTEXPORT static
 #else
-#define OPTEXPORT DLLEXPORT
+#define OPTEXPORT MSC_EXTRA
 #endif /*NETCDF_JSON_H*/
 
 /**************************************************/
@@ -43,8 +47,6 @@ and do the command:
 #define NCJ_NULL     7
 
 #define NCJ_NSORTS   8
-
-/* No flags are currently defined, but the argument is a placeholder */
 
 /* Define a struct to store primitive values as unquoted
    strings. The sort will provide more info.  Do not bother with
@@ -172,6 +174,8 @@ and do the command:
 
 
 #undef NCJDEBUG
+#define NCJTRACE
+
 #ifdef NCJDEBUG
 /* Warning: do not evaluate err more than once */
 #define NCJTHROW(err) ncjbreakpoint(err)
@@ -210,6 +214,8 @@ typedef struct NCJparser {
     long long num;
     int tf;
     int status; /* NCJ_ERR|NCJ_OK */
+    unsigned flags;
+#     define NCJ_TRACE 1
 } NCJparser;
 
 typedef struct NCJbuf {
@@ -233,7 +239,7 @@ typedef struct NCJbuf {
 #define nulldup(x) ((x)?strdup(x):(x))
 #endif
 
-#ifdef NCJDEBUG
+#if defined NCJDEBUG || defined NCJTRACE
 static char* tokenname(int token);
 #endif
 
@@ -295,6 +301,7 @@ NCJparsen(size_t len, const char* text, unsigned flags, NCjson** jsonp)
     parser = calloc(1,sizeof(NCJparser));
     if(parser == NULL)
 	{stat = NCJTHROW(NCJ_ERR); goto done;}
+    parser->flags = flags;
     parser->text = (char*)malloc(len+1+1);
     if(parser->text == NULL)
 	{stat = NCJTHROW(NCJ_ERR); goto done;}
@@ -576,6 +583,16 @@ fprintf(stderr,"%s(%d): |%s|\n",tokenname(token),token,parser->yytext);
 done:
     if(parser->status == NCJ_ERR)
         token = NCJ_UNDEF;
+#ifdef NCJTRACE
+    if(parser->flags & NCJ_TRACE) {
+	const char* txt = NULL;
+	switch(token) {
+	case NCJ_STRING: case NCJ_INT: case NCJ_DOUBLE: case NCJ_BOOLEAN: txt = parser->yytext; break;
+        default: break;
+	}
+        fprintf(stderr,">>>> token=%s:'%s'\n",tokenname(token),(txt?txt:""));
+    }
+#endif
     return token;
 }
 
@@ -808,7 +825,7 @@ unescape1(int c)
     return c;
 }
 
-#ifdef NCJDEBUG
+#if defined NCJDEBUG || defined NCJTRACE
 static char*
 tokenname(int token)
 {
@@ -929,9 +946,9 @@ listappend(struct NCjlist* list, NCjson* json)
 	list->contents[0] = json;
 	list->len++;
     } else {
-        if((newcontents = (NCjson**)calloc((2*list->len)+1,sizeof(NCjson*)))==NULL)
+        if((newcontents = (NCjson**)calloc((size_t)(2*list->len)+1,sizeof(NCjson*)))==NULL)
             {stat = NCJTHROW(NCJ_ERR); goto done;}
-        memcpy(newcontents,list->contents,list->len*sizeof(NCjson*));
+        memcpy(newcontents,list->contents, (size_t)list->len*sizeof(NCjson*));
 	newcontents[list->len] = json;
 	list->len++;
 	free(list->contents);

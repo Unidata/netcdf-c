@@ -105,7 +105,8 @@ if provided, otherwise leave blank and let the S3 server deal with it.
 int
 NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NClist* hostsegments = NULL;
     NClist* pathsegments = NULL;
     NCbytes* buf = ncbytesnew();

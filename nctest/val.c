@@ -13,11 +13,11 @@
 
 
 /* fill typed value block with values of specified type */
+/* type: netcdf type, NC_BYTE, ..., NC_DOUBLE */
+/* len: number of elements to fill with */
+/* vals: start of first block of values */
 void
-val_fill(type, len, vals)
-     nc_type type;		/* netcdf type, NC_BYTE, ..., NC_DOUBLE */
-     long len;			/* number of elements to fill with */
-     void *vals;		/* start of first block of values */
+val_fill(nc_type type, long len, void *vals)
 {
     static char pname[] = "val_fill";
     long half = len/2;
@@ -64,11 +64,11 @@ val_fill(type, len, vals)
 
 
 /* fill typed value block with zeros of specified type */
+/* type: netcdf type, NC_BYTE, ..., NC_DOUBLE */
+/* len: number of elements to fill with */
+/* vals: start of first block of values */
 void
-val_fill_zero(type, len, vals)
-     nc_type type;		/* netcdf type, NC_BYTE, ..., NC_DOUBLE */
-     long len;			/* number of elements to fill with */
-     void *vals;		/* start of first block of values */
+val_fill_zero(nc_type type, long len, void *vals)
 {
     static char pname[] = "val_fill_zero";
     int iel;
@@ -118,12 +118,12 @@ val_fill_zero(type, len, vals)
  * compare two typed value blocks, return 0 if equal, 1+n otherwise, 
  * where n is the index of the first differing element.
  */
+/* type: netcdf type, NC_BYTE, ..., NC_DOUBLE */
+/* len: number of elements of type to compare */
+/* v1: start of first block of values */
+/* v2: start of second block of values */
 int
-val_cmp (type, len, v1, v2)
-     nc_type type;		/* netcdf type, NC_BYTE, ..., NC_DOUBLE */
-     long len;			/* number of elements of type to compare */
-     void *v1;			/* start of first block of values */
-     void *v2;			/* start of second block of values */
+val_cmp (nc_type type, long len, void *v1, void *v2)
 {
     static char pname[] = "val_cmp";
     int iel;
@@ -195,11 +195,11 @@ val_cmp (type, len, v1, v2)
 
 
 /* print typed value block with values of specified type */
+/* type: netcdf type, NC_BYTE, ..., NC_DOUBLE */
+/* len: number of elements to fill with */
+/* vals: start of first block of values */
 void
-val_out(type, len, vals)
-     nc_type type;		/* netcdf type, NC_BYTE, ..., NC_DOUBLE */
-     long len;			/* number of elements to fill with */
-     void *vals;		/* start of first block of values */
+val_out(nc_type type, long len, void *vals)
 {
     static char pname[] = "val_oout";
     int iel;

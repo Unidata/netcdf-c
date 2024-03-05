@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "config.h"
+#include <stddef.h>
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -254,7 +255,8 @@ nclistconcat(NClist* l1, NClist* l2)
 int
 nclistminus(NClist* l1, NClist* l2)
 {
-    unsigned int i,len,found;
+    size_t i, len;
+    int found;
     len = nclistlength(l2);
     found = 0;
     for(i=0;i<len;i++) {
@@ -312,7 +314,7 @@ collectocpath(OClink conn, OCddsnode node, NClist* path)
 char*
 makeocpathstring(OClink conn, OCddsnode node, const char* sep)
 {
-    int i,len,first;
+    size_t i,len,first;
     char* result;
     char* name;
     OCtype octype;
@@ -353,7 +355,7 @@ makeocpathstring(OClink conn, OCddsnode node, const char* sep)
 char*
 makepathstring(NClist* path, const char* separator, int flags)
 {
-    int i,len,first;
+    size_t i,len,first;
     NCbytes* pathname = NULL;
     char* result;
     CDFnode* node;
@@ -412,7 +414,7 @@ clonenodenamepath(CDFnode* node, NClist* path, int withdataset)
 char*
 simplepathstring(NClist* names,  char* separator)
 {
-    int i;
+    size_t i;
     size_t len;
     char* result;
     if(nclistlength(names) == 0) return nulldup("");
@@ -763,7 +765,7 @@ repairname(const char* name, const char* badchars)
     const char *p;
     char *q;
     int c;
-    int nnlen = 0;
+    size_t nnlen = 0;
 
     if(name == NULL) return NULL;
     nnlen = (3*strlen(name)); /* max needed */

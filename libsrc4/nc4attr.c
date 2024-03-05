@@ -111,7 +111,7 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
         !(mem_type == NC_CHAR &&
           (att->nc_typeid == NC_UBYTE || att->nc_typeid == NC_BYTE)))
     {
-        if (!(bufr = malloc((size_t)(att->len * type_size))))
+        if (!(bufr = malloc((size_t)(att->len) * type_size)))
             BAIL(NC_ENOMEM);
         need_to_convert++;
         if ((retval = nc4_convert_type(att->data, bufr, att->nc_typeid,

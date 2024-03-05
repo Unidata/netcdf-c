@@ -4,6 +4,7 @@
  */
 
 #include "ut_includes.h"
+#include <stddef.h>
 
 #undef DEBUG
 
@@ -346,7 +347,8 @@ done:
 static int
 searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
 {
-    int i,stat = NC_NOERR;
+
+    int stat = NC_NOERR;
     NClist* matches = nclistnew();
     char prefix[4096]; /* only ok because we know testdata */
     size_t prefixlen;
@@ -366,7 +368,7 @@ searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
     reportx(PASS,prefix,"search",map);
 
     /* recurse */
-    for(i=0;i<nclistlength(matches);i++) {
+    for(size_t i=0;i<nclistlength(matches);i++) {
 	const char* key = nclistget(matches,i);
 	/* ensure trailing '/' */
         if(prefix[prefixlen-1] != '/')
@@ -386,7 +388,8 @@ done:
 static int
 search(void)
 {
-    int i,stat = NC_NOERR;
+
+    int stat = NC_NOERR;
     NCZMAP* map = NULL;
     NClist* objects = nclistnew();
 
@@ -400,9 +403,9 @@ search(void)
     /* Sort */
     ut_sortlist(objects);
     /* Print out the list */
-    for(i=0;i<nclistlength(objects);i++) {
+    for(size_t i=0;i<nclistlength(objects);i++) {
 	const char* key = nclistget(objects,i);
-	printf("[%d] %s\n",i,key);
+	printf("[%zu] %s\n",i,key);
     }
 
 done:

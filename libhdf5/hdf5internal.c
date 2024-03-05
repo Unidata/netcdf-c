@@ -17,6 +17,7 @@
 #include "config.h"
 #include "hdf5internal.h"
 #include "hdf5err.h" /* For BAIL2 */
+#include <stddef.h>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -150,9 +151,9 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid,
                 BAIL(NC_EHDFERR);
             if (dataset_ndims != var->ndims)
                 BAIL(NC_EHDFERR);
-            if (!(h5dimlen = malloc(dataset_ndims * sizeof(hsize_t))))
+            if (!(h5dimlen = malloc((size_t)dataset_ndims * sizeof(hsize_t))))
                 BAIL(NC_ENOMEM);
-            if (!(h5dimlenmax = malloc(dataset_ndims * sizeof(hsize_t))))
+            if (!(h5dimlenmax = malloc((size_t)dataset_ndims * sizeof(hsize_t))))
                 BAIL(NC_ENOMEM);
             if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid,
                                                            h5dimlen, h5dimlenmax)) < 0)
@@ -205,7 +206,7 @@ nc4_rec_find_hdf_type(NC_FILE_INFO_T *h5, hid_t target_hdf_typeid)
 {
     NC_TYPE_INFO_T *type;
     htri_t equal;
-    int i;
+    size_t i;
 
     assert(h5);
 

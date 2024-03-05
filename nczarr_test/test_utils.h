@@ -21,7 +21,7 @@ typedef enum Op {None=0, Create=1, Read=2, Write=3, Wholechunk=4, Odom=5, Extend
 
 typedef struct Options {
     unsigned debug;
-    unsigned wdebug;
+    int wdebug;
     int optimize;
     int wholechunk;
     Op create;
@@ -49,7 +49,7 @@ typedef struct Metadata {
 } Metadata;
 
 typedef struct Odometer {
-  size_t rank; /*rank */
+  int rank; /*rank */
   size_t start[NC_MAX_VAR_DIMS];
   size_t edges[NC_MAX_VAR_DIMS];
   size_t stride[NC_MAX_VAR_DIMS];
@@ -60,7 +60,7 @@ typedef struct Odometer {
 
 extern void usage(int);
 
-EXTERNL Odometer* odom_new(size_t rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max);
+EXTERNL Odometer* odom_new(int rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max);
 EXTERNL void odom_free(Odometer* odom);
 EXTERNL int odom_more(Odometer* odom);
 EXTERNL int odom_next(Odometer* odom);

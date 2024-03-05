@@ -127,7 +127,7 @@ static OCerror printdata_indices(OClink, OCdatanode, NCbytes*,int);
 static OCerror printdata_container(OClink, OCdatanode, NCbytes*,int);
 static OCerror printdata_leaf(OClink, OCdatanode, NCbytes*,int);
 
-static off_t odom_init(size_t rank, size_t* indices, size_t* dimsizes);
+static size_t odom_init(size_t rank, size_t* indices, size_t* dimsizes);
 static int odom_more(size_t rank, size_t* indices, size_t* dimsizes);
 static void odom_next(size_t rank, size_t* indices, size_t* dimsizes);
 
@@ -230,7 +230,7 @@ main(int argc, char **argv)
 	    } break;
         case 'X': {
 	    int c0;
-	    int so = (optarg == NULL ? 0 : strlen(optarg));
+	    size_t so = (optarg == NULL ? 0 : strlen(optarg));
 	    if(so == 0) usage("missing -X argument");
 	    c0 = optarg[0];
 	    switch (c0) {
@@ -921,7 +921,7 @@ stringescape(char* s)
 {
     size_t len;
     char* p;
-    int c;
+    char c;
     char* escapedstring;
 
     if(s == NULL) return NULL;
@@ -948,7 +948,7 @@ static char*
 idescape(char* id, char* escapeid, size_t esize)
 {
     char* p;
-    int c;
+    char c;
 
     if(id == NULL) return NULL;
     p = escapeid;
@@ -1033,7 +1033,7 @@ dumpdatanode(OClink link, OCdatanode datanode, size_t count, void* memory, NCbyt
             ncbytescat(path,id);
             if(entry->rank > 0) {
 		for(i=0;i<entry->rank;i++) {
-                    sprintf(tmp,"[%lu]",(unsigned long)entry->indices[i]);
+                    snprintf(tmp,sizeof(tmp),"[%lu]",(unsigned long)entry->indices[i]);
                     ncbytescat(path,tmp);
 		}
             }
@@ -1047,7 +1047,7 @@ dumpdatanode(OClink link, OCdatanode datanode, size_t count, void* memory, NCbyt
         case OC_Sequence:
             ncbytescat(path,"/");
             ncbytescat(path,id);
-            sprintf(tmp,"[%lu]",(unsigned long)entry->indices[0]);
+            snprintf(tmp,sizeof(tmp),"[%lu]",(unsigned long)entry->indices[0]);
             ncbytescat(path,tmp);
             break;
 
@@ -1068,8 +1068,7 @@ dumpdatanode(OClink link, OCdatanode datanode, size_t count, void* memory, NCbyt
     ncbytescat(buffer,tmp);
     if(entry->rank > 0) {
 	if(ocopt.octest) { /* Match the octest output */
-	    off_t xproduct;
-	    xproduct = totaldimsize(entry->rank,entry->dimsizes);
+	    size_t xproduct = totaldimsize(entry->rank,entry->dimsizes);
             snprintf(tmp,sizeof(tmp),"[0..%lu]",(unsigned long)xproduct-1);
             ncbytescat(buffer,tmp);
 	} else {
@@ -1091,12 +1090,11 @@ dumpdatanode(OClink link, OCdatanode datanode, size_t count, void* memory, NCbyt
     return OC_NOERR;
 }
 
-static off_t
+static size_t
 odom_init(size_t rank, size_t* indices, size_t* dimsizes)
 {
-    int i;
-    off_t count;
-    for(count=1,i=0;i<rank;i++) {
+    size_t count = 1;
+    for(size_t i=0;i<rank;i++) {
         indices[i] = 0;
 	count *= dimsizes[i];
     }
