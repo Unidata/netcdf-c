@@ -13,6 +13,7 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
+#include <sys/types.h>
 #include "ncx.h"
 #include "rnd.h"
 #include "ncutf8.h"
@@ -133,9 +134,9 @@ new_NC_var(const char *uname, nc_type type,
 	int stat;
 	char* name;
 
-        stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name);
-        if(stat != NC_NOERR)
-	    return NULL;
+    stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name);
+    if(stat != NC_NOERR)
+      return NULL;
 	strp = new_NC_string(strlen(name), name);
 	free(name);
 	if(strp == NULL)
@@ -150,8 +151,8 @@ new_NC_var(const char *uname, nc_type type,
 
 	varp->type = type;
 
-	if( ndims != 0 && dimids != NULL)
-	  (void) memcpy(varp->dimids, dimids, ndims * sizeof(int));
+    if( ndims != 0 && dimids != NULL)
+      (void) memcpy(varp->dimids, dimids, ndims * sizeof(int));
     else
       varp->dimids=NULL;
 
@@ -478,7 +479,7 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
 		{
           if( ((off_t)(*shp)) <= OFF_T_MAX / product )
 			{
-              product *= (*shp > 0 ? *shp : 1);
+              product *= (*shp > 0 ? (off_t)*shp : 1);
 			} else
 			{
               product = OFF_T_MAX ;
@@ -497,7 +498,7 @@ out :
      * offset of this variable is less than 2GiB.
      * This will be checked in NC_check_vlens() during NC_endef()
      */
-    varp->len = product * varp->xsz;
+    varp->len = product * (off_t)varp->xsz;
     if (varp->len % 4 > 0)
         varp->len += 4 - varp->len % 4; /* round up */
 
@@ -518,7 +519,7 @@ out :
 int
 NC_check_vlen(NC_var *varp, long long vlen_max) {
     size_t ii;
-    long long prod=varp->xsz;	/* product of xsz and dimensions so far */
+    long long prod = (long long)varp->xsz;	/* product of xsz and dimensions so far */
 
     assert(varp != NULL);
     for(ii = IS_RECVAR(varp) ? 1 : 0; ii < varp->ndims; ii++) {
@@ -527,7 +528,7 @@ NC_check_vlen(NC_var *varp, long long vlen_max) {
       if ((long long)varp->shape[ii] > vlen_max / prod) {
         return 0;		/* size in bytes won't fit in a 32-bit int */
       }
-      prod *= varp->shape[ii];
+      prod *= (long long)varp->shape[ii];
     }
     return 1;			/* OK */
 }
@@ -610,7 +611,7 @@ NC3_def_var( int ncid, const char *name, nc_type type,
 		return NC_ENAMEINUSE;
 	}
 
-	varp = new_NC_var(name, type, ndims, dimids);
+	varp = new_NC_var(name, type, (size_t)ndims, dimids);
 	if(varp == NULL)
 		return NC_ENOMEM;
 
