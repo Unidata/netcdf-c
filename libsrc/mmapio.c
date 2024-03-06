@@ -313,7 +313,7 @@ mmapio_open(const char* path,
     void* parameters,
     ncio* *nciopp, void** const mempp)
 {
-    ncio* nciop;
+    ncio* nciop = NULL;
     int fd;
     int status;
     int oflags;
