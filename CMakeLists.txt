@@ -468,8 +468,8 @@ if(WIN32)
   option(ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
   if(ENABLE_DLL)
     set(BUILD_DLL ON CACHE BOOL "")
-    ADD_DEFINITIONS(-DDLL_NETCDF -DDLL_EXPORT)
-    target_compile_definitions(netcdf PRIVATE DLL_NETCDF DLL_EXPORT)
+    target_compile_definitions(netcdf PRIVATE DLL_EXPORT)
+    target_compile_definitions(netcdf PUBLIC DLL_NETCDF)
   endif()
 endif()
 # Did the user specify a default minimum blocksize for posixio?
@@ -1478,20 +1478,8 @@ endif()
 
 add_subdirectory(liblib)
 
-# For tests and utilities, we are no longer
-# exporting symbols but rather importing them.
-if(BUILD_DLL)
-  REMOVE_DEFINITIONS(-DDLL_EXPORT)
-endif()
-
 if(ENABLE_PLUGINS)
   add_subdirectory(plugins)
-endif()
-
-# For tests and utilities, we are no longer
-# exporting symbols but rather importing them.
-if(BUILD_DLL)
-  REMOVE_DEFINITIONS(-DDLL_EXPORT)
 endif()
 
 # Enable Utilities.
