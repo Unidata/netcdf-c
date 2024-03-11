@@ -95,7 +95,9 @@ check_nc4_file(int ncid)
 			       &nfields_in, &class_in)) ERR;
    if (strncmp(norm_utf8, name_in, strlen(norm_utf8)) || size_in != 1 ||
        base_type_in != NC_BYTE || nfields_in != 1 || class_in != NC_ENUM) ERR;
-   name_in[0] = size_in = base_type_in = 0;
+   name_in[0] = 0;
+   size_in = 0;
+   base_type_in = 0;
    if (nc_inq_enum(grpid2, enum_typeid, name_in, &base_type_in, &size_in, &num_mem)) ERR;
    if (strncmp(norm_utf8, name_in, strlen(norm_utf8)) || size_in != 1 ||
        base_type_in != NC_BYTE || num_mem != 1) ERR;
