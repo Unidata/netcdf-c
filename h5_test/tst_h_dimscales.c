@@ -46,7 +46,7 @@ rec_scan_group(hid_t grpid)
    htri_t is_scale;
    int num_scales;
    hsize_t dims[MAX_DIMS], max_dims[MAX_DIMS];
-   int ndims, d;
+   int ndims;
 
    /* Loop through datasets to find variables. */
    if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
@@ -93,7 +93,7 @@ rec_scan_group(hid_t grpid)
 	       if (num_scales != 1) ERR;
 
 	       /* Go through all dimscales for this var and learn about them. */
-	       for (d = 0; d < ndims; d++)
+	       for (unsigned int d = 0; d < ndims; d++)
 		  if (H5DSiterate_scales(datasetid, d, NULL, alien_visitor,
 					 &visitor_data) < 0) ERR;
 	    }
@@ -563,7 +563,6 @@ main()
       htri_t is_scale;
       int num_scales;
       hsize_t dims[NDIMS], max_dims[NDIMS];
-      int d;
 
       /* Reopen the file and group. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
@@ -631,7 +630,7 @@ main()
 		  /* Go through all dimscales for this var and learn
 		   * about them. What I want is the dataset id of each
 		   * dimscale. Then... */
-		  for (d = 0; d < NDIMS; d++)
+		  for (unsigned int d = 0; d < NDIMS; d++)
 		     if (H5DSiterate_scales(datasetid, d, NULL, alien_visitor,
 					    &visitor_data) < 0) ERR;
 		  /*printf("visitor_data: 0x%x\n", visitor_data);*/
