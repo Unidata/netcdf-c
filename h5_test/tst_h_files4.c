@@ -186,7 +186,6 @@ main()
       hsize_t num_obj;
       ssize_t size;
       char obj_name[STR_LEN + 1];
-      int i;
 
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG)) ERR;
@@ -197,7 +196,7 @@ main()
 
       /* How many objects in this group? */
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
-      for (i = 0; i < num_obj; i++)
+      for (hsize_t i = 0; i < num_obj; i++)
       {
 #if H5_VERSION_GE(1,12,0)
 	 if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
@@ -209,7 +208,7 @@ main()
 	 if ((size = H5Lget_name_by_idx(grpid, ".", idx_field, H5_ITER_INC, i,
 					NULL, 0, H5P_DEFAULT)) < 0) ERR;
 	 if (H5Lget_name_by_idx(grpid, ".", idx_field, H5_ITER_INC, i,
-				obj_name, size+1, H5P_DEFAULT) < 0) ERR;
+				obj_name, (size_t)size+1, H5P_DEFAULT) < 0) ERR;
       }
 
       if (H5Gclose(grpid) < 0) ERR;

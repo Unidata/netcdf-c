@@ -65,9 +65,9 @@ main()
       hid_t base_hdf_typeid;
 
 
-      for (i=0; i < NUM_VALS; i++)
+      for (short i=0; i < NUM_VALS; i++)
 	 val[i] = i*2;
-      for (i=0; i < DIM1_LEN; i++)
+      for (short i=0; i < DIM1_LEN; i++)
 	 data[i] = i*2;
 
       /* Open file. */
@@ -115,7 +115,7 @@ main()
       if (!types_equal) ERR;
 
       /* Check each value and number in the enum. */
-      for (i=0; i < NUM_VALS; i++)
+      for (unsigned int i=0; i < NUM_VALS; i++)
       {
 	 if (H5Tget_member_value(typeid, i, &the_value) < 0) ERR;
 	 if (the_value != val[i]) ERR;
@@ -229,7 +229,7 @@ main()
       if (!types_equal) ERR;
 
       /* Check each value and number in the enum. */
-      for (i=0; i < NUM_LANG; i++)
+      for (unsigned int i=0; i < NUM_LANG; i++)
       {
 	 if (H5Tget_member_value(typeid, i, &the_value) < 0) ERR;
 	 if (the_value != val[i]) ERR;
