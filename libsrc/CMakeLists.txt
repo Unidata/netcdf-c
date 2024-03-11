@@ -1,7 +1,7 @@
 ## This is a CMake file, part of Unidata's netCDF package.
 # Copyright 2012-2018, see the COPYRIGHT file for more information.
 
-SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
+set(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
   nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c)
 
 ## 
@@ -18,73 +18,84 @@ set_property(SOURCE httpio.c posixio.c mmapio.c
     SKIP_UNITY_BUILD_INCLUSION ON)
 
 # Process these files with m4.
-SET(m4_SOURCES attr ncx putget)
+set(m4_SOURCES attr ncx putget)
 foreach (f ${m4_SOURCES})
   GEN_m4(${f} dest)
-  LIST(APPEND libsrc_SOURCES ${dest})
+  list(APPEND libsrc_SOURCES ${dest})
 endforeach(f)
 
-LIST(APPEND libsrc_SOURCES pstdint.h ncio.h ncx.h)
+list(APPEND libsrc_SOURCES pstdint.h ncio.h ncx.h)
 
-LIST(APPEND libsrc_SOURCES memio.c)
+list(APPEND libsrc_SOURCES memio.c)
 
-IF (BUILD_MMAP)
-  LIST(APPEND libsrc_SOURCES mmapio.c)
-ENDIF( BUILD_MMAP)
+if (BUILD_MMAP)
+  list(APPEND libsrc_SOURCES mmapio.c)
+endif( BUILD_MMAP)
 
-IF (USE_FFIO)
-  LIST(APPEND libsrc_SOURCES ffio.c)
-ELSEIF (USE_STDIO)
+if (USE_FFIO)
+  list(APPEND libsrc_SOURCES ffio.c)
+elseif (USE_STDIO)
    IST(APPEND libsrc_SOURCES ncstdio.c)
-ELSE (USE_FFIO)
-  LIST(APPEND libsrc_SOURCES posixio.c)
-ENDIF (USE_FFIO)
+else (USE_FFIO)
+  list(APPEND libsrc_SOURCES posixio.c)
+ENDif (USE_FFIO)
 
-IF (ENABLE_BYTERANGE)
-  LIST(APPEND libsrc_SOURCES httpio.c)
-IF (ENABLE_S3)
-  LIST(APPEND libsrc_SOURCES s3io.c)
-ENDIF(ENABLE_S3)
-ENDIF(ENABLE_BYTERANGE)
+if (ENABLE_BYTERANGE)
+  list(APPEND libsrc_SOURCES httpio.c)
+if (ENABLE_S3)
+  list(APPEND libsrc_SOURCES s3io.c)
+endif(ENABLE_S3)
+endif(ENABLE_BYTERANGE)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES})
 
-IF(STATUS_PARALLEL)
+if (ENABLE_DLL)
+  target_compile_definitions(netcdf3 PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
+
+if (ENABLE_BYTERANGE)
+  target_include_directories(netcdf3 PUBLIC ${CURL_INCLUDE_DIRS})
+  target_compile_options(netcdf3
+    PRIVATE
+      -DCURL_STATICLIB=1
+  )
+endif (ENABLE_BYTERANGE)
+
+if(STATUS_PARALLEL)
   target_link_libraries(netcdf3 PUBLIC MPI::MPI_C)
-ENDIF(STATUS_PARALLEL)
+endif(STATUS_PARALLEL)
 
 # The C API man page.
 
-SET(MAN_FILES netcdf.3)
+set(MAN_FILES netcdf.3)
 
 set(ARGS_MANPAGE -DAPI=C)
 
-IF (USE_HDF5)
-  SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
-ENDIF(USE_HDF5)
+if (USE_HDF5)
+  set(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
+endif(USE_HDF5)
 
-IF (BUILD_DAP)
-  SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)
-ENDIF(BUILD_DAP)
+if (BUILD_DAP)
+  set(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)
+endif(BUILD_DAP)
 
-IF (BUILD_PARALLEL)
-  SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
-ENDIF(BUILD_PARALLEL)
+if (BUILD_PARALLEL)
+  set(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
+endif(BUILD_PARALLEL)
 
 # Generate the man page.
-IF(HAVE_M4)
+if(HAVE_M4)
 
-  FILE(GLOB libsrc_MANPAGE ${CMAKE_CURRENT_SOURCE_DIR}/../docs/netcdf.m4)
-  FILE(COPY ${libsrc_MANPAGE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(GLOB libsrc_MANPAGE ${CMAKE_CURRENT_SOURCE_DIR}/../docs/netcdf.m4)
+  file(COPY ${libsrc_MANPAGE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-IF(NOT MSVC)
-  ADD_CUSTOM_TARGET(manpage ALL
-
-    COMMAND ${NC_M4} ${ARGS_MANPAGE} "${CMAKE_CURRENT_BINARY_DIR}/netcdf.m4" > "${CMAKE_CURRENT_BINARY_DIR}/netcdf.3"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+  if(NOT MSVC)
+    add_custom_target(manpage ALL
+      COMMAND ${NC_M4} ${ARGS_MANPAGE} "${CMAKE_CURRENT_BINARY_DIR}/netcdf.m4" > "${CMAKE_CURRENT_BINARY_DIR}/netcdf.3"
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     )
 
-  INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/netcdf.3" DESTINATION "share/man/man3" COMPONENT documentation)
-ENDIF(NOT MSVC)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/netcdf.3" DESTINATION "share/man/man3" COMPONENT documentation)
+  endif(NOT MSVC)
 
-ENDIF()
+endif()

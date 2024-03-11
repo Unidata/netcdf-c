@@ -861,7 +861,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
         sp = sout;
         *sp++ = '"' ;
         while(*cp) {
-            switch (uc = *cp++ & 0377) {
+            switch (uc = (unsigned char)*cp++ & 0377) {
             case '\b':
                 *sp++ = '\\';
                 *sp++ = 'b' ;
@@ -904,7 +904,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
                     sp += 4;
                 }
                 else
-                    *sp++ = uc;
+                    *sp++ = (char)uc;
                 break;
             }
         }
@@ -1045,7 +1045,7 @@ chars_tostring(
 	len--;
     for (iel = 0; iel < len; iel++) {
 	unsigned char uc;
-	switch (uc = *vals++ & 0377) {
+	switch (uc = (unsigned char)(*vals++ & 0377)) {
 	case '\b':
 	case '\f':
 	case '\n':
@@ -1062,7 +1062,7 @@ chars_tostring(
 	    if (isprint(uc))
 		*cp++ = *(char *)&uc; /* just copy, even if char is signed */
 	    else {
-	    size_t remaining = sout_size - (cp - sout);
+		size_t remaining = sout_size - (size_t)(cp - sout);
 		snprintf(cp,remaining,"\\%.3o",uc);
 		cp += 4;
 	    }
@@ -1806,10 +1806,8 @@ print_type_name(int locid, int typeid) {
 static int
 init_is_unlim(int ncid, int **is_unlim_p)
 {
-    int num_grps;	 /* total number of groups */
-    int num_dims = 0;    /* total number of dimensions in all groups */
+    size_t num_grps;	 /* total number of groups */
     int max_dimid = -1;    /* maximum dimid across whole dataset */
-    int num_undims = 0;  /* total number of unlimited dimensions in all groups */
     int *grpids = NULL;	 /* temporary list of all grpids */
     int igrp;
     int grpid;
@@ -1824,7 +1822,7 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	return NC_EBADGRPID;
     /* Now ncid is root group.  Get total number of groups and their ids */
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, NULL) );
-    grpids = emalloc((size_t)(num_grps + 1) * sizeof(int));
+    grpids = emalloc((num_grps + 1) * sizeof(int));
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, grpids) );
 #define DONT_INCLUDE_PARENTS 0
     /* Get all dimensions in groups and info about which ones are unlimited */
@@ -1836,7 +1834,6 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	int* dimids = NULL;
 	grpid = grpids[igrp];
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
-	num_dims += ndims;
 	dimids = (int*)emalloc((size_t)ndims*sizeof(int));
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, dimids, DONT_INCLUDE_PARENTS) );
 	for(i=0;i<ndims;i++) {if(dimids[i] > max_dimid) max_dimid = dimids[i];}
@@ -1863,7 +1860,6 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	    int* isunlim = *is_unlim_p;
 	    int did = dimids[idim];
 	    isunlim[did] = 1;
-	    num_undims++;
 	}
 	if(dimids)
 	    free(dimids);

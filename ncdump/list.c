@@ -40,8 +40,7 @@ int
 listfreeall(List* l)
 {
   if(l) {
-    int i;
-    for(i=0;i<listlength(l);i++) {
+    for(size_t i=0;i<listlength(l);i++) {
 	void* elem = listget(l,i);
 	if(elem != NULL) free(elem);
     }

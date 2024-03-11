@@ -100,7 +100,11 @@ nc_http_open_verbose(const char* path, int verbose, NC_HTTP_STATE** statep)
         {stat = NCTHROW(NC_ENOMEM); goto done;}
     state->path = strdup(path);
     state->url = uri; uri = NULL;    
-    state->format = (NC_iss3(state->url)?HTTPS3:HTTPCURL);
+#ifdef ENABLE_S3
+    state->format = (NC_iss3(state->url,NULL)?HTTPS3:HTTPCURL);
+#else
+    state->format = HTTPCURL;
+#endif
 
     switch (state->format) {
     case HTTPCURL: {

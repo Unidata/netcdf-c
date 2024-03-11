@@ -6,6 +6,9 @@
 #ifndef _CHUNKSPEC_H_
 #define _CHUNKSPEC_H_
 
+#include <stddef.h>
+#include "utils.h"
+
 /* Parse chunkspec string and convert into internal data structure,
  * associating dimids from open file or group specified by ncid with
  * corresponding chunk sizes */
@@ -25,7 +28,7 @@ dimchunkspec_exists(int indimid);
 /* Return number of dimensions for which chunking was specified in
  * chunkspec string on command line, 0 if no chunkspec string was
  * specified. */
-extern int
+extern size_t
 dimchunkspec_ndims(void);
 
 /* Return whether chunking should be omitted, due to explicit
