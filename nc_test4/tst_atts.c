@@ -432,7 +432,7 @@ main(int argc, char **argv)
         * index. In this case after about 2^16 modifications this
         * index reaches its maximum, making it impossible to modify
         * this file's metadata because nc_enddef() will fail. */
-       int ncid = -1, i = -1, error_code = NC_NOERR;
+       int ncid = -1, error_code = NC_NOERR;
        int data[2] = {1, 2};
 
        /* Create a file. Note that we use a different file name here
@@ -441,7 +441,7 @@ main(int argc, char **argv)
        if (nc_enddef(ncid)) ERR;
 
        /* Modify an attribute 2^16 times. */
-       for (i = 0; i < 65536; ++i)
+       for (size_t i = 0; i < 65536; ++i)
        {
            if (nc_redef(ncid)) ERR;
 
