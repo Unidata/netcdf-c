@@ -6,7 +6,7 @@
 # Set Project Properties
 ##################################
 
-cmake_minimum_required(VERSION 3.12.0)
+cmake_minimum_required(VERSION 3.20.0)
 
 #Project Name
 project(netCDF
@@ -32,6 +32,24 @@ if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
     set(NETCDF_IS_TOP_LEVEL ON)
   endif ()
 endif ()
+
+
+################################
+# The target
+################################
+
+##
+# Default building shared libraries.
+# BUILD_SHARED_LIBS is provided by/used by
+# CMake directly.
+##
+option(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
+if(BUILD_SHARED_LIBS)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
+add_library(netcdf)
+add_library(netCDF::netcdf ALIAS netcdf)
 
 #####
 # Version Info:
@@ -114,7 +132,7 @@ include(GNUInstallDirs)
 
 if(MSVC)
   set(GLOBAL PROPERTY USE_FOLDERS ON)
-  add_compile_options("/utf-8")
+  target_compile_options(netcdf PUBLIC "/utf-8")
 endif()
 
 # auto-configure style checks, other CMake modules.
@@ -205,16 +223,6 @@ include(GenerateExportHeader)
 # Compiler and Linker Configuration
 ################################
 
-##
-# Default building shared libraries.
-# BUILD_SHARED_LIBS is provided by/used by
-# CMake directly.
-##
-option(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
-if(BUILD_SHARED_LIBS)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
-
 option(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
 
 ##
@@ -276,17 +284,15 @@ if(MINGW)
   endif()
 endif()
 
-add_definitions()
-
 # Suppress CRT Warnings.
 # Only necessary for Windows
 if(MSVC)
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  target_compile_definitions(netcdf PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
 # Support ANSI format specifiers for *printf on MINGW:
 if(MINGW)
-  add_definitions(-D__USE_MINGW_ANSI_STDIO=1)
+  target_compile_definitions(netcdf PRIVATE __USE_MINGW_ANSI_STDIO=1)
 endif()
 
 #####
@@ -462,8 +468,8 @@ if(WIN32)
   option(ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
   if(ENABLE_DLL)
     set(BUILD_DLL ON CACHE BOOL "")
-    add_definitions(-DDLL_NETCDF)
-    add_definitions(-DDLL_EXPORT)
+    target_compile_definitions(netcdf PRIVATE DLL_EXPORT)
+    target_compile_definitions(netcdf PUBLIC DLL_NETCDF)
   endif()
 endif()
 # Did the user specify a default minimum blocksize for posixio?
@@ -486,14 +492,13 @@ if(NOT ENABLE_NETCDF_4)
 set(ENABLE_LOGGING OFF)
 endif()
 if(ENABLE_LOGGING)
-  add_definitions(-DLOGGING)
-  add_definitions(-DENABLE_SET_LOG_LEVEL)
+  target_compile_definitions(netcdf PRIVATE LOGGING ENABLE_SET_LOG_LEVEL)
   set(LOGGING ON)
   set(ENABLE_SET_LOG_LEVEL ON)
 endif()
 option(ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
 if(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
-  add_definitions(-DENABLE_SET_LOG_LEVEL)
+  target_compile_definitions(netcdf PRIVATE -DENABLE_SET_LOG_LEVEL)
   set(ENABLE_SET_LOG_LEVEL ON)
 endif()
 
@@ -568,7 +573,7 @@ if(DEFINED PLUGIN_INSTALL_DIR)
   if(boolval)
     set(ENABLE_PLUGIN_INSTALL YES)
     # No actual value was specified
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR CACHE)
   else()
     if(boolval STREQUAL "NOTFOUND")
       # Must be an actual value
@@ -583,7 +588,7 @@ endif()
 
 # Ensure no defined plugin dir if not enabled
 if(NOT ENABLE_PLUGIN_INSTALL)
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR CACHE)
 endif()
 
 if(ENABLE_PLUGIN_INSTALL)
@@ -615,17 +620,22 @@ if(ENABLE_PLUGIN_INSTALL)
   set(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
   message("Final value of-DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
 else() # No option specified
-    UNset(PLUGIN_INSTALL_DIR)
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR)
+    unset(PLUGIN_INSTALL_DIR CACHE)
     set(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 endif()
 
 # Try to enable NCZarr zip support
 option(ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
 
+include(CMakeDependentOption)
+
 # libdl is always available; built-in in Windows and OSX
-option(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)." ON)
+cmake_dependent_option(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
+  ON "BUILD_SHARED_LIBS" OFF)
+MESSAGE(STATUS "ENABLE_PLUGINS: ${ENABLE_PLUGINS}")
 if(MINGW)
+    message(STATUS "MINGW Detected, disabling plugins.")
     set(ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
 else()
   if(NOT WIN32)
@@ -634,6 +644,7 @@ else()
     endif()
   endif()
 endif()
+
 if(ENABLE_PLUGINS)
   set(USEPLUGINS yes)
 endif()
@@ -696,7 +707,7 @@ endif()
 if (NOT ENABLE_S3 AND ENABLE_NCZARR_S3)
   set(ENABLE_S3 ON CACHE BOOL "NCARR S3" FORCE) # For back compatibility
 endif()
-UNset(ENABLE_NCZARR_S3)
+unset(ENABLE_NCZARR_S3)
 
 if(NOT ENABLE_REMOTE_FUNCTIONALITY)
   message(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => disable all s3 functionality")
@@ -936,7 +947,7 @@ endif()
 
 if(ENABLE_ZERO_LENGTH_COORD_BOUND)
   message(STATUS "Enabling a more relaxed check for NC_EINVALCOORDS")
-  add_definitions(-DRELAX_COORD_BOUND)
+  target_compile_definitions(netcdf PRIVATE RELAX_COORD_BOUND)
 endif()
 
 # Enable Parallel Tests.
@@ -953,7 +964,7 @@ IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
 endif()
 
 # Enable special filter test; experimental when using cmake.
-option(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ON)
+option(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_PLUGINS})
 
 if(ENABLE_FILTER_TESTING)
   if(NOT ENABLE_HDF5 AND NOT ENABLE_NCZARR)
@@ -967,12 +978,12 @@ if(NOT BUILD_SHARED_LIBS)
   set(ENABLE_FILTER_TESTING OFF)
 endif()
 
-option(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ON)
-option(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ON)
+option(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ${ENABLE_PLUGINS})
+option(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ${ENABLE_NCZARR_FILTERS})
 
 # Constraints
-IF (NOT ENABLE_PLUGINS)
-  message(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
+if (NOT ENABLE_PLUGINS AND ENABLE_NCZARR_FILTERS)
+  message(WARNING "ENABLE_NCZARR_FILTERS requires ENABLE_PLUGINS. Disabling.")
   set(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 endif()
 
@@ -1348,14 +1359,11 @@ endif(ENABLE_BASH_SCRIPT_TESTING)
 # Create config.h file.
 configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
   "${netCDF_BINARY_DIR}/config.h")
+
 add_definitions(-DHAVE_CONFIG_H)
+
 include_directories(${netCDF_BINARY_DIR})
 # End autotools-style checks for config.h
-
-#####
-# Set core names of the libraries.
-#####
-set(netCDF_LIB_CORENAME  "netcdf")
 
 #####
 # Set the true names of all the libraries, if customized by external project
@@ -1422,12 +1430,6 @@ add_subdirectory(liblib)
 
 if(ENABLE_PLUGINS)
   add_subdirectory(plugins)
-endif()
-
-# For tests and utilities, we are no longer
-# exporting symbols but rather importing them.
-if(BUILD_DLL)
-  REMOVE_DEFINITIONS(-DDLL_EXPORT)
 endif()
 
 # Enable Utilities.
@@ -1666,14 +1668,14 @@ else()
 endif()
 
 if(WITH_S3_TESTING STREQUAL PUBLIC)
-set(ENABLE_S3_TESTING "public")
+  set(ENABLE_S3_TESTING "public")
 elseif(WITH_S3_TESTING)
-set(ENABLE_S3_TESTING "yes")
-set(ENABLE_S3_TESTALL "yes")
+  set(ENABLE_S3_TESTING "yes")
+  set(ENABLE_S3_TESTALL "yes")
 elseif(NOT WITH_S3_TESTING)
-set(ENABLE_S3_TESTING "no")
+  set(ENABLE_S3_TESTING "no")
 else()
-set(ENABLE_S3_TESTING "no")
+  set(ENABLE_S3_TESTING "no")
 endif()
 
 # The Unidata testing S3 bucket
@@ -1799,25 +1801,15 @@ install(EXPORT netCDFTargets
   NAMESPACE netCDF::
   )
 
+export(EXPORT netCDFTargets FILE netCDFTargets.cmake NAMESPACE netCDF::)
+
 include(CMakePackageConfigHelpers)
-CONFIGURE_PACKAGE_CONFIG_file(
+configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
   INSTALL_DESTINATION "${ConfigPackageLocation}"
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO
-  PATH_VARS
-  CMAKE_INSTALL_PREFIX
-  CMAKE_INSTALL_INCLUDEDIR
-  CMAKE_INSTALL_LIBDIR
-  )
+)
 
-install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
-  DESTINATION "${ConfigPackageLocation}"
-  COMPONENT headers
-  )
-
-add_library(netCDF::netcdf ALIAS netcdf)
 target_include_directories(netcdf
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -1826,17 +1818,18 @@ target_include_directories(netcdf
 
 # Create export configuration
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
+  netCDFConfigVersion.cmake
   VERSION ${netCDF_VERSION}
   COMPATIBILITY SameMajorVersion
-  )
+)
 
 install(
   FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfigVersion.cmake"
   DESTINATION ${ConfigPackageLocation}
   COMPONENT headers
-  )
+)
 
 ####
 # End export files

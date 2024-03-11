@@ -1073,6 +1073,7 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
     unsigned char *signing_key = NULL;
     char           iso8601now[ISO8601_SIZE];
     struct tm     *now           = NULL;
+    const char* signingregion = AWS_GLOBAL_DEFAULT_REGION;
 
     TRACE(0,"root=%s region=%s access_id=%s access_key=%s",root,region,access_id,access_key);
 
@@ -1142,15 +1143,16 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
     /* Do optional authentication */
     if(access_id != NULL && access_key != NULL) { /* We are authenticating */
         /* Need several pieces of info for authentication */
-        if (nulllen(handle->region) == 0)
-            HGOTO_ERROR(H5E_ARGS, NC_EAUTH, NULL, "region cannot be null.");
+        if (nulllen(handle->region) > 0)
+	     signingregion = region;
+//            HGOTO_ERROR(H5E_ARGS, NC_EAUTH, NULL, "region cannot be null.");
         if (nulllen(handle->accessid)==0)
             HGOTO_ERROR(H5E_ARGS, NC_EAUTH, NULL, "access id cannot be null.");
         if (nulllen(handle->accesskey)==0)
             HGOTO_ERROR(H5E_ARGS, NC_EAUTH, NULL, "signing key cannot be null.");
 
         /* Compute the signing key */
-        if (SUCCEED != NCH5_s3comms_signing_key(&signing_key, access_key, region, iso8601now))
+        if (SUCCEED != NCH5_s3comms_signing_key(&signing_key, access_key, signingregion, iso8601now))
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "problem in NCH5_s3comms_s3comms_signing_key.");
         if (signing_key == NULL)
             HGOTO_ERROR(H5E_ARGS, NC_EAUTH, NULL, "signing key cannot be null.");

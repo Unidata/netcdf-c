@@ -9,6 +9,9 @@
 #define AWSHOST ".amazonaws.com"
 #define GOOGLEHOST "storage.googleapis.com"
 
+/* Define the "global" default region to be used if no other region is specified */
+#define AWS_GLOBAL_DEFAULT_REGION "us-east-1"
+
 /* Track the server type, if known */
 typedef enum NCS3SVC {NCS3UNK=0, /* unknown */
                  NCS3=1,    /* s3.amazon.aws */
@@ -23,6 +26,20 @@ typedef struct NCS3INFO {
     char* profile;
     NCS3SVC svc;
 } NCS3INFO;
+
+struct AWSentry {
+    char* key;
+    char* value;
+};
+
+struct AWSprofile {
+    char* name;
+    struct NClist* entries; /* NClist<struct AWSentry*> */
+};
+
+/* Opaque Types */
+struct NClist;
+struct NCglobalstate;
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,13 +58,23 @@ EXTERNL int NC_s3sdkclose(void* s3client0, NCS3INFO* info, int deleteit, char** 
 EXTERNL int NC_s3sdkgetkeys(void* s3client0, const char* bucket, const char* prefix, size_t* nkeysp, char*** keysp, char** errmsgp);
 EXTERNL int NC_s3sdksearch(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp);
 EXTERNL int NC_s3sdkdeletekey(void* client0, const char* bucket, const char* pathkey, char** errmsgp);
-EXTERNL const char* NC_s3dumps3info(NCS3INFO* info);
 
 /* From ds3util.c */
+EXTERNL int NC_s3sdkinitialize(void);
+EXTERNL int NC_s3sdkfinalize(void);
+
 EXTERNL int NC_getdefaults3region(NCURI* uri, const char** regionp);
 EXTERNL int NC_s3urlprocess(NCURI* url, NCS3INFO* s3, NCURI** newurlp);
 EXTERNL int NC_s3clear(NCS3INFO* s3);
 EXTERNL int NC_s3clone(NCS3INFO* s3, NCS3INFO** news3p);
+EXTERNL const char* NC_s3dumps3info(NCS3INFO* info);
+EXTERNL void NC_s3freeprofilelist(struct NClist* profiles);
+EXTERNL int NC_getactives3profile(NCURI* uri, const char** profilep);
+EXTERNL int NC_s3profilelookup(const char* profile, const char* key, const char** valuep);
+EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
+EXTERNL int NC_iss3(NCURI* uri, enum NCS3SVC*);
+EXTERNL int NC_s3urlrebuild(NCURI* url, struct NCS3INFO* s3, NCURI** newurlp);
+EXTERNL int NC_aws_load_credentials(struct NCglobalstate* gstate);
 
 #ifdef __cplusplus
 }

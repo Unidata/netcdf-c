@@ -134,12 +134,12 @@ int
 NCDISPATCH_finalize(void)
 {
     int status = NC_NOERR;
-    NC_freeglobalstate();
 #if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
     curl_global_cleanup();
 #endif
 #if defined(ENABLE_DAP4)
    ncxml_finalize();
 #endif
+    NC_freeglobalstate(); /* should be one of the last things done */
     return status;
 }

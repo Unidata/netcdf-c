@@ -255,8 +255,8 @@ zs3truncate(const char *s3url)
     ncuriparse(s3url,&url);
     if(url == NULL) {stat = NC_EURL; goto done;}
     if((stat=NC_s3urlprocess(url,&info,&purl))) goto done;
-    if((s3client = NC_s3sdkcreateclient(&info))) {stat = NC_ES3; goto done;}
-    if((stat = s3clear(s3client,info.bucket,purl->path))) goto done;
+    if((s3client = NC_s3sdkcreateclient(&info))==NULL) {stat = NC_ES3; goto done;}
+    if((stat = s3clear(s3client,info.bucket,info.rootkey))) goto done;
 done:
     if(s3client) {stat=NC_s3sdkclose(s3client,&info,1,NULL);}
     ncurifree(url);

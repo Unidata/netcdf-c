@@ -53,7 +53,6 @@ struct UTOptions {
     NCZSlice slices[NC_MAX_VAR_DIMS];
     NClist* dimdefs; /*List<struct Dimdef*> */
     NClist* vardefs; /*List<struct Vardef*> */
-    size_t idatalen;
     int* idata;
 };
 
