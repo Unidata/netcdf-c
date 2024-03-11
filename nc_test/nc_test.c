@@ -4,13 +4,12 @@
  *   $Id: nc_test.c 2796 2014-10-28 03:40:29Z wkliao $
  *********************************************************************/
 
-int numGatts;  /* number of global attributes */
-int numVars;   /* number of variables */
-int numTypes;  /* number of netCDF data types to test */
-
 #include "tests.h"
 #include "config.h"
 
+int numGatts;  /* number of global attributes */
+int numVars;   /* number of variables */
+size_t numTypes;  /* number of netCDF data types to test */
 
 /*
  * Test driver for netCDF-3 interface.  This program performs tests against

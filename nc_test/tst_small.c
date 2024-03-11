@@ -96,14 +96,14 @@ test_small_atts(const char *testfile)
    char att[MAX_LEN + 1], att_in[MAX_LEN + 1], source[MAX_LEN + 1] = "0123456";
    int ndims, nvars, natts, unlimdimid;
    size_t len_in;
-   int t, f;
+   int f;
 
    /* Run this with and without fill mode. */
    for (f = 0; f < 2; f++)
    {
       /* Create small files with an attribute that grows by one each
        * time. */
-      for (t = 1; t < MAX_LEN; t++)
+      for (size_t t = 1; t < MAX_LEN; t++)
       {
 	 /* Create null-terminated text string of correct length. */
 	 strncpy(att, source, t);
@@ -297,7 +297,7 @@ test_one_growing(const char *testfile)
 
       /* Normally one would not close and reopen the file for each
        * record, but I am giving the library a little work-out here... */
-      for (r = 0; r < MAX_RECS; r++)
+      for (size_t r = 0; r < MAX_RECS; r++)
       {
 	 /* Write one record of var data, a single character. */
 	 if (file_open(testfile, NC_WRITE, &ncid)) ERR;
@@ -360,7 +360,7 @@ test_one_growing_with_att(const char *testfile)
    /* Normally one would not close and reopen the file for each
     * record, nor add an attribute each time I add a record, but I am
     * giving the library a little work-out here... */
-   for (r = 0; r < MAX_RECS; r++)
+   for (size_t r = 0; r < MAX_RECS; r++)
    {
       /* Write one record of var data, a single character. */
       if (file_open(testfile, NC_WRITE, &ncid)) ERR;
@@ -417,7 +417,7 @@ test_two_growing_with_att(const char *testfile)
    /* Normally one would not close and reopen the file for each
     * record, nor add an attribute each time I add a record, but I am
     * giving the library a little work-out here... */
-   for (r = 0; r < MAX_RECS; r++)
+   for (size_t r = 0; r < MAX_RECS; r++)
    {
       /* Write one record of var data, a single character. */
       if (file_open(testfile, NC_WRITE, &ncid)) ERR;
