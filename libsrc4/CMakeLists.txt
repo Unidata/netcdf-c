@@ -6,18 +6,22 @@
 # See netcdf-c/COPYRIGHT file for more info.
 # Process these files with m4.
 
-SET(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4grp.c
+set(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4grp.c
 nc4internal.c nc4type.c nc4var.c ncfunc.c ncindex.c nc4cache.c)
 
 add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
 
-IF(STATUS_PARALLEL)
-    target_link_libraries(netcdf4 PUBLIC MPI::MPI_C)
-ENDIF(STATUS_PARALLEL)
+if (ENABLE_DLL)
+  target_compile_definitions(netcdf4 PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
+
+if(STATUS_PARALLEL)
+  target_link_libraries(netcdf4 PUBLIC MPI::MPI_C)
+endif(STATUS_PARALLEL)
 
 # Files for make dist
-FILE(GLOB libsrc4_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST CMakeLists.txt Makefile.am)
+file(GLOB libsrc4_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
+set(CUR_EXTRA_DIST CMakeLists.txt Makefile.am)
 ADD_EXTRA_DIST("${libsrc4_SOURCES}")
 ADD_EXTRA_DIST("${libsrc4_HEADERS}")
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
@@ -34,14 +38,15 @@ set(man_MANS netcdf.3)
 
 set(ARGS_MANPAGE -DAPI=C)
 
-IF (USE_HDF5)
-  SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
-ENDIF(USE_HDF5)
+if (USE_HDF5)
+  set(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
+  target_link_libraries(netcdf4 PRIVATE HDF5::HDF5)
+endif(USE_HDF5)
 
-IF (BUILD_DAP)
-  SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)
-ENDIF(BUILD_DAP)
+if (BUILD_DAP)
+  set(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)
+endif(BUILD_DAP)
 
-IF (BUILD_PARALLEL)
-  SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
-ENDIF(BUILD_PARALLEL)
+if (BUILD_PARALLEL)
+  set(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
+endif(BUILD_PARALLEL)

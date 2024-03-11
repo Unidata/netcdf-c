@@ -16,11 +16,11 @@ jobs:
 
   build-deps-osx:
 
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
 
     steps:
 
@@ -52,11 +52,11 @@ jobs:
   nc-autotools-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -158,11 +158,11 @@ jobs:
   nc-cmake-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -253,11 +253,11 @@ jobs:
   nc-ac-tests-oneoff-osx:
 
     needs: build-deps-osx
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
     steps:
 
       - uses: actions/checkout@v3
@@ -334,11 +334,11 @@ jobs:
   nc-cmake-tests-oneoff-osx-shared:
 
     needs: build-deps-osx
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
 
     steps:
 
@@ -375,7 +375,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_XML2=FALSE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_LIBXML2=FALSE
 
       - name: Print Summary
         shell: bash -l {0}
@@ -408,11 +408,11 @@ jobs:
   nc-cmake-tests-oneoff-osx-static:
 
     needs: build-deps-osx
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
 
     steps:
 
@@ -450,7 +450,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_XML2=FALSE -DBUILD_SHARED_LIBS=OFF -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_LIBXML2=FALSE -DBUILD_SHARED_LIBS=OFF -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
 
       - name: Print Summary
         shell: bash -l {0}

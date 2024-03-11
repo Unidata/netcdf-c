@@ -37,6 +37,8 @@ This file contains a high-level description of this package's evolution. Release
 * Remove obsolete code. See [Github #2680](https://github.com/Unidata/netcdf-c/pull/2680).
 * [Bug Fix] Add a crude test to see if an NCZarr path looks like a valid NCZarr/Zarr file. See [Github #2658](https://github.com/Unidata/netcdf-c/pull/2658).
 * Fix 'make distcheck' error in run_interop.sh. See [Github #2631](https://github.com/Unidata/netcdf-c/pull/2631).
+* Bump cmake minimum version to 3.20.0 to support finding HDF5 with cmake's find_package
+* Refactor the cmake files to remove global include directories and compile definitions
 
 ## 4.9.2 - March 14, 2023
 

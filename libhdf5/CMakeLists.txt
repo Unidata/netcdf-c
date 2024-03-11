@@ -5,23 +5,34 @@
 #
 # Ed Hartnett
 
-# The source files for the HDF5 dispatch layer.
-SET(libnchdf5_SOURCES nc4hdf.c nc4info.c hdf5file.c hdf5attr.c
-hdf5dim.c hdf5grp.c hdf5type.c hdf5internal.c hdf5create.c hdf5open.c
-hdf5var.c nc4mem.c nc4memcb.c hdf5dispatch.c hdf5filter.c
-hdf5set_format_compatibility.c hdf5debug.c)
-
-IF(ENABLE_BYTERANGE)
-SET(libnchdf5_SOURCES ${libnchdf5_SOURCES} H5FDhttp.c)
-ENDIF()
-
 # Build the HDF5 dispatch layer as a library that will be included in
 # the netCDF library.
-add_library(netcdfhdf5 OBJECT ${libnchdf5_SOURCES})
+add_library(netcdfhdf5 OBJECT)
 
-IF(STATUS_PARALLEL)
+# The source files for the HDF5 dispatch layer.
+target_sources(netcdfhdf5 PRIVATE 
+    nc4hdf.c nc4info.c hdf5file.c hdf5attr.c
+    hdf5dim.c hdf5grp.c hdf5type.c hdf5internal.c hdf5create.c hdf5open.c
+    hdf5var.c nc4mem.c nc4memcb.c hdf5dispatch.c hdf5filter.c
+    hdf5set_format_compatibility.c hdf5debug.c
+)
+
+if (ENABLE_DLL)
+    target_compile_definitions(netcdfhdf5 PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
+
+if(ENABLE_BYTERANGE)
+    target_sources(netcdfhdf5 PRIVATE 
+        H5FDhttp.c
+    )
+endif()
+
+
+if(STATUS_PARALLEL)
     target_link_libraries(netcdfhdf5 PUBLIC MPI::MPI_C)
-ENDIF(STATUS_PARALLEL)
+endif(STATUS_PARALLEL)
+
+target_link_libraries(netcdfhdf5 PUBLIC HDF5::HDF5)
 
 # Remember to package this file for CMake builds.
-ADD_EXTRA_DIST(${libnchdf5_SOURCES} CMakeLists.txt)
+add_extra_dist(${libnchdf5_SOURCES} CMakeLists.txt)

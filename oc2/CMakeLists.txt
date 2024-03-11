@@ -4,14 +4,23 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-SET(oc_SOURCES oc.c daplex.c dapparse.c dapy.c occompile.c occurlfunctions.c ocdata.c ocdebug.c ocdump.c ocinternal.c ocnode.c ochttp.c ocread.c ocutil.c xxdr.c)
-
+set(oc_SOURCES oc.c daplex.c dapparse.c dapy.c occompile.c occurlfunctions.c ocdata.c ocdebug.c ocdump.c ocinternal.c ocnode.c ochttp.c ocread.c ocutil.c xxdr.c)
 
 add_library(oc2 OBJECT ${oc_SOURCES})
 
-IF(STATUS_PARALLEL)
+if (ENABLE_DLL)
+  target_compile_definitions(oc2 PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
+
+if(STATUS_PARALLEL)
   target_link_libraries(oc2 PUBLIC MPI::MPI_C)
-ENDIF(STATUS_PARALLEL)
+endif(STATUS_PARALLEL)
+target_link_libraries(oc2 PUBLIC ${CURL_LIBRARIES})
+target_include_directories(oc2 PUBLIC ${CURL_INCLUDE_DIRS})
+target_compile_options(oc2
+  PRIVATE
+    -DCURL_STATICLIB=1
+)
 
 # Apparently fails under cmake
 #set(ocprint_FILES ocprint.c )
@@ -19,8 +28,8 @@ ENDIF(STATUS_PARALLEL)
 #TARGET_LINK_LIBRARIES(ocprint oc2 ${ALL_TLL_LIBS})
 
 ## Specify files to be distributed by 'make dist'
-FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} dap.y)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ocauth.html)
+file(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
+set(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
+set(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} dap.y)
+set(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} ocauth.html)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
