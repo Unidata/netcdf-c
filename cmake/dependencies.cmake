@@ -446,20 +446,18 @@ endif(ENABLE_LIBXML2)
 
 ################################
 # MPI
-################################ 
+################################
 if(ENABLE_PARALLEL4 OR HDF5_PARALLEL)
   find_package(MPI REQUIRED)
 endif()
 
 ################################
-# parallel IO
+# Parallel IO
 ################################ 
 if(ENABLE_PNETCDF)
-  find_library(PNETCDF NAMES pnetcdf)
-  find_path(PNETCDF_INCLUDE_DIR pnetcdf.h)
-  if(NOT PNETCDF)
-    message(STATUS "Cannot find PnetCDF library. Disabling PnetCDF support.")
-    set(USE_PNETCDF OFF CACHE BOOL "")
+  find_package(PNETCDF 1.6.0 REQUIRED)
+  if(NOT PNETCDF_HAS_RELAXED_COORD_BOUND)
+    message(FATAL_ERROR "Pnetcdf must be built with relax-coord-bound enabled")
   endif()
 endif()
 
