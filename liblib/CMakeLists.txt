@@ -151,8 +151,8 @@ if(USE_HDF4)
   set(TLL_LIBS ${HDF4_LIBRARIES} ${TLL_LIBS})
 endif()
 
-if(ENABLE_PNETCDF AND PNETCDF)
-  set(TLL_LIBS ${TLL_LIBS} ${PNETCDF})
+if(ENABLE_PNETCDF)
+  SET(TLL_LIBS ${TLL_LIBS} PNETCDF::PNETCDF)
 endif()
 
 
@@ -188,6 +188,7 @@ target_link_libraries(netcdf PRIVATE ${TLL_LIBS})
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${TLL_LIBS})
 if(MSVC)
   set_target_properties(netcdf PROPERTIES
+
     LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
     )
 endif()

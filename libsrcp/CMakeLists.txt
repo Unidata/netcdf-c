@@ -6,6 +6,7 @@
 # See netcdf-c/COPYRIGHT file for more info.
 
 add_library(netcdfp OBJECT ${libsrcp_SOURCES})
+target_link_libraries(netcdfp PUBLIC PNETCDF::PNETCDF)
 
 target_sources(netcdfp PRIVATE ncpdispatch.c)
 
