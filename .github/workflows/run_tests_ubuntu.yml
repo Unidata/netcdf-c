@@ -223,7 +223,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.0 ]
+        hdf5: [ 1.14.3 ]
     steps:
 
       - uses: actions/checkout@v3
