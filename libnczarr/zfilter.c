@@ -780,7 +780,7 @@ NCZ_filter_finalize(void)
 #ifdef DEBUGL
     fprintf(stderr,">>>  DEBUGL: finalize reclaim:\n");
 #endif
-    for(i=0;i<=loaded_plugins_max;i++) {
+    for(i=0; i < (loaded_plugins_max + 1); i++) {
 	if(loaded_plugins[i]) {
             NCZ_unload_plugin(loaded_plugins[i]);
 	    loaded_plugins[i] = NULL;
