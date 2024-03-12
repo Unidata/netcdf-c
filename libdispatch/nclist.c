@@ -1,5 +1,6 @@
 /* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,7 +32,7 @@ NClist* nclistnew(void)
     ncinitialized = 1;
   }
 */
-  l = (NClist*)malloc(sizeof(NClist));
+  l = (NClist*)calloc(1,sizeof(NClist));
   if(l) {
     l->alloc=0;
     l->length=0;
@@ -270,7 +271,7 @@ nclistclone(const NClist* l, int deep)
         nclistsetlength(clone,l->length);
         memcpy((void*)clone->content,(void*)l->content,sizeof(void*)*l->length);
     } else { /*deep*/
-	int i;
+	size_t i;
 	for(i=0;i<nclistlength(l);i++) {
 	    char* dups = strdup(nclistget(l,i));
 	    if(dups == NULL) {nclistfreeall(clone); clone = NULL; goto done;}
@@ -286,10 +287,13 @@ done:
 void*
 nclistextract(NClist* l)
 {
-    void* result = l->content;
+    void* result = NULL;
+    if(l) {
+    result = l->content;
     l->alloc = 0;
     l->length = 0;
     l->content = NULL;
+    }
     return result;
 }
 

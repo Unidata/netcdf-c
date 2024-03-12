@@ -158,10 +158,10 @@ static Odom* odom_create(int rank)
     Odom* odom = (Odom*)malloc(sizeof(Odom));
     /* Init the odometer */
     odom->rank = rank;
-    odom->index = (size_t*)calloc(sizeof(size_t)*rank,1);
-    odom->stop = (size_t*)calloc(sizeof(size_t)*rank,1);
-    odom->start = (size_t*)calloc(sizeof(size_t)*rank,1);
-    odom->count = (size_t*)calloc(sizeof(size_t)*rank,1);
+    odom->index = (size_t*)calloc(sizeof(size_t)*(size_t)rank,1);
+    odom->stop = (size_t*)calloc(sizeof(size_t)*(size_t)rank,1);
+    odom->start = (size_t*)calloc(sizeof(size_t)*(size_t)rank,1);
+    odom->count = (size_t*)calloc(sizeof(size_t)*(size_t)rank,1);
     return odom;
 }
 

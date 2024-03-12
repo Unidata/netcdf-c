@@ -5,6 +5,7 @@
  *********************************************************************/
 
 #include "config.h"		/* for USE_NETCDF4 macro */
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +26,7 @@ nc_blkio_init(size_t bufsize, 	/* size in bytes of in-memory copy buffer */
 {
     int stat = NC_NOERR;
     int i;
-    long long prod;
+    size_t prod;
     size_t *dims = iter->dimsizes;
 
     iter->rank = rank;
@@ -183,7 +184,6 @@ nc_get_iter(int ncid,
     size_t value_size = 0;      /* size in bytes of each variable element */
     int ndims;		    /* number of dimensions for variable */
     int *dimids;
-    long long nvalues = 1;
     int dim;
     int chunked = 0;
 
@@ -193,16 +193,15 @@ nc_get_iter(int ncid,
 
     NC_CHECK(nc_inq_varndims(ncid, varid, &ndims));
 
-    dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+    dimids = (int *) emalloc((size_t)(ndims + 1) * sizeof(int));
 
-    iterp->dimsizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
-    iterp->chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
+    iterp->dimsizes = (size_t *) emalloc((size_t)(ndims + 1) * sizeof(size_t));
+    iterp->chunksizes = (size_t *) emalloc((size_t)(ndims + 1) * sizeof(size_t));
 
     NC_CHECK(nc_inq_vardimid (ncid, varid, dimids));
     for(dim = 0; dim < ndims; dim++) {
 	size_t len;
 	NC_CHECK(nc_inq_dimlen(ncid, dimids[dim], &len));
-	nvalues *= len;
 	iterp->dimsizes[dim] = len;
     }
     NC_CHECK(nc_inq_vartype(ncid, varid, &vartype));

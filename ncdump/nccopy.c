@@ -288,7 +288,6 @@ parsefilterspec(const char* optarg0, List* speclist)
     char* p = NULL;
     char* remainder = NULL;
     List* vlist = NULL;
-    int i;
     int isnone = 0;
     size_t nfilters = 0;
     NC_H5_Filterspec** filters = NULL;
@@ -325,7 +324,7 @@ parsefilterspec(const char* optarg0, List* speclist)
     }
 
     /* Construct a spec entry for each element in vlist */
-    for(i=0;i<listlength(vlist);i++) {
+    for(size_t i=0;i<listlength(vlist);i++) {
 	int k;
 	size_t vlen;
         struct FilterOption* filtopt = NULL;
@@ -341,9 +340,9 @@ parsefilterspec(const char* optarg0, List* speclist)
             filtopt->fqn[0] = '\0'; /* for strlcat */
 	    if(strcmp(var,"*") != 0 && var[0] != '/') strlcat(filtopt->fqn,"/",vlen+2);
 	    strlcat(filtopt->fqn,var,vlen+2);
-   	    if(isnone)
+	    if(isnone) {
 	        filtopt->nofilter = 1;
-	    else {
+	    } else {
  	        filtopt->pfs = *nsf;
 		if(nsf->nparams != 0) {
 	            /* Duplicate the params */
@@ -369,11 +368,10 @@ done:
 static int
 varfiltersactive(const char* ofqn)
 {
-  int i;
   int hasnone = 0;
   int hasactive = 0;
   /* See which output filter options are defined for this output variable */
-  for(i=0;i<listlength(filteroptions);i++) {
+  for(size_t i=0;i<listlength(filteroptions);i++) {
       struct FilterOption* opt = listget(filteroptions,i);
       if(strcmp(opt->fqn,"*")==0 || strcmp(opt->fqn,ofqn)==0)
 	{if(opt->nofilter) hasnone = 1;} else {hasactive = 1;}
@@ -385,10 +383,9 @@ varfiltersactive(const char* ofqn)
 static int
 varfilterssuppress(const char* ofqn)
 {
-  int i;
   int hasnone = 0;
   /* See which output filter options are defined for this output variable */
-  for(i=0;i<listlength(filteroptions);i++) {
+  for(size_t i=0;i<listlength(filteroptions);i++) {
       struct FilterOption* opt = listget(filteroptions,i);
       if(strcmp(opt->fqn,"*")==0 || strcmp(opt->fqn,ofqn)==0)
 	{if(opt->nofilter) hasnone = 1;}
@@ -400,11 +397,10 @@ varfilterssuppress(const char* ofqn)
 static List*
 filteroptsforvar(const char* ofqn)
 {
-  int i;
   List* list = listnew();
   /* See which output filter options are defined for this output variable;
      both active and none. */
-  for(i=0;i<listlength(filteroptions);i++) {
+  for(size_t i=0;i<listlength(filteroptions);i++) {
       struct FilterOption* opt = listget(filteroptions,i);
       if(strcmp(opt->fqn,"*")==0 || strcmp(opt->fqn,ofqn)==0) {
 	if(!opt->nofilter) /* Add to the list */
@@ -432,7 +428,7 @@ inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     NC_CHECK(nc_inq_type(igrp, vartype, NULL, &value_size));
     prod = value_size;
     NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
-    chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
+    chunksizes = (size_t *) emalloc((size_t)(ndims + 1) * sizeof(size_t));
     contig = NC_CHUNKED;
     NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, NULL));
     if(contig != NC_CHUNKED) {
@@ -461,7 +457,6 @@ inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
     int stat = NC_NOERR;
     int ndims;
     size_t *ichunksizes, *ochunksizes;
-    int dim;
     int icontig = NC_CONTIGUOUS, ocontig = NC_CONTIGUOUS;
     nc_type vartype;
     size_t value_size;
@@ -493,11 +488,11 @@ inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
 	return stat;
     }
 
-    ichunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
+    ichunksizes = (size_t *) emalloc((size_t)(ndims + 1) * sizeof(size_t));
     if(icontig != NC_CHUNKED) { /* if input contiguous|compact, treat as if chunked on
 			* first dimension */
 	ichunksizes[0] = 1;
-	for(dim = 1; dim < ndims; dim++) {
+	for(size_t dim = 1; dim < ndims; dim++) {
 	    ichunksizes[dim] = dim;
 	}
     } else {
@@ -505,12 +500,12 @@ inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
     }
 
     /* now can pretend chunking in both input and output */
-    ochunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
+    ochunksizes = (size_t *) emalloc((size_t)(ndims + 1) * sizeof(size_t));
     NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, &ocontig, ochunksizes));
 
     nelems = 1;
     oprod = value_size;
-    for(dim = 0; dim < ndims; dim++) {
+    for(size_t dim = 0; dim < ndims; dim++) {
 	nelems += 1 + (ichunksizes[dim] - 1) / ochunksizes[dim];
 	iprod *= ichunksizes[dim];
 	oprod *= ochunksizes[dim];
@@ -632,7 +627,7 @@ copy_compound_type(int igrp, nc_type itype, int ogrp)
 	    NC_CHECK(nc_insert_compound(ogrp, otype, fname, foff, oftype));
 	} else {		/* field is array type */
 	    int *fdimsizes;
-	    fdimsizes = (int *) emalloc((fndims + 1) * sizeof(int));
+	    fdimsizes = (int *) emalloc((size_t)(fndims + 1) * sizeof(int));
 	    stat = nc_inq_compound_field(igrp, itype, fid, NULL, NULL, NULL,
 					 NULL, fdimsizes);
 	    NC_CHECK(nc_insert_array_compound(ogrp, otype, fname, foff, oftype, fndims, fdimsizes));
@@ -681,7 +676,7 @@ static int
 copy_groups(int iroot, int oroot)
 {
     int stat = NC_NOERR;
-    int numgrps;
+    size_t numgrps;
     int *grpids;
     int i;
 
@@ -741,7 +736,7 @@ copy_types(int igrp, int ogrp)
     NC_CHECK(nc_inq_typeids(igrp, &ntypes, NULL));
 
     if(ntypes > 0) {
-	types = (nc_type *) emalloc(ntypes * sizeof(nc_type));
+	types = (nc_type *) emalloc((size_t)ntypes * sizeof(nc_type));
 	NC_CHECK(nc_inq_typeids(igrp, &ntypes, types));
 	for (i = 0; i < ntypes; i++) {
 	    NC_CHECK(copy_type(igrp, types[i], ogrp));
@@ -752,7 +747,7 @@ copy_types(int igrp, int ogrp)
     /* Copy types from subgroups */
     NC_CHECK(nc_inq_grps(igrp, &numgrps, NULL));
     if(numgrps > 0) {
-	grpids = (int *)emalloc(sizeof(int) * numgrps);
+	grpids = (int *)emalloc(sizeof(int) * (size_t)numgrps);
 	NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 	for(i = 0; i < numgrps; i++) {
 	    if (option_grpstruct || group_wanted(grpids[i], option_nlgrps, option_grpids)) {
@@ -879,8 +874,7 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
     /* Apply actual filter spec if any */
     if(!unfiltered) {
 	/* add all the actual filters */
-	int k;
-	for(k=0;k<listlength(actualspecs);k++) {
+	for(size_t k=0;k<listlength(actualspecs);k++) {
 	    struct FilterOption* actual = (struct FilterOption*)listget(actualspecs,k);
 	    if((stat=nc_def_var_filter(ovid.grpid,ovid.varid,
 				   actual->pfs.filterid,
@@ -956,7 +950,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
     /* Figure out the chunking even if we do not decide to do so*/
     if(varchunkspec_exists(igrp,i_varid)
 	&& varchunkspec_kind(igrp,i_varid) == NC_CHUNKED)
-	memcpy(ochunkp,varchunkspec_chunksizes(igrp,i_varid),ndims*sizeof(size_t));
+	memcpy(ochunkp,varchunkspec_chunksizes(igrp,i_varid),(size_t)ndims*sizeof(size_t));
 
     /* If any kind of output filter was specified, then not contiguous */
     ovid.grpid = ogrp;
@@ -1329,11 +1323,11 @@ copy_dims(int igrp, int ogrp)
     * may be defined in various groups, and we are only looking at one
     * group at a time. */
     /* Find the dimension ids in this group, don't include parents. */
-    dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+    dimids = (int *) emalloc((size_t)(ndims + 1) * sizeof(int));
     NC_CHECK(nc_inq_dimids(igrp, NULL, dimids, 0));
     /* Find the number of unlimited dimensions and get their IDs */
     NC_CHECK(nc_inq_unlimdims(igrp, &nunlims, NULL));
-    unlimids = (int *) emalloc((nunlims + 1) * sizeof(int));
+    unlimids = (int *) emalloc((size_t)(nunlims + 1) * sizeof(int));
     NC_CHECK(nc_inq_unlimdims(igrp, NULL, unlimids));
 #else
     NC_CHECK(nc_inq_unlimdim(igrp, &unlimid));
@@ -1426,7 +1420,7 @@ copy_var(int igrp, int varid, int ogrp)
     int o_varid;
 
     NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
-    idimids = (int *) emalloc((ndims + 1) * sizeof(int));
+    idimids = (int *) emalloc((size_t)(ndims + 1) * sizeof(int));
     NC_CHECK(nc_inq_var(igrp, varid, name, &typeid, NULL, idimids, &natts));
     o_typeid = typeid;
 #ifdef USE_NETCDF4
@@ -1441,7 +1435,7 @@ copy_var(int igrp, int varid, int ogrp)
 #endif	/* USE_NETCDF4 */
 
     /* get the corresponding dimids in the output file */
-    odimids = (int *) emalloc((ndims + 1) * sizeof(int));
+    odimids = (int *) emalloc((size_t)(ndims + 1) * sizeof(int));
     for(i = 0; i < ndims; i++) {
 	odimids[i] = dimmap_odimid(idimids[i]);
 	if(odimids[i] == -1) {
@@ -1550,7 +1544,7 @@ copy_schema(int igrp, int ogrp)
 	int i;
 	/* Copy schema from subgroups */
 	stat = nc_inq_grps(igrp, &numgrps, NULL);
-	grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
+	grpids = (int *)emalloc((size_t)(numgrps + 1) * sizeof(int));
 	NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 
 	for(i = 0; i < numgrps; i++) {
@@ -1566,15 +1560,15 @@ copy_schema(int igrp, int ogrp)
 
 /* Return number of values for a variable varid in a group igrp */
 static int
-inq_nvals(int igrp, int varid, long long *nvalsp) {
+inq_nvals(int igrp, int varid, size_t *nvalsp) {
     int stat = NC_NOERR;
     int ndims;
     int *dimids;
     int dim;
-    long long nvals = 1;
+    size_t nvals = 1;
 
     NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
-    dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+    dimids = (int *) emalloc((size_t)(ndims + 1) * sizeof(int));
     NC_CHECK(nc_inq_vardimid (igrp, varid, dimids));
     for(dim = 0; dim < ndims; dim++) {
 	size_t len;
@@ -1594,7 +1588,7 @@ copy_var_data(int igrp, int varid, int ogrp)
 {
     int stat = NC_NOERR;
     nc_type vartype;
-    long long nvalues;		/* number of values for this variable */
+    size_t nvalues;		/* number of values for this variable */
     size_t ntoget;		/* number of values to access this iteration */
     size_t value_size;		/* size of a single value of this variable */
     static void *buf = 0;	/* buffer for the variable values */
@@ -1673,8 +1667,8 @@ copy_var_data(int igrp, int varid, int ogrp)
     /* initialize variable iteration */
     NC_CHECK(nc_get_iter(igrp, varid, option_copy_buffer_size, &iterp));
 
-    start = (size_t *) emalloc((iterp->rank + 1) * sizeof(size_t));
-    count = (size_t *) emalloc((iterp->rank + 1) * sizeof(size_t));
+    start = (size_t *) emalloc((size_t)(iterp->rank + 1) * sizeof(size_t));
+    count = (size_t *) emalloc((size_t)(iterp->rank + 1) * sizeof(size_t));
     /* nc_next_iter() initializes start and count on first call,
      * changes start and count to iterate through whole variable on
      * subsequent calls. */
@@ -1757,7 +1751,7 @@ copy_data(int igrp, int ogrp)
 #ifdef USE_NETCDF4
     /* Copy data from subgroups */
     stat = nc_inq_grps(igrp, &numgrps, NULL);
-    grpids = (int *)emalloc((numgrps + 1) * sizeof(int));
+    grpids = (int *)emalloc((size_t)(numgrps + 1) * sizeof(int));
     NC_CHECK(nc_inq_grps(igrp, &numgrps, grpids));
 
     for(i = 0; i < numgrps; i++) {
@@ -1786,7 +1780,7 @@ count_dims(int ncid) {
     NC_CHECK(nc_inq_grps(ncid, &numgrps, NULL));
     if(numgrps > 0) {
 	int igrp;
-	int *grpids = emalloc(numgrps * sizeof(int));
+	int *grpids = emalloc((size_t)numgrps * sizeof(int));
 	NC_CHECK(nc_inq_grps(ncid, &numgrps, grpids));
 	for(igrp = 0; igrp < numgrps; igrp++) {
 	    ndims += count_dims(grpids[igrp]);
@@ -1820,7 +1814,7 @@ nc3_special_case(int ncid, int kind) {
 		NC_CHECK( nc_inq_varndims(ncid, varid, &ndims) );
 		if (ndims > 0) {
 		    int dimids0;
-		    dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+		    dimids = (int *) emalloc((size_t)(ndims + 1) * sizeof(int));
 		    NC_CHECK( nc_inq_vardimid(ncid, varid, dimids) );
 		    dimids0 = dimids[0];
 		    free(dimids);
@@ -1850,9 +1844,9 @@ classify_vars(
     int nvars;
     NC_CHECK(nc_inq_nvars(ncid, &nvars));
     *nf = 0;
-    *fvars = (int *) emalloc(nvars * sizeof(int));
+    *fvars = (int *) emalloc((size_t)nvars * sizeof(int));
     *nr = 0;
-    *rvars = (int *) emalloc(nvars * sizeof(int));
+    *rvars = (int *) emalloc((size_t)nvars * sizeof(int));
 
     if(option_nlvars > 0) {
       for (varindex = 0; varindex < option_nlvars; varindex++) {
@@ -1898,7 +1892,6 @@ copy_fixed_size_data(int igrp, int ogrp, size_t nfixed_vars, int *fixed_varids) 
 static int
 copy_rec_var_data(int ncid, 	/* input */
 		  int ogrp, 	/* output */
-		  int irec, 	/* record number */
 		  int varid, 	/* input variable id */
 		  int ovarid, 	/* output variable id */
 		  size_t *start,   /* start indices for record data */
@@ -1940,9 +1933,9 @@ copy_record_data(int ncid, int ogrp, size_t nrec_vars, int *rec_varids) {
 	char varname[NC_MAX_NAME];
 	varid = rec_varids[ivar];
 	NC_CHECK(nc_inq_varndims(ncid, varid, &ndims));
-	dimids = (int *) emalloc((1 + ndims) * sizeof(int));
-	start[ivar] = (size_t *) emalloc(ndims * sizeof(size_t));
-	count[ivar] = (size_t *) emalloc(ndims * sizeof(size_t));
+	dimids = (int *) emalloc((size_t)(1 + ndims) * sizeof(int));
+	start[ivar] = (size_t *) emalloc((size_t)ndims * sizeof(size_t));
+	count[ivar] = (size_t *) emalloc((size_t)ndims * sizeof(size_t));
 	NC_CHECK(nc_inq_vardimid (ncid, varid, dimids));
 	value_size = val_size(ncid, varid);
 	nvals = 1;
@@ -1970,7 +1963,7 @@ copy_record_data(int ncid, int ogrp, size_t nrec_vars, int *rec_varids) {
 	    varid = rec_varids[ivar];
 	    ovarid = rec_ovarids[ivar];
 	    start[ivar][0] = irec;
-	    NC_CHECK(copy_rec_var_data(ncid, ogrp, irec, varid, ovarid,
+	    NC_CHECK(copy_rec_var_data(ncid, ogrp, varid, ovarid,
 				       start[ivar], count[ivar], buf[ivar]));
 	}
     }
@@ -2044,10 +2037,9 @@ copy(char* infile, char* outfile)
 
 #ifdef USE_NETCDF4
     if(listlength(option_chunkspecs) > 0) {
-	int i;
 	/* Now that input is open, can parse option_chunkspecs into binary
 	 * structure. */
-	for(i=0;i<listlength(option_chunkspecs);i++) {
+	for(size_t i=0;i<listlength(option_chunkspecs);i++) {
 	    char* spec = (char*)listget(option_chunkspecs,i);
 	    NC_CHECK(chunkspec_parse(igrp, spec));
 	}
@@ -2114,7 +2106,7 @@ copy(char* infile, char* outfile)
     }
 #endif	/* USE_NETCDF4 */
 
-    ndims = count_dims(igrp);
+    ndims = (size_t)count_dims(igrp);
     NC_CHECK(dimmap_init(ndims));
     NC_CHECK(copy_schema(igrp, ogrp));
     NC_CHECK(nc_enddef(ogrp));
@@ -2295,7 +2287,7 @@ main(int argc, char**argv)
 	    option_kind = NC_FORMAT_NETCDF4_CLASSIC;
 	    break;
 	case 'd':		/* non-default compression level specified */
-	    option_deflate_level = strtol(optarg, NULL, 10);
+	    option_deflate_level = (int)strtol(optarg, NULL, 10);
 	    if(option_deflate_level < 0 || option_deflate_level > 9) {
 		error("invalid deflation level: %d", option_deflate_level);
 	    }
@@ -2395,9 +2387,9 @@ main(int argc, char**argv)
 	case 'M': /* set min chunk size */
 #ifdef USE_NETCDF4
 	    if(optarg == NULL)
-		option_min_chunk_bytes = 0;
+	        option_min_chunk_bytes = 0;
 	    else
-	        option_min_chunk_bytes = atol(optarg);
+	        option_min_chunk_bytes = (size_t)atol(optarg);
 	    break;
 #else
 	    error("-M requires netcdf-4");
@@ -2459,8 +2451,7 @@ main(int argc, char**argv)
 static void
 freefilteroptlist(List* specs)
 {
-    int i;
-    for(i=0;i<listlength(specs);i++) {
+    for(size_t i=0;i<listlength(specs);i++) {
         struct FilterOption* spec = (struct FilterOption*)listget(specs,i);
         if(spec->fqn) free(spec->fqn);
         nullfree(spec->pfs.params);

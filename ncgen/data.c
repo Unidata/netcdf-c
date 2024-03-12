@@ -9,6 +9,7 @@
 #include        "ncoffsets.h"
 #include        "netcdf_aux.h"
 #include        "dump.h"
+#include <stddef.h>
 
 #undef VERIFY
 #ifndef __MINGW32__
@@ -147,17 +148,17 @@ cloneconstant(NCConstant* con)
 	if(newcon->value.stringv.len == 0)
 	    s = NULL;
 	else {
-	    s = (char*)ecalloc(newcon->value.stringv.len+1);
+	    s = (char*)ecalloc((size_t)newcon->value.stringv.len+1);
 	    if(newcon->value.stringv.len > 0)
-	        memcpy(s,newcon->value.stringv.stringv,newcon->value.stringv.len);
+	        memcpy(s,newcon->value.stringv.stringv, (size_t)newcon->value.stringv.len);
 	    s[newcon->value.stringv.len] = '\0';
 	}
 	newcon->value.stringv.stringv = s;
 	break;
     case NC_OPAQUE:
-	s = (char*)ecalloc(newcon->value.opaquev.len+1);
+	s = (char*)ecalloc((size_t)newcon->value.opaquev.len+1);
 	if(newcon->value.opaquev.len > 0)
-	    memcpy(s,newcon->value.opaquev.stringv,newcon->value.opaquev.len);
+	    memcpy(s,newcon->value.opaquev.stringv, (size_t)newcon->value.opaquev.len);
 	s[newcon->value.opaquev.len] = '\0';
 	newcon->value.opaquev.stringv = s;
 	break;
@@ -603,8 +604,8 @@ builddatalist(int initial)
     initial++; /* for header*/
     ci = (Datalist*)ecalloc(sizeof(Datalist));
     if(ci == NULL) semerror(0,"out of memory\n");
-    ci->data = (NCConstant**)ecalloc(sizeof(NCConstant*)*initial);
-    ci->alloc = initial;
+    ci->data = (NCConstant**)ecalloc(sizeof(NCConstant*) * (size_t)initial);
+    ci->alloc = (size_t)initial;
     ci->length = 0;
     return ci;
 }
@@ -645,12 +646,12 @@ dlinsert(Datalist* dl, size_t pos, Datalist* insertion)
     int len1 = datalistlen(dl);
     int len2 = datalistlen(insertion);
     int delta = len1 - pos;
-    dlsetalloc(dl,len2+len1+1);
+    dlsetalloc(dl, len2+len1+1);
 
    
     /* move contents of dl up to make room for insertion */
     if(delta > 0)
-        memmove(&dl->data[pos+len2],&dl->data[pos],delta*sizeof(NCConstant*));
+        memmove(&dl->data[pos+len2],&dl->data[pos], (size_t)delta*sizeof(NCConstant*));
     dl->length += len2;
     for(i=0;i<len2;i++) {
 	NCConstant* con = insertion->data[i];

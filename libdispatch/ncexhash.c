@@ -386,7 +386,7 @@ exhashsplit(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf* leaf)
     }
     
     /* Re-build the old leaf; keep same uid */
-    if((leaf->entries = (NCexentry*)calloc(map->leaflen,sizeof(NCexentry))) == NULL)
+    if((leaf->entries = (NCexentry*)calloc((size_t)map->leaflen, sizeof(NCexentry))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     leaf->active = 0;
 
@@ -588,7 +588,7 @@ exhashnewleaf(NCexhashmap* map, NCexleaf** leafp)
         if((leaf = calloc(1,sizeof(NCexleaf))) == NULL)
 	    goto done;
 	assert(map->leaflen > 0);
-        if((leaf->entries = calloc(map->leaflen,sizeof(NCexentry))) == NULL)
+        if((leaf->entries = calloc((size_t)map->leaflen, sizeof(NCexentry))) == NULL)
 	    goto done;	
         leaf->uid = map->uid++;
 	*leafp = leaf; leaf = NULL;

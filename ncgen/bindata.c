@@ -5,6 +5,7 @@
 
 #include "includes.h"
 #include "nclog.h"
+#include <stddef.h>
 
 #ifdef ENABLE_BINARY
 
@@ -81,7 +82,7 @@ bin_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf
         } break;
     case NC_NIL:
     case NC_STRING: {
-        int len = (size_t)con->value.stringv.len;
+        size_t len = (size_t)con->value.stringv.len;
 	if(len == 0 && con->value.stringv.stringv == NULL) {
 	    char* nil = NULL;
             bbAppendn(buf,(void*)&nil,sizeof(nil));
@@ -351,8 +352,8 @@ bin_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Byt
             NCConstant* tmp = nullconst();
             tmp->nctype = NC_STRING;
             convert1(instance,tmp);
-            p = emalloc(tmp->value.stringv.len+1);
-	    memcpy(p,tmp->value.stringv.stringv,tmp->value.stringv.len);
+            p = emalloc((size_t)tmp->value.stringv.len+1);
+	    memcpy(p,tmp->value.stringv.stringv, (size_t)tmp->value.stringv.len);
 	    p[tmp->value.stringv.len] = '\0';
             bbAppendn(databuf,&p,sizeof(char*));
             reclaimconstant(tmp);

@@ -94,9 +94,6 @@ ut_init(int argc, char** argv, struct UTOptions * options)
             case 's': /*slices*/
 		if((stat=parseslices(optarg,&options->nslices,options->slices))) usage(THROW(stat));
                 break;
-            case 'W': /*walk data*/
-		options->idatalen = parseintvector(optarg,4,(void**)&options->idata);
-                break;
             case '?':
                fprintf(stderr,"unknown option: '%c'\n",c);
                stat = NC_EINVAL;

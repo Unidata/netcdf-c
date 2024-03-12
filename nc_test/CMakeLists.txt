@@ -35,6 +35,17 @@ TARGET_LINK_LIBRARIES(nc_test
   ${HAVE_LIBM}
   )
 
+## 
+# Turn off inclusion of particular files when using the cmake-native
+# option to turn on Unity Builds.  
+#
+# For more information, see:
+#  * https://github.com/Unidata/netcdf-c/pull/2839/
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD_MODE.html#prop_tgt:UNITY_BUILD_MODE
+##
+set_property(TARGET nc_test PROPERTY UNITY_BUILD OFF)
+
 # Some extra stand-alone tests
 SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta tst_inq_type tst_utf8_phrases tst_global_fillval tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef tst_default_format)
 

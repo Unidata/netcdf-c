@@ -14,6 +14,7 @@
 #include <nc_tests.h>
 #include <err_macros.h>
 #include <hdf5.h>
+#include <stddef.h>
 
 #define FILE_NAME "tst_h_strbug.h5"
 #define VS_ATT_NAME "vsatt"
@@ -173,7 +174,7 @@ main()
     	if (type != NC_STRING) ERR;
     	if (nc_inq_varndims(ncid, varid, &ndims )) ERR;
     	if (ndims != RANK) ERR;
-	if (!(dimids = malloc(ndims * sizeof(int)))) ERR;
+	if (!(dimids = malloc((size_t)ndims * sizeof(int)))) ERR;
     	if (nc_inq_vardimid(ncid, varid, dimids)) ERR;
 	if (nc_inq_dimlen(ncid, dimids[0], &nstrings)) ERR;
 	if (!(data_in = (char **)malloc(nstrings * sizeof(char *)))) ERR;

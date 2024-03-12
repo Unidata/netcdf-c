@@ -29,7 +29,7 @@ write_atts(int ncid, int varid)
 
    for (a = 0; a < NUM_ATTS; a++)
    {
-      sprintf(att_name, "att_%d", a);
+      snprintf(att_name, sizeof(att_name), "att_%d", a);
       if (nc_put_att_int(ncid, varid, att_name, NC_INT,
 			 ATT_LEN, att_data)) ERR_RET;
    }
@@ -45,7 +45,7 @@ read_atts(int ncid, int varid)
 
    for (a = 0; a < NUM_ATTS; a++)
    {
-      sprintf(att_name, "att_%d", a);
+      snprintf(att_name, sizeof(att_name), "att_%d", a);
       if (nc_get_att_int(ncid, varid, att_name,
 			 att_data_in)) ERR_RET;
       for (i = 0; i < ATT_LEN; i++)
@@ -67,7 +67,7 @@ write_vars(int ncid)
    if (nc_def_dim(ncid, DIM_NAME, VAR_LEN, NULL)) ERR;
    for (v = 0; v < NUM_VARS; v++)
    {
-      sprintf(var_name, "var_%d", v);
+      snprintf(var_name, sizeof(var_name), "var_%d", v);
       if (nc_def_var(ncid, var_name, NC_INT, NUM_DIMS,
 		     dimid, NULL)) ERR_RET;
       write_atts(ncid, v);
@@ -89,7 +89,7 @@ read_vars(int ncid)
    {
       if (nc_inq_var(ncid, v, var_name_in, &xtype_in, &ndims_in,
 		     NULL, &natts_in)) ERR_RET;
-      sprintf(var_name, "var_%d", v);
+      snprintf(var_name, sizeof(var_name), "var_%d", v);
       if (strcmp(var_name, var_name_in) || xtype_in != NC_INT ||
 		 ndims_in != NUM_DIMS || natts_in != NUM_ATTS) ERR_RET;
       read_atts(ncid, v);

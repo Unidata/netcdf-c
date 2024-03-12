@@ -32,8 +32,6 @@ main(int argc, char **argv)
    int class_in;
    size_t size_in;
 
-   int i;
-
    int var_dims[VAR3_RANK];
    unsigned char sensor_data[DIM3_LEN][TYPE3_SIZE] = {
        {1,2,3,4,5,6,7,8,9,10,11},
@@ -90,7 +88,7 @@ main(int argc, char **argv)
    if (nc_get_att(ncid, varid, ATT3_NAME, &val_in)) ERR;
    if (memcmp(val_in, missing_val, TYPE3_SIZE) != 0) ERR;
 
-   for (i = 0; i < DIM3_LEN; i++) {
+   for (size_t i = 0; i < DIM3_LEN; i++) {
        size_t index[VAR3_RANK];
        index[0] = i;
        if(nc_get_var1(ncid, varid, index, val_in)) ERR;

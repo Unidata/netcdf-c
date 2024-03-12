@@ -240,6 +240,31 @@ H5FD_http_init(void)
 } /* end H5FD_http_init() */
 
 
+/*-------------------------------------------------------------------------
+ * Function:  H5FD_http_finalize
+ *
+ * Purpose:  Free this driver by unregistering the driver with the
+ *    library.
+ *
+ * Returns:     Non-negative on success or negative on failure
+ *
+ * Programmer:  John Donoghue
+ *              Tuesday, December 12, 2023
+ *
+ *-------------------------------------------------------------------------
+ */
+EXTERNL hid_t
+H5FD_http_finalize(void)
+{
+    /* Reset VFL ID */
+    if (H5FD_HTTP_g)
+         H5FDunregister(H5FD_HTTP_g);
+    H5FD_HTTP_g = 0;
+
+    return H5FD_HTTP_g;
+} /* end H5FD_http_finalize() */
+
+
 /*---------------------------------------------------------------------------
  * Function:  H5FD_http_term
  *
@@ -256,9 +281,6 @@ H5FD_http_init(void)
 static herr_t
 H5FD_http_term(void)
 {
-    /* Reset VFL ID */
-    H5FD_HTTP_g = 0;
-
     return 0;
 } /* end H5FD_http_term() */
 #endif

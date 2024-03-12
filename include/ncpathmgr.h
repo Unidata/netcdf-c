@@ -14,6 +14,9 @@
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
 #endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
