@@ -485,7 +485,7 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
     int32 sdsid;
     int contiguous;
     int d, a;
-    int flag;
+    int32 flag;
     char name[NC_MAX_HDF4_NAME+1];
     int xtype;
     char type_name[NC_MAX_NAME + 1];

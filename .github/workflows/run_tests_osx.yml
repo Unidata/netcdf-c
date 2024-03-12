@@ -16,11 +16,11 @@ jobs:
 
   build-deps-osx:
 
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
 
     steps:
 
@@ -49,15 +49,14 @@ jobs:
           make install -j
           popd
 
-
   nc-autotools-osx:
 
-    needs: [ nc-cmake-tests-oneoff-osx, nc-ac-tests-oneoff-osx ]
-    runs-on: macos-11
+    needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -65,9 +64,9 @@ jobs:
 
       - uses: actions/checkout@v3
 
-###
-# Set Environmental Variables
-###
+      ###
+      # Set Environmental Variables
+      ###
 
       - run: echo "CFLAGS=-I${HOME}/environments/${{ matrix.hdf5 }}/include" >> $GITHUB_ENV
       - run: echo "LDFLAGS=-L${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
@@ -89,9 +88,9 @@ jobs:
       - run: echo "ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_on'
 
-###
-# Fetch Cache
-###
+      ###
+      # Fetch Cache
+      ###
 
       - name: Fetch HDF Cache
         id: cache-hdf-osx
@@ -104,9 +103,9 @@ jobs:
         shell: bash -l {0}
         run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
 
-###
-# Configure and build
-###
+      ###
+      # Configure and build
+      ###
       - name: Install autoconf
         shell: bash -l {0}
         run: brew install automake
@@ -144,10 +143,10 @@ jobs:
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
-     # - name: Make Distcheck
-     #   shell: bash -l {0}
-     #   run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${ENABLE_HDF4} ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck
-     #   if: ${{ success() }}
+      # - name: Make Distcheck
+      #   shell: bash -l {0}
+      #   run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${ENABLE_HDF4} ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck
+      #  if: ${{ success() }}
 
       #- name: Start SSH Debug
       #  uses: luchihoratiu/debug-via-ssh@main
@@ -158,12 +157,12 @@ jobs:
 
   nc-cmake-osx:
 
-    needs: [ nc-cmake-tests-oneoff-osx, nc-ac-tests-oneoff-osx ]
-    runs-on: macos-11
+    needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -171,9 +170,9 @@ jobs:
 
       - uses: actions/checkout@v3
 
-###
-# Set Environmental Variables
-###
+    ###
+    # Set Environmental Variables
+    ###
 
       - run: echo "CMAKE_PREFIX_PATH=${HOME}/environments/${{ matrix.hdf5 }}/" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
@@ -195,9 +194,9 @@ jobs:
         if: matrix.use_nczarr == 'nczarr_on'
       - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
 
-###
-# Fetch Cache
-###
+    ###
+    # Fetch Cache
+    ###
 
       - name: Fetch HDF Cache
         id: cache-hdf5-osx
@@ -210,9 +209,9 @@ jobs:
         shell: bash -l {0}
         run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
 
-###
-# Configure and build
-###
+    ###
+    # Configure and build
+    ###
 
       - name: Perform out-of-directory build
         shell: bash -l {0}
@@ -248,34 +247,33 @@ jobs:
           LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
         if: ${{ failure() }}
 
-
-#####
-# One-Off Autotools-based tests.
-#####
+  #####
+  # One-Off Autotools-based tests.
+  #####
   nc-ac-tests-oneoff-osx:
 
     needs: build-deps-osx
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
     steps:
 
       - uses: actions/checkout@v3
 
-###
-# Set Environmental Variables
-###
+      ###
+      # Set Environmental Variables
+      ###
 
       - run: echo "CFLAGS=-I${HOME}/environments/${{ matrix.hdf5 }}/include" >> $GITHUB_ENV
       - run: echo "LDFLAGS=-L${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
 
 
-###
-# Fetch Cache
-###
+      ###
+      # Fetch Cache
+      ###
 
       - name: Fetch HDF Cache
         id: cache-hdf-osx
@@ -288,9 +286,9 @@ jobs:
         shell: bash -l {0}
         run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
 
-###
-# Configure and build
-###
+      ###
+      # Configure and build
+      ###
 
       - name: Install autoconf
         shell: bash -l {0}
@@ -329,33 +327,33 @@ jobs:
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
-#####
-# One-Off CMake-based tests.
-#####
+  #####
+  # One-Off CMake-based tests.
+  #####
 
-  nc-cmake-tests-oneoff-osx:
+  nc-cmake-tests-oneoff-osx-shared:
 
     needs: build-deps-osx
-    runs-on: macos-11
+    runs-on: macos-12
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.0 ]
+        hdf5: [ 1.12.2, 1.14.3 ]
 
     steps:
 
       - uses: actions/checkout@v3
 
-###
-# Set Environmental Variables
-###
+    ###
+    # Set Environmental Variables
+    ###
 
       - run: echo "CMAKE_PREFIX_PATH=${HOME}/environments/${{ matrix.hdf5 }}/" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
 
-###
-# Fetch Cache
-###
+    ###
+    # Fetch Cache
+    ###
 
       - name: Fetch HDF Cache
         id: cache-hdf5-osx
@@ -368,16 +366,91 @@ jobs:
         shell: bash -l {0}
         run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
 
-###
-# Configure and build
-###
+    ###
+    # Configure and build
+    ###
 
       - name: Perform out-of-directory build
         shell: bash -l {0}
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_XML2=FALSE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_LIBXML2=FALSE
+
+      - name: Print Summary
+        shell: bash -l {0}
+        run: |
+          cd build
+          cat libnetcdf.settings
+
+      - name: Build All
+        shell: bash -l {0}
+        run: |
+          cd build
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j 12
+        if: ${{ success() }}
+
+      - name: Run Tests
+        shell: bash -l {0}
+        run: |
+          cd build
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
+        if: ${{ success() }}
+
+      - name: Verbose Output if CTest Failure
+        shell: bash -l {0}
+        run: |
+          cd build
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
+        if: ${{ failure() }}
+
+
+  nc-cmake-tests-oneoff-osx-static:
+
+    needs: build-deps-osx
+    runs-on: macos-12
+
+    strategy:
+      matrix:
+        hdf5: [ 1.12.2, 1.14.3 ]
+
+    steps:
+
+      - uses: actions/checkout@v3
+
+    ###
+    # Set Environmental Variables
+    ###
+
+      - run: echo "CMAKE_PREFIX_PATH=${HOME}/environments/${{ matrix.hdf5 }}/" >> $GITHUB_ENV
+      - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
+      - run: echo "CMAKE_C_FLAGS=-fPIC" >> $GITHUB_ENV
+
+    ###
+    # Fetch Cache
+    ###
+
+      - name: Fetch HDF Cache
+        id: cache-hdf5-osx
+        uses: actions/cache@v3
+        with:
+          path: ~/environments/${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+
+      - name: Check Cache
+        shell: bash -l {0}
+        run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
+
+    ###
+    # Configure and build
+    ###
+
+      - name: Perform out-of-directory build
+        shell: bash -l {0}
+        run: |
+          mkdir build
+          cd build
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_LIBXML2=FALSE -DBUILD_SHARED_LIBS=OFF -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
 
       - name: Print Summary
         shell: bash -l {0}

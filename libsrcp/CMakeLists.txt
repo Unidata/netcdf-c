@@ -5,8 +5,12 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
-SET(libsrcp_SOURCES ncpdispatch.c)
-
 add_library(netcdfp OBJECT ${libsrcp_SOURCES})
 
-ADD_EXTRA_DIST(${libsrcp_SOURCES} CMakeLists.txt)
+target_sources(netcdfp PRIVATE ncpdispatch.c)
+
+if (ENABLE_DLL)
+    target_compile_definitions(netcdfp PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
+
+add_extra_dist(${libsrcp_SOURCES} CMakeLists.txt)

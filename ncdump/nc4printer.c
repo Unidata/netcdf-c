@@ -10,6 +10,7 @@
 */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -146,7 +147,7 @@ NC4print(NCbytes* buf, int ncid)
 static void
 freeNC4Printer(NC4printer* out)
 {
-    int i;
+    size_t i;
 
     if(out == NULL) return;
 
@@ -312,9 +313,8 @@ printNode(NC4printer* out, NCID* node, int depth)
             CAT(">\n");
             depth++;
             for(i=0;i<count;i++) {
-                long long value;
                 if((ret=nc_inq_enum_member(GROUPOF(node),node->id,i,name,&numvalue))) FAIL;
-                value = getNumericValue(numvalue,node->base->id);
+                long long value = (long long)getNumericValue(numvalue,node->base->id);
                 INDENT(depth);
                 CAT("<EnumConst");
                 printXMLAttributeName(out, "name", name);
@@ -442,7 +442,6 @@ static int
 printAttribute(NC4printer* out, NCID* attr, int depth)
 {
     int ret = NC_NOERR;
-    int i = 0;
     void* values;
 
     INDENT(depth); CAT("<Attribute");
@@ -450,7 +449,7 @@ printAttribute(NC4printer* out, NCID* attr, int depth)
     CAT(">\n");
     if((ret=readAttributeValues(attr,&values))) FAIL;
     depth++;
-    for(i=0;i<attr->size;i++) {
+    for(size_t i=0;i<attr->size;i++) {
         void* value = computeOffset(attr->base,values,i);
         if((ret=printValue(out,attr->base,value,depth))) FAIL;
     }
@@ -612,17 +611,17 @@ getNumericValue(union NUMVALUE numvalue, nc_type base)
 static NCID*
 findType(NC4printer* out, nc_type t)
 {
-    int len = nclistlength(out->types);
+    size_t len = nclistlength(out->types);
     if(t >= len)
         abort();
-    return (NCID*)nclistget(out->types,t);
+    return (NCID*)nclistget(out->types, (size_t)t);
 }
 
 static NCID*
 findDim(NC4printer* out, int dimid)
 {
     if(nclistlength(out->dims) <= dimid) abort();
-    return (NCID*)nclistget(out->dims,dimid);
+    return (NCID*)nclistget(out->dims, (size_t)dimid);
 }
 
 static void
@@ -657,18 +656,18 @@ record(NC4printer* out, NCID* node)
     switch (node->sort) {
     case DIM:
         if(nclistlength(out->dims) <= node->id) {
-            nclistsetalloc(out->dims,node->id+1);
-            nclistsetlength(out->dims,node->id+1);
+            nclistsetalloc(out->dims, (size_t)node->id+1);
+            nclistsetlength(out->dims, (size_t)node->id+1);
         }
-        nclistset(out->dims,node->id,node);
+        nclistset(out->dims, (size_t)node->id, node);
         break;
     case ATOMTYPE:
     case USERTYPE:
         if(nclistlength(out->types) <= node->id) {
-            nclistsetalloc(out->types,node->id+1);
-            nclistsetlength(out->types,node->id+1);
+            nclistsetalloc(out->types, (size_t)node->id+1);
+            nclistsetlength(out->types, (size_t)node->id+1);
         }
-        nclistset(out->types,node->id,node);
+        nclistset(out->types, (size_t)node->id, node);
         break;
     default: break;
     }
@@ -695,7 +694,7 @@ entityEscape(NCbytes* escaped, const char* s)
     const char* p;
     ncbytesclear(escaped);
     for(p=s;*p;p++) {
-        int c = *p;
+        char c = *p;
         switch (c) {
         case '&':  ncbytescat(escaped,"&amp;"); break;
         case '<':  ncbytescat(escaped,"&lt;"); break;
@@ -734,7 +733,7 @@ printString(NCbytes* out, const char* s, int quotes)
     if(quotes) ncbytesappend(out,'"');
     if(s == NULL) s = "";
     for(p=s;*p;p++) {
-        int c = *p;
+        char c = *p;
         if(c == '\\') ncbytescat(out,"\\\\");
         else if(c == '"') ncbytescat(out,"\\\"");
         else ncbytesappend(out,c);

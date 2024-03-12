@@ -545,7 +545,7 @@ main(int argc, char **argv)
 	 /* hr data */
 	 hr_data_out[i].starfleet_id = i;
 	 hr_data_out[i].svc_rec = data[i];
-	 if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
+	 if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
 	 hr_data_out[i].max_temp = 99.99f;
 	 hr_data_out[i].min_temp = -9.99f;
 	 hr_data_out[i].percent_transporter_errosion = .030303;
@@ -862,7 +862,7 @@ main(int argc, char **argv)
       /* Create some phony data. */
       for (i = 0; i < DIM1_LEN; i++)
       {
-	 if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
+	 if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
 	 hr_data_out[i].max_temp = 99.99f;
       }
 

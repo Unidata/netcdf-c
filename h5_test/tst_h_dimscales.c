@@ -308,7 +308,7 @@ main()
       if ((var1_spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
       for (v = 0; v < NUM_DATASETS; v++)
       {
-	 sprintf(var_name, "var_%d", v);
+	 snprintf(var_name, sizeof(var_name), "var_%d", v);
 	 if ((var1_datasetid[v] = H5Dcreate1(grpid, var_name, H5T_NATIVE_INT,
 					    var1_spaceid, H5P_DEFAULT)) < 0) ERR;
 	 if (H5DSattach_scale(var1_datasetid[v], dimscaleid, 0) < 0) ERR;

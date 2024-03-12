@@ -259,27 +259,27 @@ dumpfield(size_t index, char* n8, int isxdr)
     line[0] = '\0';
 
     /* offset */
-    sprintf(tmp,"%6zd",index);
+    snprintf(tmp,sizeof(tmp),"%6zd",index);
     addfield(tmp,sizeof(line),line,5);
 
     memcpy(form.cv,n8,4);
 
     /* straight hex*/
-    sprintf(tmp,"%08x",form.uv);
+    snprintf(tmp,sizeof(tmp),"%08x",form.uv);
     addfield(tmp,sizeof(line),line,8);
 
     if(isxdr) {swapinline32(&form.uv);}
 
     /* unsigned integer */
-    sprintf(tmp,"%12u",form.uv);
+    snprintf(tmp,sizeof(tmp),"%12u",form.uv);
     addfield(tmp,sizeof(line),line,12);
 
     /* signed integer */
-    sprintf(tmp,"%12d",form.sv);
+    snprintf(tmp,sizeof(tmp),"%12d",form.sv);
     addfield(tmp,sizeof(line),line,12);
 
     /* float */
-    sprintf(tmp,"%#g",form.fv);
+    snprintf(tmp,sizeof(tmp),"%#g",form.fv);
     addfield(tmp,sizeof(line),line,12);
 
     /* char[4] */
@@ -303,7 +303,7 @@ dumpfield(size_t index, char* n8, int isxdr)
     /* double */
     memcpy(dform.cv,n8,(size_t)(2*XDRUNIT));
     if(isxdr) xxdrntohdouble(dform.cv,&dform.d);
-    sprintf(tmp,"%#g",dform.d);
+    snprintf(tmp,sizeof(tmp),"%#g",dform.d);
     addfield(tmp,sizeof(line),line,12);
 
     fprintf(stdout,"%s\n",line);
@@ -378,11 +378,11 @@ simplememorydump(char* memory, size_t len, int fromxdr)
 	unsigned int v = vx;
 	if(!xxdr_network_order) swapinline32(&v);
         line[0] = '\0';
-        sprintf(tmp,"%6d",i);
+        snprintf(tmp,sizeof(tmp),"%6d",i);
         addfield(tmp,sizeof(line),line,6);
-        sprintf(tmp,"%08x",vx);
+        snprintf(tmp,sizeof(tmp),"%08x",vx);
         addfield(tmp,sizeof(line),line,9);
-        sprintf(tmp,"%08x",v);
+        snprintf(tmp,sizeof(tmp),"%08x",v);
         addfield(tmp,sizeof(line),line,10);
         fprintf(stdout,"%s\n",line);
     }

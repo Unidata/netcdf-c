@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef HAVE_HDF5_H
+#ifdef USE_HDF5
 #include <hdf5.h>
 #endif
 
@@ -51,7 +51,7 @@ static size_t dimsize[NDIMS] = {4,4,4,4};
 static size_t chunksize[NDIMS] = {4,4,4,4};
 #endif
 
-static size_t ndims = NDIMS;
+static int ndims = NDIMS;
 
 static size_t totalproduct = 1; /* x-product over max dims */
 static size_t actualproduct = 1; /* x-product over actualdims */
@@ -513,8 +513,8 @@ odom_offset(void)
     int i;
     int offset = 0;
     for(i=0;i<ndims;i++) {
-        offset *= dimsize[i];
-        offset += odom[i];
+        offset *= (int)dimsize[i];
+        offset += (int)odom[i];
     }
     return offset;
 }
@@ -526,8 +526,8 @@ expectedvalue(void)
     float offset = 0;
 
     for(i=0;i<ndims;i++) {
-        offset *= dimsize[i];
-        offset += odom[i];
+        offset *= (float)dimsize[i];
+        offset += (float)odom[i];
     }
     return offset;
 }

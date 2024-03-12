@@ -239,11 +239,12 @@ give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
      * clash. */
     if (strlen(name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
 	return NC_EMAXNAME;
-    if (!(var->ncz_name = malloc((strlen(NON_COORD_PREPEND) +
-				   strlen(name) + 1) * sizeof(char))))
+	size_t ncz_name_size = (strlen(NON_COORD_PREPEND) + strlen(name) + 1) *
+	                       sizeof(char);
+    if (!(var->ncz_name = malloc(ncz_name_size)))
 	return NC_ENOMEM;
 
-    sprintf(var->ncz_name, "%s%s", NON_COORD_PREPEND, name);
+    snprintf(var->ncz_name, ncz_name_size, "%s%s", NON_COORD_PREPEND, name);
 
     return NC_NOERR;
 }
@@ -1545,7 +1546,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 #endif
     size64_t fdims[NC_MAX_VAR_DIMS];
     size64_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
-    size64_t stride[NC_MAX_VAR_DIMS];
+    size64_t stride[NC_MAX_VAR_DIMS], ones[NC_MAX_VAR_DIMS];
     int retval, range_error = 0, i, d2;
     void *bufr = NULL;
     int bufrd = 0; /* 1 => we allocated bufr */
@@ -1590,6 +1591,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	start[0] = 0;
 	count[0] = 1;
 	stride[0] = 1;
+	ones[0] = 1;
     } else {
         for (i = 0; i < var->ndims; i++)
         {
@@ -1601,6 +1603,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	    start[i] = startp[i];
 	    count[i] = countp ? countp[i] : fdims[i];
 	    stride[i] = stridep ? stridep[i] : 1;
+	    ones[i] = 1;
 
   	    /* Check to see if any counts are zero. */
 	    if (!count[i])
@@ -1631,6 +1634,31 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 		BAIL_QUIET(NC_EEDGE);
 	}
     }
+
+
+#ifdef LOOK
+    /* Now you would think that no one would be crazy enough to write
+       a scalar dataspace with one of the array function calls, but you
+       would be wrong. So let's check to see if the dataset is
+       scalar. If it is, we won't try to set up a hyperslab. */
+    if (H5Sget_simple_extent_type(file_spaceid) == H5S_SCALAR)
+    {
+	if ((mem_spaceid = H5Screate(H5S_SCALAR)) < 0)
+	    BAIL(NC_EHDFERR);
+    }
+    else
+    {
+	if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, start, stride,
+				ones, count) < 0)
+	    BAIL(NC_EHDFERR);
+
+	/* Create a space for the memory, just big enough to hold the slab
+	   we want. */
+	if ((mem_spaceid = H5Screate_simple(var->ndims, count, NULL)) < 0)
+	    BAIL(NC_EHDFERR);
+    }
+#endif
+
 
     /* Are we going to convert any data? (No converting of compound or
      * opaque or vlen types.) We also need to call this code if we are doing
@@ -1675,6 +1703,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
        do no harm to reextend it to that size. */
     if (var->ndims)
     {
+
 	for (d2 = 0; d2 < var->ndims; d2++)
 	{
 	    size64_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index written */
@@ -1698,6 +1727,30 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 		}
 	    }
 	}
+
+
+
+#ifdef LOOK
+	/* If we need to extend it, we also need a new file_spaceid
+	   to reflect the new size of the space. */
+	if (need_to_extend)
+	{
+	    LOG((4, "extending dataset"));
+	    /* Convert xtend_size back to hsize_t for use with
+	     * H5Dset_extent. */
+	    for (d2 = 0; d2 < var->ndims; d2++)
+		fdims[d2] = (size64_t)xtend_size[d2];
+	    if (H5Dset_extent(ncz_var->hdf_datasetid, fdims) < 0)
+		BAIL(NC_EHDFERR);
+	    if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
+		BAIL2(NC_EHDFERR);
+	    if ((file_spaceid = H5Dget_space(ncz_var->hdf_datasetid)) < 0)
+		BAIL(NC_EHDFERR);
+	    if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
+				    start, stride, ones, count) < 0)
+		BAIL(NC_EHDFERR);
+	}
+#endif
     }
 
     /* Do we need to convert the data? */
@@ -1800,8 +1853,8 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     size64_t fdims[NC_MAX_VAR_DIMS]; /* size of the dimensions */
     size64_t start[NC_MAX_VAR_DIMS];
     size64_t stride[NC_MAX_VAR_DIMS];
-    int no_read = 0;
-    int provide_fill = 0;
+    size64_t ones[NC_MAX_VAR_DIMS];
+    int no_read = 0, provide_fill = 0;
     int fill_value_size[NC_MAX_VAR_DIMS];
     int retval, range_error = 0, i, d2;
     void *bufr = NULL;
@@ -1833,6 +1886,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	start[0] = 0;
 	count[0] = 1;
 	stride[0] = 1;
+	ones[0] = 1;
     } else {
         for (i = 0; i < var->ndims; i++)
         {
@@ -1842,6 +1896,12 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	    start[i] = startp[i];
 	    count[i] = countp[i];
 	    stride[i] = stridep ? stridep[i] : 1;
+
+	    ones[i] = 1;
+	    /* if any of the count values are zero don't actually read. */
+	    if (count[i] == 0)
+	        no_read++;
+
 	    /* Get dimension sizes also */
 	    fdims[i] = var->dim[i]->len;
 	    /* if any of the counts are zero don't actually read. */
@@ -1959,7 +2019,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	else
 	{
 	    if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
-				    start, stride, count, NULL) < 0)
+				    start, stride, ones, count) < 0)
 		BAIL(NC_EHDFERR);
 	    /* Create a space for the memory, just big enough to hold the slab
 	       we want. */

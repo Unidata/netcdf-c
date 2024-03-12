@@ -3,6 +3,7 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#include "ncconfigure.h"
 #include "ut_includes.h"
 
 #undef DEBUG
@@ -87,6 +88,9 @@ simplecreate(void)
     int stat = NC_NOERR;
     NCZMAP* map = NULL;
     char* path = NULL;
+
+    if((stat = nczmap_truncate(impl,url)))
+	goto done;
 
     if((stat = nczmap_create(impl,url,0,0,NULL,&map)))
 	goto done;
@@ -271,7 +275,7 @@ readdata(void)
     NCZMAP* map = NULL;
     char* path = NULL;
     int data1[DATA1LEN];
-    int i;
+    size64_t i;
     size64_t chunklen, totallen;
     char* data1p = NULL; /* byte level pointer into data1 */
 
@@ -306,7 +310,7 @@ readdata(void)
     /* Validate */
     for(i=0;i<DATA1LEN;i++) {
 	if(data1[i] != i) {
-	    fprintf(stderr,"data mismatch: is: %d should be: %d\n",data1[i],i);
+	    fprintf(stderr,"data mismatch: is: %d should be: %llu\n",data1[i],i);
 	    stat = NC_EINVAL;
 	    goto done;
 	}
@@ -322,7 +326,8 @@ done:
 static int
 searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
 {
-    int i,stat = NC_NOERR;
+
+    int stat = NC_NOERR;
     NClist* matches = nclistnew();
     char prefix[4096]; /* only ok because we know testdata */
     size_t prefixlen;
@@ -340,7 +345,7 @@ searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
     default: goto done;
     }
     /* recurse */
-    for(i=0;i<nclistlength(matches);i++) {
+    for(size_t i=0;i<nclistlength(matches);i++) {
 	const char* key = nclistget(matches,i);
 	/* ensure trailing '/' */
         if(prefix[prefixlen-1] != '/')
@@ -360,7 +365,8 @@ done:
 static int
 search(void)
 {
-    int i,stat = NC_NOERR;
+
+    int stat = NC_NOERR;
     NCZMAP* map = NULL;
     NClist* objects = nclistnew();
 
@@ -373,9 +379,9 @@ search(void)
     /* Sort */
     ut_sortlist(objects);
     /* Print out the list */
-    for(i=0;i<nclistlength(objects);i++) {
+    for(size_t i=0;i<nclistlength(objects);i++) {
 	const char* key = nclistget(objects,i);
-	printf("[%d] %s\n",i,key);
+	printf("[%zu] %s\n",i,key);
     }
 
 done:

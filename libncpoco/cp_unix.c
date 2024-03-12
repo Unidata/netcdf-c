@@ -46,7 +46,7 @@ static void
 ncperr(const char* fcn, NCPSharedLib* lib)
 {
     const char* msg = dlerror();
-    lib->err.msg[0] = '\0';
+    memset(lib->err.msg,0,sizeof(lib->err.msg));
     if(msg != NULL) {
 	strlcat(lib->err.msg,fcn,sizeof(lib->err.msg));
 	strlcat(lib->err.msg,": ",sizeof(lib->err.msg));

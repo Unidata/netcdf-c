@@ -1,14 +1,26 @@
-IF(HAVE_LIBXML2)
-SET(libncxml_SOURCES ncxml_xml2.c)
-ELSE()
-SET(libncxml_SOURCES ncxml_tinyxml2.cpp tinyxml2.cpp tinyxml2.h)
-ENDIF()
+if(HAVE_LIBXML2)
+  set(libncxml_SOURCES ncxml_xml2.c)
+else()
+  set(libncxml_SOURCES ncxml_tinyxml2.cpp tinyxml2.cpp tinyxml2.h)
+endif()
 
 add_library(ncxml OBJECT ${libncxml_SOURCES})
-TARGET_INCLUDE_DIRECTORIES(ncxml PUBLIC ./include)
+if(HAVE_LIBXML2)
+  target_include_directories(ncxml 
+    PUBLIC 
+      ./include
+    PRIVATE
+      ${LIBXML2_INCLUDE_DIRS}
+)
+else()
+  target_include_directories(ncxml
+  PUBLIC
+    ./include
+)
+endif(HAVE_LIBXML2)
 
-#IF(NOT MSVC)
-#target_compile_features(ncxml PUBLIC cxx_std_11)
-#ENDIF()
+if (ENABLE_DLL)
+  target_compile_definitions(ncxml PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
 
-ADD_EXTRA_DIST(CMakeLists.txt license.txt)
+add_extra_dist(CMakeLists.txt license.txt)

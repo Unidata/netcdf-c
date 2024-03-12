@@ -18,6 +18,7 @@
 #include "ncauth.h"
 #include "ncmodel.h"
 #include "ncpathmgr.h"
+#include <stddef.h>
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
@@ -482,7 +483,7 @@ create_phony_dims(NC_GRP_INFO_T *grp, hid_t hdf_datasetid, NC_VAR_INFO_T *var)
         if (!match)
         {
             char phony_dim_name[NC_MAX_NAME + 1];
-            sprintf(phony_dim_name, "phony_dim_%d", grp->nc4_info->next_dimid);
+            snprintf(phony_dim_name, sizeof(phony_dim_name), "phony_dim_%d", grp->nc4_info->next_dimid);
             LOG((3, "%s: creating phony dim for var %s", __func__, var->hdr.name));
 
             /* Add phony dim to metadata list. */
@@ -889,7 +890,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	    const char* awsaccessid0 = NULL;
 	    const char* awssecretkey0 = NULL;
 	    const char* profile0 = NULL;
-	    int iss3 = NC_iss3(h5->uri);
+	    int iss3 = NC_iss3(h5->uri,NULL);
 	    
             fa.version = H5FD_CURR_ROS3_FAPL_T_VERSION;
 	    fa.authenticate = (hbool_t)0;
@@ -914,7 +915,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
 		    BAIL(retval);		
 		if(s3.region == NULL)
-		    s3.region = strdup(S3_REGION_DEFAULT);
+		    s3.region = strdup(AWS_GLOBAL_DEFAULT_REGION);
 	        if(awsaccessid0 == NULL || awssecretkey0 == NULL ) {
 		    /* default, non-authenticating, "anonymous" fapl configuration */
 		    fa.authenticate = (hbool_t)0;
@@ -1365,9 +1366,9 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, int ndims,
          * attached for each dimension, and the HDF5 object IDs of the
          * scale(s). */
         assert(!hdf5_var->dimscale_hdf5_objids);
-        if (!(hdf5_var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
+        if (!(hdf5_var->dimscale_attached = calloc((size_t)ndims, sizeof(nc_bool_t))))
             return NC_ENOMEM;
-        if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims *
+        if (!(hdf5_var->dimscale_hdf5_objids = malloc((size_t)ndims *
                                                       sizeof(struct hdf5_objid))))
             return NC_ENOMEM;
 
@@ -1886,7 +1887,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
                                           &type_size)))
             return retval;
         {
-            if (!(att->data = malloc((unsigned int)(att->len * type_size))))
+            if (!(att->data = malloc((unsigned int)((size_t)att->len * type_size))))
                 BAIL(NC_ENOMEM);
 
             /* For a fixed length HDF5 string, the read requires
@@ -1907,7 +1908,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 		char** dst = NULL;
 
                 /* Alloc space for the contiguous memory read. */
-                if (!(contig_buf = malloc(att->len * fixed_size * sizeof(char))))
+                if (!(contig_buf = malloc((size_t)att->len * fixed_size * sizeof(char))))
                     BAIL(NC_ENOMEM);
 
                 /* Read the fixed-len strings as one big block. */
@@ -2088,7 +2089,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             return NC_EHDFERR;
         LOG((5, "compound type has %d members", nmembers));
         type->u.c.field = nclistnew();
-        nclistsetalloc(type->u.c.field,nmembers);
+        nclistsetalloc(type->u.c.field, (size_t)nmembers);
 
         for (m = 0; m < nmembers; m++)
         {
@@ -2253,7 +2254,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
         if ((nmembers = H5Tget_nmembers(hdf_typeid)) < 0)
             return NC_EHDFERR;
         type->u.e.enum_member = nclistnew();
-        nclistsetalloc(type->u.e.enum_member,nmembers);
+        nclistsetalloc(type->u.e.enum_member, (size_t)nmembers);
 
         /* Allocate space for one value. */
         if (!(value = calloc(1, type_size)))
@@ -2816,7 +2817,8 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
     hid_t pid = -1;
     unsigned crt_order_flags = 0;
     H5_index_t iter_index;
-    int i, retval = NC_NOERR;
+    size_t i;
+    int retval = NC_NOERR;
 
     assert(grp && grp->hdr.name && grp->format_grp_info);
     LOG((3, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
