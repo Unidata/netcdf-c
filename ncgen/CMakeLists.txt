@@ -92,15 +92,14 @@ ENDIF()
 SET(CLEANFILES c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
 
-# These rules are used if someone wants to rebuild ncgeny.c or ncgenl.c
-# Otherwise never invoked, but records how to do it.
-# BTW: note that renaming is essential because otherwise
-# autoconf will forcibly delete files of the name *.tab.*
+# With this option enabled, automatically generate the parser source
+# files from the yacc input files when they're changed. They don't
+# change very often, so this option is off by default.
 if (GENERATE_NCGEN)
   find_program(FLEX flex REQUIRED)
   find_program(BISON bison REQUIRED)
 
-  ADD_CUSTOM_COMMAND(
+  add_custom_command(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h ${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c ${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c
     DEPENDS ncgen.y ncgen.l
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -111,6 +110,8 @@ if (GENERATE_NCGEN)
     COMMAND ${BISON} -pncg -t -d ncgen/ncgen.y
     COMMAND mv ncgen.tab.c "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c"
     COMMAND mv ncgen.tab.h "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h"
+
+    # Fix the `#line` preprocessor directives with the correct source paths
     COMMAND sed -i s/ncgen.tab/ncgeny/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c"
     COMMAND sed -i s/lex.ncg/ncgenl/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c"
     COMMAND sed -i s/ncgen.tab/ncgeny/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h"
