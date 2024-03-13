@@ -295,9 +295,8 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src, NCattribute* att)
 	    }
 	} else if(etype == NC_CHAR) {
 	    char* p = (char*)dstmem;
-	    size_t count;
 	    int nread;
-	    count = sscanf(s,"%c%n",p,&nread);
+	    int count = sscanf(s,"%c%n",p,&nread);
 	    if(count != 1 || nread != slen)
 	        {ncstat = NC_EBADTYPE; goto next;}
 	} else if(etype == NC_STRING || etype == NC_URL) {
@@ -326,9 +325,8 @@ cvtnumconst(const char* s, struct Value* val)
 {
     size_t slen = strlen(s);
     int nread; /* # of chars read */
-    size_t count; /* # of conversions */
     /* Try to convert to integer first */
-    count = sscanf(s,"%lld%n",&val->llval,&nread);
+    int count = sscanf(s,"%lld%n",&val->llval,&nread);
     if(count == 1 && nread == slen)
 	return NC_INT;
     /* Try to convert to float second */

@@ -341,8 +341,8 @@ matchsuffix(NClist* matchpath, NClist* segments)
 {
     size_t i;
     int pathstart;
-    int nsegs = nclistlength(segments);
-    int pathlen = nclistlength(matchpath);
+    int nsegs = (int)nclistlength(segments);
+    int pathlen = (int)nclistlength(matchpath);
     int segmatch;
 
     /* try to match the segment list as a suffix of the path list */
@@ -360,12 +360,12 @@ matchsuffix(NClist* matchpath, NClist* segments)
     for(i=0;i<nsegs;i++) {
 	CDFnode* node = (CDFnode*)nclistget(matchpath, (size_t)pathstart+i);
 	DCEsegment* seg = (DCEsegment*)nclistget(segments,i);
-	int rank = seg->rank;
+	size_t rank = seg->rank;
 	segmatch = 1; /* until proven otherwise */
 	/* Do the names match (in oc name space) */
 	if(strcmp(seg->name,node->ocname) != 0) {
 	    segmatch = 0;
-	} else {
+	} else if (rank != 0) {
 	    /* Do the ranks match (watch out for sequences) */
 	    if(node->nctype == NC_Sequence)
 		rank--; /* remove sequence pseudo-rank */
