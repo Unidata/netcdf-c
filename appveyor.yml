@@ -23,7 +23,8 @@ skip_branch_with_pr: true
 
 init:
   - cmd: set PATH=C:\Python310;C:\Python310\Scripts;%PATH%
-
+  - cmd: set CONDA_INSTALL_LOCN=C:\Miniconda38-x64
+  
 install:
   - cmd: set SRC_DIR=%cd%
   - cmd: set INSTALL_LOC=%SRC_DIR%\install
