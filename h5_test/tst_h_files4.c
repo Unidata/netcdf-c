@@ -45,7 +45,7 @@ with the H5Lvisit function call
 */
 herr_t
 op_func (hid_t g_id, const char *name, 
-     const H5L_info_t *info,
+         const H5L_info_t *info,
 	 void *op_data)  
 {
    hid_t id;
