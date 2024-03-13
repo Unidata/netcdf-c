@@ -335,7 +335,9 @@ cvtnumconst(const char* s, struct Value* val)
 #ifdef _WIN32
     if (!_strnicmp(s, "NaN", 3)) {count = 1; nread = 3; val->dval = NAN;} else
 #endif
+    {
 	count = sscanf(s,"%lg%n",&val->dval,&nread);
+    }
     if(count == 1 && nread == slen)
 	    return NC_DOUBLE;
     return NC_INT;
