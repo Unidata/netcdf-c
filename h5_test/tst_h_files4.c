@@ -54,8 +54,9 @@ op_func (hid_t g_id, const char *name,
    strcpy((char *)op_data, name);
 #if H5_VERSION_LE(1, 10, 11) || defined(H5_USE_110_API_DEFAULT) || defined(H5_USE_18_API_DEFAULT) || defined(H5_USE_16_API_DEFAULT)
    /* This library is either 1.10.11 (the last 1.10 release) or earlier
-    * OR this a later version of the library built with a 1.10 or
-    * earlier API.
+    * OR this is a later version of the library built with a 1.10 or
+    * earlier API (earlier versions did not define their own USE
+    * API symbol).
     */
    if ((id = H5Oopen_by_addr(g_id, info->u.address)) < 0) ERR;
 #else
