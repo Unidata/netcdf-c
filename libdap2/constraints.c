@@ -700,13 +700,11 @@ dapvar2projection(CDFnode* var, DCEprojection** projectionp)
     NClist* path = nclistnew();
     NClist* segments;
     DCEprojection* projection = NULL;
-    int dimindex;
 
     /* Collect the nodes needed to construct the projection segments */
     collectnodepath(var,path,!WITHDATASET);
 
     segments = nclistnew();
-    dimindex = 0; /* point to next subset of slices */
     nclistsetalloc(segments,nclistlength(path));
     for(i=0;i<nclistlength(path);i++) {
 	DCEsegment* segment = (DCEsegment*)dcecreate(CES_SEGMENT);
@@ -730,7 +728,6 @@ dapvar2projection(CDFnode* var, DCEprojection** projectionp)
 	}
 	segment->slicesdefined = 1;
 	segment->slicesdeclized = 1;
-	dimindex += localrank;
 	nclistpush(segments,(void*)segment);
     }
 
