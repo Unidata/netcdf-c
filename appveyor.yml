@@ -11,8 +11,8 @@ environment:
 platform:
     - x64
 
-branches:
-  except:
+#branches:
+#  except:
 #    - /.*[.]dmh/
 #    - /.*[.]wif/
 
