@@ -11,6 +11,8 @@ environment:
 platform:
     - x64
 
+
+
 #branches:
 #  except:
 #    - /.*[.]dmh/
@@ -18,6 +20,9 @@ platform:
 
 # Do not build feature branch with open Pull Requests
 skip_branch_with_pr: true
+
+init:
+  - cmd: set PATH=C:\Python310;C:\Python310\Scripts;%PATH%
 
 install:
   - cmd: set SRC_DIR=%cd%
