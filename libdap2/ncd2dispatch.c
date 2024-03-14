@@ -384,7 +384,7 @@ NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
 	    nc_set_default_format(old,&new); /* restore */
 	    dapcomm->substrate.realfile = ((ncflags & NC_DISKLESS) != 0);
 	    dapcomm->substrate.filename = strdup(tmpname);
-	    if(tmpname == NULL) ncstat = NC_ENOMEM;
+	    if(dapcomm->substrate.filename == NULL) ncstat = NC_ENOMEM;
 	    dapcomm->substrate.nc3id = nc3id;
 	}
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
