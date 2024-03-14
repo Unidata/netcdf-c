@@ -374,7 +374,7 @@ opaquedecl: OPAQUE_ '(' INT_CONST ')' typename
                     $5->objectclass=NC_TYPE;
                     $5->subclass=NC_OPAQUE;
                     $5->typ.typecode=NC_OPAQUE;
-                    $5->typ.size=int32_val;
+                    $5->typ.size=(size_t)int32_val;
                     (void)ncaux_class_alignment(NC_OPAQUE,&$5->typ.alignment);
                 }
             ;
@@ -558,7 +558,7 @@ varspec:        varident dimspec
 			count = NC_MAX_VAR_DIMS - 1;
 			stacklen = stackbase + count;
 		    }
-  	            dimset.ndims = count;
+  	            dimset.ndims = (int)count;
 		    /* extract the actual dimensions*/
 		    if(dimset.ndims > 0) {
 		        for(i=0;i<count;i++) {
@@ -618,7 +618,7 @@ fieldspec:
 		    count = NC_MAX_VAR_DIMS - 1;
 		    stacklen = stackbase + count;
 		}
-  	        dimset.ndims = count;
+  	        dimset.ndims = (int)count;
 		if(count > 0) {
 		    /* extract the actual dimensions*/
 		    for(i=0;i<count;i++) {
@@ -668,7 +668,7 @@ fielddim:
 	     $$ = install(anon);
 	     $$->objectclass = NC_DIM;
 	     $$->dim.isconstant = 1;
-	     $$->dim.declsize = int32_val;
+	     $$->dim.declsize = (size_t)int32_val;
 	    }
 	;
 

@@ -59,7 +59,7 @@ extern void nestedfqn(Symbol* sym);
 extern void attfqn(Symbol* sym);
 
 /* from: escapes.c */
-extern int unescape(const char*, int, int, char**);
+extern int unescape(const char*, size_t, int, char**);
 extern int unescapeoct(const char* s);
 extern int unescapehex(const char* s);
 extern char* cescapifychar(char c, int quote);

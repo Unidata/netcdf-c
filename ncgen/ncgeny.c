@@ -1543,7 +1543,7 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
       return -1;
     }
 
-  /* Avoid snprintf, as that infringes on the user's name space.
+  /* Avoid sprintf, as that infringes on the user's name space.
      Don't have undefined behavior even if the translation
      produced a string with the wrong number of "%s"s.  */
   {
@@ -1985,7 +1985,7 @@ yyreduce:
                     (yyvsp[0].sym)->objectclass=NC_TYPE;
                     (yyvsp[0].sym)->subclass=NC_OPAQUE;
                     (yyvsp[0].sym)->typ.typecode=NC_OPAQUE;
-                    (yyvsp[0].sym)->typ.size=int32_val;
+                    (yyvsp[0].sym)->typ.size=(size_t)int32_val;
                     (void)ncaux_class_alignment(NC_OPAQUE,&(yyvsp[0].sym)->typ.alignment);
                 }
 #line 1992 "ncgeny.c"
@@ -2279,7 +2279,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 			count = NC_MAX_VAR_DIMS - 1;
 			stacklen = stackbase + count;
 		    }
-  	            dimset.ndims = count;
+  	            dimset.ndims = (int)count;
 		    /* extract the actual dimensions*/
 		    if(dimset.ndims > 0) {
 		        for(i=0;i<count;i++) {
@@ -2362,7 +2362,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    count = NC_MAX_VAR_DIMS - 1;
 		    stacklen = stackbase + count;
 		}
-  	        dimset.ndims = count;
+  	        dimset.ndims = (int)count;
 		if(count > 0) {
 		    /* extract the actual dimensions*/
 		    for(i=0;i<count;i++) {
@@ -2409,7 +2409,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
             {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
 	     char anon[32];
-	     snprintf(anon,sizeof(anon),"const%u",uint32_val);
+	     snprintf(anon, sizeof(anon),"const%u",uint32_val);
 	     (yyval.sym) = install(anon);
 	     (yyval.sym)->objectclass = NC_DIM;
 	     (yyval.sym)->dim.isconstant = 1;
@@ -2427,11 +2427,11 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		derror("field dimension must be positive");
 		YYABORT;
 	     }
-	     snprintf(anon,sizeof(anon),"const%d",int32_val);
+	     snprintf(anon, sizeof(anon),"const%d",int32_val);
 	     (yyval.sym) = install(anon);
 	     (yyval.sym)->objectclass = NC_DIM;
 	     (yyval.sym)->dim.isconstant = 1;
-	     (yyval.sym)->dim.declsize = int32_val;
+	     (yyval.sym)->dim.declsize = (size_t)int32_val;
 	    }
 #line 2437 "ncgeny.c"
     break;
