@@ -604,7 +604,7 @@ unescapeoct(const char* s)
 int
 unescape(
      const char *yytext, /* text to unescape */
-     int yyleng, /* length of yytext */
+     size_t yyleng, /* length of yytext */
      int isident, /* Is this an identifier? */
      char** sp /* Return the unescaped version of yytext */ 
      )
