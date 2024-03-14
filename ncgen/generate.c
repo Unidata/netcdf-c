@@ -117,7 +117,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
 
     case NC_COMPOUND: {
         size_t i, dllen;
-        int uid, nfields;
+        int uid;
         if(con == NULL || isfillconst(con)) {
             Datalist* fill = (filler==NULL?getfiller(tsym):filler);
 	    ASSERT(fill->length == 1);
@@ -140,7 +140,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         }
 
         data = con->value.compoundv;
-        nfields = listlength(tsym->subnodes);
+        size_t nfields = listlength(tsym->subnodes);
         dllen = datalistlen(data);
         if(dllen > nfields) {
           semerror(con->lineno,"Datalist longer than the number of compound fields");

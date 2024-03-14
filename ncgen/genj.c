@@ -42,13 +42,12 @@ genjava_netcdf(void)
 {
     size_t idim, ivar, iatt;
     int maxdims;
-    int ndims, nvars, natts, ngatts;
     const char *filename = rootgroup->file.filename;
 
-    ndims = listlength(dimdefs);
-    nvars = listlength(vardefs);
-    natts = listlength(attdefs);
-    ngatts = listlength(gattdefs);
+    size_t ndims = listlength(dimdefs);
+    size_t nvars = listlength(vardefs);
+    size_t natts = listlength(attdefs);
+    size_t ngatts = listlength(gattdefs);
 
     /* Construct the main class */
     codeline("import java.util.*;");

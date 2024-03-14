@@ -373,11 +373,10 @@ char*
 prefixtostring(List* prefix, char* separator)
 {
     size_t slen=0;
-    int plen;
     size_t i;
     char* result;
     if(prefix == NULL) return pooldup("");
-    plen = prefixlen(prefix);
+    size_t plen = prefixlen(prefix);
     if(plen == 0) { /* root prefix*/
 	slen=0;
         /* slen += strlen(separator);*/
@@ -425,7 +424,7 @@ prefixeq(List* x1, List* x2)
 {
     Symbol** l1;
     Symbol** l2;
-    int len,i;
+    size_t len,i;
     if((len=listlength(x1)) != listlength(x2)) return 0;
     l1=(Symbol**)listcontents(x1);
     l2=(Symbol**)listcontents(x2);

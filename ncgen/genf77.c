@@ -48,14 +48,13 @@ void
 genf77_netcdf(void)
 {
     size_t idim, ivar, iatt;
-    int ndims, nvars, natts, ngatts;
     char* cmode_string;
     const char *filename = rootgroup->file.filename;
 
-    ndims = listlength(dimdefs);
-    nvars = listlength(vardefs);
-    natts = listlength(attdefs);
-    ngatts = listlength(gattdefs);
+    size_t ndims = listlength(dimdefs);
+    size_t nvars = listlength(vardefs);
+    size_t natts = listlength(attdefs);
+    size_t ngatts = listlength(gattdefs);
 
     /* Construct the main program */
 
@@ -708,7 +707,7 @@ genf77_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
 	f77skip();
     } else { /* rank > 0 && typecode != NC_CHAR*/
         char* dimstring;
-	int index = listlength(f77procs);
+	size_t index = listlength(f77procs);
 	Bytebuffer* proctext;
 	Bytebuffer* save;
 	List* calllist;
