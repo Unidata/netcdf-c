@@ -640,7 +640,7 @@ convertstringtochars(NCConstant* str)
     char* s;
 
     size_t slen = str->value.stringv.len;
-    dl = builddatalist(slen);
+    dl = builddatalist((int)slen);
     s = str->value.stringv.stringv;
     for(i=0;i<slen;i++) {
 	NCConstant con;

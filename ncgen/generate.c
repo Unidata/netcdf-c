@@ -454,7 +454,7 @@ generate_array(Symbol* vsym, Bytebuffer* code, Datalist* filler, Generator* gene
 
     if(vsym->var.special._Storage == NC_CHUNKED) {
 	if(vsym->var.special._ChunkSizes)
-            memcpy(args.chunksizes,vsym->var.special._ChunkSizes,sizeof(size_t)*args.rank);
+          memcpy(args.chunksizes,vsym->var.special._ChunkSizes,sizeof(size_t)*(size_t)args.rank);
     }	
 
     memset(index,0,sizeof(index));
@@ -466,8 +466,8 @@ generate_array(Symbol* vsym, Bytebuffer* code, Datalist* filler, Generator* gene
         Bytebuffer* charbuf = bbNew();
         gen_chararray(args.dimset,0,args.vsym->data,charbuf,args.filler);
         args.generator->charconstant(args.generator,args.vsym,args.code,charbuf);
-        memset(start,0,sizeof(size_t)*args.rank);
-        memcpy(count,args.dimsizes,sizeof(size_t)*args.rank);
+        memset(start,0,sizeof(size_t)*(size_t)args.rank);
+        memcpy(count,args.dimsizes,sizeof(size_t)*(size_t)args.rank);
         args.writer(args.generator,args.vsym,args.code,args.rank,start,count);
         bbFree(charbuf);
         bbClear(args.code);

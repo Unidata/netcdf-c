@@ -152,7 +152,7 @@ bbAppendn(Bytebuffer* bb, const void* elem, const size_t n0)
   if(n == 0) {n = strlen((char*)elem);}
   while(!bbNeed(bb,(n+1))) {if(!bbSetalloc(bb,0)) return bbFail();}
   memcpy((void*)&bb->content[bb->length],(void*)elem,n);
-  bb->length += n;
+  bb->length += (unsigned int)n;
   bb->content[bb->length] = '\0';
   return TRUE;
 }
@@ -169,7 +169,7 @@ int
 bbInsertn(Bytebuffer* bb, const unsigned int index, const char* elem, const unsigned int n)
 {
   unsigned int i;
-  int j;
+  unsigned int j;
   unsigned int newlen = 0;
 
   if(bb == NULL) return bbFail();

@@ -481,8 +481,8 @@ retry:	    switch ((c=*p++)) {
 		bbCat(buf,text);
 		break;		
 	    case 'c':
-		c = va_arg(argv,int);
-		bbAppend(buf,(char)c);
+		c = (char)va_arg(argv,int);
+		bbAppend(buf,c);
 		break;		
             default:
 		PANIC1("vbbprintf: unknown specifier: %c",(char)c);
@@ -641,10 +641,9 @@ dlremove(Datalist* dl, size_t pos)
 void
 dlinsert(Datalist* dl, size_t pos, Datalist* insertion)
 {
-    int i;
-    int len1 = datalistlen(dl);
-    int len2 = datalistlen(insertion);
-    int delta = len1 - pos;
+    size_t len1 = datalistlen(dl);
+    size_t len2 = datalistlen(insertion);
+    ptrdiff_t delta = (ptrdiff_t)(len1 - pos);
     dlsetalloc(dl, len2+len1+1);
 
    
@@ -652,7 +651,7 @@ dlinsert(Datalist* dl, size_t pos, Datalist* insertion)
     if(delta > 0)
         memmove(&dl->data[pos+len2],&dl->data[pos], (size_t)delta*sizeof(NCConstant*));
     dl->length += len2;
-    for(i=0;i<len2;i++) {
+    for(size_t i=0;i<len2;i++) {
 	NCConstant* con = insertion->data[i];
 	con = cloneconstant(con);
         dl->data[pos+i] = con;
@@ -700,7 +699,7 @@ clonedatalist(Datalist* dl)
 
     if(dl == NULL) return NULL;
     len = datalistlen(dl);
-    newdl = builddatalist(len);
+    newdl = builddatalist((int)len);
     /* initialize */
     for(i=0;i<len;i++) {
 	NCConstant* con = datalistith(dl,i);
@@ -775,8 +774,7 @@ freedatalist(Datalist* list)
 void
 reclaimalldatalists(void)
 {
-    int i;
-    for(i=0;i<listlength(alldatalists);i++) {
+    for(size_t i=0;i<listlength(alldatalists);i++) {
         Datalist* di = listget(alldatalists,i);
 	if(di != NULL)
 	    reclaimdatalist(di);

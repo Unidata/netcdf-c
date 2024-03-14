@@ -170,12 +170,12 @@ initcodify(void)
     hexlen = strlen("_XHH"); /* template for hex of non-ASCII bytes */
     for(i = 0; i < 128; i++) {
         rp = ecalloc(2);
-        rp[0] = i;
+        rp[0] = (char)i;
         rp[1] = '\0';
         repls[i] = rp;
     }
     for(i=0; i < nctable; i++) {
-        size_t j = ctable[i].c;
+        size_t j = (size_t)ctable[i].c;
         efree(repls[j]);
         repls[j] = ctable[i].s;
     }
@@ -504,7 +504,7 @@ fqnescape(const char* s)
 {
     const char* p;
     char* q;
-    int c;
+    char c;
     size_t l = strlen(s);
 
 /*
@@ -693,7 +693,7 @@ unescape(
     }
     *p = '\0';
     if(sp) *sp = s;
-    return (p-s);
+    return (int)(p-s);
 }
 
 
