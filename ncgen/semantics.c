@@ -1326,7 +1326,7 @@ explode(NCConstant* con)
     Datalist* chars;
     ASSERT((con->nctype == NC_STRING));
     len = con->value.stringv.len;
-    chars = builddatalist(len);
+    chars = builddatalist((int)len);
     p = con->value.stringv.stringv;
 fprintf(stderr,"p[%zu]=|%s|\n",con->value.stringv.len,p);
     for(i=0;i<len;i++,p++) {

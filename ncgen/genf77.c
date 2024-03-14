@@ -490,7 +490,7 @@ f77fold(Bytebuffer* lines)
 	while(*linen != '\n' && *linen != '\0') linen++;
 	if(*linen == '\0') break;
 	linen++; /* include trailing newline */
-	linelen = (linen - line0);
+	linelen = (size_t)(linen - line0);
 	/* handle comments and empty lines */
 	if(*line0 == '*' || linelen == 1) {
 	    bbAppendn(lines,line0,linelen);
