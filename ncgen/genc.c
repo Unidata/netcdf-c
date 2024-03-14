@@ -40,22 +40,20 @@ genc_netcdf(void)
 {
     size_t idim, ivar, iatt;
     int maxdims;
-    int ndims, nvars, natts, ngatts;
     char* cmode_string;
     const char *filename = rootgroup->file.filename;
 
 #ifdef USE_NETCDF4
     size_t igrp, ityp;
-    int ngrps, ntyps;
 #endif
 
-    ndims = listlength(dimdefs);
-    nvars = listlength(vardefs);
-    natts = listlength(attdefs);
-    ngatts = listlength(gattdefs);
+    size_t ndims = listlength(dimdefs);
+    size_t nvars = listlength(vardefs);
+    size_t natts = listlength(attdefs);
+    size_t ngatts = listlength(gattdefs);
 #ifdef USE_NETCDF4
-    ngrps = listlength(grpdefs);
-    ntyps = listlength(typdefs);
+    size_t ngrps = listlength(grpdefs);
+    size_t ntyps = listlength(typdefs);
 #endif /*USE_NETCDF4*/
 
     /* wrap in main program */

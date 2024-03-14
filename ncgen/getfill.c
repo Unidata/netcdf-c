@@ -74,7 +74,7 @@ fill(Symbol* tsym, Datalist* filler)
 	   consisting itself of N constants, where N is the number of fields.
 	   Non-array fields will be direct, array fields will be sublists.
 	*/
-	Datalist* cmpdlist = builddatalist(listlength(tsym->subnodes)); /* list of field constants */
+        Datalist* cmpdlist = builddatalist((int)listlength(tsym->subnodes)); /* list of field constants */
         for(i=0;i<listlength(tsym->subnodes);i++) {
 	    NCConstant* fieldinstance = NULL;
 	    Symbol* field = (Symbol*)listget(tsym->subnodes,i);
@@ -123,7 +123,7 @@ filllist(Symbol* tsym, Datalist* dl)
 	dlappend(dl,con);
 	break;
     case NC_COMPOUND:
-	sublist = builddatalist(listlength(tsym->subnodes));
+        sublist = builddatalist((int)listlength(tsym->subnodes));
         for(size_t i=0;i<listlength(tsym->subnodes);i++) {
 	    Symbol* field = (Symbol*)listget(tsym->subnodes,i);
 	    filllist(field->typ.basetype,sublist);

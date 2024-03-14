@@ -34,20 +34,15 @@ genbin_netcdf(void)
 {
     int stat, ncid;
     size_t idim, ivar, iatt;
-    int ndims, nvars, natts, ngatts;
     const char* filename = rootgroup->file.filename;
 
+    size_t ndims = listlength(dimdefs);
+    size_t nvars = listlength(vardefs);
+    size_t natts = listlength(attdefs);
+    size_t ngatts = listlength(gattdefs);
 #ifdef USE_NETCDF4
-    int ntyps, ngrps;
-#endif
-
-    ndims = listlength(dimdefs);
-    nvars = listlength(vardefs);
-    natts = listlength(attdefs);
-    ngatts = listlength(gattdefs);
-#ifdef USE_NETCDF4
-    ntyps = listlength(typdefs);
-    ngrps = listlength(grpdefs);
+    size_t ntyps = listlength(typdefs);
+    size_t ngrps = listlength(grpdefs);
 #endif /*USE_NETCDF4*/
 
     /* Turn on logging */
