@@ -892,6 +892,9 @@ jobs:
   fetch_content_cmake:
     needs: build-deps-serial
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        hdf5: [ 1.14.3 ]
     steps:
       - uses: actions/checkout@v3
 
