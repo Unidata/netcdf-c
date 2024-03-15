@@ -101,6 +101,32 @@ or
 
 > $ cmake --build [Build Directory] --target install
 
+## Including netcdf with cmake's FetchContent
+
+Some projects may wish to have cmake handle including their project dependencies with [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html). netCDF's cmake file's also support this. An example cmake setup
+that downloads a specific tag of netCDF and links it to some cmake target shows how this can be done.
+
+```
+include(FetchContent)
+
+# Fetch NetCDF
+FetchContent_Declare(
+    netcdf
+    GIT_REPOSITORY https://github.com/Unidata/netcdf-c
+    GIT_TAG main
+)
+
+# disable netCDF tests
+set(ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(netcdf)
+
+add_executable(netcdf_example main.c)
+
+# Link against NetCDF
+target_link_libraries(netcdf_example PUBLIC netcdf)
+```
+
 # See Also {#cmake_see_also}
 
 For further information regarding NetCDF and CMake, see \ref cmake_faq
