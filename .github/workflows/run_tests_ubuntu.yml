@@ -934,7 +934,7 @@ jobs:
 
       - name: Build
         run: |
-          cd build
+          cd integration_tests/fetch_content/build
           cmake --build build --parallel
 
       - name: Run tests
