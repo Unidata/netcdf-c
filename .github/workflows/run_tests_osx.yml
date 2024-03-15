@@ -519,9 +519,10 @@ jobs:
 
       - name: Build
         run: |
-          cd integration_tests/fetch_content/build
+          cd integration_tests/fetch_content
           cmake --build build --parallel
 
       - name: Run tests
         run: |
+          cd integration_tests/fetch_content/build
           ctest --rerun-failed --output-on-failure . --verbose
