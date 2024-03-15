@@ -1541,15 +1541,6 @@ foreach(_LIB ${ALL_TLL_LIBS})
   list(APPEND LINKFLAGS "-L${_LIB_DIR}")
 endforeach()
 
-#set(NC_LIBS "-lnetcdf ${NC_LIBS}")
-if(NC_LIBS)
-  string(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
-  string(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
-  string(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
-  string(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
-  string(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
-endif()
-
 string(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 
 list(REMOVE_DUPLICATES NC_LIBS)
