@@ -898,7 +898,7 @@ jobs:
       - name: Run Cmake 
         run: |
           cd integration_tests/fetch_content
-          cmake -S . -B build -D
+          cmake -S . -B build
 
       - name: Build
         run: |

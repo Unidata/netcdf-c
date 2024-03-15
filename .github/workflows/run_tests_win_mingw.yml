@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-deps:
+  build-and-test-autotools:
 
     runs-on: windows-latest
     defaults:
@@ -26,24 +26,12 @@ jobs:
     steps:
 
       - uses: actions/checkout@v3
+
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           update: true
           install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 mingw-w64-x86_64-zlib
-
-  build-and-test-autotools:
-
-    needs: build-deps
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: msys2 {0}
-
-    steps:
-
-      - uses: actions/checkout@v3
-
 ###
 # Configure and build
 ###
@@ -87,7 +75,6 @@ jobs:
 
   fetch_content_cmake:
 
-    needs: build-deps
     runs-on: windows-latest
 
     defaults:
@@ -97,10 +84,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 mingw-w64-x86_64-zlib
+
       - name: Run Cmake 
         run: |
           cd integration_tests/fetch_content
-          cmake -S . -B build -D
+          cmake -S . -B build 
 
       - name: Build
         run: |
