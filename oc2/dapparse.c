@@ -148,7 +148,7 @@ dap_arraydecl(DAPparsestate* state, Object name, Object size)
 	dim = newocnode((char*)name,OC_Dimension,state);
     else
 	dim = newocnode(NULL,OC_Dimension,state);
-    dim->dim.declsize = value;
+    dim->dim.declsize = (size_t)value;
     return dim;
 }
 
@@ -203,8 +203,8 @@ dap_attrset(DAPparsestate* state, Object name, Object attributes)
 static int
 isglobalname(const char* name)
 {
-    int len = strlen(name);
-    int glen = strlen("global");
+    size_t len = strlen(name);
+    size_t glen = strlen("global");
     const char* p;
     if(len < glen) return 0;
     p = name + (len - glen);
@@ -362,7 +362,7 @@ dapsemanticerror(DAPparsestate* state, OCerror err, const char* msg)
 static char*
 flatten(char* s, char* tmp, size_t tlen)
 {
-    int c;
+    char c;
     char* p,*q;
     strncpy(tmp,s,tlen);
     tmp[tlen] = '\0';
