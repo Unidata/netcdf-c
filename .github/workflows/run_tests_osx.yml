@@ -482,9 +482,29 @@ jobs:
   fetch_content_cmake:
     needs: build-deps-osx
     runs-on: macos-12
+    strategy:
+      matrix:
+        hdf5: [ 1.12.2, 1.14.3 ]
     steps:
       - uses: actions/checkout@v3
 
+    ###
+    # Fetch Cache
+    ###
+      - name: Fetch HDF Cache
+        id: cache-hdf5-osx
+        uses: actions/cache@v3
+        with:
+          path: ~/environments/${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+
+      - name: Check Cache
+        shell: bash -l {0}
+        run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
+
+    ###
+    # Configure and build
+    ###
       - name: Run Cmake 
         run: |
           cd integration_tests/fetch_content

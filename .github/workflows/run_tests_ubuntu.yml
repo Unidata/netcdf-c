@@ -895,6 +895,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      ###
+      # Fetch Cache
+      ###
+
+      - name: Fetch HDF Cache
+        id: cache-hdf5
+        uses: actions/cache@v3
+        with:
+          path: ~/environments/${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+
+      - name: Check Cache
+        shell: bash -l {0}
+        run: ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
+
+      ###
+      # Configure and build
+      ###
       - name: Run Cmake 
         run: |
           cd integration_tests/fetch_content
