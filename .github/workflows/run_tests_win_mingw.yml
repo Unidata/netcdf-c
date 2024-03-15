@@ -86,8 +86,14 @@ jobs:
             */*.trs
 
   fetch_content_cmake:
+
     needs: build-deps
     runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
     steps:
       - uses: actions/checkout@v3
 
