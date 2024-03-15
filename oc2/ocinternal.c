@@ -421,12 +421,12 @@ static OCerror
 ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
 {
     OCerror stat = OC_NOERR;
-    size_t ddslen, bod, bodfound;
+    size_t ddslen, bod;
 
     /* Read until we find the separator (or EOF)*/
     ncbytesclear(state->packet);
     rewind(tree->data.file);
-    bodfound = 0;
+    int bodfound = 0;
     do {
         char chunk[1024];
 	size_t count;
@@ -511,8 +511,8 @@ ocget_rcproperties(OCstate* state)
 	    unsigned long interval=0;
 	    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
 	        fprintf(stderr,"Illegal KEEPALIVE VALUE: %s\n",option);
-	    state->curlkeepalive.idle = idle;
-	    state->curlkeepalive.interval = interval;
+	    state->curlkeepalive.idle = (long)idle;
+	    state->curlkeepalive.interval = (long)interval;
 	    state->curlkeepalive.active = 1;
 	}
     }
