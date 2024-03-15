@@ -30,9 +30,7 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - name: Build and install dependencies
-        if: steps.cache-netcdf-dependencies.outputs.cache-hit != 'true'
-        uses: cygwin/cygwin-install-action@v2
+      - uses: cygwin/cygwin-install-action@v2
         with:
           platform: x86_64
           packages: >-
@@ -92,7 +90,6 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Build and install dependencies
-        if: steps.cache-netcdf-dependencies.outputs.cache-hit != 'true'
         uses: cygwin/cygwin-install-action@v2
         with:
           platform: x86_64
@@ -110,9 +107,10 @@ jobs:
 
       - name: Build
         run: |
-          cd build
+          cd integration_tests/fetch_content
           cmake --build build --parallel
 
       - name: Run tests
         run: |
+          cd integration_tests/fetch_content/build
           ctest --rerun-failed --output-on-failure . --verbose
