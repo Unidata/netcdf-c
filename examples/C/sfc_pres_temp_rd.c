@@ -140,22 +140,22 @@ main()
       them and check them. */
    if ((retval = nc_get_att_text(ncid, lat_varid, UNITS, lat_units_in)))
       ERR(retval);
-   if (strncmp(lat_units_in, LAT_UNITS, strlen(LAT_UNITS)))
+   if (strncmp(lat_units_in, LAT_UNITS, strlen(LAT_UNITS)) != 0)
       return 2;
 
    if ((retval = nc_get_att_text(ncid, lon_varid, UNITS, lon_units_in)))
       ERR(retval);
-   if (strncmp(lon_units_in, LON_UNITS, strlen(LON_UNITS)))
+   if (strncmp(lon_units_in, LON_UNITS, strlen(LON_UNITS)) != 0)
       return 2;
 
    if ((retval = nc_get_att_text(ncid, pres_varid, UNITS, pres_units_in)))
       ERR(retval);
-   if (strncmp(pres_units_in, PRES_UNITS, strlen(PRES_UNITS)))
+   if (strncmp(pres_units_in, PRES_UNITS, strlen(PRES_UNITS)) != 0)
       return 2;
 
    if ((retval = nc_get_att_text(ncid, temp_varid, UNITS, temp_units_in)))
       ERR(retval);
-   if (strncmp(temp_units_in, TEMP_UNITS, strlen(TEMP_UNITS))) return 2;
+   if (strncmp(temp_units_in, TEMP_UNITS, strlen(TEMP_UNITS)) != 0) return 2;
 
    /* Close the file. */
    if ((retval = nc_close(ncid)))

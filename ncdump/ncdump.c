@@ -257,7 +257,6 @@ tztrim(char *ss)
     while (*ep)
       *cp++ = *ep++;
     *cp = '\0';
-    return;
 }
 
 
@@ -605,7 +604,7 @@ pr_att_valgs(
 		if(isnan(ff)) {
 		    printf("NaNf%s", delim);
 		} else if(isinf(ff)) {
-		    if(ff < 0.0f) {
+		    if(ff < 0.0F) {
 			printf("-");
 		    }
 		    printf("Infinityf%s", delim);
@@ -2246,7 +2245,6 @@ adapt_url_for_cache(char **pathp)
     if(pathp) {*pathp = path; path = NULL;}
     ncurifree(url);
     nullfree(path);
-    return;
 }
 #endif
 

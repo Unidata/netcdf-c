@@ -122,7 +122,7 @@ test_small_atts(const char *testfile)
 	 if (nc_inq_attlen(ncid, NC_GLOBAL, ATT_NAME, &len_in)) ERR;
 	 if (len_in != t + 1) ERR;
 	 if (nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, att_in)) ERR;
-	 if (strncmp(att_in, att, t)) ERR;
+	 if (strncmp(att_in, att, t) != 0) ERR;
 	 if (nc_close(ncid)) ERR;
       }
    }
@@ -184,7 +184,7 @@ test_small_unlim(const char *testfile)
    if (ndims != 2 && nvars != 1 && natts != 0 && unlimdimid != 0) ERR;
    if (nc_get_var_text(ncid, varid, (char *)data_in)) ERR;
    for (i = 0; i < NUM_VALS; i++)
-      if (strncmp(data[i], data_in[i], STR_LEN)) ERR;
+      if (strncmp(data[i], data_in[i], STR_LEN) != 0) ERR;
    if (nc_close(ncid)) ERR;
    return 0;
 }
@@ -229,7 +229,7 @@ test_small_fixed(const char *testfile)
    if (ndims != 2 && nvars != 1 && natts != 0 && unlimdimid != -1) ERR;
    if (nc_get_var_text(ncid, varid, (char *)data_in)) ERR;
    for (i = 0; i < NUM_VALS; i++)
-      if (strncmp(data[i], data_in[i], STR_LEN)) ERR;
+      if (strncmp(data[i], data_in[i], STR_LEN) != 0) ERR;
    if (nc_close(ncid)) ERR;
    return 0;
 }

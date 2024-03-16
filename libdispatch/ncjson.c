@@ -117,7 +117,7 @@ static int NCJcloneDict(const NCjson* dict, NCjson** clonep);
 static int NCJunparseR(const NCjson* json, NCJbuf* buf, unsigned flags);
 static int bytesappendquoted(NCJbuf* buf, const char* s);
 static int bytesappend(NCJbuf* buf, const char* s);
-static int bytesappendc(NCJbuf* bufp, const char c);
+static int bytesappendc(NCJbuf* bufp, char c);
 
 /* Hide everything for plugins */
 #ifdef NETCDF_JSON_H

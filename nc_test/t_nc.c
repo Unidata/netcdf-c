@@ -110,8 +110,9 @@ createtestdims(int cdfid, size_t num_dims, const size_t *sizes, const char * con
 	int dimid;
 	while(num_dims-- != 0)
 	{
-		assert( nc_def_dim(cdfid, *dim_names++, *sizes, &dimid)
+		assert( nc_def_dim(cdfid, *dim_names, *sizes, &dimid)
 			 == NC_NOERR);
+		dim_names++;
 		sizes++;
 	}
 
@@ -131,7 +132,8 @@ testdims(int cdfid, size_t num_dims, size_t *sizes, const char * const dim_names
 			(void) fprintf(stderr, "%d: %lu != %lu\n",
 				ii, (unsigned long)size, (unsigned long)*sizes);
 		assert( size == *sizes);
-		assert( strcmp(cp, *dim_names++) == 0);
+		assert( strcmp(cp, *dim_names) == 0);
+		dim_names++;
 	}
 
 }
@@ -313,7 +315,6 @@ check_fill_seq(int id)
 bad_ret :
 	(void) printf("couldn't get a var in check_fill_seq() %d\n",
 		ii);
-	return;
 }
 
 static size_t	indices[][3] = {

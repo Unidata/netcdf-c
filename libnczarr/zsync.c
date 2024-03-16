@@ -1726,7 +1726,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	/* Capture row vs column major; currently, column major not used*/
 	{
 	    if((stat = NCJdictget(jvar,"order",&jvalue))) goto done;
-	    if(strcmp(NCJstring(jvalue),"C")==1)
+	    if(strcmp(NCJstring(jvalue),"C") > 0)
 		((NCZ_VAR_INFO_T*)var->format_var_info)->order = 1;
 	    else ((NCZ_VAR_INFO_T*)var->format_var_info)->order = 0;
 	}

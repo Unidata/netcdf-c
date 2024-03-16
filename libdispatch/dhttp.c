@@ -516,7 +516,6 @@ trim(char* s)
     /* Ok, overwrite any leading whitespace */
     for(q=s;*p;) {*q++ = *p++;}
     *q = '\0';
-    return;
 }
 
 static size_t

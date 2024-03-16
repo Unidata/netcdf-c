@@ -2026,5 +2026,4 @@ deescapify (char *name)
     /* assert(strlen(newname) <= strlen(name)); */
     strncpy(name, newname, len);
     free(newname);
-    return;
 }

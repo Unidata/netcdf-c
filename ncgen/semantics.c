@@ -23,7 +23,6 @@ static void processtypesizes(void);
 static void processvars(void);
 static void processattributes(void);
 static void processunlimiteddims(void);
-static void processeconstrefs(void);
 static void processeconstrefsR(Symbol*,Datalist*);
 static void processroot(void);
 static void processvardata(void);
@@ -1220,7 +1219,7 @@ createfilename(void)
 	    if(p != NULL) {
 		char* q = filename;
 		p++; /* skip the '/' */
-		while((*q++ = *p++));
+		while((*q++ = *p++)) {};
 	    }
        } else {/* construct name from dataset name */
 	    strlcat(filename,datasetname,sizeof(filename));

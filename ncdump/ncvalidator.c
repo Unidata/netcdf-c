@@ -1563,7 +1563,7 @@ val_get_NC_attrarray(int           fd,
          * checking the tag when ndefined is zero.
          */
         if (trace) {
-            if (strcmp(loc, "Global")) printf("\t\t");
+            if (strcmp(loc, "Global") != 0) printf("\t\t");
             printf("\ttag = ABSENT (no attribute defined)\n");
         }
         return NC_NOERR;
@@ -1582,9 +1582,9 @@ val_get_NC_attrarray(int           fd,
             DEBUG_RETURN_ERROR(NC_ENOTNC)
         }
         if (trace) {
-            if (strcmp(loc, "Global")) printf("\t\t");
+            if (strcmp(loc, "Global") != 0) printf("\t\t");
             printf("\ttag = NC_ATTRIBUTE\n");
-            if (strcmp(loc, "Global")) printf("\t\t");
+            if (strcmp(loc, "Global") != 0) printf("\t\t");
             printf("\tnumber of attributes = %d\n", ncap->ndefined);
         }
 
@@ -1601,7 +1601,7 @@ val_get_NC_attrarray(int           fd,
             }
             if (status == NC_NOERR) status = err;
             if (trace) {
-                if (strcmp(loc, "Global")) printf("\t\t");
+                if (strcmp(loc, "Global") != 0) printf("\t\t");
                 printf("\tattribute name \"%s\", type = %s, length = %lld\n",
                        ncap->value[i]->name, str_NC_type(ncap->value[i]->xtype),
                        ncap->value[i]->nelems);

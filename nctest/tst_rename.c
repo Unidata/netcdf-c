@@ -247,7 +247,7 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, QQ, QQ_SIZE, &qq_dimid)) ERR;
       if (nc_rename_dim(ncid, pp_dimid, NEW_NAME)) ERR;
       if (nc_inq_dimname(ncid, pp_dimid, name_in)) ERR;
-      if (strcmp(NEW_NAME, name_in)) ERR;
+      if (strcmp(NEW_NAME, name_in) != 0) ERR;
       if (nc_rename_dim(ncid, pp_dimid, QQ) != NC_ENAMEINUSE) ERR;
       if (nc_rename_dim(ncid, -1, ANOTHER_NAME) != NC_EBADDIM) ERR;
       if (nc_rename_dim(ncid, 12, ANOTHER_NAME) != NC_EBADDIM) ERR;

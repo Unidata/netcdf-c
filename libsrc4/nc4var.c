@@ -585,7 +585,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
 
 		/* Create mask */
-		msk_f32_u32_zro = 0u; /* Zero all bits */
+		msk_f32_u32_zro = 0U; /* Zero all bits */
 		msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
 		
 		/* BitShave mask for AND: Left shift zeros into bits to be
@@ -605,7 +605,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 
 		bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;
 		/* Create mask. */
-		msk_f64_u64_zro = 0ul; /* Zero all bits. */
+		msk_f64_u64_zro = 0UL; /* Zero all bits. */
 		msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones. */
 		
 		/* BitShave mask for AND: Left shift zeros into bits to be
@@ -1461,7 +1461,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		    prc_bnr_xpl_rqr--; /* 20211003 Reduce formula result by 1 bit: Passes all tests, improves CR by ~10% */
 
 		    bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
-		    msk_f32_u32_zro = 0u; /* Zero all bits */
+		    msk_f32_u32_zro = 0U; /* Zero all bits */
 		    msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
 		    /* Bit Shave mask for AND: Left shift zeros into bits to be rounded, leave ones in untouched bits */
 		    msk_f32_u32_zro <<= bit_xpl_nbr_zro;
@@ -1495,7 +1495,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		    prc_bnr_xpl_rqr--; /* 20211003 Reduce formula result by 1 bit: Passes all tests, improves CR by ~10% */
 
 		    bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;
-		    msk_f64_u64_zro = 0ull; /* Zero all bits */
+		    msk_f64_u64_zro = 0ULL; /* Zero all bits */
 		    msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones */
 		    /* Bit Shave mask for AND: Left shift zeros into bits to be rounded, leave ones in untouched bits */
 		    msk_f64_u64_zro <<= bit_xpl_nbr_zro;

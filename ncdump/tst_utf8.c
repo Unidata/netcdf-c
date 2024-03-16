@@ -107,7 +107,7 @@ main(int argc, char **argv)
        };
 #define NNAME ((char *) norm_utf8)
 #define NNAMELEN (sizeof norm_utf8)
-       if (strncmp(NNAME, name_in, NNAMELEN))
+       if (strncmp(NNAME, name_in, NNAMELEN) != 0)
 	   ERR;
    }
    if (nc_inq_att(ncid, varid, UNITS, &att_type, &att_len))
@@ -118,7 +118,7 @@ main(int argc, char **argv)
    if (nc_get_att_text(ncid, varid, UNITS, strings_in))
        ERR;
    strings_in[att_len] = '\0';
-   if (strncmp(UNAME, strings_in, UNAMELEN))
+   if (strncmp(UNAME, strings_in, UNAMELEN) != 0)
        ERR;
    if (nc_close(ncid))
        ERR;

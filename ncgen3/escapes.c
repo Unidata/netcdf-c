@@ -92,5 +92,4 @@ expand_escapes(
 	}
     }
     *s = '\0';
-    return;
 }

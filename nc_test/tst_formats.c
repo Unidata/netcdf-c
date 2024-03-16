@@ -334,7 +334,7 @@ main(int argc, char **argv)
                             var_dimid[1] != dimid[1] || natts != 0) ERR;
                         if (!(data_in = malloc(DATA_LEN * type_size[t]))) ERR;
                         if (nc_get_vars(ncid, varid[t], start, count, NULL, data_in)) ERR;
-                        if (memcmp(data_in, data_ptr[t], DATA_LEN * type_size[t])) ERR;
+                        if (memcmp(data_in, data_ptr[t], DATA_LEN * type_size[t]) != 0) ERR;
                         free(data_in);
 
                     }

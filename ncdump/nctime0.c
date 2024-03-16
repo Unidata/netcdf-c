@@ -237,7 +237,6 @@ get_timeinfo(int ncid1, int varid1, ncvar_t *vp) {
 	vp->has_timeval = true;
 	free(units);
     }
-    return;
 }
 
 /* print_att_times 

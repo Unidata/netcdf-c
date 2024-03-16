@@ -11,13 +11,8 @@
 
 #include "ncdispatch.h"
 
-extern int NC3_initialize(void);
-extern int NC3_finalize(void);
-
 #ifdef USE_NETCDF4
 #include "nc4internal.h"
-extern int NC4_initialize(void);
-extern int NC4_finalize(void);
 #endif
 
 #ifdef USE_HDF5
@@ -29,11 +24,6 @@ extern int NC_HDF5_finalize(void);
 #ifdef ENABLE_DAP2
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
-#endif
-
-#ifdef ENABLE_DAP4
-extern int NCD4_initialize(void);
-extern int NCD4_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
