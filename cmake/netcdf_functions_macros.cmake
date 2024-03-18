@@ -243,7 +243,7 @@ macro(print_conf_summary)
     message(STATUS "Coverage Tests:    ${NETCDF_ENABLE_COVERAGE_TESTS}")
     message(STATUS "Parallel Tests:    ${ENABLE_PARALLEL_TESTS}")
     message(STATUS "Large File Tests:  ${ENABLE_LARGE_FILE_TESTS}")
-    message(STATUS "Extreme Numbers:   ${ENABLE_EXTREME_NUMBERS}")
+    message(STATUS "Extreme Numbers:   ${NETCDF_ENABLE_EXTREME_NUMBERS}")
     message(STATUS "Unit Tests:        ${ENABLE_UNIT_TESTS}")
   endif()
 

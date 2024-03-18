@@ -808,8 +808,8 @@ endif()
 ###
 # Option to enable extreme numbers during testing.
 ###
-option(ENABLE_EXTREME_NUMBERS "Enable extreme numbers during testing, such as MAX_INT-1" ON)
-if(ENABLE_EXTREME_NUMBERS)
+option(NETCDF_ENABLE_EXTREME_NUMBERS "Enable extreme numbers during testing, such as MAX_INT-1" ON)
+if(NETCDF_ENABLE_EXTREME_NUMBERS)
   set(USE_EXTREME_NUMBERS ON)
 endif()
 
