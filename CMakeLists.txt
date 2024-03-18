@@ -223,7 +223,7 @@ include(GenerateExportHeader)
 # Compiler and Linker Configuration
 ################################
 
-option(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
+option(NETCDF_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
 
 ##
 # We've had a request to allow for non-versioned shared libraries.
