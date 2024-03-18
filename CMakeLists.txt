@@ -235,7 +235,7 @@ option(ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file 
 # Set some default linux gcc & apple compiler options for
 # debug builds.
 if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-  option(ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
+  option(NETCDF_ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
   option(NETCDF_ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
   option(ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 
@@ -251,7 +251,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   set(CMAKE_REQUIRED_FLAGS "${TMP_CMAKE_REQUIRED_FLAGS}")
 
   # Coverage tests need to have optimization turned off.
-  if(ENABLE_COVERAGE_TESTS)
+  if(NETCDF_ENABLE_COVERAGE_TESTS)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
@@ -1081,7 +1081,7 @@ if(MSVC)
 endif()
 
 # Set some of the options as advanced.
-MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_COVERAGE_TESTS )
+MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS NETCDF_ENABLE_COVERAGE_TESTS )
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH ENABLE_EXTERNAL_SERVER_TESTS)
 MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS NETCDF_DOXYGEN_ENABLE_TASKS ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
 MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
