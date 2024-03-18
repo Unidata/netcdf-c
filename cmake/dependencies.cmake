@@ -447,7 +447,7 @@ endif(NETCDF_ENABLE_LIBXML2)
 ################################
 # MPI
 ################################
-if(ENABLE_PARALLEL4 OR HDF5_PARALLEL)
+if(NETCDF_ENABLE_PARALLEL4 OR HDF5_PARALLEL)
   find_package(MPI REQUIRED)
 endif()
 
