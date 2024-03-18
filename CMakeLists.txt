@@ -504,11 +504,11 @@ endif()
 
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
-option(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
+option(NETCDF_ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
 
-if(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+if(NETCDF_ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
   set(USE_STRICT_NULL_BYTE_HEADER_PADDING ON CACHE BOOL "")
-endif(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+endif(NETCDF_ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 
 # Note that szip management is tricky.
 # This is because we have three things to consider:
