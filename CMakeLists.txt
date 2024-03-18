@@ -675,8 +675,8 @@ if(NOT WIN32)
   endif()
 
   # FFIO insteaad of PosixIO
-  option(ENABLE_FFIO "If true, use ffio instead of posixio" OFF)
-  if(ENABLE_FFIO)
+  option(NETCDF_ENABLE_FFIO "If true, use ffio instead of posixio" OFF)
+  if(NETCDF_ENABLE_FFIO)
     set(USE_FFIO ON CACHE BOOL "")
   endif()
 endif()
