@@ -669,8 +669,8 @@ set(MATH "")
 if(NOT WIN32)
 
   # STDIO instead of posixio.
-  option(ENABLE_STDIO "If true, use stdio instead of posixio (ex. on the Cray)" OFF)
-  if(ENABLE_STDIO)
+  option(NETCDF_ENABLE_STDIO "If true, use stdio instead of posixio (ex. on the Cray)" OFF)
+  if(NETCDF_ENABLE_STDIO)
     set(USE_STDIO ON CACHE BOOL "")
   endif()
 
