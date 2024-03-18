@@ -444,8 +444,8 @@ option(ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib
 option(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 option(ENABLE_NCZARR "Enable NCZarr Client." ON)
 option(ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
-set(ENABLE_CDF5 AUTO CACHE STRING "AUTO")
-option(ENABLE_CDF5 "Enable CDF5 support" ON)
+set(NETCDF_ENABLE_CDF5 AUTO CACHE STRING "AUTO")
+option(NETCDF_ENABLE_CDF5 "Enable CDF5 support" ON)
 
 # Netcdf-4 support (i.e. libsrc4) is required by more than just HDF5 (e.g. NCZarr)
 # So depending on what above formats are enabled, enable netcdf-4
@@ -1183,20 +1183,20 @@ CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
 
 # Check whether to turn on or off CDF5 support.
 if(SIZEOF_SIZE_T EQUAL 4)
-   if(ENABLE_CDF5) # enable or auto
-      string(TOUPPER ${ENABLE_CDF5} ENABLE_CDF5)
-      if(ENABLE_CDF5 AND NOT ENABLE_CDF5 STREQUAL "AUTO") # explicitly enabled
+   if(NETCDF_ENABLE_CDF5) # enable or auto
+      string(TOUPPER ${NETCDF_ENABLE_CDF5} NETCDF_ENABLE_CDF5)
+      if(NETCDF_ENABLE_CDF5 AND NOT NETCDF_ENABLE_CDF5 STREQUAL "AUTO") # explicitly enabled
          message(FATAL_ERROR "Unable to support CDF5 feature because size_t is less than 8 bytes")
-      endif(ENABLE_CDF5 AND NOT ENABLE_CDF5 STREQUAL "AUTO")
-      set(ENABLE_CDF5 OFF) # cannot support CDF5
+      endif(NETCDF_ENABLE_CDF5 AND NOT NETCDF_ENABLE_CDF5 STREQUAL "AUTO")
+      set(NETCDF_ENABLE_CDF5 OFF) # cannot support CDF5
       set(USE_CDF5 OFF CACHE BOOL "") # cannot support CDF5
-   endif(ENABLE_CDF5)
+   endif(NETCDF_ENABLE_CDF5)
 else(SIZEOF_SIZE_T EQUAL 4)
-   if(ENABLE_CDF5) # explicitly set by user or not set
+   if(NETCDF_ENABLE_CDF5) # explicitly set by user or not set
       set(USE_CDF5 ON CACHE BOOL "")
-   else(ENABLE_CDF5) # explicitly disabled by user
+   else(NETCDF_ENABLE_CDF5) # explicitly disabled by user
       set(USE_CDF5 OFF CACHE BOOL "")
-   endif(ENABLE_CDF5)
+   endif(NETCDF_ENABLE_CDF5)
 endif(SIZEOF_SIZE_T EQUAL 4)
 
 CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)

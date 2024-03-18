@@ -81,7 +81,7 @@ else
     has_szlib="yes"
 fi
 
-has_cdf5="@ENABLE_CDF5@"
+has_cdf5="@NETCDF_ENABLE_CDF5@"
 if [ -z "$has_cdf5" -o "$has_cdf5" = "OFF" -o "$has_cdf5" = "FALSE" ]; then
     has_cdf5="no"
 else
