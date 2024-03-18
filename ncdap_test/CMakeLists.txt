@@ -26,7 +26,7 @@ IF(ENABLE_TESTS)
   # keep it from being too bad.
   # Binary Test Macro
 
-  IF(BUILD_UTILITIES)
+  IF(NETCDF_BUILD_UTILITIES)
     add_sh_test(ncdap tst_ncdap3)
     IF(HAVE_BASH)
       SET_TESTS_PROPERTIES(ncdap_tst_ncdap3 PROPERTIES RUN_SERIAL TRUE)
@@ -41,7 +41,7 @@ IF(ENABLE_TESTS)
 
   IF(ENABLE_DAP_REMOTE_TESTS)
 
-    IF(BUILD_UTILITIES)
+    IF(NETCDF_BUILD_UTILITIES)
       add_sh_test(ncdap tst_ber)
       add_sh_test(ncdap tst_remote3)
       IF(HAVE_BASH)
@@ -59,7 +59,7 @@ IF(ENABLE_TESTS)
         # not yet fixed
         add_sh_test(ncdap tst_hyrax)
       ENDIF()
-    ENDIF(BUILD_UTILITIES)
+    ENDIF(NETCDF_BUILD_UTILITIES)
     IF(ENABLE_EXTERNAL_SERVER_TESTS)
           add_bin_test(ncdap test_manyurls)
           SET_TESTS_PROPERTIES(ncdap_test_manyurls PROPERTIES RUN_SERIAL TRUE)

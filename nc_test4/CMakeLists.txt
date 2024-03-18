@@ -31,7 +31,7 @@ ENDIF()
 
 # Note, renamegroup needs to be compiled before run_grp_rename
 
-IF(BUILD_UTILITIES)
+IF(NETCDF_BUILD_UTILITIES)
   SET(NC4_TESTS ${NC4_TESTS} tst_xplatform)
   build_bin_test(renamegroup)
   add_sh_test(nc_test4 run_grp_rename)
@@ -65,7 +65,7 @@ IF(USE_HDF5 AND ENABLE_FILTER_TESTING)
   ENDIF(FALSE)
 ENDIF(USE_HDF5 AND ENABLE_FILTER_TESTING)
 
-ENDIF(BUILD_UTILITIES)
+ENDIF(NETCDF_BUILD_UTILITIES)
 
 IF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
   SET(NC4_TESTS ${NC4_TESTS} tst_virtual_datasets)
@@ -95,7 +95,7 @@ ENDIF()
 IF(HAVE_H5Z_SZIP)
   BUILD_BIN_TEST(test_szip)
   BUILD_BIN_TEST(h5testszip)
-  IF(BUILD_UTILITIES)
+  IF(NETCDF_BUILD_UTILITIES)
     add_sh_test(nc_test4 tst_szip)
   ENDIF()
 ENDIF()

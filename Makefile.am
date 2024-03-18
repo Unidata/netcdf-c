@@ -49,7 +49,7 @@ V2_TEST = nctest
 endif
 
 # Does the user want to build ncgen/ncdump?
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 NCGEN3 = ncgen3
 NCGEN = ncgen
 NCDUMP = ncdump

@@ -31,7 +31,7 @@ test_vara_SOURCES = test_vara.c t_srcdir.h
 if ENABLE_DAP
 check_PROGRAMS += t_dap3a test_cvt3 test_vara
 TESTS += t_dap3a test_cvt3 test_vara
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 TESTS += tst_ncdap3.sh
 endif
 
@@ -43,7 +43,7 @@ noinst_PROGRAMS = findtestserver pingurl
 findtestserver_SOURCES = findtestserver.c
 pingurl_SOURCES = pingurl.c
 
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh tst_zero_len_var.sh
 endif
 

@@ -54,7 +54,7 @@ test_unlim_io_SOURCES = test_unlim_io.c ${testcommonsrc}
 TESTS += test_put_vars_two_unlim_dim
 endif
 
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 
 TESTS += run_ut_misc.sh
 TESTS += run_ut_map.sh
@@ -100,9 +100,9 @@ if LARGE_FILE_TESTS
 	TESTS += run_cachetest.sh
 endif
 
-endif #BUILD_UTILITIES
+endif #NETCDF_BUILD_UTILITIES
 
-if BUILD_UTILITIES 
+if NETCDF_BUILD_UTILITIES 
 
 if ENABLE_NCZARR_ZIP
 	TESTS += run_newformat.sh
@@ -167,7 +167,7 @@ endif #ENABLE_NCZARR_FILTERS
 # Test various corrupted files
 TESTS += run_corrupt.sh
 
-endif #BUILD_UTILITIES
+endif #NETCDF_BUILD_UTILITIES
 
 # These programs are used by the test cases
 noinst_PROGRAMS = zhex

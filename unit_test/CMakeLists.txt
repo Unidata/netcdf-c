@@ -31,7 +31,7 @@ ENDIF(ENABLE_HDF5)
 # Path convert test(s)
 add_bin_test(unit_test test_pathcvt)
 
-IF(BUILD_UTILITIES)
+IF(NETCDF_BUILD_UTILITIES)
   IF(ENABLE_S3 AND WITH_S3_TESTING)
   # SDK Test
     build_bin_test(test_s3sdk ${XGETOPTSRC})

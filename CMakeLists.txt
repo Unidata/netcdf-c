@@ -389,7 +389,7 @@ else(NOT ENABLE_V2_API)
 endif(NOT ENABLE_V2_API)
 
 # Option to build utilities
-option(BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
+option(NETCDF_BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 
 # Option to use MMAP
 option(ENABLE_MMAP "Use MMAP." ON)
@@ -1433,7 +1433,7 @@ if(ENABLE_PLUGINS)
 endif()
 
 # Enable Utilities.
-if(BUILD_UTILITIES)
+if(NETCDF_BUILD_UTILITIES)
   include_directories(ncdump)
   add_subdirectory(ncgen)
   add_subdirectory(ncgen3)

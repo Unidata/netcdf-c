@@ -167,7 +167,7 @@ IF(ENABLE_TESTS)
     build_bin_test_with_util_lib(ncdumpchunks ut_util)
   endif()
 
-  IF(BUILD_UTILITIES)
+  IF(NETCDF_BUILD_UTILITIES)
     add_sh_test(nczarr_test run_ut_map)
     add_sh_test(nczarr_test run_ut_mapapi)
     add_sh_test(nczarr_test run_ut_misc)
@@ -231,7 +231,7 @@ IF(ENABLE_TESTS)
       add_sh_test(nczarr_test run_ut_chunk)
   ENDIF()
 
-  ENDIF(BUILD_UTILITIES)
+  ENDIF(NETCDF_BUILD_UTILITIES)
 
 ENDIF(ENABLE_TESTS)
 
