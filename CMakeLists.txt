@@ -790,7 +790,7 @@ if(NETCDF_ENABLE_TESTS)
   # Option to turn on unit testing. See
   # https://github.com/Unidata/netcdf-c/pull/1472 for more information.
   ###
-  option(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
+  option(NETCDF_ENABLE_UNIT_TESTS "Run Unit Tests." ON)
 
   ###
   # Option to turn on performance testing.
@@ -1463,9 +1463,9 @@ if(NETCDF_ENABLE_TESTS)
   if(NETCDF_ENABLE_BENCHMARKS)
     add_subdirectory(nc_perf)
   endif(NETCDF_ENABLE_BENCHMARKS)
-  if(ENABLE_UNIT_TESTS)
+  if(NETCDF_ENABLE_UNIT_TESTS)
     add_subdirectory(unit_test)
-  endif(ENABLE_UNIT_TESTS)
+  endif(NETCDF_ENABLE_UNIT_TESTS)
   if(NETCDF_ENABLE_NCZARR)
     add_subdirectory(nczarr_test)
   endif()

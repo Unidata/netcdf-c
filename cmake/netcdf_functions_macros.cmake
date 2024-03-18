@@ -244,7 +244,7 @@ macro(print_conf_summary)
     message(STATUS "Parallel Tests:    ${NETCDF_ENABLE_PARALLEL_TESTS}")
     message(STATUS "Large File Tests:  ${NETCDF_ENABLE_LARGE_FILE_TESTS}")
     message(STATUS "Extreme Numbers:   ${NETCDF_ENABLE_EXTREME_NUMBERS}")
-    message(STATUS "Unit Tests:        ${ENABLE_UNIT_TESTS}")
+    message(STATUS "Unit Tests:        ${NETCDF_ENABLE_UNIT_TESTS}")
   endif()
 
   message("")
