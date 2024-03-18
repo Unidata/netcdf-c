@@ -395,7 +395,7 @@ option(NETCDF_BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 option(ENABLE_MMAP "Use MMAP." ON)
 
 # Option to use examples.
-option(ENABLE_EXAMPLES "Build Examples" ON)
+option(NETCDF_ENABLE_EXAMPLES "Build Examples" ON)
 
 ###
 # Allow the user to specify libraries
@@ -1457,7 +1457,7 @@ if(ENABLE_TESTS)
   if(NETCDF_ENABLE_DAP4)
     add_subdirectory(dap4_test)
   endif()
-  if(ENABLE_EXAMPLES)
+  if(NETCDF_ENABLE_EXAMPLES)
     add_subdirectory(examples)
   endif()
   if(NETCDF_ENABLE_BENCHMARKS)
