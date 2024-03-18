@@ -493,7 +493,7 @@ with zip */
 #cmakedefine TEST_PARALLEL ${TEST_PARALLEL}
 #cmakedefine BUILD_RPC 1
 #cmakedefine USE_X_GETOPT 1
-#cmakedefine ENABLE_EXTREME_NUMBERS 1
+#cmakedefine NETCDF_ENABLE_EXTREME_NUMBERS 1
 
 /* do not build the netCDF version 2 API */
 #cmakedefine NO_NETCDF_2 1

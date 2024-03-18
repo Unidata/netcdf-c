@@ -110,7 +110,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine USE_DISKLESS 1
 #cmakedefine USE_SZIP 1
 #cmakedefine USE_X_GETOPT 1
-#cmakedefine ENABLE_EXTREME_NUMBERS
+#cmakedefine NETCDF_ENABLE_EXTREME_NUMBERS
 #cmakedefine LARGE_FILE_TESTS 1
 #cmakedefine HAVE_DECL_ISFINITE 1
 #cmakedefine HAVE_DECL_ISNAN 1
