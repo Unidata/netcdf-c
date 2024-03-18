@@ -68,10 +68,10 @@ AM_CPPFLAGS += -I${top_srcdir}/libncxml
 if NETCDF_ENABLE_DAP4
 libnetcdf_la_LIBADD += ${top_builddir}/libncxml/libncxml.la
 else
-if ENABLE_S3_INTERNAL
+if NETCDF_ENABLE_S3_INTERNAL
 libnetcdf_la_LIBADD += ${top_builddir}/libncxml/libncxml.la
 endif
-endif # ENABLE_S3_INTERNAL || NETCDF_ENABLE_DAP4
+endif # NETCDF_ENABLE_S3_INTERNAL || NETCDF_ENABLE_DAP4
 
 # NetCDF-4 ...
 if USE_NETCDF4
