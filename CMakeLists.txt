@@ -1062,7 +1062,7 @@ if(ENABLE_DOXYGEN)
 endif()
 
 # Always enable DISKLESS
-option(ENABLE_DISKLESS "Enable in-memory files" ON)
+option(NETCDF_ENABLE_DISKLESS "Enable in-memory files" ON)
 
 # Always enable quantization.
 option(ENABLE_QUANTIZE "Enable variable quantization" ON)
@@ -1632,7 +1632,7 @@ is_enabled(NETCDF_ENABLE_DAP HAS_DAP)
 is_enabled(NETCDF_ENABLE_DAP2 HAS_DAP2)
 is_enabled(NETCDF_ENABLE_DAP4 HAS_DAP4)
 is_enabled(NETCDF_ENABLE_BYTERANGE HAS_BYTERANGE)
-is_enabled(ENABLE_DISKLESS HAS_DISKLESS)
+is_enabled(NETCDF_ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
 is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
