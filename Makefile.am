@@ -88,9 +88,9 @@ NCDAP4TESTDIR = dap4_test
 XML = libncxml
 endif #DAP4
 
-if ENABLE_S3_INTERNAL
+if NETCDF_ENABLE_S3_INTERNAL
 XML = libncxml # Internal S3 requires XML
-endif #ENABLE_S3_INTERNAL
+endif #NETCDF_ENABLE_S3_INTERNAL
 
 # Build PnetCDF
 if USE_PNETCDF
@@ -210,7 +210,7 @@ install-data-hook:
 # Also track the S3 cleanup id
 all-local: liblib/libnetcdf.la
 	echo ${PACKAGE_VERSION} > VERSION
-if ENABLE_S3_TESTALL
+if NETCDF_ENABLE_S3_TESTALL
 	rm -f ${abs_top_builddir}/tmp_@PLATFORMUID@.uids
 	echo "@TESTUID@" >> ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 	cat ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids | sort | uniq > ${abs_top_builddir}/tmp_@PLATFORMUID@.uids
@@ -218,7 +218,7 @@ if ENABLE_S3_TESTALL
 	mv ${abs_top_builddir}/tmp_@PLATFORMUID@.uids ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 endif
 
-if ENABLE_S3_TESTALL
+if NETCDF_ENABLE_S3_TESTALL
 distclean-local:
 	rm -f ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 endif

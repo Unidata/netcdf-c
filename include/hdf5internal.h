@@ -65,7 +65,7 @@ typedef struct NC_HDF5_FILE_INFO {
 #if defined(NETCDF_ENABLE_BYTERANGE)
    int byterange;
 #endif
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
    struct NCauth* auth;
 #endif
 } NC_HDF5_FILE_INFO_T;

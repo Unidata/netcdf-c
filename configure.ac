@@ -969,23 +969,23 @@ else
    fi
 
    if test "x$enable_s3" = xyes ; then
-   AC_DEFINE([ENABLE_S3], [1], [if true, build netcdf-c with S3 support enabled])
+   AC_DEFINE([NETCDF_ENABLE_S3], [1], [if true, build netcdf-c with S3 support enabled])
    fi
 
    if test "x$enable_s3_aws" = xyes ; then
       LIBS="$LIBS$S3LIBS"
-      AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
+      AC_DEFINE([NETCDF_ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
    fi
 
    if test "x$enable_s3_internal" = xyes ; then
-      AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
+      AC_DEFINE([NETCDF_ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
    fi
 
    AC_DEFINE_UNQUOTED([WITH_S3_TESTING], [$with_s3_testing], [control S3 testing.])
 
    if test "x$with_s3_testing" = xyes ; then
    AC_MSG_WARN([*** DO NOT SPECIFY WITH_S3_TESTING=YES UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
-   AC_DEFINE([ENABLE_S3_TESTALL], [yes], [control S3 testing.])
+   AC_DEFINE([NETCDF_ENABLE_S3_TESTALL], [yes], [control S3 testing.])
    fi
 fi
 
@@ -1930,12 +1930,12 @@ AM_CONDITIONAL(NETCDF_ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 # We need to simplify the set of S3 and Zarr flag combinations
-AM_CONDITIONAL(ENABLE_S3, [test "x$enable_s3" = xyes])
-AM_CONDITIONAL(ENABLE_S3_AWS, [test "x$enable_s3_aws" = xyes])
-AM_CONDITIONAL(ENABLE_S3_INTERNAL, [test "x$enable_s3_internal" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_S3, [test "x$enable_s3" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_S3_AWS, [test "x$enable_s3_aws" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_S3_INTERNAL, [test "x$enable_s3_internal" = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
-AM_CONDITIONAL(ENABLE_S3_TESTPUB, [test "x$with_s3_testing" != xno]) # all => public
-AM_CONDITIONAL(ENABLE_S3_TESTALL, [test "x$with_s3_testing" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_S3_TESTPUB, [test "x$with_s3_testing" != xno]) # all => public
+AM_CONDITIONAL(NETCDF_ENABLE_S3_TESTALL, [test "x$with_s3_testing" = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
 AM_CONDITIONAL(HAVE_DEFLATE, [test "x$have_deflate" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
@@ -2045,7 +2045,7 @@ AC_SUBST(HAS_S3_AWS,[$enable_s3_aws])
 AC_SUBST(HAS_S3_INTERNAL,[$enable_s3_internal])
 AC_SUBST(HAS_HDF5_ROS3,[$has_hdf5_ros3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
-AC_SUBST(ENABLE_S3_TESTING,[$with_s3_testing])
+AC_SUBST(NETCDF_ENABLE_S3_TESTING,[$with_s3_testing])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 AC_SUBST(HAS_QUANTIZE,[$enable_quantize])

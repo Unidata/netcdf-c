@@ -50,7 +50,7 @@ if(NETCDF_ENABLE_NCZARR_ZIP)
     set(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
 endif()
 
-if(ENABLE_S3) 
+if(NETCDF_ENABLE_S3) 
     set(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_s3sdk.c)
 endif()
 

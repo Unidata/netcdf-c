@@ -179,11 +179,11 @@ zmapio_SOURCES = zmapio.c
 noinst_PROGRAMS += zs3parse
 zs3parse_SOURCES = zs3parse.c
 
-if ENABLE_S3
+if NETCDF_ENABLE_S3
 noinst_PROGRAMS += s3util 
 s3util_SOURCES = s3util.c
-if ENABLE_S3_TESTALL
-if ENABLE_S3_AWS
+if NETCDF_ENABLE_S3_TESTALL
+if NETCDF_ENABLE_S3_AWS
 check_PROGRAMS += tst_pure_awssdk
 tst_pure_awssdk_SOURCES = tst_pure_awssdk.cpp
 AM_CXXFLAGS += -std=c++11
@@ -344,7 +344,7 @@ clean-local:
 	rm -fr tmp_*.nc tmp_*.zarr tst_quantize*.zarr tmp*.file results.file results.s3 results.zip
 	rm -fr rcmiscdir ref_power_901_constants.file 
 
-if ENABLE_S3_TESTALL
+if NETCDF_ENABLE_S3_TESTALL
 check-local:
 	bash ${abs_top_builddir}/s3cleanup.sh
 endif

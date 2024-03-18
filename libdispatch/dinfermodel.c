@@ -27,7 +27,7 @@
 #include "nclog.h"
 #include "ncrc.h"
 #include "nchttp.h"
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
 #include "ncs3sdk.h"
 #endif
 
@@ -61,7 +61,7 @@ struct MagicFile {
 #endif
     char* curlurl; /* url to use with CURLOPT_SET_URL */
     NC_HTTP_STATE* state;
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
     NCS3INFO s3;
     void* s3client;
     char* errmsg;
@@ -902,7 +902,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
         ncurisetfragments(uri,sfrag);
         nullfree(sfrag); sfrag = NULL;
 
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
 	/* If s3, then rebuild the url */
 	if(NC_iss3(uri,NULL)) {
 	    NCURI* newuri = NULL;

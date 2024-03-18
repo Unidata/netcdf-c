@@ -527,7 +527,7 @@ also test S3 support with this option.
 
 Enabling S3 support is controlled by this cmake option:
 ````
--DENABLE_S3=ON
+-DNETCDF_ENABLE_S3=ON
 ````
 However, to find the aws sdk libraries,
 the following environment variables must be set:

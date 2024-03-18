@@ -158,13 +158,13 @@ are set when opening a binary file on Windows. */
 #cmakedefine NETCDF_ENABLE_PLUGINS 1
 
 /* if true, enable S3 support */
-#cmakedefine ENABLE_S3 1
+#cmakedefine NETCDF_ENABLE_S3 1
 
 /* if true, AWS S3 SDK is available */
-#cmakedefine ENABLE_S3_AWS 1
+#cmakedefine NETCDF_ENABLE_S3_AWS 1
 
 /* if true, Force use of S3 internal library */
-#cmakedefine ENABLE_S3_INTERNAL 1
+#cmakedefine NETCDF_ENABLE_S3_INTERNAL 1
 
 /* if true, enable S3 testing*/
 #cmakedefine WITH_S3_TESTING "PUBLIC"
