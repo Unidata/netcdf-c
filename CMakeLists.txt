@@ -230,7 +230,7 @@ option(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent librari
 # This seems reasonable enough to accommodate.  See
 # https://github.com/Unidata/netcdf-c/issues/228 for more info.
 ##
-option(ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file name of the generated library file." ON)
+option(NETCDF_ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file name of the generated library file." ON)
 
 # Set some default linux gcc & apple compiler options for
 # debug builds.
@@ -1084,7 +1084,7 @@ endif()
 MARK_AS_ADVANCED(NETCDF_ENABLE_INTERNAL_DOCS VALGRIND_TESTS NETCDF_ENABLE_COVERAGE_TESTS )
 MARK_AS_ADVANCED(NETCDF_ENABLE_DAP_REMOTE_TESTS NETCDF_ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH NETCDF_ENABLE_EXTERNAL_SERVER_TESTS)
 MARK_AS_ADVANCED(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS NETCDF_DOXYGEN_ENABLE_TASKS NETCDF_ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
-MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
+MARK_AS_ADVANCED(NETCDF_ENABLE_SHARED_LIBRARY_VERSION)
 
 ################################
 # Option checks
