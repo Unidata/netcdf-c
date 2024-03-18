@@ -906,32 +906,32 @@ if(ENABLE_PNETCDF)
 endif()
 
 # Options to enable use of fill values for elements causing NC_ERANGE
-set(ENABLE_ERANGE_FILL AUTO CACHE STRING "AUTO")
-option(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OFF)
-if(ENABLE_ERANGE_FILL) # enable or auto
-   string(TOUPPER ${ENABLE_ERANGE_FILL} ENABLE_ERANGE_FILL)
-   if(ENABLE_ERANGE_FILL AND NOT ENABLE_ERANGE_FILL STREQUAL "AUTO")
+set(NETCDF_ENABLE_ERANGE_FILL AUTO CACHE STRING "AUTO")
+option(NETCDF_ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OFF)
+if(NETCDF_ENABLE_ERANGE_FILL) # enable or auto
+   string(TOUPPER ${NETCDF_ENABLE_ERANGE_FILL} NETCDF_ENABLE_ERANGE_FILL)
+   if(NETCDF_ENABLE_ERANGE_FILL AND NOT NETCDF_ENABLE_ERANGE_FILL STREQUAL "AUTO")
       # explicitly enabled
-      set(ENABLE_ERANGE_FILL ON)
+      set(NETCDF_ENABLE_ERANGE_FILL ON)
    else()
-      if(NOT ENABLE_ERANGE_FILL STREQUAL "AUTO")
-         set(ENABLE_ERANGE_FILL OFF)
+      if(NOT NETCDF_ENABLE_ERANGE_FILL STREQUAL "AUTO")
+         set(NETCDF_ENABLE_ERANGE_FILL OFF)
       endif()
    endif()
-endif(ENABLE_ERANGE_FILL)
-# Now ENABLE_ERANGE_FILL is either AUTO, ON, or OFF
+endif(NETCDF_ENABLE_ERANGE_FILL)
+# Now NETCDF_ENABLE_ERANGE_FILL is either AUTO, ON, or OFF
 
 # More relaxed coordinate check is now mandatory for all builds.
 set(ENABLE_ZERO_LENGTH_COORD_BOUND ON)
 
 # check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
 if(USE_PNETCDF)
-  if(ENABLE_ERANGE_FILL STREQUAL "AUTO") # not set on command line
-     set(ENABLE_ERANGE_FILL "${PNETCDF_HAS_ERANGE_FILL}")
+  if(NETCDF_ENABLE_ERANGE_FILL STREQUAL "AUTO") # not set on command line
+     set(NETCDF_ENABLE_ERANGE_FILL "${PNETCDF_HAS_ERANGE_FILL}")
   else()
      # user explicitly set this option on command line
-     if(NOT ENABLE_ERANGE_FILL STREQUAL "${PNETCDF_HAS_ERANGE_FILL}")
-        if(ENABLE_ERANGE_FILL)
+     if(NOT NETCDF_ENABLE_ERANGE_FILL STREQUAL "${PNETCDF_HAS_ERANGE_FILL}")
+        if(NETCDF_ENABLE_ERANGE_FILL)
            message(FATAL_ERROR "Enabling erange-fill conflicts with PnetCDF setting")
         else()
            message(FATAL_ERROR "Disabling erange-fill conflicts with PnetCDF setting")
@@ -940,7 +940,7 @@ if(USE_PNETCDF)
   endif()
 endif()
 
-if(ENABLE_ERANGE_FILL)
+if(NETCDF_ENABLE_ERANGE_FILL)
   message(STATUS "Enabling use of fill value when NC_ERANGE")
   set(M4FLAGS "-DERANGE_FILL" CACHE STRING "")
 endif()
@@ -1637,7 +1637,7 @@ is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
 is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
-is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
+is_enabled(NETCDF_ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_S3 HAS_S3)
 is_enabled(ENABLE_S3_AWS HAS_S3_AWS)
