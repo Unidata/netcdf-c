@@ -140,7 +140,7 @@ if USE_HDF5
 TESTS += tst_ctests.sh
 endif
 
-if ENABLE_CDF5
+if NETCDF_ENABLE_CDF5
 # Test for keywords as identifiers
 TESTS += test_keywords.sh
 endif

@@ -128,7 +128,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine ENABLE_HDF5_ROS3 1
 
 /* if true, enable CDF5 Support */
-#cmakedefine ENABLE_CDF5 1
+#cmakedefine NETCDF_ENABLE_CDF5 1
 
 /* if true, enable client side filters */
 #cmakedefine ENABLE_CLIENT_FILTERS 1

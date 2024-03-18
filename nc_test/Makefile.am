@@ -39,7 +39,7 @@ tst_formatx_pnetcdf tst_default_format_pnetcdf
 endif
 
 if USE_PNETCDF
-if ENABLE_CDF5
+if NETCDF_ENABLE_CDF5
 check_PROGRAMS += tst_cdf5format
 endif
 endif
@@ -125,7 +125,7 @@ tst_diskless4.cdl ref_tst_diskless4.cdl benchmark.nc                    \
 tst_http_nc3.cdl tst_http_nc4?.cdl tmp*.cdl tmp*.nc
 
 EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl
-if ENABLE_CDF5
+if NETCDF_ENABLE_CDF5
    # bad_cdf5_begin.nc is a corrupted CDF-5 file with bad variable starting
    # file offsets. It is to be used by tst_open_cdf5.c to check if it can
    # detect and report error code NC_ENOTNC.

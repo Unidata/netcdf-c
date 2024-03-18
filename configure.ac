@@ -1530,9 +1530,9 @@ else
 fi
 
 if test "x${enable_cdf5}" = xyes; then
-   AC_DEFINE([ENABLE_CDF5], [1], [if true, enable CDF5 Support])
+   AC_DEFINE([NETCDF_ENABLE_CDF5], [1], [if true, enable CDF5 Support])
 fi
-AM_CONDITIONAL(ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
+AM_CONDITIONAL(NETCDF_ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
 
 $SLEEPCMD
 if test "$ac_cv_type_uchar" = yes ; then
@@ -1907,7 +1907,7 @@ AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
 AM_CONDITIONAL(ENABLE_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(ENABLE_DAP4, [test "x$enable_dap4" = xyes])
 AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes])
-AM_CONDITIONAL(ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_EXTERNAL_SERVER_TESTS, [test "x$enable_external_server_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])

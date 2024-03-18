@@ -1884,7 +1884,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
     if (model.impl == NC_FORMATX_PNETCDF)
     {stat = NC_ENOTBUILT; goto done;}
 #endif
-#ifndef ENABLE_CDF5
+#ifndef NETCDF_ENABLE_CDF5
     if (model.impl == NC_FORMATX_NC3 && (cmode & NC_64BIT_DATA))
     {stat = NC_ENOTBUILT; goto done;}
 #endif
@@ -2047,7 +2047,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 #ifdef USE_HDF4
         hdf4built = 1;
 #endif
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
         cdf5built = 1;
 #endif
 #ifdef ENABLE_NCZARR
@@ -2101,7 +2101,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	/* Verify */
 	if((built & (1 << model.impl)) == 0)
             {stat = NC_ENOTBUILT; goto done;}
-#ifndef ENABLE_CDF5
+#ifndef NETCDF_ENABLE_CDF5
 	/* Special case because there is no separate CDF5 dispatcher */
         if(model.impl == NC_FORMATX_NC3 && (omode & NC_64BIT_DATA))
             {stat = NC_ENOTBUILT; goto done;}
