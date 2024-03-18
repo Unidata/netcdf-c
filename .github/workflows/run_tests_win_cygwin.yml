@@ -103,7 +103,7 @@ jobs:
       - name: Run Cmake 
         run: |
           cd integration_tests/fetch_content
-          cmake -S . -B build 
+          cmake -S . -B build --debug-find-pkg=HDF5
 
       - name: Build
         run: |
