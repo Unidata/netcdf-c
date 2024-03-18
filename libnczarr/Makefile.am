@@ -72,9 +72,9 @@ if NETCDF_ENABLE_NCZARR_FILTERS
 libnczarr_la_SOURCES += zfilter.c
 endif
 
-if ENABLE_S3
+if NETCDF_ENABLE_S3
 libnczarr_la_SOURCES += zmap_s3sdk.c
-if ENABLE_S3_AWS
+if NETCDF_ENABLE_S3_AWS
 AM_CXXFLAGS += -std=c++11
 endif
 endif

@@ -22,7 +22,7 @@ nczmap_features(NCZM_IMPL impl)
 #ifdef NETCDF_ENABLE_NCZARR_ZIP
     case NCZM_ZIP: return zmap_zip.features;
 #endif
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
     case NCZM_S3: return zmap_s3sdk.features;
 #endif
     default: break;
@@ -58,7 +58,7 @@ nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* 
 	if(stat) goto done;
 	break;
 #endif
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
     case NCZM_S3:
         stat = zmap_s3sdk.create(path, mode, flags, parameters, &map);
 	if(stat) goto done;
@@ -96,7 +96,7 @@ nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* pa
 	if(stat) goto done;
 	break;
 #endif
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
     case NCZM_S3:
         stat = zmap_s3sdk.open(path, mode, flags, parameters, &map);
 	if(stat) goto done;
@@ -127,7 +127,7 @@ nczmap_truncate(NCZM_IMPL impl, const char *path)
         if((stat = zmap_zip.truncate(path))) goto done;
 	break;
 #endif
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
     case NCZM_S3:
         if((stat = zmap_s3sdk.truncate(path))) goto done;
 	break;

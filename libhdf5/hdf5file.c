@@ -221,7 +221,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
     NC4_clear_provenance(&h5->provenance);
 
     ncurifree(hdf5_info->uri);
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
     /* Free the http info */
     NC_authfree(hdf5_info->auth);
 #endif

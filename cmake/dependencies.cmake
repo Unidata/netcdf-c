@@ -395,20 +395,20 @@ endif ()
 # Note we check for the library after checking for enable_s3
 # because for some reason this screws up if we unconditionally test for sdk
 # and it is not available. Fix someday
-if(ENABLE_S3)
-  if(NOT ENABLE_S3_INTERNAL)
+if(NETCDF_ENABLE_S3)
+  if(NOT NETCDF_ENABLE_S3_INTERNAL)
     # See if aws-s3-sdk is available
     find_package(AWSSDK REQUIRED COMPONENTS s3;transfer)
     if(AWSSDK_FOUND)
-      set(ENABLE_S3_AWS ON CACHE BOOL "S3 AWS" FORCE)
+      set(NETCDF_ENABLE_S3_AWS ON CACHE BOOL "S3 AWS" FORCE)
       target_include_directories(netcdf
         PRIVATE
           ${AWSSDK_INCLUDE_DIR}
       )
     else(AWSSDK_FOUND)
-      set(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
+      set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
     endif(AWSSDK_FOUND)
-  else(NOT ENABLE_S3_INTERNAL)
+  else(NOT NETCDF_ENABLE_S3_INTERNAL)
     # Find crypto libraries required with testing with the internal s3 api.
     #find_library(SSL_LIB NAMES ssl openssl)
     find_package(OpenSSL REQUIRED)
@@ -421,9 +421,9 @@ if(ENABLE_S3)
     #  message(FATAL_ERROR "Can't find a crypto library, required by S3_INTERNAL")
     #endif(NOT CRYPTO_LIB)
 
-  endif(NOT ENABLE_S3_INTERNAL)
+  endif(NOT NETCDF_ENABLE_S3_INTERNAL)
 else()
-  set(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
+  set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
 endif()
 
 ################################

@@ -42,9 +42,9 @@ ENDif (USE_FFIO)
 
 if (NETCDF_ENABLE_BYTERANGE)
   list(APPEND libsrc_SOURCES httpio.c)
-if (ENABLE_S3)
+if (NETCDF_ENABLE_S3)
   list(APPEND libsrc_SOURCES s3io.c)
-endif(ENABLE_S3)
+endif(NETCDF_ENABLE_S3)
 endif(NETCDF_ENABLE_BYTERANGE)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES})

@@ -137,11 +137,11 @@ IF(ENABLE_TESTS)
   TARGET_INCLUDE_DIRECTORIES(zs3parse PUBLIC ../libnczarr)
   build_bin_test_with_util_lib(zmapio ut_util)
 
-  IF(ENABLE_S3 AND NOT WITH_S3_TESTING STREQUAL "NO")
+  IF(NETCDF_ENABLE_S3 AND NOT WITH_S3_TESTING STREQUAL "NO")
   # Helper programs for testing
     BUILD_BIN_TEST(s3util ${COMMONSRC})
   # Pure AWS Test
-    IF(ENABLE_S3_AWS)
+    IF(NETCDF_ENABLE_S3_AWS)
       SET(TMP_CMAKE_CXX_STANDARD ${MAKE_CXX_STANDARD})
       SET(CMAKE_CXX_STANDARD 11)
       ADD_EXECUTABLE(tst_pure_awssdk tst_pure_awssdk.cpp)
@@ -159,7 +159,7 @@ IF(ENABLE_TESTS)
       ENDIF(MSVC)      
 
       SET(CMAKE_CXX_STANDARD ${TMP_CMAKE_CXX_STANDARD})
-    ENDIF(ENABLE_S3_AWS)
+    ENDIF(NETCDF_ENABLE_S3_AWS)
     TARGET_INCLUDE_DIRECTORIES(s3util PUBLIC ../libnczarr)
   endif()
   

@@ -50,8 +50,8 @@ if(NETCDF_ENABLE_BYTERANGE)
   )
 ENDIF(NETCDF_ENABLE_BYTERANGE)
 
-IF(ENABLE_S3)
-  if(ENABLE_S3_INTERNAL)
+IF(NETCDF_ENABLE_S3)
+  if(NETCDF_ENABLE_S3_INTERNAL)
     target_sources(dispatch
       PRIVATE
         ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h nccurl_sha256.c nccurl_sha256.h nccurl_hmac.c nccurl_hmac.h nccurl_setup.h
@@ -88,8 +88,8 @@ IF(NETCDF_ENABLE_NCZARR)
     target_include_directories(dispatch PUBLIC ../libnczarr)
 endif(NETCDF_ENABLE_NCZARR)
 
-if(ENABLE_S3)
-  if(ENABLE_S3_AWS)
+if(NETCDF_ENABLE_S3)
+  if(NETCDF_ENABLE_S3_AWS)
     target_include_directories(dispatch PUBLIC ${AWSSDK_INCLUDE_DIRS})
     if(NOT MSVC)
       target_compile_features(dispatch PUBLIC cxx_std_11)
