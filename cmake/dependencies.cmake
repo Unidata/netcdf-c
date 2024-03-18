@@ -357,7 +357,7 @@ endif()
 IF (NETCDF_ENABLE_FILTER_BLOSC)
   find_package(Blosc)
 endif()
-IF (ENABLE_FILTER_ZSTD)
+IF (NETCDF_ENABLE_FILTER_ZSTD)
   find_package(Zstd)
 endif()
 
