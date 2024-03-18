@@ -559,7 +559,7 @@ set(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers t
 
 # Locate some compressors
 option(ENABLE_FILTER_SZIP  "Enable use of Szip compression library if it is available. Required if ENABLE_NCZARR is true." ON)
-option(ENABLE_FILTER_BZ2   "Enable use of Bz2 compression library if it is available." ON)
+option(NETCDF_ENABLE_FILTER_BZ2   "Enable use of Bz2 compression library if it is available." ON)
 option(NETCDF_ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it is available." ON)
 option(ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
 
