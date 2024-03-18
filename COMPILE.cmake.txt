@@ -73,7 +73,7 @@ Common NetCDF/CMake Options
 - NETCDF_ENABLE_DAP (On by Default)
 - BUILD_SHARED_LIBS (Off by Default for Windows, 
                      On by Default for Unix/Linux) 
-- ENABLE_DLL (Windows Only, Off by Default)
+- NETCDF_ENABLE_DLL (Windows Only, Off by Default)
 - CMAKE_PREFIX_PATH (Specify list of 
 
 This is just a partial list of options available. To see a full list

@@ -49,7 +49,7 @@ endif(NETCDF_ENABLE_BYTERANGE)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES})
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
   target_compile_definitions(netcdf3 PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 

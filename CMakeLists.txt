@@ -465,8 +465,8 @@ endif()
 
 # Option to Build DLL
 if(WIN32)
-  option(ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
-  if(ENABLE_DLL)
+  option(NETCDF_ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
+  if(NETCDF_ENABLE_DLL)
     set(BUILD_DLL ON CACHE BOOL "")
     target_compile_definitions(netcdf PRIVATE DLL_EXPORT)
     target_compile_definitions(netcdf PUBLIC DLL_NETCDF)
