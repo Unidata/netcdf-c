@@ -236,7 +236,7 @@ option(ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file 
 # debug builds.
 if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   option(ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
-  option(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
+  option(NETCDF_ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
   option(ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 
   # Debugging flags
@@ -259,7 +259,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   endif()
 
   # Warnings for 64-to-32 bit conversions.
-  if(ENABLE_CONVERSION_WARNINGS)
+  if(NETCDF_ENABLE_CONVERSION_WARNINGS)
     CHECK_C_COMPILER_FLAG(-Wconversion CC_HAS_WCONVERSION)
     CHECK_C_COMPILER_FLAG(-Wshorten-64-to-32 CC_HAS_SHORTEN_64_32)
 
@@ -270,7 +270,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
       set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wconversion")
     endif()
 
-  endif(ENABLE_CONVERSION_WARNINGS)
+  endif(NETCDF_ENABLE_CONVERSION_WARNINGS)
 
 endif(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
