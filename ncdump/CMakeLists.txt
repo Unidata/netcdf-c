@@ -54,9 +54,9 @@ if(USE_HDF5)
   target_link_libraries(nchdf5version netcdf ${ALL_TLL_LIBS})
 endif(USE_HDF5)
 
-if(ENABLE_DAP)
+if(NETCDF_ENABLE_DAP)
   add_executable(ocprint ${ocprint_FILES})
-endif(ENABLE_DAP)
+endif(NETCDF_ENABLE_DAP)
 
 target_link_libraries(ncdump netcdf ${ALL_TLL_LIBS})
 target_link_libraries(nccopy netcdf ${ALL_TLL_LIBS})
@@ -64,9 +64,9 @@ target_link_libraries(ncvalidator netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncpathcvt netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncfilteravail netcdf ${ALL_TLL_LIBS})
 
-if(ENABLE_DAP)
+if(NETCDF_ENABLE_DAP)
   target_link_libraries(ocprint netcdf ${ALL_TLL_LIBS})
-endif(ENABLE_DAP)
+endif(NETCDF_ENABLE_DAP)
 
 ####
 # We have to do a little tweaking
@@ -96,9 +96,9 @@ if(MSVC)
     setbinprops(nchdf5version)
   endif(USE_HDF5)
 
-  if(ENABLE_DAP)
+  if(NETCDF_ENABLE_DAP)
     setbinprops(ocprint)
-  endif(ENABLE_DAP)
+  endif(NETCDF_ENABLE_DAP)
 
 
 endif()
@@ -331,11 +331,11 @@ endif(ENABLE_TESTS)
 #  set_target_properties(ncvalidator
 #    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
 #    )
-#  IF(ENABLE_DAP)
+#  IF(NETCDF_ENABLE_DAP)
 #    set_target_properties(ocprint
 #      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
 #      )
-#  ENDIF(ENABLE_DAP)
+#  ENDIF(NETCDF_ENABLE_DAP)
 #ENDIF()
 
 install(TARGETS ncdump RUNTIME DESTINATION bin COMPONENT utilities)

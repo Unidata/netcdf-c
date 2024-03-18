@@ -43,7 +43,7 @@ dump_SOURCES = dump.c
 
 # Disable Dap4 Remote Tests until the test server is working
 if NETCDF_BUILD_UTILITIES
-if ENABLE_DAP_REMOTE_TESTS
+if NETCDF_ENABLE_DAP_REMOTE_TESTS
 
 TESTS += test_remote.sh
 TESTS += test_constraints.sh

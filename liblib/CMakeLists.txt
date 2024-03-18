@@ -42,7 +42,7 @@ if(USE_HDF4)
   )
 endif()
 
-if(ENABLE_DAP2)
+if(NETCDF_ENABLE_DAP2)
   target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:oc2>
@@ -50,7 +50,7 @@ if(ENABLE_DAP2)
   )
 endif()
 
-if(ENABLE_DAP4)
+if(NETCDF_ENABLE_DAP4)
   target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:dap4>

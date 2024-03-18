@@ -137,13 +137,13 @@ are set when opening a binary file on Windows. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
 
 /* if true, build DAP2 and DAP4 Client */
-#cmakedefine ENABLE_DAP 1
+#cmakedefine NETCDF_ENABLE_DAP 1
 
 /* if true, build DAP4 Client */
-#cmakedefine ENABLE_DAP4 1
+#cmakedefine NETCDF_ENABLE_DAP4 1
 
 /* if true, do remote tests */
-#cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+#cmakedefine NETCDF_ENABLE_DAP_REMOTE_TESTS 1
 
 /* if true, enable NCZARR */
 #cmakedefine ENABLE_NCZARR 1

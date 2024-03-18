@@ -53,25 +53,25 @@ libnetcdf_la_LIBADD += ${top_builddir}/libhdf4/libnchdf4.la
 endif # USE_HDF4
 
 # + dap
-if ENABLE_DAP
+if NETCDF_ENABLE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/libdap2 -I${top_srcdir}/oc
 libnetcdf_la_LIBADD += ${top_builddir}/libdap2/libdap2.la
 libnetcdf_la_LIBADD += ${top_builddir}/oc2/liboc.la
-endif # ENABLE_DAP
+endif # NETCDF_ENABLE_DAP
 
-if ENABLE_DAP4
+if NETCDF_ENABLE_DAP4
 AM_CPPFLAGS += -I${top_srcdir}/libdap4
 libnetcdf_la_LIBADD += ${top_builddir}/libdap4/libdap4.la
-endif # ENABLE_DAP4
+endif # NETCDF_ENABLE_DAP4
 
 AM_CPPFLAGS += -I${top_srcdir}/libncxml
-if ENABLE_DAP4
+if NETCDF_ENABLE_DAP4
 libnetcdf_la_LIBADD += ${top_builddir}/libncxml/libncxml.la
 else
 if ENABLE_S3_INTERNAL
 libnetcdf_la_LIBADD += ${top_builddir}/libncxml/libncxml.la
 endif
-endif # ENABLE_S3_INTERNAL || ENABLE_DAP4
+endif # ENABLE_S3_INTERNAL || NETCDF_ENABLE_DAP4
 
 # NetCDF-4 ...
 if USE_NETCDF4
