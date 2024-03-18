@@ -10,7 +10,7 @@ target_link_libraries(netcdfp PUBLIC PNETCDF::PNETCDF)
 
 target_sources(netcdfp PRIVATE ncpdispatch.c)
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
     target_compile_definitions(netcdfp PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 

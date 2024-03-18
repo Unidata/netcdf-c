@@ -11,7 +11,7 @@ nc4internal.c nc4type.c nc4var.c ncfunc.c ncindex.c nc4cache.c)
 
 add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
   target_compile_definitions(netcdf4 PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 
