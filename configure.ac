@@ -596,7 +596,7 @@ XMLPARSER="tinyxml2 (bundled)"
 fi
 
 # Need a condition and subst for this
-AM_CONDITIONAL(ENABLE_LIBXML2, [test "x$enable_libxml2" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_LIBXML2, [test "x$enable_libxml2" = xyes])
 AC_SUBST([XMLPARSER],[${XMLPARSER}])
 
 ###
