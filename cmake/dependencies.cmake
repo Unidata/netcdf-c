@@ -346,7 +346,7 @@ endif()
 ################################
 # Zips
 ################################
-IF (ENABLE_FILTER_SZIP)
+IF (NETCDF_ENABLE_FILTER_SZIP)
   find_package(Szip)
 elseif(ENABLE_NCZARR)
   find_package(Szip)
