@@ -650,8 +650,8 @@ if(ENABLE_PLUGINS)
 endif()
 
 # Enable some developer-only tests
-option(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
-if(ENABLE_EXTRA_TESTS)
+option(NETCDF_ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
+if(NETCDF_ENABLE_EXTRA_TESTS)
   set(EXTRA_TESTS ON)
 endif()
 
