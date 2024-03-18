@@ -281,9 +281,9 @@ endif()
   # The following test script invokes
   # gcc directly.
   if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-    if(ENABLE_LARGE_FILE_TESTS)
+    if(NETCDF_ENABLE_LARGE_FILE_TESTS)
       add_sh_test(ncdump tst_iter)
-    endif(ENABLE_LARGE_FILE_TESTS)
+    endif(NETCDF_ENABLE_LARGE_FILE_TESTS)
   endif(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   ###
