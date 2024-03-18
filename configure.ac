@@ -1639,7 +1639,7 @@ if test "x$enable_hdf5" = xyes; then
    # See if hdf5 library supports Read-Only S3 (byte-range) driver
    AC_SEARCH_LIBS([H5Pset_fapl_ros3],[hdf5_hldll hdf5_hl], [has_hdf5_ros3=yes], [has_hdf5_ros3=no])
    if test "x$has_hdf5_ros3" = xyes && test "x$enable_byterange" = xyes; then
-    AC_DEFINE([ENABLE_HDF5_ROS3], [1], [if true, support byte-range using hdf5 virtual file driver.])
+    AC_DEFINE([NETCDF_ENABLE_HDF5_ROS3], [1], [if true, support byte-range using hdf5 virtual file driver.])
    fi
 
    # Check to see if HDF5 library is 1.10.3 or greater. If so, allows

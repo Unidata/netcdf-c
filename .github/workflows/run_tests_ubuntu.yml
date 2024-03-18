@@ -440,7 +440,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -DNETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_LIBXML2=FALSE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DNETCDF_ENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -DNETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_LIBXML2=FALSE
 
       - name: Print Summary
         shell: bash -l {0}
@@ -521,7 +521,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -DNETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_LIBXML2=FALSE -DBUILD_SHARED_LIBS=FALSE -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DNETCDF_ENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -DNETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_LIBXML2=FALSE -DBUILD_SHARED_LIBS=FALSE -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
 
       - name: Print Summary
         shell: bash -l {0}
@@ -602,7 +602,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_C_COMPILER=mpicc -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D NETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_PNETCDF=TRUE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_C_COMPILER=mpicc -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DNETCDF_ENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D NETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_PNETCDF=TRUE
 
       - name: Print Summary
         shell: bash -l {0}
@@ -679,10 +679,10 @@ jobs:
       - run: echo "LDFLAGS=-L${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: |
-          echo "ENABLE_HDF5=--disable-hdf5" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_HDF5=--disable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
-          echo "ENABLE_HDF5=--enable-hdf5" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_HDF5=--enable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
       - run: echo "NETCDF_ENABLE_DAP=--disable-dap" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
@@ -738,7 +738,7 @@ jobs:
           done
           current_directory="$(pwd)"
           mkdir ../build
-          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} "${current_directory}/configure" ${ENABLE_HDF5} ${NETCDF_ENABLE_DAP} ${ENABLE_NCZARR}
+          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} "${current_directory}/configure" ${NETCDF_ENABLE_HDF5} ${NETCDF_ENABLE_DAP} ${ENABLE_NCZARR}
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -821,10 +821,10 @@ jobs:
       - run: echo "CMAKE_PREFIX_PATH=${HOME}/environments/${{ matrix.hdf5 }}/" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: |
-          echo "ENABLE_HDF5=OFF" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_HDF5=OFF" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
-          echo "ENABLE_HDF5=ON" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_HDF5=ON" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
       - run: echo "NETCDF_ENABLE_DAP=OFF" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
@@ -860,7 +860,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=${NETCDF_ENABLE_DAP} -DENABLE_HDF5=${ENABLE_HDF5} -DENABLE_NCZARR=${ENABLE_NCZARR}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=${NETCDF_ENABLE_DAP} -DNETCDF_ENABLE_HDF5=${NETCDF_ENABLE_HDF5} -DENABLE_NCZARR=${ENABLE_NCZARR}
 
       - name: Print Summary
         shell: bash -l {0}

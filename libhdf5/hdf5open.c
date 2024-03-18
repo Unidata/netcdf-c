@@ -24,7 +24,7 @@
 #include "H5FDhttp.h"
 #endif
 
-#ifdef ENABLE_HDF5_ROS3
+#ifdef NETCDF_ENABLE_HDF5_ROS3
 #include <H5FDros3.h>
 #include "ncs3sdk.h"
 #endif
@@ -885,7 +885,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 #ifdef NETCDF_ENABLE_BYTERANGE
 	else if(h5->byterange) {   /* Arrange to use the byte-range drivers */
 	    char* newpath = NULL;
-#ifdef ENABLE_HDF5_ROS3
+#ifdef NETCDF_ENABLE_HDF5_ROS3
 	    H5FD_ros3_fapl_t fa;
 	    const char* awsaccessid0 = NULL;
 	    const char* awssecretkey0 = NULL;
