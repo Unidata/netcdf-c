@@ -237,7 +237,7 @@ option(ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file 
 if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   option(NETCDF_ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
   option(NETCDF_ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
-  option(ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
+  option(NETCDF_ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 
   # Debugging flags
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall")
@@ -814,7 +814,7 @@ if(NETCDF_ENABLE_EXTREME_NUMBERS)
 endif()
 
 # Enable Large file tests
-if(ENABLE_LARGE_FILE_TESTS)
+if(NETCDF_ENABLE_LARGE_FILE_TESTS)
   set(LARGE_FILE_TESTS ON)
 endif()
 
