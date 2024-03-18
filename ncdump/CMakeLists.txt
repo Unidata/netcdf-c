@@ -103,7 +103,7 @@ if(MSVC)
 
 endif()
 
-if(ENABLE_TESTS)
+if(NETCDF_ENABLE_TESTS)
 
   add_executable(rewrite-scalar rewrite-scalar.c)
   add_executable(bom bom.c)
@@ -319,7 +319,7 @@ endif()
 
 endif(HAVE_BASH)
 
-endif(ENABLE_TESTS)
+endif(NETCDF_ENABLE_TESTS)
 
 #IF(MSVC)
 #  set_target_properties(ncdump
