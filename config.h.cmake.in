@@ -485,7 +485,7 @@ with zip */
 
 #cmakedefine BUILD_V2 1
 #cmakedefine NETCDF_ENABLE_DOXYGEN 1
-#cmakedefine ENABLE_INTERNAL_DOCS 1
+#cmakedefine NETCDF_ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1
 #cmakedefine ENABLE_CDMREMOTE 1
 #cmakedefine USE_HDF5 1
