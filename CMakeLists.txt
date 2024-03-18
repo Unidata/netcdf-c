@@ -839,8 +839,8 @@ endif()
 
 # Linux specific large file support flags.
 # Modelled after check in CMakeLists.txt for hdf5.
-option(ENABLE_LARGE_FILE_SUPPORT "Enable large file support." ON)
-if(ENABLE_LARGE_FILE_SUPPORT)
+option(NETCDF_ENABLE_LARGE_FILE_SUPPORT "Enable large file support." ON)
+if(NETCDF_ENABLE_LARGE_FILE_SUPPORT)
   if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LARGEADDRESSAWARE")
