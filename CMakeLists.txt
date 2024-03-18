@@ -951,15 +951,15 @@ if(ENABLE_ZERO_LENGTH_COORD_BOUND)
 endif()
 
 # Enable Parallel Tests.
-option(ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Requires HDF5/NetCDF4 with parallel I/O Support." "${HDF5_PARALLEL}")
-if(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
+option(NETCDF_ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Requires HDF5/NetCDF4 with parallel I/O Support." "${HDF5_PARALLEL}")
+if(NETCDF_ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
   set(TEST_PARALLEL ON CACHE BOOL "")
   if(USE_NETCDF4)
     set(TEST_PARALLEL4 ON CACHE BOOL "")
   endif()
 endif()
 
-IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
+IF (NETCDF_ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
   message(FATAL_ERROR "Parallel tests requested, but no parallel HDF5 installation detected.")
 endif()
 
