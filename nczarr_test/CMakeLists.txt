@@ -201,7 +201,7 @@ IF(ENABLE_TESTS)
     ENDIF()
 
   IF(ENABLE_NCZARR_FILTERS)
-  IF(ENABLE_FILTER_TESTING)
+  IF(NETCDF_ENABLE_FILTER_TESTING)
 	  build_bin_test(test_nczfilter)
   	  build_bin_test(test_filter_vlen)
 	  build_bin_test(testfilter)
@@ -218,7 +218,7 @@ IF(ENABLE_TESTS)
             # It causes race conditions. So suppress and only test by hand.
             ADD_SH_TEST(nczarr_test run_unknown)
 	  ENDIF(FALSE)
-  ENDIF(ENABLE_FILTER_TESTING)
+  ENDIF(NETCDF_ENABLE_FILTER_TESTING)
   ENDIF(ENABLE_NCZARR_FILTERS)
 
   if(ENABLE_NCZARR_ZIP)

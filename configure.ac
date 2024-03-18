@@ -1894,7 +1894,7 @@ fi
 enable_clientside_filters=no
 
 AM_CONDITIONAL(ENABLE_CLIENTSIDE_FILTERS, [test x$enable_clientside_filters = xyes])
-AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
 AM_CONDITIONAL(ENABLE_NCZARR_FILTERS, [test x$enable_nczarr_filters = xyes])
 
 # Automake conditionals need to be called, whether the answer is yes

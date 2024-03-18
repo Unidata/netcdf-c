@@ -137,7 +137,7 @@ endif
 endif # BUILD_BENCHMARKS
 
 if ENABLE_NCZARR_FILTERS
-if ENABLE_FILTER_TESTING
+if NETCDF_ENABLE_FILTER_TESTING
 
 check_PROGRAMS += test_filter_avail test_filter_vlen
 TESTS += run_filter_vlen.sh run_filter_misc.sh
@@ -161,7 +161,7 @@ if ISMINGW
 XFAIL_TESTS = run_filter.sh run_specific_filters.sh run_nczfilter.sh
 endif  # ISMINGW
 
-endif #ENABLE_FILTER_TESTING
+endif #NETCDF_ENABLE_FILTER_TESTING
 endif #ENABLE_NCZARR_FILTERS
 
 # Test various corrupted files
