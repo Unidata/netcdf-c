@@ -784,7 +784,7 @@ if(ENABLE_TESTS)
   # which are known to fail.
   ###
 
-  option(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
+  option(NETCDF_ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
 
   ###
   # Option to turn on unit testing. See
@@ -802,7 +802,7 @@ if(ENABLE_TESTS)
   ###
   # End known-failures.
   ###
-  MARK_AS_ADVANCED(ENABLE_FAILING_TESTS)
+  MARK_AS_ADVANCED(NETCDF_ENABLE_FAILING_TESTS)
 endif()
 
 ###
