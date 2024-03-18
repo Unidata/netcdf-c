@@ -201,7 +201,7 @@ if(USE_HDF5)
 
   # Record if ROS3 Driver is available
   if(HAS_HDF5_ROS3)
-    set(ENABLE_HDF5_ROS3 ON )
+    set(NETCDF_ENABLE_HDF5_ROS3 ON )
   endif()
 
   IF (HDF5_SUPPORTS_PAR_FILTERS)

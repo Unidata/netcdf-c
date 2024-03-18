@@ -431,14 +431,14 @@ endif()
 # but for back compatability, we need to treat enable-netcdf4
 # as equivalent to enable-hdf5.
 # We detect this using these rules:
-# 1. if ENABLE_HDF5 is off then disable hdf5
+# 1. if NETCDF_ENABLE_HDF5 is off then disable hdf5
 # 2. if ENABLE_NETCDF4 is off then disable hdf5
 # 3. else enable hdf5
 option(ENABLE_NETCDF_4 "Use HDF5." ON)
 option(ENABLE_NETCDF4 "Use HDF5." ON)
-option(ENABLE_HDF5 "Use HDF5." ON)
-if(NOT ENABLE_HDF5 OR NOT ENABLE_NETCDF4 OR NOT ENABLE_NETCDF_4)
-  set(ENABLE_HDF5 OFF CACHE BOOL "Use HDF5" FORCE)
+option(NETCDF_ENABLE_HDF5 "Use HDF5." ON)
+if(NOT NETCDF_ENABLE_HDF5 OR NOT ENABLE_NETCDF4 OR NOT ENABLE_NETCDF_4)
+  set(NETCDF_ENABLE_HDF5 OFF CACHE BOOL "Use HDF5" FORCE)
 endif()
 option(NETCDF_ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
 option(NETCDF_ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
@@ -449,7 +449,7 @@ option(NETCDF_ENABLE_CDF5 "Enable CDF5 support" ON)
 
 # Netcdf-4 support (i.e. libsrc4) is required by more than just HDF5 (e.g. NCZarr)
 # So depending on what above formats are enabled, enable netcdf-4
-if(ENABLE_HDF5 OR NETCDF_ENABLE_HDF4 OR ENABLE_NCZARR)
+if(NETCDF_ENABLE_HDF5 OR NETCDF_ENABLE_HDF4 OR ENABLE_NCZARR)
   set(ENABLE_NETCDF_4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
   set(ENABLE_NETCDF4 ON CACHE BOOL "Enable netCDF4 Alias" FORCE)
 endif()
@@ -517,19 +517,19 @@ endif(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 # 3. is nczarr enabled?
 # We need separate flags for cases 1 and 2
 
-set(USE_HDF5 ${ENABLE_HDF5})
+set(USE_HDF5 ${NETCDF_ENABLE_HDF5})
 
 if(NETCDF_ENABLE_DAP)
   set(USE_DAP ON CACHE BOOL "")
   set(NETCDF_ENABLE_DAP2 ON CACHE BOOL "")
 
-  if(ENABLE_HDF5)
+  if(NETCDF_ENABLE_HDF5)
     message(STATUS "Enabling DAP4")
     set(NETCDF_ENABLE_DAP4 ON CACHE BOOL "")
   else()
     message(STATUS "Disabling DAP4")
     set(NETCDF_ENABLE_DAP4 OFF CACHE BOOL "")
-  endif(ENABLE_HDF5)
+  endif(NETCDF_ENABLE_HDF5)
 
 else()
   set(NETCDF_ENABLE_DAP2 OFF CACHE BOOL "")
@@ -714,7 +714,7 @@ if(NOT ENABLE_REMOTE_FUNCTIONALITY)
   set(ENABLE_S3 OFF CACHE BOOL "" FORCE)
   set(ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
   set(ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
-  set(ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
+  set(NETCDF_ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
   set(WITH_S3_TESTING OFF CACHE STRING "" FORCE)
 endif()
 
@@ -740,9 +740,9 @@ endif()
 option(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
 set(XMLPARSER "tinyxml2 (bundled)")
 
-if(NOT NETCDF_ENABLE_BYTERANGE AND ENABLE_HDF5_ROS3)
+if(NOT NETCDF_ENABLE_BYTERANGE AND NETCDF_ENABLE_HDF5_ROS3)
     message(WARNING "ROS3 support requires NETCDF_ENABLE_BYTERANGE=TRUE; disabling ROS3 support")
-    set(ENABLE_HDF5_ROS3 OFF CACHE BOOL "ROS3 support" FORCE)
+    set(NETCDF_ENABLE_HDF5_ROS3 OFF CACHE BOOL "ROS3 support" FORCE)
 endif()
 
 ##
@@ -851,7 +851,7 @@ if(ENABLE_LARGE_FILE_SUPPORT)
 endif()
 
 option(NETCDF_ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if HDF5 is not Enabled" OFF)
-if(NOT ENABLE_HDF5 AND NETCDF_ENABLE_EXAMPLE_TESTS)
+if(NOT NETCDF_ENABLE_HDF5 AND NETCDF_ENABLE_EXAMPLE_TESTS)
   set(NETCDF_ENABLE_EXAMPLE_TESTS OFF)
 endif()
 
@@ -869,7 +869,7 @@ include(cmake/dependencies.cmake)
 set(STATUS_PARALLEL "OFF")
 set(IMPORT_MPI "")
 option(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
-if(ENABLE_PARALLEL4 AND ENABLE_HDF5)
+if(ENABLE_PARALLEL4 AND NETCDF_ENABLE_HDF5)
   if(NOT HDF5_PARALLEL)
     set(USE_PARALLEL OFF CACHE BOOL "")
     message(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
@@ -967,7 +967,7 @@ endif()
 option(NETCDF_ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_PLUGINS})
 
 if(NETCDF_ENABLE_FILTER_TESTING)
-  if(NOT ENABLE_HDF5 AND NOT ENABLE_NCZARR)
+  if(NOT NETCDF_ENABLE_HDF5 AND NOT ENABLE_NCZARR)
     message(WARNING "NETCDF_ENABLE_FILTER_TESTING requires HDF5 and/or NCZarr. Disabling.")
     set(NETCDF_ENABLE_FILTER_TESTING OFF CACHE BOOL "Enable Filter Testing" FORCE)
   endif()
