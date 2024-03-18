@@ -207,7 +207,7 @@ for domain specific info such as used by GDAL/Zarr. See [Github #2278](https://g
 * [Enhancement] Improve support for msys2+mingw platform. See [Github #2171](https://github.com/Unidata/netcdf-c/pull/2171).
 * [Bug Fix] Clean up the various inter-test dependencies in ncdump for CMake. See [Github #2168](https://github.com/Unidata/netcdf-c/pull/2168).
 * [Bug Fix] Fix use of non-aws appliances. See [Github #2152](https://github.com/Unidata/netcdf-c/pull/2152).
-* [Enhancement] Added options to suppress the new behavior from [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135).  The options for `cmake` and `configure` are, respectively `-DNETCDF_ENABLE_LIBXML2` and `--(enable/disable)-libxml2`. Both of these options defaul to 'on/enabled'.  When disabled, the bundled `ezxml` XML interpreter is used regardless of whether `libxml2` is present on the system.
+* [Enhancement] Added options to suppress the new behavior from [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135).  The options for `cmake` and `configure` are, respectively `-DENABLE_LIBXML2` and `--(enable/disable)-libxml2`. Both of these options defaul to 'on/enabled'.  When disabled, the bundled `ezxml` XML interpreter is used regardless of whether `libxml2` is present on the system.
 * [Enhancement] Support optional use of libxml2, otherwise default to ezxml. See [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135) -- H/T to [Egbert Eich](https://github.com/e4t).
 * [Bug Fix] Fix several os related errors. See [Github #2138](https://github.com/Unidata/netcdf-c/pull/2138).
 * [Enhancement] Support byte-range reading of netcdf-3 files stored in private buckets in S3. See [Github #2134](https://github.com/Unidata/netcdf-c/pull/2134)
@@ -403,7 +403,7 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 
 ## 4.6.0 - January 24, 2018
 * [Enhancement] Full support for using HDF5 dynamic filters, both for reading and writing. See the file docs/filters.md.
-* [Enhancement] Added an option to enable strict null-byte padding for headers; this padding was specified in the spec but was not enforced.  Enabling this option will allow you to check your files, as it will return an E_NULLPAD error.  It is possible for these files to have been written by older versions of libnetcdf.  There is no effective problem caused by this lack of null padding, so enabling these options is informational only.  The options for `configure` and `cmake` are `--enable-strict-null-byte-header-padding` and `-DNETCDF_ENABLE_STRICT_NULL_BYTE_HEADER_PADDING`, respectively.  See [Github #657](https://github.com/Unidata/netcdf-c/issues/657) for more information.
+* [Enhancement] Added an option to enable strict null-byte padding for headers; this padding was specified in the spec but was not enforced.  Enabling this option will allow you to check your files, as it will return an E_NULLPAD error.  It is possible for these files to have been written by older versions of libnetcdf.  There is no effective problem caused by this lack of null padding, so enabling these options is informational only.  The options for `configure` and `cmake` are `--enable-strict-null-byte-header-padding` and `-DENABLE_STRICT_NULL_BYTE_HEADER_PADDING`, respectively.  See [Github #657](https://github.com/Unidata/netcdf-c/issues/657) for more information.
 * [Enhancement] Reverted behavior/handling of out-of-range attribute values to pre-4.5.0 default. See [Github #512](https://github.com/Unidata/netcdf-c/issues/512) for more information.
 * [Bug] Fixed error in tst_parallel2.c. See [Github #545](https://github.com/Unidata/netcdf-c/issues/545) for more information.
 * [Bug] Fixed handling of corrupt files + proper offset handling for hdf5 files. See [Github #552](https://github.com/Unidata/netcdf-c/issues/552) for more information.
@@ -416,9 +416,9 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 
 ### 4.5.0-rc3 - September 29, 2017
 
-* [Update] Due to ongoing issues, native CDF5 support has been disabled by **default**.  You can use the options mentioned below (`--enable-cdf5` or `-DNETCDF_ENABLE_CDF5=TRUE` for `configure` or `cmake`, respectively).  Just be aware that for the time being, Reading/Writing CDF5 files on 32-bit platforms may result in unexpected behavior when using extremely large variables.  For 32-bit platforms it is best to continue using `NC_FORMAT_64BIT_OFFSET`.
+* [Update] Due to ongoing issues, native CDF5 support has been disabled by **default**.  You can use the options mentioned below (`--enable-cdf5` or `-DENABLE_CDF5=TRUE` for `configure` or `cmake`, respectively).  Just be aware that for the time being, Reading/Writing CDF5 files on 32-bit platforms may result in unexpected behavior when using extremely large variables.  For 32-bit platforms it is best to continue using `NC_FORMAT_64BIT_OFFSET`.
 * [Bug] Corrected an issue where older versions of curl might fail. See [GitHub #487](https://github.com/Unidata/netcdf-c/issues/487) for more information.
-* [Enhancement] Added options to enable/disable `CDF5` support at configure time for autotools and cmake-based builds.  The options are `--enable/disable-cdf5` and `NETCDF_ENABLE_CDF5`, respectively.  See [Github #484](https://github.com/Unidata/netcdf-c/issues/484) for more information.
+* [Enhancement] Added options to enable/disable `CDF5` support at configure time for autotools and cmake-based builds.  The options are `--enable/disable-cdf5` and `ENABLE_CDF5`, respectively.  See [Github #484](https://github.com/Unidata/netcdf-c/issues/484) for more information.
 * [Bug Fix] Corrected an issue when subsetting a netcdf3 file via `nccopy -v/-V`. See [Github #425](https://github.com/Unidata/netcdf-c/issues/425) and [Github #463](https://github.com/Unidata/netcdf-c/issues/463) for more information.
 * [Bug Fix] Corrected `--has-dap` and `--has-dap4` output for cmake-based builds. See [GitHub #473](https://github.com/Unidata/netcdf-c/pull/473) for more information.
 * [Bug Fix] Corrected an issue where `NC_64BIT_DATA` files were being read incorrectly by ncdump, despite the data having been written correctly.  See [GitHub #457](https://github.com/Unidata/netcdf-c/issues/457) for more information.
@@ -497,7 +497,7 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 * [Enhancement] Modified `nc_inq_type()` so that it would work more broadly without requiring a valid ncid.  See [GitHub Issue #240](https://github.com/Unidata/netcdf-c/issues/240) for more information.
 * [Enhancement] Accepted a patch code which added a hashmap lookup for rapid var and dim retrieval in nc3 files, contributed by Greg Sjaardema.  See [GitHub Pull Request #238](https://github.com/Unidata/netcdf-c/pull/238) for more information.
 * [Bug Fix] Accepted a contributed pull request which corrected an issue with how the cmake-generated `nc-config` file determined the location of installed files. See [GitHub Pull Request #235](https://github.com/Unidata/netcdf-c/pull/235) for more information.
-* [Enhancement] Added an advanced option for CMake-based builds, `NETCDF_ENABLE_SHARED_LIBRARY_VERSION`.  This option is `ON` by default, but if turned off, only `libnetcdf.dylib` will be generated, instead of files containing the SOVERSION in the file name.  This is a requested feature most people might not care about.  See [GitHub #228](https://github.com/Unidata/netcdf-c/issues/228) for more information.
+* [Enhancement] Added an advanced option for CMake-based builds, `ENABLE_SHARED_LIBRARY_VERSION`.  This option is `ON` by default, but if turned off, only `libnetcdf.dylib` will be generated, instead of files containing the SOVERSION in the file name.  This is a requested feature most people might not care about.  See [GitHub #228](https://github.com/Unidata/netcdf-c/issues/228) for more information.
 * [Bug Fix] Corrected an issue with duplicated error codes defined in multiple header files.  See [GitHub #213](https://github.com/Unidata/netcdf-c/issues/213) for more information.
 * [Bug Fix] Addressed an issue specific to Visual Studio 2015 on Windows.  On very large files, some calls to the `fstat` class of functions would fail for no apparent reason. This behavior was **not** observed under Visual Studio 2013. This has now been mitigated.  See [GitHub #188](https://github.com/Unidata/netcdf-c/issues/188) for more information.
 * [Enhancement] Updated `nc-config` to report whether `logging` is enabled in netcdf.  Additionally, if `f03` is available in an installed netcdf-fortran library, it will now be reported as well.
@@ -711,7 +711,7 @@ More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugt
 * Jennifer Adams has requested a reversion in behavior so that all dap requests include a constraint. Problem is caused by change in prefetch where if all variables are requested, then no constraint is generated.  Fix is to always generate a constraint in prefetch.
   [NCF-308](https://bugtracking.unidata.ucar.edu/browse/NCF-308)
 
-* Added a new option for cmake-based builds, `NETCDF_ENABLE_DOXYGEN_LATEX_OUTPUT`.  On those systems with `make` and `pdflatex`, setting this option **ON** will result in pdf versions of the documentation being built.  This feature is experimental.
+* Added a new option for cmake-based builds, `ENABLE_DOXYGEN_LATEX_OUTPUT`.  On those systems with `make` and `pdflatex`, setting this option **ON** will result in pdf versions of the documentation being built.  This feature is experimental.
 
 * Bumped minimum CMake version to `2.8.9` from `2.8.8` as part of a larger pull request contributed by Nico Schlömer. [Pull Request #64](https://github.com/Unidata/netcdf-c/pull/64)
 
@@ -826,7 +826,7 @@ This is a bug-fix-only release for version 4.3.1.
 
 [NCF-177]:https://bugtracking.unidata.ucar.edu/browse/NCF-177
 
-* When compiling with `hdf4` support, both autotools and cmake-based builds now properly look for the `libjpeg` dependency and will link against it when found (or complain if it's not).  Also added `NETCDF_ENABLE_HDF4_FILE_TESTS` option to CMake-based builds.
+* When compiling with `hdf4` support, both autotools and cmake-based builds now properly look for the `libjpeg` dependency and will link against it when found (or complain if it's not).  Also added `ENABLE_HDF4_FILE_TESTS` option to CMake-based builds.
 
 * Fixed bug in ncgen; it was not properly filling empty string constants ("") to be the proper length. [NCF-279]
 
