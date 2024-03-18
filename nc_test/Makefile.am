@@ -75,7 +75,7 @@ endif
 
 TESTS = $(TESTPROGRAMS)
 
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 
 if ENABLE_BYTERANGE
 if ENABLE_EXTERNAL_SERVER_TESTS
@@ -105,7 +105,7 @@ else
 TESTS += t_nc tst_atts3 tst_nofill nc_test tst_small
 endif
 
-endif # BUILD_UTILITIES
+endif # NETCDF_BUILD_UTILITIES
 
 # The .c files that are generated with m4 are already distributed, but
 # we also include the original m4 files, plus test scripts data.

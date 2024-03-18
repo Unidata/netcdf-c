@@ -1066,7 +1066,7 @@ AC_ARG_ENABLE([utilities],
 test "x$nc_build_c" = xno && enable_utilities=no
 test "x$enable_utilities" = xno && nc_build_utilities=no
 AC_MSG_RESULT($nc_build_utilities)
-AM_CONDITIONAL(BUILD_UTILITIES, [test x$nc_build_utilities = xyes])
+AM_CONDITIONAL(NETCDF_BUILD_UTILITIES, [test x$nc_build_utilities = xyes])
 
 # Does the user want to disable all tests?
 AC_MSG_CHECKING([whether test should be built and run])

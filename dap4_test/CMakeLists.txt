@@ -35,7 +35,7 @@ IF(ENABLE_TESTS)
   # must be run in a particular order. It is painful but will use macros to help
   # keep it from being too bad.
 
-  IF(BUILD_UTILITIES)
+  IF(NETCDF_BUILD_UTILITIES)
       INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libdap4)
       build_bin_test(test_parse)
       build_bin_test(test_meta)
@@ -48,7 +48,7 @@ ENDIF()
       add_sh_test(dap4_test test_raw)
       add_sh_test(dap4_test test_meta)
       add_sh_test(dap4_test test_data)
-  ENDIF(BUILD_UTILITIES)
+  ENDIF(NETCDF_BUILD_UTILITIES)
 
   IF(ENABLE_DAP_REMOTE_TESTS)
       add_sh_test(dap4_test test_remote)

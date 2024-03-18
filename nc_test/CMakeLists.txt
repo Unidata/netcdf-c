@@ -101,7 +101,7 @@ ENDFOREACH()
 
 ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
 
-IF(BUILD_UTILITIES)
+IF(NETCDF_BUILD_UTILITIES)
 
     add_sh_test(nc_test run_diskless)
     IF(BUILD_MMAP)
@@ -129,7 +129,7 @@ IF(BUILD_UTILITIES)
     add_sh_test(nc_test run_mmap)
   ENDIF()
 
-ENDIF(BUILD_UTILITIES)
+ENDIF(NETCDF_BUILD_UTILITIES)
 
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)

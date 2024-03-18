@@ -61,7 +61,7 @@ TESTS += tst_v2
 endif # BUILD_V2
 
 # The rest of the tests require ncgen/ncdump.
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 check_PROGRAMS += renamegroup
 TESTS += run_grp_rename.sh tst_misc.sh
 
@@ -109,7 +109,7 @@ endif
 
 endif # ENABLE_FILTER_TESTING
 endif # USE_HDF5
-endif # BUILD_UTILITIES
+endif # NETCDF_BUILD_UTILITIES
 
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
