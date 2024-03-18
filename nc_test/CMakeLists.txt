@@ -119,7 +119,7 @@ IF(NETCDF_BUILD_UTILITIES)
     ENDIF()
 
     IF(NETCDF_ENABLE_BYTERANGE)
-      IF(ENABLE_EXTERNAL_SERVER_TESTS)
+      IF(NETCDF_ENABLE_EXTERNAL_SERVER_TESTS)
         build_bin_test_no_prefix(tst_byterange)
         add_sh_test(nc_test test_byterange)
       ENDIF()
