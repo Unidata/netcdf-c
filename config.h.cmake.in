@@ -155,7 +155,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine NETCDF_ENABLE_NCZARR_ZIP 1
 
 /* if true, Allow dynamically loaded plugins */
-#cmakedefine ENABLE_PLUGINS 1
+#cmakedefine NETCDF_ENABLE_PLUGINS 1
 
 /* if true, enable S3 support */
 #cmakedefine ENABLE_S3 1
