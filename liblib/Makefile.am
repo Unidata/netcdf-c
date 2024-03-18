@@ -79,13 +79,13 @@ AM_CPPFLAGS += -I${top_srcdir}/libsrc4
 libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 endif #USE_NETCDF4
 
-if ENABLE_NCZARR
+if NETCDF_ENABLE_NCZARR
 AM_CPPFLAGS += -I${top_srcdir}/libnczarr
 libnetcdf_la_LIBADD += ${top_builddir}/libnczarr/libnczarr.la
 if ENABLE_S3_AWS
 libnetcdf_la_LIBADD += ${aws_cpp_sdk_core_LIBS} ${aws_cpp_sdk_s3_LIBS}
 endif
-endif #ENABLE_NCZARR
+endif #NETCDF_ENABLE_NCZARR
 
 if ENABLE_PLUGINS
 AM_CPPFLAGS += -I${top_srcdir}/libncpoco

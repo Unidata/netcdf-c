@@ -84,9 +84,9 @@ if (ENABLE_PNETCDF)
     target_link_libraries(dispatch PUBLIC PNETCDF::PNETCDF)
 endif()
 
-IF(ENABLE_NCZARR)
+IF(NETCDF_ENABLE_NCZARR)
     target_include_directories(dispatch PUBLIC ../libnczarr)
-endif(ENABLE_NCZARR)
+endif(NETCDF_ENABLE_NCZARR)
 
 if(ENABLE_S3)
   if(ENABLE_S3_AWS)

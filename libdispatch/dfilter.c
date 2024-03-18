@@ -25,7 +25,7 @@
 #include "hdf5internal.h"
 #endif
 
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 #include "zdispatch.h"
 #endif
 

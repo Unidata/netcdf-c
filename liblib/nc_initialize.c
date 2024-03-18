@@ -112,7 +112,7 @@ nc_initialize()
 #ifdef ENABLE_S3
     if((stat = NC_s3sdkinitialize())) goto done;
 #endif
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
     if((stat = NCZ_initialize())) goto done;
 #endif
 
@@ -170,7 +170,7 @@ nc_finalize(void)
     if((stat = NC_HDF5_finalize())) failed = stat;
 #endif
 
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
     if((stat = NCZ_finalize())) failed = stat;
 #endif
 

@@ -19,7 +19,7 @@ nczmap_features(NCZM_IMPL impl)
 {
     switch (impl) {
     case NCZM_FILE: return zmap_file.features;
-#ifdef ENABLE_NCZARR_ZIP
+#ifdef NETCDF_ENABLE_NCZARR_ZIP
     case NCZM_ZIP: return zmap_zip.features;
 #endif
 #ifdef ENABLE_S3
@@ -52,7 +52,7 @@ nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* 
         stat = zmap_file.create(path, mode, flags, parameters, &map);
 	if(stat) goto done;
 	break;
-#ifdef ENABLE_NCZARR_ZIP
+#ifdef NETCDF_ENABLE_NCZARR_ZIP
     case NCZM_ZIP:
         stat = zmap_zip.create(path, mode, flags, parameters, &map);
 	if(stat) goto done;
@@ -90,7 +90,7 @@ nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* pa
         stat = zmap_file.open(path, mode, flags, parameters, &map);
 	if(stat) goto done;
 	break;
-#ifdef ENABLE_NCZARR_ZIP
+#ifdef NETCDF_ENABLE_NCZARR_ZIP
     case NCZM_ZIP:
         stat = zmap_zip.open(path, mode, flags, parameters, &map);
 	if(stat) goto done;
@@ -122,7 +122,7 @@ nczmap_truncate(NCZM_IMPL impl, const char *path)
     case NCZM_FILE:
         if((stat = zmap_file.truncate(path))) goto done;
 	break;
-#ifdef ENABLE_NCZARR_ZIP
+#ifdef NETCDF_ENABLE_NCZARR_ZIP
     case NCZM_ZIP:
         if((stat = zmap_zip.truncate(path))) goto done;
 	break;
