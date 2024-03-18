@@ -77,7 +77,7 @@ TESTS += run_scalar.sh
 TESTS += run_nulls.sh
 TESTS += run_notzarr.sh
 
-if ENABLE_EXTERNAL_SERVER_TESTS
+if NETCDF_ENABLE_EXTERNAL_SERVER_TESTS
 TESTS += run_external.sh
 endif
 

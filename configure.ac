@@ -689,7 +689,7 @@ if test "x$enable_dap_remote_tests" = xyes; then
    AC_DEFINE([NETCDF_ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
 fi
 if test "x$enable_external_server_tests" = xyes; then
-   AC_DEFINE([ENABLE_EXTERNAL_SERVER_TESTS], [1], [if true, do remote external tests])
+   AC_DEFINE([NETCDF_ENABLE_EXTERNAL_SERVER_TESTS], [1], [if true, do remote external tests])
 fi
 
 AC_MSG_CHECKING([whether the time-consuming dap tests should be enabled (default off)])
@@ -1909,7 +1909,7 @@ AM_CONDITIONAL(NETCDF_ENABLE_DAP4, [test "x$enable_dap4" = xyes])
 AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
-AM_CONDITIONAL(ENABLE_EXTERNAL_SERVER_TESTS, [test "x$enable_external_server_tests" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_EXTERNAL_SERVER_TESTS, [test "x$enable_external_server_tests" = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
