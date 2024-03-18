@@ -45,9 +45,9 @@ To build netcdf-c with logging using autotools, add the
 
 ## Building netcdf-c with Logging using the CMake Build
 
-To build netcdf-c with logging using CMake, set the ENABLE_LOGGING option to ON:
+To build netcdf-c with logging using CMake, set the NETCDF_ENABLE_LOGGING option to ON:
 
-`cmake -DENABLE_LOGGING=ON -DCMAKE_PREFIX_PATH=/usr/local/hdf5-1.14.0 ..`
+`cmake -DNETCDF_ENABLE_LOGGING=ON -DCMAKE_PREFIX_PATH=/usr/local/hdf5-1.14.0 ..`
 
 ## Checking that Logging was Enabled
 

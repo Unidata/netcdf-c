@@ -46,7 +46,7 @@ else
     has_nc4="yes"
 fi
 
-has_logging="@ENABLE_LOGGING@"
+has_logging="@NETCDF_ENABLE_LOGGING@"
 if [ -z "$has_logging" -o "$has_logging" = "OFF" ]; then
     has_logging="no"
 else
