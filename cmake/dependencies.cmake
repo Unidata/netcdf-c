@@ -14,7 +14,7 @@ find_package(MakeDist)
 ################################
 # HDF4
 ################################
-if(ENABLE_HDF4)
+if(NETCDF_ENABLE_HDF4)
   set(USE_HDF4 ON )
   # Check for include files, libraries.
 
@@ -69,8 +69,8 @@ if(ENABLE_HDF4)
   message(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
   # Option to enable HDF4 file tests.
-  option(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires curl)." ON)
-  if(ENABLE_HDF4_FILE_TESTS)
+  option(NETCDF_ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires curl)." ON)
+  if(NETCDF_ENABLE_HDF4_FILE_TESTS)
     find_program(PROG_CURL NAMES curl)
     if(PROG_CURL)
       set(USE_HDF4_FILE_TESTS ON )

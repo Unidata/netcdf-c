@@ -826,7 +826,7 @@ This is a bug-fix-only release for version 4.3.1.
 
 [NCF-177]:https://bugtracking.unidata.ucar.edu/browse/NCF-177
 
-* When compiling with `hdf4` support, both autotools and cmake-based builds now properly look for the `libjpeg` dependency and will link against it when found (or complain if it's not).  Also added `ENABLE_HDF4_FILE_TESTS` option to CMake-based builds.
+* When compiling with `hdf4` support, both autotools and cmake-based builds now properly look for the `libjpeg` dependency and will link against it when found (or complain if it's not).  Also added `NETCDF_ENABLE_HDF4_FILE_TESTS` option to CMake-based builds.
 
 * Fixed bug in ncgen; it was not properly filling empty string constants ("") to be the proper length. [NCF-279]
 
