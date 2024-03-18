@@ -100,13 +100,13 @@ jobs:
             libdeflate-devel gcc-core libcurl-devel libiconv-devel
             libssl-devel libcrypt-devel
 
-      - name: List contents of /usr/lib
-        run: ls -l /usr/lib
+      - name: List contents of /usr/lib/cmake
+        run: ls -l /usr/lib/cmake
 
       - name: Run Cmake 
         run: |
           cd integration_tests/fetch_content
-          cmake -S . -B build --debug-find-pkg=HDF5
+          cmake -S . -B build -DHDF5_ROOT="/usr" -DCMAKE_PREFIX_PATH="/usr"
 
       - name: Build
         run: |
