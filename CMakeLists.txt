@@ -826,8 +826,8 @@ endif()
 # Location for large file tests.
 set(TEMP_LARGE "." CACHE STRING "Location to store large file tests.")
 
-option(ENABLE_FSYNC "Enable experimental fsync code." OFF)
-if(ENABLE_FSYNC)
+option(NETCDF_ENABLE_FSYNC "Enable experimental fsync code." OFF)
+if(NETCDF_ENABLE_FSYNC)
   set(USE_FSYNC ON)
 endif()
 
