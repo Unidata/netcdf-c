@@ -850,9 +850,9 @@ if(ENABLE_LARGE_FILE_SUPPORT)
   endif()
 endif()
 
-option(ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if HDF5 is not Enabled" OFF)
-if(NOT ENABLE_HDF5 AND ENABLE_EXAMPLE_TESTS)
-  set(ENABLE_EXAMPLE_TESTS OFF)
+option(NETCDF_ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if HDF5 is not Enabled" OFF)
+if(NOT ENABLE_HDF5 AND NETCDF_ENABLE_EXAMPLE_TESTS)
+  set(NETCDF_ENABLE_EXAMPLE_TESTS OFF)
 endif()
 
 ##################################
