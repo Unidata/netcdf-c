@@ -372,8 +372,8 @@ endif(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 
 # Option to use Static Runtimes in MSVC
 if(MSVC)
-  option(NC_USE_STATIC_CRT "Use static CRT Libraries ('\\MT')." OFF)
-  if(NC_USE_STATIC_CRT)
+  option(NETCDF_USE_STATIC_CRT "Use static CRT Libraries ('\\MT')." OFF)
+  if(NETCDF_USE_STATIC_CRT)
     set(USE_STATIC_CRT ON)
     specify_static_crt_flag()
   endif()
