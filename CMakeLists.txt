@@ -392,7 +392,7 @@ endif(NOT ENABLE_V2_API)
 option(NETCDF_BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 
 # Option to use MMAP
-option(ENABLE_MMAP "Use MMAP." ON)
+option(NETCDF_ENABLE_MMAP "Use MMAP." ON)
 
 # Option to use examples.
 option(NETCDF_ENABLE_EXAMPLES "Build Examples" ON)
@@ -1278,22 +1278,22 @@ endif()
 # Check to see if MAP_ANONYMOUS is defined.
 if(MSVC)
   message(WARNING "mmap not supported under visual studio: disabling MMAP support.")
-  set(ENABLE_MMAP OFF)
+  set(NETCDF_ENABLE_MMAP OFF)
 else()
   CHECK_C_SOURCE_COMPILES("
   #include <sys/mman.h>
   int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
   if(NOT HAVE_MMAP OR NOT HAVE_MAPANON)
     message(WARNING "mmap or MAP_ANONYMOUS not found: disabling MMAP support.")
-    set(ENABLE_MMAP OFF)
+    set(NETCDF_ENABLE_MMAP OFF)
   endif()
 endif()
 
-if(ENABLE_MMAP)
+if(NETCDF_ENABLE_MMAP)
   # Aliases
   set(BUILD_MMAP ON)
   set(USE_MMAP ON)
-endif(ENABLE_MMAP)
+endif(NETCDF_ENABLE_MMAP)
 
 #CHECK_FUNCTION_EXISTS(alloca HAVE_ALLOCA)
 
