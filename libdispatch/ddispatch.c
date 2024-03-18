@@ -24,7 +24,7 @@ See LICENSE.txt for license information.
 #include <direct.h>
 #endif
 
-#if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
+#if defined(NETCDF_ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
 #include <curl/curl.h>
 #endif
 
@@ -118,7 +118,7 @@ NCDISPATCH_initialize(void)
     /* Compute type alignments */
     NC_compute_alignments();
 
-#if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
+#if defined(NETCDF_ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
     /* Initialize curl if it is being used */
     {
         CURLcode cstat = curl_global_init(CURL_GLOBAL_ALL);
@@ -134,7 +134,7 @@ int
 NCDISPATCH_finalize(void)
 {
     int status = NC_NOERR;
-#if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
+#if defined(NETCDF_ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
     curl_global_cleanup();
 #endif
 #if defined(ENABLE_DAP4)

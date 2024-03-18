@@ -36,7 +36,7 @@ build: off
 build_script:
   - cmd: mkdir build
   - cmd: cd build
-  - cmd: cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%INSTALL_LOC% -DNETCDF_ENABLE_BASH_SCRIPT_TESTING=OFF -DENABLE_FILTER_TESTING=OFF -DENABLE_BYTERANGE=ON
+  - cmd: cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%INSTALL_LOC% -DNETCDF_ENABLE_BASH_SCRIPT_TESTING=OFF -DENABLE_FILTER_TESTING=OFF -DNETCDF_ENABLE_BYTERANGE=ON
   - cmd: if errorlevel 1 exit 1
   - cmd: cmake --build . --config Release -- /maxcpucount:4
 

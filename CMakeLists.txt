@@ -537,10 +537,10 @@ else()
 endif()
 
 # Option to support byte-range reading of remote datasets
-option(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)
+option(NETCDF_ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)
 if(NOT ENABLE_REMOTE_FUNCTIONALITY)
-message(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_BYTERANGE=NO")
-set(ENABLE_BYTERANGE OFF CACHE BOOL "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_BYTERANGE=NO" FORCE)
+message(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_BYTERANGE=NO")
+set(NETCDF_ENABLE_BYTERANGE OFF CACHE BOOL "ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_BYTERANGE=NO" FORCE)
 endif()
 
 # Option to Enable DAP long tests, remote tests.
@@ -740,8 +740,8 @@ endif()
 option(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
 set(XMLPARSER "tinyxml2 (bundled)")
 
-if(NOT ENABLE_BYTERANGE AND ENABLE_HDF5_ROS3)
-    message(WARNING "ROS3 support requires ENABLE_BYTERANGE=TRUE; disabling ROS3 support")
+if(NOT NETCDF_ENABLE_BYTERANGE AND ENABLE_HDF5_ROS3)
+    message(WARNING "ROS3 support requires NETCDF_ENABLE_BYTERANGE=TRUE; disabling ROS3 support")
     set(ENABLE_HDF5_ROS3 OFF CACHE BOOL "ROS3 support" FORCE)
 endif()
 
@@ -1631,7 +1631,7 @@ is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
 is_enabled(ENABLE_DAP HAS_DAP)
 is_enabled(ENABLE_DAP2 HAS_DAP2)
 is_enabled(ENABLE_DAP4 HAS_DAP4)
-is_enabled(ENABLE_BYTERANGE HAS_BYTERANGE)
+is_enabled(NETCDF_ENABLE_BYTERANGE HAS_BYTERANGE)
 is_enabled(ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
