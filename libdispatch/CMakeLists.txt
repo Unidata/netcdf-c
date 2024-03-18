@@ -99,7 +99,7 @@ if(NETCDF_ENABLE_S3)
   endif()
 endif()
 
-if(ENABLE_TESTS)
+if(NETCDF_ENABLE_TESTS)
     BUILD_BIN_TEST(ncrandom)
 endif()
 

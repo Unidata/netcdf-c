@@ -748,8 +748,8 @@ endif()
 ##
 # Enable Tests
 ##
-option(ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
-if(ENABLE_TESTS)
+option(NETCDF_ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
+if(NETCDF_ENABLE_TESTS)
   set(BUILD_TESTSETS ON CACHE BOOL "")
   # Options for CTest-based tests, dashboards.
   set(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
@@ -1441,7 +1441,7 @@ if(NETCDF_BUILD_UTILITIES)
 endif()
 
 # Enable tests
-if(ENABLE_TESTS)
+if(NETCDF_ENABLE_TESTS)
   if(ENABLE_V2_API)
     add_subdirectory(nctest)
   endif()
@@ -1762,7 +1762,7 @@ if(NETCDF_ENABLE_BENCHMARKS)
   endif(NETCDF_ENABLE_PARALLEL4)
 endif(NETCDF_ENABLE_BENCHMARKS)
 
-if(ENABLE_TESTS)
+if(NETCDF_ENABLE_TESTS)
     #####
     # Build ncdap_test|dap4_test/findtestserver[4].c
     #####
