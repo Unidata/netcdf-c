@@ -113,7 +113,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine DLL_NETCDF 1
 
 /* if true, use atexist */
-#cmakedefine ENABLE_ATEXIT_FINALIZE 1
+#cmakedefine NETCDF_ENABLE_ATEXIT_FINALIZE 1
 
 /* if true, build byte-range Client */
 #cmakedefine ENABLE_BYTERANGE 1

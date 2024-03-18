@@ -1422,7 +1422,7 @@ if test "x$enable_atexit_finalize" = xyes ; then
 fi
 
 if test "x$enable_atexit_finalize" = xyes ; then
-  AC_DEFINE([ENABLE_ATEXIT_FINALIZE], [1], [If true, enable nc_finalize via atexit()])
+  AC_DEFINE([NETCDF_ENABLE_ATEXIT_FINALIZE], [1], [If true, enable nc_finalize via atexit()])
 fi
 
 # Need libdl(d) for plugins

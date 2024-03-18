@@ -1267,11 +1267,11 @@ CHECK_SYMBOL_EXISTS("struct timespec" "time.h" HAVE_STRUCT_TIMESPEC)
 CHECK_FUNCTION_EXISTS(atexit HAVE_ATEXIT)
 
 # Control invoking nc_finalize at exit
-option(ENABLE_ATEXIT_FINALIZE "Invoke nc_finalize at exit." ON)
+option(NETCDF_ENABLE_ATEXIT_FINALIZE "Invoke nc_finalize at exit." ON)
 if(NOT HAVE_ATEXIT)
-if(ENABLE_ATEXIT_FINALIZE AND NOT HAVE_ATEXIT)
-  set(ENABLE_ATEXIT_FINALIZE OFF CACHE BOOL "Enable ATEXIT" FORCE)
-  message(WARNING "ENABLE_ATEXIT_FINALIZE set but atexit() function not defined")
+if(NETCDF_ENABLE_ATEXIT_FINALIZE AND NOT HAVE_ATEXIT)
+  set(NETCDF_ENABLE_ATEXIT_FINALIZE OFF CACHE BOOL "Enable ATEXIT" FORCE)
+  message(WARNING "NETCDF_ENABLE_ATEXIT_FINALIZE set but atexit() function not defined")
 endif()
 endif()
 

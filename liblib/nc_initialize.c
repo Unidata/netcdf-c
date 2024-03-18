@@ -59,7 +59,7 @@ EXTERNL int NC_s3sdkfinalize(void);
 int NC_initialized = 0;
 int NC_finalized = 1;
 
-#ifdef ENABLE_ATEXIT_FINALIZE
+#ifdef NETCDF_ENABLE_ATEXIT_FINALIZE
 /* Provide the void function to give to atexit() */
 static void
 finalize_atexit(void)
@@ -116,7 +116,7 @@ nc_initialize()
     if((stat = NCZ_initialize())) goto done;
 #endif
 
-#ifdef ENABLE_ATEXIT_FINALIZE
+#ifdef NETCDF_ENABLE_ATEXIT_FINALIZE
     /* Use atexit() to invoke nc_finalize */
     if(atexit(finalize_atexit))
 	fprintf(stderr,"atexit failed\n");
