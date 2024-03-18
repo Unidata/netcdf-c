@@ -100,6 +100,9 @@ jobs:
             libdeflate-devel gcc-core libcurl-devel libiconv-devel
             libssl-devel libcrypt-devel
 
+      - name: List contents of /usr/lib
+        run: ls -l /usr/lib
+
       - name: Run Cmake 
         run: |
           cd integration_tests/fetch_content
