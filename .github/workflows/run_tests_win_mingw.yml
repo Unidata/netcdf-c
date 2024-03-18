@@ -96,7 +96,7 @@ jobs:
       - name: Run Cmake 
         run: |
           cd integration_tests/fetch_content
-          cmake -S . -B build -DCMAKE_PREFIX_PATH="/mingw64/lib" --debug-find-pkg=HDF5
+          cmake -S . -B build -DHDF5_ROOT="/mingw64" -DCMAKE_PREFIX_PATH="/mingw64/lib64" --debug-find-pkg=HDF5
 
       - name: Build
         run: |
