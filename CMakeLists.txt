@@ -443,7 +443,7 @@ endif()
 option(NETCDF_ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
 option(NETCDF_ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 option(NETCDF_ENABLE_NCZARR "Enable NCZarr Client." ON)
-option(ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
+option(NETCDF_ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
 set(NETCDF_ENABLE_CDF5 AUTO CACHE STRING "AUTO")
 option(NETCDF_ENABLE_CDF5 "Enable CDF5 support" ON)
 
@@ -893,9 +893,9 @@ if(NETCDF_ENABLE_PARALLEL4 AND NETCDF_ENABLE_HDF5)
 endif()
 
 # Options to enable parallel IO for classic formats with PnetCDF library.
-set(STATUS_PNETCDF ${ENABLE_PNETCDF})
-set(USE_PNETCDF ${ENABLE_PNETCDF})
-if(ENABLE_PNETCDF)
+set(STATUS_PNETCDF ${NETCDF_ENABLE_PNETCDF})
+set(USE_PNETCDF ${NETCDF_ENABLE_PNETCDF})
+if(NETCDF_ENABLE_PNETCDF)
   set(STATUS_PARALLEL ON)
   set(USE_PARALLEL ON CACHE BOOL "")
   ### 
