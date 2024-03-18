@@ -36,7 +36,7 @@ simple_xy_nc4_rd
 TESTS += run_examples4.sh
 
 if NETCDF_BUILD_UTILITIES
-if ENABLE_FILTER_TESTING
+if NETCDF_ENABLE_FILTER_TESTING
 # filter_example.c should be same as nc_test4/test_filter.c
 check_PROGRAMS += filter_example
 TESTS += run_filter.sh

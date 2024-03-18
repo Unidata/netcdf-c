@@ -41,7 +41,7 @@ IF(NETCDF_BUILD_UTILITIES)
   build_bin_test(tst_fillonly)
   ADD_SH_TEST(nc_test4 test_fillonly)
   ADD_SH_TEST(nc_test4 tst_fixedstring)
-IF(USE_HDF5 AND ENABLE_FILTER_TESTING)
+IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
   build_bin_test(tst_filterparser)
   build_bin_test(test_filter)
   build_bin_test(test_filter_misc)
@@ -63,7 +63,7 @@ IF(USE_HDF5 AND ENABLE_FILTER_TESTING)
     # manually invoked if desired
     ADD_SH_TEST(nc_test4 tst_filterinstall)
   ENDIF(FALSE)
-ENDIF(USE_HDF5 AND ENABLE_FILTER_TESTING)
+ENDIF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
 
 ENDIF(NETCDF_BUILD_UTILITIES)
 
