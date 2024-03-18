@@ -1399,7 +1399,7 @@ if test "x$found_curl" = xno && test "x$enable_byterange" = xyes ; then
 fi
 
 if test "x$enable_byterange" = xyes; then
-    AC_DEFINE([ENABLE_BYTERANGE], [1], [if true, support byte-range read of remote datasets.])
+    AC_DEFINE([NETCDF_ENABLE_BYTERANGE], [1], [if true, support byte-range read of remote datasets.])
 fi
 
 # Does the user want to disable atexit?
@@ -1926,7 +1926,7 @@ AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
 AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
-AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 # We need to simplify the set of S3 and Zarr flag combinations

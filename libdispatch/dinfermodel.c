@@ -1323,7 +1323,7 @@ openmagic(struct MagicFile* file)
 	goto done;
     }
     if(file->uri != NULL) {
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
 	/* Construct a URL minus any fragment */
         file->curlurl = ncuribuild(file->uri,NULL,NULL,NCURISVC);
 	/* Open the curl handle */
@@ -1411,7 +1411,7 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 	printmagic("XXX: readmagic",magic,file);
 #endif
     } else if(file->uri != NULL) {
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
 	fileoffset_t start = (size_t)pos;
 	fileoffset_t count = MAGIC_NUMBER_LEN;
         status = nc_http_read(file->state, start, count, buf);
@@ -1466,7 +1466,7 @@ closemagic(struct MagicFile* file)
     if(fIsSet(file->omode,NC_INMEMORY)) {
 	/* noop */
     } else if(file->uri != NULL) {
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
 	    status = nc_http_close(file->state);
 #endif
 	    nullfree(file->curlurl);
