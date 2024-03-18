@@ -1337,9 +1337,9 @@ endif()
 # Determine if 'bash' is on the system.
 ##
 
-option(ENABLE_BASH_SCRIPT_TESTING "Detection is typically automatic, but this option can be used to force enable/disable bash-script based tests." ON)
+option(NETCDF_ENABLE_BASH_SCRIPT_TESTING "Detection is typically automatic, but this option can be used to force enable/disable bash-script based tests." ON)
 
-if(ENABLE_BASH_SCRIPT_TESTING)
+if(NETCDF_ENABLE_BASH_SCRIPT_TESTING)
   find_program(HAVE_BASH bash)
   if(HAVE_BASH)
     string(COMPARE EQUAL "${HAVE_BASH}" "C:/Windows/System32/bash.exe" IS_BASH_EXE)
@@ -1352,9 +1352,9 @@ if(ENABLE_BASH_SCRIPT_TESTING)
   else()
     message(STATUS "Bash shell not found; disabling shell script tests.")
   endif()
-else(ENABLE_BASH_SCRIPT_TESTING)
+else(NETCDF_ENABLE_BASH_SCRIPT_TESTING)
   set(HAVE_BASH "")
-endif(ENABLE_BASH_SCRIPT_TESTING)
+endif(NETCDF_ENABLE_BASH_SCRIPT_TESTING)
 
 # Create config.h file.
 configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
