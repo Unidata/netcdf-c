@@ -76,7 +76,7 @@ lib__nch5zstd_la_SOURCES = H5Zzstd.c H5Zzstd.h
 plugins_to_install += lib__nch5zstd.la
 endif
 
-if ENABLE_NCZARR_FILTERS
+if NETCDF_ENABLE_NCZARR_FILTERS
 # The NCZarr codec libraries (they need libnetcdf)
 lib__nczstdfilters_la_SOURCES = NCZstdfilters.c
 lib__nczstdfilters_la_LIBADD = $(LIBADD)  $(top_builddir)/liblib/libnetcdf.la

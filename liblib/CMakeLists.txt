@@ -58,7 +58,7 @@ if(NETCDF_ENABLE_DAP4)
   )
 endif()
 
-if(ENABLE_NCZARR)
+if(NETCDF_ENABLE_NCZARR)
   target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:nczarr>
@@ -114,7 +114,7 @@ set(TLL_LIBS ${TLL_LIBS} ${HAVE_LIBM} ${ZLIB_LIBRARY})
 # Add extra dependencies specified via NC_EXTRA_DEPS
 set(TLL_LIBS ${TLL_LIBS} ${EXTRA_DEPS})
 
-if(ENABLE_NCZARR_ZIP)
+if(NETCDF_ENABLE_NCZARR_ZIP)
   set(TLL_LIBS ${TLL_LIBS} ${Zip_LIBRARIES})
 endif()
 
@@ -135,7 +135,7 @@ if(HAVE_LIBDL)
   set(TLL_LIBS ${LIBDL} ${TLL_LIBS})
 endif()
 
-if(ENABLE_NCZARR_ZIP)
+if(NETCDF_ENABLE_NCZARR_ZIP)
   set(TLL_LIBS ${TLL_LIBS} ${Zip_LIBRARIES})
 endif()
 

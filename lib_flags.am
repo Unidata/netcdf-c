@@ -13,7 +13,7 @@ if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc2
 endif
 
-if ENABLE_NCZARR
+if NETCDF_ENABLE_NCZARR
 AM_CPPFLAGS += -I${top_srcdir}/libnczarr
 endif
 

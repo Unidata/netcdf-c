@@ -217,7 +217,7 @@ extern NCZMAP_DS_API zmap_file;
 #ifdef USE_HDF5
 extern NCZMAP_DS_API zmap_nz4;
 #endif
-#ifdef ENABLE_NCZARR_ZIP
+#ifdef NETCDF_ENABLE_NCZARR_ZIP
 extern NCZMAP_DS_API zmap_zip;
 #endif
 #ifdef ENABLE_S3

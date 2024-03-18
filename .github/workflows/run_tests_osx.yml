@@ -83,9 +83,9 @@ jobs:
         if: matrix.use_dap == 'dap_off'
       - run: echo "NETCDF_ENABLE_DAP=--enable-dap" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_on'
-      - run: echo "ENABLE_NCZARR=--disable-nczarr" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_NCZARR=--disable-nczarr" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_off'
-      - run: echo "ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_on'
 
       ###
@@ -116,7 +116,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${NETCDF_ENABLE_HDF5} ${NETCDF_ENABLE_DAP} ${ENABLE_NCZARR}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${NETCDF_ENABLE_HDF5} ${NETCDF_ENABLE_DAP} ${NETCDF_ENABLE_NCZARR}
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -145,7 +145,7 @@ jobs:
 
       # - name: Make Distcheck
       #   shell: bash -l {0}
-      #   run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${NETCDF_ENABLE_HDF4} ${NETCDF_ENABLE_HDF5} ${NETCDF_ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck
+      #   run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${NETCDF_ENABLE_HDF4} ${NETCDF_ENABLE_HDF5} ${NETCDF_ENABLE_DAP} ${NETCDF_ENABLE_NCZARR}" make distcheck
       #  if: ${{ success() }}
 
       #- name: Start SSH Debug
@@ -188,9 +188,9 @@ jobs:
         if: matrix.use_dap == 'dap_off'
       - run: echo "NETCDF_ENABLE_DAP=ON" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_on'
-      - run: echo "ENABLE_NCZARR=OFF" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_NCZARR=OFF" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_off'
-      - run: echo "ENABLE_NCZARR=ON" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_NCZARR=ON" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_on'
       - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
 
@@ -218,7 +218,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=${NETCDF_ENABLE_DAP} -DNETCDF_ENABLE_HDF5=${NETCDF_ENABLE_HDF5} -DENABLE_NCZARR=${ENABLE_NCZARR}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=${NETCDF_ENABLE_DAP} -DNETCDF_ENABLE_HDF5=${NETCDF_ENABLE_HDF5} -DNETCDF_ENABLE_NCZARR=${NETCDF_ENABLE_NCZARR}
 
       - name: Print Summary
         shell: bash -l {0}
@@ -375,7 +375,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DNETCDF_ENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D NETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DNETCDF_ENABLE_LIBXML2=FALSE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DNETCDF_ENABLE_HDF5=TRUE -DNETCDF_ENABLE_NCZARR=TRUE -D NETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DNETCDF_ENABLE_LIBXML2=FALSE
 
       - name: Print Summary
         shell: bash -l {0}
@@ -450,7 +450,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DNETCDF_ENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D NETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DNETCDF_ENABLE_LIBXML2=FALSE -DBUILD_SHARED_LIBS=OFF -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DNETCDF_ENABLE_HDF5=TRUE -DNETCDF_ENABLE_NCZARR=TRUE -D NETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DNETCDF_ENABLE_LIBXML2=FALSE -DBUILD_SHARED_LIBS=OFF -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
 
       - name: Print Summary
         shell: bash -l {0}

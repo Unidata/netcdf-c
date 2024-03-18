@@ -146,13 +146,13 @@ are set when opening a binary file on Windows. */
 #cmakedefine NETCDF_ENABLE_DAP_REMOTE_TESTS 1
 
 /* if true, enable NCZARR */
-#cmakedefine ENABLE_NCZARR 1
+#cmakedefine NETCDF_ENABLE_NCZARR 1
 
 /* if true, enable nczarr filter support */
-#cmakedefine ENABLE_NCZARR_FILTERS 1
+#cmakedefine NETCDF_ENABLE_NCZARR_FILTERS 1
 
 /* if true, enable nczarr zip support */
-#cmakedefine ENABLE_NCZARR_ZIP 1
+#cmakedefine NETCDF_ENABLE_NCZARR_ZIP 1
 
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine ENABLE_PLUGINS 1

@@ -109,7 +109,7 @@ NCPOCO = libncpoco
 endif
 
 # Build Cloud Storage if desired.
-if ENABLE_NCZARR
+if NETCDF_ENABLE_NCZARR
 ZARR_TEST_DIR = nczarr_test
 ZARR = libnczarr
 endif

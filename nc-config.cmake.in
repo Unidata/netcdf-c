@@ -102,7 +102,7 @@ else
     has_parallel="yes"
 fi
 
-has_nczarr="@ENABLE_NCZARR@"
+has_nczarr="@NETCDF_ENABLE_NCZARR@"
 if [ -z "$has_nczarr" -o "$has_nczarr" = "OFF" -o "$has_nczarr" = "FALSE" ]; then
     has_nczarr="no"
 else

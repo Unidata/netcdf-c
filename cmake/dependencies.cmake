@@ -348,7 +348,7 @@ endif()
 ################################
 IF (NETCDF_ENABLE_FILTER_SZIP)
   find_package(Szip)
-elseif(ENABLE_NCZARR)
+elseif(NETCDF_ENABLE_NCZARR)
   find_package(Szip)
 endif()
 IF (NETCDF_ENABLE_FILTER_BZ2)
@@ -381,7 +381,7 @@ else()
   set(STD_FILTERS "${STD_FILTERS} bz2")
 endif()
 
-IF (ENABLE_NCZARR_ZIP)
+IF (NETCDF_ENABLE_NCZARR_ZIP)
   find_package(Zip REQUIRED)
   target_include_directories(netcdf
     PRIVATE

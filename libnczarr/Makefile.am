@@ -15,7 +15,7 @@ AM_CXXFLAGS =
 libnczarr_la_LIBADD =
 libnczarr_la_LDFLAGS =
 
-# Remember ENABLE_NCZARR implies USE_NETCDF4
+# Remember NETCDF_ENABLE_NCZARR implies USE_NETCDF4
 
 # We may have to add to these later.
 DISTCLEANFILES =
@@ -64,11 +64,11 @@ zprovenance.h \
 zfilter.h \
 zdebug.h
 
-if ENABLE_NCZARR_ZIP
+if NETCDF_ENABLE_NCZARR_ZIP
 libnczarr_la_SOURCES += zmap_zip.c 
 endif
 
-if ENABLE_NCZARR_FILTERS
+if NETCDF_ENABLE_NCZARR_FILTERS
 libnczarr_la_SOURCES += zfilter.c
 endif
 

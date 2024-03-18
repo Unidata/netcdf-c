@@ -157,7 +157,7 @@ NCZ_show_metadata(int ncid)
     return NC_NOERR;
 }
 
-#ifndef ENABLE_NCZARR_FILTERS
+#ifndef NETCDF_ENABLE_NCZARR_FILTERS
 int 
 NCZ_def_var_filter(int ncid, int varid, unsigned int id , size_t n , const unsigned int *params)
 {
@@ -199,7 +199,7 @@ NCZ_inq_filter_avail(int ncid, unsigned id)
 }
 
 
-#endif /*ENABLE_NCZARR_FILTERS*/
+#endif /*NETCDF_ENABLE_NCZARR_FILTERS*/
 
 /**************************************************/
 /* Following functions call into libsrc4 */

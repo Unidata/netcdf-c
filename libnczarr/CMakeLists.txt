@@ -46,7 +46,7 @@ zfilter.h
 zdebug.h
 )
 
-if(ENABLE_NCZARR_ZIP)
+if(NETCDF_ENABLE_NCZARR_ZIP)
     set(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
 endif()
 

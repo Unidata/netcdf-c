@@ -1909,7 +1909,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         dispatcher = UDF1_dispatch_table;
         break;
 #endif /* USE_NETCDF4 */
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
     case NC_FORMATX_NCZARR:
         dispatcher = NCZ_dispatch_table;
 	break;
@@ -2050,7 +2050,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 #ifdef NETCDF_ENABLE_CDF5
         cdf5built = 1;
 #endif
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 	nczarrbuilt = 1;
 #endif
         if(UDF0_dispatch_table != NULL)
@@ -2081,7 +2081,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 #ifdef USE_HDF4
 		| (1<<NC_FORMATX_NC_HDF4)
 #endif
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 		| (1<<NC_FORMATX_NCZARR)
 #endif
 #ifdef NETCDF_ENABLE_DAP
@@ -2121,7 +2121,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
             dispatcher = NCD4_dispatch_table;
             break;
 #endif
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 	case NC_FORMATX_NCZARR:
 	    dispatcher = NCZ_dispatch_table;
 	    break;

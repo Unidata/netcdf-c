@@ -138,7 +138,7 @@ extern int HDF4_initialize(void);
 extern int HDF4_finalize(void);
 #endif
 
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 extern const NC_Dispatch* NCZ_dispatch_table;
 extern int NCZ_initialize(void);
 extern int NCZ_finalize(void);

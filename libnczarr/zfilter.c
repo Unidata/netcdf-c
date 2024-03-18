@@ -523,7 +523,7 @@ nc_var_filter_remove(int ncid, int varid, unsigned int filterid)
 }
 #endif
 
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 int
 NCZ_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
                    const unsigned int* params)
@@ -743,7 +743,7 @@ done:
     return ZUNTRACE(stat);
 }
 
-#endif /*ENABLE_NCZARR_FILTERS*/
+#endif /*NETCDF_ENABLE_NCZARR_FILTERS*/
 
 /**************************************************/
 /* Filter application functions */
@@ -760,7 +760,7 @@ NCZ_filter_initialize(void)
     codec_defaults = nclistnew();
     NCZ_filter_initialized = 1;
     memset(loaded_plugins,0,sizeof(loaded_plugins));
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     if((stat = NCZ_load_all_plugins())) goto done;
 #endif
 
@@ -775,7 +775,7 @@ NCZ_filter_finalize(void)
     int i;
     ZTRACE(6,"");
     if(!NCZ_filter_initialized) goto done;
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     /* Reclaim all loaded filters */
 #ifdef DEBUGL
     fprintf(stderr,">>>  DEBUGL: finalize reclaim:\n");

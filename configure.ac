@@ -712,10 +712,10 @@ if test "x$enable_nczarr" = xyes ; then
 fi
 
 if test "x$enable_nczarr" = xyes; then
-   AC_DEFINE([ENABLE_NCZARR], [1], [if true, build NCZarr Client])
-   AC_SUBST(ENABLE_NCZARR)
+   AC_DEFINE([NETCDF_ENABLE_NCZARR], [1], [if true, build NCZarr Client])
+   AC_SUBST(NETCDF_ENABLE_NCZARR)
 fi
-AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_NCZARR, [test x$enable_nczarr = xyes])
 
 ##########
 # Look for Standardized libraries
@@ -877,7 +877,7 @@ else
    AC_MSG_RESULT([${enable_nczarr_zip}])
 
    if test "x$enable_nczarr_zip" = xyes ; then
-   AC_DEFINE([ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
+   AC_DEFINE([NETCDF_ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
    fi
 
    # Check for enabling of S3 support
@@ -1887,7 +1887,7 @@ enable_nczarr_filter_testing=no
 fi
 
 if test "x$enable_nczarr_filters" = xyes; then
-   AC_DEFINE([ENABLE_NCZARR_FILTERS], [1], [if true, enable NCZarr filters])
+   AC_DEFINE([NETCDF_ENABLE_NCZARR_FILTERS], [1], [if true, enable NCZarr filters])
 fi
 
 # Client side filter registration is permanently disabled
@@ -1895,7 +1895,7 @@ enable_clientside_filters=no
 
 AM_CONDITIONAL(ENABLE_CLIENTSIDE_FILTERS, [test x$enable_clientside_filters = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
-AM_CONDITIONAL(ENABLE_NCZARR_FILTERS, [test x$enable_nczarr_filters = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_NCZARR_FILTERS, [test x$enable_nczarr_filters = xyes])
 
 # Automake conditionals need to be called, whether the answer is yes
 # or no.
@@ -1933,10 +1933,10 @@ AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 AM_CONDITIONAL(ENABLE_S3, [test "x$enable_s3" = xyes])
 AM_CONDITIONAL(ENABLE_S3_AWS, [test "x$enable_s3_aws" = xyes])
 AM_CONDITIONAL(ENABLE_S3_INTERNAL, [test "x$enable_s3_internal" = xyes])
-AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
 AM_CONDITIONAL(ENABLE_S3_TESTPUB, [test "x$with_s3_testing" != xno]) # all => public
 AM_CONDITIONAL(ENABLE_S3_TESTALL, [test "x$with_s3_testing" = xyes])
-AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
 AM_CONDITIONAL(HAVE_DEFLATE, [test "x$have_deflate" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
 AM_CONDITIONAL(HAVE_H5Z_SZIP, [test "x$enable_hdf5_szip" = xyes])

@@ -503,7 +503,7 @@ The relevant ./configure options are as follows.
 
 The relevant CMake flags are as follows.
 
-1. *-DENABLE_NCZARR=off* -- equivalent to the Automake *--disable-nczarr* option.
+1. *-DNETCDF_ENABLE_NCZARR=off* -- equivalent to the Automake *--disable-nczarr* option.
 ## Testing NCZarr S3 Support {#nczarr_testing_S3_support}
 
 The relevant tests for S3 support are in the _nczarr_test_ directory.

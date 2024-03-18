@@ -104,7 +104,7 @@ endif #NETCDF_BUILD_UTILITIES
 
 if NETCDF_BUILD_UTILITIES 
 
-if ENABLE_NCZARR_ZIP
+if NETCDF_ENABLE_NCZARR_ZIP
 	TESTS += run_newformat.sh
 endif
 
@@ -136,7 +136,7 @@ endif
 
 endif # BUILD_BENCHMARKS
 
-if ENABLE_NCZARR_FILTERS
+if NETCDF_ENABLE_NCZARR_FILTERS
 if NETCDF_ENABLE_FILTER_TESTING
 
 check_PROGRAMS += test_filter_avail test_filter_vlen
@@ -162,7 +162,7 @@ XFAIL_TESTS = run_filter.sh run_specific_filters.sh run_nczfilter.sh
 endif  # ISMINGW
 
 endif #NETCDF_ENABLE_FILTER_TESTING
-endif #ENABLE_NCZARR_FILTERS
+endif #NETCDF_ENABLE_NCZARR_FILTERS
 
 # Test various corrupted files
 TESTS += run_corrupt.sh
