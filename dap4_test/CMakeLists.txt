@@ -21,7 +21,7 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
-IF(ENABLE_DAP_REMOTE_TESTS)
+IF(NETCDF_ENABLE_DAP_REMOTE_TESTS)
     # Change name (add '4') to avoid cmake
     # complaint about duplicate targets.
     BUILD_BIN_TEST(findtestserver4)
@@ -50,7 +50,7 @@ ENDIF()
       add_sh_test(dap4_test test_data)
   ENDIF(NETCDF_BUILD_UTILITIES)
 
-  IF(ENABLE_DAP_REMOTE_TESTS)
+  IF(NETCDF_ENABLE_DAP_REMOTE_TESTS)
       add_sh_test(dap4_test test_remote)
       add_sh_test(dap4_test test_hyrax)
       add_sh_test(dap4_test test_dap4url)
@@ -66,7 +66,7 @@ ENDIF()
     IF(RUN_IGNORED_TESTS)
       add_sh_test(dap4_test test_thredds)
     ENDIF()
-  ENDIF(ENABLE_DAP_REMOTE_TESTS)
+  ENDIF(NETCDF_ENABLE_DAP_REMOTE_TESTS)
 
 ENDIF(ENABLE_TESTS)
 

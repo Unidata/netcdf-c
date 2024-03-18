@@ -682,11 +682,11 @@ AC_DEFINE_UNQUOTED([REMOTETESTSERVERS], ["$REMOTETESTSERVERS"], [the testservers
 # Set the config.h flags
 if test "x$enable_dap" = xyes; then
    AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])
-   AC_DEFINE([ENABLE_DAP], [1], [if true, build DAP Client])
+   AC_DEFINE([NETCDF_ENABLE_DAP], [1], [if true, build DAP Client])
 fi
 
 if test "x$enable_dap_remote_tests" = xyes; then
-   AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
+   AC_DEFINE([NETCDF_ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
 fi
 if test "x$enable_external_server_tests" = xyes; then
    AC_DEFINE([ENABLE_EXTERNAL_SERVER_TESTS], [1], [if true, do remote external tests])
@@ -1330,7 +1330,7 @@ if test "x$enable_hdf5" = "xno" ; then
 fi
 
 if test "x$enable_dap4" = xyes; then
-   AC_DEFINE([ENABLE_DAP4], [1], [if true, build DAP4 Client])
+   AC_DEFINE([NETCDF_ENABLE_DAP4], [1], [if true, build DAP4 Client])
 fi
 
 # check for useful, but not essential, memio support
@@ -1904,14 +1904,14 @@ AM_CONDITIONAL(TEST_PARALLEL4, [test "x$enable_parallel4" = xyes -a "x$enable_pa
 AM_CONDITIONAL(BUILD_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
 # Provide protocol specific flags
-AM_CONDITIONAL(ENABLE_DAP, [test "x$enable_dap" = xyes])
-AM_CONDITIONAL(ENABLE_DAP4, [test "x$enable_dap4" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_DAP, [test "x$enable_dap" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_DAP4, [test "x$enable_dap4" = xyes])
 AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
-AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_EXTERNAL_SERVER_TESTS, [test "x$enable_external_server_tests" = xyes])
-AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
-AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])

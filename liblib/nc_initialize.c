@@ -26,12 +26,12 @@ extern int NC_HDF5_initialize(void);
 extern int NC_HDF5_finalize(void);
 #endif
 
-#ifdef ENABLE_DAP2
+#ifdef NETCDF_ENABLE_DAP2
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
 #endif
 
-#ifdef ENABLE_DAP4
+#ifdef NETCDF_ENABLE_DAP4
 extern int NCD4_initialize(void);
 extern int NCD4_finalize(void);
 #endif
@@ -91,10 +91,10 @@ nc_initialize()
 
     /* Initialize each active protocol */
     if((stat = NC3_initialize())) goto done;
-#ifdef ENABLE_DAP
+#ifdef NETCDF_ENABLE_DAP
     if((stat = NCD2_initialize())) goto done;
 #endif
-#ifdef ENABLE_DAP4
+#ifdef NETCDF_ENABLE_DAP4
     if((stat = NCD4_initialize())) goto done;
 #endif
 #ifdef USE_PNETCDF
@@ -147,10 +147,10 @@ nc_finalize(void)
 
     /* Finalize each active protocol */
 
-#ifdef ENABLE_DAP2
+#ifdef NETCDF_ENABLE_DAP2
     if((stat = NCD2_finalize())) failed = stat;
 #endif
-#ifdef ENABLE_DAP4
+#ifdef NETCDF_ENABLE_DAP4
     if((stat = NCD4_finalize())) failed = stat;
 #endif
 

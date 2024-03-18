@@ -76,13 +76,13 @@ endif
 endif
 
 # Build the dap2 client
-if ENABLE_DAP
+if NETCDF_ENABLE_DAP
 OCLIB = oc2
 DAP2 = libdap2
 NCDAP2TESTDIR = ncdap_test
 endif
 
-if ENABLE_DAP4
+if NETCDF_ENABLE_DAP4
 DAP4 = libdap4
 NCDAP4TESTDIR = dap4_test
 XML = libncxml

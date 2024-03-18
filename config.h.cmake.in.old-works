@@ -87,9 +87,9 @@ are set when opening a binary file on Windows. */
 #cmakedefine VALGRIND_TESTS 1
 #cmakedefine ENABLE_CDMREMOTE 1
 #cmakedefine USE_DAP 1
-#cmakedefine ENABLE_DAP 1
-#cmakedefine ENABLE_DAP_GROUPS 1
-#cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+#cmakedefine NETCDF_ENABLE_DAP 1
+#cmakedefine NETCDF_ENABLE_DAP_GROUPS 1
+#cmakedefine NETCDF_ENABLE_DAP_REMOTE_TESTS 1
 #cmakedefine EXTRA_TESTS
 #cmakedefine USE_NETCDF4 1
 #cmakedefine USE_HDF4 1
