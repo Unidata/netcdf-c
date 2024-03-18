@@ -999,8 +999,8 @@ endif()
 set(ENABLE_CLIENTSIDE_FILTERS OFF)
 
 # Determine whether or not to generate documentation.
-option(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
-if(ENABLE_DOXYGEN)
+option(NETCDF_ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
+if(NETCDF_ENABLE_DOXYGEN)
   # Offer the option to build internal documentation.
   option(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
   if(ENABLE_INTERNAL_DOCS)
@@ -1014,12 +1014,12 @@ if(ENABLE_DOXYGEN)
   # If we are building release documentation, we need to set some
   # variables that will be used in the Doxygen.in template.
   ###
-  option(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS "Build release documentation.  This is of interest only to the netCDF developers." OFF)
-  if(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
+  option(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS "Build release documentation.  This is of interest only to the netCDF developers." OFF)
+  if(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
     set(DOXYGEN_CSS_FILE "${CMAKE_SOURCE_DIR}/docs/release.css" CACHE STRING "")
     set(DOXYGEN_HEADER_FILE "${CMAKE_SOURCE_DIR}/docs/release_header.html" CACHE STRING "")
     set(DOXYGEN_SEARCHENGINE "NO" CACHE STRING "")
-    set(ENABLE_DOXYGEN_SERVER_BASED_SEARCH NO CACHE STRING "")
+    set(NETCDF_ENABLE_DOXYGEN_SERVER_BASED_SEARCH NO CACHE STRING "")
   else()
     set(DOXYGEN_CSS_FILE "" CACHE STRING "")
     set(DOXYGEN_HEADER_FILE "" CACHE STRING "")
@@ -1027,15 +1027,15 @@ if(ENABLE_DOXYGEN)
 
     # If not using release document configuration,
     # provide an option for server-based search.
-    option(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH "Configure Doxygen with server-based search." OFF)
-    if(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+    option(NETCDF_ENABLE_DOXYGEN_SERVER_SIDE_SEARCH "Configure Doxygen with server-based search." OFF)
+    if(NETCDF_ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
       set(DOXYGEN_SERVER_BASED_SEARCH "YES" CACHE STRING "")
     else()
       set(DOXYGEN_SERVER_BASED_SEARCH "NO" CACHE STRING "")
-    endif(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+    endif(NETCDF_ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
 
 
-  endif(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
+  endif(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
   # Option to turn on the TODO list in the doxygen-generated documentation.
   option(NETCDF_DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
   if(NETCDF_DOXYGEN_ENABLE_TASKS)
@@ -1044,12 +1044,12 @@ if(ENABLE_DOXYGEN)
     set(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
   endif(NETCDF_DOXYGEN_ENABLE_TASKS)
 
-  option(ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
+  option(NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
 
-  if(ENABLE_DOXYGEN_PDF_OUTPUT)
-    set(NC_ENABLE_DOXYGEN_PDF_OUTPUT "YES" CACHE STRING "")
+  if(NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT)
+    set(NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT "YES" CACHE STRING "")
   else()
-    set(NC_ENABLE_DOXYGEN_PDF_OUTPUT "NO" CACHE STRING "")
+    set(NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT "NO" CACHE STRING "")
   endif()
 
   find_program(NC_DOT NAMES dot)
@@ -1083,7 +1083,7 @@ endif()
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS NETCDF_ENABLE_COVERAGE_TESTS )
 MARK_AS_ADVANCED(NETCDF_ENABLE_DAP_REMOTE_TESTS NETCDF_ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH ENABLE_EXTERNAL_SERVER_TESTS)
-MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS NETCDF_DOXYGEN_ENABLE_TASKS ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+MARK_AS_ADVANCED(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS NETCDF_DOXYGEN_ENABLE_TASKS NETCDF_ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
 MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
 
 ################################

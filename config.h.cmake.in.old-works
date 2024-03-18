@@ -82,7 +82,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine NO_NETCDF_2 1
 #cmakedefine USE_FSYNC 1
 #cmakedefine JNA 1
-#cmakedefine ENABLE_DOXYGEN 1
+#cmakedefine NETCDF_ENABLE_DOXYGEN 1
 #cmakedefine ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1
 #cmakedefine ENABLE_CDMREMOTE 1

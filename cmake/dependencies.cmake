@@ -465,7 +465,7 @@ endif()
 # Doxygen
 ################################ 
 
-if(ENABLE_DOXYGEN)
+if(NETCDF_ENABLE_DOXYGEN)
   find_package(Doxygen REQUIRED)
 endif()
 
