@@ -82,7 +82,7 @@ endif #USE_NETCDF4
 if NETCDF_ENABLE_NCZARR
 AM_CPPFLAGS += -I${top_srcdir}/libnczarr
 libnetcdf_la_LIBADD += ${top_builddir}/libnczarr/libnczarr.la
-if ENABLE_S3_AWS
+if NETCDF_ENABLE_S3_AWS
 libnetcdf_la_LIBADD += ${aws_cpp_sdk_core_LIBS} ${aws_cpp_sdk_s3_LIBS}
 endif
 endif #NETCDF_ENABLE_NCZARR
