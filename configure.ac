@@ -616,9 +616,9 @@ test "x$enable_quantize" = xno || enable_quantize=yes
 
 AC_MSG_RESULT($enable_quantize)                               
 if test "x${enable_quantize}" = xyes; then
-   AC_DEFINE([ENABLE_QUANTIZE], [1], [if true, enable quantize support])
+   AC_DEFINE([NETCDF_ENABLE_QUANTIZE], [1], [if true, enable quantize support])
 fi
-AM_CONDITIONAL(ENABLE_QUANTIZE, [test x$enable_quantize = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_QUANTIZE, [test x$enable_quantize = xyes])
 
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap

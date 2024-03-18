@@ -1065,7 +1065,7 @@ endif()
 option(NETCDF_ENABLE_DISKLESS "Enable in-memory files" ON)
 
 # Always enable quantization.
-option(ENABLE_QUANTIZE "Enable variable quantization" ON)
+option(NETCDF_ENABLE_QUANTIZE "Enable variable quantization" ON)
 
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
@@ -1646,7 +1646,7 @@ is_enabled(HAS_HDF5_ROS3 HAS_HDF5_ROS3)
 is_enabled(NETCDF_ENABLE_NCZARR HAS_NCZARR)
 is_enabled(NETCDF_ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
 is_enabled(NETCDF_ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
-is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
+is_enabled(NETCDF_ENABLE_QUANTIZE HAS_QUANTIZE)
 is_enabled(NETCDF_ENABLE_LOGGING HAS_LOGGING)
 is_enabled(NETCDF_ENABLE_FILTER_TESTING DO_FILTER_TESTS)
 is_enabled(HAVE_SZ HAS_SZIP)
