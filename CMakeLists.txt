@@ -818,8 +818,8 @@ if(NETCDF_ENABLE_LARGE_FILE_TESTS)
   set(LARGE_FILE_TESTS ON)
 endif()
 
-option(ENABLE_METADATA_PERF_TESTS "Enable test of metadata performance." OFF)
-if(ENABLE_METADATA_PERF_TESTS)
+option(NETCDF_ENABLE_METADATA_PERF_TESTS "Enable test of metadata performance." OFF)
+if(NETCDF_ENABLE_METADATA_PERF_TESTS)
   set(ENABLE_METADATA_PERF ON)
 endif()
 
