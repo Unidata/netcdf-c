@@ -659,8 +659,8 @@ endif()
 # for MSVC builds. If not building utilities or some tests,
 # getopt() isn't required at all.
 if(MSVC)
-  option(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
-  if(ENABLE_XGETOPT)
+  option(NETCDF_ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
+  if(NETCDF_ENABLE_XGETOPT)
     set(USE_X_GETOPT ON CACHE BOOL "")
   endif()
 endif()
