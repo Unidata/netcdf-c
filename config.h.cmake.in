@@ -119,8 +119,8 @@ are set when opening a binary file on Windows. */
 #cmakedefine NETCDF_ENABLE_BYTERANGE 1
 
 /* if true, enable ERANGE fill */
-#cmakedefine ENABLE_ERANGE_FILL 1
-#ifdef ENABLE_ERANGE_FILL
+#cmakedefine NETCDF_ENABLE_ERANGE_FILL 1
+#ifdef NETCDF_ENABLE_ERANGE_FILL
 #define ERANGE_FILL 1
 #endif
 
