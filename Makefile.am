@@ -104,7 +104,7 @@ LIBHDF4 = libhdf4
 endif
 
 # Build Plugin support
-if ENABLE_PLUGINS
+if NETCDF_ENABLE_PLUGINS
 NCPOCO = libncpoco
 endif
 
@@ -115,7 +115,7 @@ ZARR = libnczarr
 endif
 
 # Optionally build test plugins
-if ENABLE_PLUGINS
+if NETCDF_ENABLE_PLUGINS
 PLUGIN_DIR = plugins
 endif
 

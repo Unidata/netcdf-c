@@ -1448,9 +1448,9 @@ if test "x$enable_plugins" = xyes && test "x$enable_shared" = xno; then
 fi
 
 if test "x$enable_plugins" = xyes; then
-    AC_DEFINE([ENABLE_PLUGINS], [1], [if true, support dynamically loaded plugins])
+    AC_DEFINE([NETCDF_ENABLE_PLUGINS], [1], [if true, support dynamically loaded plugins])
 fi
-AM_CONDITIONAL(ENABLE_PLUGINS, [test "x$enable_plugins" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_PLUGINS, [test "x$enable_plugins" = xyes])
 AC_SUBST(USEPLUGINS, [${enable_plugins}])
 
 AC_FUNC_ALLOCA

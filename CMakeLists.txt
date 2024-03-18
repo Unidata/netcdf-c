@@ -631,12 +631,12 @@ option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
 include(CMakeDependentOption)
 
 # libdl is always available; built-in in Windows and OSX
-cmake_dependent_option(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
+cmake_dependent_option(NETCDF_ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
   ON "BUILD_SHARED_LIBS" OFF)
-MESSAGE(STATUS "ENABLE_PLUGINS: ${ENABLE_PLUGINS}")
+MESSAGE(STATUS "NETCDF_ENABLE_PLUGINS: ${NETCDF_ENABLE_PLUGINS}")
 if(MINGW)
     message(STATUS "MINGW Detected, disabling plugins.")
-    set(ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
+    set(NETCDF_ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
 else()
   if(NOT WIN32)
     if(HAVE_DLFCN_H)
@@ -645,7 +645,7 @@ else()
   endif()
 endif()
 
-if(ENABLE_PLUGINS)
+if(NETCDF_ENABLE_PLUGINS)
   set(USEPLUGINS yes)
 endif()
 
@@ -964,7 +964,7 @@ IF (NETCDF_ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
 endif()
 
 # Enable special filter test; experimental when using cmake.
-option(NETCDF_ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_PLUGINS})
+option(NETCDF_ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${NETCDF_ENABLE_PLUGINS})
 
 if(NETCDF_ENABLE_FILTER_TESTING)
   if(NOT NETCDF_ENABLE_HDF5 AND NOT NETCDF_ENABLE_NCZARR)
@@ -978,12 +978,12 @@ if(NOT BUILD_SHARED_LIBS)
   set(NETCDF_ENABLE_FILTER_TESTING OFF)
 endif()
 
-option(NETCDF_ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ${ENABLE_PLUGINS})
+option(NETCDF_ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ${NETCDF_ENABLE_PLUGINS})
 option(NETCDF_ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ${NETCDF_ENABLE_NCZARR_FILTERS})
 
 # Constraints
-if (NOT ENABLE_PLUGINS AND NETCDF_ENABLE_NCZARR_FILTERS)
-  message(WARNING "NETCDF_ENABLE_NCZARR_FILTERS requires ENABLE_PLUGINS. Disabling.")
+if (NOT NETCDF_ENABLE_PLUGINS AND NETCDF_ENABLE_NCZARR_FILTERS)
+  message(WARNING "NETCDF_ENABLE_NCZARR_FILTERS requires NETCDF_ENABLE_PLUGINS. Disabling.")
   set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 endif()
 
@@ -1404,7 +1404,7 @@ else()
   endif()
 endif()
 
-if(ENABLE_PLUGINS)
+if(NETCDF_ENABLE_PLUGINS)
   add_subdirectory(libncpoco)
 endif()
 
@@ -1428,7 +1428,7 @@ endif()
 
 add_subdirectory(liblib)
 
-if(ENABLE_PLUGINS)
+if(NETCDF_ENABLE_PLUGINS)
   add_subdirectory(plugins)
 endif()
 

@@ -72,7 +72,7 @@ if(ENABLE_S3_INTERNAL)
   )
 endif()
 
-if(ENABLE_PLUGINS)
+if(NETCDF_ENABLE_PLUGINS)
   target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:ncpoco>
