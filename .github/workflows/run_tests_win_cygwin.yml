@@ -100,9 +100,6 @@ jobs:
             libdeflate-devel gcc-core libcurl-devel libiconv-devel
             libssl-devel libcrypt-devel
 
-      - name: List contents of /mingw64/lib/cmake/
-        run: ls -l /mingw64/lib/cmake/
-
       - name: Run Cmake 
         run: |
           cd integration_tests/fetch_content

@@ -90,6 +90,9 @@ jobs:
           update: true
           install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 mingw-w64-x86_64-zlib
 
+      - name: List contents of /mingw64/lib/cmake/
+        run: ls -l /mingw64/lib/cmake/
+
       - name: Run Cmake 
         run: |
           cd integration_tests/fetch_content
