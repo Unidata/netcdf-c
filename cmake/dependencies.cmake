@@ -430,7 +430,7 @@ endif()
 # LibXML
 ################################
 # see if we have libxml2
-if(ENABLE_LIBXML2)
+if(NETCDF_ENABLE_LIBXML2)
   find_package(LibXml2)
   if(LibXml2_FOUND)
     set(HAVE_LIBXML2 TRUE)
@@ -442,7 +442,7 @@ if(ENABLE_LIBXML2)
   else()
     set(HAVE_LIBXML2 FALSE)
   endif()
-endif(ENABLE_LIBXML2)
+endif(NETCDF_ENABLE_LIBXML2)
 
 ################################
 # MPI
