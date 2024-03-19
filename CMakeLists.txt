@@ -446,6 +446,10 @@ option(NETCDF_ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files 
 set(NETCDF_ENABLE_CDF5 AUTO CACHE STRING "AUTO")
 option(NETCDF_ENABLE_CDF5 "Enable CDF5 support" ON)
 
+if(DEFINED NETCDF_ENABLE_NETCDF4)
+  message(FATAL_ERROR "NETCDF_ENABLE_NETCDF4 is deprecated. Please use NETCDF_ENABLE_NETCDF_4 instead.")
+endif()
+
 # Netcdf-4 support (i.e. libsrc4) is required by more than just HDF5 (e.g. NCZarr)
 # So depending on what above formats are enabled, enable netcdf-4
 if(NETCDF_ENABLE_HDF5 OR NETCDF_ENABLE_HDF4 OR NETCDF_ENABLE_NCZARR)
