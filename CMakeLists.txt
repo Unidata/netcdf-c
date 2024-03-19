@@ -1541,6 +1541,10 @@ foreach(_LIB ${ALL_TLL_LIBS})
   list(APPEND LINKFLAGS "-L${_LIB_DIR}")
 endforeach()
 
+if(NC_LIBS)
+  string(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+endif()
+
 string(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 
 list(REMOVE_DUPLICATES NC_LIBS)
