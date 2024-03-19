@@ -7,18 +7,19 @@
 # 
 #######
 
-set(DEPR_OPT "Warning! Deprecated Options used. Please migrate your build system as follows:" CACHE INTERNAL "" FORCE)
+
 
 function(check_depr_opt arg)
 
     if(DEFINED ${arg})
+        if(NOT DEFINED DEPR_OPT)
+            set(DEPR_OPT "Warning! Deprecated Options used. Please migrate your build system as follows:" CACHE INTERNAL "" FORCE)
+        endif()
         #message(STATUS "arg: ${arg} - ${${arg}}")
         set(val ${${arg}})
         #MESSAGE("val: ${val}")
         message(WARNING "${arg} is deprecated and will be removed. Please use NETCDF_${arg} in the future")
         set(NETCDF_${arg} ${val} CACHE INTERNAL "" FORCE)
-        #MESSAGE(STATUS "Setting NETCDF_${arg} to ${val}")
-        #MESSAGE(STATUS "Result: NETCDF_${arg} is ${NETCDF_${arg}}")
         set(DEPR_OPT "${DEPR_OPT}\n\to ${arg} --> NETCDF_${arg}" PARENT_SCOPE)
     endif() 
 
@@ -37,6 +38,6 @@ list(APPEND opts ENABLE_S3_INTERNAL ENABLE_STDIO ENABLE_STRICT_NULL_BYTE_HEADER_
 list(APPEND opts FIND_SHARED_LIBS LIB_NAME)
 
 foreach(opt ${opts})
-    MESSAGE(STATUS "Option: ${opt}")
+    #MESSAGE(STATUS "Option: ${opt}")
     check_depr_opt(${opt})
 endforeach()

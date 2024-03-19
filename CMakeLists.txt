@@ -1710,8 +1710,17 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
 file(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
   LIBNETCDF_SETTINGS)
 message(STATUS ${LIBNETCDF_SETTINGS})
-message(STATUS ${DEPR_OPT})
-# Install libnetcdf.settings file into same location
+
+### 
+# Report deprecated options detected by
+# cmake/deprecated.cmake. Added in support of
+# https://github.com/Unidata/netcdf-c/pull/2895
+###
+
+if(DEFINED DEPR_OPT)
+  message(STATUS ${DEPR_OPT})
+endif()
+  # Install libnetcdf.settings file into same location
 # as the libraries.
 install(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
