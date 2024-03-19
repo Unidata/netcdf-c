@@ -80,6 +80,8 @@ jobs:
     defaults:
       run:
         shell: msys2 {0}
+    env:
+      CURL_STATICLIB: "1"
 
     steps:
       - uses: actions/checkout@v3
