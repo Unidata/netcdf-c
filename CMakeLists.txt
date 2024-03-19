@@ -432,12 +432,11 @@ endif()
 # as equivalent to enable-hdf5.
 # We detect this using these rules:
 # 1. if NETCDF_ENABLE_HDF5 is off then disable hdf5
-# 2. if NETCDF_ENABLE_NETCDF4 is off then disable hdf5
+# 2. if NETCDF_ENABLE_NETCDF_4 is off then disable hdf5
 # 3. else enable hdf5
 option(NETCDF_ENABLE_NETCDF_4 "Use HDF5." ON)
-option(NETCDF_ENABLE_NETCDF4 "Use HDF5." ON)
 option(NETCDF_ENABLE_HDF5 "Use HDF5." ON)
-if(NOT NETCDF_ENABLE_HDF5 OR NOT NETCDF_ENABLE_NETCDF4 OR NOT NETCDF_ENABLE_NETCDF_4)
+if(NOT NETCDF_ENABLE_HDF5 OR NOT NETCDF_ENABLE_NETCDF_4)
   set(NETCDF_ENABLE_HDF5 OFF CACHE BOOL "Use HDF5" FORCE)
 endif()
 option(NETCDF_ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
@@ -451,7 +450,6 @@ option(NETCDF_ENABLE_CDF5 "Enable CDF5 support" ON)
 # So depending on what above formats are enabled, enable netcdf-4
 if(NETCDF_ENABLE_HDF5 OR NETCDF_ENABLE_HDF4 OR NETCDF_ENABLE_NCZARR)
   set(NETCDF_ENABLE_NETCDF_4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
-  set(NETCDF_ENABLE_NETCDF4 ON CACHE BOOL "Enable netCDF4 Alias" FORCE)
 endif()
 
 # enable|disable all forms of network access
@@ -478,7 +476,6 @@ set(NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic
 if(NETCDF_ENABLE_NETCDF_4)
   set(USE_NETCDF4 ON CACHE BOOL "")
   set(NETCDF_ENABLE_NETCDF_4 ON CACHE BOOL "")
-  set(NETCDF_ENABLE_NETCDF4 ON CACHE BOOL "")
 else()
   set(USE_HDF4_FILE_TESTS OFF)
   set(USE_HDF4 OFF)
