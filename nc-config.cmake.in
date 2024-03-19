@@ -166,13 +166,15 @@ Available values for OPTION include:
   --has-stdfilters   lists the standard filters enabled
   --has-benchmarks   whether benchmarks enabled
 
-  --libs          library linking information for netcdf
-  --static        library linking information for statically-compiled netcdf
-  --prefix        Install prefix
-  --includedir    Include directory
-  --libdir        Library directory
-  --plugindir     Plugin directory
-  --version       Library version
+  --libs             library linking information for netcdf
+  --libs-ac-syntax   forces autotools-compatible syntax argument for libraries
+  --static           library linking information for statically-compiled netcdf
+  --prefix           Install prefix
+  --includedir       Include directory
+  --libdir           Library directory
+  --plugindir        Plugin directory
+  --version          Library version
+  --build-system     Build System
 
 EOF
 
@@ -216,6 +218,7 @@ all()
         echo "  --libdir        -> $libdir"
         echo "  --plugindir     -> $plugindir"
         echo "  --version       -> $version"
+        echo "  --build-system  -> cmake"
         echo
 }
 
@@ -250,6 +253,10 @@ while test $# -gt 0; do
 
     --all)
         all
+        ;;
+    
+    --build-system)
+        echo "cmake"
         ;;
 
     --cc)
@@ -347,7 +354,18 @@ while test $# -gt 0; do
             echo $libs
         fi
         ;;
-
+    --libs-ac-syntax)
+            libs=$(echo $libs | sed 's/hdf5::hdf5_hl/hdf5_hl/g')
+            libs=$(echo $libs | sed 's/HDF5::HDF5/hdf5/g')
+            libsprivate=$(echo $libsprivate | sed 's/hdf5::hdf5_hl/hdf5_hl/g')
+            libsprivate=$(echo $libsprivate | sed 's/HDF5::HDF5/hdf5/g')
+            if [ "x$HAS_STATIC" = "xTRUE" ]; then
+                echo $libs $libsprivate
+            else
+                echo $libs
+            fi
+        
+        ;;
     --static)
 
         ;;
