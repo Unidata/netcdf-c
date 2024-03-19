@@ -24,6 +24,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake/mo
 set(PACKAGE "netCDF" CACHE STRING "")
 
 include(netcdf_functions_macros)
+include(deprecated)
+
 
 # Backport of built-in `PROJECT_IS_TOP_LEVEL` from CMake 3.21
 if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
@@ -440,6 +442,8 @@ if(NOT NETCDF_ENABLE_HDF5 OR NOT NETCDF_ENABLE_NETCDF_4)
   set(NETCDF_ENABLE_HDF5 OFF CACHE BOOL "Use HDF5" FORCE)
 endif()
 option(NETCDF_ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
+
+
 option(NETCDF_ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 option(NETCDF_ENABLE_NCZARR "Enable NCZarr Client." ON)
 option(NETCDF_ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
@@ -1706,7 +1710,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
 file(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
   LIBNETCDF_SETTINGS)
 message(STATUS ${LIBNETCDF_SETTINGS})
-
+message(STATUS ${DEPR_OPT})
 # Install libnetcdf.settings file into same location
 # as the libraries.
 install(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
