@@ -12,20 +12,16 @@
 function(check_depr_opt arg)
 
     if(DEFINED ${arg})
-        if(NOT DEFINED DEPR_OPT)
-            set(DEPR_OPT "Warning! Deprecated Options used. Please migrate your build system as follows:" CACHE INTERNAL "" FORCE)
-        endif()
-        #message(STATUS "arg: ${arg} - ${${arg}}")
+
         set(val ${${arg}})
-        #MESSAGE("val: ${val}")
         message(WARNING "${arg} is deprecated and will be removed. Please use NETCDF_${arg} in the future")
-        set(NETCDF_${arg} ${val} CACHE INTERNAL "" FORCE)
+        set(NETCDF_${arg} ${val} PARENT_SCOPE)
         set(DEPR_OPT "${DEPR_OPT}\n\to ${arg} --> NETCDF_${arg}" PARENT_SCOPE)
     endif() 
 
 endfunction()
 
-MESSAGE(STATUS "Checking for Deprecated Options")
+message(STATUS "Checking for Deprecated Options")
 list(APPEND opts BUILD_UTILITIES ENABLE_BENCHMARKS ENABLE_BYTERANGE ENABLE_CDF5 ENABLE_CONVERSION_WARNINGS)
 list(APPEND opts ENABLE_DAP ENABLE_DAP2 ENABLE_DAP4 ENABLE_DISKLESS ENABLE_DOXYGEN ENABLE_ERANGE_FILL)
 list(APPEND opts ENABLE_EXAMPLES ENABLE_EXAMPLES_TESTS ENABLE_EXTREME_NUMBERS ENABLE_FFIO ENABLE_FILTER_BLOSC)
