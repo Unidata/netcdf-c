@@ -32,7 +32,7 @@ TESTPROGRAMS = nctest tst_rename
 check_PROGRAMS = $(TESTPROGRAMS)
 
 # This test requires that the utilites also be built.
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 TESTS = $(TESTPROGRAMS) compare_test_files.sh
 # compare_test_files depends on nctest executing first.
 compare_test_files.log: nctest.log

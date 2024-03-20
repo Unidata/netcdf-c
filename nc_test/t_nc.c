@@ -358,7 +358,7 @@ main(int argc, char *argv[])
 #ifdef USE_PNETCDF
 	MPI_Init(&argc, &argv);
 
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
 	cmode |= (NC_64BIT_DATA);
 #endif
 	ret = nc_create_par(fname,cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &id);

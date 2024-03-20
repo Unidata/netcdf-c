@@ -20,11 +20,11 @@
 #include "ncpathmgr.h"
 #include <stddef.h>
 
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
 #include "H5FDhttp.h"
 #endif
 
-#ifdef ENABLE_HDF5_ROS3
+#ifdef NETCDF_ENABLE_HDF5_ROS3
 #include <H5FDros3.h>
 #include "ncs3sdk.h"
 #endif
@@ -743,7 +743,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 
     h5 = (NC_HDF5_FILE_INFO_T*)nc4_info->format_file_info;
 
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
     /* Do path as URL processing */
     ncuriparse(path,&h5->uri);
     if(h5->uri != NULL) {
@@ -755,7 +755,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             parameters = NULL; /* kill off parallel */
 	}
     }
-#endif /*ENABLE_BYTERANGE*/
+#endif /*NETCDF_ENABLE_BYTERANGE*/
 
     nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
     nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
@@ -882,10 +882,10 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                 BAIL(NC_EHDFERR);
         }
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
 	else if(h5->byterange) {   /* Arrange to use the byte-range drivers */
 	    char* newpath = NULL;
-#ifdef ENABLE_HDF5_ROS3
+#ifdef NETCDF_ENABLE_HDF5_ROS3
 	    H5FD_ros3_fapl_t fa;
 	    const char* awsaccessid0 = NULL;
 	    const char* awssecretkey0 = NULL;

@@ -69,11 +69,11 @@ would specify it with the '-G' flag.
 Common NetCDF/CMake Options
 *********************
 
-- ENABLE_NETCDF_4 (On by Default)
-- ENABLE_DAP (On by Default)
+- NETCDF_ENABLE_NETCDF_4 (On by Default)
+- NETCDF_ENABLE_DAP (On by Default)
 - BUILD_SHARED_LIBS (Off by Default for Windows, 
                      On by Default for Unix/Linux) 
-- ENABLE_DLL (Windows Only, Off by Default)
+- NETCDF_ENABLE_DLL (Windows Only, Off by Default)
 - CMAKE_PREFIX_PATH (Specify list of 
 
 This is just a partial list of options available. To see a full list
@@ -81,7 +81,7 @@ of options, run 'cmake -L' from the command line, or use a CMake GUI.
 
 To specify an option with CMake, you would use the following syntax:
 
-developer@dummy-machine:/netcdf/build_dir$ cmake .. -D"ENABLE_NETCDF_4=ON" 
+developer@dummy-machine:/netcdf/build_dir$ cmake .. -D"NETCDF_ENABLE_NETCDF_4=ON" 
 				 -D"BUILD_SHARED_LIBS=ON" -D"USE_HDF5=OFF"
 
 Additional References

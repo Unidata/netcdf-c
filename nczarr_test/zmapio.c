@@ -289,7 +289,7 @@ rootpathfor(const char* path)
     case NCZM_ZIP:
 	rootpath = strdup("/"); /*constant*/
 	break;
-#ifdef ENABLE_S3  
+#ifdef NETCDF_ENABLE_S3  
     case NCZM_S3: {
 	char* p = NULL;
         /* Split the path part */

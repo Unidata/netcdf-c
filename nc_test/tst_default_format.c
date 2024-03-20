@@ -52,7 +52,7 @@ create_check(char *fname, int cmode, int exp_format)
     if (cmode & NC_NETCDF4)
         exp_err = NC_ENOTBUILT;
 #endif
-#ifndef ENABLE_CDF5
+#ifndef NETCDF_ENABLE_CDF5
     if (cmode & NC_64BIT_DATA)
         exp_err = NC_ENOTBUILT;
 #endif
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
     cmode = NC_64BIT_DATA;
     nerrs += create_check(fname, cmode, NC_FORMAT_64BIT_DATA);
 
-#ifndef ENABLE_CDF5
+#ifndef NETCDF_ENABLE_CDF5
     err = nc_set_default_format(NC_FORMAT_64BIT_DATA, NULL); EXP_ERR(NC_ENOTBUILT)
 #else
     /* set default file format to NC_FORMAT_64BIT_DATA --------------------*/

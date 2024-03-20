@@ -27,7 +27,7 @@ target_compile_options(dap4
     -DCURL_STATICLIB=1
 )
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
   target_compile_definitions(dap4 PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 

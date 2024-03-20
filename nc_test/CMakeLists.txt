@@ -101,7 +101,7 @@ ENDFOREACH()
 
 ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
 
-IF(BUILD_UTILITIES)
+IF(NETCDF_BUILD_UTILITIES)
 
     add_sh_test(nc_test run_diskless)
     IF(BUILD_MMAP)
@@ -118,8 +118,8 @@ IF(BUILD_UTILITIES)
       ENDIF()
     ENDIF()
 
-    IF(ENABLE_BYTERANGE)
-      IF(ENABLE_EXTERNAL_SERVER_TESTS)
+    IF(NETCDF_ENABLE_BYTERANGE)
+      IF(NETCDF_ENABLE_EXTERNAL_SERVER_TESTS)
         build_bin_test_no_prefix(tst_byterange)
         add_sh_test(nc_test test_byterange)
       ENDIF()
@@ -129,7 +129,7 @@ IF(BUILD_UTILITIES)
     add_sh_test(nc_test run_mmap)
   ENDIF()
 
-ENDIF(BUILD_UTILITIES)
+ENDIF(NETCDF_BUILD_UTILITIES)
 
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)

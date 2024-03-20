@@ -54,7 +54,7 @@ tst_bm_rando tst_compress
 
 run_bm_elena.log: tst_create_files.log
 
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 TESTS += run_bm_test1.sh run_bm_test2.sh
 
 # tst_create_files creates files for other tests.
@@ -68,7 +68,7 @@ tst_compress_par_LDFLAGS = -no-install
 TESTS += run_par_bm_test.sh run_gfs_test.sh
 run_par_bm_test.log: tst_create_files.log run_bm_test1.log
 endif # TEST_PARALLEL4
-endif # BUILD_UTILITIES
+endif # NETCDF_BUILD_UTILITIES
 
 # Extra files for the dist. Note that parallel tests end in .in,
 # because configure substitute in the launcher (usually mpiexec).

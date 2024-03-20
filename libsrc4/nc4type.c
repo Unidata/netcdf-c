@@ -16,7 +16,7 @@
 #include <stddef.h>
 
 #if 0
-#ifdef ENABLE_DAP4
+#ifdef NETCDF_ENABLE_DAP4
 EXTERNL NC* NCD4_get_substrate_nc(int ncid);
 #endif
 #endif
