@@ -1718,7 +1718,7 @@ message(STATUS ${LIBNETCDF_SETTINGS})
 ###
 
 if(DEFINED DEPR_OPT)
-  message(STATUS ${DEPR_OPT})
+  message(WARNING "Warning! Deprecated Options used. Please migrate your build system as follows:\n${DEPR_OPT}" )
 endif()
   # Install libnetcdf.settings file into same location
 # as the libraries.
