@@ -13,15 +13,15 @@ if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc2
 endif
 
-if ENABLE_NCZARR
+if NETCDF_ENABLE_NCZARR
 AM_CPPFLAGS += -I${top_srcdir}/libnczarr
 endif
 
-if ENABLE_S3_AWS
+if NETCDF_ENABLE_S3_AWS
 AM_LDFLAGS += -lstdc++
 endif
 
-if ! ENABLE_LIBXML2
+if ! NETCDF_ENABLE_LIBXML2
 # => tinyxml2
 AM_LDFLAGS += -lstdc++
 endif

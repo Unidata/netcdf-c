@@ -113,22 +113,22 @@ are set when opening a binary file on Windows. */
 #cmakedefine DLL_NETCDF 1
 
 /* if true, use atexist */
-#cmakedefine ENABLE_ATEXIT_FINALIZE 1
+#cmakedefine NETCDF_ENABLE_ATEXIT_FINALIZE 1
 
 /* if true, build byte-range Client */
-#cmakedefine ENABLE_BYTERANGE 1
+#cmakedefine NETCDF_ENABLE_BYTERANGE 1
 
 /* if true, enable ERANGE fill */
-#cmakedefine ENABLE_ERANGE_FILL 1
-#ifdef ENABLE_ERANGE_FILL
+#cmakedefine NETCDF_ENABLE_ERANGE_FILL 1
+#ifdef NETCDF_ENABLE_ERANGE_FILL
 #define ERANGE_FILL 1
 #endif
 
 /* if true, use hdf5 S3 virtual file reader */
-#cmakedefine ENABLE_HDF5_ROS3 1
+#cmakedefine NETCDF_ENABLE_HDF5_ROS3 1
 
 /* if true, enable CDF5 Support */
-#cmakedefine ENABLE_CDF5 1
+#cmakedefine NETCDF_ENABLE_CDF5 1
 
 /* if true, enable client side filters */
 #cmakedefine ENABLE_CLIENT_FILTERS 1
@@ -137,34 +137,34 @@ are set when opening a binary file on Windows. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
 
 /* if true, build DAP2 and DAP4 Client */
-#cmakedefine ENABLE_DAP 1
+#cmakedefine NETCDF_ENABLE_DAP 1
 
 /* if true, build DAP4 Client */
-#cmakedefine ENABLE_DAP4 1
+#cmakedefine NETCDF_ENABLE_DAP4 1
 
 /* if true, do remote tests */
-#cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+#cmakedefine NETCDF_ENABLE_DAP_REMOTE_TESTS 1
 
 /* if true, enable NCZARR */
-#cmakedefine ENABLE_NCZARR 1
+#cmakedefine NETCDF_ENABLE_NCZARR 1
 
 /* if true, enable nczarr filter support */
-#cmakedefine ENABLE_NCZARR_FILTERS 1
+#cmakedefine NETCDF_ENABLE_NCZARR_FILTERS 1
 
 /* if true, enable nczarr zip support */
-#cmakedefine ENABLE_NCZARR_ZIP 1
+#cmakedefine NETCDF_ENABLE_NCZARR_ZIP 1
 
 /* if true, Allow dynamically loaded plugins */
-#cmakedefine ENABLE_PLUGINS 1
+#cmakedefine NETCDF_ENABLE_PLUGINS 1
 
 /* if true, enable S3 support */
-#cmakedefine ENABLE_S3 1
+#cmakedefine NETCDF_ENABLE_S3 1
 
 /* if true, AWS S3 SDK is available */
-#cmakedefine ENABLE_S3_AWS 1
+#cmakedefine NETCDF_ENABLE_S3_AWS 1
 
 /* if true, Force use of S3 internal library */
-#cmakedefine ENABLE_S3_INTERNAL 1
+#cmakedefine NETCDF_ENABLE_S3_INTERNAL 1
 
 /* if true, enable S3 testing*/
 #cmakedefine WITH_S3_TESTING "PUBLIC"
@@ -302,7 +302,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_LIBMFHDF 1
 
 /* Define to 1 if you have the libxml2 library. */
-#cmakedefine ENABLE_LIBXML2 1
+#cmakedefine NETCDF_ENABLE_LIBXML2 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #cmakedefine HAVE_LOCALE_H 1
@@ -484,8 +484,8 @@ with zip */
 #cmakedefine NO_IEEE_FLOAT 1
 
 #cmakedefine BUILD_V2 1
-#cmakedefine ENABLE_DOXYGEN 1
-#cmakedefine ENABLE_INTERNAL_DOCS 1
+#cmakedefine NETCDF_ENABLE_DOXYGEN 1
+#cmakedefine NETCDF_ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1
 #cmakedefine ENABLE_CDMREMOTE 1
 #cmakedefine USE_HDF5 1
@@ -493,7 +493,7 @@ with zip */
 #cmakedefine TEST_PARALLEL ${TEST_PARALLEL}
 #cmakedefine BUILD_RPC 1
 #cmakedefine USE_X_GETOPT 1
-#cmakedefine ENABLE_EXTREME_NUMBERS 1
+#cmakedefine NETCDF_ENABLE_EXTREME_NUMBERS 1
 
 /* do not build the netCDF version 2 API */
 #cmakedefine NO_NETCDF_2 1

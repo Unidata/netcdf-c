@@ -8,7 +8,7 @@ set(oc_SOURCES oc.c daplex.c dapparse.c dapy.c occompile.c occurlfunctions.c ocd
 
 add_library(oc2 OBJECT ${oc_SOURCES})
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
   target_compile_definitions(oc2 PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 

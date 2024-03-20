@@ -38,8 +38,8 @@ TESTS += tst_nc4internal
 TESTS += run_reclaim_tests.sh
 endif # USE_HDF5
 
-if ENABLE_S3
-if ENABLE_S3_TESTALL
+if NETCDF_ENABLE_S3
+if NETCDF_ENABLE_S3_TESTALL
 check_PROGRAMS += test_s3sdk
 TESTS += run_s3sdk.sh
 endif

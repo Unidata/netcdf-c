@@ -13,7 +13,7 @@ target_sources(dispatch
     dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c
 )
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
   target_compile_definitions(dispatch PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 
@@ -43,15 +43,15 @@ if(BUILD_V2)
   )
 endif(BUILD_V2)
 
-if(ENABLE_BYTERANGE)
+if(NETCDF_ENABLE_BYTERANGE)
   target_sources(dispatch
     PRIVATE
       dhttp.c
   )
-ENDIF(ENABLE_BYTERANGE)
+ENDIF(NETCDF_ENABLE_BYTERANGE)
 
-IF(ENABLE_S3)
-  if(ENABLE_S3_INTERNAL)
+IF(NETCDF_ENABLE_S3)
+  if(NETCDF_ENABLE_S3_INTERNAL)
     target_sources(dispatch
       PRIVATE
         ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h nccurl_sha256.c nccurl_sha256.h nccurl_hmac.c nccurl_hmac.h nccurl_setup.h
@@ -80,16 +80,16 @@ if(STATUS_PARALLEL)
     target_link_libraries(dispatch PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
 
-if (ENABLE_PNETCDF)
+if (NETCDF_ENABLE_PNETCDF)
     target_link_libraries(dispatch PUBLIC PNETCDF::PNETCDF)
 endif()
 
-IF(ENABLE_NCZARR)
+IF(NETCDF_ENABLE_NCZARR)
     target_include_directories(dispatch PUBLIC ../libnczarr)
-endif(ENABLE_NCZARR)
+endif(NETCDF_ENABLE_NCZARR)
 
-if(ENABLE_S3)
-  if(ENABLE_S3_AWS)
+if(NETCDF_ENABLE_S3)
+  if(NETCDF_ENABLE_S3_AWS)
     target_include_directories(dispatch PUBLIC ${AWSSDK_INCLUDE_DIRS})
     if(NOT MSVC)
       target_compile_features(dispatch PUBLIC cxx_std_11)
@@ -99,7 +99,7 @@ if(ENABLE_S3)
   endif()
 endif()
 
-if(ENABLE_TESTS)
+if(NETCDF_ENABLE_TESTS)
     BUILD_BIN_TEST(ncrandom)
 endif()
 

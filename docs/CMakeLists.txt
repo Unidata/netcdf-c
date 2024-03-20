@@ -8,7 +8,7 @@
 #####
 # Build doxygen documentation, if need be.
 #####
-IF(ENABLE_DOXYGEN)
+IF(NETCDF_ENABLE_DOXYGEN)
   # The following is redundant but does not hurt anything.
 
   FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.html ${CMAKE_CURRENT_SOURCE_DIR}/images ${CMAKE_CURRENT_SOURCE_DIR}/*.doc ${CMAKE_CURRENT_SOURCE_DIR}/*.xml ${CMAKE_CURRENT_SOURCE_DIR}/*.m4 ${CMAKE_CURRENT_SOURCE_DIR}/*.texi ${CMAKE_SOURCE_DIR}/oc2/auth.html.in)
@@ -43,9 +43,9 @@ IF(ENABLE_DOXYGEN)
 
 
 
-  # If ENABLE_DOXYGEN_LATEX_OUTPUT is true, automatically build
+  # If NETCDF_ENABLE_DOXYGEN_LATEX_OUTPUT is true, automatically build
   # the PDF files.
-  IF(ENABLE_DOXYGEN_PDF_OUTPUT)
+  IF(NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT)
     # Process 'main' netcdf documentation.
     FIND_PROGRAM(NC_MAKE NAMES make)
     FIND_PROGRAM(NC_PDFLATEX NAMES pdflatex)
@@ -82,7 +82,7 @@ IF(ENABLE_DOXYGEN)
     DESTINATION "${CMAKE_INSTALL_DOCDIR}/html"
     COMPONENT documentation)
 
-ENDIF(ENABLE_DOXYGEN)
+ENDIF(NETCDF_ENABLE_DOXYGEN)
 
 # Should match list in Makefile.am
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST}

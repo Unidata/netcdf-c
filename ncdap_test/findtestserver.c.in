@@ -61,7 +61,7 @@ main(int argc, char** argv)
     if(argc >= 3)
 	serverlist = strdup(argv[2]);
 
-#ifdef ENABLE_DAP
+#ifdef NETCDF_ENABLE_DAP
     if(strcasecmp(proto,"thredds")==0)
 	kind = THREDDSKIND;
     else
@@ -69,7 +69,7 @@ main(int argc, char** argv)
 	kind = DAP2KIND;
     else
 #endif
-#ifdef ENABLE_DAP4
+#ifdef NETCDF_ENABLE_DAP4
     if(strcasecmp(proto,"dap4")==0)
 	kind = DAP4KIND;
     else
