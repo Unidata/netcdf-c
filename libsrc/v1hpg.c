@@ -561,8 +561,8 @@ v1h_get_NC_dimarray(v1hs *gsp, NC_dimarray *ncap)
 				return status;
 			}
 			{
-			  int dimid = (size_t)(dpp - ncap->value);
-			  NC_hashmapadd(ncap->hashmap, (uintptr_t)dimid, (*dpp)->name->cp,strlen((*dpp)->name->cp));
+			  uintptr_t dimid = (uintptr_t)(dpp - ncap->value);
+			  NC_hashmapadd(ncap->hashmap, dimid, (*dpp)->name->cp, strlen((*dpp)->name->cp));
 			}
 		}
 	}
@@ -601,7 +601,7 @@ ncx_len_NC_attr(const NC_attr *attrp, int version)
 
 /*----< ncmpix_len_nctype() >------------------------------------------------*/
 /* return the length of external data type */
-static int
+static size_t
 ncmpix_len_nctype(nc_type type) {
     switch(type) {
         case NC_BYTE:
@@ -1212,8 +1212,8 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 				return status;
 			}
 			{
-			  int varid = (size_t)(vpp - ncap->value);
-			  NC_hashmapadd(ncap->hashmap, (uintptr_t)varid, (*vpp)->name->cp,strlen((*vpp)->name->cp));
+			  uintptr_t varid = (uintptr_t)(vpp - ncap->value);
+			  NC_hashmapadd(ncap->hashmap, varid, (*vpp)->name->cp, strlen((*vpp)->name->cp));
 			}
 		}
 	}
