@@ -162,8 +162,7 @@ int
 ncindexcount(NCindex* index)
 {
     int count = 0;
-    int i;
-    for(i=0;i<ncindexsize(index);i++) {
+    for(size_t i=0;i<ncindexsize(index);i++) {
         if(ncindexith(index,i) != NULL) count++;
     }
     return count;

@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
     buf = (int*) malloc(NY*NX * sizeof(int));
 
     for (k=0; k<5; k++) {
-#ifndef ENABLE_CDF5
+#ifndef NETCDF_ENABLE_CDF5
         if (formats[k] == NC_FORMAT_CDF5) continue;
 #endif
 #ifndef USE_HDF5

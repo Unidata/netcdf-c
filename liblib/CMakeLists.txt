@@ -42,7 +42,7 @@ if(USE_HDF4)
   )
 endif()
 
-if(ENABLE_DAP2)
+if(NETCDF_ENABLE_DAP2)
   target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:oc2>
@@ -50,7 +50,7 @@ if(ENABLE_DAP2)
   )
 endif()
 
-if(ENABLE_DAP4)
+if(NETCDF_ENABLE_DAP4)
   target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:dap4>
@@ -58,21 +58,21 @@ if(ENABLE_DAP4)
   )
 endif()
 
-if(ENABLE_NCZARR)
+if(NETCDF_ENABLE_NCZARR)
   target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:nczarr>
   )
 endif()
 
-if(ENABLE_S3_INTERNAL)
+if(NETCDF_ENABLE_S3_INTERNAL)
   target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:ncxml>
   )
 endif()
 
-if(ENABLE_PLUGINS)
+if(NETCDF_ENABLE_PLUGINS)
   target_sources(netcdf
     PRIVATE
       $<TARGET_OBJECTS:ncpoco>
@@ -114,7 +114,7 @@ set(TLL_LIBS ${TLL_LIBS} ${HAVE_LIBM} ${ZLIB_LIBRARY})
 # Add extra dependencies specified via NC_EXTRA_DEPS
 set(TLL_LIBS ${TLL_LIBS} ${EXTRA_DEPS})
 
-if(ENABLE_NCZARR_ZIP)
+if(NETCDF_ENABLE_NCZARR_ZIP)
   set(TLL_LIBS ${TLL_LIBS} ${Zip_LIBRARIES})
 endif()
 
@@ -135,7 +135,7 @@ if(HAVE_LIBDL)
   set(TLL_LIBS ${LIBDL} ${TLL_LIBS})
 endif()
 
-if(ENABLE_NCZARR_ZIP)
+if(NETCDF_ENABLE_NCZARR_ZIP)
   set(TLL_LIBS ${TLL_LIBS} ${Zip_LIBRARIES})
 endif()
 
@@ -151,21 +151,21 @@ if(USE_HDF4)
   set(TLL_LIBS ${HDF4_LIBRARIES} ${TLL_LIBS})
 endif()
 
-if(ENABLE_PNETCDF AND PNETCDF)
-  set(TLL_LIBS ${TLL_LIBS} ${PNETCDF})
+if(NETCDF_ENABLE_PNETCDF)
+  SET(TLL_LIBS ${TLL_LIBS} PNETCDF::PNETCDF)
 endif()
 
 
-if(ENABLE_S3)
-  if(ENABLE_S3_AWS)
+if(NETCDF_ENABLE_S3)
+  if(NETCDF_ENABLE_S3_AWS)
     target_link_directories(netcdf PUBLIC ${AWSSDK_LIB_DIR})
     set(TLL_LIBS ${AWSSDK_LINK_LIBRARIES} ${TLL_LIBS})
-  elseif(ENABLE_S3_INTERNAL)
+  elseif(NETCDF_ENABLE_S3_INTERNAL)
     if(OPENSSL_FOUND)
       set(TLL_LIBS ${OPENSSL_SSL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARIES} ${TLL_LIBS})
     endif(OPENSSL_FOUND)
-  endif(ENABLE_S3_AWS)  
-endif(ENABLE_S3)
+  endif(NETCDF_ENABLE_S3_AWS)  
+endif(NETCDF_ENABLE_S3)
 
 if(HAVE_LIBXML2)
   set(TLL_LIBS ${TLL_LIBS} ${LIBXML2_LIBRARIES})
@@ -188,16 +188,17 @@ target_link_libraries(netcdf PRIVATE ${TLL_LIBS})
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${TLL_LIBS})
 if(MSVC)
   set_target_properties(netcdf PROPERTIES
+
     LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
     )
 endif()
 
-if(ENABLE_SHARED_LIBRARY_VERSION)
+if(NETCDF_ENABLE_SHARED_LIBRARY_VERSION)
   set_target_properties(netcdf PROPERTIES
     VERSION ${netCDF_LIB_VERSION}
     SOVERSION ${netCDF_SO_VERSION}
     )
-endif(ENABLE_SHARED_LIBRARY_VERSION)
+endif(NETCDF_ENABLE_SHARED_LIBRARY_VERSION)
 
 install(
   TARGETS netcdf EXPORT netCDFTargets

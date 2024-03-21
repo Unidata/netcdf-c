@@ -481,7 +481,7 @@ NC4_get_vlen_element(int ncid, int typeid1, const void *vlen_element,
                      size_t *len, void *data)
 {
     const nc_vlen_t *tmp = (nc_vlen_t*)vlen_element;
-    int type_size = 4;
+    const size_t type_size = 4;
 
     *len = tmp->len;
     memcpy(data, tmp->p, tmp->len * type_size);

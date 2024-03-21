@@ -472,7 +472,7 @@ nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **gr
     assert(my_grp && my_h5);
 
     /* Find the var. */
-    if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, varid)))
+    if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, (size_t)varid)))
         return NC_ENOTVAR;
     assert(my_var && my_var->hdr.id == varid);
 
@@ -552,7 +552,6 @@ nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
 {
     NC_GRP_INFO_T *g;
     NC_TYPE_INFO_T *type, *res;
-    int i;
 
     assert(start_grp);
 
@@ -562,7 +561,7 @@ nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
         return type;
 
     /* Search subgroups. */
-    for(i=0;i<ncindexsize(start_grp->children);i++) {
+    for(size_t i=0;i<ncindexsize(start_grp->children);i++) {
         g = (NC_GRP_INFO_T*)ncindexith(start_grp->children,i);
         if(g == NULL) continue;
         if ((res = nc4_rec_find_named_type(g, name)))
@@ -639,7 +638,7 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
     }
     else
     {
-        var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+        var = (NC_VAR_INFO_T*)ncindexith(grp->vars,(size_t)varid);
         if (!var) return NC_ENOTVAR;
 
         attlist = var->att;
@@ -651,7 +650,7 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
     if (name)
         my_att = (NC_ATT_INFO_T *)ncindexlookup(attlist, name);
     else
-        my_att = (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
+        my_att = (NC_ATT_INFO_T *)ncindexith(attlist, (size_t)attnum);
 
     if (!my_att)
         return NC_ENOTATT;
@@ -715,7 +714,7 @@ obj_track(NC_FILE_INFO_T* file, NC_OBJ* obj)
         assert(NC_FALSE);
     }
     /* Insert at the appropriate point in the list */
-    nclistset(list,obj->id,obj);
+    nclistset(list,(size_t)obj->id,obj);
 }
 
 /**
@@ -748,7 +747,7 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
     new_var->chunkcache.preemption = gs->chunkcache.preemption;
 
     /* Now fill in the values in the var info structure. */
-    new_var->hdr.id = ncindexsize(grp->vars);
+    new_var->hdr.id = (int)ncindexsize(grp->vars);
     if (!(new_var->hdr.name = strdup(name))) {
       if(new_var)
         free(new_var);
@@ -784,7 +783,7 @@ nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
     assert(var);
 
     /* Remember the number of dimensions. */
-    var->ndims = ndims;
+    var->ndims = (size_t)ndims;
 
     /* Allocate space for dimension information. */
     if (ndims)
@@ -912,7 +911,7 @@ nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att)
     new_att->hdr.sort = NCATT;
 
     /* Fill in the information we know. */
-    new_att->hdr.id = ncindexsize(list);
+    new_att->hdr.id = (int)ncindexsize(list);
     if (!(new_att->hdr.name = strdup(name))) {
       if(new_att)
         free(new_att);
@@ -1171,7 +1170,7 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
     }
 
     /* Add object to lists */
-    field->hdr.id = nclistlength(parent->u.c.field);
+    field->hdr.id = (int)nclistlength(parent->u.c.field);
     nclistpush(parent->u.c.field,field);
 
     return NC_NOERR;
@@ -1363,14 +1362,13 @@ done:
 static int
 var_free(NC_VAR_INFO_T *var)
 {
-    int i;
     int retval;
 
     assert(var);
     LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
 
     /* First delete all the attributes attached to this var. */
-    for (i = 0; i < ncindexsize(var->att); i++)
+    for (size_t i = 0; i < ncindexsize(var->att); i++)
         if ((retval = nc4_att_free((NC_ATT_INFO_T *)ncindexith(var->att, i))))
             return retval;
     ncindexfree(var->att);
@@ -1429,7 +1427,7 @@ nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     /* Remove from lists */
     i = ncindexfind(grp->vars, (NC_OBJ *)var);
     if (i >= 0)
-        ncindexidel(grp->vars, i);
+        ncindexidel(grp->vars, (size_t)i);
 
     return var_free(var);
 }
@@ -1472,7 +1470,7 @@ nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim)
     {
         int pos = ncindexfind(grp->dim, (NC_OBJ *)dim);
         if(pos >= 0)
-            ncindexidel(grp->dim, pos);
+            ncindexidel(grp->dim, (size_t)pos);
     }
 
     return dim_free(dim);
@@ -1490,7 +1488,6 @@ nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim)
 int
 nc4_rec_grp_del(NC_GRP_INFO_T *grp)
 {
-    int i;
     int retval;
 
     assert(grp);
@@ -1498,34 +1495,34 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
 
     /* Recursively call this function for each child, if any, stopping
      * if there is an error. */
-    for (i = 0; i < ncindexsize(grp->children); i++)
+    for (size_t i = 0; i < ncindexsize(grp->children); i++)
         if ((retval = nc4_rec_grp_del((NC_GRP_INFO_T *)ncindexith(grp->children,
                                                                   i))))
             return retval;
     ncindexfree(grp->children);
 
     /* Free attributes */
-    for (i = 0; i < ncindexsize(grp->att); i++)
+    for (size_t i = 0; i < ncindexsize(grp->att); i++)
         if ((retval = nc4_att_free((NC_ATT_INFO_T *)ncindexith(grp->att, i))))
             return retval;
     ncindexfree(grp->att);
 
     /* Delete all vars. */
-    for (i = 0; i < ncindexsize(grp->vars); i++) {
-	NC_VAR_INFO_T* v = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
+    for (size_t i = 0; i < ncindexsize(grp->vars); i++) {
+        NC_VAR_INFO_T* v = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
         if ((retval = var_free(v)))
             return retval;
     }
     ncindexfree(grp->vars);
 
     /* Delete all dims, and free the list of dims. */
-    for (i = 0; i < ncindexsize(grp->dim); i++)
+    for (size_t i = 0; i < ncindexsize(grp->dim); i++)
         if ((retval = dim_free((NC_DIM_INFO_T *)ncindexith(grp->dim, i))))
             return retval;
     ncindexfree(grp->dim);
 
     /* Delete all types. */
-    for (i = 0; i < ncindexsize(grp->type); i++)
+    for (size_t i = 0; i < ncindexsize(grp->type); i++)
         if ((retval = nc4_type_free((NC_TYPE_INFO_T *)ncindexith(grp->type, i))))
             return retval;
     ncindexfree(grp->type);
@@ -1551,7 +1548,6 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
 int
 nc4_rec_grp_del_att_data(NC_GRP_INFO_T *grp)
 {
-    int i;
     int retval;
 
     assert(grp);
@@ -1559,25 +1555,24 @@ nc4_rec_grp_del_att_data(NC_GRP_INFO_T *grp)
 
     /* Recursively call this function for each child, if any, stopping
      * if there is an error. */
-    for (i = 0; i < ncindexsize(grp->children); i++)
+    for (size_t i = 0; i < ncindexsize(grp->children); i++)
         if ((retval = nc4_rec_grp_del_att_data((NC_GRP_INFO_T *)ncindexith(grp->children, i))))
             return retval;
 
     /* Free attribute data in this group */
-    for (i = 0; i < ncindexsize(grp->att); i++) {
-	NC_ATT_INFO_T * att = (NC_ATT_INFO_T*)ncindexith(grp->att, i);
-	if((retval = NC_reclaim_data_all(grp->nc4_info->controller,att->nc_typeid,att->data,att->len)))
-	    return retval;
+    for (size_t i = 0; i < ncindexsize(grp->att); i++) {
+        NC_ATT_INFO_T * att = (NC_ATT_INFO_T*)ncindexith(grp->att, i);
+        if((retval = NC_reclaim_data_all(grp->nc4_info->controller,att->nc_typeid,att->data,att->len)))
+            return retval;
 	att->data = NULL;
 	att->len = 0;
 	att->dirty = 0;
     }
 
     /* Delete att data from all contained vars in this group */
-    for (i = 0; i < ncindexsize(grp->vars); i++) {
-	int j;
+    for (size_t i = 0; i < ncindexsize(grp->vars); i++) {
 	NC_VAR_INFO_T* v = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
-	for(j=0;j<ncindexsize(v->att);j++) {
+	for(size_t j=0;j<ncindexsize(v->att);j++) {
 	    NC_ATT_INFO_T* att = (NC_ATT_INFO_T*)ncindexith(v->att, j);
    	    if((retval = NC_reclaim_data_all(grp->nc4_info->controller,att->nc_typeid,att->data,att->len)))
 	        return retval;
@@ -1604,7 +1599,7 @@ int
 nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
 {
     assert(att && list);
-    ncindexidel(list, ((NC_OBJ *)att)->id);
+    ncindexidel(list, (size_t)((NC_OBJ *)att)->id);
     return nc4_att_free(att);
 }
 

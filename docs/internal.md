@@ -711,7 +711,7 @@ and specific script files.
 The actual cleanup requires different approaches for cmake and for automake.
 In cmake, the CTestCustom.cmake mechanism is used and contains the following command:
 ````
- IF(ENABLE_S3_TESTING)
+ IF(NETCDF_ENABLE_S3_TESTING)
  # Assume run in top-level CMAKE_BINARY_DIR
  set(CTEST_CUSTOM_POST_TEST "bash -x ${CMAKE_BINARY_DIR}/s3cleanup.sh")
  ENDIF()
@@ -722,7 +722,7 @@ because it is invoked after all tests are run in the nczarr_test
 directory. So nczarr_test/Makefile.am contains the following
 equivalent code:
 ````
- if ENABLE_S3_TESTALL
+ if NETCDF_ENABLE_S3_TESTALL
  check-local:
  	bash -x ${top_srcdir}/s3cleanup.sh
  endif

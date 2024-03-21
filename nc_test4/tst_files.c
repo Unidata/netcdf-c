@@ -262,11 +262,11 @@ main(int argc, char **argv)
    test_redef(NC_FORMAT_NETCDF4_CLASSIC);
    SUMMARIZE_ERR;
 
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
    printf("*** testing redef for CDF5...");
    test_redef(NC_FORMAT_CDF5);
    SUMMARIZE_ERR;
-#endif /* ENABLE_CDF5 */
+#endif /* NETCDF_ENABLE_CDF5 */
 
    printf("*** testing different formats...");
    {

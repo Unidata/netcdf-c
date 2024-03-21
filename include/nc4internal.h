@@ -162,7 +162,7 @@ typedef struct NC_ATT_INFO
 {
     NC_OBJ hdr;             /**< The hdr contains the name and ID. */
     struct NC_OBJ *container;    /**< Pointer to containing group|var. */
-    int len;                /**< Length of attribute data. */
+    size_t len;             /**< Length of attribute data. */
     nc_bool_t dirty;        /**< True if attribute modified. */
     nc_bool_t created;      /**< True if attribute already created. */
     nc_type nc_typeid;      /**< NetCDF type of attribute's data. */

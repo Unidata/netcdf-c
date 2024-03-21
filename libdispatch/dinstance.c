@@ -30,7 +30,7 @@ Currently two operations are defined:
    necessary in order to get to the right NC* instance.
 */
 
-#if defined(ENABLE_DAP4) || defined(ENABLE_DAP2)
+#if defined(NETCDF_ENABLE_DAP4) || defined(NETCDF_ENABLE_DAP2)
 EXTERNL NC* NCD4_get_substrate(NC* nc);
 EXTERNL NC* NCD2_get_substrate(NC* nc);
 static NC*

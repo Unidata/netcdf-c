@@ -2070,7 +2070,7 @@ copy(char* infile, char* outfile)
 	create_mode |= NC_64BIT_OFFSET;
 	break;
     case NC_FORMAT_CDF5:
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
       create_mode |= NC_64BIT_DATA;
       break;
 #else
