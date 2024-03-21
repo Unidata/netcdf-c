@@ -392,6 +392,8 @@ endif(NOT ENABLE_V2_API)
 
 # Option to build utilities
 option(NETCDF_BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
+option(NETCDF_GENERATE_NCGEN "Automatically regenerate ncgen C files if required" OFF)
+
 
 # Option to use MMAP
 option(NETCDF_ENABLE_MMAP "Use MMAP." ON)
