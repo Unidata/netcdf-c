@@ -41,7 +41,7 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
 
    /* Init data. */
    for(i = 0; i < TIME_LEN * LAT_LEN * LON_LEN; i++)
-      zonal_wnd[i] = 100 + i;
+      zonal_wnd[i] = (float)(100 + i);
 
    /* To test bug on filesystem without large block size, we can get
     * the same effect by providing the desired value as sizehint to
@@ -64,7 +64,7 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
    if (nc_put_var_double(ncid, time_id, time)) ERR;
 
    /* Bug exposed when written in reverse order. */
-   for(i = LVL_LEN - 1; i>=0; i--)
+   for(size_t i = LVL_LEN; i-->0;)
    {
       start[1] = i;
       if (nc_put_vara_float(ncid, zonal_wnd_id, start, count, zonal_wnd)) ERR;

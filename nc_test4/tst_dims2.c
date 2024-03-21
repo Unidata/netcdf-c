@@ -291,7 +291,7 @@ main(int argc, char **argv)
 #define MAX(x,y) ((x)>(y)?(x):(y))
       int dimids[2];
       int varid, ncid, timeDimID, beamDimID;
-      int i, j;
+      int i;
       int value[2000];
       size_t time_recs, beam_recs;      /* count of records in each dimension */
       size_t time_len, beam_len;        /* actual dimension lengths in each dimension */
@@ -316,7 +316,7 @@ main(int argc, char **argv)
 
       time_recs = 0;
       beam_recs = 0;
-      for (j = 0; j < 100; j++)
+      for (size_t j = 0; j < 100; j++)
       {
          if (j > 500)
             count[1] = j;

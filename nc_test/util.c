@@ -229,7 +229,7 @@ size_t roll( size_t n )
 	 * We don't use RAND_MAX here because not all compilation
 	 * environments define it (e.g. gcc(1) under SunOS 4.1.4).
 	 */
-	r = (size_t)(((rand() % 32768) / 32767.0) * (n - 1) + 0.5);
+       r = (size_t)(((rand() % 32768) / 32767.0) * ((double)n - 1) + 0.5);
     while (r >= n);
 
     return r;
@@ -319,8 +319,8 @@ int nc2dbl ( const nc_type xtype, const void *p, double *result)
 #endif
         case NC_FLOAT:  *result = *((float *)              p); break;
         case NC_DOUBLE: *result = *((double *)             p); break;
-        case NC_INT64:  *result = *((long long *)          p); break;
-        case NC_UINT64: *result = *((unsigned long long *) p); break;
+        case NC_INT64:  *result = (double)*((long long *)          p); break;
+        case NC_UINT64: *result = (double)*((unsigned long long *) p); break;
         default: return 1;
     }
     return 0;
@@ -504,7 +504,7 @@ hash( const nc_type xtype, const int rank, const size_t *index )
 	}
 	result = rank < 0 ? base * 7 : base * (rank + 1);
 	for (d = 0; d < abs(rank); d++)
-	    result = base * (result + index[d]);
+            result = base * (result + (double)index[d]);
     }
     return result;
 }
@@ -670,8 +670,7 @@ char2type(char letter) {
 static void
 init_dims(const char *digit)
 {
-	int dimid;			/* index of dimension */
-	for (dimid = 0; dimid < NDIMS; dimid++)
+	for (size_t dimid = 0; dimid < NDIMS; dimid++)
 	{
 		dim_len[dimid] = dimid == 0 ? NRECS : dimid;
 		dim_name[dimid][0] = 'D';
@@ -683,8 +682,7 @@ init_dims(const char *digit)
 static void
 init_gatts(const char *type_letter)
 {
-	int attid;
-	for (attid = 0; attid < numGatts; attid++)
+	for (size_t attid = 0; attid < numGatts; attid++)
 	{
 		gatt_name[attid][0] = 'G';
 		gatt_name[attid][1] = type_letter[attid];
@@ -726,7 +724,7 @@ init_gvars (void)
 	int rank;
 	int vn;			/* var number */
 	int xtype;		/* index of type */
-	int an;			/* attribute number */
+	size_t an;			/* attribute number */
 
 	assert(sizeof(max_dim_len)/sizeof(max_dim_len[0]) >= MAX_RANK);
 
@@ -744,11 +742,11 @@ init_gvars (void)
 		for (jj = 0; jj < nvars; jj++)
 		{
 				/* number types of this shape */
-			const int ntypes = rank < 2 ? numTypes : 1;
+			const size_t ntypes = rank < 2 ? numTypes : 1;
 
 			int tc;
 			for (tc = 0; tc < ntypes;
-			     tc++, vn++, xtype = (xtype + 1) % numTypes)
+			     tc++, vn++, xtype = (xtype + 1) % (int)numTypes)
 			{
 				size_t tmp[MAX_RANK];
 
@@ -781,7 +779,7 @@ init_gvars (void)
 						assert (var_dimid[vn][dn] <= 9);
 						var_name[vn][dn + 1] = digit[var_dimid[vn][dn]];
 						var_shape[vn][dn] = var_dimid[vn][dn] ?
-							var_dimid[vn][dn] : NRECS;
+                                                	(size_t)var_dimid[vn][dn] : NRECS;
 						var_nels[vn] *= var_shape[vn][dn];
 					}
 				} /* dn block */
@@ -841,7 +839,7 @@ put_atts(int ncid)
 	for (j = 0; j < NATTS(i); j++) {
 	    if (ATT_TYPE(i,j) == NC_CHAR) {
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-                    catt[k] = (unsigned char) hash(ATT_TYPE(i,j), -1, &k);
+                    catt[k] = (char) hash(ATT_TYPE(i,j), -1, &k);
 		}
 		err = nc_put_att_text(ncid, i, ATT_NAME(i,j),
 		    ATT_LEN(i,j), catt);

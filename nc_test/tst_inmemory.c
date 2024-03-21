@@ -225,7 +225,7 @@ define_metadata(int ncid)
     /* Create data to write */
     float_data = FLOATVAL;
 
-    for (i = 0; i < DIM1_LEN; i++)
+    for (short i = 0; i < DIM1_LEN; i++)
         taxi_distance[i] = i;
 
     for (i = 0; i < dimprod; i++)
@@ -301,7 +301,7 @@ modify_file(int ncid)
     if((stat=nc_enddef(ncid))) goto done;
     /* Write data to new variable */
     for(i=0;i<len;i++)
-	data[i] = i;
+       data[i] = (int)i;
     if((stat=nc_put_var_int(ncid,varid3,data))) goto done;
 done:
     return stat;
@@ -327,7 +327,7 @@ modify_file_extra(int ncid)
     if((stat=nc_enddef(ncid))) goto done;
     /* Write data to new variable */
     for(i=0;i<DIMX_LEN;i++)
-	data[i] = i;
+       data[i] = (int)i;
     if((stat=nc_put_var_int(ncid,varidx,data))) goto done;
 done:
     return stat;

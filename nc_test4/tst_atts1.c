@@ -83,7 +83,7 @@ tst_att_ordering(int cmode)
    int ncid;
    char name[NUM_ATTS][ATT_MAX_NAME + 1] = {"Gc", "Gb", "Gs", "Gi", "Gf",
 					    "Gd", "Gatt-name-dashes", "Gatt.name.dots"};
-   int len[NUM_ATTS] = {0, 2, 3, 3, 3, 3, 1, 1};
+   size_t len[NUM_ATTS] = {0, 2, 3, 3, 3, 3, 1, 1};
    signed char b[2] = {-128, 127};
    short s[3] = {-32768, 0, 32767};
    int i[3] = {42, 0, -42};
@@ -816,6 +816,7 @@ main(int argc, char **argv)
       if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME2, speech_in)) ERR;
       if (strcmp(speech, speech_in)) ERR;
       free(speech_in);
+      speech_in = NULL;
       if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, speech_in) != NC_ENOTATT) ERR;
       if (nc_close(ncid)) ERR;
 
