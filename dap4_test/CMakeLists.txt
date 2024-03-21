@@ -21,21 +21,21 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
-IF(ENABLE_DAP_REMOTE_TESTS)
+IF(NETCDF_ENABLE_DAP_REMOTE_TESTS)
     # Change name (add '4') to avoid cmake
     # complaint about duplicate targets.
     BUILD_BIN_TEST(findtestserver4)
     BUILD_BIN_TEST(pingurl4)
 ENDIF()
 
-IF(ENABLE_TESTS)
+IF(NETCDF_ENABLE_TESTS)
 
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
   # must be run in a particular order. It is painful but will use macros to help
   # keep it from being too bad.
 
-  IF(BUILD_UTILITIES)
+  IF(NETCDF_BUILD_UTILITIES)
       INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libdap4)
       build_bin_test(test_parse)
       build_bin_test(test_meta)
@@ -48,9 +48,9 @@ ENDIF()
       add_sh_test(dap4_test test_raw)
       add_sh_test(dap4_test test_meta)
       add_sh_test(dap4_test test_data)
-  ENDIF(BUILD_UTILITIES)
+  ENDIF(NETCDF_BUILD_UTILITIES)
 
-  IF(ENABLE_DAP_REMOTE_TESTS)
+  IF(NETCDF_ENABLE_DAP_REMOTE_TESTS)
       add_sh_test(dap4_test test_remote)
       add_sh_test(dap4_test test_hyrax)
       add_sh_test(dap4_test test_dap4url)
@@ -66,9 +66,9 @@ ENDIF()
     IF(RUN_IGNORED_TESTS)
       add_sh_test(dap4_test test_thredds)
     ENDIF()
-  ENDIF(ENABLE_DAP_REMOTE_TESTS)
+  ENDIF(NETCDF_ENABLE_DAP_REMOTE_TESTS)
 
-ENDIF(ENABLE_TESTS)
+ENDIF(NETCDF_ENABLE_TESTS)
 
 #FILE(COPY ./baseline DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 #FILE(COPY ./baselineraw DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})

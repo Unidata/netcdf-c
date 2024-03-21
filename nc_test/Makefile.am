@@ -39,7 +39,7 @@ tst_formatx_pnetcdf tst_default_format_pnetcdf
 endif
 
 if USE_PNETCDF
-if ENABLE_CDF5
+if NETCDF_ENABLE_CDF5
 check_PROGRAMS += tst_cdf5format
 endif
 endif
@@ -75,10 +75,10 @@ endif
 
 TESTS = $(TESTPROGRAMS)
 
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 
-if ENABLE_BYTERANGE
-if ENABLE_EXTERNAL_SERVER_TESTS
+if NETCDF_ENABLE_BYTERANGE
+if NETCDF_ENABLE_EXTERNAL_SERVER_TESTS
 tst_byterange_SOURCES = tst_byterange.c
 check_PROGRAMS += tst_byterange
 TESTS += test_byterange.sh
@@ -105,7 +105,7 @@ else
 TESTS += t_nc tst_atts3 tst_nofill nc_test tst_small
 endif
 
-endif # BUILD_UTILITIES
+endif # NETCDF_BUILD_UTILITIES
 
 # The .c files that are generated with m4 are already distributed, but
 # we also include the original m4 files, plus test scripts data.
@@ -125,7 +125,7 @@ tst_diskless4.cdl ref_tst_diskless4.cdl benchmark.nc                    \
 tst_http_nc3.cdl tst_http_nc4?.cdl tmp*.cdl tmp*.nc
 
 EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl
-if ENABLE_CDF5
+if NETCDF_ENABLE_CDF5
    # bad_cdf5_begin.nc is a corrupted CDF-5 file with bad variable starting
    # file offsets. It is to be used by tst_open_cdf5.c to check if it can
    # detect and report error code NC_ENOTNC.

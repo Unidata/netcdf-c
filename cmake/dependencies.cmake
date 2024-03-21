@@ -14,7 +14,7 @@ find_package(MakeDist)
 ################################
 # HDF4
 ################################
-if(ENABLE_HDF4)
+if(NETCDF_ENABLE_HDF4)
   set(USE_HDF4 ON )
   # Check for include files, libraries.
 
@@ -69,8 +69,8 @@ if(ENABLE_HDF4)
   message(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
   # Option to enable HDF4 file tests.
-  option(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires curl)." ON)
-  if(ENABLE_HDF4_FILE_TESTS)
+  option(NETCDF_ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires curl)." ON)
+  if(NETCDF_ENABLE_HDF4_FILE_TESTS)
     find_program(PROG_CURL NAMES curl)
     if(PROG_CURL)
       set(USE_HDF4_FILE_TESTS ON )
@@ -114,10 +114,10 @@ if(USE_HDF5)
   # as a shared library, we will use hdf5 as a shared
   # library. If we are building netcdf statically,
   # we will use a static library.  This can be toggled
-  # by explicitly modifying NC_FIND_SHARED_LIBS.
+  # by explicitly modifying NETCDF_FIND_SHARED_LIBS.
   ##
   #if (MSVC)
-  #  if(NC_FIND_SHARED_LIBS)
+  #  if(NETCDF_FIND_SHARED_LIBS)
   #    set(HDF5_USE_STATIC_LIBRARIES OFF)
   #  else()
   #    set(HDF5_USE_STATIC_LIBRARIES ON)
@@ -201,7 +201,7 @@ if(USE_HDF5)
 
   # Record if ROS3 Driver is available
   if(HAS_HDF5_ROS3)
-    set(ENABLE_HDF5_ROS3 ON )
+    set(NETCDF_ENABLE_HDF5_ROS3 ON )
   endif()
 
   IF (HDF5_SUPPORTS_PAR_FILTERS)
@@ -240,8 +240,8 @@ set(FOUND_CURL ${FOUND_CURL} TRUE )
 
 # Start disabling if curl not found
 if(NOT FOUND_CURL)
-  message(WARNING "ENABLE_REMOTE_FUNCTIONALITY requires libcurl; disabling")
-  set(ENABLE_REMOTE_FUNCTIONALITY OFF CACHE BOOL "ENABLE_REMOTE_FUNCTIONALITY requires libcurl; disabling" FORCE )
+  message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY requires libcurl; disabling")
+  set(NETCDF_ENABLE_REMOTE_FUNCTIONALITY OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY requires libcurl; disabling" FORCE )
 endif()
 
 set (CMAKE_REQUIRED_INCLUDES ${CURL_INCLUDE_DIRS})
@@ -346,18 +346,18 @@ endif()
 ################################
 # Zips
 ################################
-IF (ENABLE_FILTER_SZIP)
+IF (NETCDF_ENABLE_FILTER_SZIP)
   find_package(Szip)
-elseif(ENABLE_NCZARR)
+elseif(NETCDF_ENABLE_NCZARR)
   find_package(Szip)
 endif()
-IF (ENABLE_FILTER_BZ2)
+IF (NETCDF_ENABLE_FILTER_BZ2)
   find_package(Bz2)
 endif()
-IF (ENABLE_FILTER_BLOSC)
+IF (NETCDF_ENABLE_FILTER_BLOSC)
   find_package(Blosc)
 endif()
-IF (ENABLE_FILTER_ZSTD)
+IF (NETCDF_ENABLE_FILTER_ZSTD)
   find_package(Zstd)
 endif()
 
@@ -381,7 +381,7 @@ else()
   set(STD_FILTERS "${STD_FILTERS} bz2")
 endif()
 
-IF (ENABLE_NCZARR_ZIP)
+IF (NETCDF_ENABLE_NCZARR_ZIP)
   find_package(Zip REQUIRED)
   target_include_directories(netcdf
     PRIVATE
@@ -395,20 +395,20 @@ endif ()
 # Note we check for the library after checking for enable_s3
 # because for some reason this screws up if we unconditionally test for sdk
 # and it is not available. Fix someday
-if(ENABLE_S3)
-  if(NOT ENABLE_S3_INTERNAL)
+if(NETCDF_ENABLE_S3)
+  if(NOT NETCDF_ENABLE_S3_INTERNAL)
     # See if aws-s3-sdk is available
     find_package(AWSSDK REQUIRED COMPONENTS s3;transfer)
     if(AWSSDK_FOUND)
-      set(ENABLE_S3_AWS ON CACHE BOOL "S3 AWS" FORCE)
+      set(NETCDF_ENABLE_S3_AWS ON CACHE BOOL "S3 AWS" FORCE)
       target_include_directories(netcdf
         PRIVATE
           ${AWSSDK_INCLUDE_DIR}
       )
     else(AWSSDK_FOUND)
-      set(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
+      set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
     endif(AWSSDK_FOUND)
-  else(NOT ENABLE_S3_INTERNAL)
+  else(NOT NETCDF_ENABLE_S3_INTERNAL)
     # Find crypto libraries required with testing with the internal s3 api.
     #find_library(SSL_LIB NAMES ssl openssl)
     find_package(OpenSSL REQUIRED)
@@ -421,16 +421,16 @@ if(ENABLE_S3)
     #  message(FATAL_ERROR "Can't find a crypto library, required by S3_INTERNAL")
     #endif(NOT CRYPTO_LIB)
 
-  endif(NOT ENABLE_S3_INTERNAL)
+  endif(NOT NETCDF_ENABLE_S3_INTERNAL)
 else()
-  set(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
+  set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
 endif()
 
 ################################
 # LibXML
 ################################
 # see if we have libxml2
-if(ENABLE_LIBXML2)
+if(NETCDF_ENABLE_LIBXML2)
   find_package(LibXml2)
   if(LibXml2_FOUND)
     set(HAVE_LIBXML2 TRUE)
@@ -442,24 +442,22 @@ if(ENABLE_LIBXML2)
   else()
     set(HAVE_LIBXML2 FALSE)
   endif()
-endif(ENABLE_LIBXML2)
+endif(NETCDF_ENABLE_LIBXML2)
 
 ################################
 # MPI
-################################ 
-if(ENABLE_PARALLEL4 OR HDF5_PARALLEL)
+################################
+if(NETCDF_ENABLE_PARALLEL4 OR HDF5_PARALLEL)
   find_package(MPI REQUIRED)
 endif()
 
 ################################
-# parallel IO
+# Parallel IO
 ################################ 
-if(ENABLE_PNETCDF)
-  find_library(PNETCDF NAMES pnetcdf)
-  find_path(PNETCDF_INCLUDE_DIR pnetcdf.h)
-  if(NOT PNETCDF)
-    message(STATUS "Cannot find PnetCDF library. Disabling PnetCDF support.")
-    set(USE_PNETCDF OFF CACHE BOOL "")
+if(NETCDF_ENABLE_PNETCDF)
+  find_package(PNETCDF 1.6.0 REQUIRED)
+  if(NOT PNETCDF_HAS_RELAXED_COORD_BOUND)
+    message(FATAL_ERROR "Pnetcdf must be built with relax-coord-bound enabled")
   endif()
 endif()
 
@@ -467,7 +465,7 @@ endif()
 # Doxygen
 ################################ 
 
-if(ENABLE_DOXYGEN)
+if(NETCDF_ENABLE_DOXYGEN)
   find_package(Doxygen REQUIRED)
 endif()
 

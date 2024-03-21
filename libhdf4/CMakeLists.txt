@@ -18,7 +18,7 @@ target_sources(netcdfhdf4
         hdf4var.c
 )
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
     target_compile_definitions(netcdfhdf4 PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 

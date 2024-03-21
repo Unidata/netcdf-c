@@ -139,7 +139,7 @@ fprintf(stderr,"readDATADDS:\n");
         stat = readpacket(state,state->uri,state->packet,OCDATADDS,ocflags,&lastmod);
         if(stat == OC_NOERR)
             state->datalastmodified = lastmod;
-        tree->data.datasize = ncbyteslength(state->packet);
+        tree->data.datasize = (off_t)ncbyteslength(state->packet);
     } else { /*((flags & OCONDISK) != 0) */
         NCURI* url = state->uri;
         int fileprotocol = 0;
@@ -201,7 +201,7 @@ fprintf(stderr,"readfiletofile: written!=length: %lu :: %lu\n",
 	    stat = OC_EIO;
 	}
     }
-    if(sizep != NULL) *sizep = len;
+    if(sizep != NULL) *sizep = (off_t)len;
 unwind:
     ncbytesfree(packet);
     return OCTHROW(stat);

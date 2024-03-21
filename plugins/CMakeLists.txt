@@ -40,7 +40,7 @@ set(nczmisc_SOURCES NCZmisc.c)
 set(nczhdf5filters_SOURCES NCZhdf5filters.c)
 set(nczstdfilters_SOURCES NCZstdfilters.c)
 
-if(ENABLE_PLUGINS)
+if(NETCDF_ENABLE_PLUGINS)
 # LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
@@ -133,7 +133,7 @@ endif()
 if(Blosc_FOUND)
   installplugin(h5blosc)
 endif()
-if(ENABLE_NCZARR)
+if(NETCDF_ENABLE_NCZARR)
   installplugin(h5fletcher32)
   installplugin(h5shuffle)
   installplugin(h5deflate)
@@ -146,7 +146,7 @@ endif()
 
 endif(ENABLE_PLUGIN_INSTALL)
 
-endif(ENABLE_PLUGINS)
+endif(NETCDF_ENABLE_PLUGINS)
 
 # Copy some test files from current source dir to out-of-tree build dir.
 file(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
