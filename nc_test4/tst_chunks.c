@@ -79,7 +79,7 @@ main(int argc, char **argv)
 #define NUM_DIM 4
 #define NUM_TYPE 2
       int ncid;
-      int dim_len[NUM_DIM] = {NC_UNLIMITED, 100, 1000, 2000};
+      size_t dim_len[NUM_DIM] = {NC_UNLIMITED, 100, 1000, 2000};
       size_t chunksize_in[NUM_DIM];
       int type_id[NUM_TYPE] = {NC_BYTE, NC_INT};
       int dimid[NUM_DIM], varid[NUM_TYPE];
@@ -90,7 +90,7 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       for (d = 0; d < NUM_DIM; d++)
       {
-	 snprintf(dim_name, sizeof(dim_name), "dim_%d", dim_len[d]);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%zu", dim_len[d]);
 #ifdef PRINT_DEFAULT_CHUNKSIZE_TABLE
 	 printf("creating dim %s\n", dim_name);
 #endif
