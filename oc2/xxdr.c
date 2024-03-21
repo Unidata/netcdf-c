@@ -248,9 +248,7 @@ xxdr_skip_strings(XXDR* xdrs, off_t n)
 unsigned int
 xxdr_roundup(off_t n)
 {
-    unsigned int rounded;
-    rounded = RNDUP(n);
-    return rounded;
+    return (unsigned int)RNDUP(n);
 }
 
 unsigned int
@@ -280,7 +278,6 @@ static int
 xxdr_filegetbytes(XXDR* xdrs, char* addr, off_t len)
 {
     int ok = 1;
-    int count;
 
 xxdrtrace(xdrs,"getbytes",len);
     if(len < 0) len = 0;
@@ -295,8 +292,8 @@ xxdrtrace(xdrs,"getbytes",len);
     if(xdrs->pos + len > xdrs->length)
         return 0;
     if(len > 0) {
-        count = fread(addr, (size_t)len, (size_t)1, (FILE*)xdrs->data);
-        if(count <= 0) {
+        size_t count = fread(addr, (size_t)len, (size_t)1, (FILE*)xdrs->data);
+        if(count == 0) {
 	    ok=0;
 	    goto done;
 	}
