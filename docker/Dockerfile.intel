@@ -11,6 +11,7 @@ RUN apt update -y && \
         git \
         m4 \
         make \
+        unzip \
         wget \
         zlib1g-dev \
     && apt clean all
