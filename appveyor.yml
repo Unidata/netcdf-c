@@ -50,4 +50,6 @@ build_script:
 
 test_script:
   - cmd: cmake --build . --config Release --target install -- /maxcpucount:4
+  - cmd: cd ../integration_tests/fetch_content/build
+  - cmd: ctest -C Release -V
 
