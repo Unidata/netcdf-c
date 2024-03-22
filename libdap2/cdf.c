@@ -16,8 +16,8 @@ extern char* ocfqn(OCddsnode);
 static NCerror sequencecheckr(CDFnode* node, NClist* vars, CDFnode* topseq);
 static NCerror restructr(NCDAPCOMMON*, CDFnode*, CDFnode*, NClist*);
 static NCerror repairgrids(NCDAPCOMMON*, NClist*);
-static NCerror structwrap(NCDAPCOMMON*, CDFnode*, CDFnode*, int, CDFnode*, int);
-static int findin(CDFnode* parent, CDFnode* child);
+static NCerror structwrap(NCDAPCOMMON*, CDFnode*, CDFnode*, size_t, CDFnode*);
+static size_t findin(CDFnode* parent, CDFnode* child);
 static CDFnode* makenewstruct(NCDAPCOMMON*, CDFnode*, CDFnode*);
 static NCerror mapnodesr(CDFnode*, CDFnode*, int depth);
 static NCerror mapfcn(CDFnode* dstnode, CDFnode* srcnode);
@@ -135,10 +135,10 @@ fprintf(stderr,"computevarnodes: var: %s\n",makecdfpathstring(node,"."));
 NCerror
 fixgrid(NCDAPCOMMON* nccomm, CDFnode* grid)
 {
-    unsigned int i,glen;
+    unsigned int i;
     CDFnode* array;
 
-    glen = nclistlength(grid->subnodes);
+    size_t glen = nclistlength(grid->subnodes);
     array = (CDFnode*)nclistget(grid->subnodes,0);
     if(nccomm->controls.flags & (NCF_NC3)) {
         /* Rename grid Array: variable, but leave its oc base name alone */
@@ -507,10 +507,9 @@ repairgrids(NCDAPCOMMON* ncc, NClist* repairlist)
     for(i=0;i<nclistlength(repairlist);i+=2) {
 	CDFnode* node = (CDFnode*)nclistget(repairlist,i);
 	CDFnode* pattern = (CDFnode*)nclistget(repairlist,i+1);
-	int index = findin(node->container,node);
-	int tindex = findin(pattern->container,pattern);
+	size_t index = findin(node->container,node);
 	ncstat = structwrap(ncc, node,node->container,index,
-                             pattern->container,tindex);
+                             pattern->container);
 #ifdef DEBUG
 fprintf(stderr,"repairgrids: %s -> %s\n",
 ocfqn(node->ocnode),ocfqn(pattern->ocnode));
@@ -521,8 +520,8 @@ ocfqn(node->ocnode),ocfqn(pattern->ocnode));
 }
 
 static NCerror
-structwrap(NCDAPCOMMON* ncc, CDFnode* node, CDFnode* parent, int parentindex,
-                           CDFnode* patterngrid, int gridindex)
+structwrap(NCDAPCOMMON* ncc, CDFnode* node, CDFnode* parent, size_t parentindex,
+                           CDFnode* patterngrid)
 {
     CDFnode* newstruct;
 
@@ -539,12 +538,11 @@ structwrap(NCDAPCOMMON* ncc, CDFnode* node, CDFnode* parent, int parentindex,
     return NC_NOERR;
 }
 
-static int
+static size_t
 findin(CDFnode* parent, CDFnode* child)
 {
-    size_t i;
     NClist* subnodes = parent->subnodes;
-    for(i=0;i<nclistlength(subnodes);i++) {
+    for(size_t i=0;i<nclistlength(subnodes);i++) {
 	if(nclistget(subnodes,i) == child)
 	    return i;
     }

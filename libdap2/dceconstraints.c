@@ -601,7 +601,7 @@ dcedump(DCEnode* node, NCbytes* buf)
     case CES_SEGMENT: {
 	DCEsegment* segment = (DCEsegment*)node;
 	char* name = (segment->name?segment->name:"<unknown>");
-        int rank = segment->rank;
+	size_t rank = segment->rank;
 	int i;
 	name = nulldup(name);
 	ncbytescat(buf,name);
@@ -955,7 +955,7 @@ dcesegment_transpose(DCEsegment* segment,
 size_t
 dcesegmentsize(DCEsegment* seg, size_t start, size_t stop)
 {
-    int i, count;
+    size_t i, count;
     if(!seg->slicesdefined) return 0; /* actually, we don't know */
     for(count=1,i=start;i<stop;i++) {
 	count *= seg->slices[i].count;
@@ -1036,7 +1036,7 @@ dcedumpraw(DCEnode* node, NCbytes* buf)
 
     case CES_SEGMENT: {
 	DCEsegment* segment = (DCEsegment*)node;
-        int rank = segment->rank;
+	size_t rank = segment->rank;
 	char* name = (segment->name?segment->name:"<unknown>");
 	ncbytescat(buf," name=");
 	ncbytescat(buf,name);

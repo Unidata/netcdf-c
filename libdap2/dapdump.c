@@ -22,7 +22,7 @@ static void dumptreer(CDFnode* root, NCbytes* buf, int indent, int visible);
 int
 dumpmetadata(int ncid, NChdr** hdrp)
 {
-    int stat,i,j,k;
+    int stat,i,j;
     NChdr* hdr = (NChdr*)calloc(1,sizeof(NChdr));
     MEMCHECK(hdr,NC_ENOMEM);
     hdr->ncid = ncid;
@@ -74,7 +74,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	    MEMCHECK(values,NC_ENOMEM);
 	    stat = nc_get_att(hdr->ncid,NC_GLOBAL,att->name,values);
             CHECK(stat);
-	    for(k=0;k<nvalues;k++) {
+	    for(size_t k=0;k<nvalues;k++) {
 		fprintf(stdout," ");
 		dumpdata1(octypetonc(att->etype),k,values);
 	    }
@@ -141,7 +141,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
             CHECK(stat);
 	    fprintf(stdout,"\tattr[%d]: name=%s type=%s values(%lu)=",
 			j,att->name,nctypetostring(octypetonc(att->etype)),(unsigned long)nvalues);
-	    for(k=0;k<nvalues;k++) {
+	    for(size_t k=0;k<nvalues;k++) {
 		fprintf(stdout," ");
 		dumpdata1(octypetonc(att->etype),k,values);
 	    }
