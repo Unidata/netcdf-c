@@ -42,3 +42,11 @@ build_script:
 
 test_script:
   - cmd: cmake --build . --config Release --target install -- /maxcpucount:4
+
+fetch_content:
+  - cmd: cd integration_tests/fetch_content
+  - cmd: mkdir build
+  - cmd: cd build
+  - cmd: cmake ..
+  - cmd: cmake --build . --config Release -- /maxcpucount:4
+  - cmd: ctest -C Release -V
