@@ -18,8 +18,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          submodules: recursive
 
       # Some base images, like nvidia or intel, are very large and cannot be built by github
       # This tool cache folder is only necessary if you are building the image in the same runner

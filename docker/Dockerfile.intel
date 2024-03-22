@@ -18,8 +18,7 @@ RUN apt update -y && \
 # Set working directory
 WORKDIR /usr/local/src
 
-# Clone NetCDF source code from Git
-RUN git clone https://github.com/Unidata/netcdf-c.git
+COPY . netcdf-c
 
 # Set environment variables for Intel compilers
 ENV CC=icx
@@ -32,4 +31,4 @@ RUN cmake -S . -B build && \
     cd build && make -j  && \
     make install
 
-WORKDIR /usr/local
+WORKDIR /usr/local/src/netcdf-c/build
