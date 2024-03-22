@@ -141,7 +141,7 @@
 
 extern int numGatts;  /* number of global attributes */
 extern int numVars;   /* number of variables */
-extern int numTypes;  /* number of netCDF data types to test */
+extern size_t numTypes;  /* number of netCDF data types to test */
 
 
     /* Limits of internal types */

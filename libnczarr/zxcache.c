@@ -675,7 +675,7 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     }
 
 
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     /* Make sure the entry is in filtered state */
     if(!entry->isfiltered) {
         NC_VAR_INFO_T* var = cache->var;
@@ -792,7 +792,7 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
 	if((stat = NCZ_copy_data(file,cache->var,cache->fillchunk,cache->chunkcount,ZREADING,entry->data))) goto done;
 	stat = NC_NOERR;
     }
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     /* Make sure the entry is in unfiltered state */
     if(!empty && entry->isfiltered) {
         NC_VAR_INFO_T* var = cache->var;

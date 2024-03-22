@@ -2440,7 +2440,7 @@ APIFunc(get_file_version)(char *path, int *version)
    if (strncmp(magic, "CDF", MAGIC_NUM_LEN-1)==0) {
       if (magic[MAGIC_NUM_LEN-1] == NC_FORMAT_CLASSIC ||
           magic[MAGIC_NUM_LEN-1] == NC_FORMAT_64BIT_OFFSET
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
           || magic[MAGIC_NUM_LEN-1] == NC_FORMAT_CDF5
 #endif
 )

@@ -503,7 +503,7 @@ The relevant ./configure options are as follows.
 
 The relevant CMake flags are as follows.
 
-1. *-DENABLE_NCZARR=off* -- equivalent to the Automake *--disable-nczarr* option.
+1. *-DNETCDF_ENABLE_NCZARR=off* -- equivalent to the Automake *--disable-nczarr* option.
 ## Testing NCZarr S3 Support {#nczarr_testing_S3_support}
 
 The relevant tests for S3 support are in the _nczarr_test_ directory.
@@ -527,7 +527,7 @@ also test S3 support with this option.
 
 Enabling S3 support is controlled by this cmake option:
 ````
--DENABLE_S3=ON
+-DNETCDF_ENABLE_S3=ON
 ````
 However, to find the aws sdk libraries,
 the following environment variables must be set:

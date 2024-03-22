@@ -28,22 +28,22 @@ t_dap3a_SOURCES = t_dap3a.c t_srcdir.h
 test_cvt3_SOURCES = test_cvt.c t_srcdir.h
 test_vara_SOURCES = test_vara.c t_srcdir.h
 
-if ENABLE_DAP
+if NETCDF_ENABLE_DAP
 check_PROGRAMS += t_dap3a test_cvt3 test_vara
 TESTS += t_dap3a test_cvt3 test_vara
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 TESTS += tst_ncdap3.sh
 endif
 
 # remote tests are optional
 # because the server may be down or inaccessible
 
-if ENABLE_DAP_REMOTE_TESTS
+if NETCDF_ENABLE_DAP_REMOTE_TESTS
 noinst_PROGRAMS = findtestserver pingurl
 findtestserver_SOURCES = findtestserver.c
 pingurl_SOURCES = pingurl.c
 
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh tst_zero_len_var.sh
 endif
 
@@ -55,10 +55,10 @@ TESTS += tst_hyrax.sh
 
 TESTS += test_partvar
 
-if ENABLE_DAP_LONG_TESTS
+if NETCDF_ENABLE_DAP_LONG_TESTS
  TESTS += tst_longremote3.sh
  tst_longremote3.log: tst_remote3.log
-if ENABLE_EXTERNAL_SERVER_TESTS
+if NETCDF_ENABLE_EXTERNAL_SERVER_TESTS
  test_manyurls_SOURCES = test_manyurls.c manyurls.h
  check_PROGRAMS += test_manyurls
  test_manyurls.log: tst_longremote3.log
@@ -84,13 +84,13 @@ check_PROGRAMS += test_partvar
 check_PROGRAMS += t_misc
 check_PROGRAMS += t_ncf330
 
-if ENABLE_DAP_AUTH_TESTS
+if NETCDF_ENABLE_DAP_AUTH_TESTS
 TESTS += testauth.sh
 endif
 
-endif #ENABLE_DAP_REMOTE_TESTS
+endif #NETCDF_ENABLE_DAP_REMOTE_TESTS
 
-endif #ENABLE_DAP
+endif #NETCDF_ENABLE_DAP
 
 # Need to add subdirs
 SUBDIRS = testdata3 expected3 expectremote3 expectedhyrax

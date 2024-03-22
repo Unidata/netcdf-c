@@ -17,7 +17,7 @@
 
 /* Forward */
 static OCdata* newocdata(OCnode* pattern);
-static size_t ocxdrsize(OCtype etype,int isscalar);
+static off_t ocxdrsize(OCtype etype,int isscalar);
 static OCerror occompile1(OCstate*, OCnode*, XXDR*, OCdata**);
 static OCerror occompilerecord(OCstate*, OCnode*, XXDR*, OCdata**);
 static OCerror occompilefields(OCstate*, OCdata*, XXDR*, int istoplevel);
@@ -289,7 +289,7 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
 {
     OCerror ocstat = OC_NOERR;
     int i;
-    off_t nelements,xdrsize;
+    off_t xdrsize;
     unsigned int xxdrcount;
     OCnode* xnode = data->pattern;
     int scalar = (xnode->array.rank == 0);
@@ -298,7 +298,7 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
 
     if(!scalar) {
         /* Use the count from the datadds */
-        nelements = octotaldimsize(xnode->array.rank,xnode->array.sizes);
+        size_t nelements = octotaldimsize(xnode->array.rank,xnode->array.sizes);
         /* Get first copy of the dimension count */
         if(!xxdr_uint(xxdrs,&xxdrcount)) {ocstat = OC_EXDR; goto fail;}
         if(xxdrcount != nelements) {ocstat=OCTHROW(OC_EINVALCOORDS); goto fail;}
@@ -308,7 +308,6 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
             if(xxdrcount != nelements) {ocstat=OCTHROW(OC_EINVALCOORDS); goto fail;}
         }
     } else { /*scalar*/
-	nelements = 1;
 	xxdrcount = 1;
     }
 
@@ -324,7 +323,7 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
     case OC_Int64: case OC_UInt64:
     case OC_Float32: case OC_Float64:
 	/* Skip the data */
-	xxdr_skip(xxdrs,data->ninstances*data->xdrsize);
+	xxdr_skip(xxdrs,(off_t)data->ninstances*data->xdrsize);
 	break;
 
     /* Do the fixed sized, possibly packed cases */
@@ -332,7 +331,7 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
     case OC_UByte:
     case OC_Char:
 	/* Get the totalsize and round up to multiple of XDRUNIT */
-	xdrsize = data->ninstances*data->xdrsize;
+	xdrsize = (off_t)data->ninstances*data->xdrsize;
 	xdrsize = RNDUP(xdrsize);
 	/* Skip the data */
 	xxdr_skip(xxdrs,xdrsize);
@@ -419,7 +418,7 @@ istoplevel(OCnode* node)
 
 
 /* XDR representation size depends on if this is scalar or not */
-static size_t
+static off_t
 ocxdrsize(OCtype etype, int isscalar)
 {
     switch (etype) {

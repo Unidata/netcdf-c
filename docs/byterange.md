@@ -32,7 +32,7 @@ currently do any sort of optimization or caching.
 
 This capability is enabled using the option *--enable-byterange* option
 to the *./configure* command for Automake. For Cmake, the option flag is
-*-DENABLE_BYTERANGE=true*.
+*-DNETCDF_ENABLE_BYTERANGE=true*.
 
 This capability requires access to *libcurl*, and an error will occur
 if byterange is enabled, but *libcurl* could not be located.

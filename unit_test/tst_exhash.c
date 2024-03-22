@@ -170,7 +170,7 @@ main(int argc, char** argv)
 	    ncexhashkey_t rehash;
 	    if((stat = ncexhashiterate(map, &hashkey, &data)) == NC_EINVAL) CHECK(stat);
 	    if(stat == NC_ERANGE) break;
-	    rehash = hkeyfor(data - (*np));
+	    rehash = hkeyfor((unsigned int)data - (*np));
 	    assert(hashkey == rehash);
         }
     }

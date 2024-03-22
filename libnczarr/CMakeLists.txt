@@ -46,11 +46,11 @@ zfilter.h
 zdebug.h
 )
 
-if(ENABLE_NCZARR_ZIP)
+if(NETCDF_ENABLE_NCZARR_ZIP)
     set(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
 endif()
 
-if(ENABLE_S3) 
+if(NETCDF_ENABLE_S3) 
     set(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_s3sdk.c)
 endif()
 
@@ -69,7 +69,7 @@ if(STATUS_PARALLEL)
     target_link_libraries(nczarr PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
     target_compile_definitions(nczarr PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 

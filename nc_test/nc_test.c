@@ -4,13 +4,12 @@
  *   $Id: nc_test.c 2796 2014-10-28 03:40:29Z wkliao $
  *********************************************************************/
 
-int numGatts;  /* number of global attributes */
-int numVars;   /* number of variables */
-int numTypes;  /* number of netCDF data types to test */
-
 #include "tests.h"
 #include "config.h"
 
+int numGatts;  /* number of global attributes */
+int numVars;   /* number of variables */
+size_t numTypes;  /* number of netCDF data types to test */
 
 /*
  * Test driver for netCDF-3 interface.  This program performs tests against
@@ -134,7 +133,7 @@ main(int argc, char *argv[])
 	     break;
 
 	  case NC_FORMAT_CDF5:
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
         nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	     fprintf(stderr, "\n\nSwitching to 64-bit data format.\n");
 	     strcpy(testfile, "nc_test_cdf5.nc");

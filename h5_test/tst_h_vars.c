@@ -252,7 +252,6 @@ main()
         size_t namelen = MAX_NAME;
         char name[MAX_NAME + 1];
         int found_shuffle = 0, found_fletcher32 = 0, found_deflate = 0;
-        int f;
 
         /* Open file and create group. */
         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
@@ -290,7 +289,7 @@ main()
          * found in H5Zpublic.h. */
         if ((num_filters = H5Pget_nfilters(propid)) < 0) ERR;
         if (num_filters != 3) ERR;
-        for (f = 0; f < num_filters; f++)
+        for (unsigned int f = 0; f < num_filters; f++)
         {
             if ((filter = H5Pget_filter2(propid, f, &flags, &cd_nelems, cd_values,
                                          namelen, name, &filter_config)) < 0) ERR;
