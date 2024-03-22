@@ -1,0 +1,34 @@
+name: Docker
+
+on: [pull_request,workflow_dispatch]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  docker-build-and-test:
+    name: Build and Test - ${{ matrix.dockerfile }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile:
+          - Dockerfile.intel
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      # Some base images, like nvidia or intel, are very large and cannot be built by github
+      # This tool cache folder is only necessary if you are building the image in the same runner
+      # Since we are only building docker images, we don't need it
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+
+      - name: Build Docker image
+        run: docker build -t netcdf -f docker/${{ matrix.dockerfile }} .
+
+      - name: Run tests in container
+        run: docker run --name test-container -t netcdf bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'

@@ -1,0 +1,35 @@
+# versions and sizes from here: https://hub.docker.com/r/intel/oneapi-hpckit/tags
+FROM intel/oneapi-hpckit:latest
+
+# Install necessary dependencies
+RUN apt update -y && \
+    apt install -y \
+        bzip2 \
+        cmake \
+        libcurl4-openssl-dev \
+        libhdf5-dev \
+        git \
+        m4 \
+        make \
+        wget \
+        zlib1g-dev \
+    && apt clean all
+
+# Set working directory
+WORKDIR /usr/local/src
+
+# Clone NetCDF source code from Git
+RUN git clone https://github.com/Unidata/netcdf-c.git
+
+# Set environment variables for Intel compilers
+ENV CC=icx
+ENV CXX=icpx
+ENV FC=ifx
+
+# Build and install NetCDF
+WORKDIR /usr/local/src/netcdf-c
+RUN cmake -S . -B build && \
+    cd build && make -j  && \
+    make install
+
+WORKDIR /usr/local
