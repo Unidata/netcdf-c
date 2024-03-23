@@ -15,6 +15,7 @@ jobs:
       matrix:
         dockerfile:
           - Dockerfile.intel
+          - Dockerfile.nvhpc
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
