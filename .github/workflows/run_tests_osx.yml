@@ -478,3 +478,51 @@ jobs:
           cd build
           LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
         if: ${{ failure() }}
+
+  fetch_content_cmake:
+    needs: build-deps-osx
+    runs-on: macos-12
+    strategy:
+      matrix:
+        hdf5: [ 1.12.2, 1.14.3 ]
+    steps:
+      - uses: actions/checkout@v3
+
+    ###
+    # Set Environmental Variables
+    ###
+
+      - run: echo "CMAKE_PREFIX_PATH=${HOME}/environments/${{ matrix.hdf5 }}/" >> $GITHUB_ENV
+      - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
+
+    ###
+    # Fetch Cache
+    ###
+      - name: Fetch HDF Cache
+        id: cache-hdf5-osx
+        uses: actions/cache@v3
+        with:
+          path: ~/environments/${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+
+      - name: Check Cache
+        shell: bash -l {0}
+        run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
+
+    ###
+    # Configure and build
+    ###
+      - name: Run Cmake 
+        run: |
+          cd integration_tests/fetch_content
+          cmake -S . -B build 
+
+      - name: Build
+        run: |
+          cd integration_tests/fetch_content
+          cmake --build build --parallel
+
+      - name: Run tests
+        run: |
+          cd integration_tests/fetch_content/build
+          ctest --rerun-failed --output-on-failure . --verbose

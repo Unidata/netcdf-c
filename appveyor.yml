@@ -39,6 +39,15 @@ build_script:
   - cmd: cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%INSTALL_LOC% -DNETCDF_ENABLE_BASH_SCRIPT_TESTING=OFF -DNETCDF_ENABLE_FILTER_TESTING=OFF -DNETCDF_ENABLE_BYTERANGE=ON
   - cmd: if errorlevel 1 exit 1
   - cmd: cmake --build . --config Release -- /maxcpucount:4
+  # Check fetch content integration
+  - cmd: cd ../integration_tests/fetch_content
+  - cmd: mkdir build
+  - cmd: cd build
+  - cmd: cmake ..
+  - cmd: cmake --build . --config Release -- /maxcpucount:4
+  # go back to the first build directory
+  - cmd: cd ../../../build
 
 test_script:
   - cmd: cmake --build . --config Release --target install -- /maxcpucount:4
+
