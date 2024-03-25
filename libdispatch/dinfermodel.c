@@ -1187,18 +1187,18 @@ cleancommalist(const char* commalist, int caseinsensitive)
 static void
 cleanstringlist(NClist* strs, int caseinsensitive)
 {
-    int j;
     if(nclistlength(strs) == 0) return;
     /* Remove nulls */
     for(size_t i = nclistlength(strs); i-->0;) {
         if(nclistget(strs,i)==NULL) nclistremove(strs,i);
     }
+    if(nclistlength(strs) <= 1) return;
     /* Remove duplicates*/
     for(size_t i=0;i<nclistlength(strs);i++) {
         const char* value = nclistget(strs,i);
-	/* look ahead for duplicates */
-        for(j=nclistlength(strs)-1;j>i;j--) {
-	    int match;
+        /* look ahead for duplicates */
+        for(size_t j=nclistlength(strs)-1;j>i;j--) {
+            int match;
             const char* candidate = nclistget(strs,j);
             if(caseinsensitive)
                 match = (strcasecmp(value,candidate) == 0);
