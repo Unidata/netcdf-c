@@ -26,7 +26,7 @@ if USE_DAP
 noinst_HEADERS += ncdap.h
 endif
 
-if ENABLE_BYTERANGE
+if NETCDF_ENABLE_BYTERANGE
 noinst_HEADERS += nchttp.h
 endif
 

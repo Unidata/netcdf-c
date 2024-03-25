@@ -684,7 +684,7 @@ get_mem_used2(int *mem_used)
    {
       (void)fscanf(pf, "%u %u %u %u %u %u", &size, &resident, &share,
 	     &text, &lib, &data);
-      *mem_used = (data * page_size) / MEGABYTE;
+      *mem_used = (int)(data * page_size) / MEGABYTE;
    }
    else
       *mem_used = -1;

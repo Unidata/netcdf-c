@@ -108,7 +108,7 @@ main()
 
     printf("*** Checking HDF5 file creates and opens some more...");
     {
-        int objs;
+        ssize_t objs;
         hid_t fileid, fileid2, grpid, access_plist;
 
         /* Set the access list so that closes will fail if something is
@@ -178,7 +178,7 @@ main()
         hsize_t dims[1];
         int *data;
         int num_steps;
-        int i, s;
+        int i;
 
         /* We will write the same slice of random data over and over to
          * fill the file. */
@@ -206,7 +206,7 @@ main()
         /* Write the data in num_step steps. */
         num_steps = DIM1_LEN/SC;
         count[0] = SC;
-        for (s = 0; s < num_steps; s++)
+        for (hsize_t s = 0; s < num_steps; s++)
         {
             /* Select hyperslab for write of one slice. */
             start[0] = s * SC;

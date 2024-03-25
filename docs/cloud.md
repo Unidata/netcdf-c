@@ -119,8 +119,8 @@ Note also that if S3 support is enabled, then you need to have a C++ compiler in
 
 The necessary CMake flags are as follows (with defaults)
 
-1. *-DENABLE_S3* -- Controll S3 support
-2. *-DENABLE_S3_INTERNAL* -- Force use of the *nch5s3comms* SDK instead of the *aws-cpp-sdk*.
+1. *-DNETCDF_ENABLE_S3* -- Controll S3 support
+2. *-DNETCDF_ENABLE_S3_INTERNAL* -- Force use of the *nch5s3comms* SDK instead of the *aws-cpp-sdk*.
 3. *-DWITH-S3-TESTING_=ON|OFF|PUBLIC -- "ON" means do all S3 tests, "OFF" means do no S3 testing, "PUBLIC" means do only those tests that involve publically accessible S3 data.
 
 Note that unlike Automake, CMake can properly locate C++ libraries, so it should not be necessary to specify _-laws-cpp-sdk-s3_ assuming that the aws s3 libraries are installed in the default location.
@@ -267,7 +267,7 @@ This is an experimental SDK provided internally in the netcdf-c library.
 
 ### Build Options
 
-In order to enable this SDK, the Automake option *--enable-s3-internal* or the CMake option *-DENABLE_S3_INTERNAL=ON* must be specified.
+In order to enable this SDK, the Automake option *--enable-s3-internal* or the CMake option *-DNETCDF_ENABLE_S3_INTERNAL=ON* must be specified.
 
 ### Testing S3 Support {#nccloud_testing_S3_support}
 

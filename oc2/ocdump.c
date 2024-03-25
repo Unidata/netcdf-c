@@ -38,7 +38,7 @@ static void
 tabto(int pos, NCbytes* buffer)
 {
     int bol,len,pad;
-    len = ncbyteslength(buffer);
+    len = (int)ncbyteslength(buffer);
     /* find preceding newline */
     for(bol=len-1;;bol--) {
 	int c = ncbytesget(buffer,(size_t)bol);
@@ -233,7 +233,7 @@ addfield(char* field, size_t llen, char* line, int align)
     int len,rem;
     strlcat(line,"|",llen);
     strlcat(line,field,llen);
-    len = strlen(field);
+    len = (int)strlen(field);
     rem = (align - len);
     while(rem-- > 0) strlcat(line," ",llen);
 }
@@ -312,7 +312,7 @@ dumpfield(size_t index, char* n8, int isxdr)
 static void
 typedmemorydump(char* memory, size_t len, int fromxdr)
 {
-    unsigned int i,count,rem;
+    unsigned int i,rem;
     char line[1024];
     char* pmem;
     char mem[8];
@@ -331,7 +331,7 @@ typedmemorydump(char* memory, size_t len, int fromxdr)
     strlcat(line,"\n",sizeof(line));
     fprintf(stdout,"%s",line);
 
-    count = (len / sizeof(int));
+    size_t count = (len / sizeof(int));
     rem = (len % sizeof(int));
 
     for(pmem=memory,i=0;i<count;i++,pmem+=4) {
@@ -353,7 +353,7 @@ typedmemorydump(char* memory, size_t len, int fromxdr)
 static void
 simplememorydump(char* memory, size_t len, int fromxdr)
 {
-    unsigned int i,count,rem;
+    unsigned int i,rem;
     int* imemory;
     char tmp[32];
     char line[1024];
@@ -367,7 +367,7 @@ simplememorydump(char* memory, size_t len, int fromxdr)
     addfield("!XDR (hex)",sizeof(line),line,10);
     fprintf(stdout,"%s\n",line);
 
-    count = (len / sizeof(int));
+    size_t count = (len / sizeof(int));
     rem = (len % sizeof(int));
     if(rem != 0)
 	fprintf(stderr,"ocdump: |mem|%%4 != 0\n");
@@ -409,7 +409,6 @@ ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
 {
     char* mem = NULL;
     size_t len;
-    long red;
     struct stat stats;
     long pos;
     OCerror stat = OC_NOERR;
@@ -433,14 +432,14 @@ ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
 	stat = OC_ERCFILE;
 	goto done;
     }
-    len = stats.st_size;
-    len -= datastart;
+    len = (size_t)stats.st_size;
+    len -= (size_t)datastart;
 
     mem = (char*)calloc(len+1,1);
     if(mem == NULL) {stat = OC_ENOMEM; goto done;}
 
     /* Read only the data part */
-    red = fread(mem,1,len,file);
+    size_t red = fread(mem,1,len,file);
     if(red < len) {
 	fprintf(stderr,"ocreadfile: short file\n");
 	stat = OC_ERCFILE;
@@ -481,8 +480,8 @@ ocdd(OCstate* state, OCnode* root, int xdrencoded, int level)
     } else {
         mem = root->tree->data.memory;
         mem += root->tree->data.bod;
-        len = root->tree->data.datasize;
-        len -= root->tree->data.bod;
+        len = (size_t)root->tree->data.datasize;
+        len -= (size_t)root->tree->data.bod;
         ocdumpmemory(mem,len,xdrencoded,level);
     }
 }
@@ -651,8 +650,8 @@ ocdumpdatapath(OCstate* state, OCdata* data, NCbytes* buffer)
 	}
 	if(pattern->octype == OC_Atomic) {
 	    if(pattern->array.rank > 0) {
-	        off_t xproduct = octotaldimsize(pattern->array.rank,pattern->array.sizes);
-	        snprintf(tmp,sizeof(tmp),"[0..%lu]",(unsigned long)xproduct-1);
+	        size_t xproduct = octotaldimsize(pattern->array.rank,pattern->array.sizes);
+	        snprintf(tmp,sizeof(tmp),"[0..%lu]",xproduct-1);
 	        ncbytescat(buffer,tmp);
 	    }
 	}

@@ -27,7 +27,7 @@
 #include "nclog.h"
 #include "ncrc.h"
 #include "nchttp.h"
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
 #include "ncs3sdk.h"
 #endif
 
@@ -61,7 +61,7 @@ struct MagicFile {
 #endif
     char* curlurl; /* url to use with CURLOPT_SET_URL */
     NC_HTTP_STATE* state;
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
     NCS3INFO s3;
     void* s3client;
     char* errmsg;
@@ -902,7 +902,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
         ncurisetfragments(uri,sfrag);
         nullfree(sfrag); sfrag = NULL;
 
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
 	/* If s3, then rebuild the url */
 	if(NC_iss3(uri,NULL)) {
 	    NCURI* newuri = NULL;
@@ -1323,7 +1323,7 @@ openmagic(struct MagicFile* file)
 	goto done;
     }
     if(file->uri != NULL) {
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
 	/* Construct a URL minus any fragment */
         file->curlurl = ncuribuild(file->uri,NULL,NULL,NCURISVC);
 	/* Open the curl handle */
@@ -1411,7 +1411,7 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 	printmagic("XXX: readmagic",magic,file);
 #endif
     } else if(file->uri != NULL) {
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
 	fileoffset_t start = (size_t)pos;
 	fileoffset_t count = MAGIC_NUMBER_LEN;
         status = nc_http_read(file->state, start, count, buf);
@@ -1466,7 +1466,7 @@ closemagic(struct MagicFile* file)
     if(fIsSet(file->omode,NC_INMEMORY)) {
 	/* noop */
     } else if(file->uri != NULL) {
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
 	    status = nc_http_close(file->state);
 #endif
 	    nullfree(file->curlurl);

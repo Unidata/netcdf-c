@@ -480,7 +480,7 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 	        NC_hashmapremove(ncp->dims.hashmap, old->cp, strlen(old->cp), NULL);
 		dimp->name = newStr;
 
-		intdata = dimid;
+		intdata = (uintptr_t)dimid;
 		NC_hashmapadd(ncp->dims.hashmap, intdata, newStr->cp, strlen(newStr->cp));
 		free_NC_string(old);
 		goto done;

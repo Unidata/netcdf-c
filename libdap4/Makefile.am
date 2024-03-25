@@ -53,7 +53,7 @@ d4odom.h \
 d4bytes.h \
 d4includes.h
 
-if ENABLE_DAP4
+if NETCDF_ENABLE_DAP4
 if USE_NETCDF4
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4
 endif
@@ -64,4 +64,4 @@ libdap4_la_SOURCES = $(SRC) $(HDRS)
 libdap4_la_CPPFLAGS += $(AM_CPPFLAGS)
 libdap4_la_LIBADD =
 
-endif # ENABLE_DAP4
+endif # NETCDF_ENABLE_DAP4

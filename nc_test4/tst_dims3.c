@@ -256,7 +256,7 @@ main(int argc, char **argv)
        size_t start[1] = {0};
        size_t count[1] = {NY};
        int ydata[NY];
-       int y, i;
+       int i;
        size_t len_in;
 
        /* Fill Y data array. */
@@ -288,7 +288,7 @@ main(int argc, char **argv)
        if (len_in != 0) ERR;
 
        /* Read and check each value of the coordinate var. */
-       for (y = 0; y < NY; y++)
+       for (size_t y = 0; y < NY; y++)
        {
            size_t index = y;
            int data_in;
@@ -313,7 +313,7 @@ main(int argc, char **argv)
        size_t count2[NDIM2] = {1, 1};
        int ydata[NY];
        int data = TEST_VAL_42;
-       int x, y, i;
+       int x, i;
 
        /* Fill Y data array. */
        for (i = 0; i < NY; ++i)
@@ -344,9 +344,9 @@ main(int argc, char **argv)
        if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
        /* Read and check each value with nc_get_var1_int(). */
-       for (x = 0; x < NX; x++)
+       for (size_t x = 0; x < NX; x++)
        {
-           for (y = 0; y < NY; y++)
+           for (size_t y = 0; y < NY; y++)
            {
                size_t index[NDIM2] = {y, x};
                int data_in;
@@ -364,7 +364,7 @@ main(int argc, char **argv)
        }
 
        /* Read and check each row with nc_get_vara_int(). */
-       for (y = 0; y < NY; y++)
+       for (size_t y = 0; y < NY; y++)
        {
            size_t start_row[NDIM2] = {y, 0};
            size_t count_row[NDIM2] = {1, NX};

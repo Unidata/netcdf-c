@@ -84,7 +84,7 @@ getformat(const char* sformat)
 #ifdef USE_HDF5
     return NC_FORMATX_NC4;
 #else
-#  ifdef ENABLE_NCZARR
+#  ifdef NETCDF_ENABLE_NCZARR
     return NC_FORMATX_NCZARR;
 #  endif
 #endif

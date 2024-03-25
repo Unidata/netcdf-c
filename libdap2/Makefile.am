@@ -24,7 +24,7 @@ HDRS= nccommon.h constraints.h ncd2dispatch.h dapincludes.h 	\
 dapodom.h getvara.h dapnc.h daputil.h dapdebug.h dapdump.h		\
 dceconstraints.h dcetab.h dceparselex.h
 
-if ENABLE_DAP
+if NETCDF_ENABLE_DAP
 
 if USE_NETCDF4
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4
@@ -44,7 +44,7 @@ libdap2_la_LIBADD =
 #	 ${top_builddir}/oc2/liboc.la			\
 #	 ${top_builddir}/libdispatch/libdispatch.la
 #
-endif # ENABLE_DAP
+endif # NETCDF_ENABLE_DAP
 
 # These rule are used if someone wants to rebuild the grammar files.
 # Otherwise never invoked, but records how to do it.

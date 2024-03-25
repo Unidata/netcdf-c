@@ -297,7 +297,7 @@ main()
 #endif
       HDF5_OBJID_T dimscale_obj[2], vars_dimscale_obj[2];
       int dimscale_cnt = 0;
-      int d, ndims;
+      int ndims;
 
       /* Open the file. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
@@ -355,7 +355,7 @@ main()
 		  if (num_scales != 1) ERR;
 
 		  /* Go through all dimscales for this var and learn about them. */
-		  for (d = 0; d < ndims; d++)
+		  for (unsigned int d = 0; d < ndims; d++)
 		  {
 		     if (H5DSiterate_scales(datasetid, d, NULL, alien_visitor2,
 		     &(vars_dimscale_obj[d])) < 0) ERR;
@@ -420,7 +420,7 @@ main()
 #endif
       HDF5_OBJID_T dimscale_obj[2], vars_dimscale_obj[2];
       int dimscale_cnt = 0;
-      int d, ndims;
+      int ndims;
 
       /* Create file access and create property lists. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
@@ -553,7 +553,7 @@ main()
 		  if (num_scales != 1) ERR;
 
 		  /* Go through all dimscales for this var and learn about them. */
-		  for (d = 0; d < ndims; d++)
+		  for (unsigned int d = 0; d < ndims; d++)
 		  {
 		     if (H5DSiterate_scales(datasetid, d, NULL, alien_visitor2,
 					    &(vars_dimscale_obj[d])) < 0) ERR;
@@ -743,7 +743,7 @@ main()
 #endif
       HDF5_OBJID_T dimscale_obj[NUM_DIMSCALES1], vars_dimscale_obj[NUM_DIMSCALES1];
       int dimscale_cnt = 0;
-      int d, ndims;
+      int ndims;
 
       /* Create file access and create property lists. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
@@ -874,7 +874,7 @@ main()
 		  if (num_scales != 1) ERR;
 
 		  /* Go through all dimscales for this var and learn about them. */
-		  for (d = 0; d < ndims; d++)
+		  for (unsigned int d = 0; d < ndims; d++)
 		  {
 		     if (H5DSiterate_scales(datasetid, d, NULL, alien_visitor2,
 		     &(vars_dimscale_obj[d])) < 0) ERR;
@@ -947,7 +947,7 @@ main()
 #endif
       HDF5_OBJID_T dimscale_obj[NUM_DIMSCALES2], vars_dimscale_obj[NUM_DIMSCALES2];
       int dimscale_cnt = 0;
-      int d, ndims;
+      int ndims;
 
       /* Create file access and create property lists. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
@@ -1078,7 +1078,7 @@ main()
 		  if (num_scales != 1) ERR;
 
 		  /* Go through all dimscales for this var and learn about them. */
-		  for (d = 0; d < ndims; d++)
+		  for (unsigned int d = 0; d < ndims; d++)
 		  {
 		     if (H5DSiterate_scales(datasetid, d, NULL, alien_visitor2,
 		     &(vars_dimscale_obj[d])) < 0) ERR;

@@ -305,7 +305,7 @@ main(int argc, char **argv)
    if (!(comp_array_of_vlen_of_comp_out = calloc(sizeof(struct s3), DIM3_LEN))) ERR;
 
    /* Create some output data: a vlen of struct s1. */
-   for (i = 0; i < DIM1_LEN; i++)
+   for (size_t i = 0; i < DIM1_LEN; i++)
    {
       vlen_of_comp_out[i].len = i + 1;
       if (!(vlen_of_comp_out[i].p = malloc(sizeof(struct s1) * vlen_of_comp_out[i].len)))
@@ -328,7 +328,7 @@ main(int argc, char **argv)
 
    /* Create some output data: a struct which holds an array of
     * vlen of struct s1. */
-   for (i = 0; i < DIM3_LEN; i++)
+   for (size_t i = 0; i < DIM3_LEN; i++)
       for (j = 0; j < NUM_VL; j++)
       {
 	 comp_array_of_vlen_of_comp_out[i].data[j].len = i + 1;

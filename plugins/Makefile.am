@@ -76,7 +76,7 @@ lib__nch5zstd_la_SOURCES = H5Zzstd.c H5Zzstd.h
 plugins_to_install += lib__nch5zstd.la
 endif
 
-if ENABLE_NCZARR_FILTERS
+if NETCDF_ENABLE_NCZARR_FILTERS
 # The NCZarr codec libraries (they need libnetcdf)
 lib__nczstdfilters_la_SOURCES = NCZstdfilters.c
 lib__nczstdfilters_la_LIBADD = $(LIBADD)  $(top_builddir)/liblib/libnetcdf.la
@@ -94,7 +94,7 @@ lib__nch5noop1_la_SOURCES = H5Znoop1.c H5Zutil.c h5noop.h
 lib__nch5noop_la_LDFLAGS = $(AM_LDFLAGS) ${RPATH}
 lib__nch5noop1_la_LDFLAGS = $(AM_LDFLAGS) ${RPATH}
 
-if ENABLE_FILTER_TESTING
+if NETCDF_ENABLE_FILTER_TESTING
 # The misc filter is to allow testing of filter arguments
 lib__nch5misc_la_SOURCES = H5Zmisc.c H5Zutil.c h5misc.h
 lib__nch5misc_la_LDFLAGS = ${top_builddir}/liblib/libnetcdf.la $(AM_LDFLAGS) ${RPATH}

@@ -45,21 +45,23 @@ with the H5Lvisit function call
 */
 herr_t
 op_func (hid_t g_id, const char *name, 
-#if H5_VERSION_GE(1,12,0)
-         const H5L_info2_t *info,
-#else
          const H5L_info_t *info,
-#endif
 	 void *op_data)  
 {
    hid_t id;
    H5I_type_t obj_type;
 
    strcpy((char *)op_data, name);
-#if H5_VERSION_GE(1,12,0)
-   if ((id = H5Oopen_by_token(g_id, info->u.token)) < 0) ERR;
-#else
+#if H5_VERSION_LE(1, 10, 11) || defined(H5_USE_110_API_DEFAULT) || defined(H5_USE_18_API_DEFAULT) || defined(H5_USE_16_API_DEFAULT)
+   /* This library is either 1.10.11 (the last 1.10 release) or earlier
+    * OR this is a later version of the library built with a 1.10 or
+    * earlier API (earlier versions did not define their own USE
+    * API symbol).
+    */
    if ((id = H5Oopen_by_addr(g_id, info->u.address)) < 0) ERR;
+#else
+   /* HDF5 1.12 switched from addresses to tokens to better support the VOL */
+   if ((id = H5Oopen_by_token(g_id, info->u.token)) < 0) ERR;
 #endif
 
 /* Using H5Ovisit is really slow. Use H5Iget_type for a fast
@@ -186,7 +188,6 @@ main()
       hsize_t num_obj;
       ssize_t size;
       char obj_name[STR_LEN + 1];
-      int i;
 
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG)) ERR;
@@ -197,7 +198,7 @@ main()
 
       /* How many objects in this group? */
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
-      for (i = 0; i < num_obj; i++)
+      for (hsize_t i = 0; i < num_obj; i++)
       {
 #if H5_VERSION_GE(1,12,0)
 	 if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
@@ -209,7 +210,7 @@ main()
 	 if ((size = H5Lget_name_by_idx(grpid, ".", idx_field, H5_ITER_INC, i,
 					NULL, 0, H5P_DEFAULT)) < 0) ERR;
 	 if (H5Lget_name_by_idx(grpid, ".", idx_field, H5_ITER_INC, i,
-				obj_name, size+1, H5P_DEFAULT) < 0) ERR;
+				obj_name, (size_t)size+1, H5P_DEFAULT) < 0) ERR;
       }
 
       if (H5Gclose(grpid) < 0) ERR;
