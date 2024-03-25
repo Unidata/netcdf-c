@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include "d4includes.h"
+#include "d4util.h"
 
 /*
 The primary purpose of this code is to recursively traverse
@@ -51,7 +52,7 @@ NCD4_swapdata(NCD4response* resp, NCD4node* var, int doswap)
 	    if((ret=walkSeqArray(resp,var,var,offset,doswap))) goto done;
 	    break;
 	}
-	var->data.dap4data.size = DELTA(offset,var->data.dap4data.memory);
+	var->data.dap4data.size = (d4size_t)DELTA(offset,var->data.dap4data.memory);
 	/* skip checksum, if there is one */
         if(resp->inferredchecksumming)
 	    INCR(offset,CHECKSUMSIZE);
