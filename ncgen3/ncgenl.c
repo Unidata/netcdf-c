@@ -1505,8 +1505,8 @@ YY_RULE_SETUP
                         yyerror("netCDF name required");
                         return (DATA); /* generate syntax error */
                 }
-		netcdfname = (char *) emalloc(t-s+1);
-		(void) strncpy(netcdfname, s, t-s);
+		netcdfname = (char *) emalloc((size_t)(t-s+1));
+		(void) strncpy(netcdfname, s, (size_t)(t-s));
 		netcdfname[t-s] = '\0';
 		deescapify(netcdfname);  /* so "\5foo" becomes "5foo", for example */
 		return (NETCDF);
@@ -1566,7 +1566,7 @@ YY_RULE_SETUP
 		    snprintf(errstr, sizeof(errstr),"bad byte constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
-                byte_val = ii;
+                byte_val = (signed char)ii;
 		if (ii != (int)byte_val) {
 		    snprintf(errstr, sizeof(errstr),"byte constant out of range (-128,127): %s",(char*)yytext);
 		    yyerror(errstr);
