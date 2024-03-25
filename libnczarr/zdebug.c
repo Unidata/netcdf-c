@@ -2,6 +2,7 @@
  *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
+#include "ncconfigure.h"
 #include "zincludes.h"
 
 /* Mnemonic */
@@ -108,13 +109,13 @@ nczprint_slicex(const NCZSlice slice, int raw)
 }
 
 char*
-nczprint_slices(int rank, const NCZSlice* slices)
+nczprint_slices(size_t rank, const NCZSlice* slices)
 {
     return nczprint_slicesx(rank, slices, !RAW);
 }
 
 char*
-nczprint_slicesx(int rank, const NCZSlice* slices, int raw)
+nczprint_slicesx(size_t rank, const NCZSlice* slices, int raw)
 {
     int i;
     char* result = NULL;
@@ -135,7 +136,7 @@ nczprint_slicesx(int rank, const NCZSlice* slices, int raw)
 }
 
 char*
-nczprint_slab(int rank, const NCZSlice* slices)
+nczprint_slab(size_t rank, const NCZSlice* slices)
 {
     return nczprint_slicesx(rank,slices,RAW);
 }
@@ -148,7 +149,7 @@ nczprint_odom(const NCZOdometer* odom)
     char value[128];
     char* txt = NULL;
 
-    snprintf(value,sizeof(value),"Odometer{rank=%d ",odom->rank);
+    snprintf(value,sizeof(value),"Odometer{rank=%zu ",odom->rank);
     ncbytescat(buf,value);
 
     ncbytescat(buf," start=");
@@ -223,7 +224,7 @@ nczprint_projectionx(const NCZProjection proj, int raw)
 }
 
 char*
-nczprint_allsliceprojections(int r, const NCZSliceProjections* slp)
+nczprint_allsliceprojections(size_t r, const NCZSliceProjections* slp)
 {
     int i;
     char* s;    
@@ -251,7 +252,7 @@ nczprint_sliceprojectionsx(const NCZSliceProjections slp, int raw)
     char tmp[4096];
     int i;
 
-    snprintf(tmp,sizeof(tmp),"SliceProjection{r=%d range=%s count=%ld",
+    snprintf(tmp,sizeof(tmp),"SliceProjection{r=%zu range=%s count=%ld",
     		slp.r,nczprint_chunkrange(slp.range),(long)slp.count);
     ncbytescat(buf,tmp);
     ncbytescat(buf,",projections=[\n");
@@ -294,7 +295,7 @@ nczprint_idvector(size_t len, const int* ids)
 {
     size64_t v[4096];
     size_t i;
-    for(i=0;i<len;i++) v[i] = ids[i];    
+    for(i=0;i<len;i++) v[i] = (size64_t)ids[i];
     return nczprint_vector(len,v);
 }
 
@@ -369,7 +370,7 @@ zdumpcommon(const struct Common* c)
     fprintf(stderr,"\tvar: %s\n",c->var->hdr.name);
     fprintf(stderr,"\treading=%d\n",c->reading);
 #endif
-    fprintf(stderr,"\trank=%d",c->rank);
+    fprintf(stderr,"\trank=%zu",c->rank);
     fprintf(stderr," dimlens=%s",nczprint_vector(c->rank,c->dimlens));
     fprintf(stderr," chunklens=%s",nczprint_vector(c->rank,c->chunklens));
 #if 0

@@ -294,7 +294,6 @@ NCZ_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
     NC_FILE_INFO_T* file;
     NC_GRP_INFO_T *grp;
     int stat = NC_NOERR;
-    int i;
 
     LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
@@ -333,7 +332,7 @@ NCZ_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
            with netcdf-3, then only the last unlimited one will be reported
            back in xtendimp. */
         /* Note that this code is inconsistent with nc_inq_unlimid() */
-        for(i=0;i<ncindexsize(grp->dim);i++) {
+        for(size_t i=0;i<ncindexsize(grp->dim);i++) {
             NC_DIM_INFO_T* d = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
             if(d == NULL) continue;
             if(d->unlimited) {

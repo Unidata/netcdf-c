@@ -78,7 +78,7 @@ NCZ_set_var_chunk_cache(int ncid, int varid, size_t cachesize, size_t nelems, fl
     assert(grp && h5);
 
     /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
         {retval = NC_ENOTVAR; goto done;}
     assert(var && var->hdr.id == varid);
 
@@ -176,7 +176,7 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
     if((cache = calloc(1,sizeof(NCZChunkCache))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     cache->var = var;
-    cache->ndims = var->ndims + zvar->scalar;
+    cache->ndims = var->ndims + (size_t)zvar->scalar;
     cache->fillchunk = NULL;
     cache->chunksize = chunksize;
     cache->dimension_separator = dimsep;
@@ -273,7 +273,7 @@ int
 NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap)
 {
     int stat = NC_NOERR;
-    int rank = cache->ndims;
+    size_t rank = cache->ndims;
     NCZCacheEntry* entry = NULL;
     ncexhashkey_t hkey = 0;
     int created = 0;
@@ -496,7 +496,8 @@ done:
 int
 NCZ_ensure_fill_chunk(NCZChunkCache* cache)
 {
-    int i, stat = NC_NOERR;
+    int stat = NC_NOERR;
+    size_t i;
     NC_VAR_INFO_T* var = cache->var;
     nc_type typeid = var->type_info->hdr.id;
     size_t typesize = var->type_info->size;
@@ -670,7 +671,7 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
         if((stat = NC_reclaim_data_all(file->controller,tid,entry->data,cache->chunkcount))) goto done;
         entry->data = NULL;
         entry->data = strchunk; strchunk = NULL;
-        entry->size = cache->chunkcount * maxstrlen;
+        entry->size = cache->chunkcount * (size64_t)maxstrlen;
         entry->isfixedstring = 1;
     }
 

@@ -5,7 +5,7 @@
 #include "zincludes.h"
 
 /*Forward*/
-static int buildodom(int rank, NCZOdometer** odomp);
+static int buildodom(size_t rank, NCZOdometer** odomp);
 
 void
 nczodom_reset(NCZOdometer* odom)
@@ -16,7 +16,7 @@ nczodom_reset(NCZOdometer* odom)
 }
 
 NCZOdometer*
-nczodom_new(int rank, const size64_t* start, const size64_t* stop, const size64_t* stride, const size64_t* len)
+nczodom_new(size_t rank, const size64_t* start, const size64_t* stop, const size64_t* stride, const size64_t* len)
 {
     int i;
     NCZOdometer* odom = NULL;
@@ -38,7 +38,7 @@ nczodom_new(int rank, const size64_t* start, const size64_t* stop, const size64_
 }
 
 NCZOdometer*
-nczodom_fromslices(int rank, const NCZSlice* slices)
+nczodom_fromslices(size_t rank, const NCZSlice* slices)
 {
     size_t i;
     NCZOdometer* odom = NULL;
@@ -108,7 +108,7 @@ nczodom_offset(const NCZOdometer* odom)
 {
     int i;
     size64_t offset;
-    int rank = odom->rank;
+    size_t rank = odom->rank;
 
     offset = 0;
     for(i=0;i<rank;i++) {
@@ -123,7 +123,7 @@ nczodom_offset(const NCZOdometer* odom)
 }
 
 static int
-buildodom(int rank, NCZOdometer** odomp)
+buildodom(size_t rank, NCZOdometer** odomp)
 {
     int stat = NC_NOERR;
     NCZOdometer* odom = NULL;
@@ -186,7 +186,7 @@ void
 nczodom_print(const NCZOdometer* odom)
 {
     size_t i;
-    fprintf(stderr,"odom{rank=%d offset=%llu avail=%llu",odom->rank,nczodom_offset(odom),nczodom_avail(odom));
+    fprintf(stderr,"odom{rank=%zu offset=%llu avail=%llu",odom->rank,nczodom_offset(odom),nczodom_avail(odom));
     fprintf(stderr," start=(");
         for(i=0;i<odom->rank;i++) {fprintf(stderr,"%s%llu",(i==0?"":" "),(unsigned long long)odom->start[i]);}
 	fprintf(stderr,")");

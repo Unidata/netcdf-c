@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+#include "ncconfigure.h"
 #include "zincludes.h"
 #include <stddef.h>
 
@@ -232,7 +233,7 @@ int
 NCZ_get_superblock(NC_FILE_INFO_T* file, int* superblockp)
 {
     NCZ_FILE_INFO_T* zinfo = file->format_file_info;
-    if(superblockp) *superblockp = zinfo->zarr.nczarr_version.major;
+    if(superblockp) *superblockp = (int)zinfo->zarr.nczarr_version.major;
     return NC_NOERR;
 }
 
@@ -337,7 +338,7 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     }
     /* Apply negative controls by turning off negative flags */
     /* This is necessary to avoid order dependence of mode flags when both positive and negative flags are defined */
-    zinfo->controls.flags &= (~noflags);
+    zinfo->controls.flags &= (size64_t)(~noflags);
 
     /* Process other controls */
     if((value = controllookup(zinfo->controllist,"log")) != NULL) {

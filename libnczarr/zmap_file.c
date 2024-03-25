@@ -62,20 +62,20 @@
 #define NCZM_FILE_V1 1
 
 #ifdef S_IRUSR
-static int NC_DEFAULT_CREATE_PERMS =
+static mode_t NC_DEFAULT_CREATE_PERMS =
            (S_IRUSR|S_IWUSR        |S_IRGRP|S_IWGRP);
-static int NC_DEFAULT_RWOPEN_PERMS =
+static mode_t NC_DEFAULT_RWOPEN_PERMS =
            (S_IRUSR|S_IWUSR        |S_IRGRP|S_IWGRP);
-static int NC_DEFAULT_ROPEN_PERMS =
+static mode_t NC_DEFAULT_ROPEN_PERMS =
 //           (S_IRUSR                |S_IRGRP);
            (S_IRUSR|S_IWUSR        |S_IRGRP|S_IWGRP);
-static int NC_DEFAULT_DIR_PERMS =
+static mode_t NC_DEFAULT_DIR_PERMS =
   	   (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IWGRP);
 #else
-static int NC_DEFAULT_CREATE_PERMS = 0660;
-static int NC_DEFAULT_RWOPEN_PERMS = 0660;
-static int NC_DEFAULT_ROPEN_PERMS = 0660;
-static int NC_DEFAULT_DIR_PERMS = 0770;
+static mode_t NC_DEFAULT_CREATE_PERMS = 0660;
+static mode_t NC_DEFAULT_RWOPEN_PERMS = 0660;
+static mode_t NC_DEFAULT_ROPEN_PERMS = 0660;
+static mode_t NC_DEFAULT_DIR_PERMS = 0770;
 #endif
 
 /*
@@ -121,7 +121,7 @@ typedef struct ZFMAP {
 /* Forward */
 static NCZMAP_API zapi;
 static int zfileclose(NCZMAP* map, int delete);
-static int zfcreategroup(ZFMAP*, const char* key, int nskip);
+static int zfcreategroup(ZFMAP*, const char* key, size_t nskip);
 static int zflookupobj(ZFMAP*, const char* key, FD* fd);
 static int zfparseurl(const char* path0, NCURI** urip);
 static int zffullpath(ZFMAP* zfmap, const char* key, char**);
@@ -129,10 +129,10 @@ static void zfrelease(ZFMAP* zfmap, FD* fd);
 static void zfunlink(const char* canonpath);
 
 static int platformerr(int err);
-static int platformcreatefile(mode_t mode, const char* truepath,FD*);
-static int platformcreatedir(mode_t mode, const char* truepath);
-static int platformopenfile(mode_t mode, const char* truepath, FD* fd);
-static int platformopendir(mode_t mode, const char* truepath);
+static int platformcreatefile(int mode, const char* truepath,FD*);
+static int platformcreatedir(int mode, const char* truepath);
+static int platformopenfile(int mode, const char* truepath, FD* fd);
+static int platformopendir(const char* truepath);
 static int platformdircontent(const char* path, NClist* contents);
 static int platformdelete(const char* path, int delroot);
 static int platformseek(FD* fd, int pos, size64_t* offset);
@@ -153,7 +153,7 @@ zfileinitialize(void)
     if(!zfinitialized) {
         ZTRACE(5,NULL);
 	const char* env = NULL;
-	int perms = 0;
+	mode_t perms = 0;
 	env = getenv("NC_DEFAULT_CREATE_PERMS");
 	if(env != NULL && strlen(env) > 0) {
 	    if(sscanf(env,"%d",&perms) == 1) NC_DEFAULT_CREATE_PERMS = perms;
@@ -299,7 +299,7 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 	abspath = NULL;
     
     /* Verify root dir exists */
-    if((stat = platformopendir(zfmap->map.mode,zfmap->root)))
+    if((stat = platformopendir(zfmap->root)))
 	goto done;
     
     /* Dataset superblock will be read by higher layer */
@@ -527,11 +527,10 @@ done:
 /* Lookup a group by parsed path (segments)*/
 /* Return NC_EEMPTY if not found, NC_EINVAL if not a directory; create if create flag is set */
 static int
-zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
+zfcreategroup(ZFMAP* zfmap, const char* key, size_t nskip)
 {
     int stat = NC_NOERR;
     size_t i;
-    int len;
     char* fullpath = NULL;
     NCbytes* path = ncbytesnew();
     NClist* segments = nclistnew();
@@ -539,7 +538,8 @@ zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
     ZTRACE(5,"map=%s key=%s nskip=%d",zfmap->map.url,key,nskip);
     if((stat=nczm_split(key,segments)))
 	goto done;    
-    len = nclistlength(segments);
+    size_t len = nclistlength(segments);
+    if (nskip >= len) goto done;
     len -= nskip; /* leave off last nskip segments */
     ncbytescat(path,zfmap->root); /* We need path to be absolute */
     for(i=0;i<len;i++) {
@@ -704,12 +704,12 @@ platformtestcontentbearing(const char* canonpath)
 
 /* Create a file */
 static int
-platformcreatefile(mode_t mode, const char* canonpath, FD* fd)
+platformcreatefile(int mode, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
     int createflags = 0;
-    int permissions = NC_DEFAULT_ROPEN_PERMS;
+    mode_t permissions = NC_DEFAULT_ROPEN_PERMS;
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
     
@@ -745,11 +745,11 @@ done:
 
 /* Open a file; fail if it does not exist */
 static int
-platformopenfile(mode_t mode, const char* canonpath, FD* fd)
+platformopenfile(int mode, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
-    int permissions = 0;
+    mode_t permissions = 0;
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
@@ -781,7 +781,7 @@ done:
 
 /* Create a dir */
 static int
-platformcreatedir(mode_t mode, const char* canonpath)
+platformcreatedir(int mode, const char* canonpath)
 {
     int ret = NC_NOERR;
 
@@ -811,7 +811,7 @@ done:
 
 /* Open a dir; fail if it does not exist */
 static int
-platformopendir(mode_t mode, const char* canonpath)
+platformopendir(const char* canonpath)
 {
     int ret = NC_NOERR;
 
@@ -1066,9 +1066,9 @@ platformseek(FD* fd, int pos, size64_t* sizep)
     ret = NCfstat(fd->fd, &statbuf);    
     if(ret < 0)
 	{ret = platformerr(errno); goto done;}
-    if(sizep) size = *sizep; else size = 0;
+    if(sizep) size = (off_t)*sizep; else size = 0;
     newsize = lseek(fd->fd,size,pos);
-    if(sizep) *sizep = newsize;
+    if(sizep) *sizep = (size64_t)newsize;
 done:
     errno = 0;
     return ZUNTRACEX(ret,"sizep=%llu",*sizep);
@@ -1089,7 +1089,7 @@ platformread(FD* fd, size64_t count, void* content)
         ssize_t red;
         if((red = read(fd->fd,readpoint,need)) <= 0)
 	    {stat = errno; goto done;}
-        need -= red;
+        need -= (size_t)red;
 	readpoint += red;
     }
 done:
@@ -1112,7 +1112,7 @@ platformwrite(FD* fd, size64_t count, const void* content)
         ssize_t red = 0;
         if((red = write(fd->fd,(void*)writepoint,need)) <= 0)	
 	    {ret = NC_EACCESS; goto done;}
-        need -= red;
+        need -= (size_t)red;
 	writepoint += red;
     }
 done:

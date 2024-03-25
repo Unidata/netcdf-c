@@ -14,6 +14,8 @@
 #include "ncexternl.h"
 #include "nclog.h"
 
+#include <stddef.h>
+
 #define ZLOG(tag,...) nclog(tag,__VA_ARGS__)
 
 #ifdef ZCATCH
@@ -46,15 +48,15 @@ EXTERNL int zreport(int err, const char* msg, const char* fname, const char* fcn
 /* printers */
 EXTERNL void nczprint_reclaim(void);
 EXTERNL char* nczprint_slice(NCZSlice);
-EXTERNL char* nczprint_slices(int rank, const NCZSlice*);
-EXTERNL char* nczprint_slab(int rank, const NCZSlice*);
+EXTERNL char* nczprint_slices(size_t rank, const NCZSlice*);
+EXTERNL char* nczprint_slab(size_t rank, const NCZSlice*);
 EXTERNL char* nczprint_odom(const NCZOdometer*);
 EXTERNL char* nczprint_chunkrange(const NCZChunkRange);
 EXTERNL char* nczprint_projection(const NCZProjection);
 EXTERNL char* nczprint_sliceprojections(const NCZSliceProjections);
-EXTERNL char* nczprint_allsliceprojections(int r, const NCZSliceProjections* slp);
+EXTERNL char* nczprint_allsliceprojections(size_t r, const NCZSliceProjections* slp);
 EXTERNL char* nczprint_slicex(const NCZSlice slice, int raw);
-EXTERNL char* nczprint_slicesx(int rank, const NCZSlice* slices, int raw);
+EXTERNL char* nczprint_slicesx(size_t rank, const NCZSlice* slices, int raw);
 EXTERNL char* nczprint_projectionx(const NCZProjection proj, int raw);
 EXTERNL char* nczprint_sliceprojectionsx(const NCZSliceProjections slp, int raw);
 EXTERNL char* nczprint_vector(size_t,const size64_t*);

@@ -312,7 +312,7 @@ nczm_divide_at(const char* key, int nsegs, char** prefixp, char** suffixp)
     if(nsegs >= 0)
 	{presegs = abssegs;}
     else
-	{presegs = (len - abssegs);}
+	{presegs = ((int)len - abssegs);}
 
     /* skip past the first presegs segments */
     for(p=key,i=0;i<presegs;i++) {
@@ -439,7 +439,7 @@ nczm_segment1(const char* path, char** seg1p)
     delta = (q-p);
     if((seg1 = (char*)malloc((size_t)delta+1))==NULL)
         {ret = NC_ENOMEM; goto done;}
-    memcpy(seg1,p,delta);
+    memcpy(seg1,p,(size_t)delta);
     seg1[delta] = '\0';
 
     if(seg1p) {*seg1p = seg1; seg1 = NULL;}

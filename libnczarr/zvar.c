@@ -105,7 +105,8 @@ ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
     int d;
     size_t type_size;
-    float num_values = 1, num_unlim = 0;
+    float num_values = 1;
+    size_t num_unlim = 0;
     int retval;
     size_t suggested_size;
 #ifdef LOGGING
@@ -152,7 +153,7 @@ ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 	     "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[0]));
     }
     if (var->ndims > 1 && var->ndims == num_unlim) { /* all dims unlimited */
-	suggested_size = pow((double)DEFAULT_CHUNK_SIZE/type_size, 1.0/(double)(var->ndims));
+	suggested_size = (size_t)pow((double)DEFAULT_CHUNK_SIZE/(double)type_size, 1.0/(double)(var->ndims));
 	for (d = 0; d < var->ndims; d++)
 	{
 	    var->chunksizes[d] = suggested_size ? suggested_size : 1;
@@ -166,8 +167,8 @@ ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     for (d = 0; d < var->ndims; d++)
 	if (!var->chunksizes[d])
 	{
-	    suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size),
-				  1.0/(double)(var->ndims - num_unlim)) * var->dim[d]->len - .5);
+	    suggested_size = (size_t)(pow((double)DEFAULT_CHUNK_SIZE/(num_values * (double)type_size),
+	                                  1.0/(double)(var->ndims - num_unlim)) * (double)var->dim[d]->len - .5);
 	    if (suggested_size > var->dim[d]->len)
 		suggested_size = var->dim[d]->len;
 	    var->chunksizes[d] = suggested_size ? suggested_size : 1;
@@ -548,7 +549,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	{retval = NC_EPERM; goto done;}
 
     /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
 	{retval = NC_ENOTVAR; goto done;}
     assert(var && var->hdr.id == varid);
 
@@ -963,7 +964,7 @@ ncz_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
 
     /* Copy to size_t array. */
     for (i = 0; i < var->ndims; i++)
-	cs[i] = chunksizesp[i];
+	cs[i] = (size_t)chunksizesp[i];
 
     retval = ncz_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
 			      &contiguous, cs, NULL, NULL, NULL, NULL, NULL);
@@ -1254,7 +1255,7 @@ NCZ_rename_var(int ncid, int varid, const char *name)
 	return THROW(retval);
 
     /* Get the variable wrt varid */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
 	return NC_ENOTVAR;
 
     /* Check if new name is in use; note that renaming to same name is
@@ -1553,13 +1554,10 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     int need_to_convert = 0;
     int zero_count = 0; /* true if a count is zero */
     size_t len = 1;
-    size64_t fmaxdims[NC_MAX_VAR_DIMS];
     NCZ_VAR_INFO_T* zvar;
 
-    NC_UNUSED(fmaxdims);
-
 #ifndef LOOK
-    NC_UNUSED(fmaxdims);
+    NC_UNUSED(ones);
 #endif
     
     /* Find info for this file, group, and var. */
@@ -1602,7 +1600,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	    fdims[i] = var->dim[i]->len;
 	    start[i] = startp[i];
 	    count[i] = countp ? countp[i] : fdims[i];
-	    stride[i] = stridep ? stridep[i] : 1;
+	    stride[i] = stridep ? (size64_t)stridep[i] : 1;
 	    ones[i] = 1;
 
   	    /* Check to see if any counts are zero. */
@@ -1855,12 +1853,16 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     size64_t stride[NC_MAX_VAR_DIMS];
     size64_t ones[NC_MAX_VAR_DIMS];
     int no_read = 0, provide_fill = 0;
-    int fill_value_size[NC_MAX_VAR_DIMS];
+    size64_t fill_value_size[NC_MAX_VAR_DIMS];
     int retval, range_error = 0, i, d2;
     void *bufr = NULL;
     int need_to_convert = 0;
     size_t len = 1;
     NCZ_VAR_INFO_T* zvar = NULL;
+
+#ifndef LOOK
+    NC_UNUSED(ones);
+#endif
 
     /* Find info for this file, group, and var. */
     if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
@@ -1895,7 +1897,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	        return NC_ESTRIDE;
 	    start[i] = startp[i];
 	    count[i] = countp[i];
-	    stride[i] = stridep ? stridep[i] : 1;
+	    stride[i] = stridep ? (size64_t)stridep[i] : 1;
 
 	    ones[i] = 1;
 	    /* if any of the count values are zero don't actually read. */
