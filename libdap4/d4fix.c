@@ -231,7 +231,6 @@ static int
 delimitAtomicVar(NCD4meta* compiler, NCD4node* var, NCD4offset* offset)
 {
     int ret = NC_NOERR;
-    int typesize;
     d4size_t i;
     d4size_t dimproduct;
     nc_type tid;
@@ -249,7 +248,7 @@ delimitAtomicVar(NCD4meta* compiler, NCD4node* var, NCD4offset* offset)
         truetype = basetype->basetype;
 
     tid = truetype->subsort;
-    typesize = NCD4_typesize(tid);
+    size_t typesize = NCD4_typesize(tid);
     if(tid != NC_STRING) {
 	INCR(offset,(typesize*dimproduct));
     } else if(tid == NC_STRING) { /* walk the counts */
@@ -448,13 +447,13 @@ skipAtomicInstance(NCD4meta* compiler, NCD4node* type, NCD4offset* offset)
 {
     int ret = NC_NOERR;
     d4size_t count;
-    int typesize;
+    size_t typesize;
 
     switch (type->subsort) {
     default: /* fixed size atomic type */
         typesize = NCD4_typesize(type->meta.id);
-	INCR(offset,typesize);
-	break;
+        INCR(offset,typesize);
+        break;
     case NC_STRING:
         /* Get string count */
         count = GETCOUNTER(offset);

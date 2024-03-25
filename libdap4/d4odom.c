@@ -46,7 +46,7 @@ d4odom_new(size_t rank,
     assert(odom->rank <= NC_MAX_VAR_DIMS);
     for(i=0;i<odom->rank;i++) {
 	size_t istart,icount,istop,ideclsize;
-	ptrdiff_t istride;
+	size_t istride;
 	istart = (start != NULL ? start[i] : 0);
 	icount = (count != NULL ? count[i] : (size != NULL ? size[i] : 1));
 	istride = (size_t)(stride != NULL ? stride[i] : 1);
