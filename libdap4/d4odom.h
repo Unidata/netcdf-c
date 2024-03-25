@@ -7,7 +7,7 @@
 #define D4ODOM_H 1
 
 typedef struct D4odometer {
-    int            rank;
+    size_t         rank;
     size_t         index[NC_MAX_VAR_DIMS];
     size_t         start[NC_MAX_VAR_DIMS];
 #if 0
