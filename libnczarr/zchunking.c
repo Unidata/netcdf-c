@@ -96,8 +96,7 @@ NCZ_compute_projections(struct Common* common,  int r, size64_t chunkindex, cons
     projection = &projections[n];
     if(n > 0) {
 	/* Find last non-skipped projection */
-	int i;
-	for(i=n-1;i>=0;i--) { /* walk backward */
+	for(size_t i=n;i-->0;) { /* walk backward */
             if(!projections[i].skip) {
 	        prev = &projections[i];
 		break;

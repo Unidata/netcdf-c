@@ -623,11 +623,10 @@ next:   continue;
     } /*for(;;)*/
 
     /* remove all NULL elements */
-    int n;
-    for(n=nclistlength(list)-1;n>=0;n--) {
+    for(size_t n = nclistlength(list); n-->0;) {
         DCEprojection* target = (DCEprojection*)nclistget(list,n);
-	if(target == NULL)
-	    nclistremove(list,n);
+        if(target == NULL)
+            nclistremove(list,n);
     }
 done:
 #ifdef DEBUG

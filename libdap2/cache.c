@@ -25,7 +25,7 @@ static int iscacheableconstraint(DCEconstraint* con);
 int
 iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
 {
-    int i, found;
+    int found;
     size_t j;
     size_t index;
     NCcache* cache;
@@ -39,7 +39,8 @@ iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
     cache = nccomm->cdf.cache;
     cachenode = cache->prefetch;
     if(cachenode!= NULL) {
-        for(found=0,i=0;i<nclistlength(cachenode->vars);i++) {
+        found = 0;
+        for(size_t i=0;i<nclistlength(cachenode->vars);i++) {
             CDFnode* var = (CDFnode*)nclistget(cachenode->vars,i);
 	    if(var == target) {
                 if(cachenodep) *cachenodep = cachenode;
@@ -51,7 +52,7 @@ iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
 
     /*search other cache nodes starting at latest first */
     index = 0;
-    for(i=nclistlength(cache->nodes)-1;i>=0;i--) {
+    for(size_t i = nclistlength(cache->nodes); i-->0;) {
         cachenode = (NCcachenode*)nclistget(cache->nodes,i);
 	/* We currently do not try to match constraints;
            If the cachenode is constrained by more than

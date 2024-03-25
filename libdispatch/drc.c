@@ -362,7 +362,6 @@ rctrim(char* text)
     char* p;
     char* q;
     size_t len = 0;
-    int i;
 
     if(text == NULL || *text == '\0') return;
 
@@ -375,7 +374,7 @@ rctrim(char* text)
     len = strlen(p);
     /* locate last non-trimchar */
     if(len > 0) {
-        for(i=(len-1);i>=0;i--) {
+        for(size_t i = len; i-->0;) {
 	    p = &text[i];
 	    if(*p != ' ' && *p != '\t' && *p != '\r') {break;}
 	    *p = '\0'; /* elide trailing trimchars */

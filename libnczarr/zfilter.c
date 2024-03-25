@@ -423,12 +423,12 @@ done:
 int
 NCZ_filter_remove(NC_VAR_INFO_T* var, unsigned int id)
 {
-    int k, stat = NC_NOERR;
+    int stat = NC_NOERR;
     NClist* flist = (NClist*)var->filters;
 
     ZTRACE(6,"var=%s id=%u",var->hdr.name,id);
     /* Walk backwards */
-    for(k=nclistlength(flist)-1;k>=0;k--) {
+    for(size_t k = nclistlength(flist); k-->0;) {
 	struct NCZ_Filter* f = (struct NCZ_Filter*)nclistget(flist,k);
         if(f->hdf5.id == id) {
 	    /* Remove from variable */
@@ -896,9 +896,8 @@ fprintf(stderr,">>> next: alloc=%u used=%u buf=%p\n",(unsigned)next_alloc,(unsig
 	    }
 	} else {
 	    /* Apply in reverse order */
-            int k;
-            for(k=(int)nclistlength(chain)-1;k>=0;k--) {
-              f = (struct NCZ_Filter*)nclistget(chain,(size_t)k);	
+            for(size_t k=nclistlength(chain); k-->0;) {
+              f = (struct NCZ_Filter*)nclistget(chain, k);
 		if(f->flags & FLAG_SUPPRESS) continue; /* this filter should not be applied */
 	        ff = f->plugin->hdf5.filter;
 	        /* code can be simplified */
