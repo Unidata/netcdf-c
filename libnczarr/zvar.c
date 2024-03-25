@@ -1554,13 +1554,10 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     int need_to_convert = 0;
     int zero_count = 0; /* true if a count is zero */
     size_t len = 1;
-    size64_t fmaxdims[NC_MAX_VAR_DIMS];
     NCZ_VAR_INFO_T* zvar;
 
-    NC_UNUSED(fmaxdims);
-
 #ifndef LOOK
-    NC_UNUSED(fmaxdims);
+    NC_UNUSED(ones);
 #endif
     
     /* Find info for this file, group, and var. */
@@ -1862,6 +1859,10 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     int need_to_convert = 0;
     size_t len = 1;
     NCZ_VAR_INFO_T* zvar = NULL;
+
+#ifndef LOOK
+    NC_UNUSED(ones);
+#endif
 
     /* Find info for this file, group, and var. */
     if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
