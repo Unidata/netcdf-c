@@ -1281,17 +1281,17 @@ done:
 static NCD4node*
 lookupAtomicType(NClist* atomictypes, const char* name)
 {
-    int n = nclistlength(atomictypes);
-    int L = 0;
-    int R = (n - 1);
-    int m, cmp;
+    size_t n = nclistlength(atomictypes);
+    if (n == 0) return NULL;
+    size_t L = 0;
+    size_t R = n - 1;
     NCD4node* p;
 
     for(;;) {
 	if(L > R) break;
-        m = (L + R) / 2;
+        size_t m = (L + R) / 2;
 	p = (NCD4node*)nclistget(atomictypes,m);
-	cmp = strcasecmp(p->name,name);
+	int cmp = strcasecmp(p->name,name);
 	if(cmp == 0)
 	    return p;
 	if(cmp < 0)
