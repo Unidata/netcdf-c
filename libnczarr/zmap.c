@@ -312,7 +312,7 @@ nczm_divide_at(const char* key, int nsegs, char** prefixp, char** suffixp)
     if(nsegs >= 0)
 	{presegs = abssegs;}
     else
-	{presegs = (len - abssegs);}
+	{presegs = ((int)len - abssegs);}
 
     /* skip past the first presegs segments */
     for(p=key,i=0;i<presegs;i++) {

@@ -121,7 +121,7 @@ typedef struct ZFMAP {
 /* Forward */
 static NCZMAP_API zapi;
 static int zfileclose(NCZMAP* map, int delete);
-static int zfcreategroup(ZFMAP*, const char* key, int nskip);
+static int zfcreategroup(ZFMAP*, const char* key, size_t nskip);
 static int zflookupobj(ZFMAP*, const char* key, FD* fd);
 static int zfparseurl(const char* path0, NCURI** urip);
 static int zffullpath(ZFMAP* zfmap, const char* key, char**);
@@ -527,11 +527,10 @@ done:
 /* Lookup a group by parsed path (segments)*/
 /* Return NC_EEMPTY if not found, NC_EINVAL if not a directory; create if create flag is set */
 static int
-zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
+zfcreategroup(ZFMAP* zfmap, const char* key, size_t nskip)
 {
     int stat = NC_NOERR;
     size_t i;
-    int len;
     char* fullpath = NULL;
     NCbytes* path = ncbytesnew();
     NClist* segments = nclistnew();
@@ -539,7 +538,8 @@ zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
     ZTRACE(5,"map=%s key=%s nskip=%d",zfmap->map.url,key,nskip);
     if((stat=nczm_split(key,segments)))
 	goto done;    
-    len = nclistlength(segments);
+    size_t len = nclistlength(segments);
+    if (nskip >= len) goto done;
     len -= nskip; /* leave off last nskip segments */
     ncbytescat(path,zfmap->root); /* We need path to be absolute */
     for(i=0;i<len;i++) {
@@ -1066,9 +1066,9 @@ platformseek(FD* fd, int pos, size64_t* sizep)
     ret = NCfstat(fd->fd, &statbuf);    
     if(ret < 0)
 	{ret = platformerr(errno); goto done;}
-    if(sizep) size = *sizep; else size = 0;
+    if(sizep) size = (off_t)*sizep; else size = 0;
     newsize = lseek(fd->fd,size,pos);
-    if(sizep) *sizep = newsize;
+    if(sizep) *sizep = (size64_t)newsize;
 done:
     errno = 0;
     return ZUNTRACEX(ret,"sizep=%llu",*sizep);
@@ -1089,7 +1089,7 @@ platformread(FD* fd, size64_t count, void* content)
         ssize_t red;
         if((red = read(fd->fd,readpoint,need)) <= 0)
 	    {stat = errno; goto done;}
-        need -= red;
+        need -= (size_t)red;
 	readpoint += red;
     }
 done:
@@ -1112,7 +1112,7 @@ platformwrite(FD* fd, size64_t count, const void* content)
         ssize_t red = 0;
         if((red = write(fd->fd,(void*)writepoint,need)) <= 0)	
 	    {ret = NC_EACCESS; goto done;}
-        need -= red;
+        need -= (size_t)red;
 	writepoint += red;
     }
 done:

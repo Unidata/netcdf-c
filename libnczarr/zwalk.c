@@ -359,8 +359,8 @@ wdebug2(const struct Common* common, unsigned char* slpptr, unsigned char* mempt
     unsigned char* membase = common->memory;
     unsigned slpoff = (unsigned)(slpptr - slpbase);
     unsigned memoff = (unsigned)(memptr - membase);
-    unsigned slpidx = slpoff / common->typesize;
-    unsigned memidx = memoff / common->typesize;
+    unsigned slpidx = slpoff / (unsigned)common->typesize;
+    unsigned memidx = memoff / (unsigned)common->typesize;
     unsigned value;
 
     fprintf(stderr,"wdebug2: %s: [%u/%d] %u->%u",
@@ -644,7 +644,7 @@ done:
 static int
 rangecount(NCZChunkRange range)
 {
-    return (range.stop - range.start);
+    return (int)(range.stop - range.start);
 }
 
 /* Goal: Given a set of per-dimension indices,

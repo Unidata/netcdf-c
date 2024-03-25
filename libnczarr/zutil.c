@@ -1030,15 +1030,15 @@ NCZ_char2fixed(const char** charp, void* fixed, size_t count, int maxstrlen)
 {
     size_t i;
     unsigned char* p = fixed;
-    memset(fixed,0,maxstrlen*count); /* clear target */
+    memset(fixed,0,(size_t)maxstrlen*count); /* clear target */
     for(i=0;i<count;i++,p+=maxstrlen) {
 	size_t len;
 	if(charp[i] != NULL) {
 	    len = strlen(charp[i]);
-	    if(len > maxstrlen) len = maxstrlen;
+	    if(len > maxstrlen) len = (size_t)maxstrlen;
 	    memcpy(p,charp[i],len);
 	} else {
-	    memset(p,'\0',maxstrlen);
+	    memset(p,'\0',(size_t)maxstrlen);
 	}
     }
     return NC_NOERR;

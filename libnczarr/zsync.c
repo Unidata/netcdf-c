@@ -722,7 +722,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
 	    if(a->nc_typeid > NC_MAX_ATOMIC_TYPE)
 	        {stat = (THROW(NC_ENCZARR)); goto done;}
 	    if(a->nc_typeid == NC_STRING)
-	        typesize = NCZ_get_maxstrlen(container);
+	        typesize = (size_t)NCZ_get_maxstrlen(container);
 	    else
 	        {if((stat = NC4_inq_atomic_type(a->nc_typeid,NULL,&typesize))) goto done;}
 	    /* Convert to storable json */
@@ -732,7 +732,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
 
 	    /* Collect the corresponding dtype */
 	    {
-	        if((stat = ncz_nctype2dtype(a->nc_typeid,endianness,purezarr,typesize,&tname))) goto done;
+  	        if((stat = ncz_nctype2dtype(a->nc_typeid,endianness,purezarr,(int)typesize,&tname))) goto done;
   	        if((stat = NCJnewstring(NCJ_STRING,tname,&jtype))) goto done;
 	        nullfree(tname); tname = NULL;
 	        if((stat = NCJinsert(jtypes,a->hdr.name,jtype))) goto done; /* add {name: type} */
@@ -996,7 +996,7 @@ zconvert(NCjson* src, nc_type typeid, size_t typelen, size_t* countp, NCbytes* d
 	    if((stat = zcharify(src,dst))) goto done;
 	    count = ncbyteslength(dst);
         } else {
-	    count = NCJlength(src);
+	    count = (size_t)NCJlength(src);
 	    for(i=0;i<count;i++) {
 	        NCjson* value = NCJith(src,i);
                 if((stat = NCZ_convert1(value, typeid, dst))) goto done;

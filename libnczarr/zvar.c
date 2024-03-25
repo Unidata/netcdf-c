@@ -1600,7 +1600,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	    fdims[i] = var->dim[i]->len;
 	    start[i] = startp[i];
 	    count[i] = countp ? countp[i] : fdims[i];
-	    stride[i] = stridep ? stridep[i] : 1;
+	    stride[i] = stridep ? (size64_t)stridep[i] : 1;
 	    ones[i] = 1;
 
   	    /* Check to see if any counts are zero. */
@@ -1853,7 +1853,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     size64_t stride[NC_MAX_VAR_DIMS];
     size64_t ones[NC_MAX_VAR_DIMS];
     int no_read = 0, provide_fill = 0;
-    int fill_value_size[NC_MAX_VAR_DIMS];
+    size64_t fill_value_size[NC_MAX_VAR_DIMS];
     int retval, range_error = 0, i, d2;
     void *bufr = NULL;
     int need_to_convert = 0;
@@ -1897,7 +1897,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	        return NC_ESTRIDE;
 	    start[i] = startp[i];
 	    count[i] = countp[i];
-	    stride[i] = stridep ? stridep[i] : 1;
+	    stride[i] = stridep ? (size64_t)stridep[i] : 1;
 
 	    ones[i] = 1;
 	    /* if any of the count values are zero don't actually read. */
