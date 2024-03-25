@@ -195,7 +195,7 @@ getvarx(int gid, int varid, NCD4INFO** infop, NCD4node** varp,
     if((ret=NCD4_newResponse(info,&dapresp))) goto done;
     dapresp->mode = NCD4_DAP;
     nclistpush(info->responses,dapresp);
-    if((ret=NCD4_readDAP(info, info->controls.flags.flags, ceuri, dapresp))) goto done;
+    if((ret=NCD4_readDAP(info, ceuri, dapresp))) goto done;
 
     /* Extract DMR and dechunk the data part */
     if((ret=NCD4_dechunk(dapresp))) goto done;
