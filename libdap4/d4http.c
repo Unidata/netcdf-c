@@ -70,7 +70,7 @@ NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime, int* ht
     if(cstat != CURLE_OK) goto done;
 
     httpcode = NCD4_fetchhttpcode(curl);
-    if(httpcodep) *httpcodep = httpcode;
+    if(httpcodep) *httpcodep = (int)httpcode;
 
     /* Get the last modified time */
     if(filetime != NULL)

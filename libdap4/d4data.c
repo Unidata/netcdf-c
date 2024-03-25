@@ -36,7 +36,7 @@ static unsigned NCD4_computeChecksum(NCD4meta* meta, NCD4node* topvar);
 /* Macro define procedures */
 
 #ifdef D4DUMPCSUM
-static unsigned int debugcrc32(unsigned int crc, const void *buf, size_t size)
+static unsigned int debugcrc32(unsigned int crc, const void *buf, unsigned int size)
 {
     int i;
     fprintf(stderr,"crc32: ");
@@ -309,7 +309,7 @@ fillopfixed(NCD4meta* meta, d4size_t opaquesize, NCD4offset* offset, void** dstp
     SKIPCOUNTER(offset);
     /* verify that it is the correct size */
     actual = count;
-    delta = actual - opaquesize;
+    delta = (int)actual - (int)opaquesize;
     if(delta != 0) {
 #ifdef FIXEDOPAQUE
 	nclog(NCLOGWARN,"opaque changed from %lu to %lu",actual,opaquesize);
@@ -443,7 +443,7 @@ NCD4_computeChecksum(NCD4meta* meta, NCD4node* topvar)
     ASSERT((ISTOPLEVEL(topvar)));
 
 #ifndef HYRAXCHECKSUM
-    csum = CRC32(csum,topvar->data.dap4data.memory,topvar->data.dap4data.size);
+    csum = CRC32(csum,topvar->data.dap4data.memory, (unsigned int)topvar->data.dap4data.size);
 #else
     if(topvar->basetype->subsort != NC_STRING) {
             csum = CRC32(csum,topvar->data.dap4data.memory,topvar->data.dap4data.size);
