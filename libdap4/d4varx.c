@@ -69,7 +69,7 @@ NCD4_get_vars(int gid, int varid,
     /* build size vector */
     for(i=0;i<rank;i++)  {
 	NCD4node* dim = nclistget(ncvar->dims,i);
-	dimsizes[i] = (size_t)dim->dim.size;
+	dimsizes[i] = dim->dim.size;
     }
 	
     /* Extract and desired subset of data */

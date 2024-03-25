@@ -255,7 +255,7 @@ buildDimension(NCD4meta* builder, NCD4node* dim)
     if(dim->dim.isunlimited) {
 	NCCHECK((nc_def_dim(group->meta.id,dim->name,NC_UNLIMITED,&dim->meta.id)));
     } else {
-	NCCHECK((nc_def_dim(group->meta.id,dim->name,(size_t)dim->dim.size,&dim->meta.id)));
+	NCCHECK((nc_def_dim(group->meta.id,dim->name,dim->dim.size,&dim->meta.id)));
     }
 done:
     return THROW(ret);

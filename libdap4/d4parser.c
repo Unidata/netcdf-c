@@ -288,7 +288,7 @@ parseDimensions(NCD4parser* parser, NCD4node* group, ncxml_t xml)
 	if((ret = parseULL(sizestr,&size))) goto done;
 	nullfree(sizestr);
 	if((ret=makeNode(parser,group,x,NCD4_DIM,NC_NULL,&dimnode))) goto done;
-	dimnode->dim.size = (long long)size;
+	dimnode->dim.size = size;
 	dimnode->dim.isunlimited = (unlimstr != NULL);
         nullfree(unlimstr);
 	/* Process attributes */
@@ -1369,7 +1369,7 @@ makeAnonDim(NCD4parser* parser, const char* sizestr)
     if(dim == NULL) {/* create it */
 	if((ret=makeNode(parser,root,NULL,NCD4_DIM,NC_NULL,&dim))) goto done;
 	SETNAME(dim,name+1); /* leave out the '/' separator */
-	dim->dim.size = (long long)size;
+	dim->dim.size = (size_t)size;
 	dim->dim.isanonymous = 1;
 	classify(root,dim);
     }
