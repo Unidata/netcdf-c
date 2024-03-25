@@ -193,7 +193,7 @@ cstring(
 	return cp;
 
       case NC_DOUBLE:
-    cp_size = 20;
+	cp_size = 24;
 	cp = (char *) emalloc (cp_size);
 	doublep = (double *)valp;
 	(void) snprintf(cp,cp_size,"%.16g",* (doublep + num));
