@@ -38,7 +38,7 @@ main(int argc, char **argv)
     num_formats += 2;
 #endif
 
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
     num_formats++;
 #endif
 
@@ -47,7 +47,7 @@ main(int argc, char **argv)
 
 	formats[n++] = 0;
 	formats[n++] = NC_64BIT_OFFSET;
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
 	formats[n++] = NC_64BIT_DATA;
 #endif
 #ifdef USE_HDF5

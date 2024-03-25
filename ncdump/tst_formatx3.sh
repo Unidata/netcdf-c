@@ -6,10 +6,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 # This shell script runs the ncdump tests.
 # get some config.h parameters
 if test -f ${top_builddir}/config.h ; then
-  if fgrep -e '#define ENABLE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
-    ENABLE_CDF5=1
+  if fgrep -e '#define NETCDF_ENABLE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
+    NETCDF_ENABLE_CDF5=1
   else
-    ENABLE_CDF5=0
+    NETCDF_ENABLE_CDF5=0
   fi
 else
   echo "Cannot locate config.h"
@@ -42,9 +42,9 @@ ECODE=1
 fi
 
 
-# Only do following test if ENABLE_CDF5 is true.
+# Only do following test if NETCDF_ENABLE_CDF5 is true.
 
-if test "x$ENABLE_CDF5" = x1 ; then
+if test "x$NETCDF_ENABLE_CDF5" = x1 ; then
     echo "Test extended format output for a 64-bit CDF-5 classic file"
     rm -f tmp_tst_formatx3
     ${NCGEN} -k5 -b -o ./tst_formatx3.nc $srcdir/ref_tst_small.cdl

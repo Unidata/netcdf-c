@@ -9,7 +9,7 @@
 #include "ncpathmgr.h"
 #include "nclist.h"
 
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 #include "zincludes.h"
 #endif
 

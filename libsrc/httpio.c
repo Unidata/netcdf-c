@@ -58,7 +58,7 @@ static int httpio_filesize(ncio* nciop, off_t* filesizep);
 static int httpio_pad_length(ncio* nciop, off_t length);
 static int httpio_close(ncio* nciop, int);
 
-static long pagesize = 0;
+static size_t pagesize = 0;
 
 /* Create a new ncio struct to hold info about the file. */
 static int
@@ -261,7 +261,7 @@ httpio_get(ncio* const nciop, off_t offset, size_t extent, int rflags, void** co
     assert(http->interval == NULL);
     http->interval = ncbytesnew();
     ncbytessetalloc(http->interval,(unsigned long)extent);
-    if((status = nc_http_read(http->state,offset,extent,http->interval)))
+    if((status = nc_http_read(http->state,(size64_t)offset,extent,http->interval)))
 	goto done;
     assert(ncbyteslength(http->interval) == extent);
     if(vpp) *vpp = ncbytescontents(http->interval);

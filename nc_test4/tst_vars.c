@@ -91,7 +91,7 @@ create_4D_example(char *file_name, int cmode)
    float lats[NLAT], lons[NLON];
 
    /* Loop indexes. */
-   int lvl, lat, lon, rec, i = 0;
+   int lvl, lat, lon, i = 0;
 
    /* Create some pretend data. If this wasn't an example program, we
     * would have some real data to write, for example, model
@@ -182,7 +182,7 @@ create_4D_example(char *file_name, int cmode)
       surface temperature data. The arrays only hold one timestep worth
       of data. We will just rewrite the same data for each timestep. In
       a real application, the data would change between timesteps. */
-   for (rec = 0; rec < NREC; rec++)
+   for (size_t rec = 0; rec < NREC; rec++)
    {
       start[0] = rec;
 

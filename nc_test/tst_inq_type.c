@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
    }
    SUMMARIZE_ERR;
 
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
    printf("\n* Testing nc_inq_type with CDF5\n");
    {
       if(nc_create(FILE_NAME,NC_CLOBBER|NC_CDF5,&ncid)) ERR;
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-#endif /* ENABLE_CDF5 */
+#endif /* NETCDF_ENABLE_CDF5 */
 
 #ifdef USE_HDF5
    printf("\n* Testing nc_inq_type with netcdf-4 + Classic Model\n");

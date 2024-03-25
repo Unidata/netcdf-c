@@ -8,7 +8,7 @@ endif()
 
 add_library(ncpoco OBJECT ${libncpoco_SOURCES})
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
   target_compile_definitions(ncpoco PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 

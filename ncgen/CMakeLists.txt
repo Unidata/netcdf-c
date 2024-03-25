@@ -95,7 +95,7 @@ SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
 # With this option enabled, automatically generate the parser source
 # files from the yacc input files when they're changed. They don't
 # change very often, so this option is off by default.
-if (GENERATE_NCGEN)
+if (NETCDF_GENERATE_NCGEN)
   find_program(FLEX flex REQUIRED)
   find_program(BISON bison REQUIRED)
 

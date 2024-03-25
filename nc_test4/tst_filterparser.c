@@ -174,14 +174,14 @@ buildbaseline(void)
     insert(5,&val4,sizeof(val4)); /* unsigned int*/
     val4 = 2147483647; /*0x7fffffff*/
     insert(6,&val4,sizeof(val4)); /* signed int */
-    val4 = (-2147483647)-1; /*0x80000000*/
-    insert(7,&val4,sizeof(val4)); /* signed int */
+    int sval4 = (-2147483647)-1; /*0x80000000*/
+    insert(7,&sval4,sizeof(sval4)); /* signed int */
     val4 = 4294967295U; /*0xffffffff*/
     insert(8,&val4,sizeof(val4)); /* unsigned int */
     float4 = (float)FLTVAL;
     insert(9,&float4,sizeof(float4)); /*float */
-    val8 = LONGLONGVAL;
-    insert(10,&val8,sizeof(val8)); /* signed long long */
+    long long sval8 = LONGLONGVAL;
+    insert(10,&sval8,sizeof(sval8)); /* signed long long */
     val8 = ULONGLONGVAL;
     insert(12,&val8,sizeof(val8)); /* unsigned long long */
     float8 = DBLVAL;

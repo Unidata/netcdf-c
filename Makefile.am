@@ -49,7 +49,7 @@ V2_TEST = nctest
 endif
 
 # Does the user want to build ncgen/ncdump?
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 NCGEN3 = ncgen3
 NCGEN = ncgen
 NCDUMP = ncdump
@@ -76,21 +76,21 @@ endif
 endif
 
 # Build the dap2 client
-if ENABLE_DAP
+if NETCDF_ENABLE_DAP
 OCLIB = oc2
 DAP2 = libdap2
 NCDAP2TESTDIR = ncdap_test
 endif
 
-if ENABLE_DAP4
+if NETCDF_ENABLE_DAP4
 DAP4 = libdap4
 NCDAP4TESTDIR = dap4_test
 XML = libncxml
 endif #DAP4
 
-if ENABLE_S3_INTERNAL
+if NETCDF_ENABLE_S3_INTERNAL
 XML = libncxml # Internal S3 requires XML
-endif #ENABLE_S3_INTERNAL
+endif #NETCDF_ENABLE_S3_INTERNAL
 
 # Build PnetCDF
 if USE_PNETCDF
@@ -104,18 +104,18 @@ LIBHDF4 = libhdf4
 endif
 
 # Build Plugin support
-if ENABLE_PLUGINS
+if NETCDF_ENABLE_PLUGINS
 NCPOCO = libncpoco
 endif
 
 # Build Cloud Storage if desired.
-if ENABLE_NCZARR
+if NETCDF_ENABLE_NCZARR
 ZARR_TEST_DIR = nczarr_test
 ZARR = libnczarr
 endif
 
 # Optionally build test plugins
-if ENABLE_PLUGINS
+if NETCDF_ENABLE_PLUGINS
 PLUGIN_DIR = plugins
 endif
 
@@ -210,7 +210,7 @@ install-data-hook:
 # Also track the S3 cleanup id
 all-local: liblib/libnetcdf.la
 	echo ${PACKAGE_VERSION} > VERSION
-if ENABLE_S3_TESTALL
+if NETCDF_ENABLE_S3_TESTALL
 	rm -f ${abs_top_builddir}/tmp_@PLATFORMUID@.uids
 	echo "@TESTUID@" >> ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 	cat ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids | sort | uniq > ${abs_top_builddir}/tmp_@PLATFORMUID@.uids
@@ -218,7 +218,7 @@ if ENABLE_S3_TESTALL
 	mv ${abs_top_builddir}/tmp_@PLATFORMUID@.uids ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 endif
 
-if ENABLE_S3_TESTALL
+if NETCDF_ENABLE_S3_TESTALL
 distclean-local:
 	rm -f ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 endif

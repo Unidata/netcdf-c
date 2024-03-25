@@ -19,7 +19,7 @@ else()
 )
 endif(HAVE_LIBXML2)
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
   target_compile_definitions(ncxml PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 
