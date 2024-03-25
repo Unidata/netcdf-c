@@ -98,14 +98,13 @@ d4odom_more(D4odometer* odom)
 d4size_t
 d4odom_next(D4odometer* odom)
 {
-    int i; /* do not make unsigned */
     d4size_t count;
     if(odom->rank == 0) { /*scalar*/
 	odom->index[0]++;
 	return 0;
     }
     count = d4odom_offset(odom); /* convenience */
-    for(i=odom->rank-1;i>=0;i--) {
+    for(size_t i=odom->rank; i-- >0;) {
         odom->index[i] += odom->stride[i];
         if(odom->index[i] < odom->stop[i]) break;
 	if(i == 0) break; /* leave the 0th entry if it overflows*/
