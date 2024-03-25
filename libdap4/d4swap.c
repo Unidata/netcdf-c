@@ -77,8 +77,8 @@ walkAtomicVar(NCD4response* resp, NCD4node* topvar, NCD4node* var, NCD4offset* o
 	subsort = var->basetype->basetype->subsort;
     /* Only need to swap multi-byte integers and floats */
     if(subsort != NC_STRING) {
-        int typesize = NCD4_typesize(subsort);
-	d4size_t totalsize = typesize*dimproduct;
+        size_t typesize = NCD4_typesize(subsort);
+        d4size_t totalsize = typesize*dimproduct;
 	if(typesize == 1) {
 	    INCR(offset,totalsize);
 	} else { /*(typesize > 1)*/

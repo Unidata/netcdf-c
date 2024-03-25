@@ -309,7 +309,7 @@ fillopfixed(NCD4meta* meta, d4size_t opaquesize, NCD4offset* offset, void** dstp
     SKIPCOUNTER(offset);
     /* verify that it is the correct size */
     actual = count;
-    delta = actual - opaquesize;
+    delta = (int)actual - (int)opaquesize;
     if(delta != 0) {
 #ifdef FIXEDOPAQUE
 	nclog(NCLOGWARN,"opaque changed from %lu to %lu",actual,opaquesize);

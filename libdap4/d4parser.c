@@ -881,7 +881,7 @@ getOpaque(NCD4parser* parser, ncxml_t varxml, NCD4node* group)
 {
     size_t i;
     int ret = NC_NOERR;
-    long long len;
+    size_t len;
     NCD4node* opaquetype = NULL;
     char* xattr;
 
@@ -894,11 +894,11 @@ getOpaque(NCD4parser* parser, ncxml_t varxml, NCD4node* group)
         /* See if this var has UCARTAGOPAQUE attribute */
         xattr = ncxml_attr(varxml,UCARTAGOPAQUE);
         if(xattr != NULL) {
-	    long long tmp = 0;
+            long long tmp = 0;
             if((ret = parseLL(xattr,&tmp)) || (tmp < 0))
-	        FAIL(NC_EINVAL,"Illegal opaque len: %s",xattr);
-	    len = tmp;
-	    nullfree(xattr);
+            FAIL(NC_EINVAL,"Illegal opaque len: %s",xattr);
+            len = (size_t)tmp;
+            nullfree(xattr);
         }
     }
 #ifndef FIXEDOPAQUE
@@ -920,7 +920,7 @@ getOpaque(NCD4parser* parser, ncxml_t varxml, NCD4node* group)
         if(opaquetype == NULL) {/* create it */
 	    char name[NC_MAX_NAME+1];
 	    /* Make name be "opaqueN" */
-	    snprintf(name,NC_MAX_NAME,"opaque%lld_t",len);
+	    snprintf(name,NC_MAX_NAME,"opaque%zu_t",len);
 	    /* Opaque types are always created in the current group */
 	    if((ret=makeNode(parser,group,NULL,NCD4_TYPE,NC_OPAQUE,&opaquetype)))
 	        goto done;
@@ -1098,14 +1098,13 @@ lookupFQNList(NCD4parser* parser, NClist* fqn, NCD4sort sort, NCD4node** result)
 {
     int ret = NC_NOERR;
     size_t i;
-    int nsteps;
     NCD4node* current;
     char* name = NULL;
     NCD4node* node = NULL;
 
     /* Step 1: walk thru groups until can go no further */
     current = parser->metadata->root;
-    nsteps = nclistlength(fqn);
+    size_t nsteps = nclistlength(fqn);
     for(i=1;i<nsteps;i++) { /* start at 1 to side-step root name */
 	assert(ISGROUP(current->sort));
 	name = (char*)nclistget(fqn,i);
