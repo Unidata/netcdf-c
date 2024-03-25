@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+#include <stddef.h>
 #ifndef DATA_H
 #define DATA_H 1
 
@@ -36,11 +37,11 @@ typedef union Constvalue {
     float floatv;               /* NC_FLOAT*/
     double doublev;             /* NC_DOUBLE*/
     struct Stringv {		/* NC_STRING*/
-	int len;
-	char* stringv; 
+        size_t len;
+        char* stringv;
     } stringv;
     struct Opaquev {     /* NC_OPAQUE*/
-	int len; /* length as originally written (rounded to even number)*/
+	size_t len; /* length as originally written (rounded to even number)*/
 	char* stringv; /*as  constant was written*/
 		      /* (padded to even # chars >= 16)*/
 		      /* without leading 0x*/

@@ -6,6 +6,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/util.h,v 1.3 2010/04/04 19:39:57 dmh Exp $
  *********************************************************************/
 
+#include <stddef.h>
 #define MAX(x,y) ((x)>(y)?(x):(y))
 
 extern void expe2d(char*);
@@ -24,7 +25,7 @@ extern int classicunlimited(Dimset* dimset);
 extern int isbounded(Dimset* dimset);
 extern char* nctypename(nc_type);
 extern char* ncclassname(nc_class);
-extern int ncsize(nc_type);
+extern size_t ncsize(nc_type);
 
 extern nc_type signedtype(nc_type nctype);
 extern nc_type unsignedtype(nc_type nctype);
@@ -56,7 +57,7 @@ extern int findlastunlimited(Dimset* dimset);
 extern int countunlimited(Dimset* dimset);
 
 extern unsigned char* makebytestring(char* s, size_t* lenp);
-extern int getpadding(int offset, int alignment);
+extern size_t getpadding(size_t offset, size_t alignment);
 
 extern void check_err(const int stat, const int line, const char* file, const char* func);
 extern void check_err2(const int stat, const int cdlline, const int line, const char* file, const char* func);

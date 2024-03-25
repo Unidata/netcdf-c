@@ -4,6 +4,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen3/init.c,v 1.6 1997/05/23 11:41:14 russ Exp $
  *********************************************************************/
 
+#include <stddef.h>
 #include <stdio.h>
 #include <netcdf.h>
 #include "generic.h"
@@ -23,7 +24,7 @@ int natts;			/* number of attributes */
 int nvdims;			/* number of dimensions for variables */
 int dimnum;			/* dimension number index for variables */
 int varnum;			/* variable number index for attributes */
-int valnum;			/* value number index for attributes */
+size_t valnum;			/* value number index for attributes */
 int rec_dim;			/* number of the unlimited dimension, if any */
 size_t var_len;			/* variable length (product of dimensions) */
 size_t rec_len;			/* number of elements for a record of data */

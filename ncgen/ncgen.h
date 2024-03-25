@@ -119,7 +119,7 @@ typedef struct Specialdata {
     Datalist*      _Fillvalue; /* This is a per-type ; points to the _FillValue attribute node */
     int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS | NC_COMPACT*/
     size_t*       _ChunkSizes;     /* NULL => defaults*/
-        int nchunks;     /*  |_Chunksize| ; 0 => not specified*/
+    size_t nchunks;     /*  |_Chunksize| ; 0 => not specified*/
     int           _Fletcher32;     /* 1=>fletcher32*/
     int           _DeflateLevel; /* 0-9 => level*/
     int           _Shuffle;      /* 0 => false, 1 => true*/

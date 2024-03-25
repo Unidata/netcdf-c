@@ -123,7 +123,7 @@ union YYSTYPE
 
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
-long           mark; /* track indices into the sequence*/
+size_t         mark; /* track indices into the sequence*/
 int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant*    constant;

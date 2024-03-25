@@ -99,7 +99,7 @@ c_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf,.
 	} break;
     case NC_OPAQUE: {
 	char* p;
-	size_t bslen = (size_t)(4*con->value.opaquev.len);
+	size_t bslen = 4*con->value.opaquev.len;
 	special = poolalloc(bslen+2+1);
 	strcpy(special,"\"");
 	p = con->value.opaquev.stringv;

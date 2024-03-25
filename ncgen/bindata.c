@@ -10,7 +10,7 @@
 #ifdef ENABLE_BINARY
 
 /* Forward */
-static void alignto(int alignment, Bytebuffer* buf, ptrdiff_t base);
+static void alignto(size_t alignment, Bytebuffer* buf, size_t base);
 
 static int bin_uid = 0;
 
@@ -105,7 +105,7 @@ bin_listbegin(Generator* generator, Symbol* tsym, void* liststate, ListClass lc,
 {
     if(uidp) *uidp = ++bin_uid;
     if(lc == LISTCOMPOUND)
-        *((int*)liststate) = bbLength(buf);
+        *((size_t*)liststate) = bbLength(buf);
     return 1;
 }
 
@@ -113,9 +113,9 @@ static int
 bin_list(Generator* generator, Symbol* tsym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
 {
     if(lc == LISTCOMPOUND) {
-        int offsetbase = *((int*)liststate);
+        size_t offsetbase = *((size_t*)liststate);
         /* Pad for the alignment */
-	alignto(tsym->typ.alignment,buf,offsetbase);		
+	alignto(tsym->typ.alignment,buf,offsetbase);
     }
     return 1;
 }
@@ -124,7 +124,7 @@ static int
 bin_listend(Generator* generator, Symbol* tsym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
 {
     if(lc == LISTCOMPOUND) {
-        int offsetbase = *((int*)liststate);
+        size_t offsetbase = *((size_t*)liststate);
         /* Pad out the whole instance */
 	alignto(tsym->typ.cmpdalign,buf,offsetbase);		
     }
@@ -167,12 +167,11 @@ static const char zeros[] =
     "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 
 static void
-alignto(int alignment, Bytebuffer* buf, ptrdiff_t base)
+alignto(size_t alignment, Bytebuffer* buf, size_t base)
 {
-    int pad = 0;
-    ptrdiff_t offset = bbLength(buf);
-    offset -= base; /* Need to actually align wrt to the base */
-    pad = getpadding(offset,alignment);
+    /* Need to actually align wrt to the base */
+    size_t offset = bbLength(buf) - base;
+    size_t pad = getpadding(offset,alignment);
     if(pad > 0) {
 	bbAppendn(buf,(void*)zeros,pad);
     }
@@ -196,11 +195,10 @@ Generator* bin_generator = &bin_generator_singleton;
 static int bin_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf);
 
 static void
-write_alignment(int alignment, Bytebuffer* buf)
+write_alignment(size_t alignment, Bytebuffer* buf)
 {
-    int pad = 0;
-    ptrdiff_t offset = bbLength(buf);
-    pad = getpadding(offset,alignment);
+    unsigned int offset = bbLength(buf);
+    size_t pad = getpadding(offset,alignment);
     if(pad > 0) {
 	bbAppendn(buf,(void*)zeros,pad);
     }

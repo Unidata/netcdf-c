@@ -1,6 +1,7 @@
 /* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
+#include <stddef.h>
 #ifndef BYTEBUFFER_H
 #define BYTEBUFFER_H 1
 
@@ -33,7 +34,7 @@ EXTERNC int bbGet(Bytebuffer*,unsigned int);
 EXTERNC int bbSet(Bytebuffer*,unsigned int,char);
 
 EXTERNC int bbAppend(Bytebuffer*,const char); /* Add at Tail */
-EXTERNC int bbAppendn(Bytebuffer*,const void*,unsigned int); /* Add at Tail */
+EXTERNC int bbAppendn(Bytebuffer*, const void*, size_t); /* Add at Tail */
 
 /* Insert 1 or more characters at given location */
 EXTERNC int bbInsert(Bytebuffer*,const unsigned int,const char);

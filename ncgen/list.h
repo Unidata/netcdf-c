@@ -57,6 +57,6 @@ EXTERNC List* listclone(List*);
 #define listclear(l) listsetlength((l),0)
 #define listextend(l,len) listsetalloc((l),(len)+(l->alloc))
 #define listcontents(l)  ((l)==NULL?NULL:(l)->content)
-#define listlength(l)  ((l)==NULL?0:(int)(l)->length)
+#define listlength(l)  ((l)==NULL?0:(l)->length)
 
 #endif /*LIST_H*/
