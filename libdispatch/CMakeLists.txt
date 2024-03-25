@@ -4,9 +4,18 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-SET(libdispatch_SOURCES dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8.c dinternal.c doffsets.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c utf8proc.h utf8proc.c dpathmgr.c dutil.c drc.c dauth.c dreadonly.c dnotnc4.c dnotnc3.c dinfermodel.c
-daux.c dinstance.c dinstance_intern.c
-dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c)
+add_library(dispatch OBJECT)
+
+target_sources(dispatch 
+  PRIVATE
+    dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8.c dinternal.c doffsets.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c utf8proc.h utf8proc.c dpathmgr.c dutil.c drc.c dauth.c dreadonly.c dnotnc4.c dnotnc3.c dinfermodel.c
+    daux.c dinstance.c dinstance_intern.c
+    dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c
+)
+
+if (NETCDF_ENABLE_DLL)
+  target_compile_definitions(dispatch PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
 
 ## 
 # Turn off inclusion of particular files when using the cmake-native
@@ -22,52 +31,78 @@ set_property(SOURCE dinstance_intern.c dinstance.c dvarput.c
     SKIP_UNITY_BUILD_INCLUSION ON)
 
 # Netcdf-4 only functions. Must be defined even if not used
-SET(libdispatch_SOURCES ${libdispatch_SOURCES} dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c)
+target_sources(dispatch
+  PRIVATE
+    dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c
+)
 
-IF(BUILD_V2)
-  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dv2i.c)
-ENDIF(BUILD_V2)
+if(BUILD_V2)
+  target_sources(dispatch
+    PRIVATE
+      dv2i.c
+  )
+endif(BUILD_V2)
 
-IF(ENABLE_BYTERANGE)
-  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dhttp.c)
-ENDIF(ENABLE_BYTERANGE)
+if(NETCDF_ENABLE_BYTERANGE)
+  target_sources(dispatch
+    PRIVATE
+      dhttp.c
+  )
+ENDIF(NETCDF_ENABLE_BYTERANGE)
 
-IF(ENABLE_S3)
-  IF(ENABLE_S3_INTERNAL)
-    SET(libdispatch_SOURCES ${libdispatch_SOURCES} ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h nccurl_sha256.c nccurl_sha256.h nccurl_hmac.c nccurl_hmac.h nccurl_setup.h)
-  ELSE()
-    SET(libdispatch_SOURCES ${libdispatch_SOURCES} ncs3sdk_aws.cpp awsincludes.h)
-  ENDIF()
-ENDIF()
+IF(NETCDF_ENABLE_S3)
+  if(NETCDF_ENABLE_S3_INTERNAL)
+    target_sources(dispatch
+      PRIVATE
+        ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h nccurl_sha256.c nccurl_sha256.h nccurl_hmac.c nccurl_hmac.h nccurl_setup.h
+    )
+  else()
+    target_sources(dispatch
+      PRIVATE
+        ncs3sdk_aws.cpp awsincludes.h 
+    )
+  endif()
+endif()
 
-IF(REGEDIT)
-  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dreg.c)
-ENDIF(REGEDIT)
+if(REGEDIT)
+  target_sources(dispatch
+    PRIVATE
+      dreg.c
+  )
+endif(REGEDIT)
 
-add_library(dispatch OBJECT ${libdispatch_SOURCES})
-IF(STATUS_PARALLEL)
+
+if (USE_HDF5)
+  target_link_libraries(dispatch PRIVATE HDF5::HDF5)
+endif(USE_HDF5)
+
+if(STATUS_PARALLEL)
     target_link_libraries(dispatch PUBLIC MPI::MPI_C)
-ENDIF(STATUS_PARALLEL)
+endif(STATUS_PARALLEL)
 
-IF(ENABLE_NCZARR)
+if (NETCDF_ENABLE_PNETCDF)
+    target_link_libraries(dispatch PUBLIC PNETCDF::PNETCDF)
+endif()
+
+IF(NETCDF_ENABLE_NCZARR)
     target_include_directories(dispatch PUBLIC ../libnczarr)
-ENDIF(ENABLE_NCZARR)
+endif(NETCDF_ENABLE_NCZARR)
 
-IF(ENABLE_S3)
-  IF(ENABLE_S3_AWS)
+if(NETCDF_ENABLE_S3)
+  if(NETCDF_ENABLE_S3_AWS)
     target_include_directories(dispatch PUBLIC ${AWSSDK_INCLUDE_DIRS})
-    IF(NOT MSVC)
+    if(NOT MSVC)
       target_compile_features(dispatch PUBLIC cxx_std_11)
-    ENDIF()
-  ELSE()
+    endif()
+  else()
     target_include_directories(dispatch PUBLIC ../libncxml)
-  ENDIF()
-ENDIF()
+  endif()
+endif()
 
-IF(ENABLE_TESTS)
+if(NETCDF_ENABLE_TESTS)
     BUILD_BIN_TEST(ncrandom)
-ENDIF()
+endif()
 
-FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
+file(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
+set(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

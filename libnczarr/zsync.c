@@ -298,7 +298,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     int purezarr = 0;
     size64_t shape[NC_MAX_VAR_DIMS];
     NCZ_VAR_INFO_T* zvar = var->format_var_info;
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     NClist* filterchain = NULL;
     NCjson* jfilter = NULL;
 #endif
@@ -318,7 +318,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     if((stat = NCZ_adjust_var_cache(var))) goto done;
     /* rebuild the fill chunk */
     if((stat = NCZ_ensure_fill_chunk(zvar->cache))) goto done;
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     /* Build the filter working parameters for any filters */
     if((stat = NCZ_filter_setup(var))) goto done;
 #endif
@@ -415,7 +415,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     /* From V2 Spec: A JSON object identifying the primary compression codec and providing
        configuration parameters, or ``null`` if no compressor is to be used. */
     if((stat = NCJaddstring(jvar,NCJ_STRING,"compressor"))) goto done;
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     filterchain = (NClist*)var->filters;
     if(nclistlength(filterchain) > 0) {
 	struct NCZ_Filter* filter = (struct NCZ_Filter*)nclistget(filterchain,nclistlength(filterchain)-1);
@@ -437,7 +437,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     /* A list of JSON objects providing codec configurations, or ``null``
        if no filters are to be applied. */
     if((stat = NCJaddstring(jvar,NCJ_STRING,"filters"))) goto done;
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     if(nclistlength(filterchain) > 1) {
 	size_t k;
 	/* jtmp holds the array of filters */
@@ -1488,7 +1488,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
         int vtypelen = 0;
         int rank = 0;
         int zarr_rank = 0; /* Need to watch out for scalars */
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
         NCjson* jfilter = NULL;
         int chainindex = 0;
 #endif
@@ -1738,7 +1738,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
            object MUST contain a "id" key identifying the codec to be used. */
 	/* Do filters key before compressor key so final filter chain is in correct order */
 	{
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 	    if(var->filters == NULL) var->filters = (void*)nclistnew();
    	    if(zvar->incompletefilters == NULL) zvar->incompletefilters = (void*)nclistnew();
 	    chainindex = 0; /* track location of filter in the chain */
@@ -1761,7 +1761,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
         /* compressor key */
         /* From V2 Spec: A JSON object identifying the primary compression codec and providing
            configuration parameters, or ``null`` if no compressor is to be used. */
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 	{ 
 	    if(var->filters == NULL) var->filters = (void*)nclistnew();
 	    if((stat = NCZ_filter_initialize())) goto done;
@@ -1785,7 +1785,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    }
 	}
 
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 	if(!suppress) {
     	    /* At this point, we can finalize the filters */
             if((stat = NCZ_filter_setup(var))) goto done;

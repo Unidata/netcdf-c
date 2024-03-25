@@ -102,7 +102,7 @@ ncz_get_att_special(NC_FILE_INFO_T* h5, NC_VAR_INFO_T* var, const char* name,
 
     /* Handle the per-var case(s) first */
     if(var != NULL) {
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
         if(strcmp(name,NC_ATT_CODECS)==0) {	
             NClist* filters = (NClist*)var->filters;
 

@@ -26,7 +26,7 @@ nc_blkio_init(size_t bufsize, 	/* size in bytes of in-memory copy buffer */
 {
     int stat = NC_NOERR;
     int i;
-    long long prod;
+    size_t prod;
     size_t *dims = iter->dimsizes;
 
     iter->rank = rank;
@@ -184,7 +184,6 @@ nc_get_iter(int ncid,
     size_t value_size = 0;      /* size in bytes of each variable element */
     int ndims;		    /* number of dimensions for variable */
     int *dimids;
-    long long nvalues = 1;
     int dim;
     int chunked = 0;
 
@@ -203,7 +202,6 @@ nc_get_iter(int ncid,
     for(dim = 0; dim < ndims; dim++) {
 	size_t len;
 	NC_CHECK(nc_inq_dimlen(ncid, dimids[dim], &len));
-	nvalues *= len;
 	iterp->dimsizes[dim] = len;
     }
     NC_CHECK(nc_inq_vartype(ncid, varid, &vartype));

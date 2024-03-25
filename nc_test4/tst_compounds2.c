@@ -51,7 +51,7 @@ main(int argc, char **argv)
       {
 	 data_out[i].y = 99.99f;
 	 for (j = 0; j < ARRAY_LEN; j++)
-	    data_out[i].x[j] = j;
+            data_out[i].x[j] = (unsigned char)j;
       }
 
       /* Create a file with a nested compound type attribute and variable. */

@@ -6,7 +6,7 @@
 # Set Project Properties
 ##################################
 
-cmake_minimum_required(VERSION 3.12.0)
+cmake_minimum_required(VERSION 3.20.0)
 
 #Project Name
 project(netCDF
@@ -24,6 +24,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake/mo
 set(PACKAGE "netCDF" CACHE STRING "")
 
 include(netcdf_functions_macros)
+include(deprecated)
+
 
 # Backport of built-in `PROJECT_IS_TOP_LEVEL` from CMake 3.21
 if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
@@ -32,6 +34,24 @@ if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
     set(NETCDF_IS_TOP_LEVEL ON)
   endif ()
 endif ()
+
+
+################################
+# The target
+################################
+
+##
+# Default building shared libraries.
+# BUILD_SHARED_LIBS is provided by/used by
+# CMake directly.
+##
+option(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
+if(BUILD_SHARED_LIBS)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
+add_library(netcdf)
+add_library(netCDF::netcdf ALIAS netcdf)
 
 #####
 # Version Info:
@@ -114,7 +134,7 @@ include(GNUInstallDirs)
 
 if(MSVC)
   set(GLOBAL PROPERTY USE_FOLDERS ON)
-  add_compile_options("/utf-8")
+  target_compile_options(netcdf PUBLIC "/utf-8")
 endif()
 
 # auto-configure style checks, other CMake modules.
@@ -205,31 +225,21 @@ include(GenerateExportHeader)
 # Compiler and Linker Configuration
 ################################
 
-##
-# Default building shared libraries.
-# BUILD_SHARED_LIBS is provided by/used by
-# CMake directly.
-##
-option(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
-if(BUILD_SHARED_LIBS)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
-
-option(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
+option(NETCDF_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
 
 ##
 # We've had a request to allow for non-versioned shared libraries.
 # This seems reasonable enough to accommodate.  See
 # https://github.com/Unidata/netcdf-c/issues/228 for more info.
 ##
-option(ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file name of the generated library file." ON)
+option(NETCDF_ENABLE_SHARED_LIBRARY_VERSION "Encode the library SO version in the file name of the generated library file." ON)
 
 # Set some default linux gcc & apple compiler options for
 # debug builds.
 if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-  option(ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
-  option(ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
-  option(ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
+  option(NETCDF_ENABLE_COVERAGE_TESTS "Enable compiler flags needed to perform coverage tests." OFF)
+  option(NETCDF_ENABLE_CONVERSION_WARNINGS "Enable warnings for implicit conversion from 64 to 32-bit datatypes." ON)
+  option(NETCDF_ENABLE_LARGE_FILE_TESTS "Enable large file tests." OFF)
 
   # Debugging flags
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall")
@@ -243,7 +253,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   set(CMAKE_REQUIRED_FLAGS "${TMP_CMAKE_REQUIRED_FLAGS}")
 
   # Coverage tests need to have optimization turned off.
-  if(ENABLE_COVERAGE_TESTS)
+  if(NETCDF_ENABLE_COVERAGE_TESTS)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
@@ -251,7 +261,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   endif()
 
   # Warnings for 64-to-32 bit conversions.
-  if(ENABLE_CONVERSION_WARNINGS)
+  if(NETCDF_ENABLE_CONVERSION_WARNINGS)
     CHECK_C_COMPILER_FLAG(-Wconversion CC_HAS_WCONVERSION)
     CHECK_C_COMPILER_FLAG(-Wshorten-64-to-32 CC_HAS_SHORTEN_64_32)
 
@@ -262,7 +272,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR APPLE)
       set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wconversion")
     endif()
 
-  endif(ENABLE_CONVERSION_WARNINGS)
+  endif(NETCDF_ENABLE_CONVERSION_WARNINGS)
 
 endif(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
@@ -276,17 +286,15 @@ if(MINGW)
   endif()
 endif()
 
-add_definitions()
-
 # Suppress CRT Warnings.
 # Only necessary for Windows
 if(MSVC)
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  target_compile_definitions(netcdf PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
 # Support ANSI format specifiers for *printf on MINGW:
 if(MINGW)
-  add_definitions(-D__USE_MINGW_ANSI_STDIO=1)
+  target_compile_definitions(netcdf PRIVATE __USE_MINGW_ANSI_STDIO=1)
 endif()
 
 #####
@@ -366,8 +374,8 @@ endif(${CMAKE_SYSTEM_NAME} EQUAL "Darwin")
 
 # Option to use Static Runtimes in MSVC
 if(MSVC)
-  option(NC_USE_STATIC_CRT "Use static CRT Libraries ('\\MT')." OFF)
-  if(NC_USE_STATIC_CRT)
+  option(NETCDF_USE_STATIC_CRT "Use static CRT Libraries ('\\MT')." OFF)
+  if(NETCDF_USE_STATIC_CRT)
     set(USE_STATIC_CRT ON)
     specify_static_crt_flag()
   endif()
@@ -383,13 +391,15 @@ else(NOT ENABLE_V2_API)
 endif(NOT ENABLE_V2_API)
 
 # Option to build utilities
-option(BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
+option(NETCDF_BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
+option(NETCDF_GENERATE_NCGEN "Automatically regenerate ncgen C files if required" OFF)
+
 
 # Option to use MMAP
-option(ENABLE_MMAP "Use MMAP." ON)
+option(NETCDF_ENABLE_MMAP "Use MMAP." ON)
 
 # Option to use examples.
-option(ENABLE_EXAMPLES "Build Examples" ON)
+option(NETCDF_ENABLE_EXAMPLES "Build Examples" ON)
 
 ###
 # Allow the user to specify libraries
@@ -425,85 +435,87 @@ endif()
 # but for back compatability, we need to treat enable-netcdf4
 # as equivalent to enable-hdf5.
 # We detect this using these rules:
-# 1. if ENABLE_HDF5 is off then disable hdf5
-# 2. if ENABLE_NETCDF4 is off then disable hdf5
+# 1. if NETCDF_ENABLE_HDF5 is off then disable hdf5
+# 2. if NETCDF_ENABLE_NETCDF_4 is off then disable hdf5
 # 3. else enable hdf5
-option(ENABLE_NETCDF_4 "Use HDF5." ON)
-option(ENABLE_NETCDF4 "Use HDF5." ON)
-option(ENABLE_HDF5 "Use HDF5." ON)
-if(NOT ENABLE_HDF5 OR NOT ENABLE_NETCDF4 OR NOT ENABLE_NETCDF_4)
-  set(ENABLE_HDF5 OFF CACHE BOOL "Use HDF5" FORCE)
+option(NETCDF_ENABLE_NETCDF_4 "Use HDF5." ON)
+option(NETCDF_ENABLE_HDF5 "Use HDF5." ON)
+if(NOT NETCDF_ENABLE_HDF5 OR NOT NETCDF_ENABLE_NETCDF_4)
+  set(NETCDF_ENABLE_HDF5 OFF CACHE BOOL "Use HDF5" FORCE)
 endif()
-option(ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
-option(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
-option(ENABLE_NCZARR "Enable NCZarr Client." ON)
-option(ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
-set(ENABLE_CDF5 AUTO CACHE STRING "AUTO")
-option(ENABLE_CDF5 "Enable CDF5 support" ON)
+option(NETCDF_ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
+
+
+option(NETCDF_ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
+option(NETCDF_ENABLE_NCZARR "Enable NCZarr Client." ON)
+option(NETCDF_ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
+set(NETCDF_ENABLE_CDF5 AUTO CACHE STRING "AUTO")
+option(NETCDF_ENABLE_CDF5 "Enable CDF5 support" ON)
+
+if(DEFINED NETCDF_ENABLE_NETCDF4)
+  message(FATAL_ERROR "NETCDF_ENABLE_NETCDF4 is deprecated. Please use NETCDF_ENABLE_NETCDF_4 instead.")
+endif()
 
 # Netcdf-4 support (i.e. libsrc4) is required by more than just HDF5 (e.g. NCZarr)
 # So depending on what above formats are enabled, enable netcdf-4
-if(ENABLE_HDF5 OR ENABLE_HDF4 OR ENABLE_NCZARR)
-  set(ENABLE_NETCDF_4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
-  set(ENABLE_NETCDF4 ON CACHE BOOL "Enable netCDF4 Alias" FORCE)
+if(NETCDF_ENABLE_HDF5 OR NETCDF_ENABLE_HDF4 OR NETCDF_ENABLE_NCZARR)
+  set(NETCDF_ENABLE_NETCDF_4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
 endif()
 
 # enable|disable all forms of network access
-option(ENABLE_REMOTE_FUNCTIONALITY "Enable|disable all forms remote data access (DAP, S3, etc)" ON)
-message(">>> ENABLE_REMOTE_FUNCTIONALITY=${ENABLE_REMOTE_FUNCTIONALITY}")
-if(NOT ENABLE_REMOTE_FUNCTIONALITY)
-message(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_DAP[4]=NO")
-set(ENABLE_DAP OFF CACHE BOOL "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_DAP=NO" FORCE)
-set(ENABLE_DAP4 OFF CACHE BOOL "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_DAP4=NO" FORCE)
+option(NETCDF_ENABLE_REMOTE_FUNCTIONALITY "Enable|disable all forms remote data access (DAP, S3, etc)" ON)
+message(">>> NETCDF_ENABLE_REMOTE_FUNCTIONALITY=${NETCDF_ENABLE_REMOTE_FUNCTIONALITY}")
+if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
+message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP[4]=NO")
+set(NETCDF_ENABLE_DAP OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP=NO" FORCE)
+set(NETCDF_ENABLE_DAP4 OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP4=NO" FORCE)
 endif()
 
 # Option to Build DLL
 if(WIN32)
-  option(ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
-  if(ENABLE_DLL)
+  option(NETCDF_ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
+  if(NETCDF_ENABLE_DLL)
     set(BUILD_DLL ON CACHE BOOL "")
-    add_definitions(-DDLL_NETCDF)
-    add_definitions(-DDLL_EXPORT)
+    target_compile_definitions(netcdf PRIVATE DLL_EXPORT)
+    target_compile_definitions(netcdf PUBLIC DLL_NETCDF)
   endif()
 endif()
 # Did the user specify a default minimum blocksize for posixio?
 set(NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic and 64-bit offset format files.")
 
-if(ENABLE_NETCDF_4)
+if(NETCDF_ENABLE_NETCDF_4)
   set(USE_NETCDF4 ON CACHE BOOL "")
-  set(ENABLE_NETCDF_4 ON CACHE BOOL "")
-  set(ENABLE_NETCDF4 ON CACHE BOOL "")
+  set(NETCDF_ENABLE_NETCDF_4 ON CACHE BOOL "")
 else()
   set(USE_HDF4_FILE_TESTS OFF)
   set(USE_HDF4 OFF)
-  set(ENABLE_HDF4_FILE_TESTS OFF)
-  set(ENABLE_HDF4 OFF)
+  set(NETCDF_ENABLE_HDF4_FILE_TESTS OFF)
+  set(NETCDF_ENABLE_HDF4 OFF)
 endif()
 
 # Option Logging, only valid for netcdf4.
-option(ENABLE_LOGGING "Enable Logging." OFF)
-if(NOT ENABLE_NETCDF_4)
-set(ENABLE_LOGGING OFF)
+option(NETCDF_ENABLE_LOGGING "Enable Logging." OFF)
+if(NOT NETCDF_ENABLE_NETCDF_4)
+set(NETCDF_ENABLE_LOGGING OFF)
 endif()
-if(ENABLE_LOGGING)
-  add_definitions(-DLOGGING)
-  add_definitions(-DENABLE_SET_LOG_LEVEL)
+if(NETCDF_ENABLE_LOGGING)
+  target_compile_definitions(netcdf PRIVATE LOGGING ENABLE_SET_LOG_LEVEL)
   set(LOGGING ON)
   set(ENABLE_SET_LOG_LEVEL ON)
 endif()
-option(ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
-if(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
-  add_definitions(-DENABLE_SET_LOG_LEVEL)
+option(NETCDF_ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
+if(NETCDF_ENABLE_NETCDF_4 AND NOT NETCDF_ENABLE_LOGGING AND NETCDF_ENABLE_SET_LOG_LEVEL_FUNC)
+  target_compile_definitions(netcdf PRIVATE -DENABLE_SET_LOG_LEVEL)
   set(ENABLE_SET_LOG_LEVEL ON)
 endif()
 
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
-option(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
+option(NETCDF_ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
 
-if(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+if(NETCDF_ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
   set(USE_STRICT_NULL_BYTE_HEADER_PADDING ON CACHE BOOL "")
-endif(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
+endif(NETCDF_ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 
 # Note that szip management is tricky.
 # This is because we have three things to consider:
@@ -512,51 +524,51 @@ endif(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 # 3. is nczarr enabled?
 # We need separate flags for cases 1 and 2
 
-set(USE_HDF5 ${ENABLE_HDF5})
+set(USE_HDF5 ${NETCDF_ENABLE_HDF5})
 
-if(ENABLE_DAP)
+if(NETCDF_ENABLE_DAP)
   set(USE_DAP ON CACHE BOOL "")
-  set(ENABLE_DAP2 ON CACHE BOOL "")
+  set(NETCDF_ENABLE_DAP2 ON CACHE BOOL "")
 
-  if(ENABLE_HDF5)
+  if(NETCDF_ENABLE_HDF5)
     message(STATUS "Enabling DAP4")
-    set(ENABLE_DAP4 ON CACHE BOOL "")
+    set(NETCDF_ENABLE_DAP4 ON CACHE BOOL "")
   else()
     message(STATUS "Disabling DAP4")
-    set(ENABLE_DAP4 OFF CACHE BOOL "")
-  endif(ENABLE_HDF5)
+    set(NETCDF_ENABLE_DAP4 OFF CACHE BOOL "")
+  endif(NETCDF_ENABLE_HDF5)
 
 else()
-  set(ENABLE_DAP2 OFF CACHE BOOL "")
-  set(ENABLE_DAP4 OFF CACHE BOOL "")
+  set(NETCDF_ENABLE_DAP2 OFF CACHE BOOL "")
+  set(NETCDF_ENABLE_DAP4 OFF CACHE BOOL "")
 endif()
 
 # Option to support byte-range reading of remote datasets
-option(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)
-if(NOT ENABLE_REMOTE_FUNCTIONALITY)
-message(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_BYTERANGE=NO")
-set(ENABLE_BYTERANGE OFF CACHE BOOL "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_BYTERANGE=NO" FORCE)
+option(NETCDF_ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)
+if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
+message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_BYTERANGE=NO")
+set(NETCDF_ENABLE_BYTERANGE OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_BYTERANGE=NO" FORCE)
 endif()
 
 # Option to Enable DAP long tests, remote tests.
-option(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
-option(ENABLE_EXTERNAL_SERVER_TESTS "Enable external Server remote tests." OFF)
-option(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
+option(NETCDF_ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
+option(NETCDF_ENABLE_EXTERNAL_SERVER_TESTS "Enable external Server remote tests." OFF)
+option(NETCDF_ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 
-if(NOT ENABLE_DAP)
-set(ENABLE_DAP_REMOTE_TESTS OFF CACHE BOOL "" FORCE)
-set(ENABLE_EXTERNAL_SERVER_TESTS OFF CACHE BOOL "" FORCE)
-set(ENABLE_DAP_LONG_TESTS OFF CACHE BOOL "" FORCE)
+if(NOT NETCDF_ENABLE_DAP)
+set(NETCDF_ENABLE_DAP_REMOTE_TESTS OFF CACHE BOOL "" FORCE)
+set(NETCDF_ENABLE_EXTERNAL_SERVER_TESTS OFF CACHE BOOL "" FORCE)
+set(NETCDF_ENABLE_DAP_LONG_TESTS OFF CACHE BOOL "" FORCE)
 endif()
 
 set(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 set(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # Locate some compressors
-option(ENABLE_FILTER_SZIP  "Enable use of Szip compression library if it is available. Required if ENABLE_NCZARR is true." ON)
-option(ENABLE_FILTER_BZ2   "Enable use of Bz2 compression library if it is available." ON)
-option(ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it is available." ON)
-option(ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
+option(NETCDF_ENABLE_FILTER_SZIP  "Enable use of Szip compression library if it is available. Required if NETCDF_ENABLE_NCZARR is true." ON)
+option(NETCDF_ENABLE_FILTER_BZ2   "Enable use of Bz2 compression library if it is available." ON)
+option(NETCDF_ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it is available." ON)
+option(NETCDF_ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
 
 # If user wants, then install selected plugins (default on)
 set(PLUGIN_INSTALL_DIR "NO" CACHE STRING "Whether and where we should install plugins; defaults to yes")
@@ -568,7 +580,7 @@ if(DEFINED PLUGIN_INSTALL_DIR)
   if(boolval)
     set(ENABLE_PLUGIN_INSTALL YES)
     # No actual value was specified
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR CACHE)
   else()
     if(boolval STREQUAL "NOTFOUND")
       # Must be an actual value
@@ -583,7 +595,7 @@ endif()
 
 # Ensure no defined plugin dir if not enabled
 if(NOT ENABLE_PLUGIN_INSTALL)
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR CACHE)
 endif()
 
 if(ENABLE_PLUGIN_INSTALL)
@@ -615,18 +627,23 @@ if(ENABLE_PLUGIN_INSTALL)
   set(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
   message("Final value of-DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
 else() # No option specified
-    UNset(PLUGIN_INSTALL_DIR)
-    UNset(PLUGIN_INSTALL_DIR CACHE)
+    unset(PLUGIN_INSTALL_DIR)
+    unset(PLUGIN_INSTALL_DIR CACHE)
     set(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 endif()
 
 # Try to enable NCZarr zip support
-option(ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
+option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
+
+include(CMakeDependentOption)
 
 # libdl is always available; built-in in Windows and OSX
-option(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)." ON)
+cmake_dependent_option(NETCDF_ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
+  ON "BUILD_SHARED_LIBS" OFF)
+MESSAGE(STATUS "NETCDF_ENABLE_PLUGINS: ${NETCDF_ENABLE_PLUGINS}")
 if(MINGW)
-    set(ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
+    message(STATUS "MINGW Detected, disabling plugins.")
+    set(NETCDF_ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
 else()
   if(NOT WIN32)
     if(HAVE_DLFCN_H)
@@ -634,13 +651,14 @@ else()
     endif()
   endif()
 endif()
-if(ENABLE_PLUGINS)
+
+if(NETCDF_ENABLE_PLUGINS)
   set(USEPLUGINS yes)
 endif()
 
 # Enable some developer-only tests
-option(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
-if(ENABLE_EXTRA_TESTS)
+option(NETCDF_ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
+if(NETCDF_ENABLE_EXTRA_TESTS)
   set(EXTRA_TESTS ON)
 endif()
 
@@ -648,8 +666,8 @@ endif()
 # for MSVC builds. If not building utilities or some tests,
 # getopt() isn't required at all.
 if(MSVC)
-  option(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
-  if(ENABLE_XGETOPT)
+  option(NETCDF_ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
+  if(NETCDF_ENABLE_XGETOPT)
     set(USE_X_GETOPT ON CACHE BOOL "")
   endif()
 endif()
@@ -658,27 +676,27 @@ set(MATH "")
 if(NOT WIN32)
 
   # STDIO instead of posixio.
-  option(ENABLE_STDIO "If true, use stdio instead of posixio (ex. on the Cray)" OFF)
-  if(ENABLE_STDIO)
+  option(NETCDF_ENABLE_STDIO "If true, use stdio instead of posixio (ex. on the Cray)" OFF)
+  if(NETCDF_ENABLE_STDIO)
     set(USE_STDIO ON CACHE BOOL "")
   endif()
 
   # FFIO insteaad of PosixIO
-  option(ENABLE_FFIO "If true, use ffio instead of posixio" OFF)
-  if(ENABLE_FFIO)
+  option(NETCDF_ENABLE_FFIO "If true, use ffio instead of posixio" OFF)
+  if(NETCDF_ENABLE_FFIO)
     set(USE_FFIO ON CACHE BOOL "")
   endif()
 endif()
 
 # Options for S3 Support
-option(ENABLE_S3 "Enable S3 support." OFF)
-option(ENABLE_S3_INTERNAL "Enable S3 Internal support." OFF)
-option(ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of ENABLE_S3" OFF)
+option(NETCDF_ENABLE_S3 "Enable S3 support." OFF)
+option(NETCDF_ENABLE_S3_INTERNAL "Enable S3 Internal support." OFF)
+option(NETCDF_ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of NETCDF_ENABLE_S3" OFF)
 
-if(NOT ENABLE_REMOTE_FUNCTIONALITY)
-  set(ENABLE_S3 OFF CACHE BOOL "" FORCE)
-  set(ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
-  set(ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
+if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
+  set(NETCDF_ENABLE_S3 OFF CACHE BOOL "" FORCE)
+  set(NETCDF_ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
+  set(NETCDF_ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
 endif()
 
 # Control S3 Testing: Multi-valued option
@@ -692,53 +710,53 @@ if(WITH_S3_TESTING)
 message(WARNING "**** DO NOT USE WITH_S3_TESTING=ON UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***")
 endif()
 
-# ENABLE_NCZARR_S3 is now an alias for ENABLE_S3 (but...)
-if (NOT ENABLE_S3 AND ENABLE_NCZARR_S3)
-  set(ENABLE_S3 ON CACHE BOOL "NCARR S3" FORCE) # For back compatibility
+# NETCDF_ENABLE_NCZARR_S3 is now an alias for NETCDF_ENABLE_S3 (but...)
+if (NOT NETCDF_ENABLE_S3 AND NETCDF_ENABLE_NCZARR_S3)
+  set(NETCDF_ENABLE_S3 ON CACHE BOOL "NCARR S3" FORCE) # For back compatibility
 endif()
-UNset(ENABLE_NCZARR_S3)
+unset(NETCDF_ENABLE_NCZARR_S3)
 
-if(NOT ENABLE_REMOTE_FUNCTIONALITY)
-  message(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => disable all s3 functionality")
-  set(ENABLE_S3 OFF CACHE BOOL "" FORCE)
-  set(ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
-  set(ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
-  set(ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
+if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
+  message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => disable all s3 functionality")
+  set(NETCDF_ENABLE_S3 OFF CACHE BOOL "" FORCE)
+  set(NETCDF_ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
+  set(NETCDF_ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
+  set(NETCDF_ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
   set(WITH_S3_TESTING OFF CACHE STRING "" FORCE)
 endif()
 
 
-if(ENABLE_S3)
-  if(NOT ENABLE_S3_AWS AND NOT ENABLE_S3_INTERNAL)
-    message(FATAL_ERROR "S3 support library not found; please specify option -DENABLE_S3=NO")
-    set(ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)        
+if(NETCDF_ENABLE_S3)
+  if(NOT NETCDF_ENABLE_S3_AWS AND NOT NETCDF_ENABLE_S3_INTERNAL)
+    message(FATAL_ERROR "S3 support library not found; please specify option -DNETCDF_ENABLE_S3=NO")
+    set(NETCDF_ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)        
   endif()
-  if(ENABLE_S3_AWS AND ENABLE_S3_INTERNAL)
+  if(NETCDF_ENABLE_S3_AWS AND NETCDF_ENABLE_S3_INTERNAL)
     message(WARNING "Both aws-sdk-cpp and s3-internal enabled => use s3-internal")
-    set(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)        
+    set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)        
   endif()
 endif()
 
-if(NOT ENABLE_S3)
+if(NOT NETCDF_ENABLE_S3)
   if(WITH_S3_TESTING STREQUAL "PUBLIC" OR WITH_S3_TESTING)
     message(WARNING "S3 support is disabled => WITH_S3_TESTING=OFF")
     set(WITH_S3_TESTING OFF CACHE STRING "" FORCE)
   endif()
 endif()
 
-option(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
+option(NETCDF_ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
 set(XMLPARSER "tinyxml2 (bundled)")
 
-if(NOT ENABLE_BYTERANGE AND ENABLE_HDF5_ROS3)
-    message(WARNING "ROS3 support requires ENABLE_BYTERANGE=TRUE; disabling ROS3 support")
-    set(ENABLE_HDF5_ROS3 OFF CACHE BOOL "ROS3 support" FORCE)
+if(NOT NETCDF_ENABLE_BYTERANGE AND NETCDF_ENABLE_HDF5_ROS3)
+    message(WARNING "ROS3 support requires NETCDF_ENABLE_BYTERANGE=TRUE; disabling ROS3 support")
+    set(NETCDF_ENABLE_HDF5_ROS3 OFF CACHE BOOL "ROS3 support" FORCE)
 endif()
 
 ##
 # Enable Tests
 ##
-option(ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
-if(ENABLE_TESTS)
+option(NETCDF_ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
+if(NETCDF_ENABLE_TESTS)
   set(BUILD_TESTSETS ON CACHE BOOL "")
   # Options for CTest-based tests, dashboards.
   set(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
@@ -773,50 +791,50 @@ if(ENABLE_TESTS)
   # which are known to fail.
   ###
 
-  option(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
+  option(NETCDF_ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
 
   ###
   # Option to turn on unit testing. See
   # https://github.com/Unidata/netcdf-c/pull/1472 for more information.
   ###
-  option(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
+  option(NETCDF_ENABLE_UNIT_TESTS "Run Unit Tests." ON)
 
   ###
   # Option to turn on performance testing.
   # See https://github.com/Unidata/netcdf-c/issues/2627 for more information.
   ###
-  option(ENABLE_BENCHMARKS "Run benchmark Tests." OFF)
+  option(NETCDF_ENABLE_BENCHMARKS "Run benchmark Tests." OFF)
 
 
   ###
   # End known-failures.
   ###
-  MARK_AS_ADVANCED(ENABLE_FAILING_TESTS)
+  MARK_AS_ADVANCED(NETCDF_ENABLE_FAILING_TESTS)
 endif()
 
 ###
 # Option to enable extreme numbers during testing.
 ###
-option(ENABLE_EXTREME_NUMBERS "Enable extreme numbers during testing, such as MAX_INT-1" ON)
-if(ENABLE_EXTREME_NUMBERS)
+option(NETCDF_ENABLE_EXTREME_NUMBERS "Enable extreme numbers during testing, such as MAX_INT-1" ON)
+if(NETCDF_ENABLE_EXTREME_NUMBERS)
   set(USE_EXTREME_NUMBERS ON)
 endif()
 
 # Enable Large file tests
-if(ENABLE_LARGE_FILE_TESTS)
+if(NETCDF_ENABLE_LARGE_FILE_TESTS)
   set(LARGE_FILE_TESTS ON)
 endif()
 
-option(ENABLE_METADATA_PERF_TESTS "Enable test of metadata performance." OFF)
-if(ENABLE_METADATA_PERF_TESTS)
+option(NETCDF_ENABLE_METADATA_PERF_TESTS "Enable test of metadata performance." OFF)
+if(NETCDF_ENABLE_METADATA_PERF_TESTS)
   set(ENABLE_METADATA_PERF ON)
 endif()
 
 # Location for large file tests.
 set(TEMP_LARGE "." CACHE STRING "Location to store large file tests.")
 
-option(ENABLE_FSYNC "Enable experimental fsync code." OFF)
-if(ENABLE_FSYNC)
+option(NETCDF_ENABLE_FSYNC "Enable experimental fsync code." OFF)
+if(NETCDF_ENABLE_FSYNC)
   set(USE_FSYNC ON)
 endif()
 
@@ -828,8 +846,8 @@ endif()
 
 # Linux specific large file support flags.
 # Modelled after check in CMakeLists.txt for hdf5.
-option(ENABLE_LARGE_FILE_SUPPORT "Enable large file support." ON)
-if(ENABLE_LARGE_FILE_SUPPORT)
+option(NETCDF_ENABLE_LARGE_FILE_SUPPORT "Enable large file support." ON)
+if(NETCDF_ENABLE_LARGE_FILE_SUPPORT)
   if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LARGEADDRESSAWARE")
@@ -839,9 +857,9 @@ if(ENABLE_LARGE_FILE_SUPPORT)
   endif()
 endif()
 
-option(ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if HDF5 is not Enabled" OFF)
-if(NOT ENABLE_HDF5 AND ENABLE_EXAMPLE_TESTS)
-  set(ENABLE_EXAMPLE_TESTS OFF)
+option(NETCDF_ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if HDF5 is not Enabled" OFF)
+if(NOT NETCDF_ENABLE_HDF5 AND NETCDF_ENABLE_EXAMPLE_TESTS)
+  set(NETCDF_ENABLE_EXAMPLE_TESTS OFF)
 endif()
 
 ##################################
@@ -857,8 +875,8 @@ include(cmake/dependencies.cmake)
 # Enable Parallel IO with netCDF-4/HDF5 files using HDF5 parallel I/O.
 set(STATUS_PARALLEL "OFF")
 set(IMPORT_MPI "")
-option(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
-if(ENABLE_PARALLEL4 AND ENABLE_HDF5)
+option(NETCDF_ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
+if(NETCDF_ENABLE_PARALLEL4 AND NETCDF_ENABLE_HDF5)
   if(NOT HDF5_PARALLEL)
     set(USE_PARALLEL OFF CACHE BOOL "")
     message(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
@@ -882,167 +900,117 @@ if(ENABLE_PARALLEL4 AND ENABLE_HDF5)
 endif()
 
 # Options to enable parallel IO for classic formats with PnetCDF library.
-set(STATUS_PNETCDF "OFF")
-if(ENABLE_PNETCDF)
-  # Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
-  # Does the user want to turn on PnetCDF read ability?
-  set(USE_PNETCDF ON CACHE BOOL "")
-  if(NOT PNETCDF)
-    message(STATUS "Cannot find PnetCDF library. Disabling PnetCDF support.")
-    set(USE_PNETCDF OFF CACHE BOOL "")
-  else(NOT PNETCDF)
-    set(USE_PARALLEL ON CACHE BOOL "")
-
-    # Check PnetCDF version. Must be >= 1.6.0
-    set(pnetcdf_h "${PNETCDF_INCLUDE_DIR}/pnetcdf.h" )
-    message(STATUS "PnetCDF include file ${pnetcdf_h} will be searched for version")
-    file(STRINGS "${pnetcdf_h}" pnetcdf_major_string REGEX "^#define PNETCDF_VERSION_MAJOR")
-    string(REGEX REPLACE "[^0-9]" "" pnetcdf_major "${pnetcdf_major_string}")
-    file(STRINGS "${pnetcdf_h}" pnetcdf_minor_string REGEX "^#define PNETCDF_VERSION_MINOR")
-    string(REGEX REPLACE "[^0-9]" "" pnetcdf_minor "${pnetcdf_minor_string}")
-    file(STRINGS "${pnetcdf_h}" pnetcdf_sub_string REGEX "^#define PNETCDF_VERSION_SUB")
-    string(REGEX REPLACE "[^0-9]" "" pnetcdf_sub "${pnetcdf_sub_string}")
-    set(pnetcdf_version "${pnetcdf_major}.${pnetcdf_minor}.${pnetcdf_sub}")
-    message(STATUS "Found PnetCDF version ${pnetcdf_version}")
-
-    if(${pnetcdf_version} VERSION_GREATER "1.6.0")
-      set(STATUS_PNETCDF "ON")
-      include_directories(${PNETCDF_INCLUDE_DIR})
-      set(HAVE_LIBPNETCDF ON)
-      # PnetCDF => parallel
-      set(STATUS_PARALLEL ON)
-      set(USE_PARALLEL ON)
-      message(STATUS "Using PnetCDF Library: ${PNETCDF}")
-    else()
-      message(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PnetCDF is disabled")
-    endif()
-
+set(STATUS_PNETCDF ${NETCDF_ENABLE_PNETCDF})
+set(USE_PNETCDF ${NETCDF_ENABLE_PNETCDF})
+if(NETCDF_ENABLE_PNETCDF)
+  set(STATUS_PARALLEL ON)
+  set(USE_PARALLEL ON CACHE BOOL "")
   ### 
-  # Generate pnetcdf test.  
+  # Generate pnetcdf test
   ###
   configure_file("${netCDF_SOURCE_DIR}/nc_test/run_pnetcdf_tests.sh.in"
     "${netCDF_BINARY_DIR}/nc_test/run_pnetcdf_tests.sh")
-  endif(NOT PNETCDF)
 endif()
 
 # Options to enable use of fill values for elements causing NC_ERANGE
-set(ENABLE_ERANGE_FILL AUTO CACHE STRING "AUTO")
-option(ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OFF)
-if(ENABLE_ERANGE_FILL) # enable or auto
-   string(TOUPPER ${ENABLE_ERANGE_FILL} ENABLE_ERANGE_FILL)
-   if(ENABLE_ERANGE_FILL AND NOT ENABLE_ERANGE_FILL STREQUAL "AUTO")
+set(NETCDF_ENABLE_ERANGE_FILL AUTO CACHE STRING "AUTO")
+option(NETCDF_ENABLE_ERANGE_FILL "Enable use of fill value when out-of-range type conversion causes NC_ERANGE error." OFF)
+if(NETCDF_ENABLE_ERANGE_FILL) # enable or auto
+   string(TOUPPER ${NETCDF_ENABLE_ERANGE_FILL} NETCDF_ENABLE_ERANGE_FILL)
+   if(NETCDF_ENABLE_ERANGE_FILL AND NOT NETCDF_ENABLE_ERANGE_FILL STREQUAL "AUTO")
       # explicitly enabled
-      set(ENABLE_ERANGE_FILL ON)
+      set(NETCDF_ENABLE_ERANGE_FILL ON)
    else()
-      if(NOT ENABLE_ERANGE_FILL STREQUAL "AUTO")
-         set(ENABLE_ERANGE_FILL OFF)
+      if(NOT NETCDF_ENABLE_ERANGE_FILL STREQUAL "AUTO")
+         set(NETCDF_ENABLE_ERANGE_FILL OFF)
       endif()
    endif()
-endif(ENABLE_ERANGE_FILL)
-# Now ENABLE_ERANGE_FILL is either AUTO, ON, or OFF
+endif(NETCDF_ENABLE_ERANGE_FILL)
+# Now NETCDF_ENABLE_ERANGE_FILL is either AUTO, ON, or OFF
 
 # More relaxed coordinate check is now mandatory for all builds.
 set(ENABLE_ZERO_LENGTH_COORD_BOUND ON)
 
 # check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
-if(STATUS_PNETCDF)
-  file(STRINGS "${pnetcdf_h}" enable_erange_fill_pnetcdf REGEX "^#define PNETCDF_ERANGE_FILL")
-  string(REGEX REPLACE "[^0-9]" "" erange_fill_pnetcdf "${enable_erange_fill_pnetcdf}")
-  if("x${erange_fill_pnetcdf}" STREQUAL "x1")
-     set(erange_fill_pnetcdf "ON")
-  else()
-     set(erange_fill_pnetcdf "OFF")
-  endif()
-  if(ENABLE_ERANGE_FILL STREQUAL "AUTO") # not set on command line
-     set(ENABLE_ERANGE_FILL "${erange_fill_pnetcdf}")
+if(USE_PNETCDF)
+  if(NETCDF_ENABLE_ERANGE_FILL STREQUAL "AUTO") # not set on command line
+     set(NETCDF_ENABLE_ERANGE_FILL "${PNETCDF_HAS_ERANGE_FILL}")
   else()
      # user explicitly set this option on command line
-     if(NOT ENABLE_ERANGE_FILL STREQUAL "${erange_fill_pnetcdf}")
-        if(ENABLE_ERANGE_FILL)
+     if(NOT NETCDF_ENABLE_ERANGE_FILL STREQUAL "${PNETCDF_HAS_ERANGE_FILL}")
+        if(NETCDF_ENABLE_ERANGE_FILL)
            message(FATAL_ERROR "Enabling erange-fill conflicts with PnetCDF setting")
         else()
            message(FATAL_ERROR "Disabling erange-fill conflicts with PnetCDF setting")
         endif()
      endif()
   endif()
-
-  file(STRINGS "${pnetcdf_h}" relax_coord_bound_pnetcdf REGEX "^#define PNETCDF_RELAX_COORD_BOUND")
-  string(REGEX REPLACE "[^0-9]" "" relax_coord_bound "${relax_coord_bound_pnetcdf}")
-  if("x${relax_coord_bound}" STREQUAL "x1")
-     set(relax_coord_bound_pnetcdf "ON")
-  else()
-     set(relax_coord_bound_pnetcdf "OFF")
-  endif()
-  # pnetcdf must have relaxed coord bounds to build with netCDF-4
-  if(NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "${relax_coord_bound_pnetcdf}")
-     message(FATAL_ERROR "Pnetcdf must be built with relax-coord-bound enabled")
-  endif()
 endif()
 
-if(ENABLE_ERANGE_FILL)
+if(NETCDF_ENABLE_ERANGE_FILL)
   message(STATUS "Enabling use of fill value when NC_ERANGE")
   set(M4FLAGS "-DERANGE_FILL" CACHE STRING "")
 endif()
 
 if(ENABLE_ZERO_LENGTH_COORD_BOUND)
   message(STATUS "Enabling a more relaxed check for NC_EINVALCOORDS")
-  add_definitions(-DRELAX_COORD_BOUND)
+  target_compile_definitions(netcdf PRIVATE RELAX_COORD_BOUND)
 endif()
 
 # Enable Parallel Tests.
-option(ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Requires HDF5/NetCDF4 with parallel I/O Support." "${HDF5_PARALLEL}")
-if(ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
+option(NETCDF_ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Requires HDF5/NetCDF4 with parallel I/O Support." "${HDF5_PARALLEL}")
+if(NETCDF_ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
   set(TEST_PARALLEL ON CACHE BOOL "")
   if(USE_NETCDF4)
     set(TEST_PARALLEL4 ON CACHE BOOL "")
   endif()
 endif()
 
-IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
+IF (NETCDF_ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
   message(FATAL_ERROR "Parallel tests requested, but no parallel HDF5 installation detected.")
 endif()
 
 # Enable special filter test; experimental when using cmake.
-option(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ON)
+option(NETCDF_ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${NETCDF_ENABLE_PLUGINS})
 
-if(ENABLE_FILTER_TESTING)
-  if(NOT ENABLE_HDF5 AND NOT ENABLE_NCZARR)
-    message(WARNING "ENABLE_FILTER_TESTING requires HDF5 and/or NCZarr. Disabling.")
-    set(ENABLE_FILTER_TESTING OFF CACHE BOOL "Enable Filter Testing" FORCE)
+if(NETCDF_ENABLE_FILTER_TESTING)
+  if(NOT NETCDF_ENABLE_HDF5 AND NOT NETCDF_ENABLE_NCZARR)
+    message(WARNING "NETCDF_ENABLE_FILTER_TESTING requires HDF5 and/or NCZarr. Disabling.")
+    set(NETCDF_ENABLE_FILTER_TESTING OFF CACHE BOOL "Enable Filter Testing" FORCE)
   endif()
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
-  message(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
-  set(ENABLE_FILTER_TESTING OFF)
+  message(WARNING "NETCDF_ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
+  set(NETCDF_ENABLE_FILTER_TESTING OFF)
 endif()
 
-option(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ON)
-option(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ON)
+option(NETCDF_ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ${NETCDF_ENABLE_PLUGINS})
+option(NETCDF_ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ${NETCDF_ENABLE_NCZARR_FILTERS})
 
 # Constraints
-IF (NOT ENABLE_PLUGINS)
-  message(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
-  set(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
+if (NOT NETCDF_ENABLE_PLUGINS AND NETCDF_ENABLE_NCZARR_FILTERS)
+  message(WARNING "NETCDF_ENABLE_NCZARR_FILTERS requires NETCDF_ENABLE_PLUGINS. Disabling.")
+  set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 endif()
 
-IF (NOT ENABLE_NCZARR)
-  message(WARNING "ENABLE_NCZARR==NO => ENABLE_NCZARR_FILTERS==NO AND ENABLE_NCZARR_FILTER_TESTING==NO")
-  set(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Disable NCZARR_FILTERS" FORCE)
+IF (NOT NETCDF_ENABLE_NCZARR)
+  message(WARNING "NETCDF_ENABLE_NCZARR==NO => NETCDF_ENABLE_NCZARR_FILTERS==NO AND NETCDF_ENABLE_NCZARR_FILTER_TESTING==NO")
+  set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Disable NCZARR_FILTERS" FORCE)
 endif()
 
-IF (NOT ENABLE_NCZARR_FILTERS)
-    set(ENABLE_NCZARR_FILTER_TESTING OFF CACHE BOOL "Enable NCZarr Filter Testing" FORCE)
+IF (NOT NETCDF_ENABLE_NCZARR_FILTERS)
+    set(NETCDF_ENABLE_NCZARR_FILTER_TESTING OFF CACHE BOOL "Enable NCZarr Filter Testing" FORCE)
 endif()
 
 set(ENABLE_CLIENTSIDE_FILTERS OFF)
 
 # Determine whether or not to generate documentation.
-option(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
-if(ENABLE_DOXYGEN)
+option(NETCDF_ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
+if(NETCDF_ENABLE_DOXYGEN)
   # Offer the option to build internal documentation.
-  option(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
-  if(ENABLE_INTERNAL_DOCS)
+  option(NETCDF_ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
+  if(NETCDF_ENABLE_INTERNAL_DOCS)
     set(BUILD_INTERNAL_DOCS yes CACHE STRING "")
   else()
     set(BUILD_INTERNAL_DOCS no CACHE STRING "")
@@ -1053,12 +1021,12 @@ if(ENABLE_DOXYGEN)
   # If we are building release documentation, we need to set some
   # variables that will be used in the Doxygen.in template.
   ###
-  option(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS "Build release documentation.  This is of interest only to the netCDF developers." OFF)
-  if(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
+  option(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS "Build release documentation.  This is of interest only to the netCDF developers." OFF)
+  if(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
     set(DOXYGEN_CSS_FILE "${CMAKE_SOURCE_DIR}/docs/release.css" CACHE STRING "")
     set(DOXYGEN_HEADER_FILE "${CMAKE_SOURCE_DIR}/docs/release_header.html" CACHE STRING "")
     set(DOXYGEN_SEARCHENGINE "NO" CACHE STRING "")
-    set(ENABLE_DOXYGEN_SERVER_BASED_SEARCH NO CACHE STRING "")
+    set(NETCDF_ENABLE_DOXYGEN_SERVER_BASED_SEARCH NO CACHE STRING "")
   else()
     set(DOXYGEN_CSS_FILE "" CACHE STRING "")
     set(DOXYGEN_HEADER_FILE "" CACHE STRING "")
@@ -1066,29 +1034,29 @@ if(ENABLE_DOXYGEN)
 
     # If not using release document configuration,
     # provide an option for server-based search.
-    option(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH "Configure Doxygen with server-based search." OFF)
-    if(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+    option(NETCDF_ENABLE_DOXYGEN_SERVER_SIDE_SEARCH "Configure Doxygen with server-based search." OFF)
+    if(NETCDF_ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
       set(DOXYGEN_SERVER_BASED_SEARCH "YES" CACHE STRING "")
     else()
       set(DOXYGEN_SERVER_BASED_SEARCH "NO" CACHE STRING "")
-    endif(ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+    endif(NETCDF_ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
 
 
-  endif(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
+  endif(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
   # Option to turn on the TODO list in the doxygen-generated documentation.
-  option(DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
-  if(DOXYGEN_ENABLE_TASKS)
+  option(NETCDF_DOXYGEN_ENABLE_TASKS "Turn on test, todo, bug lists in documentation. This is of interest to developers only." OFF)
+  if(NETCDF_DOXYGEN_ENABLE_TASKS)
     set(SHOW_DOXYGEN_TAG_LIST YES CACHE STRING "")
-  else(DOXYGEN_ENABLE_TASKS)
+  else(NETCDF_DOXYGEN_ENABLE_TASKS)
     set(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
-  endif(DOXYGEN_ENABLE_TASKS)
+  endif(NETCDF_DOXYGEN_ENABLE_TASKS)
 
-  option(ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
+  option(NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
 
-  if(ENABLE_DOXYGEN_PDF_OUTPUT)
-    set(NC_ENABLE_DOXYGEN_PDF_OUTPUT "YES" CACHE STRING "")
+  if(NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT)
+    set(NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT "YES" CACHE STRING "")
   else()
-    set(NC_ENABLE_DOXYGEN_PDF_OUTPUT "NO" CACHE STRING "")
+    set(NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT "NO" CACHE STRING "")
   endif()
 
   find_program(NC_DOT NAMES dot)
@@ -1101,10 +1069,10 @@ if(ENABLE_DOXYGEN)
 endif()
 
 # Always enable DISKLESS
-option(ENABLE_DISKLESS "Enable in-memory files" ON)
+option(NETCDF_ENABLE_DISKLESS "Enable in-memory files" ON)
 
 # Always enable quantization.
-option(ENABLE_QUANTIZE "Enable variable quantization" ON)
+option(NETCDF_ENABLE_QUANTIZE "Enable variable quantization" ON)
 
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
@@ -1120,10 +1088,10 @@ if(MSVC)
 endif()
 
 # Set some of the options as advanced.
-MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_COVERAGE_TESTS )
-MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH ENABLE_EXTERNAL_SERVER_TESTS)
-MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
-MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
+MARK_AS_ADVANCED(NETCDF_ENABLE_INTERNAL_DOCS VALGRIND_TESTS NETCDF_ENABLE_COVERAGE_TESTS )
+MARK_AS_ADVANCED(NETCDF_ENABLE_DAP_REMOTE_TESTS NETCDF_ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH NETCDF_ENABLE_EXTERNAL_SERVER_TESTS)
+MARK_AS_ADVANCED(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS NETCDF_DOXYGEN_ENABLE_TASKS NETCDF_ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
+MARK_AS_ADVANCED(NETCDF_ENABLE_SHARED_LIBRARY_VERSION)
 
 ################################
 # Option checks
@@ -1222,20 +1190,20 @@ CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
 
 # Check whether to turn on or off CDF5 support.
 if(SIZEOF_SIZE_T EQUAL 4)
-   if(ENABLE_CDF5) # enable or auto
-      string(TOUPPER ${ENABLE_CDF5} ENABLE_CDF5)
-      if(ENABLE_CDF5 AND NOT ENABLE_CDF5 STREQUAL "AUTO") # explicitly enabled
+   if(NETCDF_ENABLE_CDF5) # enable or auto
+      string(TOUPPER ${NETCDF_ENABLE_CDF5} NETCDF_ENABLE_CDF5)
+      if(NETCDF_ENABLE_CDF5 AND NOT NETCDF_ENABLE_CDF5 STREQUAL "AUTO") # explicitly enabled
          message(FATAL_ERROR "Unable to support CDF5 feature because size_t is less than 8 bytes")
-      endif(ENABLE_CDF5 AND NOT ENABLE_CDF5 STREQUAL "AUTO")
-      set(ENABLE_CDF5 OFF) # cannot support CDF5
+      endif(NETCDF_ENABLE_CDF5 AND NOT NETCDF_ENABLE_CDF5 STREQUAL "AUTO")
+      set(NETCDF_ENABLE_CDF5 OFF) # cannot support CDF5
       set(USE_CDF5 OFF CACHE BOOL "") # cannot support CDF5
-   endif(ENABLE_CDF5)
+   endif(NETCDF_ENABLE_CDF5)
 else(SIZEOF_SIZE_T EQUAL 4)
-   if(ENABLE_CDF5) # explicitly set by user or not set
+   if(NETCDF_ENABLE_CDF5) # explicitly set by user or not set
       set(USE_CDF5 ON CACHE BOOL "")
-   else(ENABLE_CDF5) # explicitly disabled by user
+   else(NETCDF_ENABLE_CDF5) # explicitly disabled by user
       set(USE_CDF5 OFF CACHE BOOL "")
-   endif(ENABLE_CDF5)
+   endif(NETCDF_ENABLE_CDF5)
 endif(SIZEOF_SIZE_T EQUAL 4)
 
 CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
@@ -1306,33 +1274,33 @@ CHECK_SYMBOL_EXISTS("struct timespec" "time.h" HAVE_STRUCT_TIMESPEC)
 CHECK_FUNCTION_EXISTS(atexit HAVE_ATEXIT)
 
 # Control invoking nc_finalize at exit
-option(ENABLE_ATEXIT_FINALIZE "Invoke nc_finalize at exit." ON)
+option(NETCDF_ENABLE_ATEXIT_FINALIZE "Invoke nc_finalize at exit." ON)
 if(NOT HAVE_ATEXIT)
-if(ENABLE_ATEXIT_FINALIZE AND NOT HAVE_ATEXIT)
-  set(ENABLE_ATEXIT_FINALIZE OFF CACHE BOOL "Enable ATEXIT" FORCE)
-  message(WARNING "ENABLE_ATEXIT_FINALIZE set but atexit() function not defined")
+if(NETCDF_ENABLE_ATEXIT_FINALIZE AND NOT HAVE_ATEXIT)
+  set(NETCDF_ENABLE_ATEXIT_FINALIZE OFF CACHE BOOL "Enable ATEXIT" FORCE)
+  message(WARNING "NETCDF_ENABLE_ATEXIT_FINALIZE set but atexit() function not defined")
 endif()
 endif()
 
 # Check to see if MAP_ANONYMOUS is defined.
 if(MSVC)
   message(WARNING "mmap not supported under visual studio: disabling MMAP support.")
-  set(ENABLE_MMAP OFF)
+  set(NETCDF_ENABLE_MMAP OFF)
 else()
   CHECK_C_SOURCE_COMPILES("
   #include <sys/mman.h>
   int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
   if(NOT HAVE_MMAP OR NOT HAVE_MAPANON)
     message(WARNING "mmap or MAP_ANONYMOUS not found: disabling MMAP support.")
-    set(ENABLE_MMAP OFF)
+    set(NETCDF_ENABLE_MMAP OFF)
   endif()
 endif()
 
-if(ENABLE_MMAP)
+if(NETCDF_ENABLE_MMAP)
   # Aliases
   set(BUILD_MMAP ON)
   set(USE_MMAP ON)
-endif(ENABLE_MMAP)
+endif(NETCDF_ENABLE_MMAP)
 
 #CHECK_FUNCTION_EXISTS(alloca HAVE_ALLOCA)
 
@@ -1376,9 +1344,9 @@ endif()
 # Determine if 'bash' is on the system.
 ##
 
-option(ENABLE_BASH_SCRIPT_TESTING "Detection is typically automatic, but this option can be used to force enable/disable bash-script based tests." ON)
+option(NETCDF_ENABLE_BASH_SCRIPT_TESTING "Detection is typically automatic, but this option can be used to force enable/disable bash-script based tests." ON)
 
-if(ENABLE_BASH_SCRIPT_TESTING)
+if(NETCDF_ENABLE_BASH_SCRIPT_TESTING)
   find_program(HAVE_BASH bash)
   if(HAVE_BASH)
     string(COMPARE EQUAL "${HAVE_BASH}" "C:/Windows/System32/bash.exe" IS_BASH_EXE)
@@ -1391,21 +1359,18 @@ if(ENABLE_BASH_SCRIPT_TESTING)
   else()
     message(STATUS "Bash shell not found; disabling shell script tests.")
   endif()
-else(ENABLE_BASH_SCRIPT_TESTING)
+else(NETCDF_ENABLE_BASH_SCRIPT_TESTING)
   set(HAVE_BASH "")
-endif(ENABLE_BASH_SCRIPT_TESTING)
+endif(NETCDF_ENABLE_BASH_SCRIPT_TESTING)
 
 # Create config.h file.
 configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
   "${netCDF_BINARY_DIR}/config.h")
+
 add_definitions(-DHAVE_CONFIG_H)
+
 include_directories(${netCDF_BINARY_DIR})
 # End autotools-style checks for config.h
-
-#####
-# Set core names of the libraries.
-#####
-set(netCDF_LIB_CORENAME  "netcdf")
 
 #####
 # Set the true names of all the libraries, if customized by external project
@@ -1432,25 +1397,25 @@ if(USE_HDF4)
   add_subdirectory(hdf4_test)
 endif(USE_HDF4)
 
-if(ENABLE_DAP2)
+if(NETCDF_ENABLE_DAP2)
   add_subdirectory(oc2)
   add_subdirectory(libdap2)
 endif()
 
-if(ENABLE_DAP4)
+if(NETCDF_ENABLE_DAP4)
   add_subdirectory(libdap4)
   add_subdirectory(libncxml)
 else()
-  if(ENABLE_S3_INTERNAL)
+  if(NETCDF_ENABLE_S3_INTERNAL)
     add_subdirectory(libncxml)
   endif()
 endif()
 
-if(ENABLE_PLUGINS)
+if(NETCDF_ENABLE_PLUGINS)
   add_subdirectory(libncpoco)
 endif()
 
-if(ENABLE_NCZARR)
+if(NETCDF_ENABLE_NCZARR)
   add_subdirectory(libnczarr)
   file(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.h
        DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
@@ -1470,18 +1435,12 @@ endif()
 
 add_subdirectory(liblib)
 
-if(ENABLE_PLUGINS)
+if(NETCDF_ENABLE_PLUGINS)
   add_subdirectory(plugins)
 endif()
 
-# For tests and utilities, we are no longer
-# exporting symbols but rather importing them.
-if(BUILD_DLL)
-  REMOVE_DEFINITIONS(-DDLL_EXPORT)
-endif()
-
 # Enable Utilities.
-if(BUILD_UTILITIES)
+if(NETCDF_BUILD_UTILITIES)
   include_directories(ncdump)
   add_subdirectory(ncgen)
   add_subdirectory(ncgen3)
@@ -1489,7 +1448,7 @@ if(BUILD_UTILITIES)
 endif()
 
 # Enable tests
-if(ENABLE_TESTS)
+if(NETCDF_ENABLE_TESTS)
   if(ENABLE_V2_API)
     add_subdirectory(nctest)
   endif()
@@ -1499,22 +1458,22 @@ if(ENABLE_TESTS)
     add_subdirectory(nc_test4)
     add_subdirectory(h5_test)
   endif()
-  if(ENABLE_DAP2)
+  if(NETCDF_ENABLE_DAP2)
     add_subdirectory(ncdap_test)
   endif()
-  if(ENABLE_DAP4)
+  if(NETCDF_ENABLE_DAP4)
     add_subdirectory(dap4_test)
   endif()
-  if(ENABLE_EXAMPLES)
+  if(NETCDF_ENABLE_EXAMPLES)
     add_subdirectory(examples)
   endif()
-  if(ENABLE_BENCHMARKS)
+  if(NETCDF_ENABLE_BENCHMARKS)
     add_subdirectory(nc_perf)
-  endif(ENABLE_BENCHMARKS)
-  if(ENABLE_UNIT_TESTS)
+  endif(NETCDF_ENABLE_BENCHMARKS)
+  if(NETCDF_ENABLE_UNIT_TESTS)
     add_subdirectory(unit_test)
-  endif(ENABLE_UNIT_TESTS)
-  if(ENABLE_NCZARR)
+  endif(NETCDF_ENABLE_UNIT_TESTS)
+  if(NETCDF_ENABLE_NCZARR)
     add_subdirectory(nczarr_test)
   endif()
 endif()
@@ -1589,13 +1548,8 @@ foreach(_LIB ${ALL_TLL_LIBS})
   list(APPEND LINKFLAGS "-L${_LIB_DIR}")
 endforeach()
 
-#set(NC_LIBS "-lnetcdf ${NC_LIBS}")
 if(NC_LIBS)
   string(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
-  string(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
-  string(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
-  string(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
-  string(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
 endif()
 
 string(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
@@ -1669,45 +1623,45 @@ is_disabled(BUILD_SHARED_LIBS enable_static)
 is_enabled(BUILD_SHARED_LIBS enable_shared)
 
 is_enabled(ENABLE_V2_API HAS_NC2)
-is_enabled(ENABLE_NETCDF_4 HAS_NC4)
-is_enabled(ENABLE_HDF4 HAS_HDF4)
+is_enabled(NETCDF_ENABLE_NETCDF_4 HAS_NC4)
+is_enabled(NETCDF_ENABLE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
 is_enabled(OFF HAS_BENCHMARKS)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
-is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
-is_enabled(ENABLE_DAP HAS_DAP)
-is_enabled(ENABLE_DAP2 HAS_DAP2)
-is_enabled(ENABLE_DAP4 HAS_DAP4)
-is_enabled(ENABLE_BYTERANGE HAS_BYTERANGE)
-is_enabled(ENABLE_DISKLESS HAS_DISKLESS)
+is_enabled(NETCDF_ENABLE_PARALLEL4 HAS_PARALLEL4)
+is_enabled(NETCDF_ENABLE_DAP HAS_DAP)
+is_enabled(NETCDF_ENABLE_DAP2 HAS_DAP2)
+is_enabled(NETCDF_ENABLE_DAP4 HAS_DAP4)
+is_enabled(NETCDF_ENABLE_BYTERANGE HAS_BYTERANGE)
+is_enabled(NETCDF_ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
 is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
-is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
+is_enabled(NETCDF_ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
-is_enabled(ENABLE_S3 HAS_S3)
-is_enabled(ENABLE_S3_AWS HAS_S3_AWS)
-is_enabled(ENABLE_S3_INTERNAL HAS_S3_INTERNAL)
+is_enabled(NETCDF_ENABLE_S3 HAS_S3)
+is_enabled(NETCDF_ENABLE_S3_AWS HAS_S3_AWS)
+is_enabled(NETCDF_ENABLE_S3_INTERNAL HAS_S3_INTERNAL)
 is_enabled(HAS_HDF5_ROS3 HAS_HDF5_ROS3)
-is_enabled(ENABLE_NCZARR HAS_NCZARR)
-is_enabled(ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
-is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
-is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
-is_enabled(ENABLE_LOGGING HAS_LOGGING)
-is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
+is_enabled(NETCDF_ENABLE_NCZARR HAS_NCZARR)
+is_enabled(NETCDF_ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
+is_enabled(NETCDF_ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
+is_enabled(NETCDF_ENABLE_QUANTIZE HAS_QUANTIZE)
+is_enabled(NETCDF_ENABLE_LOGGING HAS_LOGGING)
+is_enabled(NETCDF_ENABLE_FILTER_TESTING DO_FILTER_TESTS)
 is_enabled(HAVE_SZ HAS_SZIP)
 is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 is_enabled(HAVE_ZSTD HAS_ZSTD)
 is_enabled(HAVE_BLOSC HAS_BLOSC)
 is_enabled(HAVE_BZ2 HAS_BZ2)
-is_enabled(ENABLE_REMOTE_FUNCTIONALITY DO_REMOTE_FUNCTIONALITY)
+is_enabled(NETCDF_ENABLE_REMOTE_FUNCTIONALITY DO_REMOTE_FUNCTIONALITY)
 
-if(ENABLE_S3_INTERNAL)
+if(NETCDF_ENABLE_S3_INTERNAL)
   set(WHICH_S3_SDK "internal")
   set(NC_WHICH_S3_SDK "internal")
-elseif(ENABLE_S3_AWS)
+elseif(NETCDF_ENABLE_S3_AWS)
   set(WHICH_S3_SDK "aws-sdk-cpp")
   set(NC_WHICH_S3_SDK "aws-sdk-cpp")
 else()
@@ -1716,14 +1670,14 @@ else()
 endif()
 
 if(WITH_S3_TESTING STREQUAL PUBLIC)
-set(ENABLE_S3_TESTING "public")
+  set(NETCDF_ENABLE_S3_TESTING "public")
 elseif(WITH_S3_TESTING)
-set(ENABLE_S3_TESTING "yes")
-set(ENABLE_S3_TESTALL "yes")
+  set(NETCDF_ENABLE_S3_TESTING "yes")
+  set(NETCDF_ENABLE_S3_TESTALL "yes")
 elseif(NOT WITH_S3_TESTING)
-set(ENABLE_S3_TESTING "no")
+  set(NETCDF_ENABLE_S3_TESTING "no")
 else()
-set(ENABLE_S3_TESTING "no")
+  set(NETCDF_ENABLE_S3_TESTING "no")
 endif()
 
 # The Unidata testing S3 bucket
@@ -1735,7 +1689,7 @@ set(S3TESTBUCKET "unidata-zarr-test-data" CACHE STRING "S3 test bucket")
 set(S3TESTSUBTREE "netcdf-c" CACHE STRING "Working S3 path.")
 # Build a unique id based on the date
 string(TIMESTAMP TESTUID "%s")
-if(ENABLE_S3_TESTING)
+if(NETCDF_ENABLE_S3_TESTING)
 file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/s3cleanup_${PLATFORMUID}.uids" "${TESTUID}\n")
 endif()
 
@@ -1754,7 +1708,16 @@ file(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
   LIBNETCDF_SETTINGS)
 message(STATUS ${LIBNETCDF_SETTINGS})
 
-# Install libnetcdf.settings file into same location
+### 
+# Report deprecated options detected by
+# cmake/deprecated.cmake. Added in support of
+# https://github.com/Unidata/netcdf-c/pull/2895
+###
+
+if(DEFINED DEPR_OPT)
+  message(WARNING "Warning! Deprecated Options used. Please migrate your build system as follows:\n${DEPR_OPT}" )
+endif()
+  # Install libnetcdf.settings file into same location
 # as the libraries.
 install(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
@@ -1803,14 +1766,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURREN
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
-if(ENABLE_BENCHMARKS)
-  if(ENABLE_PARALLEL4)
+if(NETCDF_ENABLE_BENCHMARKS)
+  if(NETCDF_ENABLE_PARALLEL4)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_perf/run_par_bm_test.sh.in ${CMAKE_CURRENT_BINARY_DIR}/nc_perf/run_par_bm_test.sh @ONLY NEWLINE_STYLE LF)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_perf/run_gfs_test.sh.in ${CMAKE_CURRENT_BINARY_DIR}/nc_perf/run_gfs_test.sh @ONLY NEWLINE_STYLE LF)
-  endif(ENABLE_PARALLEL4)
-endif(ENABLE_BENCHMARKS)
+  endif(NETCDF_ENABLE_PARALLEL4)
+endif(NETCDF_ENABLE_BENCHMARKS)
 
-if(ENABLE_TESTS)
+if(NETCDF_ENABLE_TESTS)
     #####
     # Build ncdap_test|dap4_test/findtestserver[4].c
     #####
@@ -1849,25 +1812,15 @@ install(EXPORT netCDFTargets
   NAMESPACE netCDF::
   )
 
+export(EXPORT netCDFTargets FILE netCDFTargets.cmake NAMESPACE netCDF::)
+
 include(CMakePackageConfigHelpers)
-CONFIGURE_PACKAGE_CONFIG_file(
+configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
   INSTALL_DESTINATION "${ConfigPackageLocation}"
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO
-  PATH_VARS
-  CMAKE_INSTALL_PREFIX
-  CMAKE_INSTALL_INCLUDEDIR
-  CMAKE_INSTALL_LIBDIR
-  )
+)
 
-install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
-  DESTINATION "${ConfigPackageLocation}"
-  COMPONENT headers
-  )
-
-add_library(netCDF::netcdf ALIAS netcdf)
 target_include_directories(netcdf
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -1876,17 +1829,18 @@ target_include_directories(netcdf
 
 # Create export configuration
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
+  netCDFConfigVersion.cmake
   VERSION ${netCDF_VERSION}
   COMPATIBILITY SameMajorVersion
-  )
+)
 
 install(
   FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfigVersion.cmake"
   DESTINATION ${ConfigPackageLocation}
   COMPONENT headers
-  )
+)
 
 ####
 # End export files

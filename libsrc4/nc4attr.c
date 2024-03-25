@@ -195,7 +195,7 @@ nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
     /* Check varid */
     if (varid != NC_GLOBAL)
     {
-        if (!(var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid)))
+        if (!(var = (NC_VAR_INFO_T*)ncindexith(grp->vars,(size_t)varid)))
             return NC_ENOTVAR;
         assert(var->hdr.id == varid);
     }

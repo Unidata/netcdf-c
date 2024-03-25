@@ -390,7 +390,7 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     var->meta_read = NC_TRUE;
     var->atts_read = NC_TRUE;
 
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     /* Set the filter list */
     assert(var->filters == NULL);
     var->filters = (void*)nclistnew();
@@ -559,7 +559,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     
     /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
      * before HDF5 1.10.3. */
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
 	if (nclistlength(((NClist*)var->filters)) > 0  || fletcher32 || shuffle)

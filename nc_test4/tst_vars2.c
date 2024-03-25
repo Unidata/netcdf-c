@@ -792,7 +792,7 @@ main(int argc, char **argv)
         char name_in[NC_MAX_NAME + 1];
         int data[DIM5_LEN], data_in[DIM5_LEN];
         size_t chunksize[NDIMS5] = {5};
-        size_t bad_chunksize[NDIMS5] = {-5}; /* Converted to large pos number since size_t is unsigned. */
+        size_t bad_chunksize[NDIMS5] = {(size_t)(-5)}; /* Converted to large pos number since size_t is unsigned. */
         size_t large_chunksize[NDIMS5] = {(size_t)NC_MAX_INT + (size_t)1}; /* Too big for inq_var_chunking_ints(). */
         size_t chunksize_in[NDIMS5];
         int chunksize_int[NDIMS5];
@@ -892,7 +892,7 @@ main(int argc, char **argv)
         for (d = 0; d < NDIMS5; d++)
             if (chunksize_int_in[d] != chunksize[d]) ERR;
         for (d = 0; d < NDIMS5; d++)
-            chunksize_int[d] = chunksize[d] * 2;
+            chunksize_int[d] = (int)chunksize[d] * 2;
         if (nc_inq_var_chunking_ints(ncid, 0, &storage_in, NULL)) ERR;
         if (storage_in != NC_CHUNKED) ERR;
 

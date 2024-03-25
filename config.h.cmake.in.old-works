@@ -82,14 +82,14 @@ are set when opening a binary file on Windows. */
 #cmakedefine NO_NETCDF_2 1
 #cmakedefine USE_FSYNC 1
 #cmakedefine JNA 1
-#cmakedefine ENABLE_DOXYGEN 1
-#cmakedefine ENABLE_INTERNAL_DOCS 1
+#cmakedefine NETCDF_ENABLE_DOXYGEN 1
+#cmakedefine NETCDF_ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1
 #cmakedefine ENABLE_CDMREMOTE 1
 #cmakedefine USE_DAP 1
-#cmakedefine ENABLE_DAP 1
-#cmakedefine ENABLE_DAP_GROUPS 1
-#cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+#cmakedefine NETCDF_ENABLE_DAP 1
+#cmakedefine NETCDF_ENABLE_DAP_GROUPS 1
+#cmakedefine NETCDF_ENABLE_DAP_REMOTE_TESTS 1
 #cmakedefine EXTRA_TESTS
 #cmakedefine USE_NETCDF4 1
 #cmakedefine USE_HDF4 1
@@ -110,7 +110,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine USE_DISKLESS 1
 #cmakedefine USE_SZIP 1
 #cmakedefine USE_X_GETOPT 1
-#cmakedefine ENABLE_EXTREME_NUMBERS
+#cmakedefine NETCDF_ENABLE_EXTREME_NUMBERS
 #cmakedefine LARGE_FILE_TESTS 1
 #cmakedefine HAVE_DECL_ISFINITE 1
 #cmakedefine HAVE_DECL_ISNAN 1

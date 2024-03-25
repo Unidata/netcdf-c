@@ -128,7 +128,7 @@ extern bool_t	idmember ( const idnode_t* idlist, int id );
 extern bool_t	group_wanted ( int grpid, int nlgrps, const idnode_t* grpids );
 
 /* Check group list for missing groups */
-extern int grp_matches(int ncid, int nlgrps, char** lgrps, idnode_t *grpids);
+extern size_t grp_matches(int ncid, int nlgrps, char** lgrps, idnode_t *grpids);
 
 /* Returns 1 if string s1 ends with string s2, 0 otherwise. */
 extern int strendswith(const char *s1, const char *s2);
@@ -162,7 +162,7 @@ extern void freeidlist(idnode_t *idlist);
  * loses information about subgroup relationships, just flattening all
  * groups into a serial list.
  */
-extern int nc_inq_grps_full(int ncid, int *numgrps, int *ncids);
+extern int nc_inq_grps_full(int ncid, size_t *numgrps, int *ncids);
 
 /* 
  * More complex iterator interface: get group iterator for start group

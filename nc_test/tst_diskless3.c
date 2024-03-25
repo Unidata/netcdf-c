@@ -129,7 +129,7 @@ test_two_growing_with_att(const char *testfile)
    for (data[0] = 'a', r = 1; r < MAX_RECS; r++)
       data[r] = data[r - 1] + 1;
 
-   for (r = 0; r < MAX_RECS; r++)
+   for (size_t r = 0; r < MAX_RECS; r++)
    {
       count[0] = 1;
       start[0] = r;

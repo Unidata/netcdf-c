@@ -397,6 +397,43 @@ done:
     return found;
 }
 
+/** \internal
+Add tag to fragment mode list unless already present.
+*/
+int
+NC_addmodetag(NCURI* uri, const char* tag)
+{
+    int stat = NC_NOERR;
+    int found = 0;
+    int i;
+    const char* modestr = NULL;
+    char* modevalue = NULL;
+    NClist* modelist = NULL;
+
+    modestr = ncurifragmentlookup(uri,"mode");
+    if(modestr != NULL) {
+        /* Parse mode str */
+        if((stat = NC_getmodelist(modestr,&modelist))) goto done;
+    } else
+        modelist = nclistnew();
+    /* Search for tag */
+    for(i=0;i<nclistlength(modelist);i++) {
+        const char* mode = (const char*)nclistget(modelist,i);
+	if(strcasecmp(mode,tag)==0) {found = 1; break;}
+    }
+    /* If not found, then add to modelist */
+    if(!found) nclistpush(modelist,strdup(tag));
+    /* Convert modelist back to string */
+    if((stat=NC_joinwith(modelist,",",NULL,NULL,&modevalue))) goto done;
+    /* modify the url */
+    if((stat=ncurisetfragmentkey(uri,"mode",modevalue))) goto done;
+
+done:
+    nclistfreeall(modelist);
+    nullfree(modevalue);
+    return stat;
+}
+
 #if ! defined __INTEL_COMPILER
 #if defined __APPLE__ 
 /** \internal */
@@ -467,27 +504,39 @@ done:
 int
 NC_join(NClist* segments, char** pathp)
 {
+    return NC_joinwith(segments,"/","/",NULL,pathp);
+}
+
+/** \internal
+Concat the the segments with separator.
+@param segments to join
+@param sep to use between segments
+@param prefix put at front of joined string: NULL => no prefix
+@param suffix put at end of joined string: NULL => no suffix
+@param pathp return the join in this
+*/
+int
+NC_joinwith(NClist* segments, const char* sep, const char* prefix, const char* suffix, char** pathp)
+{
     int stat = NC_NOERR;
     size_t i;
     NCbytes* buf = NULL;
+    size_t seplen = nulllen(sep);
 
     if(segments == NULL)
 	{stat = NC_EINVAL; goto done;}
     if((buf = ncbytesnew())==NULL)
 	{stat = NC_ENOMEM; goto done;}
-    if(nclistlength(segments) == 0)
-        ncbytescat(buf,"/");
-    else for(i=0;i<nclistlength(segments);i++) {
+    if(prefix) ncbytescat(buf,prefix);
+    for(i=0;i<nclistlength(segments);i++) {
 	const char* seg = nclistget(segments,i);
-	if(seg[0] != '/')
-	    ncbytescat(buf,"/");
+	if(i>0 && strncmp(seg,sep,seplen)!=0)
+	    ncbytescat(buf,sep);
 	ncbytescat(buf,seg);
     }
-
+    if(suffix) ncbytescat(buf,suffix);
+    if(pathp) *pathp = ncbytesextract(buf);
 done:
-    if(!stat) {
-	if(pathp) *pathp = ncbytesextract(buf);
-    }
     ncbytesfree(buf);
     return stat;
 }

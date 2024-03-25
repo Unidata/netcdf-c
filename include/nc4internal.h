@@ -162,7 +162,7 @@ typedef struct NC_ATT_INFO
 {
     NC_OBJ hdr;             /**< The hdr contains the name and ID. */
     struct NC_OBJ *container;    /**< Pointer to containing group|var. */
-    size_t len;                /**< Length of attribute data. */
+    size_t len;             /**< Length of attribute data. */
     nc_bool_t dirty;        /**< True if attribute modified. */
     nc_bool_t created;      /**< True if attribute already created. */
     nc_type nc_typeid;      /**< NetCDF type of attribute's data. */
@@ -332,6 +332,13 @@ typedef struct NCglobalstate {
     struct GlobalZarr { /* Zarr specific parameters */
 	char dimension_separator;
     } zarr;
+    struct GlobalAWS { /* AWS S3 specific parameters/defaults */
+	char* default_region;
+	char* config_file;
+	char* profile;
+	char* access_key_id;
+	char* secret_access_key;
+    } aws;
     struct Alignment { /* H5Pset_alignment parameters */
         int defined; /* 1 => threshold and alignment explicitly set */
 	int threshold;

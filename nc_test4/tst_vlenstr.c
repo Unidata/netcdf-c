@@ -89,7 +89,7 @@ writeVariable(size_t dimlength, int ncid, nc_type vlen_typeID)
 }
 
 static void
-createFruitsData(int elemno, int vlensize, int* stringIndexp, nc_vlen_t* data)
+createFruitsData(int elemno, size_t vlensize, size_t* stringIndexp, nc_vlen_t* data)
 {
     data[elemno].len = vlensize;
     data[elemno].p = NULL;
@@ -108,7 +108,7 @@ writeAttribute(size_t len, int ncid, nc_type vlen_typeID)
     nc_vlen_t* data = calloc(sizeof(nc_vlen_t), len);
 
     /* create six variable length arrays of strings */
-    int stringIndex = 0;
+    size_t stringIndex = 0;
 
     createFruitsData(0,first_size,&stringIndex,data);
     createFruitsData(1,second_size,&stringIndex,data);

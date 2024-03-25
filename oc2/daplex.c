@@ -283,7 +283,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 static void
 dapaddyytext(DAPlexstate* lex, int c)
 {
-    ncbytesappend(lex->yytext,c);
+    ncbytesappend(lex->yytext, (char)c);
     ncbytesnull(lex->yytext);
 }
 

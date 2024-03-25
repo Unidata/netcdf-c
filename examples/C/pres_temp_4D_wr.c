@@ -2,7 +2,7 @@
    Research/Unidata.  See COPYRIGHT file for conditions of use. */
 /**
  * @file
- * @ingroup tutorial
+ * @defgroup tutorial Tutorial Examples
  * A more complex example of writing a netCDF file.
  *
  * This is an example program which writes some 4D pressure and
@@ -78,7 +78,7 @@ main()
    float lats[NLAT], lons[NLON];
 
    /* Loop indexes. */
-   int lvl, lat, lon, rec, i = 0;
+   int lvl, lat, lon, i = 0;
 
    /* Error handling. */
    int retval;
@@ -188,7 +188,7 @@ main()
       surface temperature data. The arrays only hold one timestep worth
       of data. We will just rewrite the same data for each timestep. In
       a real application, the data would change between timesteps. */
-   for (rec = 0; rec < NREC; rec++)
+   for (size_t rec = 0; rec < NREC; rec++)
    {
       start[0] = rec;
       if ((retval = nc_put_vara_float(ncid, pres_varid, start, count,
