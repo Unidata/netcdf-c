@@ -1333,7 +1333,7 @@ main(int argc, char **argv)
 	    if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
 
 #ifdef TESTNCZARR
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 	    /* Set up zlib compression. This will work better because the
 	     * data are quantized, yielding a smaller output file. We will
 	     * set compression level to 1, which is usually the best

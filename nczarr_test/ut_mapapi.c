@@ -87,6 +87,10 @@ simplecreate(void)
 
     title(__func__);
 
+    if((stat = nczmap_truncate(impl,url)))
+	goto done;
+    report(PASS,"truncate",map);
+
     switch(stat = nczmap_create(impl,url,0,0,NULL,&map)) {
     case NC_EOBJECT: break; /* already exists */
     case NC_NOERR: break; /*created*/

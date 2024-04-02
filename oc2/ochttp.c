@@ -69,7 +69,7 @@ ocfetchurl_file(CURL* curl, const char* url, FILE* stream,
 	    oclog(OCLOGNOTE,"filesize: %lu bytes",fetchdata.size);
 #endif
 	    if (sizep != NULL)
-		*sizep = fetchdata.size;
+                *sizep = (off_t)fetchdata.size;
 	    /* Get the last modified time */
 	    if(filetime != NULL)
                 cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);

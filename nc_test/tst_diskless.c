@@ -220,12 +220,14 @@ printf("*** testing diskless file with scalar vars...");
     short short_data[DIM1_LEN];
     size_t start[1] = {0};
     size_t count[1] = {DIM1_LEN};
+
     int i;
     float float_data = 42.22F, float_data_in;
 
+
     /* This is some really important data that I want to save. */
-    for (i = 0; i < DIM1_LEN; i++)
-    short_data[i] = i;
+    for (short i = 0; i < DIM1_LEN; i++)
+        short_data[i] = i;
 
     removefile(persist,filename);
 

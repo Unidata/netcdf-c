@@ -165,7 +165,7 @@ main(int argc, char **argv)
       for (i = 0; i < D0; i++)
 	 for (j = 0; j < D1; j++)
 	    for (k = 0; k < D2; k++)
-	       data[i][j][k] = i + j + k;
+               data[i][j][k] = (float)(i + j + k);
 
       /* Create a file with one variable of type float. */
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
@@ -226,8 +226,8 @@ main(int argc, char **argv)
       for (i = 0; i < 4; i++)
 	 for (j = 0; j < 6; j++)
 	 {
-	    data[i][j] = k;
-	    data_in[j][i] = k;
+            data[i][j] = (float)k;
+            data_in[j][i] = (float)k;
 	    k++;
 	 }
 

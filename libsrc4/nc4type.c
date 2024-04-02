@@ -16,7 +16,7 @@
 #include <stddef.h>
 
 #if 0
-#ifdef ENABLE_DAP4
+#ifdef NETCDF_ENABLE_DAP4
 EXTERNL NC* NCD4_get_substrate_nc(int ncid);
 #endif
 #endif
@@ -38,7 +38,7 @@ const char* nc4_atomic_name[NUM_ATOMIC_TYPES] = {"none", "byte", "char",
                                            "double", "ubyte",
                                            "ushort", "uint",
                                            "int64", "uint64", "string"};
-static const int nc4_atomic_size[NUM_ATOMIC_TYPES] = {0, NC_BYTE_LEN, NC_CHAR_LEN, NC_SHORT_LEN,
+static const size_t nc4_atomic_size[NUM_ATOMIC_TYPES] = {0, NC_BYTE_LEN, NC_CHAR_LEN, NC_SHORT_LEN,
                                                       NC_INT_LEN, NC_FLOAT_LEN, NC_DOUBLE_LEN,
                                                       NC_BYTE_LEN, NC_SHORT_LEN, NC_INT_LEN, NC_INT64_LEN,
                                                       NC_INT64_LEN, NC_STRING_LEN};
@@ -74,8 +74,7 @@ NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
 
     /* Count types. */
     if (grp->type) {
-        int i;
-        for(i=0;i<ncindexsize(grp->type);i++)
+        for(size_t i=0;i<ncindexsize(grp->type);i++)
         {
             if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
             if (typeids)

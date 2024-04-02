@@ -84,7 +84,7 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
     assert(nc && grp && h5);
 
     /* Find the var. */
-    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,(size_t)varid);
     if(!var)
         return NC_ENOTVAR;
     assert(var && var->hdr.id == varid);
@@ -129,7 +129,7 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
         return ret;
 
     if (sizep)
-        *sizep = real_size / MEGABYTE;
+        *sizep = (int)(real_size / MEGABYTE);
     if (nelemsp)
         *nelemsp = (int)real_nelems;
     if(preemptionp)
@@ -204,7 +204,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     }
 
     /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
         return NC_ENOTVAR;
     assert(var && var->hdr.id == varid);
 
@@ -214,7 +214,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     if (xtypep)
         *xtypep = var->type_info->hdr.id;
     if (ndimsp)
-        *ndimsp = var->ndims;
+        *ndimsp = (int)var->ndims;
     if (dimidsp)
         for (d = 0; d < var->ndims; d++)
             dimidsp[d] = var->dimids[d];
@@ -575,7 +575,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 	    }else if (quantize_mode == NC_QUANTIZE_BITROUND){
 
 	      /* BitRound interprets nsd as number of significant binary digits (bits) */
-	      prc_bnr_xpl_rqr = nsd;
+	      prc_bnr_xpl_rqr = (unsigned short)nsd;
 	      
 	    }
 	    
@@ -1457,7 +1457,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		    /* 20211003 Continuous determination of dgt_nbr improves CR by ~10% */
 		    dgt_nbr = (int)floor(xpn_bs2 * dgt_per_bit + mnt_log10_fabs) + 1; /* DGG19 p. 4102 (8.67) */
 		    qnt_pwr = (int)floor(bit_per_dgt * (dgt_nbr - nsd)); /* DGG19 p. 4101 (7) */
-		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
+		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : (unsigned short)abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
 		    prc_bnr_xpl_rqr--; /* 20211003 Reduce formula result by 1 bit: Passes all tests, improves CR by ~10% */
 
 		    bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
@@ -1491,7 +1491,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		    /* 20211003 Continuous determination of dgt_nbr improves CR by ~10% */
 		    dgt_nbr = (int)floor(xpn_bs2 * dgt_per_bit + mnt_log10_fabs) + 1; /* DGG19 p. 4102 (8.67) */
 		    qnt_pwr = (int)floor(bit_per_dgt * (dgt_nbr - nsd)); /* DGG19 p. 4101 (7) */
-		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
+		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : (unsigned short)abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
 		    prc_bnr_xpl_rqr--; /* 20211003 Reduce formula result by 1 bit: Passes all tests, improves CR by ~10% */
 
 		    bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;

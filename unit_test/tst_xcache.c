@@ -90,7 +90,7 @@ generatestrings(int n, unsigned seed)
         /* Generate one random string */
 	if((s = (char*)malloc(1+MAXSTRLEN))==NULL) abort();
 	rnd = random();
-	len = rnd % MAXSTRLEN;
+	len = (int)rnd % MAXSTRLEN;
 	/* generate the characters */
 	for(k=0;k<len;k++) {
 	    do {rnd = random() % 127;} while(rnd <= ' ');
@@ -151,7 +151,7 @@ main(int argc, char** argv)
 	ncxcacheprint(cache);
 #endif
 
-        NCT_reporttime(ns, inserttime, insertrange, "insert");
+        NCT_reporttime((unsigned int)ns, inserttime, insertrange, "insert");
 
 	/* Try to touch and extract all the entries */
 
@@ -174,7 +174,7 @@ main(int argc, char** argv)
 	ncxcacheprint(cache);
 #endif
 
-	NCT_reporttime(ns, readtime, readrange, "read");
+	NCT_reporttime((unsigned int)ns, readtime, readrange, "read");
 
 	for(i=0;i<ns;i++) {
 	    void* top = NULL;

@@ -62,10 +62,10 @@ typedef struct NC_HDF5_FILE_INFO {
    hid_t hdfid;
    unsigned transientid; /* counter for transient ids */
    NCURI* uri; /* Parse of the incoming path, if url */
-#if defined(ENABLE_BYTERANGE)
+#if defined(NETCDF_ENABLE_BYTERANGE)
    int byterange;
 #endif
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
    struct NCauth* auth;
 #endif
 } NC_HDF5_FILE_INFO_T;

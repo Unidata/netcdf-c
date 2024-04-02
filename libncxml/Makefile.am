@@ -11,7 +11,7 @@
 
 include $(top_srcdir)/lib_flags.am
 
-if ENABLE_LIBXML2
+if NETCDF_ENABLE_LIBXML2
 AM_CPPFLAGS += ${XML2FLAGS}
 endif
 
@@ -20,7 +20,7 @@ noinst_LTLIBRARIES = libncxml.la
 libncxml_la_LIBADD =
 libncxml_la_LDFLAGS =
 
-if ENABLE_LIBXML2
+if NETCDF_ENABLE_LIBXML2
 libncxml_la_SOURCES = ncxml_xml2.c
 else
 AM_CXXFLAGS = -std=c++11

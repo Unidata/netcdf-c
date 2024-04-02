@@ -21,10 +21,10 @@ check_PROGRAMS = tst_chunk_hdf4 tst_h4_lendian tst_hdf4_extra
 TESTS = tst_chunk_hdf4 tst_h4_lendian tst_hdf4_extra
 
 # This test script depends on ncdump and tst_interops2.c.
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 check_PROGRAMS += tst_interops2
 TESTS += run_formatx_hdf4.sh
-endif # BUILD_UTILITIES
+endif # NETCDF_BUILD_UTILITIES
 
 # This test script fetches HDF4 files from an FTP server and uses
 # program tst_interops3.c to read them.

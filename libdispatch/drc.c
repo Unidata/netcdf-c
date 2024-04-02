@@ -20,11 +20,11 @@ See COPYRIGHT for license information.
 #include "ncbytes.h"
 #include "ncuri.h"
 #include "ncrc.h"
-#include "ncs3sdk.h"
 #include "nclog.h"
 #include "ncauth.h"
 #include "ncpathmgr.h"
 #include "nc4internal.h"
+#include "ncs3sdk.h"
 #include "ncdispatch.h"
 
 #undef NOREAD
@@ -32,16 +32,12 @@ See COPYRIGHT for license information.
 #undef DRCDEBUG
 #undef LEXDEBUG
 #undef PARSEDEBUG
-#undef AWSDEBUG
 
 #define RTAG ']'
 #define LTAG '['
 
 #undef MEMCHECK
 #define MEMCHECK(x) if((x)==NULL) {goto nomem;} else {}
-
-/* Alternate .aws directory location */
-#define NC_TEST_AWS_DIR "NC_TEST_AWS_DIR"
 
 /* Forward */
 static int NC_rcload(void);
@@ -58,15 +54,9 @@ static void rcfreeentry(NCRCentry* t);
 #ifdef DRCDEBUG
 static void storedump(char* msg, NClist* entrys);
 #endif
-static int aws_load_credentials(NCglobalstate*);
-static void freeprofile(struct AWSprofile* profile);
-static void freeprofilelist(NClist* profiles);
 
 /* Define default rc files and aliases, also defines load order*/
 static const char* rcfilenames[] = {".ncrc", ".daprc", ".dodsrc", NULL};
-
-/* Read these files in order and later overriding earlier */
-static const char* awsconfigfiles[] = {".aws/config",".aws/credentials",NULL};
 
 static int NCRCinitialized = 0;
 
@@ -159,7 +149,7 @@ ncrc_initialize(void)
         nclog(NCLOGWARN,".rc loading failed");
     }
     /* Load .aws/config &/ credentials */
-    if((stat = aws_load_credentials(ncg))) {
+    if((stat = NC_aws_load_credentials(ncg))) {
         nclog(NCLOGWARN,"AWS config file not loaded");
     }
 #endif
@@ -188,7 +178,7 @@ NC_rcclear(NCRCinfo* info)
     nullfree(info->rcfile);
     nullfree(info->rchome);
     rcfreeentries(info->entries);
-    freeprofilelist(info->s3profiles);
+    NC_s3freeprofilelist(info->s3profiles);
 
 }
 
@@ -485,7 +475,7 @@ rccompile(const char* filepath)
                 nclog(NCLOGERR, "Malformed [url] in %s entry: %s",filepath,line);
 		continue;
             }
-	    if(NC_iss3(uri)) {
+	    if(NC_iss3(uri,NULL)) {
 	         NCURI* newuri = NULL;
 	        /* Rebuild the url to S3 "path" format */
 		NC_s3clear(&s3);
@@ -756,499 +746,3 @@ storedump(char* msg, NClist* entries)
     fflush(stderr);
 }
 #endif
-
-/**************************************************/
-/*
-Get the current active profile. The priority order is as follows:
-1. aws.profile key in mode flags
-2. aws.profile in .rc entries
-4. "default"
-5. "no" -- meaning do not use any profile => no secret key
-
-@param uri uri with mode flags, may be NULL
-@param profilep return profile name here or NULL if none found
-@return NC_NOERR if no error.
-@return NC_EINVAL if something else went wrong.
-*/
-
-int
-NC_getactives3profile(NCURI* uri, const char** profilep)
-{
-    int stat = NC_NOERR;
-    const char* profile = NULL;
-    struct AWSprofile* ap = NULL;
-
-    profile = ncurifragmentlookup(uri,"aws.profile");
-    if(profile == NULL)
-        profile = NC_rclookupx(uri,"AWS.PROFILE");
-
-    if(profile == NULL) {
-        if((stat=NC_authgets3profile("default",&ap))) goto done;
-	if(ap) profile = "default";
-    }
-
-    if(profile == NULL) {
-        if((stat=NC_authgets3profile("no",&ap))) goto done;
-	if(ap) profile = "no";
-    }
-
-#ifdef AWSDEBUG
-    fprintf(stderr,">>> activeprofile = %s\n",(profile?profile:"null"));
-#endif
-    if(profilep) *profilep = profile;
-done:
-    return stat;
-}
-
-/*
-Get the current default region. The search order is as follows:
-1. aws.region key in mode flags
-2. aws.region in .rc entries
-3. aws_region key in current profile (only if profiles are being used)
-4. "us-east-1"
-
-@param uri uri with mode flags, may be NULL
-@param regionp return region name here or NULL if none found
-@return NC_NOERR if no error.
-@return NC_EINVAL if something else went wrong.
-*/
-
-int
-NC_getdefaults3region(NCURI* uri, const char** regionp)
-{
-    int stat = NC_NOERR;
-    const char* region = NULL;
-    const char* profile = NULL;
-
-    region = ncurifragmentlookup(uri,"aws.region");
-    if(region == NULL)
-        region = NC_rclookupx(uri,"AWS.REGION");
-    if(region == NULL) {/* See if we can find a profile */
-        if(NC_getactives3profile(uri,&profile)==NC_NOERR) {
-	    if(profile)
-	        (void)NC_s3profilelookup(profile,"aws_region",&region);
-	}
-    }
-    if(region == NULL)
-        region = "us-east-1";
-#ifdef AWSDEBUG
-    fprintf(stderr,">>> activeregion = %s\n",(region?region:"null"));
-#endif
-    if(regionp) *regionp = region;
-    return stat;
-}
-
-/**
-The .aws/config and .aws/credentials files
-are in INI format (https://en.wikipedia.org/wiki/INI_file).
-This format is not well defined, so the grammar used
-here is restrictive. Here, the term "profile" is the same
-as the INI term "section".
-
-The grammar used is as follows:
-
-Grammar:
-
-inifile: profilelist ;
-profilelist: profile | profilelist profile ;
-profile: '[' profilename ']' EOL entries ;
-entries: empty | entries entry ;
-entry:  WORD = WORD EOL ;
-profilename: WORD ;
-Lexical:
-WORD    sequence of printable characters - [ \[\]=]+
-EOL	'\n' | ';'
-
-Note:
-1. The semicolon at beginning of a line signals a comment.
-2. # comments are not allowed
-3. Duplicate profiles or keys are ignored.
-4. Escape characters are not supported.
-*/
-
-#define AWS_EOF (-1)
-#define AWS_ERR (0)
-#define AWS_WORD (0x10001)
-#define AWS_EOL (0x10002)
-
-#ifdef LEXDEBUG
-static const char*
-tokenname(int token)
-{
-    static char num[32];
-    switch(token) {
-    case AWS_EOF: return "EOF";
-    case AWS_ERR: return "ERR";
-    case AWS_WORD: return "WORD";
-    default: snprintf(num,sizeof(num),"%d",token); return num;
-    }
-    return "UNKNOWN";
-}
-#endif
-
-typedef struct AWSparser {
-    char* text;
-    char* pos;
-    size_t yylen; /* |yytext| */
-    NCbytes* yytext;
-    int token; /* last token found */
-    int pushback; /* allow 1-token pushback */
-} AWSparser;
-
-static int
-awslex(AWSparser* parser)
-{
-    int c;
-    int token = 0;
-    char* start;
-    size_t count;
-
-    parser->token = AWS_ERR;
-    ncbytesclear(parser->yytext);
-    ncbytesnull(parser->yytext);
-
-    if(parser->pushback != AWS_ERR) {
-	token = parser->pushback;
-	parser->pushback = AWS_ERR;
-	goto done;
-    }
-
-    while(token == 0) { /* avoid need to goto when retrying */
-	c = *parser->pos;
-	if(c == '\0') {
-	    token = AWS_EOF;
-	} else if(c == '\n') {
-	    parser->pos++;
-	    token = AWS_EOL;
-	} else if(c <= ' ' || c == '\177') {
-	    parser->pos++;
-	    continue; /* ignore whitespace */
-	} else if(c == ';') {
-	    char* p = parser->pos - 1;
-	    if(*p == '\n') {
-	        /* Skip comment */
-	        do {p++;} while(*p != '\n' && *p != '\0');
-	        parser->pos = p;
-	        token = (*p == '\n'?AWS_EOL:AWS_EOF);
-	    } else {
-	        token = ';';
-	        ncbytesappend(parser->yytext,';');
-		parser->pos++;
-	    }
-	} else if(c == '[' || c == ']' || c == '=') {
-	    ncbytesappend(parser->yytext,c);
-    	    ncbytesnull(parser->yytext);
-	    token = c;
-	    parser->pos++;
-	} else { /*Assume a word*/
-	    start = parser->pos;
-	    for(;;) {
-		c = *parser->pos++;
-	        if(c <= ' ' || c == '\177' || c == '[' || c == ']' || c == '=') break; /* end of word */
-	    }
-	    /* Pushback last char */
-	    parser->pos--;
-	    count = ((parser->pos) - start);
-	    ncbytesappendn(parser->yytext,start,count);
-	    ncbytesnull(parser->yytext);
-	    token = AWS_WORD;
-	}
-#ifdef LEXDEBUG
-fprintf(stderr,"%s(%d): |%s|\n",tokenname(token),token,ncbytescontents(parser->yytext));
-#endif
-    } /*for(;;)*/
-
-done:
-    parser->token = token;
-    return token;
-}
-
-/*
-@param text of the aws credentials file
-@param profiles list of form struct AWSprofile (see ncauth.h)
-*/
-
-#define LBR '['
-#define RBR ']'
-
-static int
-awsparse(const char* text, NClist* profiles)
-{
-    size_t i;
-    int stat = NC_NOERR;
-    size_t len;
-    AWSparser* parser = NULL;
-    struct AWSprofile* profile = NULL;
-    int token;
-    char* key = NULL;
-    char* value = NULL;
-
-    if(text == NULL) text = "";
-
-    parser = calloc(1,sizeof(AWSparser));
-    if(parser == NULL)
-	{stat = (NC_ENOMEM); goto done;}
-    len = strlen(text);
-    parser->text = (char*)malloc(len+1+1+1); /* double nul term plus leading EOL */
-    if(parser->text == NULL)
-	{stat = (NCTHROW(NC_EINVAL)); goto done;}
-    parser->pos = parser->text;
-    parser->pos[0] = '\n'; /* So we can test for comment unconditionally */
-    parser->pos++;
-    strcpy(parser->text+1,text);
-    parser->pos += len;
-    /* Double nul terminate */
-    parser->pos[0] = '\0';
-    parser->pos[1] = '\0';
-    parser->pos = &parser->text[0]; /* reset */
-    parser->yytext = ncbytesnew();
-    parser->pushback = AWS_ERR;
-
-    /* Do not need recursion, use simple loops */
-    for(;;) {
-        token = awslex(parser); /* make token always be defined */
-	if(token ==  AWS_EOF) break; /* finished */
-	if(token ==  AWS_EOL) {continue;} /* blank line */
-	if(token != LBR) {stat = NCTHROW(NC_EINVAL); goto done;}
-	/* parse [profile name] */
-        token = awslex(parser);
-	if(token != AWS_WORD) {stat = NCTHROW(NC_EINVAL); goto done;}
-	assert(profile == NULL);
-	if((profile = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile)))==NULL)
-	    {stat = NC_ENOMEM; goto done;}
-	profile->name = ncbytesextract(parser->yytext);
-	profile->entries = nclistnew();
-        token = awslex(parser);
-	if(token != RBR) {stat = NCTHROW(NC_EINVAL); goto done;}
-#ifdef PARSEDEBUG
-fprintf(stderr,">>> parse: profile=%s\n",profile->name);
-#endif
-	/* The fields can be in any order */
-	for(;;) {
-	    struct AWSentry* entry = NULL;
-            token = awslex(parser);
-	    if(token == AWS_EOL) {
-	        continue; /* ignore empty lines */
-	    } else if(token == AWS_EOF) {
-	        break;
-	    } else if(token == LBR) {/* start of next profile */
-	        parser->pushback = token;
-		break;
-	    } else if(token ==  AWS_WORD) {
-	    	key = ncbytesextract(parser->yytext);
-		token = awslex(parser);
-	        if(token != '=') {stat = NCTHROW(NC_EINVAL); goto done;}
-	        token = awslex(parser);
-		if(token != AWS_EOL && token != AWS_WORD) {stat = NCTHROW(NC_EINVAL); goto done;}
-	        value = ncbytesextract(parser->yytext);
-	        if((entry = (struct AWSentry*)calloc(1,sizeof(struct AWSentry)))==NULL)
-	            {stat = NC_ENOMEM; goto done;}
-	        entry->key = key; key = NULL;
-    	        entry->value = value; value = NULL;
-#ifdef PARSEDEBUG
-fprintf(stderr,">>> parse: entry=(%s,%s)\n",entry->key,entry->value);
-#endif
-		nclistpush(profile->entries,entry); entry = NULL;
-		if(token == AWS_WORD) token = awslex(parser); /* finish the line */
-	    } else
-	        {stat = NCTHROW(NC_EINVAL); goto done;}
-	}
-
-	/* If this profile already exists, then replace old one */
-	for(i=0;i<nclistlength(profiles);i++) {
-	    struct AWSprofile* p = (struct AWSprofile*)nclistget(profiles,i);
-	    if(strcasecmp(p->name,profile->name)==0) {
-		nclistset(profiles,i,profile);
-                profile = NULL;
-		/* reclaim old one */
-		freeprofile(p);
-		break;
-	    }
-	}
-	if(profile) nclistpush(profiles,profile);
-	profile = NULL;
-    }
-
-done:
-    if(profile) freeprofile(profile);
-    nullfree(key);
-    nullfree(value);
-    if(parser != NULL) {
-	nullfree(parser->text);
-	ncbytesfree(parser->yytext);
-	free(parser);
-    }
-    return (stat);
-}
-
-static void
-freeentry(struct AWSentry* e)
-{
-    if(e) {
-#ifdef AWSDEBUG
-fprintf(stderr,">>> freeentry: key=%p value=%p\n",e->key,e->value);
-#endif
-        nullfree(e->key);
-        nullfree(e->value);
-        nullfree(e);
-    }
-}
-
-static void
-freeprofile(struct AWSprofile* profile)
-{
-    if(profile) {
-	size_t i;
-#ifdef AWSDEBUG
-fprintf(stderr,">>> freeprofile: %s\n",profile->name);
-#endif
-	for(i=0;i<nclistlength(profile->entries);i++) {
-	    struct AWSentry* e = (struct AWSentry*)nclistget(profile->entries,i);
-	    freeentry(e);
-	}
-        nclistfree(profile->entries);
-	nullfree(profile->name);
-	nullfree(profile);
-    }
-}
-
-static void
-freeprofilelist(NClist* profiles)
-{
-    if(profiles) {
-	size_t i;
-	for(i=0;i<nclistlength(profiles);i++) {
-	    struct AWSprofile* p = (struct AWSprofile*)nclistget(profiles,i);
-	    freeprofile(p);
-	}
-	nclistfree(profiles);
-    }
-}
-
-/* Find, load, and parse the aws config &/or credentials file */
-static int
-aws_load_credentials(NCglobalstate* gstate)
-{
-    int stat = NC_NOERR;
-    NClist* profiles = nclistnew();
-    const char** awscfg = awsconfigfiles;
-    const char* aws_root = getenv(NC_TEST_AWS_DIR);
-    NCbytes* buf = ncbytesnew();
-    char path[8192];
-
-    /* add a "no" credentials */
-    {
-	struct AWSprofile* noprof = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile));
-	noprof->name = strdup("no");
-	noprof->entries = nclistnew();
-	nclistpush(profiles,noprof); noprof = NULL;
-    }
-
-    for(;*awscfg;awscfg++) {
-        /* Construct the path ${HOME}/<file> or Windows equivalent. */
-	const char* cfg = *awscfg;
-
-        snprintf(path,sizeof(path),"%s%s%s",
-	    (aws_root?aws_root:gstate->home),
-	    (*cfg == '/'?"":"/"),
-	    cfg);
-	ncbytesclear(buf);
-        if((stat=NC_readfile(path,buf))) {
-            nclog(NCLOGWARN, "Could not open file: %s",path);
-        } else {
-            /* Parse the credentials file */
-	    const char* text = ncbytescontents(buf);
-            if((stat = awsparse(text,profiles))) goto done;
-	}
-    }
-  
-    /* add a "none" credentials */
-    {
-	struct AWSprofile* noprof = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile));
-    if(noprof == NULL) {stat = NC_ENOMEM; goto done;}
-	noprof->name = strdup("none");
-	noprof->entries = nclistnew();
-	nclistpush(profiles,noprof); noprof = NULL;
-    }
-
-    if(gstate->rcinfo->s3profiles)
-        freeprofilelist(gstate->rcinfo->s3profiles);
-    gstate->rcinfo->s3profiles = profiles; profiles = NULL;
-
-#ifdef AWSDEBUG
-    {int i,j;
-	fprintf(stderr,">>> profiles:\n");
-	for(i=0;i<nclistlength(gstate->rcinfo->s3profiles);i++) {
-	    struct AWSprofile* p = (struct AWSprofile*)nclistget(gstate->rcinfo->s3profiles,i);
-	    fprintf(stderr,"    [%s]",p->name);
-	    for(j=0;j<nclistlength(p->entries);j++) {
-	        struct AWSentry* e = (struct AWSentry*)nclistget(p->entries,j);
-		if(strcmp(e->key,"aws_access_key_id")
-		    fprintf(stderr," %s=%d",e->key,(int)strlen(e->value));
-		else if(strcmp(e->key,"aws_secret_access_key")
-		    fprintf(stderr," %s=%d",e->key,(int)strlen(e->value));
-		else fprintf(stderr," %s=%s",e->key,e->value);
-	    }
-            fprintf(stderr,"\n");
-	}
-    }
-#endif
-
-done:
-    ncbytesfree(buf);
-    freeprofilelist(profiles);
-    return stat;
-}
-
-/* Lookup a profile by name;
-@param profilename to lookup
-@param profilep return the matching profile; null if profile not found
-@return NC_NOERR if no error
-@return other error
-*/
-
-int
-NC_authgets3profile(const char* profilename, struct AWSprofile** profilep)
-{
-    int stat = NC_NOERR;
-    size_t i;
-    NCglobalstate* gstate = NC_getglobalstate();
-
-    for(i=0;i<nclistlength(gstate->rcinfo->s3profiles);i++) {
-	struct AWSprofile* profile = (struct AWSprofile*)nclistget(gstate->rcinfo->s3profiles,i);
-	if(strcmp(profilename,profile->name)==0)
-	    {if(profilep) {*profilep = profile; goto done;}}
-    }
-    if(profilep) *profilep = NULL; /* not found */
-done:
-    return stat;
-}
-
-/**
-@param profile name of profile
-@param key key to search for in profile
-@param value place to store the value if key is found; NULL if not found
-@return NC_NOERR if key is found, Some other error otherwise.
-*/
-
-int
-NC_s3profilelookup(const char* profile, const char* key, const char** valuep)
-{
-    size_t i;
-    int stat = NC_NOERR;
-    struct AWSprofile* awsprof = NULL;
-    const char* value = NULL;
-
-    if(profile == NULL) return NC_ES3;
-    if((stat=NC_authgets3profile(profile,&awsprof))==NC_NOERR && awsprof != NULL) {
-        for(i=0;i<nclistlength(awsprof->entries);i++) {
-	    struct AWSentry* entry = (struct AWSentry*)nclistget(awsprof->entries,i);
-	    if(strcasecmp(entry->key,key)==0) {
-		value = entry->value;
-	        break;
-	    }
-	}
-    }
-    if(valuep) *valuep = value;
-    return stat;
-}
