@@ -23,12 +23,12 @@
 #include "ncpathmgr.h"
 #include "nclog.h"
 
-#ifdef HAVE_HDF5_H
+#ifdef USE_HDF5
 #include <hdf5.h>
 #include <H5DSpublic.h>
 #endif
 
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 #include "zincludes.h"
 #endif
 
@@ -38,7 +38,7 @@
 #ifdef USE_HDF5
 #define H5
 #endif
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 #define NZ
 #endif
 

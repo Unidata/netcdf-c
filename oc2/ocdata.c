@@ -292,7 +292,7 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
     int i;
     OCnode* pattern;
     OCtype etype;
-    off_t elemsize, totalsize, xdrtotal, xdrstart;
+    off_t xdrtotal, xdrstart;
     int scalar;
 
     OCASSERT(data != NULL);
@@ -306,11 +306,11 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
     scalar = (pattern->array.rank == 0);
 
     /* Note that for strings, xdrsize == 0 */
-    xdrtotal = count*data->xdrsize; /* amount (in xdr sizes) to read */
-    xdrstart = start*data->xdrsize; /* offset from the start of the data */
+    xdrtotal = (off_t)count*data->xdrsize; /* amount (in xdr sizes) to read */
+    xdrstart = (off_t)start*data->xdrsize; /* offset from the start of the data */
 
-    elemsize = octypesize(etype); /* wrt memory, not xdrsize */
-    totalsize = elemsize*count;
+    size_t elemsize = octypesize(etype); /* wrt memory, not xdrsize */
+    size_t totalsize = elemsize*count;
 
     /* validate memory space*/
     if(memsize < totalsize) return OCTHROW(OC_EINVAL);
@@ -398,7 +398,7 @@ ocread(OCdata* data, XXDR* xdrs, char* memory, size_t memsize, size_t start, siz
 	char** sp = (char**)memory;
 	if(count > data->nstrings)
 	    return OCTHROW(OC_EDATADDS);
-	for(i=0;i<count;i++,sp++) {
+	for(size_t i=0;i<count;i++,sp++) {
 	    off_t len;
 	    off_t offset = data->strings[start+i];
             xxdr_setpos(xdrs,offset);

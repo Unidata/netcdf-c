@@ -60,7 +60,7 @@ readfile(const char* path, NC_memio* memio)
     p = memory;
     while(count > 0) {
         ssize_t actual;
-        actual = read(fd,p,count);
+        actual = read(fd,p,(size_t)count);
 	if(actual <= 0)
 	    {status = NC_EIO; goto done;}
 	count -= actual;

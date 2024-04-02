@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef HAVE_HDF5_H
+#ifdef USE_HDF5
 #include <hdf5.h>
 #endif
 #include "netcdf.h"
@@ -91,7 +91,7 @@ defvar(nc_type xtype)
         snprintf(dimname,sizeof(dimname),"dim%u",(unsigned)i);
         CHECK(nc_def_dim(ncid, dimname, dimsize[i], &dimids[i]));
     }
-    CHECK(nc_def_var(ncid, "var", xtype, ndims, dimids, &varid));
+    CHECK(nc_def_var(ncid, "var", xtype, (int)ndims, dimids, &varid));
     return NC_NOERR;
 }
 

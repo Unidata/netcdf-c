@@ -508,7 +508,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         return NC_EPERM;
 
     /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
         return NC_ENOTVAR;
     assert(var && var->hdr.id == varid);
 
@@ -1077,7 +1077,7 @@ nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
 
     /* Copy to size_t array. */
     for (i = 0; i < var->ndims; i++)
-        cs[i] = chunksizesp[i];
+        cs[i] = (size_t)chunksizesp[i];
 
     retval = nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
                               &storage, cs, NULL, NULL, NULL, NULL, NULL);
@@ -1217,7 +1217,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
         return retval;
 
     /* Get the variable wrt varid */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
         return NC_ENOTVAR;
 
     /* Check if new name is in use; note that renaming to same name is
@@ -1257,7 +1257,6 @@ NC4_rename_var(int ncid, int varid, const char *name)
        there. */
     if (var->created)
     {
-        int v;
         char *hdf5_name; /* Dataset will be renamed to this. */
         hdf5_name = use_secret_name ? var->alt_name: (char *)name;
 
@@ -1291,7 +1290,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
          * and we have just changed that for this var. We must do the
          * same for all vars with a > varid, so that the creation order
          * will continue to be correct. */
-        for (v = var->hdr.id + 1; v < ncindexsize(grp->vars); v++)
+        for (size_t v = (size_t)var->hdr.id + 1; v < ncindexsize(grp->vars); v++)
         {
             NC_VAR_INFO_T *my_var;
             my_var = (NC_VAR_INFO_T *)ncindexith(grp->vars, v);
@@ -1597,7 +1596,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
         start[i] = startp[i];
         count[i] = countp ? countp[i] : var->dim[i]->len;
-        stride[i] = stridep ? stridep[i] : 1;
+        stride[i] = stridep ? (hsize_t)stridep[i] : 1;
         ones[i] = 1;
 	LOG((4, "start[%d] %ld count[%d] %ld stride[%d] %ld", i, start[i], i, count[i], i, stride[i]));
 
@@ -1660,7 +1659,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
         /* Create a space for the memory, just big enough to hold the slab
            we want. */
-        if ((mem_spaceid = H5Screate_simple(var->ndims, count, NULL)) < 0)
+        if ((mem_spaceid = H5Screate_simple((int)var->ndims, count, NULL)) < 0)
             BAIL(NC_EHDFERR);
     }
 
@@ -1936,7 +1935,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
         start[i] = startp[i];
         count[i] = countp[i];
-        stride[i] = stridep ? stridep[i] : 1;
+        stride[i] = stridep ? (hsize_t)stridep[i] : 1;
         ones[i] = 1;
 
         /* if any of the count values are zero don't actually read. */
@@ -2079,7 +2078,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
             /* Create a space for the memory, just big enough to hold the slab
                we want. */
-            if ((mem_spaceid = H5Screate_simple(var->ndims, count, NULL)) < 0)
+            if ((mem_spaceid = H5Screate_simple((int)var->ndims, count, NULL)) < 0)
                 BAIL(NC_EHDFERR);
         }
 
@@ -2366,7 +2365,7 @@ NC4_HDF5_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
     assert(grp && h5);
 
     /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
         return NC_ENOTVAR;
     assert(var && var->hdr.id == varid);
 
@@ -2410,7 +2409,7 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
         real_size = ((size_t) size) * MEGABYTE;
 
     if (nelems >= 0)
-        real_nelems = nelems;
+        real_nelems = (size_t)nelems;
 
     if (preemption >= 0)
         real_preemption = (float)(preemption / 100.);

@@ -8,7 +8,7 @@
 # See netcdf-c/COPYRIGHT file for more info.
 
 # Build ncgen/ncdump.
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 CDL_DIR = CDL
 endif
 

@@ -83,7 +83,7 @@ main()
 
         if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
         if (num_obj != NUM_ELEMENTS) ERR;
-        for (i = 0; i < num_obj; i++)
+        for (hsize_t i = 0; i < num_obj; i++)
         {
 #if H5_VERSION_GE(1,12,0)
             if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
@@ -96,7 +96,7 @@ main()
             if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
                                            NULL, 0, H5P_DEFAULT)) < 0) ERR;
             H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-                               name, size+1, H5P_DEFAULT);
+                               name, (size_t)size+1, H5P_DEFAULT);
             if (strcmp(name, names[i])) ERR;
         }
         if (H5Pclose(fapl_id) < 0 ||
@@ -166,7 +166,7 @@ main()
 
         if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
         if (num_obj != NUM_DIMSCALES) ERR;
-        for (i = 0; i < num_obj; i++)
+        for (hsize_t i = 0; i < num_obj; i++)
         {
 #if H5_VERSION_GE(1,12,0)
             if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
@@ -179,7 +179,7 @@ main()
             if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
                                            NULL, 0, H5P_DEFAULT)) < 0) ERR;
             if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-                                   name, size+1, H5P_DEFAULT) < 0) ERR;
+                                   name, (size_t)size+1, H5P_DEFAULT) < 0) ERR;
             if (strcmp(name, names[i])) ERR;
         }
         if (H5Pclose(fapl_id) < 0 ||
@@ -276,7 +276,7 @@ main()
         if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 0,
                                        NULL, 0, H5P_DEFAULT)) < 0) ERR;
         H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 0,
-                           name, size+1, H5P_DEFAULT);
+                           name, (size_t)size+1, H5P_DEFAULT);
         if (strcmp(name, VAR_NAME)) ERR;
         if (H5Pclose(fapl_id) < 0 ||
             H5Gclose(grpid) < 0 ||

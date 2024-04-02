@@ -150,14 +150,12 @@ macro(build_bin_test F)
   target_link_libraries(${F} netcdf ${ALL_TLL_LIBS})
   if(MSVC)
     set_target_properties(${F}
-      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-      )
-    set_target_properties(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-      ${CMAKE_CURRENT_BINARY_DIR})
-    set_target_properties(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
-      ${CMAKE_CURRENT_BINARY_DIR})
-    set_target_properties(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
-      ${CMAKE_CURRENT_BINARY_DIR})
+      PROPERTIES 
+        LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+    )
   endif()
 endmacro()
 
@@ -167,12 +165,11 @@ macro(add_bin_test_no_prefix F)
   add_test(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
   if(MSVC)
     set_property(TEST ${F} PROPERTY FOLDER "tests/")
-    set_target_properties(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-      ${CMAKE_CURRENT_BINARY_DIR})
-    set_target_properties(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
-      ${CMAKE_CURRENT_BINARY_DIR})
-    set_target_properties(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
-      ${CMAKE_CURRENT_BINARY_DIR})
+    set_target_properties(${F} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+    )
   endif()
 endmacro()
 
@@ -181,12 +178,11 @@ macro(build_bin_test_no_prefix F)
   build_bin_test(${F})
   if(MSVC)
     #SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
-    set_target_properties(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-      ${CMAKE_CURRENT_BINARY_DIR})
-    set_target_properties(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
-      ${CMAKE_CURRENT_BINARY_DIR})
-    set_target_properties(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
-      ${CMAKE_CURRENT_BINARY_DIR})
+    set_target_properties(${F} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+    )
   endif()
 endmacro()
 
@@ -207,12 +203,12 @@ macro(add_bin_test prefix F)
            )
   if(MSVC)
     set_property(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
-    set_target_properties(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-      ${CMAKE_CURRENT_BINARY_DIR})
-    set_target_properties(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
-      ${CMAKE_CURRENT_BINARY_DIR})
-    set_target_properties(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
-      ${CMAKE_CURRENT_BINARY_DIR})
+    set_target_properties(${prefix}_${F}
+      PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+    )
   endif()
 endmacro()
 
@@ -223,11 +219,11 @@ macro(print_conf_summary)
   message("Configuration Summary:")
   message("")
   message(STATUS "Building Shared Libraries:     ${BUILD_SHARED_LIBS}")
-  message(STATUS "Building netCDF-4:             ${ENABLE_NETCDF_4}")
-  message(STATUS "Building DAP2 Support:         ${ENABLE_DAP2}")
-  message(STATUS "Building DAP4 Support:         ${ENABLE_DAP4}")
-  message(STATUS "Building Byte-range Support:   ${ENABLE_BYTERANGE}")
-  message(STATUS "Building Utilities:            ${BUILD_UTILITIES}")
+  message(STATUS "Building netCDF-4:             ${NETCDF_ENABLE_NETCDF_4}")
+  message(STATUS "Building DAP2 Support:         ${NETCDF_ENABLE_DAP2}")
+  message(STATUS "Building DAP4 Support:         ${NETCDF_ENABLE_DAP4}")
+  message(STATUS "Building Byte-range Support:   ${NETCDF_ENABLE_BYTERANGE}")
+  message(STATUS "Building Utilities:            ${NETCDF_BUILD_UTILITIES}")
   if(CMAKE_PREFIX_PATH)
     message(STATUS "CMake Prefix Path:             ${CMAKE_PREFIX_PATH}")
   endif()
@@ -240,15 +236,15 @@ macro(print_conf_summary)
     message("")
   endif()
 
-  message("Tests Enabled:              ${ENABLE_TESTS}")
-  if(ENABLE_TESTS)
-    message(STATUS "DAP Remote Tests:  ${ENABLE_DAP_REMOTE_TESTS}")
-    message(STATUS "Extra Tests:       ${ENABLE_EXTRA_TESTS}")
-    message(STATUS "Coverage Tests:    ${ENABLE_COVERAGE_TESTS}")
-    message(STATUS "Parallel Tests:    ${ENABLE_PARALLEL_TESTS}")
-    message(STATUS "Large File Tests:  ${ENABLE_LARGE_FILE_TESTS}")
-    message(STATUS "Extreme Numbers:   ${ENABLE_EXTREME_NUMBERS}")
-    message(STATUS "Unit Tests:        ${ENABLE_UNIT_TESTS}")
+  message("Tests Enabled:              ${NETCDF_ENABLE_TESTS}")
+  if(NETCDF_ENABLE_TESTS)
+    message(STATUS "DAP Remote Tests:  ${NETCDF_ENABLE_DAP_REMOTE_TESTS}")
+    message(STATUS "Extra Tests:       ${NETCDF_ENABLE_EXTRA_TESTS}")
+    message(STATUS "Coverage Tests:    ${NETCDF_ENABLE_COVERAGE_TESTS}")
+    message(STATUS "Parallel Tests:    ${NETCDF_ENABLE_PARALLEL_TESTS}")
+    message(STATUS "Large File Tests:  ${NETCDF_ENABLE_LARGE_FILE_TESTS}")
+    message(STATUS "Extreme Numbers:   ${NETCDF_ENABLE_EXTREME_NUMBERS}")
+    message(STATUS "Unit Tests:        ${NETCDF_ENABLE_UNIT_TESTS}")
   endif()
 
   message("")

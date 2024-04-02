@@ -41,7 +41,7 @@ int
 main(int argc, char **argv)
 {
     int status = NC_NOERR;
-    int i,j,iv;
+    int iv;
     unsigned int data[DATASIZE];
     size_t start[1];
     size_t count[1];
@@ -50,14 +50,14 @@ main(int argc, char **argv)
     int ncid;
     int dimids[1];
     void* memory;
-    int nvars;
+    size_t nvars;
     int varids[4096];
     size_t varsize;
     size_t filesize;
 
     /* Get the specified var/file size */
     if(argc > 1) {
-	filesize = atol(argv[1]);
+	filesize = (size_t)atol(argv[1]);
     } else
 	filesize = 1000000000L;
 
@@ -75,10 +75,10 @@ main(int argc, char **argv)
         else if(strcmp(argv[2],"creatediskless")==0) tag = CreateDiskless;
         else if(strcmp(argv[2],"open")==0) tag = Open;
         else if(strcmp(argv[2],"opendiskless")==0) tag = OpenDiskless;
-	else {
-	    fprintf(stderr,"illegal tag: %s",argv[2]);
-	    exit(1);
-	}
+        else {
+            fprintf(stderr,"illegal tag: %s",argv[2]);
+            exit(1);
+        }
     } else
 	tag = Create; /* default */
 
@@ -144,16 +144,17 @@ main(int argc, char **argv)
 	    REPORT;
     }
 
-    for(iv=0;iv<nvars;iv++) {
+    for(size_t iv=0;iv<nvars;iv++) {
         size_t pieces = varsize/CHUNKSIZE;
         switch (tag) {
         case Create:
         case CreateDiskless:
 	    /* Fill and put as integers */
-	    for(i=0;i<pieces;i++) {
+	    for(size_t i=0;i<pieces;i++) {
 		start[0] = i*CHUNKSIZE;
 		count[0] = CHUNKSIZE;
-		for(j=0;j<DATASIZE;j++) data[j] = iv*((i*CHUNKSIZE)+j);
+		for(size_t j=0;j<DATASIZE;j++)
+                  data[j] = (unsigned int)(iv*((i*CHUNKSIZE)+j));
 		if((status=nc_put_vara(ncid,varids[iv],start,count,(void*)data)))
 		    REPORT;
 	    }
@@ -161,15 +162,15 @@ main(int argc, char **argv)
         case Open:
         case OpenDiskless:
 	    /* Read the var contents and validate */
-	    for(i=0;i<pieces;i++) {
+	    for(size_t i=0;i<pieces;i++) {
 		start[0] = i*CHUNKSIZE;
 		count[0] = CHUNKSIZE;
 		if((status=nc_get_vara(ncid,varids[iv],start,count,(void*)data)))
 		    REPORT;
-		for(j=0;j<DATASIZE;j++) {
-		    unsigned int expected = iv*((i*CHUNKSIZE)+j);
+		for(size_t j=0;j<DATASIZE;j++) {
+	   	    unsigned int expected = (unsigned int)(iv*((i*CHUNKSIZE)+j));
 	   	    if(data[j] != expected) {
-		        printf("mismatch: iv=%d i=%u j=%u data=%u; should be %u\n",
+		        printf("mismatch: iv=%zu i=%zu j=%zu data=%u; should be %u\n",
 				iv, i,j,data[j],expected);
 		        err++;
 		    }

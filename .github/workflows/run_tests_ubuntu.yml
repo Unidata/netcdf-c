@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.10.8, 1.12.2, 1.14.0 ]
+        hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
 
     steps:
       - uses: actions/checkout@v3
@@ -66,7 +66,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.0 ]
+        hdf5: [ 1.14.3 ]
 
     steps:
 
@@ -128,7 +128,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.0 ]
+        hdf5: [ 1.14.3 ]
     steps:
 
       - uses: actions/checkout@v3
@@ -223,7 +223,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.0 ]
+        hdf5: [ 1.14.3 ]
     steps:
 
       - uses: actions/checkout@v3
@@ -319,7 +319,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.0 ]
+        hdf5: [ 1.14.3 ]
     steps:
 
       - uses: actions/checkout@v3
@@ -399,7 +399,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.0 ]
+        hdf5: [ 1.14.3 ]
 
     steps:
 
@@ -440,7 +440,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -DENABLE_DAP_LONG_TESTS=TRUE -DENABLE_XML2=FALSE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DNETCDF_ENABLE_HDF5=TRUE -DNETCDF_ENABLE_NCZARR=TRUE -DNETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DNETCDF_ENABLE_LIBXML2=FALSE
 
       - name: Print Summary
         shell: bash -l {0}
@@ -479,7 +479,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.0 ]
+        hdf5: [ 1.14.3 ]
 
     steps:
 
@@ -521,7 +521,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -DENABLE_DAP_LONG_TESTS=TRUE -DENABLE_XML2=FALSE -DBUILD_SHARED_LIBS=FALSE -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DNETCDF_ENABLE_HDF5=TRUE -DNETCDF_ENABLE_NCZARR=TRUE -DNETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DNETCDF_ENABLE_LIBXML2=FALSE -DBUILD_SHARED_LIBS=FALSE -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
 
       - name: Print Summary
         shell: bash -l {0}
@@ -561,7 +561,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.0 ]
+        hdf5: [ 1.14.3 ]
 
     steps:
 
@@ -602,7 +602,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_C_COMPILER=mpicc -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_PNETCDF=TRUE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_C_COMPILER=mpicc -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=TRUE -DNETCDF_ENABLE_HDF5=TRUE -DNETCDF_ENABLE_NCZARR=TRUE -D NETCDF_ENABLE_DAP_LONG_TESTS=TRUE -DNETCDF_ENABLE_PNETCDF=TRUE
 
       - name: Print Summary
         shell: bash -l {0}
@@ -638,7 +638,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [1.10.8, 1.12.2, 1.14.0 ]
+        hdf5: [1.10.8, 1.12.2, 1.14.3 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -679,18 +679,18 @@ jobs:
       - run: echo "LDFLAGS=-L${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: |
-          echo "ENABLE_HDF5=--disable-hdf5" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_HDF5=--disable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
-          echo "ENABLE_HDF5=--enable-hdf5" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_HDF5=--enable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
-      - run: echo "ENABLE_DAP=--disable-dap" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_DAP=--disable-dap" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
-      - run: echo "ENABLE_DAP=--enable-dap" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_DAP=--enable-dap" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_on'
-      - run: echo "ENABLE_NCZARR=--disable-nczarr" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_NCZARR=--disable-nczarr" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_off'
-      - run: echo "ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_on'
 
       ###
@@ -738,7 +738,7 @@ jobs:
           done
           current_directory="$(pwd)"
           mkdir ../build
-          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} "${current_directory}/configure" ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
+          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} "${current_directory}/configure" ${NETCDF_ENABLE_HDF5} ${NETCDF_ENABLE_DAP} ${NETCDF_ENABLE_NCZARR}
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -802,7 +802,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.10.8, 1.12.2, 1.14.0 ]
+        hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -821,18 +821,18 @@ jobs:
       - run: echo "CMAKE_PREFIX_PATH=${HOME}/environments/${{ matrix.hdf5 }}/" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: |
-          echo "ENABLE_HDF5=OFF" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_HDF5=OFF" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
-          echo "ENABLE_HDF5=ON" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_HDF5=ON" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
-      - run: echo "ENABLE_DAP=OFF" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_DAP=OFF" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
-      - run: echo "ENABLE_DAP=ON" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_DAP=ON" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_on'
-      - run: echo "ENABLE_NCZARR=OFF" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_NCZARR=OFF" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_off'
-      - run: echo "ENABLE_NCZARR=ON" >> $GITHUB_ENV
+      - run: echo "NETCDF_ENABLE_NCZARR=ON" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_on'
       - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
 
@@ -860,7 +860,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=${ENABLE_DAP} -DENABLE_HDF5=${ENABLE_HDF5} -DENABLE_NCZARR=${ENABLE_NCZARR}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DNETCDF_ENABLE_DAP=${NETCDF_ENABLE_DAP} -DNETCDF_ENABLE_HDF5=${NETCDF_ENABLE_HDF5} -DNETCDF_ENABLE_NCZARR=${NETCDF_ENABLE_NCZARR}
 
       - name: Print Summary
         shell: bash -l {0}

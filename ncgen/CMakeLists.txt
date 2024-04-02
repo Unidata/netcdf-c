@@ -92,27 +92,32 @@ ENDIF()
 SET(CLEANFILES c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
 
-# These rules are used if someone wants to rebuild ncgeny.c or ncgenl.c
-# Otherwise never invoked, but records how to do it.
-# BTW: note that renaming is essential because otherwise
-# autoconf will forcibly delete files of the name *.tab.*
+# With this option enabled, automatically generate the parser source
+# files from the yacc input files when they're changed. They don't
+# change very often, so this option is off by default.
+if (NETCDF_GENERATE_NCGEN)
+  find_program(FLEX flex REQUIRED)
+  find_program(BISON bison REQUIRED)
 
-ADD_CUSTOM_COMMAND(
-  OUTPUT ncgentab.h
-  COMMAND flex -Pncg -8 ncgen.l
-  COMMAND rm -f ncgenl.c
-  COMMAND mv lex.ncg.c ncgenl.c
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h ${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c ${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c
+    DEPENDS ncgen.y ncgen.l
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 
-  COMMAND bison -pncg -t -d ncgen.y
-  COMMAND rm -f ncgeny.c ncgeny.h
-  COMMAND mv ncgen.tab.c ncgeny.c
-  COMMAND mv ncgen.tab.h ncgeny.h
-  COMMAND mv ncgeny.h ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND mv ncgeny.c ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND mv ncgenl.c ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND ${FLEX} -Pncg -8 ncgen/ncgen.l
+    COMMAND mv lex.ncg.c "${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c"
 
-  )
-ADD_CUSTOM_TARGET(makeparser DEPENDS ncgentab.h)
+    COMMAND ${BISON} -pncg -t -d ncgen/ncgen.y
+    COMMAND mv ncgen.tab.c "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c"
+    COMMAND mv ncgen.tab.h "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h"
+
+    # Fix the `#line` preprocessor directives with the correct source paths
+    COMMAND sed -i s/ncgen.tab/ncgeny/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c"
+    COMMAND sed -i s/lex.ncg/ncgenl/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c"
+    COMMAND sed -i s/ncgen.tab/ncgeny/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h"
+    VERBATIM
+    )
+endif()
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
