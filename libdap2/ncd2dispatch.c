@@ -2146,14 +2146,14 @@ fail:
 static NCerror
 suppressunusablevars(NCDAPCOMMON* dapcomm)
 {
-    int i,j;
+    size_t i,j;
     int found = 1;
     NClist* path = nclistnew();
 
     while(found) {
 	found = 0;
 	/* Walk backwards to aid removal semantics */
-	for(i=nclistlength(dapcomm->cdf.ddsroot->tree->varnodes)-1;i>=0;i--) {
+	for(i = nclistlength(dapcomm->cdf.ddsroot->tree->varnodes); i-->0;) {
 	    CDFnode* var = (CDFnode*)nclistget(dapcomm->cdf.ddsroot->tree->varnodes,i);
 	    /* See if this var is under an unusable sequence */
 	    nclistclear(path);
