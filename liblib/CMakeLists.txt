@@ -42,6 +42,10 @@ if(USE_HDF4)
   )
 endif()
 
+if(FOUND_CURL)
+  target_link_libraries(netcdf PRIVATE CURL::libcurl)
+endif()
+
 if(NETCDF_ENABLE_DAP2)
   target_sources(netcdf
     PRIVATE
@@ -144,7 +148,7 @@ if(USE_HDF5)
 endif()
 
 if(FOUND_CURL)
-  set(TLL_LIBS ${TLL_LIBS} ${CURL_LIBRARIES})
+  set(TLL_LIBS ${TLL_LIBS} CURL::libcurl ${CURL_LIBRARIES})
 endif()
 
 if(USE_HDF4)
