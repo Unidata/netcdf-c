@@ -234,6 +234,10 @@ if(CURL_FOUND)
 )
 else()
   set(FOUND_CURL FALSE)
+  set(NETCDF_ENABLE_DAP2 OFF)
+  set(NETCDF_ENABLE_DAP4 OFF)
+  set(NETCDF_ENABLE_BYTERANGE OFF)
+  set(NETCDF_ENABLE_S3 OFF)
 endif(CURL_FOUND)
 
 # Start disabling if curl not found
