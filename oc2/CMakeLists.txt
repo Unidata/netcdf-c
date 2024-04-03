@@ -15,7 +15,7 @@ endif()
 if(STATUS_PARALLEL)
   target_link_libraries(oc2 PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
-target_link_libraries(oc2 PUBLIC ${CURL_LIBRARIES})
+target_link_libraries(oc2 PUBLIC CURL::libcurl ${CURL_LIBRARIES})
 target_include_directories(oc2 PUBLIC ${CURL_INCLUDE_DIRS})
 target_compile_options(oc2
   PRIVATE
