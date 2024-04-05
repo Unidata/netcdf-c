@@ -97,7 +97,6 @@ tztrim(
     while (*ep)
       *cp++ = *ep++;
     *cp = '\0';
-    return;
 }
 
 static void

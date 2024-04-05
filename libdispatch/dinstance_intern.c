@@ -567,7 +567,7 @@ NC_copy_data_all(NC* nc, nc_type xtype, const void* memory, size_t count, void**
 
     if(xtype <= NC_STRING && count > 0) {
         xsize = NC_atomictypelen(xtype);
-        if((copy = calloc(xsize,count))==NULL) {stat = NC_ENOMEM; goto done;}
+        if((copy = calloc(count,xsize))==NULL) {stat = NC_ENOMEM; goto done;}
 	if(xtype < NC_STRING) /* fixed-size atomic type */
    	    memcpy(copy,memory,xsize*count);
 	else { /* string type */
@@ -589,7 +589,7 @@ NC_copy_data_all(NC* nc, nc_type xtype, const void* memory, size_t count, void**
         xsize = utype->size;
         /* allocate the top-level */
         if(count > 0) {
-            if((copy = calloc(xsize,count))==NULL) {stat = NC_ENOMEM; goto done;}
+            if((copy = calloc(count,xsize))==NULL) {stat = NC_ENOMEM; goto done;}
         }
         if((stat = NC_copy_data(nc,xtype,memory,count,copy)))
             (void)NC_reclaim_data_all(nc,xtype,copy,count);
