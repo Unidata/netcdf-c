@@ -218,25 +218,27 @@ endif(USE_HDF5)
 ################################
 # See if we have libcurl
 find_package(CURL)
-target_compile_options(netcdf
-  PRIVATE
-    -DCURL_STATICLIB=1
-)
-target_include_directories(netcdf
-  PRIVATE
-    ${CURL_INCLUDE_DIRS}
-)
-
-
-
-MESSAGE(STATUS "Found CURL_INCLUDE_DIRS: ${CURL_INCLUDE_DIRS}")
-# Define a test flag for have curl library
-if(CURL_LIBRARIES OR CURL_LIBRARY)
+#target_compile_options(netcdf
+#  PRIVATE
+#    -DCURL_STATICLIB=1
+#)
+#target_include_directories(netcdf
+#  PRIVATE
+#    ${CURL_INCLUDE_DIRS}
+#)
+if(CURL_FOUND)
   set(FOUND_CURL TRUE)
+  target_link_libraries(netcdf
+  PRIVATE
+  CURL::libcurl
+)
 else()
   set(FOUND_CURL FALSE)
-endif()
-set(FOUND_CURL ${FOUND_CURL} TRUE )
+  set(NETCDF_ENABLE_DAP2 OFF)
+  set(NETCDF_ENABLE_DAP4 OFF)
+  set(NETCDF_ENABLE_BYTERANGE OFF)
+  set(NETCDF_ENABLE_S3 OFF)
+endif(CURL_FOUND)
 
 # Start disabling if curl not found
 if(NOT FOUND_CURL)

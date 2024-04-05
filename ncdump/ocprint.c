@@ -1104,11 +1104,10 @@ odom_init(size_t rank, size_t* indices, size_t* dimsizes)
 static void
 odom_next(size_t rank, size_t* indices, size_t* dimsizes)
 {
-    int i;
-    for(i=rank-1;i>=0;i--) {
-	indices[i]++;
-	if(indices[i] < dimsizes[i]) break;
-	if(i > 0) indices[i] = 0;
+    for(size_t i = rank; i-->0;) {
+        indices[i]++;
+        if(indices[i] < dimsizes[i]) break;
+        if(i > 0) indices[i] = 0;
     }
 }
 
