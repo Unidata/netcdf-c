@@ -114,9 +114,8 @@ dapodom_count(Dapodometer* odom)
 int
 dapodom_next(Dapodometer* odom)
 {
-    int i; /* do not make unsigned */
     if(odom->rank == 0) return 0; 
-    for(i=odom->rank-1;i>=0;i--) {
+    for(size_t i = odom->rank; i-->0;) {
         odom->index[i] += odom->stride[i];
         if(odom->index[i] < odom->stop[i]) break;
 	if(i == 0) return 0; /* leave the 0th entry if it overflows*/

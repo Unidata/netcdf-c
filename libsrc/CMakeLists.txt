@@ -42,6 +42,7 @@ ENDif (USE_FFIO)
 
 if (NETCDF_ENABLE_BYTERANGE)
   list(APPEND libsrc_SOURCES httpio.c)
+
 if (NETCDF_ENABLE_S3)
   list(APPEND libsrc_SOURCES s3io.c)
 endif(NETCDF_ENABLE_S3)
@@ -55,6 +56,7 @@ endif()
 
 if (NETCDF_ENABLE_BYTERANGE)
   target_include_directories(netcdf3 PUBLIC ${CURL_INCLUDE_DIRS})
+  target_link_libraries(netcdf3 PUBLIC CURL::libcurl)
   target_compile_options(netcdf3
     PRIVATE
       -DCURL_STATICLIB=1
