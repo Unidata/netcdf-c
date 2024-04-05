@@ -18,8 +18,6 @@
 extern List* vlenconstants;  /* List<Constant*>;*/
 
 /* Forward */
-static void genj_definevardata(Symbol* vsym);
-
 static const char* jtypeallcaps(nc_type type);
 static const char* jtypecap(nc_type type);
 static const char* jtype(nc_type type);

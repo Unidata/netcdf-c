@@ -129,8 +129,7 @@ dimchunkspec_parse(int igrp, const char *spec)
 	    size_t chunksize;
 
 	    for(; pp > np && *pp != '/'; pp--) { /* look backwards for "/" */
-		continue;
-	    }
+		}
 	    if(*pp != '/') {	/* no '/' found, no chunksize specified for dimension */
 		ret = NC_EINVAL;
 		goto done;

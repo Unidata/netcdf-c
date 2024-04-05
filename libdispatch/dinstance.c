@@ -235,7 +235,7 @@ nc_copy_data_all(int ncid, nc_type xtype, const void* memory, size_t count, void
 
     /* allocate the top-level */
     if(count > 0) {
-        if((copy = calloc(xsize,count))==NULL)
+        if((copy = calloc(count,xsize))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
     }
     stat = nc_copy_data(ncid,xtype,memory,count,copy);

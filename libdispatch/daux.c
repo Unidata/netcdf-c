@@ -311,7 +311,7 @@ done:
 #define LBRACK '['
 #define RBRACK ']'
 
-static int gettype(const int q0, const int q1, int* unsignedp);
+static int gettype(int q0, int q1, int* unsignedp);
 
 /* Look at q0 and q1) to determine type */
 static int

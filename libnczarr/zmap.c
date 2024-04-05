@@ -537,7 +537,7 @@ NCZ_freeenvv(int n, char** envv)
     char** p;
     if(envv == NULL) return;
     if(n < 0)
-       {for(n=0, p = envv; *p; n++); /* count number of strings */}
+       {for(n=0, p = envv; *p; n++) {}; /* count number of strings */}
     for(i=0;i<n;i++) {
         if(envv[i]) {
 	    free(envv[i]);

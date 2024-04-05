@@ -3403,11 +3403,11 @@ truefalse(NCConstant* con, int tag)
 {
     if(con->nctype == NC_STRING) {
 	char* sdata = con->value.stringv.stringv;
-	if(strncmp(sdata,"false",NC_MAX_NAME) == 0
-           || strncmp(sdata,"0",NC_MAX_NAME) == 0)
+	if(strcmp(sdata,"false") == 0
+           || strcmp(sdata,"0") == 0)
 	    return 0;
-	else if(strncmp(sdata,"true",NC_MAX_NAME) == 0
-           || strncmp(sdata,"1",NC_MAX_NAME) == 0)
+	else if(strcmp(sdata,"true") == 0
+           || strcmp(sdata,"1") == 0)
 	    return 1;
 	else goto fail;
     } else if(con->value.int32v < 0 || con->value.int32v > 1)

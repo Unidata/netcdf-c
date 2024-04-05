@@ -353,7 +353,6 @@ generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
     generator->constant(generator,basetype,target,codebuf);
     reclaimconstant(target);
     target = NULL;
-    return;
 }
 
 /* Avoid long argument lists */

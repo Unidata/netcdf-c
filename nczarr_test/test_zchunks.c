@@ -73,7 +73,7 @@ main(int argc, char **argv)
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (nvars != 3 || ndims != 3 || ngatts != 0 || unlimdimid != -1) ERR;
       if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, &dimids_in, &natts_in)) ERR;
-      if (strcmp(var_name_in, V_SMALL) || xtype_in != NC_INT64 || ndims_in != 1 ||
+      if (strcmp(var_name_in, V_SMALL) != 0 || xtype_in != NC_INT64 || ndims_in != 1 ||
 	  natts_in != 0) ERR;
 
       /* Make sure chunking sizes are what we expect. */
@@ -200,7 +200,7 @@ main(int argc, char **argv)
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (nvars != 3 || ndims != 3 || ngatts != 0 || unlimdimid != -1) ERR;
       if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, &dimids_in, &natts_in)) ERR;
-      if (strcmp(var_name_in, V_SMALL) || xtype_in != NC_INT64 || ndims_in != 1 ||
+      if (strcmp(var_name_in, V_SMALL) != 0 || xtype_in != NC_INT64 || ndims_in != 1 ||
 	  natts_in != 0) ERR;
 
       /* Make sure chunking settings are what we expect. */

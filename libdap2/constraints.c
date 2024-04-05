@@ -12,7 +12,6 @@
 static void completesegments(NClist* fullpath, NClist* segments);
 static NCerror qualifyprojectionnames(DCEprojection* proj);
 static NCerror qualifyprojectionsizes(DCEprojection* proj);
-static NCerror qualifyprojectionnames(DCEprojection* proj);
 static NCerror matchpartialname(NClist* nodes, NClist* segments, CDFnode** nodep);
 static int matchsuffix(NClist* matchpath, NClist* segments);
 static int iscontainer(CDFnode* node);
