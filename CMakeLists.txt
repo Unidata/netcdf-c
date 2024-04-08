@@ -545,7 +545,7 @@ else()
 endif()
 
 # Option to support byte-range reading of remote datasets
-option(NETCDF_ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ${ENABLE_DAP})
+option(NETCDF_ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ${NETCDF_ENABLE_DAP})
 if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
 message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_BYTERANGE=NO")
 set(NETCDF_ENABLE_BYTERANGE OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_BYTERANGE=NO" FORCE)
