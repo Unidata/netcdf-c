@@ -26,7 +26,7 @@ install:
   - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
   - cmd: conda update conda
-  - cmd: conda install hdf5=1.8.18 curl hdf4
+  - cmd: conda install hdf5=1.8.18 curl hdf4 zlib
 
 configuration: Release
 
@@ -36,7 +36,7 @@ build: off
 build_script:
   - cmd: mkdir build
   - cmd: cd build
-  - cmd: cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%INSTALL_LOC% -DNETCDF_ENABLE_BASH_SCRIPT_TESTING=OFF -DNETCDF_ENABLE_FILTER_TESTING=OFF -DNETCDF_ENABLE_BYTERANGE=ON
+  - cmd: cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%INSTALL_LOC% -DNETCDF_ENABLE_BASH_SCRIPT_TESTING=OFF -DNETCDF_ENABLE_FILTER_TESTING=OFF -DNETCDF_ENABLE_BYTERANGE=ON -DCMAKE_PREFIX_PATH=%CONDA_INSTALL_LOCN%
   - cmd: if errorlevel 1 exit 1
   - cmd: cmake --build . --config Release -- /maxcpucount:4
 
