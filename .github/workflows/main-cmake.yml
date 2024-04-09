@@ -30,6 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     # Each step in the job.
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     steps:
         - uses: actions/checkout@v4
         - uses: conda-incubator/setup-miniconda@v3
@@ -77,6 +78,5 @@ jobs:
         #    cmake --build . --config Release --target install -j 4
         #  shell: bash
 
-        # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-        - name: Get Sources
-        uses: actions/checkout@v4.1.1
+
+      
