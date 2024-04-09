@@ -72,7 +72,7 @@ jobs:
             ls ${CONDA_PREFIX}/Library
           shell: bash -el {0}
 
-        - name: Perform out-of-directory build
+        - name: Perform out-of-directory configuration
           shell: bash -el {0}
           run: |
             mkdir build
@@ -86,19 +86,16 @@ jobs:
             cd build
             cat libnetcdf.settings  
 
-        # Install HDF5
-        # - name: Install HDF5
-        #  run: |
-        #    set -x
-        #    curl https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-$#{{ matrix.hdf5 }}.tar.bz2 --output hdf5-${{ matrix.hdf5 }}.tar.bz2
-        #    tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
-        #    pushd hdf5-${{ matrix.hdf5 }}
-        #    mkdir build
-        #    pushd build
-        #    cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}/environments/${{ matrix.hdf5 }}
-        #    cmake --build . --config Release -j 4
-        #    cmake --build . --config Release --target install -j 4
-        #  shell: bash
+        - name: Perform out-of-directory build - libnetcdf
+          shell: bash -l {0}
+          run: |
+            cd build
+            cmake --build . --config Release --target netcdf -j 4
 
-
+        - name: Perform out-of-directory build - test suite
+          shell: bash -l {0}
+          run: | 
+            cd build
+            cmake --build . --config Release -j 4
+          if: ${{ success() }}
       
