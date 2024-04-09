@@ -55,13 +55,13 @@ jobs:
             conda config --add channels conda-forge
             conda update conda
             conda install hdf5=${{ matrix.hdf5 }}
-          shell: bash
+          shell: bash -el {0}
 
         # Double-check something
         - name: Check Miniconda
           run: |
             which h5dump
-          shell: bash
+          shell: bash -el {0}
      
 
         # Install HDF5
