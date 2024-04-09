@@ -31,6 +31,12 @@ jobs:
 
     # Each step in the job.
     steps:
+        - uses: actions/checkout@v4
+        - uses: conda-incubator/setup-miniconda@v3
+          with:
+            miniconda-version: "latest"
+            activate-environment: base
+
         - name: Dump Matrix Context
           run: echo '${{ toJSON(matrix) }}'
 
@@ -41,27 +47,36 @@ jobs:
             echo "CC=cl.exe" >> $GITHUB_ENV
           if:  matrix.os == 'windows-latest'
 
+        # Grab miniconda and use it to install HDF5
+        - name: Install Dependencies using Miniconda
+          run: |
+            conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
+            conda config --add channels conda-forge
+            conda update conda
+            conda install hdf5=${{ matrix.hdf5 }}
+          shell: bash
+
+        # Double-check something
+        - name: Check Miniconda
+          run: |
+            which h5dump
+          shell: bash
+     
+
+        # Install HDF5
+        # - name: Install HDF5
+        #  run: |
+        #    set -x
+        #    curl https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-$#{{ matrix.hdf5 }}.tar.bz2 --output hdf5-${{ matrix.hdf5 }}.tar.bz2
+        #    tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+        #    pushd hdf5-${{ matrix.hdf5 }}
+        #    mkdir build
+        #    pushd build
+        #    cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}/environments/${{ matrix.hdf5 }}
+        #    cmake --build . --config Release -j 4
+        #    cmake --build . --config Release --target install -j 4
+        #  shell: bash
+
         # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
         - name: Get Sources
-          uses: actions/checkout@v4.1.1
-
-        # Grab miniconda and use it to install HDF5
-        #- name: Install Miniconda
-        #  uses: conda-incubator/setup-miniconda@v3
-        #  with:
-        #    miniconda-version: "latest"
-        #    activate-environment: base
-        
-        # Install HDF5
-        - name: Install HDF5
-          run: |
-            set -x
-            curl https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2 --output hdf5-${{ matrix.hdf5 }}.tar.bz2
-            tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
-            pushd hdf5-${{ matrix.hdf5 }}
-            mkdir build
-            pushd build
-            cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}/environments/${{ matrix.hdf5 }}
-            cmake --build . --config Release -j 4
-            cmake --build . --config Release --target install -j 4
-          shell: bash
+        uses: actions/checkout@v4.1.1
