@@ -62,6 +62,7 @@ jobs:
         - name: Check Miniconda
           run: |
             which h5dump
+            which m4
             env
           shell: bash -el {0}
      
@@ -74,6 +75,20 @@ jobs:
             echo ""
             env
           shell: bash -el {0}
+
+        - name: Perform out-of-directory build
+          shell: bash -el {0}
+          run: |
+            mkdir build
+            cd build
+            cmake .. 
+          if: ${{ success() }}
+
+        - name: Print Summary
+          shell: bash -l {0}
+          run: |
+            cd build
+            cat libnetcdf.settings  
 
         # Install HDF5
         # - name: Install HDF5
