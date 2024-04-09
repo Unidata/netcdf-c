@@ -74,6 +74,8 @@ jobs:
             echo $PATH
             echo ""
             env
+            echo ""
+            ls "${CMAKE_PREFIX_PATH}"
           shell: bash -el {0}
 
         - name: Perform out-of-directory build
