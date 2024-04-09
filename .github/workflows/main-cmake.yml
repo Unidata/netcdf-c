@@ -42,13 +42,7 @@ jobs:
         - name: Dump Matrix Context
           run: echo '${{ toJSON(matrix) }}'
 
-        - name: Set environment for MSVC (Windows)
-          run: |
-            # Set these environment variables so CMake picks the correct compiler
-            echo "CXX=cl.exe" >> $GITHUB_ENV
-            echo "CC=cl.exe" >> $GITHUB_ENV
-            echo "CMAKE_PREFIX_PATH=/c/Users/runneradmin/miniconda3/Library" >> $GITHUB_ENV
-          if:  matrix.os == 'windows-latest'
+        - run: echo "CMAKE_PREFIX_PATH=/c/Users/runneradmin/miniconda3/Library" >> $GITHUB_ENV
 
         # Grab miniconda and use it to install HDF5
         - name: Install Dependencies using Miniconda
