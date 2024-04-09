@@ -77,7 +77,7 @@ jobs:
           run: |
             mkdir build
             cd build
-            cmake .. -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library"
+            cmake .. -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library" -DCMAKE_C_FLAGS="${CONDA_PREFIX}/Library/include"
           if: ${{ success() }}
 
         - name: Print Summary
