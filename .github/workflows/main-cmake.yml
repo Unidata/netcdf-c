@@ -115,3 +115,22 @@ jobs:
             cmake --build . --config Release -j 4
           if: ${{ success() }}
       
+        - name: View config.h - tests failure failure
+          shell: bash -el {0}
+          run: |
+            cd build
+            cat config.h
+          if: ${{ failure() }}  
+
+        - name: Run ctest
+          shell: bash -el {0}
+          run: |
+            cd build
+            ctest . -j 4
+              
+        - name: Verbose Output if CTest Failure
+          shell: bash -el {0}
+          run: |
+            cd build
+            ctest . -j 4 --rerun-failed --output-on-failure -VV
+          if: ${{ failure() }}    
