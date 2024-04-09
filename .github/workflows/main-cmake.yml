@@ -79,7 +79,7 @@ jobs:
           run: |
             mkdir build
             cd build
-            cmake .. -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library" -DCMAKE_C_FLAGS="-I${CONDA_PREFIX}/Library/include" -DWIN32=1
+            cmake .. -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library" -DCMAKE_C_FLAGS="-I${CONDA_PREFIX}/Library/include"
           if: ${{ success() }}
 
         - name: View cache - configuration
