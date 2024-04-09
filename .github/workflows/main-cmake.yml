@@ -69,7 +69,7 @@ jobs:
             echo ""
             env
             echo ""
-            ls "${env.CMAKE_PREFIX_PATH}"
+            ls ${CONDA_PREFIX}/Library
           shell: bash -el {0}
 
         - name: Perform out-of-directory build
@@ -77,7 +77,7 @@ jobs:
           run: |
             mkdir build
             cd build
-            cmake .. -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}"
+            cmake .. -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library"
           if: ${{ success() }}
 
         - name: Print Summary
