@@ -47,6 +47,7 @@ jobs:
             # Set these environment variables so CMake picks the correct compiler
             echo "CXX=cl.exe" >> $GITHUB_ENV
             echo "CC=cl.exe" >> $GITHUB_ENV
+            echo "CMAKE_PREFIX_PATH=/c/Users/runneradmin/miniconda3/Library"
           if:  matrix.os == 'windows-latest'
 
         # Grab miniconda and use it to install HDF5
@@ -80,7 +81,7 @@ jobs:
           run: |
             mkdir build
             cd build
-            cmake .. 
+            cmake .. -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}"
           if: ${{ success() }}
 
         - name: Print Summary
