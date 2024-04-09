@@ -125,6 +125,7 @@ jobs:
         - name: Run ctest
           shell: bash -el {0}
           run: |
+            echo "Path: ${PATH}"
             cd build
             ctest . -j 4
           env:
