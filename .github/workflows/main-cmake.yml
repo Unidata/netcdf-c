@@ -5,7 +5,6 @@ on: [pull_request, workflow_dispatch]
 concurrency:  
   group: ${{ github.workflow }}-${{ github.head_ref }}  
   cancel-in-progress: true
-
   
 jobs:
 
@@ -43,7 +42,8 @@ jobs:
           run: echo '${{ toJSON(matrix) }}'
 
         - run: echo "CMAKE_PREFIX_PATH=${env.CONDA_PREFIX}/Library" >> $GITHUB_ENV
-
+        - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
+       
         # Grab miniconda and use it to install HDF5
         - name: Install Dependencies using Miniconda
           run: |
@@ -127,7 +127,10 @@ jobs:
           run: |
             cd build
             ctest . -j 4
-              
+          env:
+            CTEST_OUTPUT_ON_FAILURE: 1
+            PATH: ${env.PATH:${CONDA_PREFIX}/Library/lib}
+            
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
           run: |
