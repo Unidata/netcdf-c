@@ -36,7 +36,7 @@ jobs:
         - uses: conda-incubator/setup-miniconda@v3
           with:
             miniconda-version: "latest"
-            activate-environment: base
+            activate-environment: working
 
         - name: Dump Matrix Context
           run: echo '${{ toJSON(matrix) }}'
