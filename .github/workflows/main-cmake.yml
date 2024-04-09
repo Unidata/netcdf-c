@@ -129,7 +129,7 @@ jobs:
             ctest . -j 4
           env:
             CTEST_OUTPUT_ON_FAILURE: 1
-            PATH: ${env.PATH:${CONDA_PREFIX}/Library/lib}
+            PATH: "${env.PATH:${CONDA_PREFIX}/Library/lib}"
             
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
