@@ -42,7 +42,7 @@ jobs:
         - name: Dump Matrix Context
           run: echo '${{ toJSON(matrix) }}'
 
-        - run: echo "CMAKE_PREFIX_PATH=${CONDA_PREFIX}/Library" >> $GITHUB_ENV
+        - run: echo "CMAKE_PREFIX_PATH=${env.CONDA_PREFIX}/Library" >> $GITHUB_ENV
 
         # Grab miniconda and use it to install HDF5
         - name: Install Dependencies using Miniconda
@@ -69,7 +69,7 @@ jobs:
             echo ""
             env
             echo ""
-            ls "${CMAKE_PREFIX_PATH}"
+            ls "${env.CMAKE_PREFIX_PATH}"
           shell: bash -el {0}
 
         - name: Perform out-of-directory build
