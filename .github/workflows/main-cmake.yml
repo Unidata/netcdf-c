@@ -55,14 +55,8 @@ jobs:
             conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
             conda config --add channels conda-forge
             conda update conda
-            conda install hdf5=${{ matrix.hdf5 }}
+            conda install hdf5=${{ matrix.hdf5 }} m2-m4
           shell: bash -el {0}
-
-        - name: Install Dependencies using pacman
-          shell: bash -el {0}
-          run: |
-            pacman -S m4
-
 
         # Double-check something
         - name: Check Miniconda
