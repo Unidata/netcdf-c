@@ -44,7 +44,7 @@ strdup(const char* s)
 #endif
 
 
-#ifndef WIN32
+#ifndef _MSC_VER
 
 #ifndef HAVE_STRLCPY
 /*
