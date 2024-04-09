@@ -64,3 +64,4 @@ jobs:
             cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}/environments/${{ matrix.hdf5 }}
             cmake --build . --config Release -j 4
             cmake --build . --config Release --target install -j 4
+          shell: bash
