@@ -62,8 +62,18 @@ jobs:
         - name: Check Miniconda
           run: |
             which h5dump
+            env
           shell: bash -el {0}
      
+        # Check current directory
+        - name: Query Current Environment
+          run: |
+            ls 
+            echo ""
+            echo $PATH
+            echo ""
+            env
+          shell: bash -el {0}
 
         # Install HDF5
         # - name: Install HDF5
