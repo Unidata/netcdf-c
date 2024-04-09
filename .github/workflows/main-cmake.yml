@@ -9,7 +9,7 @@ concurrency:
   
 jobs:
 
-  cmake_build_and_teset:
+  cmake_build_and_test:
     strategy:
       
         matrix:
@@ -58,12 +58,17 @@ jobs:
             conda install hdf5=${{ matrix.hdf5 }}
           shell: bash -el {0}
 
+        - name: Install Dependencies using pacman
+          shell: bash -el {0}
+          run: |
+            pacman -S m4
+
+
         # Double-check something
         - name: Check Miniconda
           run: |
             which h5dump
             which m4
-            env
           shell: bash -el {0}
      
         # Check current directory
