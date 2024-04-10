@@ -42,7 +42,7 @@ jobs:
           run: echo '${{ toJSON(matrix) }}'
 
         - run: echo "CMAKE_PREFIX_PATH=${env.CONDA_PREFIX}/Library" >> $GITHUB_ENV
-        - run: echo "PATH=${CONDA_PREFIX}/Library/lib:${PATH}" >> $GITHUB_ENV
+        - run: echo "PATH=${env.CONDA_PREFIX}/Library/lib:${env.PATH}" >> $GITHUB_ENV
         - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
        
         # Grab miniconda and use it to install HDF5
@@ -126,7 +126,8 @@ jobs:
         - name: Run ctest
           shell: bash -el {0}
           run: |
-            echo "Path: ${PATH}"
+            export PATH=${env.CONDA_PREFIX}/Library/lib:${env.PATH}
+            echo "Path: ${env.PATH}"
             cd build
             ctest . -R nc_test -j 4
             
