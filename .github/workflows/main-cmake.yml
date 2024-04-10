@@ -37,11 +37,11 @@ jobs:
             activate-environment: ""
             auto-activate-base: true
 
-#        - name: Set up Paths and env
-#          shell: bash -el {0}
-#          run: |
+        - name: Set up Paths and env
+          shell: bash -el {0}
+          run: |
 #            echo "export PATH=/c/Users/runneradmin/miniconda3/Library/lib" >> ~/.bash_profile
-#            cat ~/.bash_profile
+            cat ~/.bash_profile
 
 
         - name: Dump Matrix Context
