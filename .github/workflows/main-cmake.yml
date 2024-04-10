@@ -22,10 +22,10 @@ jobs:
                 - name: "Windows MSVC"
                   os: windows-latest
                   generator: "-G  \"Visual Studio 17 2022\""
-
+                  shell: msys2 {0}
 
     name: "${{ matrix.name }}"
-
+        
     runs-on: ${{ matrix.os }}
 
     # Each step in the job.
@@ -44,7 +44,6 @@ jobs:
             rm -f ~/.bash_profile
             echo "export PATH=/c/Users/runneradmin/miniconda3/Library/lib:${PATH}" >> ~/.bash_profile
             echo "export PATH=/c/Users/runneradmin/miniconda3/"
-
 
         - name: Dump Matrix Context
           run: echo '${{ toJSON(matrix) }}'
