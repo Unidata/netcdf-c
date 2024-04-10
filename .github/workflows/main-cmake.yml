@@ -43,11 +43,11 @@ jobs:
         - name: Set up Paths and env
           shell: bash -el {0}
           run: |
-            rm -f ~/.bash_profile
-            echo "export PATH=/c/Users/runneradmin/miniconda3/Library/lib:${PATH}" >> ~/.bash_profile
-            echo "export PATH=/c/Users/runneradmin/miniconda3/"
+            #rm -f ~/.bash_profile
+            #echo "export PATH=/c/Users/runneradmin/miniconda3/Library/lib:${PATH}" >> ~/.bash_profile
+            #echo "export PATH=/c/Users/runneradmin/miniconda3/"
             cat ~/.bash_profile
-            
+
 
         - name: Dump Matrix Context
           run: echo '${{ toJSON(matrix) }}'
