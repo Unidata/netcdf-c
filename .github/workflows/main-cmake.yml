@@ -133,7 +133,10 @@ jobs:
         - name: Prepare ctest Paths and env
           shell: bash -el {0}
           run: | 
-            echo "PATH=$(pwd)/build:$(pwd)/build/Release/:$(pwd)/build/liblib:$(pwd)/build/ncdump:$(pwd)/build/ncgen:$PATH" >> ~/.bash_profile
+            cat ~/.bash_profile
+            echo "" >> ~/.bash_profile
+            echo "PATH=$GITHUB_WORKSPACE/build:$GITHUB_WORKSPACE/build/Release/:$GITHUB_WORKSPACE/build/liblib:$GITHUB_WORKSPACE/build/ncdump:$GITHUB_WORKSPACE/build/ncgen:$PATH" >> ~/.bash_profile
+            cat ~/.bash_profile
             
         - name: Run ctest
           shell: bash -el {0}
