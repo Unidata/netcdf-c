@@ -44,8 +44,8 @@ jobs:
           shell: bash -el {0}
           run: |
             #rm -f ~/.bash_profile
-            echo "export PATH=/c/Users/runneradmin/miniconda3/Library/lib:\'${PATH}\'" >> ~/.bash_profile
-            echo "export PATH=/c/Users/runneradmin/miniconda3/"
+            #echo "export PATH=/c/Users/runneradmin/miniconda3/Library/lib:\'${PATH}\'" >> ~/.bash_profile
+            echo "export PATH=/c/Users/runneradmin/miniconda3/Library/lib" >> ~/.bash_profile"
             cat ~/.bash_profile
 
 
