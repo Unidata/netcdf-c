@@ -41,8 +41,6 @@ jobs:
           shell: bash -el {0}
           run: |
             echo "" >> ~/.bash_profile
-            TMP=$(echo $PATH | sed '/s/ /\ /g') | sed 's/(/\(/g' | sed '/s/)/\)/g')
-            echo "TEST_PATH=$TMP" >> ~/.bash_profile
             cat ~/.bash_profile
 
 
