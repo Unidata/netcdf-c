@@ -128,9 +128,6 @@ jobs:
             echo "Path: ${PATH}"
             cd build
             ctest . -j 4
-          env:
-            CTEST_OUTPUT_ON_FAILURE: 1
-            PATH: "$PATH:$CONDA_PREFIX/Library/lib"
             
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
