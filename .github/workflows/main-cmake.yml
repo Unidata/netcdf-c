@@ -27,7 +27,9 @@ jobs:
     name: "${{ matrix.name }}"
         
     runs-on: ${{ matrix.os }}
-
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
     # Each step in the job.
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     steps:
