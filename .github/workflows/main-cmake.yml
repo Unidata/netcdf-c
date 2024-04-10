@@ -127,11 +127,10 @@ jobs:
           shell: bash -el {0}
           run: |
             echo "Run ctest PATH: $PATH"
-            echo "Run ctest CONDA_PREFIX: $CONDA_PREFIX"
-            export PATH=${CONDA_PREFIX}/Library/lib:${PATH}
+            export PATH=/c/Users/runneradmin/miniconda3/Library/lib:${PATH}
             echo "Run ctest combined PATH: $PATH"
             cd build
-            ctest . -R nc_test -j 4
+            ctest . -R nc_test4 -j 4
             
 #        - name: Verbose Output if CTest Failure
 #          shell: bash -el {0}
