@@ -38,6 +38,14 @@ jobs:
             activate-environment: ""
             auto-activate-base: true
 
+        - name: Set up Paths and env
+          shell: bash -el {0}
+          run: |
+            rm -f ~/.bash_profile
+            echo "export PATH=/c/Users/runneradmin/miniconda3/Library/lib:${PATH}" >> ~/.bash_profile
+            echo "export PATH=/c/Users/runneradmin/miniconda3/"
+
+
         - name: Dump Matrix Context
           run: echo '${{ toJSON(matrix) }}'
 
@@ -124,12 +132,15 @@ jobs:
             cat config.h
           if: ${{ failure() }}  
 
+        - name: Prepare ctest Paths and env
+          shell: bash -el {0}
+          run: | 
+            echo "PATH=$(pwd)/build:$(pwd)/build/Release/:$(pwd)/build/liblib:$(pwd)/build/ncdump:$(pwd)/build/ncgen:$PATH" >> ~/.bash_profile
+            
         - name: Run ctest
           shell: bash -el {0}
           run: |
             echo "Run ctest PATH: $PATH"
-            export PATH=$(pwd)/build:$(pwd)/build/liblib:/c/Users/runneradmin/miniconda3/Library/lib:${PATH}
-            export GITHUB_PATH=$(pwd)/build:$(pwd)/build/liblib:$(pwd)/build/Release:/c/Users/runneradmin/miniconda3/Library/lib:${GITHUB_PATH}
             echo "Run ctest combined PATH: $PATH"
             echo "Run ctest combined GITHUB_PATH: $PATH"
             cd build
