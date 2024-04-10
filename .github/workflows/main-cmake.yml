@@ -42,6 +42,7 @@ jobs:
           run: echo '${{ toJSON(matrix) }}'
 
         - run: echo "CMAKE_PREFIX_PATH=${env.CONDA_PREFIX}/Library" >> $GITHUB_ENV
+        - run: echo "PATH=${CONDA_PREFIX}/Library/lib:${PATH}" >> $GITHUB_ENV
         - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
        
         # Grab miniconda and use it to install HDF5
@@ -65,13 +66,13 @@ jobs:
           run: |
             ls 
             echo ""
-            echo $PATH
+            echo "PATH: $PATH"
             echo ""
             env
             echo ""
-            ls ${CONDA_PREFIX}/Library
+            ls $CONDA_PREFIX/Library
             echo ""
-            ls ${CONDA_PREFIX}/Library/include/
+            ls $CONDA_PREFIX/Library/include/
           shell: bash -el {0}
 
         - name: Perform out-of-directory configuration
