@@ -150,7 +150,7 @@ jobs:
             echo "Run ctest combined PATH: $PATH"
             echo "Run ctest combined GITHUB_PATH: $PATH"
             cd build
-            PATH=~/tmp/bin:$PATH ctest . -R nc_test4 -j 4 --output-on-failure -VV
+            PATH=~/tmp/bin:$PATH ctest . -j 4 --output-on-failure -VV
             
 #        - name: Verbose Output if CTest Failure
 #          shell: bash -el {0}
