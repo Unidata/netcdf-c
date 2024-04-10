@@ -42,7 +42,8 @@ jobs:
           run: echo '${{ toJSON(matrix) }}'
 
         - run: echo "CMAKE_PREFIX_PATH=${env.CONDA_PREFIX}/Library" >> $GITHUB_ENV
-        - run: echo "PATH=${env.CONDA_PREFIX}/Library/lib:${env.PATH}" >> $GITHUB_ENV
+        - run: echo "/c/Users/runneradmin/miniconda3/Library/lib:${GITHUB_PATH} >> $GITHUB_ENV
+        - run: echo ""
         - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
        
         # Grab miniconda and use it to install HDF5
@@ -128,7 +129,7 @@ jobs:
           run: |
             echo "Run ctest PATH: $PATH"
             export PATH=$(pwd)/build:$(pwd)/build/liblib:/c/Users/runneradmin/miniconda3/Library/lib:${PATH}
-            export GITHUB_PATH=$(pwd)/build:$(pwd)/build/liblib:/c/Users/runneradmin/miniconda3/Library/lib:${GITHUB_PATH}
+            export GITHUB_PATH=$(pwd)/build:$(pwd)/build/liblib:$(pwd)/build/Release:/c/Users/runneradmin/miniconda3/Library/lib:${GITHUB_PATH}
             echo "Run ctest combined PATH: $PATH"
             echo "Run ctest combined GITHUB_PATH: $PATH"
             cd build
