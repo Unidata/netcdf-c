@@ -22,14 +22,11 @@ jobs:
                 - name: "Windows MSVC"
                   os: windows-latest
                   generator: "-G  \"Visual Studio 17 2022\""
-                  shell: msys2 {0}
 
     name: "${{ matrix.name }}"
         
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: ${{ matrix.shell }}
+
     # Each step in the job.
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     steps:
