@@ -52,10 +52,10 @@ jobs:
         - name: Dump Matrix Context
           run: echo '${{ toJSON(matrix) }}'
 
-        - run: echo "CMAKE_PREFIX_PATH=${env.CONDA_PREFIX}/Library" >> $GITHUB_ENV
-        - run: echo "/c/Users/runneradmin/miniconda3/Library/lib:${GITHUB_PATH}" >> $GITHUB_ENV
-        - run: echo ""
-        - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
+        #- run: echo "CMAKE_PREFIX_PATH=${env.CONDA_PREFIX}/Library" >> $GITHUB_ENV
+        #- run: echo "/c/Users/runneradmin/miniconda3/Library/lib:${GITHUB_PATH}" >> $GITHUB_ENV
+        #- run: echo ""
+        #- run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
        
         # Grab miniconda and use it to install HDF5
         - name: Install Dependencies using Miniconda
