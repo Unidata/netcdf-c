@@ -124,6 +124,8 @@ jobs:
 
         - name: Run ctest
           shell: bash -el {0}
+          env:
+            PATH: ${CONDA_PREFIX}/Library/lib:${PATH}
           run: |
             echo "Path: ${PATH}"
             cd build
