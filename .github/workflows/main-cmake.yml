@@ -42,7 +42,7 @@ jobs:
           run: echo '${{ toJSON(matrix) }}'
 
         - run: echo "CMAKE_PREFIX_PATH=${env.CONDA_PREFIX}/Library" >> $GITHUB_ENV
-        - run: echo "/c/Users/runneradmin/miniconda3/Library/lib:${GITHUB_PATH} >> $GITHUB_ENV
+        - run: echo "/c/Users/runneradmin/miniconda3/Library/lib:${GITHUB_PATH}" >> $GITHUB_ENV
         - run: echo ""
         - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
        
