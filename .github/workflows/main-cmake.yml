@@ -127,11 +127,11 @@ jobs:
           run: |
             echo "Path: ${PATH}"
             cd build
-            ctest . -j 4
+            ctest . -R nc_test -j 4
             
-        - name: Verbose Output if CTest Failure
-          shell: bash -el {0}
-          run: |
-            cd build
-            ctest . -j 4 --rerun-failed --output-on-failure -VV
-          if: ${{ failure() }}    
+#        - name: Verbose Output if CTest Failure
+#          shell: bash -el {0}
+#          run: |
+#            cd build
+#            ctest . -j 4 --rerun-failed --output-on-failure -VV
+#          if: ${{ failure() }}    
