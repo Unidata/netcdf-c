@@ -45,7 +45,6 @@ jobs:
 
 
         - name: Dump Matrix Context
-          shell: bash -el {0}
           run: echo '${{ toJSON(matrix) }}'
 
         #- run: echo "CMAKE_PREFIX_PATH=${env.CONDA_PREFIX}/Library" >> $GITHUB_ENV
