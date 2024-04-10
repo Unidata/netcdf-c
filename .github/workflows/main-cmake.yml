@@ -128,7 +128,9 @@ jobs:
           run: |
             echo "Run ctest PATH: $PATH"
             export PATH=/c/Users/runneradmin/miniconda3/Library/lib:${PATH}
+            export GITHUB_PATH=/c/Users/runneradmin/miniconda3/Library/lib:${GITHUB_PATH}
             echo "Run ctest combined PATH: $PATH"
+            echo "Run ctest combined GITHUB_PATH: $PATH"
             cd build
             ctest . -R nc_test4 -j 4 --output-on-failure -VV
             
