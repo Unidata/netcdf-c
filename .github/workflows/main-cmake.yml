@@ -156,5 +156,5 @@ jobs:
           shell: bash -el {0}
           run: |
             cd build
-            PATH=~/tmp/bin:$PATH ctest . -j 4 --rerun-failed --output-on-failure -VV
+            PATH=~/tmp/bin:$PATH ctest . --rerun-failed --output-on-failure -VV
           if: ${{ failure() }}    
