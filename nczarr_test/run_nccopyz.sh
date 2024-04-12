@@ -6,6 +6,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . "$srcdir/test_nczarr.sh"
 
 set -e
+set -x
 
 s3isolate "testdir_nccopyz"
 THISDIR=`pwd`
