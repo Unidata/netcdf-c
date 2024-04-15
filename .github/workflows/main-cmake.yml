@@ -30,6 +30,9 @@ jobs:
     # Each step in the job.
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     steps:
+        - uses: msys2/setup-msys2@v2
+          with:
+            update: true
         - uses: actions/checkout@v4
         - uses: conda-incubator/setup-miniconda@v3
           with:
@@ -38,7 +41,7 @@ jobs:
             auto-activate-base: true
 
         - name: Set up Paths and env
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: |
             echo "" >> ~/.bash_profile
             cat ~/.bash_profile
@@ -59,14 +62,14 @@ jobs:
             conda config --add channels conda-forge
             conda update conda
             conda install hdf5=${{ matrix.hdf5 }} m2-m4 libxml2
-          shell: bash -el {0}
+          shell: msys2 {0}
 
         # Double-check something
         - name: Check Miniconda
           run: |
             which h5dump
             which m4
-          shell: bash -el {0}
+          shell: msys2 {0}
      
         # Check current directory
         - name: Query Current Environment
@@ -80,10 +83,10 @@ jobs:
             ls $CONDA_PREFIX/Library
             echo ""
             ls $CONDA_PREFIX/Library/include/
-          shell: bash -el {0}
+          shell: msys2 {0}
 
         - name: Perform out-of-directory configuration
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: |
             mkdir build
             cd build
@@ -91,60 +94,60 @@ jobs:
           if: ${{ success() }}
 
         - name: View cache - configuration
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: |
             cd build
             cmake -L .
           if: ${{ success() }}
 
         - name: Print Summary
-          shell: bash -l {0}
+          shell: msys2 {0}
           run: |
             cd build
             cat libnetcdf.settings  
 
         - name: Perform out-of-directory build - libnetcdf
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: |
             cd build
             cmake --build . --config Release --target netcdf -j 4
 
         - name: Perform out-of-directory install - libnetcdf
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: |
             cd build
             cmake --build . --config Release --target install -j 4
           if: ${{ success() }}  
 
         - name: View config.h - libnetcdf failure
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: |
             cd build
             cat config.h
           if: ${{ failure() }}
 
         - name: Perform out-of-directory build - test suite
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: | 
             cd build
             cmake --build . --config Release -j 4
           if: ${{ success() }}
       
         - name: View config.h - tests failure failure
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: |
             cd build
             cat config.h
           if: ${{ failure() }}  
 
         - name: Prepare ctest Paths and env
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: | 
             cat ~/.bash_profile
             echo "" >> ~/.bash_profile
 
         - name: Run ctest
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: |
             echo "Run ctest PATH: $PATH"
             echo "Run ctest combined PATH: $PATH"
@@ -153,7 +156,7 @@ jobs:
             PATH=~/tmp/bin:$PATH ctest . -j 4 --output-on-failure
             
         - name: Verbose Output if CTest Failure
-          shell: bash -el {0}
+          shell: msys2 {0}
           run: |
             cd build
             PATH=~/tmp/bin:$PATH ctest . --rerun-failed --output-on-failure -VV
