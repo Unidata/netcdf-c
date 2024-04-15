@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -23,7 +23,7 @@ verifychunking() {
   f=$1
   shift
   for t in "$@" ; do
-    x=`cat $f | tr -d "\t \r" | sed -e "/$t/p" -ed`
+    x=`cat $f | tr -d "[:space:]" | sed -e "/$t/p" -ed`
     if test "x$x" = x ; then echo "$f: $t not found"; exit 1; fi
   done
 }
