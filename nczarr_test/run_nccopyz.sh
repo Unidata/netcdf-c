@@ -72,8 +72,11 @@ fileargs tmp_pds
 
 ${NCCOPY} -M0 -4 -c "time/10,lat/15,lon/20" "$SRC" "$fileurl"
 ${NCDUMP} -n tmp_pds -hs "$fileurl" > tmp_pds.cdl
-STORAGE=`cat tmp_pds.cdl | sed -e "/tas:_Storage/p" -ed | tr '"' '\'' | tr -d "[:space:]"`
-test "x$STORAGE" = "xtas:_Storage='chunked';"
+#STORAGE=`cat tmp_pds.cdl | sed -e "/tas:_Storage/p" -ed | tr '"' "'" | tr -d "[:space:]"`
+STORAGE=`cat tmp_pds.cdl | sed -e "/tas:_Storage/p" -ed | tr -d "[:space:]"`
+echo "STORAGE: $STORAGE"
+#STORAGE=`cat tmp_pds.cdl | sed -e "/tas:_Storage/p" | tr -d "[:space:]"`
+test "x$STORAGE" = "xtas:_Storage='chunked';" || test "x$STORAGE" = "xtas:_Storage=\"chunked\";"
 CHUNKSIZES=`cat tmp_pds.cdl | sed -e "/tas:_ChunkSizes/p" -ed | tr -d "[:space:]"`
 test "x$CHUNKSIZES" = "xtas:_ChunkSizes=10,15,20;"
 }
