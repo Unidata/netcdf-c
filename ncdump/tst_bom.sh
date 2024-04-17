@@ -34,6 +34,7 @@ cat tst_bom8.cdl
 echo ""
 
 echo "*** Verify .nc file"
+
 ${NCGEN} -k nc3 -o tst_bom8.nc tst_bom8.cdl
 ${NCDUMP} -n tst_bom tst_bom8.nc > tmp_bom.cdl
 diff -w tst_bom.cdl tmp_bom.cdl
