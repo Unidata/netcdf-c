@@ -27,9 +27,9 @@ EOF
 echo "*** Generate a cdl file with leading UTF-8 BOM."
 ${execdir}/bom 8 >tst_bom8.cdl
 cat tst_bom.cdl >> tst_bom8.cdl
-cat tst_bom.cdl >> tst_bom8.cdl
+
 echo ""
-echo "Viewing tst_bom16.cdl:"
+echo "Viewing tst_bom8.cdl:"
 cat tst_bom8.cdl
 echo ""
 
