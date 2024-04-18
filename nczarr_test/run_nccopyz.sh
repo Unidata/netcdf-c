@@ -22,7 +22,7 @@ verifychunking() {
   f=$1
   shift
   for t in "$@" ; do
-    x=`cat $f | tr -d "\t \r" | sed -e "/$t/p" -ed`
+    x=`cat $f | tr -d "[:space:]" | sed -e "/$t/p" -ed`
     if test "x$x" = x ; then echo "$f: $t not found"; exit 1; fi
   done
 }
@@ -71,9 +71,12 @@ fileargs tmp_pds
 
 ${NCCOPY} -M0 -4 -c "time/10,lat/15,lon/20" "$SRC" "$fileurl"
 ${NCDUMP} -n tmp_pds -hs "$fileurl" > tmp_pds.cdl
-STORAGE=`cat tmp_pds.cdl | sed -e "/tas:_Storage/p" -ed | tr '"' "'" | tr -d "\t \r"`
-test "x$STORAGE" = "xtas:_Storage='chunked';"
-CHUNKSIZES=`cat tmp_pds.cdl | sed -e "/tas:_ChunkSizes/p" -ed | tr -d "\t \r"`
+
+STORAGE=`cat tmp_pds.cdl | sed -e "/tas:_Storage/p" -ed | tr -d "[:space:]"`
+echo "STORAGE: $STORAGE"
+
+test "x$STORAGE" = "xtas:_Storage='chunked';" || test "x$STORAGE" = "xtas:_Storage=\"chunked\";"
+CHUNKSIZES=`cat tmp_pds.cdl | sed -e "/tas:_ChunkSizes/p" -ed | tr -d "[:space:]"`
 test "x$CHUNKSIZES" = "xtas:_ChunkSizes=10,15,20;"
 }
 
