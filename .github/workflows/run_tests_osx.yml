@@ -24,14 +24,14 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
         ###
         # libhdf5
         ###
       - name: Cache libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
         id: cache-hdf5-osx
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -62,7 +62,7 @@ jobs:
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       ###
       # Set Environmental Variables
@@ -94,7 +94,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf-osx
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -168,7 +168,7 @@ jobs:
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
     ###
     # Set Environmental Variables
@@ -200,7 +200,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf5-osx
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -260,7 +260,7 @@ jobs:
         hdf5: [ 1.12.2, 1.14.3 ]
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       ###
       # Set Environmental Variables
@@ -277,7 +277,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf-osx
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -342,7 +342,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
     ###
     # Set Environmental Variables
@@ -357,7 +357,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf5-osx
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -416,7 +416,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
     ###
     # Set Environmental Variables
@@ -432,7 +432,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf5-osx
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
