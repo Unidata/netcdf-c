@@ -148,7 +148,7 @@ if(USE_HDF5)
 endif()
 
 if(FOUND_CURL)
-  set(TLL_LIBS ${TLL_LIBS} CURL::libcurl ${CURL_LIBRARIES})
+  set(TLL_LIBS ${TLL_LIBS} CURL::libcurl)
 endif()
 
 if(USE_HDF4)

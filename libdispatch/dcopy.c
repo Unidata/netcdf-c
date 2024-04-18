@@ -77,7 +77,7 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
 	 return ret;
 
       /* Check the obvious. */
-      if(size1 != size2 || class1 != class2 || strcmp(name1,name2))
+      if(size1 != size2 || class1 != class2 || strcmp(name1,name2) != 0)
 	 return NC_NOERR;
 
       /* Check user-defined types in detail. */
@@ -109,7 +109,7 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
 					     value1)) ||
 		   (ret = nc_inq_enum_member(ncid2, typeid2, i, name2,
 					     value2)) ||
-		   strcmp(name1, name2) || memcmp(value1, value2, size1))
+		   strcmp(name1, name2) != 0 || memcmp(value1, value2, size1) != 0)
 	       {
 		  free(value1);
 		  free(value2);

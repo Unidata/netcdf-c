@@ -1368,7 +1368,7 @@ main(int argc, char **argv)
 
 		for (i = 0; i < DIM_LEN_SIMPLE; i++)
 		{
-		    if (fabs(float_data_in[i] - float_data[i]) > EPSILON)
+		    if (fabsf(float_data_in[i] - float_data[i]) > EPSILON)
 			ERR;
 		    if (fabs(double_data_in[i] - double_data[i]) > EPSILON)
 			ERR;

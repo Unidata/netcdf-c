@@ -193,7 +193,7 @@ cstring(
 	return cp;
 
       case NC_DOUBLE:
-    cp_size = 20;
+	cp_size = 24;
 	cp = (char *) emalloc (cp_size);
 	doublep = (double *)valp;
 	(void) snprintf(cp,cp_size,"%.16g",* (doublep + num));
@@ -1866,13 +1866,13 @@ extern char*
 decodify (
     const char *name)
 {
-    int count;		/* number chars in newname */
+    size_t count;		/* number chars in newname */
     char *newname;
     const char *cp;
     char *sp;
     static int init = 0;
     static char* repls[256];	/* replacement string for each char */
-    static int lens[256];	/* lengths of replacement strings */
+    static size_t lens[256];	/* lengths of replacement strings */
     static struct {
 	char c;
 	char *s;
@@ -1911,7 +1911,7 @@ decodify (
  	{'/', "_SLASH_"} 		/* should not occur in names */
 /* 	{'_', "_UNDERSCORE_"} */
     };
-    static int idtlen;
+    static size_t idtlen;
     static size_t hexlen;
     int nctable = (sizeof(ctable))/(sizeof(ctable[0]));
     size_t newlen;
@@ -1924,12 +1924,12 @@ decodify (
 
 	for(i = 0; i < 128; i++) {
 	    rp = emalloc(2);
-	    rp[0] = i;
+	    rp[0] = (char)i;
 	    rp[1] = '\0';
 	    repls[i] = rp;
 	}
 	for(i=0; i < nctable; i++) {
-	    size_t j = ctable[i].c;
+	    size_t j = (size_t)ctable[i].c;
 	    free(repls[j]);
 	    repls[j] = ctable[i].s;
 	}
@@ -1950,9 +1950,9 @@ decodify (
     while(*cp != '\0') {	/* get number of extra bytes for newname */
 	size_t j;
         if(*cp < 0) {		/* handle signed or unsigned chars */
-	    j = *cp + 256;
+	    j = (size_t)*cp + 256;
 	} else {
-	    j = *cp;
+	    j = (size_t)*cp;
 	}
  	count += lens[j] - 1;
 	cp++;
@@ -1976,9 +1976,9 @@ decodify (
 	size_t j, len;
 	/* cp is current position in name, sp is current position in newname */
         if(*cp < 0) {	      /* j is table index for character *cp */
-	    j = *cp + 256;
+	    j = (size_t)*cp + 256;
 	} else {
-	    j = *cp;
+	    j = (size_t)*cp;
 	}
 	len = strlcat(sp, repls[j], newlen);
 	assert(len < newlen);
@@ -2026,5 +2026,4 @@ deescapify (char *name)
     /* assert(strlen(newname) <= strlen(name)); */
     strncpy(name, newname, len);
     free(newname);
-    return;
 }
