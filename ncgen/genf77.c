@@ -19,7 +19,6 @@ static List* f77procs = NULL; /* bodies of generated procedures */
 /* Forward */
 static void genf77_definevardata(Symbol* vsym);
 static void genf77_defineattr(Symbol* asym);
-static void genf77_definevardata(Symbol*);
 
 static void f77attrify(Symbol* asym, Bytebuffer* buf);
 static const char* f77varncid(Symbol* vsym);
@@ -27,7 +26,6 @@ static const char* f77dimncid(Symbol* vsym);
 
 static const char* nfstype(nc_type nctype);
 static const char* nftype(nc_type type);
-static const char* nfstype(nc_type nctype);
 static const char* ncftype(nc_type type);
 static const char* nfdtype(nc_type type);
 

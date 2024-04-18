@@ -11,13 +11,8 @@
 
 #include "ncdispatch.h"
 
-extern int NC3_initialize(void);
-extern int NC3_finalize(void);
-
 #ifdef USE_NETCDF4
 #include "nc4internal.h"
-extern int NC4_initialize(void);
-extern int NC4_finalize(void);
 #endif
 
 #ifdef USE_HDF5
@@ -35,6 +30,7 @@ extern int NCD2_finalize(void);
 extern int NCD4_initialize(void);
 extern int NCD4_finalize(void);
 #endif
+
 
 #ifdef USE_PNETCDF
 extern int NCP_initialize(void);
