@@ -774,7 +774,7 @@ void dump(const char *text, FILE *stream, unsigned char *ptr, size_t size)
  
     /* show data on the right */
     for(c = 0; (c < width) && (i+c < size); c++) {
-      char x = (ptr[i+c] >= 0x20 && ptr[i+c] < 0x80) ? ptr[i+c] : '.';
+      const int x = (ptr[i+c] >= 0x20 && ptr[i+c] < 0x80) ? ptr[i+c] : '.';
       fputc(x, stream);
     }
  
