@@ -143,7 +143,7 @@ ncuriparse(const char* uri0, NCURI** durip)
     NClist* params = nclistnew();
     NClist* querylist = nclistnew();
     size_t len0;
-    int pathchar;
+    char pathchar;
 
     if(uri0 == NULL)
 	{THROW(NC_EURL);}
@@ -899,7 +899,7 @@ ncrshift1(char* p)
 static const char* hexchars = "0123456789abcdefABCDEF";
 
 static void
-toHex(unsigned int b, char hex[2])
+toHex(char b, char hex[2])
 {
     hex[0] = hexchars[(b >> 4) & 0xf];
     hex[1] = hexchars[(b) & 0xf];
@@ -943,7 +943,7 @@ ncuriencodeonly(const char* s, const char* allowable)
     encoded = (char*)malloc((3*slen) + 1); /* max possible size */
 
     for(inptr=s,outptr=encoded;*inptr;) {
-	int c = *inptr++;
+	char c = *inptr++;
 	{
             /* search allowable */
 	    char* p = strchr(allowable,c);
