@@ -87,11 +87,11 @@ main(int argc, char **argv)
             if (nc_create(FILE_NAME2, cmode, &ncid)) ERR;
             if (nc_def_dim(ncid, VAR_NAME, TEST_VAL_42, &dimid)) ERR;
             if (nc_def_var(ncid, VAR_NAME, NC_BYTE, 1, &dimid, &varid)) ERR;
-            if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value)) ERR;
+            if (nc_put_att_schar(ncid, varid, NC_FillValue, NC_BYTE, 1, &fill_value)) ERR;
             if (nc_enddef(ncid)) ERR;
             if (nc_put_var1(ncid, varid, index, &schar_data)) ERR;
             if (nc_redef(ncid)) ERR;
-            if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1,
+            if (nc_put_att_schar(ncid, varid, NC_FillValue, NC_BYTE, 1,
                                  &fill_value) != expected_ret) ERR;
             if (nc_close(ncid)) ERR;
 
@@ -101,9 +101,9 @@ main(int argc, char **argv)
             if (nvars_in != 1 || varids_in[0] != 0) ERR;
             if (nc_inq_varname(ncid, 0, name_in)) ERR;
             if (strcmp(name_in, VAR_NAME)) ERR;
-            if (nc_inq_att(ncid, varid, _FillValue, &xtype_in, &len_in)) ERR;
+            if (nc_inq_att(ncid, varid, NC_FillValue, &xtype_in, &len_in)) ERR;
             if (xtype_in != NC_BYTE || len_in != 1) ERR;
-            if (nc_get_att(ncid, varid, _FillValue, &fill_value_in)) ERR;
+            if (nc_get_att(ncid, varid, NC_FillValue, &fill_value_in)) ERR;
             if (fill_value_in != fill_value) ERR;
             if (nc_close(ncid)) ERR;
         }
@@ -119,7 +119,7 @@ main(int argc, char **argv)
             if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
             if (nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimids[0])) ERR;
             if (nc_def_var(ncid, VAR_NAME, NC_BYTE, NUM_DIMS, dimids, &varid)) ERR;
-            if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value)) ERR;
+            if (nc_put_att_schar(ncid, varid, NC_FillValue, NC_BYTE, 1, &fill_value)) ERR;
             if (nc_enddef(ncid)) ERR;
 
             /* Write the second record. */
@@ -154,9 +154,9 @@ main(int argc, char **argv)
             if (strcmp(name_in, VAR_NAME)) ERR;
 
             /* Check fill value att. */
-            if (nc_inq_att(ncid, varid, _FillValue, &xtype_in, &len_in)) ERR;
+            if (nc_inq_att(ncid, varid, NC_FillValue, &xtype_in, &len_in)) ERR;
             if (xtype_in != NC_BYTE || len_in != 1) ERR;
-            if (nc_get_att(ncid, varid, _FillValue, &fill_value_in)) ERR;
+            if (nc_get_att(ncid, varid, NC_FillValue, &fill_value_in)) ERR;
             if (fill_value_in != fill_value) ERR;
 
             /* Read the first record, it should be the fill value. */
@@ -185,7 +185,7 @@ main(int argc, char **argv)
             if (nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimids[0])) ERR;
             if (nc_def_var(ncid, VAR_NAME, NC_BYTE, NUM_DIMS, dimids, &varid)) ERR;
             if (nc_put_att_int(ncid, varid, LOSSES_NAME, NC_INT, 1, &losses_value)) ERR;
-            if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value)) ERR;
+            if (nc_put_att_schar(ncid, varid, NC_FillValue, NC_BYTE, 1, &fill_value)) ERR;
             if (nc_close(ncid)) ERR;
 
             /* Open the file and check. */
@@ -194,13 +194,13 @@ main(int argc, char **argv)
             if (xtype_in != NC_INT || len_in != 1) ERR;
             if (nc_get_att(ncid, 0, LOSSES_NAME, &losses_value_in)) ERR;
             if (losses_value_in != losses_value) ERR;
-            if (nc_inq_att(ncid, 0, _FillValue, &xtype_in, &len_in)) ERR;
+            if (nc_inq_att(ncid, 0, NC_FillValue, &xtype_in, &len_in)) ERR;
             if (xtype_in != NC_BYTE || len_in != 1) ERR;
-            if (nc_get_att(ncid, 0, _FillValue, &fill_value_in)) ERR;
+            if (nc_get_att(ncid, 0, NC_FillValue, &fill_value_in)) ERR;
             if (fill_value_in != fill_value) ERR;
             if (nc_inq_attid(ncid, 0, LOSSES_NAME, &attnum_in)) ERR;
             if (attnum_in != 0) ERR;
-            if (nc_inq_attid(ncid, 0, _FillValue, &attnum_in)) ERR;
+            if (nc_inq_attid(ncid, 0, NC_FillValue, &attnum_in)) ERR;
             if (attnum_in != 1) ERR;
             if (nc_close(ncid)) ERR;
         }
@@ -223,7 +223,7 @@ main(int argc, char **argv)
             if (nc_def_var(ncid, VAR_NAME, NC_BYTE, NUM_DIMS, dimids, &varid)) ERR;
             for (a = 0; a < NUM_LEADERS; a++)
                 if (nc_put_att_short(ncid, varid, leader[a], NC_SHORT, 1, &hair_length[a])) ERR;
-            if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value)) ERR;
+            if (nc_put_att_schar(ncid, varid, NC_FillValue, NC_BYTE, 1, &fill_value)) ERR;
             if (nc_close(ncid)) ERR;
 
             /* Open the file. */
@@ -241,9 +241,9 @@ main(int argc, char **argv)
             }
 
             /* Check our fill value attribute. */
-            if (nc_inq_att(ncid, 0, _FillValue, &xtype_in, &len_in)) ERR;
+            if (nc_inq_att(ncid, 0, NC_FillValue, &xtype_in, &len_in)) ERR;
             if (xtype_in != NC_BYTE || len_in != 1) ERR;
-            if (nc_get_att(ncid, 0, _FillValue, &fill_value_in)) ERR;
+            if (nc_get_att(ncid, 0, NC_FillValue, &fill_value_in)) ERR;
             if (fill_value_in != fill_value) ERR;
 
             if (nc_close(ncid)) ERR;
@@ -302,7 +302,7 @@ main(int argc, char **argv)
             /* Now add a fill value. This will acutually cause HDF5 to
              * destroy the dataset and recreate it, recreating also the
              * three attributes that are attached to it. */
-            if (nc_put_att(ncid, varid, _FillValue, NC_FLOAT,
+            if (nc_put_att(ncid, varid, NC_FillValue, NC_FLOAT,
                            1, &fill_value)) ERR;
 
             /* Check to ensure the atts have their expected attnums. */
@@ -319,7 +319,7 @@ main(int argc, char **argv)
             if (attnum_in != 0) ERR;
             if (nc_inq_attid(ncid, 0, UNITS, &attnum_in)) ERR;
             if (attnum_in != 1) ERR;
-            if (nc_inq_attid(ncid, 0, _FillValue, &attnum_in)) ERR;
+            if (nc_inq_attid(ncid, 0, NC_FillValue, &attnum_in)) ERR;
             if (attnum_in != 2) ERR;
 
             if (nc_close(ncid)) ERR;
@@ -388,14 +388,14 @@ main(int argc, char **argv)
             /* Now add a fill value. This will acutually cause HDF5 to
              * destroy the dataset and recreate it, recreating also the
              * three attributes that are attached to it. */
-            ncattput(ncid, varid, _FillValue, NC_FLOAT, 1, &fill_value);
+            ncattput(ncid, varid, NC_FillValue, NC_FLOAT, 1, &fill_value);
 
             /* Check to ensure the atts have their expected attnums. */
             if (nc_inq_attid(ncid, 0, LONG_NAME, &attnum_in)) ERR;
             if (attnum_in != 0) ERR;
             if (nc_inq_attid(ncid, 0, UNITS, &attnum_in)) ERR;
             if (attnum_in != 1) ERR;
-            if (nc_inq_attid(ncid, 0, _FillValue, &attnum_in)) ERR;
+            if (nc_inq_attid(ncid, 0, NC_FillValue, &attnum_in)) ERR;
             if (attnum_in != 2) ERR;
 
             ncclose(ncid);
@@ -406,7 +406,7 @@ main(int argc, char **argv)
             if (attnum_in != 0) ERR;
             if (nc_inq_attid(ncid, 0, UNITS, &attnum_in)) ERR;
             if (attnum_in != 1) ERR;
-            if (nc_inq_attid(ncid, 0, _FillValue, &attnum_in)) ERR;
+            if (nc_inq_attid(ncid, 0, NC_FillValue, &attnum_in)) ERR;
             if (attnum_in != 2) ERR;
             ncclose(ncid);
         }

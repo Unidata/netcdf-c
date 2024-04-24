@@ -36,7 +36,7 @@ main(int argc, char **argv)
 
     /* try put attribute _FillValue and expect NC_ELATEFILL */
     fillv = 9;
-    err = nc_put_att_int(ncid, varid, _FillValue, NC_INT, 1, &fillv);
+    err = nc_put_att_int(ncid, varid, NC_FillValue, NC_INT, 1, &fillv);
     if (err != NC_ELATEFILL)
         printf("line %d expecting NC_ELATEFILL but got %d\n",__LINE__,err);
     err = nc_close(ncid); ERR_CHK;

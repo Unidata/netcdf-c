@@ -727,19 +727,19 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	     var->hdr.name));
 
 	/* If there's a _FillValue attribute, delete it. */
-	retval = NCZ_del_att(ncid, varid, _FillValue);
+	retval = NCZ_del_att(ncid, varid, NC_FillValue);
 	if (retval && retval != NC_ENOTATT)
 	    goto done;
 
         /* Create a _FillValue attribute; will also fill in var->fill_value */
-	if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->hdr.id,
+	if ((retval = nc_put_att(ncid, varid, NC_FillValue, var->type_info->hdr.id,
 				 1, fill_value)))
 	    goto done;
         /* Reclaim any existing fill_chunk */
         if((retval = NCZ_reclaim_fill_chunk(zvar->cache))) goto done;
     } else if (var->fill_value && no_fill && (*no_fill)) { /* Turning off fill value? */
         /* If there's a _FillValue attribute, delete it. */
-        retval = NCZ_del_att(ncid, varid, _FillValue);
+        retval = NCZ_del_att(ncid, varid, NC_FillValue);
         if (retval && retval != NC_ENOTATT) return retval;
 	if((retval = NCZ_reclaim_fill_value(var))) return retval;
     }
