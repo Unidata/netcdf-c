@@ -490,10 +490,9 @@ ocarrayoffset(size_t rank, size_t* sizes, const size_t* indices)
 void
 ocarrayindices(size_t index, size_t rank, size_t* sizes, size_t* indices)
 {
-    int i;
-    for(i=rank-1;i>=0;i--) {
-	indices[i] = index % sizes[i];
-	index = (index - indices[i]) / sizes[i];
+    for(size_t i = rank; i-->0;) {
+        indices[i] = index % sizes[i];
+        index = (index - indices[i]) / sizes[i];
     }
 }
 

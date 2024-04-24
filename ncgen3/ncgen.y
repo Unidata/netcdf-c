@@ -142,7 +142,7 @@ dimdecline:     dimdecl
 dimdecl:        dimd '=' INT_CONST
 		   { if (int_val <= 0)
 			 derror("dimension length must be positive");
-		     dims[ndims].size = int_val;
+		     dims[ndims].size = (size_t)int_val;
 		     ndims++;
 		   }
                 | dimd '=' DOUBLE_CONST
@@ -629,10 +629,10 @@ const:         CHAR_CONST
 		       atype_code = NC_SHORT;
 		       switch (valtype) {
 			 case NC_CHAR:
-			   *char_valp++ = short_val;
+			   *char_valp++ = (char)short_val;
 			   break;
 			 case NC_BYTE:
-			   *byte_valp++ = short_val;
+			   *byte_valp++ = (signed char)short_val;
 			   break;
 			 case NC_SHORT:
 			   *short_valp++ = short_val;
@@ -655,19 +655,19 @@ const:         CHAR_CONST
 		       atype_code = NC_INT;
 		       switch (valtype) {
 			 case NC_CHAR:
-			   *char_valp++ = int_val;
+			   *char_valp++ = (char)int_val;
 			   break;
 			 case NC_BYTE:
-			   *byte_valp++ = int_val;
+			   *byte_valp++ = (signed char)int_val;
 			   break;
 			 case NC_SHORT:
-			   *short_valp++ = int_val;
+			   *short_valp++ = (short)int_val;
 			   break;
 			 case NC_INT:
 			   *int_valp++ = int_val;
 			   break;
 			 case NC_FLOAT:
-			   *float_valp++ = int_val;
+			   *float_valp++ = (float)int_val;
 			   break;
 			 case NC_DOUBLE:
 			   *double_valp++ = int_val;
@@ -681,16 +681,16 @@ const:         CHAR_CONST
 		       atype_code = NC_FLOAT;
 		       switch (valtype) {
 			 case NC_CHAR:
-			   *char_valp++ = float_val;
+			   *char_valp++ = (char)float_val;
 			   break;
 			 case NC_BYTE:
-			   *byte_valp++ = float_val;
+			   *byte_valp++ = (signed char)float_val;
 			   break;
 			 case NC_SHORT:
-			   *short_valp++ = float_val;
+			   *short_valp++ = (short)float_val;
 			   break;
 			 case NC_INT:
-			   *int_valp++ = float_val;
+			   *int_valp++ = (int)float_val;
 			   break;
 			 case NC_FLOAT:
 			   *float_valp++ = float_val;
@@ -707,22 +707,22 @@ const:         CHAR_CONST
 		       atype_code = NC_DOUBLE;
 		       switch (valtype) {
 			 case NC_CHAR:
-			   *char_valp++ = double_val;
+			   *char_valp++ = (char)double_val;
 			   break;
 			 case NC_BYTE:
-			   *byte_valp++ = double_val;
+			   *byte_valp++ = (signed char)double_val;
 			   break;
 			 case NC_SHORT:
-			   *short_valp++ = double_val;
+			   *short_valp++ = (short)double_val;
 			   break;
 			 case NC_INT:
-			   *int_valp++ = double_val;
+			   *int_valp++ = (int)double_val;
 			   break;
 			 case NC_FLOAT:
 			   if (double_val == NC_FILL_DOUBLE)
 			     *float_valp++ = NC_FILL_FLOAT;
 			   else
-			     *float_valp++ = double_val;
+			     *float_valp++ = (float)double_val;
 			   break;
 			 case NC_DOUBLE:
 			   *double_valp++ = double_val;

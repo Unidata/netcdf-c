@@ -268,11 +268,8 @@ nclistminus(NClist* l1, NClist* l2)
 int
 nclistdeleteall(NClist* l, void* elem)
 {
-    int i; /* do not make unsigned */
-    unsigned int len,found;
-    found = 0;
-    len = nclistlength(l);
-    for(i=len-1;i>=0;i--) {
+    int found = 0;
+    for(size_t i = nclistlength(l); i-->0;) {
 	void* test = nclistget(l,i);
 	if(test==elem) {
 	    nclistremove(l,i);
@@ -631,7 +628,6 @@ normal:	    *s++ = *t++;
 	}
     }
     *s = '\0';
-    return;
 }
 
 

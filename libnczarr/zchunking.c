@@ -10,7 +10,7 @@
 static int pcounter = 0;
 
 /* Forward */
-static int compute_intersection(const NCZSlice* slice, const size64_t chunklen, unsigned char isunlimited, NCZChunkRange* range);
+static int compute_intersection(const NCZSlice* slice, size64_t chunklen, unsigned char isunlimited, NCZChunkRange* range);
 static void skipchunk(const NCZSlice* slice, NCZProjection* projection);
 static int verifyslice(const NCZSlice* slice);
 
@@ -96,8 +96,7 @@ NCZ_compute_projections(struct Common* common,  int r, size64_t chunkindex, cons
     projection = &projections[n];
     if(n > 0) {
 	/* Find last non-skipped projection */
-	int i;
-	for(i=n-1;i>=0;i--) { /* walk backward */
+	for(size_t i=n;i-->0;) { /* walk backward */
             if(!projections[i].skip) {
 	        prev = &projections[i];
 		break;

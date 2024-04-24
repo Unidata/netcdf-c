@@ -54,7 +54,7 @@ H5PLget_plugin_info(void)
 }
 
 
-#define H5Z_DEFLATE_SIZE_ADJUST(s) (HDceil(((double)(s)) * (double)1.001f) + 12)
+#define H5Z_DEFLATE_SIZE_ADJUST(s) (HDceil(((double)(s)) * (double)1.001F) + 12)
 
 
 /*-------------------------------------------------------------------------

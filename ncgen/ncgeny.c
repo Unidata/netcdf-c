@@ -133,9 +133,9 @@ static List* stack;
 static nc_type consttype;
 
 /* Misc. */
-static int stackbase;
-static int stacklen;
-static int count;
+static size_t stackbase;
+static size_t stacklen;
+static size_t count;
 static int opaqueid; /* counter for opaque constants*/
 static int arrayuid; /* counter for pseudo-array types*/
 
@@ -1543,7 +1543,7 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
       return -1;
     }
 
-  /* Avoid snprintf, as that infringes on the user's name space.
+  /* Avoid sprintf, as that infringes on the user's name space.
      Don't have undefined behavior even if the translation
      produced a string with the wrong number of "%s"s.  */
   {
@@ -1913,7 +1913,7 @@ yyreduce:
   case 25: /* enumdecl: primtype ENUM typename '{' enumidlist '}'  */
 #line 314 "ncgen/ncgen.y"
               {
-		int i;
+		size_t i;
                 addtogroup((yyvsp[-3].sym)); /* sets prefix*/
                 (yyvsp[-3].sym)->objectclass=NC_TYPE;
                 (yyvsp[-3].sym)->subclass=NC_ENUM;
@@ -1950,7 +1950,7 @@ yyreduce:
   case 27: /* enumidlist: enumidlist ',' enumid  */
 #line 345 "ncgen/ncgen.y"
                 {
-		    int i;
+		    size_t i;
 		    (yyval.mark)=(yyvsp[-2].mark);
 		    /* check for duplicates*/
 		    stackbase=(yyvsp[-2].mark);
@@ -1985,7 +1985,7 @@ yyreduce:
                     (yyvsp[0].sym)->objectclass=NC_TYPE;
                     (yyvsp[0].sym)->subclass=NC_OPAQUE;
                     (yyvsp[0].sym)->typ.typecode=NC_OPAQUE;
-                    (yyvsp[0].sym)->typ.size=int32_val;
+                    (yyvsp[0].sym)->typ.size=(size_t)int32_val;
                     (void)ncaux_class_alignment(NC_OPAQUE,&(yyvsp[0].sym)->typ.alignment);
                 }
 #line 1992 "ncgeny.c"
@@ -2010,7 +2010,7 @@ yyreduce:
   case 31: /* compounddecl: COMPOUND typename '{' fields '}'  */
 #line 397 "ncgen/ncgen.y"
           {
-	    int i,j;
+	    size_t i,j;
 	    vercheck(NC_COMPOUND);
             addtogroup((yyvsp[-3].sym));
 	    /* check for duplicate field names*/
@@ -2056,7 +2056,7 @@ yyreduce:
   case 34: /* field: typeref fieldlist  */
 #line 434 "ncgen/ncgen.y"
         {
-	    int i;
+	    size_t i;
 	    (yyval.mark)=(yyvsp[0].mark);
 	    stackbase=(yyvsp[0].mark);
 	    stacklen=listlength(stack);
@@ -2230,7 +2230,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
   case 66: /* vardecl: typeref varlist  */
 #line 519 "ncgen/ncgen.y"
                 {
-		    int i;
+		    size_t i;
 		    stackbase=(yyvsp[0].mark);
 		    stacklen=listlength(stack);
 		    /* process each variable in the varlist*/
@@ -2268,7 +2268,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
   case 69: /* varspec: varident dimspec  */
 #line 549 "ncgen/ncgen.y"
                     {
-		    int i;
+		    size_t i;
 		    Dimset dimset;
 		    Symbol* var = (yyvsp[-1].sym); /* for debugging */
 		    stacklen=listlength(stack);
@@ -2279,7 +2279,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 			count = NC_MAX_VAR_DIMS - 1;
 			stacklen = stackbase + count;
 		    }
-  	            dimset.ndims = count;
+  	            dimset.ndims = (int)count;
 		    /* extract the actual dimensions*/
 		    if(dimset.ndims > 0) {
 		        for(i=0;i<count;i++) {
@@ -2352,7 +2352,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
   case 77: /* fieldspec: ident fielddimspec  */
 #line 610 "ncgen/ncgen.y"
             {
-		int i;
+		size_t i;
 		Dimset dimset;
 		stackbase=(yyvsp[0].mark);
 		stacklen=listlength(stack);
@@ -2362,7 +2362,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    count = NC_MAX_VAR_DIMS - 1;
 		    stacklen = stackbase + count;
 		}
-  	        dimset.ndims = count;
+  	        dimset.ndims = (int)count;
 		if(count > 0) {
 		    /* extract the actual dimensions*/
 		    for(i=0;i<count;i++) {
@@ -2409,7 +2409,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
             {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
 	     char anon[32];
-	     snprintf(anon,sizeof(anon),"const%u",uint32_val);
+	     snprintf(anon, sizeof(anon),"const%u",uint32_val);
 	     (yyval.sym) = install(anon);
 	     (yyval.sym)->objectclass = NC_DIM;
 	     (yyval.sym)->dim.isconstant = 1;
@@ -2427,11 +2427,11 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		derror("field dimension must be positive");
 		YYABORT;
 	     }
-	     snprintf(anon,sizeof(anon),"const%d",int32_val);
+	     snprintf(anon, sizeof(anon),"const%d",int32_val);
 	     (yyval.sym) = install(anon);
 	     (yyval.sym)->objectclass = NC_DIM;
 	     (yyval.sym)->dim.isconstant = 1;
-	     (yyval.sym)->dim.declsize = int32_val;
+	     (yyval.sym)->dim.declsize = (size_t)int32_val;
 	    }
 #line 2437 "ncgeny.c"
     break;
@@ -3323,7 +3323,7 @@ makeconstdata(nc_type nctype)
 	    strncpy(s,bbContents(lextext),len);
 	    s[len] = '\0';
 	    con->value.opaquev.stringv = s;
-	    con->value.opaquev.len = (int)len;
+	    con->value.opaquev.len = len;
 	    } break;
 
 	case NC_NIL:
@@ -3371,7 +3371,7 @@ addtogroup(Symbol* sym)
 static int
 dupobjectcheck(nc_class objectclass, Symbol* pattern)
 {
-    int i;
+    size_t i;
     Symbol* grp;
     if(pattern == NULL) return 0;
     grp = pattern->container;
@@ -3403,11 +3403,11 @@ truefalse(NCConstant* con, int tag)
 {
     if(con->nctype == NC_STRING) {
 	char* sdata = con->value.stringv.stringv;
-	if(strncmp(sdata,"false",NC_MAX_NAME) == 0
-           || strncmp(sdata,"0",NC_MAX_NAME) == 0)
+	if(strcmp(sdata,"false") == 0
+           || strcmp(sdata,"0") == 0)
 	    return 0;
-	else if(strncmp(sdata,"true",NC_MAX_NAME) == 0
-           || strncmp(sdata,"1",NC_MAX_NAME) == 0)
+	else if(strcmp(sdata,"true") == 0
+           || strcmp(sdata,"1") == 0)
 	    return 1;
 	else goto fail;
     } else if(con->value.int32v < 0 || con->value.int32v > 1)
