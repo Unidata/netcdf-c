@@ -450,7 +450,7 @@ main(int argc, char **argv)
          /* Create a scalar variable for the empty string. */
          if (nc_def_var(ncid, VAR_NAME2, NC_STRING, 0, NULL, &varid2)) ERR;
          if (dim_combo == 3)
-            if (nc_put_att(ncid, varid, _FillValue, NC_STRING, 1, my_string_fill)) ERR;
+            if (nc_put_att(ncid, varid, NC_FillValue, NC_STRING, 1, my_string_fill)) ERR;
 
          /* Check some stuff. */
          if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
