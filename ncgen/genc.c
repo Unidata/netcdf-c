@@ -6,6 +6,7 @@
 
 #include "includes.h"
 #include <ctype.h>	/* for isprint() */
+#include <stddef.h>
 
 #ifdef ENABLE_C
 
@@ -37,22 +38,22 @@ static void genc_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 void
 genc_netcdf(void)
 {
-    int idim, ivar, iatt, maxdims;
-    int ndims, nvars, natts, ngatts;
+    size_t idim, ivar, iatt;
+    int maxdims;
     char* cmode_string;
     const char *filename = rootgroup->file.filename;
 
 #ifdef USE_NETCDF4
-    int igrp,ityp, ngrps, ntyps;
+    size_t igrp, ityp;
 #endif
 
-    ndims = listlength(dimdefs);
-    nvars = listlength(vardefs);
-    natts = listlength(attdefs);
-    ngatts = listlength(gattdefs);
+    size_t ndims = listlength(dimdefs);
+    size_t nvars = listlength(vardefs);
+    size_t natts = listlength(attdefs);
+    size_t ngatts = listlength(gattdefs);
 #ifdef USE_NETCDF4
-    ngrps = listlength(grpdefs);
-    ntyps = listlength(typdefs);
+    size_t ngrps = listlength(grpdefs);
+    size_t ntyps = listlength(typdefs);
 #endif /*USE_NETCDF4*/
 
     /* wrap in main program */
@@ -764,7 +765,7 @@ ctypename(Symbol* tsym)
 static void
 definectype(Symbol* tsym)
 {
-    int i,j;
+    size_t i,j;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
@@ -844,7 +845,7 @@ Generate the C code for defining a given type
 static void
 genc_deftype(Symbol* tsym)
 {
-    int i;
+    size_t i;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
@@ -1032,8 +1033,7 @@ genc_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
     /* Dump any vlen decls first */
     generator_getstate(generator,(void**)&vlendecls);
     if(vlendecls != NULL && listlength(vlendecls) > 0) {
-	int i;
-	for(i=0;i<listlength(vlendecls);i++) {
+	for(size_t i=0;i<listlength(vlendecls);i++) {
 	   Bytebuffer* decl = (Bytebuffer*)listget(vlendecls,i);
 	   codelined(1,bbContents(decl));
 	   bbFree(decl);
@@ -1154,8 +1154,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
         List* vlendecls;
         generator_getstate(generator,(void**)&vlendecls);
         if(vlendecls != NULL && listlength(vlendecls) > 0) {
-            int i;
-            for(i=0;i<listlength(vlendecls);i++) {
+            for(size_t i=0;i<listlength(vlendecls);i++) {
                 Bytebuffer* decl = (Bytebuffer*)listget(vlendecls,i);
                 codelined(1,bbContents(decl));
                 bbFree(decl);
