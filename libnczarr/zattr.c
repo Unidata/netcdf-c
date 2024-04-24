@@ -581,7 +581,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
      * copy the value to the fill_value pointer of the NC_VAR_INFO_T
      * struct for this var. (But ignore a global _FillValue
      * attribute). Also kill the cache fillchunk as no longer valid */
-    if (!strcmp(att->hdr.name, _FillValue) && varid != NC_GLOBAL)
+    if (!strcmp(att->hdr.name, NC_FillValue) && varid != NC_GLOBAL)
     {
         /* Fill value must have exactly one value */
         if (len != 1)
@@ -991,12 +991,12 @@ ncz_create_fillvalue(NC_VAR_INFO_T* var)
         /* Make sure _FillValue does not exist */
 	for(i=0;i<ncindexsize(var->att);i++) {
 	    fv = (NC_ATT_INFO_T*)ncindexith(var->att,i);
-	    if(strcmp(fv->hdr.name,_FillValue)==0) break;
+	    if(strcmp(fv->hdr.name,NC_FillValue)==0) break;
 	    fv = NULL;
         }
 	if(fv == NULL) {
 	    /* Create it */
-	    if((stat = ncz_makeattr((NC_OBJ*)var,var->att,_FillValue,var->type_info->hdr.id,1,var->fill_value,&fv)))
+	    if((stat = ncz_makeattr((NC_OBJ*)var,var->att,NC_FillValue,var->type_info->hdr.id,1,var->fill_value,&fv)))
 	    goto done;
 	}
     }

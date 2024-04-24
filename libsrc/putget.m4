@@ -156,7 +156,7 @@ fill_NC_var(NC3_INFO* ncp, const NC_var *varp, long long varsize, size_t recno)
 	/*
 	 * Set up fill value
 	 */
-	attrpp = NC_findattr(&varp->attrs, _FillValue);
+        attrpp = NC_findattr(&varp->attrs, NC_FillValue);
 	if( attrpp != NULL )
 	{
 		/* User defined fill value */
