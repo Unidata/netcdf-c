@@ -27,7 +27,7 @@ Returns s as its result.
 */
 
 char*
-escapifychar(unsigned int c, char* s0, int quote)
+escapifychar(char c, char* s0, int quote)
 {
     char* s = s0;
     if(c == '\\') {
@@ -47,9 +47,9 @@ escapifychar(unsigned int c, char* s0, int quote)
 	case '\t': strcpy(s,"\\t"); s+=2; break;
 	case '\v': strcpy(s,"\\v"); s+=2; break;
 	default: {
-	    unsigned int oct1 = (c & 007);
-	    unsigned int oct2 = ((c >> 3) & 007);
-	    unsigned int oct3 = ((c >> 6) & 003);
+	    char oct1 = (c & 007);
+	    char oct2 = ((c >> 3) & 007);
+	    char oct3 = ((c >> 6) & 003);
 	    *s++ = '\\';
 	    *s++ = oct3 + '0';
 	    *s++ = oct2 + '0';
@@ -67,7 +67,7 @@ escapifychar(unsigned int c, char* s0, int quote)
 /* Since the string might actually contain nulls, specify the length.*/
 
 char*
-escapify(char* s0, int quote, size_t len)
+escapify(const char* s0, int quote, size_t len)
 {
     int i;
     char* result;
@@ -75,14 +75,14 @@ escapify(char* s0, int quote, size_t len)
     result[0] = '\0';
     for(i=0;i<len;i++) {
 	char tmp[8];
-	escapifychar((unsigned int)s0[i],tmp,quote);
+	escapifychar(s0[i],tmp,quote);
         strcat(result,tmp);
     }
     return result;        
 }
 
 char*
-escapifyname(char* s0)
+escapifyname(const char* s0)
 {
     return escapify(s0,'"',strlen(s0));
 }
@@ -117,7 +117,6 @@ cquotestring(Bytebuffer* databuf, char quote)
 
 static int init = 0;
 static char* repls[256];	/* replacement string for each char */
-static int lens[256];	/* lengths of replacement strings */
 static struct {
 	char c;
 	char *s;
@@ -171,12 +170,12 @@ initcodify(void)
     hexlen = strlen("_XHH"); /* template for hex of non-ASCII bytes */
     for(i = 0; i < 128; i++) {
         rp = ecalloc(2);
-        rp[0] = i;
+        rp[0] = (char)i;
         rp[1] = '\0';
         repls[i] = rp;
     }
     for(i=0; i < nctable; i++) {
-        size_t j = ctable[i].c;
+        size_t j = (size_t)ctable[i].c;
         efree(repls[j]);
         repls[j] = ctable[i].s;
     }
@@ -185,9 +184,6 @@ initcodify(void)
         snprintf(rp, hexlen+1, "_X%2.2X", i); /* need to include null*/
         rp[hexlen] = '\0';
         repls[i] = rp;
-    }
-    for(i = 0; i < 256; i++) {
-        lens[i] = strlen(repls[i]);
     }
     init = 1;               /* only do this initialization once */
 }
@@ -248,7 +244,7 @@ ccodify(const char *name0)
 }
 
 char*
-cescapifychar(unsigned int c, int quote)
+cescapifychar(char c, int quote)
 {
     char* s = poolalloc(4+1);
     escapifychar(c,s,quote);
@@ -508,7 +504,7 @@ fqnescape(const char* s)
 {
     const char* p;
     char* q;
-    int c;
+    char c;
     size_t l = strlen(s);
 
 /*
@@ -608,7 +604,7 @@ unescapeoct(const char* s)
 int
 unescape(
      const char *yytext, /* text to unescape */
-     int yyleng, /* length of yytext */
+     size_t yyleng, /* length of yytext */
      int isident, /* Is this an identifier? */
      char** sp /* Return the unescaped version of yytext */ 
      )
@@ -697,7 +693,7 @@ unescape(
     }
     *p = '\0';
     if(sp) *sp = s;
-    return (p-s);
+    return (int)(p-s);
 }
 
 
