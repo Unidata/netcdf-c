@@ -12,7 +12,6 @@
 static void completesegments(NClist* fullpath, NClist* segments);
 static NCerror qualifyprojectionnames(DCEprojection* proj);
 static NCerror qualifyprojectionsizes(DCEprojection* proj);
-static NCerror qualifyprojectionnames(DCEprojection* proj);
 static NCerror matchpartialname(NClist* nodes, NClist* segments, CDFnode** nodep);
 static int matchsuffix(NClist* matchpath, NClist* segments);
 static int iscontainer(CDFnode* node);
@@ -623,11 +622,10 @@ next:   continue;
     } /*for(;;)*/
 
     /* remove all NULL elements */
-    int n;
-    for(n=nclistlength(list)-1;n>=0;n--) {
+    for(size_t n = nclistlength(list); n-->0;) {
         DCEprojection* target = (DCEprojection*)nclistget(list,n);
-	if(target == NULL)
-	    nclistremove(list,n);
+        if(target == NULL)
+            nclistremove(list,n);
     }
 done:
 #ifdef DEBUG

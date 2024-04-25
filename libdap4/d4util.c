@@ -15,8 +15,6 @@
 #include <io.h>
 #endif
 
-extern int mkstemp(char *template);
-
 #define LBRACKET '['
 #define RBRACKET ']'
 

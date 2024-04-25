@@ -20,7 +20,7 @@ set_property(SOURCE d4meta.c
     SKIP_UNITY_BUILD_INCLUSION ON)
 
 add_library(dap4 OBJECT ${dap4_SOURCES})
-target_link_libraries(dap4 PUBLIC ${CURL_LIBRARIES})
+target_link_libraries(dap4 PUBLIC CURL::libcurl ${CURL_LIBRARIES})
 target_include_directories(dap4 PUBLIC ${CURL_INCLUDE_DIRS})
 target_compile_options(dap4
   PRIVATE

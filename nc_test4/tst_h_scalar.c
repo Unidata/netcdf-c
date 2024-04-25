@@ -360,14 +360,14 @@ main()
 
         /* Write to the variable's fill-value */
         vlstr = NULL;
-        if (nc_put_att(ncid, varid, _FillValue, NC_STRING, 1, &vlstr)) ERR;
+        if (nc_put_att(ncid, varid, NC_FillValue, NC_STRING, 1, &vlstr)) ERR;
 
         vlstr = malloc(10);
         *vlstr = '\0';
-        if (nc_put_att(ncid, varid, _FillValue, NC_STRING, 1, &vlstr)) ERR;
+        if (nc_put_att(ncid, varid, NC_FillValue, NC_STRING, 1, &vlstr)) ERR;
 
         strcpy(vlstr, "foo");
-        if (nc_put_att(ncid, varid, _FillValue, NC_STRING, 1, &vlstr)) ERR;
+        if (nc_put_att(ncid, varid, NC_FillValue, NC_STRING, 1, &vlstr)) ERR;
         free(vlstr);
 
 

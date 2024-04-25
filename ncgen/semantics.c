@@ -10,6 +10,7 @@
 #include        "ncoffsets.h"
 #include        "netcdf_aux.h"
 #include	"ncpathmgr.h"
+#include <stddef.h>
 
 #define floordiv(x,y) ((x) / (y))
 #define ceildiv(x,y) (((x) % (y)) == 0 ? ((x) / (y)) : (((x) / (y)) + 1))
@@ -23,7 +24,6 @@ static void processtypesizes(void);
 static void processvars(void);
 static void processattributes(void);
 static void processunlimiteddims(void);
-static void processeconstrefs(void);
 static void processeconstrefsR(Symbol*,Datalist*);
 static void processroot(void);
 static void processvardata(void);
@@ -391,8 +391,7 @@ tagvlentypes(Symbol* tsym)
 static void
 filltypecodes(void)
 {
-    int i;
-    for(i=0;i<listlength(symlist);i++) {
+    for(size_t i=0;i<listlength(symlist);i++) {
         Symbol* sym = listget(symlist,i);
 	if(sym->typ.basetype != NULL && sym->typ.typecode == NC_NAT)
 	    sym->typ.typecode = sym->typ.basetype->typ.typecode;
@@ -508,9 +507,8 @@ orderedtypes(Symbol* avsym, nc_type typ, List* types)
     }	    
     /* walk up the containing groups and collect type */
     for(;container!= NULL;container = container->container) {
-	int i;
 	/* Walk types in the container */
-	for(i=0;i<listlength(container->subnodes);i++) {
+	for(size_t i=0;i<listlength(container->subnodes);i++) {
 	    Symbol* sym = (Symbol*)listget(container->subnodes,i);
 	    if(sym->objectclass == NC_TYPE && (typ == NC_NAT || sym->subclass == typ))
 	        listpush(types,sym);
@@ -523,8 +521,7 @@ orderedtypes(Symbol* avsym, nc_type typ, List* types)
 static Symbol*
 locateeconst(Symbol* enumt, const char* ecname)
 {
-    int i;
-    for(i=0;i<listlength(enumt->subnodes);i++) {
+    for(size_t i=0;i<listlength(enumt->subnodes);i++) {
         Symbol* esym = (Symbol*)listget(enumt->subnodes,i);
         ASSERT(esym->subclass == NC_ECONST);
         if(strcmp(esym->name,ecname)==0)
@@ -536,7 +533,6 @@ locateeconst(Symbol* enumt, const char* ecname)
 static Symbol*
 findeconstenum(Symbol* avsym, NCConstant* con)
 {
-    int i;
     Symbol* refsym = con->value.enumv;
     List* typdefs = listnew();
     Symbol* enumt = NULL;
@@ -558,7 +554,7 @@ findeconstenum(Symbol* avsym, NCConstant* con)
     } else
         name = refsym->name;
     /* See if we can find the enum type */
-    for(i=0;i<listlength(typdefs);i++) {
+    for(size_t i=0;i<listlength(typdefs);i++) {
 	Symbol* sym = (Symbol*)listget(typdefs,i);
 	ASSERT(sym->objectclass == NC_TYPE && sym->subclass == NC_ENUM);	
 	if(path != NULL && strcmp(sym->name,path)==0) {enumt = sym; break;}
@@ -592,9 +588,6 @@ fixeconstref(Symbol* avsym, NCConstant* con)
 void
 computesize(Symbol* tsym)
 {
-    int i;
-    int offset = 0;
-    int largealign;
     unsigned long totaldimsize;
     if(tsym->touched) return;
     tsym->touched=1;
@@ -622,20 +615,20 @@ computesize(Symbol* tsym)
 	    break;
 	case NC_COMPOUND: /* keep if all fields are primitive*/
 	    /* First, compute recursively, the size and alignment of fields*/
-            for(i=0;i<listlength(tsym->subnodes);i++) {
+            for(size_t i=0;i<listlength(tsym->subnodes);i++) {
 		Symbol* field = (Symbol*)listget(tsym->subnodes,i);
                 ASSERT(field->subclass == NC_FIELD);
 		computesize(field);
 		if(i==0) tsym->typ.alignment = field->typ.alignment;
             }
             /* now compute the size of the compound based on what user specified*/
-            offset = 0;
-            largealign = 1;
-            for(i=0;i<listlength(tsym->subnodes);i++) {
+            size_t offset = 0;
+            size_t largealign = 1;
+            for(size_t i=0;i<listlength(tsym->subnodes);i++) {
                 Symbol* field = (Symbol*)listget(tsym->subnodes,i);
                 /* only support 'c' alignment for now*/
-                int alignment = field->typ.alignment;
-                int padding = getpadding(offset,alignment);
+                size_t alignment = field->typ.alignment;
+                size_t padding = getpadding(offset, alignment);
                 offset += padding;
                 field->typ.offset = offset;
                 offset += field->typ.size;
@@ -669,8 +662,7 @@ computesize(Symbol* tsym)
 void
 processvars(void)
 {
-    int i,j;
-    for(i=0;i<listlength(vardefs);i++) {
+    for(size_t i=0;i<listlength(vardefs);i++) {
 	Symbol* vsym = (Symbol*)listget(vardefs,i);
 	Symbol* basetype = vsym->typ.basetype;
         /* If we are in classic mode, then convert long -> int32 */
@@ -684,7 +676,7 @@ processvars(void)
 	vsym->typ.typecode = basetype->typ.typecode;
 	/* validate uses of NIL */
         validateNIL(vsym);
-	for(j=0;j<vsym->typ.dimset.ndims;j++) {
+	for(size_t j=0;j<vsym->typ.dimset.ndims;j++) {
 	    /* validate the dimensions*/
             /* UNLIMITED must only be in first place if using classic */
 	    if(vsym->typ.dimset.dimsyms[j]->dim.declsize == NC_UNLIMITED) {
@@ -698,7 +690,7 @@ processvars(void)
 static void
 processtypesizes(void)
 {
-    int i;
+    size_t i;
     /* use touch flag to avoid circularity*/
     for(i=0;i<listlength(typdefs);i++) {
 	Symbol* tsym = (Symbol*)listget(typdefs,i);
@@ -713,7 +705,7 @@ processtypesizes(void)
 static void
 processattributes(void)
 {
-    int i,j;
+    size_t i,j;
     /* process global attributes*/
     for(i=0;i<listlength(gattdefs);i++) {
 	Symbol* asym = (Symbol*)listget(gattdefs,i);
@@ -967,11 +959,10 @@ lookupgroup(List* prefix)
 Symbol*
 lookupingroup(nc_class objectclass, char* name, Symbol* grp)
 {
-    int i;
     if(name == NULL) return NULL;
     if(grp == NULL) grp = rootgroup;
 dumpgroup(grp);
-    for(i=0;i<listlength(grp->subnodes);i++) {
+    for(size_t i=0;i<listlength(grp->subnodes);i++) {
 	Symbol* sym = (Symbol*)listget(grp->subnodes,i);
 	if(sym->ref.is_ref) continue;
 	if(sym->objectclass != objectclass) continue;
@@ -1020,9 +1011,8 @@ nctypesize(
 static int
 sqContains(List* seq, Symbol* sym)
 {
-    int i;
     if(seq == NULL) return 0;
-    for(i=0;i<listlength(seq);i++) {
+    for(size_t i=0;i<listlength(seq);i++) {
         Symbol* sub = (Symbol*)listget(seq,i);
 	if(sub == sym) return 1;
     }
@@ -1032,7 +1022,7 @@ sqContains(List* seq, Symbol* sym)
 static void
 checkconsistency(void)
 {
-    int i;
+    size_t i;
     for(i=0;i<listlength(grpdefs);i++) {
 	Symbol* sym = (Symbol*)listget(grpdefs,i);
 	if(sym == rootgroup) {
@@ -1150,7 +1140,7 @@ thisunlim->name,
 static void
 processunlimiteddims(void)
 {
-    int i;
+    size_t i;
     /* Set all unlimited dims to size 0; */
     for(i=0;i<listlength(dimdefs);i++) {
 	Symbol* dim = (Symbol*)listget(dimdefs,i);
@@ -1220,7 +1210,7 @@ createfilename(void)
 	    if(p != NULL) {
 		char* q = filename;
 		p++; /* skip the '/' */
-		while((*q++ = *p++));
+		while((*q++ = *p++)) {};
 	    }
        } else {/* construct name from dataset name */
 	    strlcat(filename,datasetname,sizeof(filename));
@@ -1310,8 +1300,7 @@ done:
 static void
 processvardata(void)
 {
-    int i;
-    for(i=0;i<listlength(vardefs);i++) {
+    for(size_t i=0;i<listlength(vardefs);i++) {
         Symbol* vsym = (Symbol*)listget(vardefs,i);
 	NCConstant* con;
         if(vsym->data == NULL) continue;
@@ -1336,9 +1325,9 @@ explode(NCConstant* con)
     Datalist* chars;
     ASSERT((con->nctype == NC_STRING));
     len = con->value.stringv.len;
-    chars = builddatalist(len);
+    chars = builddatalist((int)len);
     p = con->value.stringv.stringv;
-fprintf(stderr,"p[%d]=|%s|\n",con->value.stringv.len,p);
+fprintf(stderr,"p[%zu]=|%s|\n",con->value.stringv.len,p);
     for(i=0;i<len;i++,p++) {
 	NCConstant* chcon = nullconst();
 	chcon->nctype = NC_CHAR;

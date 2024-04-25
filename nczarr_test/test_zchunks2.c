@@ -110,14 +110,14 @@ main(int argc, char **argv)
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (nvars != NUM_VARS || ndims != NDIMS3 || ngatts != 0 || unlimdimid != -1) ERR;
       if (nc_inq_var(ncid, 0, name_in, &type_in, &ndims, dims_in, &natts)) ERR;
-      if (strcmp(name_in, VAR_NAME_JOE) || type_in != NC_FLOAT || ndims != NDIMS3 ||
+      if (strcmp(name_in, VAR_NAME_JOE) != 0 || type_in != NC_FLOAT || ndims != NDIMS3 ||
 	  dims_in[0] != dims[0] || dims_in[1] != dims[1] || dims_in[2] != dims[2] || natts != 0) ERR;
       if (nc_inq_dim(ncid, 0, name_in, &len_in[0])) ERR;
-      if (strcmp(name_in, X_NAME) || len_in[0] != XDIM_LEN) ERR;
+      if (strcmp(name_in, X_NAME) != 0 || len_in[0] != XDIM_LEN) ERR;
       if (nc_inq_dim(ncid, 1, name_in, &len_in[1])) ERR;
-      if (strcmp(name_in, Y_NAME) || len_in[1] != YDIM_LEN) ERR;
+      if (strcmp(name_in, Y_NAME) != 0 || len_in[1] != YDIM_LEN) ERR;
       if (nc_inq_dim(ncid, 2, name_in, &len_in[2])) ERR;
-      if (strcmp(name_in, Z_NAME) || len_in[2] != ZDIM_LEN) ERR;
+      if (strcmp(name_in, Z_NAME) != 0 || len_in[2] != ZDIM_LEN) ERR;
       if (nc_inq_var_chunking(ncid, 0, &storage, chunksizes)) ERR;
       if (storage != NC_CHUNKED) ERR;
       if (nc_close(ncid)) ERR;
@@ -127,14 +127,14 @@ main(int argc, char **argv)
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (nvars != NUM_VARS || ndims != NDIMS3 || ngatts != 0 || unlimdimid != -1) ERR;
       if (nc_inq_var(ncid, 0, name_in, &type_in, &ndims, dims_in, &natts)) ERR;
-      if (strcmp(name_in, VAR_NAME_JOE) || type_in != NC_FLOAT || ndims != NDIMS3 ||
+      if (strcmp(name_in, VAR_NAME_JOE) != 0 || type_in != NC_FLOAT || ndims != NDIMS3 ||
 	  dims_in[0] != dims[0] || dims_in[1] != dims[1] || dims_in[2] != dims[2] || natts != 0) ERR;
       if (nc_inq_dim(ncid, 0, name_in, &len_in[0])) ERR;
-      if (strcmp(name_in, X_NAME) || len_in[0] != XDIM_LEN) ERR;
+      if (strcmp(name_in, X_NAME) != 0 || len_in[0] != XDIM_LEN) ERR;
       if (nc_inq_dim(ncid, 1, name_in, &len_in[1])) ERR;
-      if (strcmp(name_in, Y_NAME) || len_in[1] != YDIM_LEN) ERR;
+      if (strcmp(name_in, Y_NAME) != 0 || len_in[1] != YDIM_LEN) ERR;
       if (nc_inq_dim(ncid, 2, name_in, &len_in[2])) ERR;
-      if (strcmp(name_in, Z_NAME) || len_in[2] != ZDIM_LEN) ERR;
+      if (strcmp(name_in, Z_NAME) != 0 || len_in[2] != ZDIM_LEN) ERR;
       if (nc_inq_var_chunking(ncid, 0, &storage, chunksizes)) ERR;
       if (storage != NC_CHUNKED) ERR;
       if (calculate_waste(NDIMS3, len_in, chunksizes, &waste)) ERR;

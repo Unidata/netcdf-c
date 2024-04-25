@@ -19,7 +19,7 @@
 int
 main() {
     unsigned int urnd = 0; /* range 0..2147483647 */
-#ifdef WIN32
+#if defined(WIN32) || defined(_MSC_VER)
     (void)rand_s(&urnd);
 #else
     long rnd;

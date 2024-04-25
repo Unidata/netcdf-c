@@ -27,7 +27,7 @@ set_property(SOURCE ncd2dispatch.c
 add_library(dap2 OBJECT ${dap2_SOURCES})
 
 
-target_link_libraries(dap2 PUBLIC ${CURL_LIBRARIES})
+target_link_libraries(dap2 PUBLIC CURL::libcurl ${CURL_LIBRARIES})
 target_include_directories(dap2 PUBLIC ${CURL_INCLUDE_DIRS})
 target_compile_options(dap2
   PRIVATE

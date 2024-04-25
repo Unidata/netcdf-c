@@ -54,7 +54,6 @@ error(fmt, va_alist)
 void
 off_errs()
 {
-    extern int ncopts;		/* error options */
     ncopts &= ~NC_FATAL;	/* make errors nonfatal */
     ncopts &= ~NC_VERBOSE;	/* turn off error messages */
 }
@@ -67,7 +66,6 @@ off_errs()
 void
 on_errs()
 {
-    extern int ncopts;		/* error options */
     ncopts |= NC_FATAL;		/* make errors fatal */
     ncopts |= NC_VERBOSE;	/* library prints error messages */
 }

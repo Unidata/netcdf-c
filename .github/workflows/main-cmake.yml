@@ -1,0 +1,163 @@
+name: NetCDF-C CMake CI - Windows
+
+on: [pull_request, workflow_dispatch]
+
+concurrency:  
+  group: ${{ github.workflow }}-${{ github.head_ref }}  
+  cancel-in-progress: true
+  
+jobs:
+
+  cmake_build_and_test:
+    strategy:
+      
+        matrix:
+            name: 
+                - "Windows MSVC"
+            hdf5:
+                - "1.14.3"
+
+            # Visual Studio + CMake
+            include:
+                - name: "Windows MSVC"
+                  os: windows-latest
+                  generator: "-G  \"Visual Studio 17 2022\""
+
+    name: "${{ matrix.name }}"
+        
+    runs-on: ${{ matrix.os }}
+
+    # Each step in the job.
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    steps:
+        - uses: msys2/setup-msys2@v2
+          with:
+            update: true
+        - uses: actions/checkout@v4
+        - uses: conda-incubator/setup-miniconda@v3
+          with:
+            miniconda-version: "latest"
+            activate-environment: ""
+            auto-activate-base: true
+
+        - name: Set up Paths and env
+          shell: bash -el {0}
+          run: |
+            echo "" >> ~/.bash_profile
+            cat ~/.bash_profile
+
+
+        - name: Dump Matrix Context
+          run: echo '${{ toJSON(matrix) }}'
+
+        #- run: echo "CMAKE_PREFIX_PATH=${env.CONDA_PREFIX}/Library" >> $GITHUB_ENV
+        #- run: echo "/c/Users/runneradmin/miniconda3/Library/lib:${GITHUB_PATH}" >> $GITHUB_ENV
+        #- run: echo ""
+        #- run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
+       
+        # Grab miniconda and use it to install HDF5
+        - name: Install Dependencies using Miniconda
+          run: |
+            conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
+            conda config --add channels conda-forge
+            conda update conda
+            conda install hdf5=${{ matrix.hdf5 }} m2-m4 libxml2
+          shell: bash -el {0}
+
+        # Double-check something
+        - name: Check Miniconda
+          run: |
+            which h5dump
+            which m4
+          shell: bash -el {0}
+     
+        # Check current directory
+        - name: Query Current Environment
+          run: |
+            ls 
+            echo ""
+            echo "PATH: $PATH"
+            echo ""
+            env
+            echo ""
+            ls $CONDA_PREFIX/Library
+            echo ""
+            ls $CONDA_PREFIX/Library/include/
+          shell: bash -el {0}
+
+        - name: Perform out-of-directory configuration
+          shell: bash -el {0}
+          run: |
+            mkdir build
+            cd build
+            cmake .. -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library" -DCMAKE_C_FLAGS="-I${CONDA_PREFIX}/Library/include" -DCMAKE_INSTALL_PREFIX=~/tmp -DNETCDF_ENABLE_FILTER_TESTING=OFF
+          if: ${{ success() }}
+
+        - name: View cache - configuration
+          shell: bash -el {0}
+          run: |
+            cd build
+            cmake -L .
+          if: ${{ success() }}
+
+        - name: Print Summary
+          shell: bash -el {0}
+          run: |
+            cd build
+            cat libnetcdf.settings  
+
+        - name: Perform out-of-directory build - libnetcdf
+          shell: bash -el {0}
+          run: |
+            cd build
+            cmake --build . --config Release --target netcdf -j 4
+
+        - name: Perform out-of-directory install - libnetcdf
+          shell: bash -el {0}
+          run: |
+            cd build
+            cmake --build . --config Release --target install -j 4
+          if: ${{ success() }}  
+
+        - name: View config.h - libnetcdf failure
+          shell: bash -el {0}
+          run: |
+            cd build
+            cat config.h
+          if: ${{ failure() }}
+
+        - name: Perform out-of-directory build - test suite
+          shell: bash -el {0}
+          run: | 
+            cd build
+            cmake --build . --config Release -j 4
+          if: ${{ success() }}
+      
+        - name: View config.h - tests failure failure
+          shell: bash -el {0}
+          run: |
+            cd build
+            cat config.h
+          if: ${{ failure() }}  
+
+        - name: Prepare ctest Paths and env
+          shell: bash -el {0}
+          run: | 
+            cat ~/.bash_profile
+            echo "" >> ~/.bash_profile
+
+        - name: Run ctest
+          shell: bash -el {0}
+          run: |
+            echo "Run ctest PATH: $PATH"
+            echo "Run ctest combined PATH: $PATH"
+            echo "Run ctest combined GITHUB_PATH: $PATH"
+            cd build
+            PATH=~/tmp/bin:$PATH ctest . -j 4 -E 'bom' --output-on-failure
+            
+        - name: Verbose Output if CTest Failure
+          shell: bash -el {0}
+          run: |
+            cd build
+            PATH=~/tmp/bin:$PATH ctest . --rerun-failed --output-on-failure -VV
+          if: ${{ failure() }}    

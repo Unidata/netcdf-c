@@ -6,6 +6,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen3/ncgen.h,v 1.8 1997/07/07 18:27:04 russ Exp $
  *********************************************************************/
 
+#include <stddef.h>
 #define MAX_NC_ATTSIZE    20000	/* max size of attribute (for ncgen) */
 #define MAXTRST		  5000	/* max size of string value (for ncgen) */
 
@@ -23,7 +24,7 @@ extern int natts;		/* number of attributes */
 extern int nvdims;		/* number of dimensions for variables */
 extern int dimnum;		/* dimension number index for variables */
 extern int varnum;		/* variable number index for attributes */
-extern int valnum;		/* number of values specified for variable */
+extern size_t valnum;		/* number of values specified for variable */
 extern int rec_dim;		/* number of the unlimited dimension, if any */
 extern size_t rec_len;		/* number of elements for a record of data */
 extern size_t var_len;		/* variable length (product of dimensions) */
