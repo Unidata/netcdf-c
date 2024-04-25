@@ -13,6 +13,7 @@ are defined here.
 
 #undef COMPILEBYDEFAULT
 
+#include "ncdap.h"
 #include "ncrc.h"
 #include "ncauth.h"
 
