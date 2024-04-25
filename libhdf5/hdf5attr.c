@@ -47,7 +47,7 @@ getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
     {
         NC_VAR_INFO_T *var;
 
-        if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+        if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
             return NC_ENOTVAR;
         assert(var->hdr.id == varid);
 
@@ -92,14 +92,13 @@ nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
         return NC_EATTMETA;
 
     if(strcmp(name,NCPROPS)==0) {
-        int len;
         if(h5->provenance.ncproperties == NULL)
             return NC_ENOTATT;
         if(mem_type == NC_NAT) mem_type = NC_CHAR;
         if(mem_type != NC_CHAR)
             return NC_ECHAR;
         if(filetypep) *filetypep = NC_CHAR;
-	len = strlen(h5->provenance.ncproperties);
+        size_t len = strlen(h5->provenance.ncproperties);
         if(lenp) *lenp = len;
         if(data) strncpy((char*)data,h5->provenance.ncproperties,len+1);
     } else if(strcmp(name,ISNETCDF4ATT)==0
@@ -110,7 +109,7 @@ nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
         if(strcmp(name,SUPERBLOCKATT)==0)
             iv = (unsigned long long)h5->provenance.superblockversion;
         else /* strcmp(name,ISNETCDF4ATT)==0 */
-            iv = NC4_isnetcdf4(h5);
+            iv = (unsigned long long)NC4_isnetcdf4(h5);
         if(mem_type == NC_NAT) mem_type = NC_INT;
         if(data)
             switch (mem_type) {
@@ -271,8 +270,6 @@ NC4_HDF5_del_att(int ncid, int varid, const char *name)
     NC_ATT_INFO_T *att;
     NCindex* attlist = NULL;
     hid_t locid = 0;
-    int i;
-    size_t deletedid;
     int retval;
 
     /* Name must be provided. */
@@ -328,7 +325,7 @@ NC4_HDF5_del_att(int ncid, int varid, const char *name)
             return NC_EATTMETA;
     }
 
-    deletedid = att->hdr.id;
+    int deletedid = att->hdr.id;
 
     /* reclaim associated HDF5 info */
     if((retval=nc4_HDF5_close_att(att))) return retval;
@@ -338,7 +335,7 @@ NC4_HDF5_del_att(int ncid, int varid, const char *name)
         return retval;
 
     /* Renumber all attributes with higher indices. */
-    for (i = 0; i < ncindexsize(attlist); i++)
+    for (size_t i = 0; i < ncindexsize(attlist); i++)
     {
         NC_ATT_INFO_T *a;
         if (!(a = (NC_ATT_INFO_T *)ncindexith(attlist, i)))
@@ -567,7 +564,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
      * Since fill mismatch is no longer required, we need to convert the
      * att's type to the vars's type as part of storing.
      */
-    if (!strcmp(att->hdr.name, _FillValue) && varid != NC_GLOBAL)
+    if (!strcmp(att->hdr.name, NC_FillValue) && varid != NC_GLOBAL)
     {
         /* Fill value must have exactly one value */
         if (len != 1)

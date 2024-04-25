@@ -61,7 +61,7 @@ TESTS += tst_v2
 endif # BUILD_V2
 
 # The rest of the tests require ncgen/ncdump.
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 check_PROGRAMS += renamegroup
 TESTS += run_grp_rename.sh tst_misc.sh
 
@@ -79,7 +79,7 @@ endif
 
 # Filter Tests (requires ncdump and ncgen and HDF5)
 if USE_HDF5
-if ENABLE_FILTER_TESTING
+if NETCDF_ENABLE_FILTER_TESTING
 extradir =
 check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat
 check_PROGRAMS += tst_multifilter tst_filter_vlen
@@ -107,9 +107,9 @@ if AX_MANUAL
 TESTS += tst_filterinstall.sh
 endif
 
-endif # ENABLE_FILTER_TESTING
+endif # NETCDF_ENABLE_FILTER_TESTING
 endif # USE_HDF5
-endif # BUILD_UTILITIES
+endif # NETCDF_BUILD_UTILITIES
 
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.

@@ -311,11 +311,9 @@ done:
 #define LBRACK '['
 #define RBRACK ']'
 
-static int gettype(const int q0, const int q1, int* unsignedp);
-
 /* Look at q0 and q1) to determine type */
 static int
-gettype(const int q0, const int q1, int* isunsignedp)
+gettype(const char q0, const char q1, int* isunsignedp)
 {
     int type = 0;
     int isunsigned = 0;

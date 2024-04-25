@@ -134,7 +134,6 @@ freeOCnode(OCnode* cdf, int deep)
 int
 ocfindbod(NCbytes* buffer, size_t* bodp, size_t* ddslenp)
 {
-    unsigned int i;
     char* content;
     size_t len = ncbyteslength(buffer);
     const char** marks;
@@ -144,7 +143,7 @@ ocfindbod(NCbytes* buffer, size_t* bodp, size_t* ddslenp)
     for(marks = DDSdatamarks;*marks;marks++) {
 	const char* mark = *marks;
         size_t tlen = strlen(mark);
-        for(i=0;i<len;i++) {
+        for(size_t i=0;i<len;i++) {
 	    if((i+tlen) <= len 
 	        && (ocstrncmp(content+i,mark,tlen)==0)) {
 	       *ddslenp = i;
@@ -442,7 +441,7 @@ ocdataddsmsg(OCstate* state, OCtree* tree)
     if(tree == NULL) return;
     /* get available space */
     xdrs = tree->data.xdrs;
-    len = xxdr_length(xdrs);
+    len = (size_t)xxdr_length(xdrs);
     if(len < strlen(ERRTAG))
 	return; /* no room */
     ckp = xxdr_getpos(xdrs);
@@ -491,10 +490,9 @@ ocarrayoffset(size_t rank, size_t* sizes, const size_t* indices)
 void
 ocarrayindices(size_t index, size_t rank, size_t* sizes, size_t* indices)
 {
-    int i;
-    for(i=rank-1;i>=0;i--) {
-	indices[i] = index % sizes[i];
-	index = (index - indices[i]) / sizes[i];
+    for(size_t i = rank; i-->0;) {
+        indices[i] = index % sizes[i];
+        index = (index - indices[i]) / sizes[i];
     }
 }
 
@@ -619,7 +617,7 @@ occopycat(char* dst, size_t size, size_t n, ...)
     for(i=0;i<n;i++) {
 	char* q = va_arg(args, char*);
 	for(;;) {
-	    int c = *q++;
+	    char c = *q++;
 	    if(c == '\0') break;
 	    if(avail == 0) {status = 0; goto done;}
 	    *p++ = c;
@@ -674,7 +672,7 @@ occoncat(char* dst, size_t size, size_t n, ...)
     for(i=0;i<n;i++) {
 	char* q = va_arg(args, char*);
 	for(;;) {
-	    int c = *q++;
+	    char c = *q++;
 	    if(c == '\0') break;
 	    if(avail == 0) {status = 0; goto done;}
 	    *p++ = c;

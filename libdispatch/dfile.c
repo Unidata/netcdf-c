@@ -45,8 +45,6 @@
 #endif
 
 
-extern int NC_initialized; /**< True when dispatch table is initialized. */
-
 /* User-defined formats. */
 NC_Dispatch *UDF0_dispatch_table = NULL;
 char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
@@ -1884,7 +1882,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
     if (model.impl == NC_FORMATX_PNETCDF)
     {stat = NC_ENOTBUILT; goto done;}
 #endif
-#ifndef ENABLE_CDF5
+#ifndef NETCDF_ENABLE_CDF5
     if (model.impl == NC_FORMATX_NC3 && (cmode & NC_64BIT_DATA))
     {stat = NC_ENOTBUILT; goto done;}
 #endif
@@ -1909,7 +1907,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         dispatcher = UDF1_dispatch_table;
         break;
 #endif /* USE_NETCDF4 */
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
     case NC_FORMATX_NCZARR:
         dispatcher = NCZ_dispatch_table;
 	break;
@@ -2047,10 +2045,10 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 #ifdef USE_HDF4
         hdf4built = 1;
 #endif
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
         cdf5built = 1;
 #endif
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 	nczarrbuilt = 1;
 #endif
         if(UDF0_dispatch_table != NULL)
@@ -2081,13 +2079,13 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 #ifdef USE_HDF4
 		| (1<<NC_FORMATX_NC_HDF4)
 #endif
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 		| (1<<NC_FORMATX_NCZARR)
 #endif
-#ifdef ENABLE_DAP
+#ifdef NETCDF_ENABLE_DAP
 		| (1<<NC_FORMATX_DAP2)
 #endif
-#ifdef ENABLE_DAP4
+#ifdef NETCDF_ENABLE_DAP4
 		| (1<<NC_FORMATX_DAP4)
 #endif
 #ifdef USE_PNETCDF
@@ -2101,7 +2099,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	/* Verify */
 	if((built & (1 << model.impl)) == 0)
             {stat = NC_ENOTBUILT; goto done;}
-#ifndef ENABLE_CDF5
+#ifndef NETCDF_ENABLE_CDF5
 	/* Special case because there is no separate CDF5 dispatcher */
         if(model.impl == NC_FORMATX_NC3 && (omode & NC_64BIT_DATA))
             {stat = NC_ENOTBUILT; goto done;}
@@ -2111,17 +2109,17 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     /* Figure out what dispatcher to use */
     if (!dispatcher) {
         switch (model.impl) {
-#ifdef ENABLE_DAP
+#ifdef NETCDF_ENABLE_DAP
         case NC_FORMATX_DAP2:
             dispatcher = NCD2_dispatch_table;
             break;
 #endif
-#ifdef ENABLE_DAP4
+#ifdef NETCDF_ENABLE_DAP4
         case NC_FORMATX_DAP4:
             dispatcher = NCD4_dispatch_table;
             break;
 #endif
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 	case NC_FORMATX_NCZARR:
 	    dispatcher = NCZ_dispatch_table;
 	    break;

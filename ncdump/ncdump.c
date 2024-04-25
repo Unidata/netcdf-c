@@ -257,7 +257,6 @@ tztrim(char *ss)
     while (*ep)
       *cp++ = *ep++;
     *cp = '\0';
-    return;
 }
 
 
@@ -605,7 +604,7 @@ pr_att_valgs(
 		if(isnan(ff)) {
 		    printf("NaNf%s", delim);
 		} else if(isinf(ff)) {
-		    if(ff < 0.0f) {
+		    if(ff < 0.0F) {
 			printf("-");
 		    }
 		    printf("Infinityf%s", delim);
@@ -780,7 +779,7 @@ pr_att(
     printf ("\t\t");
 #ifdef USE_NETCDF4
     if (is_user_defined_type(att.type) || att.type == NC_STRING
-        || (formatting_specs.xopt_filltype && varid != NC_GLOBAL && strcmp(_FillValue,att.name)==0))
+        || (formatting_specs.xopt_filltype && varid != NC_GLOBAL && strcmp(NC_FillValue,att.name)==0))
 #else
     if (is_user_defined_type(att.type))
 #endif
@@ -1512,11 +1511,11 @@ get_fill_info(int ncid, int varid, ncvar_t *vp)
     vp->has_fillval = 1; /* by default, but turn off for bytes */
 
     /* get _FillValue attribute */
-    nc_status = nc_inq_att(ncid,varid,_FillValue,&att.type,&att.len);
+    nc_status = nc_inq_att(ncid,varid,NC_FillValue,&att.type,&att.len);
     fillvalp = ecalloc(vp->tinfo->size + 1);
     if(nc_status == NC_NOERR &&
        att.type == vp->type && att.len == 1) {
-	NC_CHECK(nc_get_att(ncid, varid, _FillValue, fillvalp));
+	NC_CHECK(nc_get_att(ncid, varid, NC_FillValue, fillvalp));
     } else {
 	switch (vp->type) {
 	case NC_BYTE:
@@ -2246,7 +2245,6 @@ adapt_url_for_cache(char **pathp)
     if(pathp) {*pathp = path; path = NULL;}
     ncurifree(url);
     nullfree(path);
-    return;
 }
 #endif
 

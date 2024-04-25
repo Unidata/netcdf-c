@@ -17,11 +17,11 @@ target_sources(netcdfhdf5 PRIVATE
     hdf5set_format_compatibility.c hdf5debug.c
 )
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
     target_compile_definitions(netcdfhdf5 PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 
-if(ENABLE_BYTERANGE)
+if(NETCDF_ENABLE_BYTERANGE)
     target_sources(netcdfhdf5 PRIVATE 
         H5FDhttp.c
     )

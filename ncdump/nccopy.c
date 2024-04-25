@@ -39,7 +39,7 @@
 /* default bytes of memory we are willing to allocate for variable
  * values during copy */
 #define COPY_BUFFER_SIZE (5000000)
-#define COPY_CHUNKCACHE_PREEMPTION (1.0f) /* for copying, can eject fully read chunks */
+#define COPY_CHUNKCACHE_PREEMPTION (1.0F) /* for copying, can eject fully read chunks */
 #define SAME_AS_INPUT (-1)	/* default, if kind not specified */
 #define CHUNK_THRESHOLD (8192)	/* non-record variables with fewer bytes don't get chunked */
 
@@ -484,7 +484,7 @@ inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
     if(icontig == NC_CHUNKED && ocontig != NC_CHUNKED) { /* chunking only in input */
 	*chunkcache_nelemsp = 1;       /* read one input chunk at a time */
 	*chunkcache_sizep = iprod;
-	*chunkcache_preemptionp = 1.0f;
+	*chunkcache_preemptionp = 1.0F;
 	return stat;
     }
 
@@ -2070,7 +2070,7 @@ copy(char* infile, char* outfile)
 	create_mode |= NC_64BIT_OFFSET;
 	break;
     case NC_FORMAT_CDF5:
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
       create_mode |= NC_64BIT_DATA;
       break;
 #else

@@ -121,7 +121,7 @@ create(void)
         snprintf(dimname,sizeof(dimname),"dim%d",i);
         CHECK(nc_def_dim(ncid, dimname, dimsize[i], &dimids[i]));
     }
-    CHECK(nc_def_var(ncid, "var", NC_FLOAT, ndims, dimids, &varid));
+    CHECK(nc_def_var(ncid, "var", NC_FLOAT, (int)ndims, dimids, &varid));
     return NC_NOERR;
 }
 
@@ -347,8 +347,7 @@ odom_more(void)
 static int
 odom_next(void)
 {
-    int i; /* do not make unsigned */
-    for(i=ndims-1;i>=0;i--) {
+    for(size_t i=ndims;i-->0;) {
         odom[i] += 1;
         if(odom[i] < dimsize[i]) break;
         if(i == 0) return 0; /* leave the 0th entry if it overflows*/
@@ -360,11 +359,10 @@ odom_next(void)
 static int
 odom_offset(void)
 {
-    int i;
     int offset = 0;
-    for(i=0;i<ndims;i++) {
-        offset *= dimsize[i];
-        offset += odom[i];
+    for(size_t i=0;i<ndims;i++) {
+        offset *= (int)dimsize[i];
+        offset += (int)odom[i];
     }
     return offset;
 }
@@ -372,14 +370,7 @@ odom_offset(void)
 static float
 expectedvalue(void)
 {
-    int i;
-    float offset = 0;
-
-    for(i=0;i<ndims;i++) {
-        offset *= dimsize[i];
-        offset += odom[i];
-    }
-    return offset;
+    return (float)odom_offset();
 }
 
 static void

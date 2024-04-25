@@ -67,7 +67,7 @@ nchdf5version_SOURCES = nchdf5version.c
 endif
 
 # Conditionally build the ocprint program, but do not install
-if ENABLE_DAP
+if NETCDF_ENABLE_DAP
 bin_PROGRAMS += ocprint
 noinst_PROGRAMS += ocprint
 ocprint_SOURCES = ocprint.c
@@ -140,7 +140,7 @@ if USE_HDF5
 TESTS += tst_ctests.sh
 endif
 
-if ENABLE_CDF5
+if NETCDF_ENABLE_CDF5
 # Test for keywords as identifiers
 TESTS += test_keywords.sh
 endif

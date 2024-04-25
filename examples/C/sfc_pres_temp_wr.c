@@ -78,9 +78,9 @@ main()
     * would have some real data to write, for example, model
     * output. */
    for (lat = 0; lat < NLAT; lat++)
-      lats[lat] = START_LAT + 5.f*(float)lat;
+      lats[lat] = START_LAT + 5.F*(float)lat;
    for (lon = 0; lon < NLON; lon++)
-      lons[lon] = START_LON + 5.f*(float)lon;
+      lons[lon] = START_LON + 5.F*(float)lon;
 
    for (lat = 0; lat < NLAT; lat++)
       for (lon = 0; lon < NLON; lon++)

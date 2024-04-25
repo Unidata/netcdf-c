@@ -26,7 +26,7 @@ jobs:
         hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -37,7 +37,7 @@ jobs:
         ###
       - name: Cache libhdf5-${{ matrix.hdf5 }}
         id: cache-hdf5
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -73,7 +73,7 @@ jobs:
         hdf5: [ 1.14.3 ]
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -94,7 +94,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}

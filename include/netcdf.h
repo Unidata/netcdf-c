@@ -110,7 +110,7 @@ extern "C" {
  * the same type as the variable and this reserved name. The value you
  * give the attribute will be used as the fill value for that
  * variable. */
-#define _FillValue      "_FillValue"
+#define NC_FillValue      "_FillValue"
 #define NC_FILL         0       /**< Argument to nc_set_fill() to clear NC_NOFILL */
 #define NC_NOFILL       0x100   /**< Argument to nc_set_fill() to turn off filling of data. */
 

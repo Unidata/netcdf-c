@@ -78,9 +78,9 @@ create_file(char *file_name, int fill_mode)
 
       i = LVL_LEN - 1;
       for(izw = 0; izw < LAT_LEN * LON_LEN; izw++) {
-	 zonal_wnd[izw] = 100 + i;
+         zonal_wnd[izw] = (float)(100 + i);
       }
-      zonal_wnd_start[0] = i;
+      zonal_wnd_start[0] = (size_t)i;
       zonal_wnd_start[1] = 0;
       zonal_wnd_start[2] = 0;
       zonal_wnd_count[0] = 1;

@@ -45,7 +45,7 @@ main()
    hssize_t size;
    size_t type_size;
    int ndims;
-   hsize_t num_obj;
+   int num_obj;
 
    printf("\n*** Checking HDF5 attribute functions.\n");
    printf("*** Checking HDF5 attribute ordering...");
@@ -544,7 +544,8 @@ main()
 #define DIM2_LEN 2
       hid_t fileid, grpid, attid, spaceid, dimscaleid, att_spaceid;
       hid_t fcpl_id, fapl_id;
-      hsize_t num_obj, dims[1];
+      hsize_t dims[1];
+      int num_obj;
       char obj_name[MAX_LEN + 1];
       char att_name[3][20] = {"first", "second", "third"};
       signed char b[DIM2_LEN] = {-127, 126};
@@ -630,7 +631,7 @@ main()
 #define ATT_MAX_NAME 2
    {
       hid_t fileid, grpid, attid, att_spaceid;
-      hsize_t num_obj;
+      int num_obj;
       char obj_name[MAX_LEN + 1];
       char name[NUM_SIMPLE_ATTS][ATT_MAX_NAME + 1] = {"Gc", "Gb", "Gs", "Gi", "Gf",
 						      "Gd", "G7", "G8", "G9"};

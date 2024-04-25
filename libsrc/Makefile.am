@@ -29,14 +29,14 @@ libnetcdf3_la_SOURCES += posixio.c
 endif !USE_STDIO
 endif !USE_FFIO
 
-if ENABLE_BYTERANGE
+if NETCDF_ENABLE_BYTERANGE
   libnetcdf3_la_SOURCES += httpio.c
 
-if ENABLE_S3
+if NETCDF_ENABLE_S3
    libnetcdf3_la_SOURCES += s3io.c
 endif
 
-endif ENABLE_BYTERANGE
+endif NETCDF_ENABLE_BYTERANGE
 
 noinst_LTLIBRARIES = libnetcdf3.la
 

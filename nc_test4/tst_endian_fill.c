@@ -63,7 +63,7 @@ main(int argc, char **argv)
 							   "INT", "UINT", "INT64",
 							   "UINT64"};
       long long fill_value[NUM_TYPES_TO_CHECK] = {NC_FILL_SHORT, NC_FILL_USHORT, NC_FILL_INT,
-						  NC_FILL_UINT, NC_FILL_INT64, NC_FILL_UINT64};
+						  NC_FILL_UINT, NC_FILL_INT64, (long long)NC_FILL_UINT64};
       long long data_in;
       int t;
 

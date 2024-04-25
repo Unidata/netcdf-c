@@ -156,7 +156,7 @@ fill_NC_var(NC3_INFO* ncp, const NC_var *varp, long long varsize, size_t recno)
 	/*
 	 * Set up fill value
 	 */
-	attrpp = NC_findattr(&varp->attrs, _FillValue);
+        attrpp = NC_findattr(&varp->attrs, NC_FillValue);
 	if( attrpp != NULL )
 	{
 		/* User defined fill value */
@@ -245,7 +245,7 @@ fill_NC_var(NC3_INFO* ncp, const NC_var *varp, long long varsize, size_t recno)
 	offset = varp->begin;
 	if(IS_RECVAR(varp))
 	{
-		offset += (off_t)ncp->recsize * recno;
+		offset += (off_t)(ncp->recsize * recno);
 	}
 
 	assert(remaining > 0);
@@ -613,10 +613,10 @@ NC_varoffset(const NC3_INFO* ncp, const NC_var *varp, const size_t *coord)
 		for(; up < end; up++, ip++)
 			lcoord += (off_t)(*up) * (off_t)(*ip);
 
-		lcoord *= varp->xsz;
+		lcoord *= (off_t)varp->xsz;
 
 		if(IS_RECVAR(varp))
-			lcoord += (off_t)(*coord) * ncp->recsize;
+			lcoord += (off_t)(*coord * ncp->recsize);
 
 		lcoord += varp->begin;
 		return lcoord;
@@ -1846,7 +1846,7 @@ NC3_get_vara(int ncid, int varid,
         return status;
 
     /* Get the size of the memtype */
-    memtypelen = nctypelen(memtype);
+    memtypelen = (size_t)nctypelen(memtype);
 
     if(varp->ndims == 0) /* scalar variable */
     {
@@ -1880,7 +1880,7 @@ NC3_get_vara(int ncid, int varid,
     { /* inline */
     ALLOC_ONSTACK(coord, size_t, varp->ndims);
     ALLOC_ONSTACK(upper, size_t, varp->ndims);
-    const size_t index = ii;
+    const size_t index = (size_t)ii;
 
     /* copy in starting indices */
     (void) memcpy(coord, start, varp->ndims * sizeof(size_t));
@@ -1956,7 +1956,7 @@ NC3_put_vara(int ncid, int varid,
         return NC_ECHAR;
 
     /* Get the size of the memtype */
-    memtypelen = nctypelen(memtype);
+    memtypelen = (size_t)nctypelen(memtype);
 
     /* If edges is NULL, then this was called from nc_get_var() */
     if(edges == NULL && varp->ndims > 0) {
@@ -2013,7 +2013,7 @@ NC3_put_vara(int ncid, int varid,
     { /* inline */
     ALLOC_ONSTACK(coord, size_t, varp->ndims);
     ALLOC_ONSTACK(upper, size_t, varp->ndims);
-    const size_t index = ii;
+    const size_t index = (size_t)ii;
 
     /* copy in starting indices */
     (void) memcpy(coord, start, varp->ndims * sizeof(size_t));

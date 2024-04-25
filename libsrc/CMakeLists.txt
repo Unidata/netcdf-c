@@ -40,26 +40,28 @@ else (USE_FFIO)
   list(APPEND libsrc_SOURCES posixio.c)
 ENDif (USE_FFIO)
 
-if (ENABLE_BYTERANGE)
+if (NETCDF_ENABLE_BYTERANGE)
   list(APPEND libsrc_SOURCES httpio.c)
-if (ENABLE_S3)
+
+if (NETCDF_ENABLE_S3)
   list(APPEND libsrc_SOURCES s3io.c)
-endif(ENABLE_S3)
-endif(ENABLE_BYTERANGE)
+endif(NETCDF_ENABLE_S3)
+endif(NETCDF_ENABLE_BYTERANGE)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES})
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
   target_compile_definitions(netcdf3 PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 
-if (ENABLE_BYTERANGE)
+if (NETCDF_ENABLE_BYTERANGE)
   target_include_directories(netcdf3 PUBLIC ${CURL_INCLUDE_DIRS})
+  target_link_libraries(netcdf3 PUBLIC CURL::libcurl)
   target_compile_options(netcdf3
     PRIVATE
       -DCURL_STATICLIB=1
   )
-endif (ENABLE_BYTERANGE)
+endif (NETCDF_ENABLE_BYTERANGE)
 
 if(STATUS_PARALLEL)
   target_link_libraries(netcdf3 PUBLIC MPI::MPI_C)

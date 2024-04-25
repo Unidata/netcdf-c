@@ -8,14 +8,14 @@ set(oc_SOURCES oc.c daplex.c dapparse.c dapy.c occompile.c occurlfunctions.c ocd
 
 add_library(oc2 OBJECT ${oc_SOURCES})
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
   target_compile_definitions(oc2 PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 
 if(STATUS_PARALLEL)
   target_link_libraries(oc2 PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
-target_link_libraries(oc2 PUBLIC ${CURL_LIBRARIES})
+target_link_libraries(oc2 PUBLIC CURL::libcurl ${CURL_LIBRARIES})
 target_include_directories(oc2 PUBLIC ${CURL_INCLUDE_DIRS})
 target_compile_options(oc2
   PRIVATE

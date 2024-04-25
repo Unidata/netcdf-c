@@ -59,14 +59,14 @@ extern void nestedfqn(Symbol* sym);
 extern void attfqn(Symbol* sym);
 
 /* from: escapes.c */
-extern int unescape(const char*, int, int, char**);
+extern int unescape(const char*, size_t, int, char**);
 extern int unescapeoct(const char* s);
 extern int unescapehex(const char* s);
-extern char* cescapifychar(unsigned int c, int quote);
+extern char* cescapifychar(char c, int quote);
 extern char* codify(const char *name);
-extern char* escapifychar(unsigned int c, char* s0, int quote);
-extern char* escapify(char*,int,size_t);
-extern char* escapifyname(char* s0);
+extern char* escapifychar(char c, char* s0, int quote);
+extern char* escapify(const char*,int,size_t);
+extern char* escapifyname(const char* s0);
 extern void cquotestring(Bytebuffer*,char quote);
 extern void f77quotestring(Bytebuffer*);
 extern char* xescapify(char* s0, int quote, size_t len);

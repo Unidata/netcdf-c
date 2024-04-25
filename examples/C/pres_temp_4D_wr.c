@@ -78,7 +78,7 @@ main()
    float lats[NLAT], lons[NLON];
 
    /* Loop indexes. */
-   int lvl, lat, lon, rec, i = 0;
+   int lvl, lat, lon, i = 0;
 
    /* Error handling. */
    int retval;
@@ -87,9 +87,9 @@ main()
     * would have some real data to write, for example, model
     * output. */
    for (lat = 0; lat < NLAT; lat++)
-      lats[lat] = START_LAT + 5.f*(float)lat;
+      lats[lat] = START_LAT + 5.F*(float)lat;
    for (lon = 0; lon < NLON; lon++)
-      lons[lon] = START_LON + 5.f*(float)lon;
+      lons[lon] = START_LON + 5.F*(float)lon;
 
    for (lvl = 0; lvl < NLVL; lvl++)
       for (lat = 0; lat < NLAT; lat++)
@@ -188,7 +188,7 @@ main()
       surface temperature data. The arrays only hold one timestep worth
       of data. We will just rewrite the same data for each timestep. In
       a real application, the data would change between timesteps. */
-   for (rec = 0; rec < NREC; rec++)
+   for (size_t rec = 0; rec < NREC; rec++)
    {
       start[0] = rec;
       if ((retval = nc_put_vara_float(ncid, pres_varid, start, count,

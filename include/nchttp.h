@@ -26,7 +26,7 @@ typedef struct NC_HTTP_STATE {
     struct NCURI* url; /* parsed url */
     long httpcode;
     char* errmsg; /* do not free if format is HTTPCURL */
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
     struct NC_HTTP_S3 {
         void* s3client;
 	struct NCS3INFO* info;

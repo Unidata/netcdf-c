@@ -20,11 +20,11 @@
 #include "ncpathmgr.h"
 #include <stddef.h>
 
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
 #include "H5FDhttp.h"
 #endif
 
-#ifdef ENABLE_HDF5_ROS3
+#ifdef NETCDF_ENABLE_HDF5_ROS3
 #include <H5FDros3.h>
 #include "ncs3sdk.h"
 #endif
@@ -53,7 +53,7 @@ static const nc_type nc_type_constant_g[NUM_TYPES] = {NC_CHAR, NC_BYTE, NC_SHORT
                                                       NC_UINT64, NC_STRING};
 
 /** @internal NetCDF atomic type sizes. */
-static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof(short),
+static const size_t nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof(short),
                                               sizeof(int), sizeof(float), sizeof(double), sizeof(unsigned char),
                                               sizeof(unsigned short), sizeof(unsigned int), sizeof(long long),
                                               sizeof(unsigned long long), sizeof(char *)};
@@ -451,11 +451,10 @@ create_phony_dims(NC_GRP_INFO_T *grp, hid_t hdf_datasetid, NC_VAR_INFO_T *var)
      * unless there already is one the correct size. */
     for (d = 0; d < var->ndims; d++)
     {
-        int k;
         int match = 0;
 
         /* Is there already a phony dimension of the correct size? */
-        for (k = 0; k < ncindexsize(grp->dim); k++)
+        for (size_t k = 0; k < ncindexsize(grp->dim); k++)
         {
             dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, k);
             assert(dim);
@@ -535,19 +534,18 @@ rec_match_dimscales(NC_GRP_INFO_T *grp)
     NC_VAR_INFO_T *var;
     NC_DIM_INFO_T *dim;
     int retval = NC_NOERR;
-    int i;
 
     assert(grp && grp->hdr.name);
     LOG((4, "%s: grp->hdr.name %s", __func__, grp->hdr.name));
 
     /* Perform var dimscale match for child groups. */
-    for (i = 0; i < ncindexsize(grp->children); i++)
+    for (size_t i = 0; i < ncindexsize(grp->children); i++)
         if ((retval = rec_match_dimscales((NC_GRP_INFO_T *)ncindexith(grp->children, i))))
             return retval;
 
     /* Check all the vars in this group. If they have dimscale info,
      * try and find a dimension for them. */
-    for (i = 0; i < ncindexsize(grp->vars); i++)
+    for (size_t i = 0; i < ncindexsize(grp->vars); i++)
     {
         NC_HDF5_VAR_INFO_T *hdf5_var;
         int d;
@@ -578,7 +576,6 @@ rec_match_dimscales(NC_GRP_INFO_T *grp)
         if (!hdf5_var->dimscale)
         {
             int d;
-            int j;
 
             /* Are there dimscales for this variable? */
             if (hdf5_var->dimscale_hdf5_objids)
@@ -600,7 +597,7 @@ rec_match_dimscales(NC_GRP_INFO_T *grp)
                     for (g = grp; g && !finished; g = g->parent)
                     {
                         /* Check all dims in this group. */
-                        for (j = 0; j < ncindexsize(g->dim); j++)
+                        for (size_t j = 0; j < ncindexsize(g->dim); j++)
                         {
                             /* Get the HDF5 specific dim info. */
                             NC_HDF5_DIM_INFO_T *hdf5_dim;
@@ -743,7 +740,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 
     h5 = (NC_HDF5_FILE_INFO_T*)nc4_info->format_file_info;
 
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
     /* Do path as URL processing */
     ncuriparse(path,&h5->uri);
     if(h5->uri != NULL) {
@@ -755,7 +752,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             parameters = NULL; /* kill off parallel */
 	}
     }
-#endif /*ENABLE_BYTERANGE*/
+#endif /*NETCDF_ENABLE_BYTERANGE*/
 
     nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
     nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
@@ -836,7 +833,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     {
 	NCglobalstate* gs = NC_getglobalstate();
         if(gs->alignment.defined) {
-	    if (H5Pset_alignment(fapl_id, gs->alignment.threshold, gs->alignment.alignment) < 0) {
+	    if (H5Pset_alignment(fapl_id, (hsize_t)gs->alignment.threshold, (hsize_t)gs->alignment.alignment) < 0) {
 	        BAIL(NC_EHDFERR);
 	    }
 	}
@@ -882,10 +879,10 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                 BAIL(NC_EHDFERR);
         }
-#ifdef ENABLE_BYTERANGE
+#ifdef NETCDF_ENABLE_BYTERANGE
 	else if(h5->byterange) {   /* Arrange to use the byte-range drivers */
 	    char* newpath = NULL;
-#ifdef ENABLE_HDF5_ROS3
+#ifdef NETCDF_ENABLE_HDF5_ROS3
 	    H5FD_ros3_fapl_t fa;
 	    const char* awsaccessid0 = NULL;
 	    const char* awssecretkey0 = NULL;
@@ -1077,7 +1074,6 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     int num_filters;
     unsigned int* cd_values = NULL;
     size_t cd_nelems;
-    int f;
     int stat = NC_NOERR;
     NC_HDF5_VAR_INFO_T *hdf5_var;
     int varsized = 0;
@@ -1094,7 +1090,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
        it has filters defined, suppress the variable. */
     varsized = NC4_var_varsized(var);
 
-    for (f = 0; f < num_filters; f++)
+    for (unsigned int f = 0; f < num_filters; f++)
     {
 	htri_t avail = -1;
         unsigned flags = 0;
@@ -1342,10 +1338,9 @@ get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 static int
-get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, int ndims,
+get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, size_t ndims,
                   hid_t datasetid)
 {
-    int d;
     int num_scales = 0;
 
     LOG((4, "%s ndims %d datasetid %ld", __func__, ndims, datasetid));
@@ -1374,7 +1369,7 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, int ndims,
 
         /* Store id information allowing us to match hdf5 dimscales to
          * netcdf dimensions. */
-        for (d = 0; d < var->ndims; d++)
+        for (unsigned int d = 0; d < var->ndims; d++)
         {
             LOG((4, "about to iterate scales for dim %d", d));
             if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,
@@ -1409,7 +1404,7 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, int ndims,
  */
 static int
 get_scale_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
-               NC_HDF5_VAR_INFO_T *hdf5_var, int ndims, hid_t datasetid)
+               NC_HDF5_VAR_INFO_T *hdf5_var, size_t ndims, hid_t datasetid)
 {
     int retval;
 
@@ -1575,7 +1570,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
         finalname = strdup(obj_name);
 
     /* Add a variable to the end of the group's var list. */
-    if ((retval = nc4_var_list_add(grp, finalname, ndims, &var)))
+    if ((retval = nc4_var_list_add(grp, finalname, (int)ndims, &var)))
         BAIL(retval);
 
     /* Add storage for HDF5-specific var info. */
@@ -1831,7 +1826,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
     if (att_ndims == 0 && att_npoints == 0)
         dims[0] = 0;
     else if (att->nc_typeid == NC_STRING)
-        dims[0] = att_npoints;
+        dims[0] = (hsize_t)att_npoints;
     else if (att->nc_typeid == NC_CHAR)
     {
         /* NC_CHAR attributes are written as a scalar in HDF5, of type
@@ -1845,7 +1840,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
         {
             /* This is really a string type! */
             att->nc_typeid = NC_STRING;
-            dims[0] = att_npoints;
+            dims[0] = (hsize_t)att_npoints;
         }
     }
     else
@@ -2139,7 +2134,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                     return NC_EHDFERR;
 
                 for (d = 0; d < ndims; d++)
-                    dim_size[d] = dims[d];
+                    dim_size[d] = (int)dims[d];
 
                 /* What is the netCDF typeid of this member? */
                 if ((retval = get_netcdf_type(grp->nc4_info, H5Tget_super(member_hdf_typeid),
@@ -2224,7 +2219,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
         hid_t base_hdf_typeid;
         nc_type base_nc_type = NC_NAT;
         void *value;
-        int i;
         char *member_name = NULL;
 #ifdef JNA
         char jna[1001];
@@ -2261,7 +2255,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             return NC_ENOMEM;
 
         /* Read each name and value defined in the enum. */
-        for (i = 0; i < nmembers; i++)
+        for (unsigned int i = 0; i < nmembers; i++)
         {
             /* Get the name and value from HDF5. */
             if (!(member_name = H5Tget_member_name(hdf_typeid, i)))
@@ -2466,7 +2460,7 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     htri_t attr_exists = -1; /* Flag indicating hidden attribute exists */
     hid_t attid = -1; /* ID of hidden attribute (to store dim ID) */
     int dimscale_created = 0; /* Remember if a dimension was created (for error recovery) */
-    short initial_next_dimid = grp->nc4_info->next_dimid;/* Retain for error recovery */
+    int initial_next_dimid = grp->nc4_info->next_dimid;/* Retain for error recovery */
     size_t len = 0;
     int too_long = NC_FALSE;
     int assigned_id = -1;
@@ -2638,7 +2632,7 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
      * unless this is one of those funny dimscales that are a
      * dimension in netCDF but not a variable. (Spooky!) */
     if (!dim || (dim && !hdf5_dim->hdf_dimscaleid))
-        if ((retval = read_var(grp, datasetid, obj_name, ndims, dim)))
+        if ((retval = read_var(grp, datasetid, obj_name, (size_t)ndims, dim)))
             BAIL(retval);
 
 exit:

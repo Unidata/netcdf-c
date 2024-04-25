@@ -110,8 +110,9 @@ createtestdims(int cdfid, size_t num_dims, const size_t *sizes, const char * con
 	int dimid;
 	while(num_dims-- != 0)
 	{
-		assert( nc_def_dim(cdfid, *dim_names++, *sizes, &dimid)
+		assert( nc_def_dim(cdfid, *dim_names, *sizes, &dimid)
 			 == NC_NOERR);
+		dim_names++;
 		sizes++;
 	}
 
@@ -131,7 +132,8 @@ testdims(int cdfid, size_t num_dims, size_t *sizes, const char * const dim_names
 			(void) fprintf(stderr, "%d: %lu != %lu\n",
 				ii, (unsigned long)size, (unsigned long)*sizes);
 		assert( size == *sizes);
-		assert( strcmp(cp, *dim_names++) == 0);
+		assert( strcmp(cp, *dim_names) == 0);
+		dim_names++;
 	}
 
 }
@@ -145,7 +147,7 @@ static const char * const reqattr[] = {
 	"SCALEMIN",
 	"SCALEMAX",
 	"FIELDNAM",
-	_FillValue
+	NC_FillValue
 };
 #define NUM_RATTRS	6
 
@@ -313,7 +315,6 @@ check_fill_seq(int id)
 bad_ret :
 	(void) printf("couldn't get a var in check_fill_seq() %d\n",
 		ii);
-	return;
 }
 
 static size_t	indices[][3] = {
@@ -358,7 +359,7 @@ main(int argc, char *argv[])
 #ifdef USE_PNETCDF
 	MPI_Init(&argc, &argv);
 
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
 	cmode |= (NC_64BIT_DATA);
 #endif
 	ret = nc_create_par(fname,cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &id);
@@ -398,9 +399,9 @@ main(int argc, char *argv[])
  	{
  	int ifill = -1; double dfill = -9999;
  	assert( nc_put_att_int(id, Long_id,
- 		_FillValue, NC_INT, 1, &ifill) == NC_NOERR);
+ 		NC_FillValue, NC_INT, 1, &ifill) == NC_NOERR);
  	assert( nc_put_att_double(id, Double_id,
- 		_FillValue, NC_DOUBLE, 1, &dfill) == NC_NOERR);
+ 		NC_FillValue, NC_DOUBLE, 1, &dfill) == NC_NOERR);
  	}
 
 #ifdef REDEF

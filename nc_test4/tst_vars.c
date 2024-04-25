@@ -91,7 +91,7 @@ create_4D_example(char *file_name, int cmode)
    float lats[NLAT], lons[NLON];
 
    /* Loop indexes. */
-   int lvl, lat, lon, rec, i = 0;
+   int lvl, lat, lon, i = 0;
 
    /* Create some pretend data. If this wasn't an example program, we
     * would have some real data to write, for example, model
@@ -182,7 +182,7 @@ create_4D_example(char *file_name, int cmode)
       surface temperature data. The arrays only hold one timestep worth
       of data. We will just rewrite the same data for each timestep. In
       a real application, the data would change between timesteps. */
-   for (rec = 0; rec < NREC; rec++)
+   for (size_t rec = 0; rec < NREC; rec++)
    {
       start[0] = rec;
 
@@ -1080,9 +1080,9 @@ main(int argc, char **argv)
       if (nc_def_var(ncid, VAR7_NAME, NC_USHORT, NDIMS, dimids, &varid)) ERR;
       if (nc_def_var(ncid, VAR8_NAME, NC_USHORT, NDIMS, dimids, &varid2)) ERR;
       if (nc_def_var(ncid, VAR9_NAME, NC_USHORT, NDIMS, dimids, &varid3)) ERR;
-      if (nc_put_att(ncid, varid3, _FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
+      if (nc_put_att(ncid, varid3, NC_FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
       if (nc_def_var(ncid, VAR10_NAME, NC_USHORT, NDIMS, dimids, &varid4)) ERR;
-      if (nc_put_att(ncid, varid4, _FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
+      if (nc_put_att(ncid, varid4, NC_FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
 
       /* Check stuff. */
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in,

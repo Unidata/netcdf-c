@@ -45,7 +45,7 @@ test_varputget(int cdfid) /* handle of netcdf open and in data mode */
     long edg[MAX_NC_DIMS];	/* netcdf edge lengths to upper corner */
 		void *vals;		/* pointer to block of values */
     } hc[3], tmp;		/* test hypercubes */
-    int nel[3];			/* number of elements in hypercube */
+    long nel[3];			/* number of elements in hypercube */
 
     for (iv = 0; iv < test.nvars; iv++)	{ /* for each var in netcdf */
 	for (ie = 0; ie < ne; ie++)

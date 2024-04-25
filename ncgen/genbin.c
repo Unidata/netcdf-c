@@ -6,6 +6,7 @@
 
 #include "includes.h"
 #include <ctype.h>      /* for isprint() */
+#include <stddef.h>
 #include "netcdf_aux.h"
 #include "netcdf_filter.h"
 
@@ -32,21 +33,16 @@ void
 genbin_netcdf(void)
 {
     int stat, ncid;
-    int idim, ivar, iatt;
-    int ndims, nvars, natts, ngatts;
+    size_t idim, ivar, iatt;
     const char* filename = rootgroup->file.filename;
 
+    size_t ndims = listlength(dimdefs);
+    size_t nvars = listlength(vardefs);
+    size_t natts = listlength(attdefs);
+    size_t ngatts = listlength(gattdefs);
 #ifdef USE_NETCDF4
-    int ntyps, ngrps, igrp;
-#endif
-
-    ndims = listlength(dimdefs);
-    nvars = listlength(vardefs);
-    natts = listlength(attdefs);
-    ngatts = listlength(gattdefs);
-#ifdef USE_NETCDF4
-    ntyps = listlength(typdefs);
-    ngrps = listlength(grpdefs);
+    size_t ntyps = listlength(typdefs);
+    size_t ngrps = listlength(grpdefs);
 #endif /*USE_NETCDF4*/
 
     /* Turn on logging */
@@ -75,7 +71,7 @@ genbin_netcdf(void)
 #ifdef USE_NETCDF4
     /* Define the group structure */
     /* walking grdefs list will do a preorder walk of all defined groups*/
-    for(igrp=0;igrp<ngrps;igrp++) {
+    for(size_t igrp=0;igrp<ngrps;igrp++) {
         Symbol* gsym = (Symbol*)listget(grpdefs,igrp);
         if(gsym == rootgroup) continue; /* ignore root group*/
         stat = nc_def_grp(gsym->container->nc_id,gsym->name,&gsym->nc_id);
@@ -86,8 +82,7 @@ genbin_netcdf(void)
 #ifdef USE_NETCDF4
     /* Define the types*/
     if (ntyps > 0) {
-        int ityp;
-        for(ityp = 0; ityp < ntyps; ityp++) {
+        for(size_t ityp = 0; ityp < ntyps; ityp++) {
             Symbol* tsym = (Symbol*)listget(typdefs,ityp);
             genbin_deftype(tsym);
         }
@@ -357,8 +352,7 @@ genbin_deftype(Symbol* tsym)
                 int dimsizes[NC_MAX_VAR_DIMS]; /* int because inside compound */
                 /* Generate the field dimension constants*/
                 for(j=0;j<efield->typ.dimset.ndims;j++) {
-                     unsigned int size = efield->typ.dimset.dimsyms[j]->dim.declsize;
-                     dimsizes[j] = size;
+                     dimsizes[j] = (int)efield->typ.dimset.dimsyms[j]->dim.declsize;
                 }
                 stat = nc_insert_array_compound(
                                 tsym->container->nc_id,

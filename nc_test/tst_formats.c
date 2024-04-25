@@ -44,10 +44,10 @@ determine_test_formats(int *num_formats, int *format)
 #endif /* USE_HDF5 */
 
     /* Do we have CDF5? */
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
     num++;
     format[ind++] = NC_FORMAT_CDF5;
-#endif /* ENABLE_CDF5 */
+#endif /* NETCDF_ENABLE_CDF5 */
 
     *num_formats = num;
 }
@@ -334,7 +334,7 @@ main(int argc, char **argv)
                             var_dimid[1] != dimid[1] || natts != 0) ERR;
                         if (!(data_in = malloc(DATA_LEN * type_size[t]))) ERR;
                         if (nc_get_vars(ncid, varid[t], start, count, NULL, data_in)) ERR;
-                        if (memcmp(data_in, data_ptr[t], DATA_LEN * type_size[t])) ERR;
+                        if (memcmp(data_in, data_ptr[t], DATA_LEN * type_size[t]) != 0) ERR;
                         free(data_in);
 
                     }

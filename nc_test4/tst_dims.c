@@ -992,12 +992,12 @@ main(int argc, char **argv)
       /* Some phony 3D hp data. */
       for (i = 0; i < LAT_LEN; i++)
          for (j = 0; j < LON_LEN; j++)
-            for (l = 0; l <TIME_LEN; l++)
-               hp[i][j][l] = 100 + l;
+            for (unsigned short l = 0; l <TIME_LEN; l++)
+                hp[i][j][l] = 100 + l;
 
       /* Some phony 2D elevaton data. */
-      for (i = 0; i < LAT_LEN; i++)
-         for (j = 0; j < LON_LEN; j++)
+      for (unsigned long long i = 0; i < LAT_LEN; i++)
+         for (unsigned long long j = 0; j < LON_LEN; j++)
             elev[i][j] = 1010101022223333ULL  + i + j;
 
       /* Some phony 1D lats and lons. */

@@ -14,23 +14,32 @@ SET(ncgen3_FILES main.c load.c escapes.c getfill.c init.c genlib.c ncgeny.c ${XG
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
-IF(NOT EXISTS ${netCDF_SOURCE_DIR}/ncgen3/ncgeny.c AND NOT EXISTS
-    ${netCDF_SOURCE_DIR}/ncgen3/ncgeny.h)
-  ADD_CUSTOM_COMMAND(
-  OUTPUT ncgentab.h
-  COMMAND flex -Pncg -8 ncgen.l
-  COMMAND rm -f ncgenl.c
-  COMMAND mv lex.ncg.c ncgenl.c
-  COMMAND bison -pncg -t -d ncgen.y
-  COMMAND rm -f ncgeny.c ncgeny.h
-  COMMAND mv ncgen.tab.c ncgeny.c
-  COMMAND mv ncgen.tab.h ncgeny.h
-  COMMAND mv ncgeny.h ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND mv ncgeny.c ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND mv ncgenl.c ${CMAKE_CURRENT_SOURCE_DIR}
-  VERBATIM
+# With this option enabled, automatically generate the parser source
+# files from the yacc input files when they're changed. They don't
+# change very often, so this option is off by default.
+if (NETCDF_GENERATE_NCGEN)
+  find_program(FLEX flex REQUIRED)
+  find_program(BISON bison REQUIRED)
+
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h ${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c ${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c
+    DEPENDS ncgen.y ncgen.l
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+
+    COMMAND ${FLEX} -Pncg -8 ncgen/ncgen.l
+    COMMAND mv lex.ncg.c "${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c"
+
+    COMMAND ${BISON} -pncg -t -d ncgen/ncgen.y
+    COMMAND mv ncgen.tab.c "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c"
+    COMMAND mv ncgen.tab.h "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h"
+
+    # Fix the `#line` preprocessor directives with the correct source paths
+    COMMAND sed -i s/ncgen.tab/ncgeny/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c"
+    COMMAND sed -i s/lex.ncg/ncgenl/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c"
+    COMMAND sed -i s/ncgen.tab/ncgeny/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h"
+    VERBATIM
     )
-ENDIF()
+endif()
 
 ADD_EXECUTABLE(ncgen3 ${ncgen3_FILES})
 TARGET_LINK_LIBRARIES(ncgen3 netcdf ${ALL_TLL_LIBS})

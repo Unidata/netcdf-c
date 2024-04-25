@@ -55,7 +55,7 @@ static int file_create(const char *filename, int cmode, int *ncid)
 #ifdef USE_PNETCDF
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
         || default_format == NC_FORMAT_64BIT_DATA
 #endif
         )
@@ -96,14 +96,14 @@ test_small_atts(const char *testfile)
    char att[MAX_LEN + 1], att_in[MAX_LEN + 1], source[MAX_LEN + 1] = "0123456";
    int ndims, nvars, natts, unlimdimid;
    size_t len_in;
-   int t, f;
+   int f;
 
    /* Run this with and without fill mode. */
    for (f = 0; f < 2; f++)
    {
       /* Create small files with an attribute that grows by one each
        * time. */
-      for (t = 1; t < MAX_LEN; t++)
+      for (size_t t = 1; t < MAX_LEN; t++)
       {
 	 /* Create null-terminated text string of correct length. */
 	 strncpy(att, source, t);
@@ -122,7 +122,7 @@ test_small_atts(const char *testfile)
 	 if (nc_inq_attlen(ncid, NC_GLOBAL, ATT_NAME, &len_in)) ERR;
 	 if (len_in != t + 1) ERR;
 	 if (nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, att_in)) ERR;
-	 if (strncmp(att_in, att, t)) ERR;
+	 if (strncmp(att_in, att, t) != 0) ERR;
 	 if (nc_close(ncid)) ERR;
       }
    }
@@ -184,7 +184,7 @@ test_small_unlim(const char *testfile)
    if (ndims != 2 && nvars != 1 && natts != 0 && unlimdimid != 0) ERR;
    if (nc_get_var_text(ncid, varid, (char *)data_in)) ERR;
    for (i = 0; i < NUM_VALS; i++)
-      if (strncmp(data[i], data_in[i], STR_LEN)) ERR;
+      if (strncmp(data[i], data_in[i], STR_LEN) != 0) ERR;
    if (nc_close(ncid)) ERR;
    return 0;
 }
@@ -229,7 +229,7 @@ test_small_fixed(const char *testfile)
    if (ndims != 2 && nvars != 1 && natts != 0 && unlimdimid != -1) ERR;
    if (nc_get_var_text(ncid, varid, (char *)data_in)) ERR;
    for (i = 0; i < NUM_VALS; i++)
-      if (strncmp(data[i], data_in[i], STR_LEN)) ERR;
+      if (strncmp(data[i], data_in[i], STR_LEN) != 0) ERR;
    if (nc_close(ncid)) ERR;
    return 0;
 }
@@ -297,7 +297,7 @@ test_one_growing(const char *testfile)
 
       /* Normally one would not close and reopen the file for each
        * record, but I am giving the library a little work-out here... */
-      for (r = 0; r < MAX_RECS; r++)
+      for (size_t r = 0; r < MAX_RECS; r++)
       {
 	 /* Write one record of var data, a single character. */
 	 if (file_open(testfile, NC_WRITE, &ncid)) ERR;
@@ -360,7 +360,7 @@ test_one_growing_with_att(const char *testfile)
    /* Normally one would not close and reopen the file for each
     * record, nor add an attribute each time I add a record, but I am
     * giving the library a little work-out here... */
-   for (r = 0; r < MAX_RECS; r++)
+   for (size_t r = 0; r < MAX_RECS; r++)
    {
       /* Write one record of var data, a single character. */
       if (file_open(testfile, NC_WRITE, &ncid)) ERR;
@@ -417,7 +417,7 @@ test_two_growing_with_att(const char *testfile)
    /* Normally one would not close and reopen the file for each
     * record, nor add an attribute each time I add a record, but I am
     * giving the library a little work-out here... */
-   for (r = 0; r < MAX_RECS; r++)
+   for (size_t r = 0; r < MAX_RECS; r++)
    {
       /* Write one record of var data, a single character. */
       if (file_open(testfile, NC_WRITE, &ncid)) ERR;
@@ -523,7 +523,7 @@ main(int argc, char **argv)
 	    printf("Switching to 64-bit offset format.\n");
 	    strcpy(testfile, "tst_small_64bit.nc");
 	    break;
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
 	 case NC_FORMAT_CDF5:
 	    nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	    printf("Switching to 64-bit data format.\n");
