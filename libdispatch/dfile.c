@@ -45,8 +45,6 @@
 #endif
 
 
-extern int NC_initialized; /**< True when dispatch table is initialized. */
-
 /* User-defined formats. */
 NC_Dispatch *UDF0_dispatch_table = NULL;
 char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";

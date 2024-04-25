@@ -133,7 +133,7 @@ reclaim_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position instance)
     NC_TYPE_INFO_T* basetype = NULL;
     size_t nfields;
     nc_vlen_t* vlen;
-    size_t fid, arraycount;
+    size_t fid;
     int ndims;
     int dimsizes[NC_MAX_VAR_DIMS];
     size_t alignment = 0;
@@ -184,7 +184,7 @@ out:
 	    /* Get field's dimension sizes */
 	    field = (NC_FIELD_INFO_T*)nclistget(utype->u.c.field,fid);    
 	    ndims = field->ndims;
-	    arraycount = 1;
+	    int arraycount = 1;
 	    for(i=0;i<ndims;i++) {dimsizes[i] = field->dim_size[i]; arraycount *= dimsizes[i];}
             if(field->ndims == 0) {ndims=1; dimsizes[0]=1;} /* fake the scalar case */
 
@@ -423,7 +423,7 @@ copy_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position src, Position d
 	    field = (NC_FIELD_INFO_T*)nclistget(utype->u.c.field,fid);    
 	    ndims = field->ndims;
 	    arraycount = 1;
-	    for(i=0;i<ndims;i++) {dimsizes[i] = field->dim_size[i]; arraycount *= dimsizes[i];}
+	    for(i=0;i<ndims;i++) {dimsizes[i] = field->dim_size[i]; arraycount *= (size_t)dimsizes[i];}
             if(field->ndims == 0) {ndims=1; dimsizes[0]=1;} /* fake the scalar case */
 
             /* "move" to this field */
@@ -567,7 +567,7 @@ NC_copy_data_all(NC* nc, nc_type xtype, const void* memory, size_t count, void**
 
     if(xtype <= NC_STRING && count > 0) {
         xsize = NC_atomictypelen(xtype);
-        if((copy = calloc(xsize,count))==NULL) {stat = NC_ENOMEM; goto done;}
+        if((copy = calloc(count,xsize))==NULL) {stat = NC_ENOMEM; goto done;}
 	if(xtype < NC_STRING) /* fixed-size atomic type */
    	    memcpy(copy,memory,xsize*count);
 	else { /* string type */
@@ -589,7 +589,7 @@ NC_copy_data_all(NC* nc, nc_type xtype, const void* memory, size_t count, void**
         xsize = utype->size;
         /* allocate the top-level */
         if(count > 0) {
-            if((copy = calloc(xsize,count))==NULL) {stat = NC_ENOMEM; goto done;}
+            if((copy = calloc(count,xsize))==NULL) {stat = NC_ENOMEM; goto done;}
         }
         if((stat = NC_copy_data(nc,xtype,memory,count,copy)))
             (void)NC_reclaim_data_all(nc,xtype,copy,count);

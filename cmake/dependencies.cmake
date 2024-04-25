@@ -214,99 +214,110 @@ if(USE_HDF5)
 endif(USE_HDF5)
 
 ################################
-# Curl
+# Curl Libraryies
+# Only needed for DAP (DAP2 or DAP4)
+# and NCZARR with S3 Support
 ################################
-# See if we have libcurl
-find_package(CURL)
-target_compile_options(netcdf
-  PRIVATE
-    -DCURL_STATICLIB=1
-)
-target_include_directories(netcdf
-  PRIVATE
-    ${CURL_INCLUDE_DIRS}
-)
 
+if( (NETCDF_ENABLE_DAP AND (NETCDF_ENABLE_DAP2 OR NETCDF_ENABLE_DAP4 OR NETCDF_ENABLE_BYTERANGE_SUPPORT)) OR (NETCDF_ENABLE_NCZARR AND NETCDF_ENABLENCZARR_S3))
 
+  # See if we have libcurl
+  find_package(CURL)
+  #target_compile_options(netcdf
+  #  PRIVATE
+  #    -DCURL_STATICLIB=1
+  #)
+  #target_include_directories(netcdf
+  #  PRIVATE
+  #    ${CURL_INCLUDE_DIRS}
+  #)
+  if(CURL_FOUND)
+    set(FOUND_CURL TRUE)
+    target_link_libraries(netcdf
+    PRIVATE
+    CURL::libcurl
+  )
+  else()
+    set(FOUND_CURL FALSE)
+    set(NETCDF_ENABLE_DAP2 OFF)
+    set(NETCDF_ENABLE_DAP4 OFF)
+    set(NETCDF_ENABLE_BYTERANGE OFF)
+    set(NETCDF_ENABLE_S3 OFF)
+  endif(CURL_FOUND)
 
-MESSAGE(STATUS "Found CURL_INCLUDE_DIRS: ${CURL_INCLUDE_DIRS}")
-# Define a test flag for have curl library
-if(CURL_LIBRARIES OR CURL_LIBRARY)
-  set(FOUND_CURL TRUE)
-else()
-  set(FOUND_CURL FALSE)
+  # Start disabling if curl not found
+  if(NOT FOUND_CURL)
+    message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY requires libcurl; disabling")
+    set(NETCDF_ENABLE_REMOTE_FUNCTIONALITY OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY requires libcurl; disabling" FORCE )
+  endif()
+
+  set (CMAKE_REQUIRED_INCLUDES ${CURL_INCLUDE_DIRS})
+  # Check to see if we have libcurl 7.66 or later
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {
+  #if LIBCURL_VERSION_NUM < 0x074200
+        choke me;
+  #endif
+  }" HAVE_LIBCURL_766)
+
+  IF (HAVE_LIBCURL_766)
+    # If libcurl version is >= 7.66, then can skip tests
+    # for these symbols which were added in an earlier version
+    set(HAVE_CURLOPT_USERNAME TRUE)
+    set(HAVE_CURLOPT_PASSWORD TRUE)
+    set(HAVE_CURLOPT_KEYPASSWD TRUE)
+    set(HAVE_CURLINFO_RESPONSE_CODE TRUE)
+    set(HAVE_CURLINFO_HTTP_CONNECTCODE TRUE)
+    set(HAVE_CURLOPT_BUFFERSIZE TRUE)
+    set(HAVE_CURLOPT_KEEPALIVE TRUE)
+  else()
+    # Check to see if CURLOPT_USERNAME is defined.
+    # It is present starting version 7.19.1.
+    CHECK_C_SOURCE_COMPILES("
+    #include <curl/curl.h>
+    int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
+
+    # Check to see if CURLOPT_PASSWORD is defined.
+    # It is present starting version 7.19.1.
+    CHECK_C_SOURCE_COMPILES("
+    #include <curl/curl.h>
+    int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
+
+    # Check to see if CURLOPT_KEYPASSWD is defined.
+    # It is present starting version 7.16.4.
+    CHECK_C_SOURCE_COMPILES("
+    #include <curl/curl.h>
+    int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
+
+    # Check to see if CURLINFO_RESPONSE_CODE is defined.
+    # It showed up in curl 7.10.7.
+    CHECK_C_SOURCE_COMPILES("
+    #include <curl/curl.h>
+    int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
+
+    # Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
+    # It showed up in curl 7.10.7.
+    CHECK_C_SOURCE_COMPILES("
+    #include <curl/curl.h>
+    int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
+
+    # Check to see if CURLOPT_BUFFERSIZE is defined.
+    # It is present starting version 7.59
+    CHECK_C_SOURCE_COMPILES("
+    #include <curl/curl.h>
+    int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
+
+    # Check to see if CURLOPT_TCP_KEEPALIVE is defined.
+    # It is present starting version 7.25
+    CHECK_C_SOURCE_COMPILES("
+    #include <curl/curl.h>
+    int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
+  endif()
 endif()
-set(FOUND_CURL ${FOUND_CURL} TRUE )
-
-# Start disabling if curl not found
-if(NOT FOUND_CURL)
-  message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY requires libcurl; disabling")
-  set(NETCDF_ENABLE_REMOTE_FUNCTIONALITY OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY requires libcurl; disabling" FORCE )
-endif()
-
-set (CMAKE_REQUIRED_INCLUDES ${CURL_INCLUDE_DIRS})
-# Check to see if we have libcurl 7.66 or later
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {
-#if LIBCURL_VERSION_NUM < 0x074200
-      choke me;
-#endif
-}" HAVE_LIBCURL_766)
-
-IF (HAVE_LIBCURL_766)
-  # If libcurl version is >= 7.66, then can skip tests
-  # for these symbols which were added in an earlier version
-  set(HAVE_CURLOPT_USERNAME TRUE)
-  set(HAVE_CURLOPT_PASSWORD TRUE)
-  set(HAVE_CURLOPT_KEYPASSWD TRUE)
-  set(HAVE_CURLINFO_RESPONSE_CODE TRUE)
-  set(HAVE_CURLINFO_HTTP_CONNECTCODE TRUE)
-  set(HAVE_CURLOPT_BUFFERSIZE TRUE)
-  set(HAVE_CURLOPT_KEEPALIVE TRUE)
-else()
-  # Check to see if CURLOPT_USERNAME is defined.
-  # It is present starting version 7.19.1.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
-
-  # Check to see if CURLOPT_PASSWORD is defined.
-  # It is present starting version 7.19.1.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
-
-  # Check to see if CURLOPT_KEYPASSWD is defined.
-  # It is present starting version 7.16.4.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
-
-  # Check to see if CURLINFO_RESPONSE_CODE is defined.
-  # It showed up in curl 7.10.7.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
-
-  # Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
-  # It showed up in curl 7.10.7.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
-
-  # Check to see if CURLOPT_BUFFERSIZE is defined.
-  # It is present starting version 7.59
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
-
-  # Check to see if CURLOPT_TCP_KEEPALIVE is defined.
-  # It is present starting version 7.25
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
-endif()
+################################
+# End LibCurl stuff
+################################
 
 ################################
 # Math

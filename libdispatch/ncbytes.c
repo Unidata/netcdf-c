@@ -203,7 +203,7 @@ ncbytesremove(NCbytes* bb, unsigned long pos)
     if(bb == NULL) return ncbytesfail();
     if(bb->length <= pos) return ncbytesfail();
     if(pos < (bb->length - 1)) {
-	int copylen = (bb->length - pos) - 1;
+	size_t copylen = (bb->length - pos) - 1;
         memmove(bb->content+pos,bb->content+pos+1,copylen);
     }
     bb->length--;

@@ -1080,9 +1080,9 @@ main(int argc, char **argv)
       if (nc_def_var(ncid, VAR7_NAME, NC_USHORT, NDIMS, dimids, &varid)) ERR;
       if (nc_def_var(ncid, VAR8_NAME, NC_USHORT, NDIMS, dimids, &varid2)) ERR;
       if (nc_def_var(ncid, VAR9_NAME, NC_USHORT, NDIMS, dimids, &varid3)) ERR;
-      if (nc_put_att(ncid, varid3, _FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
+      if (nc_put_att(ncid, varid3, NC_FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
       if (nc_def_var(ncid, VAR10_NAME, NC_USHORT, NDIMS, dimids, &varid4)) ERR;
-      if (nc_put_att(ncid, varid4, _FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
+      if (nc_put_att(ncid, varid4, NC_FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
 
       /* Check stuff. */
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in,

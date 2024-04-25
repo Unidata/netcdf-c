@@ -213,7 +213,7 @@ static int parseonchar(const char* s, int ch, NClist* segments);
 static int mergelist(NClist** valuesp);
 
 static int openmagic(struct MagicFile* file);
-static int readmagic(struct MagicFile* file, long pos, char* magic);
+static int readmagic(struct MagicFile* file, size_t pos, char* magic);
 static int closemagic(struct MagicFile* file);
 static int NC_interpret_magic_number(char* magic, NCmodel* model);
 #ifdef DEBUG
@@ -557,10 +557,9 @@ negateone(const char* mode, NClist* newmodes)
     const struct MODEINFER* tests = modenegations;
     int changed = 0;
     for(;tests->key;tests++) {
-	int i;
 	if(strcasecmp(tests->key,mode)==0) {
 	    /* Find and remove all instances of the inference value */
-	    for(i=nclistlength(newmodes)-1;i>=0;i--) {
+	    for(size_t i = nclistlength(newmodes); i-- > 0;) {
 		char* candidate = nclistget(newmodes,i);
 		if(strcasecmp(candidate,tests->inference)==0) {
 		    nclistremove(newmodes,i);
@@ -1188,25 +1187,25 @@ cleancommalist(const char* commalist, int caseinsensitive)
 static void
 cleanstringlist(NClist* strs, int caseinsensitive)
 {
-    int i,j;
     if(nclistlength(strs) == 0) return;
     /* Remove nulls */
-    for(i=nclistlength(strs)-1;i>=0;i--) {
+    for(size_t i = nclistlength(strs); i-->0;) {
         if(nclistget(strs,i)==NULL) nclistremove(strs,i);
     }
+    if(nclistlength(strs) <= 1) return;
     /* Remove duplicates*/
-    for(i=0;i<nclistlength(strs);i++) {
+    for(size_t i=0;i<nclistlength(strs);i++) {
         const char* value = nclistget(strs,i);
-	/* look ahead for duplicates */
-        for(j=nclistlength(strs)-1;j>i;j--) {
-	    int match;
+        /* look ahead for duplicates */
+        for(size_t j=nclistlength(strs)-1;j>i;j--) {
+            int match;
             const char* candidate = nclistget(strs,j);
             if(caseinsensitive)
-	        match = (strcasecmp(value,candidate) == 0);
-	    else
-		match = (strcmp(value,candidate) == 0);
-	    if(match) {char* dup = nclistremove(strs,j); nullfree(dup);}
-	}
+                match = (strcasecmp(value,candidate) == 0);
+            else
+                match = (strcmp(value,candidate) == 0);
+            if(match) {char* dup = nclistremove(strs,j); nullfree(dup);}
+        }
     }
 }
 
@@ -1289,7 +1288,7 @@ check_file_type(const char *path, int omode, int use_parallel,
        search forward at starting at 512
        and doubling to see if we have HDF5 magic number */
     {
-	long pos = 512L;
+	size_t pos = 512L;
         for(;;) {
 	    if((pos+MAGIC_NUMBER_LEN) > magicinfo.filelen)
 		{status = NC_ENOTNC; goto done;}
@@ -1387,14 +1386,16 @@ openmagic(struct MagicFile* file)
 		file->filelen = (long long)size;
 #endif
 	}
-        rewind(file->fp);
+        int retval2 = fseek(file->fp, 0L, SEEK_SET);        
+	    if(retval2 != 0)
+		{status = errno; goto done;}
     }
 done:
     return check(status);
 }
 
 static int
-readmagic(struct MagicFile* file, long pos, char* magic)
+readmagic(struct MagicFile* file, size_t pos, char* magic)
 {
     int status = NC_NOERR;
     NCbytes* buf = ncbytesnew();
@@ -1412,8 +1413,8 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 #endif
     } else if(file->uri != NULL) {
 #ifdef NETCDF_ENABLE_BYTERANGE
-	fileoffset_t start = (size_t)pos;
-	fileoffset_t count = MAGIC_NUMBER_LEN;
+        size64_t start = (size64_t)pos;
+        size64_t count = MAGIC_NUMBER_LEN;
         status = nc_http_read(file->state, start, count, buf);
         if (status == NC_NOERR) {
             if (ncbyteslength(buf) != count)
@@ -1435,7 +1436,7 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 #endif /* USE_PARALLEL */
         { /* Ordinary read */
             long i;
-            i = fseek(file->fp, pos, SEEK_SET);
+            i = fseek(file->fp, (long)pos, SEEK_SET);
             if (i < 0) { status = errno; goto done; }
             ncbytessetlength(buf, 0);
             if ((status = NC_readfileF(file->fp, buf, MAGIC_NUMBER_LEN))) goto done;

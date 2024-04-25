@@ -720,7 +720,7 @@ NC3_inq_var(int ncid,
 	if (no_fillp != NULL) *no_fillp = varp->no_fill;
 
 	if (fill_valuep != NULL) {
-		status = nc_get_att(ncid, varid, _FillValue, fill_valuep);
+		status = nc_get_att(ncid, varid, NC_FillValue, fill_valuep);
 		if (status != NC_NOERR && status != NC_ENOTATT)
 			return status;
 		if (status == NC_ENOTATT) {
@@ -854,12 +854,12 @@ NC3_def_var_fill(int ncid,
 	if (fill_value != NULL && !varp->no_fill) {
 
 		/* If there's a _FillValue attribute, delete it. */
-		status = NC3_del_att(ncid, varid, _FillValue);
+		status = NC3_del_att(ncid, varid, NC_FillValue);
 		if (status != NC_NOERR && status != NC_ENOTATT)
 			return status;
 
 		/* Create/overwrite attribute _FillValue */
-		status = NC3_put_att(ncid, varid, _FillValue, varp->type, 1, fill_value, varp->type);
+		status = NC3_put_att(ncid, varid, NC_FillValue, varp->type, 1, fill_value, varp->type);
 		if (status != NC_NOERR) return status;
 	}
 

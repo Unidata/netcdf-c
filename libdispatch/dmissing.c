@@ -44,7 +44,7 @@ strdup(const char* s)
 #endif
 
 
-#ifndef WIN32
+#if !defined(_MSC_VER) && !defined(WIN32)
 
 #ifndef HAVE_STRLCPY
 /*
@@ -117,7 +117,7 @@ strlcpy(char *dst, const char* src, size_t dsize)
  * If retval >= dsize, truncation occurred.
  */
 size_t
-strlcat(char* dst, const char* src, size_t dsize)
+nc_strlcat(char* dst, const char* src, size_t dsize)
 {
 	const char *odst = dst;
 	const char *osrc = src;
