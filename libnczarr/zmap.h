@@ -217,10 +217,10 @@ extern NCZMAP_DS_API zmap_file;
 #ifdef USE_HDF5
 extern NCZMAP_DS_API zmap_nz4;
 #endif
-#ifdef ENABLE_NCZARR_ZIP
+#ifdef NETCDF_ENABLE_NCZARR_ZIP
 extern NCZMAP_DS_API zmap_zip;
 #endif
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
 extern NCZMAP_DS_API zmap_s3sdk;
 #endif
 
@@ -323,7 +323,7 @@ EXTERNL int nczmap_close(NCZMAP* map, int deleteit);
 EXTERNL int nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
 EXTERNL int nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
 
-#ifdef ENABLE_S3
+#ifdef NETCDF_ENABLE_S3
 EXTERNL void NCZ_s3finalize(void);
 #endif
 

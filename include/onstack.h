@@ -45,7 +45,7 @@
 #endif /* __GNUC__ */
 
 # if !defined(ALLOCA_ARG_T)
-# define ALLOCA_ARG_T int /* the usual type of the alloca argument */
+# define ALLOCA_ARG_T size_t /* the usual type of the alloca argument */
 # endif
 
 # define ALLOC_ONSTACK(name, type, nelems) \

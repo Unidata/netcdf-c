@@ -389,7 +389,7 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     var->meta_read = NC_TRUE;
     var->atts_read = NC_TRUE;
 
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     /* Set the filter list */
     assert(var->filters == NULL);
     var->filters = (void*)nclistnew();
@@ -558,7 +558,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     
     /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
      * before HDF5 1.10.3. */
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
 	if (nclistlength(((NClist*)var->filters)) > 0  || fletcher32 || shuffle)
@@ -727,19 +727,19 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	     var->hdr.name));
 
 	/* If there's a _FillValue attribute, delete it. */
-	retval = NCZ_del_att(ncid, varid, _FillValue);
+	retval = NCZ_del_att(ncid, varid, NC_FillValue);
 	if (retval && retval != NC_ENOTATT)
 	    goto done;
 
         /* Create a _FillValue attribute; will also fill in var->fill_value */
-	if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->hdr.id,
+	if ((retval = nc_put_att(ncid, varid, NC_FillValue, var->type_info->hdr.id,
 				 1, fill_value)))
 	    goto done;
         /* Reclaim any existing fill_chunk */
         if((retval = NCZ_reclaim_fill_chunk(zvar->cache))) goto done;
     } else if (var->fill_value && no_fill && (*no_fill)) { /* Turning off fill value? */
         /* If there's a _FillValue attribute, delete it. */
-        retval = NCZ_del_att(ncid, varid, _FillValue);
+        retval = NCZ_del_att(ncid, varid, NC_FillValue);
         if (retval && retval != NC_ENOTATT) return retval;
 	if((retval = NCZ_reclaim_fill_value(var))) return retval;
     }

@@ -85,7 +85,7 @@ static const char* cygwinspecial[] =
 
 static const struct Path {
     int kind;
-    int drive;
+    char drive;
     char* path;
 } empty = {NCPD_UNKNOWN,0,NULL};
 
@@ -896,7 +896,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
     char sdrive[4] = "\0\0\0\0";
     char* p = NULL;
     int cygspecial = 0;
-    int drive = 0;
+    char drive = 0;
 
     /* Short circuit a relative path */
     if(xp->kind == NCPD_REL) {

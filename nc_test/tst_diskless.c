@@ -126,7 +126,7 @@ printf("*** testing diskless file with scalar vars...");
     int ndims_in, nvars_in, natts_in, unlimdimid_in;
     char name_in[NC_MAX_NAME + 1];
     nc_type type_in;
-    float float_data = 3.14f, float_data_in;
+    float float_data = 3.14F, float_data_in;
     int int_data = 42, int_data_in;
     short short_data = 2, short_data_in;
 
@@ -152,13 +152,13 @@ printf("*** testing diskless file with scalar vars...");
 
     /* Check variables. */
     if (nc_inq_var(ncid, varid0, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
-    if (strcmp(name_in, RESISTOR) || type_in != NC_INT || ndims_in != 0 ||
+    if (strcmp(name_in, RESISTOR) != 0 || type_in != NC_INT || ndims_in != 0 ||
     natts_in != 0) ERR;
     if (nc_inq_var(ncid, varid1, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
-    if (strcmp(name_in, CAPACITOR) || type_in != NC_FLOAT || ndims_in != 0 ||
+    if (strcmp(name_in, CAPACITOR) != 0 || type_in != NC_FLOAT || ndims_in != 0 ||
     natts_in != 0) ERR;
     if (nc_inq_var(ncid, varid2, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
-    if (strcmp(name_in, NUM555) || type_in != NC_SHORT || natts_in != 0) ERR;
+    if (strcmp(name_in, NUM555) != 0 || type_in != NC_SHORT || natts_in != 0) ERR;
 
     /* Read my absolutely crucial data. */
     if (nc_get_vara_int(ncid, varid0, NULL, NULL, &int_data_in)) ERR;
@@ -176,7 +176,7 @@ printf("*** testing diskless file with scalar vars...");
 
     if(!usenetcdf4 && persist) {
         int ncid, varid0, varid1, varid2;
-        float float_data = 3.14f, float_data_in;
+        float float_data = 3.14F, float_data_in;
         int int_data = 42, int_data_in;
         short short_data = 2, short_data_in;
 
@@ -220,12 +220,14 @@ printf("*** testing diskless file with scalar vars...");
     short short_data[DIM1_LEN];
     size_t start[1] = {0};
     size_t count[1] = {DIM1_LEN};
+
     int i;
-    float float_data = 42.22f, float_data_in;
+    float float_data = 42.22F, float_data_in;
+
 
     /* This is some really important data that I want to save. */
-    for (i = 0; i < DIM1_LEN; i++)
-    short_data[i] = i;
+    for (short i = 0; i < DIM1_LEN; i++)
+        short_data[i] = i;
 
     removefile(persist,filename);
 
@@ -262,23 +264,23 @@ printf("*** testing diskless file with scalar vars...");
     * of scientists to understand my data. */
     if (nc_get_att_text(ncid, NC_GLOBAL, ATT0_NAME, att0_in)) ERR;
     att0_in[sizeof(ATT0_TEXT)] = '\0';
-    if (strcmp(att0_in, ATT0_TEXT)) ERR;
+    if (strcmp(att0_in, ATT0_TEXT) != 0) ERR;
 
     /* Check dimensions. */
     if (nc_inq_dim(ncid, dimid[0], name_in, &len_in)) ERR;
-    if (strcmp(name_in, DIM0_NAME) || len_in != 0) ERR;
+    if (strcmp(name_in, DIM0_NAME) != 0 || len_in != 0) ERR;
     if (nc_inq_dim(ncid, dimid[1], name_in, &len_in)) ERR;
-    if (strcmp(name_in, DIM1_NAME) || len_in != DIM1_LEN) ERR;
+    if (strcmp(name_in, DIM1_NAME) != 0 || len_in != DIM1_LEN) ERR;
 
     /* Check variables. */
     if (nc_inq_var(ncid, varid0, name_in, &type_in, &ndims_in, dimid_in, &natts_in)) ERR;
-    if (strcmp(name_in, VAR0_NAME) || type_in != NC_INT || ndims_in != NDIMS ||
+    if (strcmp(name_in, VAR0_NAME) != 0 || type_in != NC_INT || ndims_in != NDIMS ||
     dimid_in[0] != 0 || dimid_in[1] != 1 || natts_in != 0) ERR;
     if (nc_inq_var(ncid, varid1, name_in, &type_in, &ndims_in, dimid_in, &natts_in)) ERR;
-    if (strcmp(name_in, VAR1_NAME) || type_in != NC_FLOAT || ndims_in != 0 ||
+    if (strcmp(name_in, VAR1_NAME) != 0 || type_in != NC_FLOAT || ndims_in != 0 ||
     natts_in != 0) ERR;
     if (nc_inq_var(ncid, varid2, name_in, &type_in, &ndims_in, dimid_in, &natts_in)) ERR;
-    if (strcmp(name_in, VAR2_NAME) || type_in != NC_SHORT || ndims_in != 1 ||
+    if (strcmp(name_in, VAR2_NAME) != 0 || type_in != NC_SHORT || ndims_in != 1 ||
     dimid_in[0] != 1 || natts_in != 0) ERR;
 
     /* Read my absolutely crucial data. */
@@ -301,7 +303,7 @@ printf("*** testing diskless file with scalar vars...");
     int ndims_in, nvars_in, natts_in, unlimdimid_in;
     char name_in[NC_MAX_NAME + 1];
     nc_type type_in;
-    float float_data = 3.14f, float_data_in;
+    float float_data = 3.14F, float_data_in;
     int int_data = 42, int_data_in;
     short short_data = 2, short_data_in;
 
@@ -327,14 +329,14 @@ printf("*** testing diskless file with scalar vars...");
 
     /* Check variables. */
     if (nc_inq_var(ncid, varid0, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
-    if (strcmp(name_in, DUNE) || type_in != NC_INT || ndims_in != 0 ||
+    if (strcmp(name_in, DUNE) != 0 || type_in != NC_INT || ndims_in != 0 ||
     natts_in != 0) ERR;
     if (nc_inq_var(ncid, varid1, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
-    if (strcmp(name_in, STAR_TREK) || type_in != NC_FLOAT || ndims_in != 0 ||
+    if (strcmp(name_in, STAR_TREK) != 0 || type_in != NC_FLOAT || ndims_in != 0 ||
 
     natts_in != 0) ERR;
     if (nc_inq_var(ncid, varid2, name_in, &type_in, &ndims_in, NULL, &natts_in)) ERR;
-    if (strcmp(name_in, STAR_WARS) || type_in != NC_SHORT || natts_in != 0) ERR;
+    if (strcmp(name_in, STAR_WARS) != 0 || type_in != NC_SHORT || natts_in != 0) ERR;
 
     /* Read my absolutely crucial data. */
     if (nc_get_vara_int(ncid, varid0, NULL, NULL, &int_data_in)) ERR;

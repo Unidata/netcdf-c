@@ -282,11 +282,10 @@ done:
 static int
 endswith(const char* s, const char* suffix)
 {
-    ssize_t ls, lsf, delta;
     if(s == NULL || suffix == NULL) return 0;
-    ls = strlen(s);
-    lsf = strlen(suffix);
-    delta = (ls - lsf);
+    size_t ls = strlen(s);
+    size_t lsf = strlen(suffix);
+    ssize_t delta = (ssize_t)(ls - lsf);
     if(delta < 0) return 0;
     if(memcmp(s+delta,suffix,lsf)!=0) return 0;
     return 1;
@@ -404,11 +403,10 @@ static void
 freeprofile(struct AWSprofile* profile)
 {
     if(profile) {
-	int i;
 #ifdef AWSDEBUG
 fprintf(stderr,">>> freeprofile: %s\n",profile->name);
 #endif
-	for(i=0;i<nclistlength(profile->entries);i++) {
+	for(size_t i=0;i<nclistlength(profile->entries);i++) {
 	    struct AWSentry* e = (struct AWSentry*)nclistget(profile->entries,i);
 	    freeentry(e);
 	}
@@ -422,8 +420,7 @@ void
 NC_s3freeprofilelist(NClist* profiles)
 {
     if(profiles) {
-	int i;
-	for(i=0;i<nclistlength(profiles);i++) {
+	for(size_t i=0;i<nclistlength(profiles);i++) {
 	    struct AWSprofile* p = (struct AWSprofile*)nclistget(profiles,i);
 	    freeprofile(p);
 	}
@@ -549,10 +546,9 @@ int
 NC_authgets3profile(const char* profilename, struct AWSprofile** profilep)
 {
     int stat = NC_NOERR;
-    int i = -1;
     NCglobalstate* gstate = NC_getglobalstate();
 
-    for(i=0;i<nclistlength(gstate->rcinfo->s3profiles);i++) {
+    for(size_t i=0;i<nclistlength(gstate->rcinfo->s3profiles);i++) {
 	struct AWSprofile* profile = (struct AWSprofile*)nclistget(gstate->rcinfo->s3profiles,i);
 	if(strcmp(profilename,profile->name)==0)
 	    {if(profilep) {*profilep = profile; goto done;}}
@@ -572,13 +568,13 @@ done:
 int
 NC_s3profilelookup(const char* profile, const char* key, const char** valuep)
 {
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
     struct AWSprofile* awsprof = NULL;
     const char* value = NULL;
 
     if(profile == NULL) return NC_ES3;
     if((stat=NC_authgets3profile(profile,&awsprof))==NC_NOERR && awsprof != NULL) {
-        for(i=0;i<nclistlength(awsprof->entries);i++) {
+        for(size_t i=0;i<nclistlength(awsprof->entries);i++) {
 	    struct AWSentry* entry = (struct AWSentry*)nclistget(awsprof->entries,i);
 	    if(strcasecmp(entry->key,key)==0) {
 		value = entry->value;
@@ -735,7 +731,6 @@ typedef struct AWSparser {
 static int
 awslex(AWSparser* parser)
 {
-    int c;
     int token = 0;
     char* start;
     size_t count;
@@ -751,7 +746,7 @@ awslex(AWSparser* parser)
     }
 
     while(token == 0) { /* avoid need to goto when retrying */
-	c = *parser->pos;
+	char c = *parser->pos;
 	if(c == '\0') {
 	    token = AWS_EOF;
 	} else if(c == '\n') {
@@ -785,7 +780,7 @@ awslex(AWSparser* parser)
 	    }
 	    /* Pushback last char */
 	    parser->pos--;
-	    count = ((parser->pos) - start);
+	    count = (size_t)(parser->pos - start);
 	    ncbytesappendn(parser->yytext,start,count);
 	    ncbytesnull(parser->yytext);
 	    token = AWS_WORD;
@@ -811,7 +806,7 @@ done:
 static int
 awsparse(const char* text, NClist* profiles)
 {
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
     size_t len;
     AWSparser* parser = NULL;
     struct AWSprofile* profile = NULL;
@@ -891,7 +886,7 @@ fprintf(stderr,">>> parse: entry=(%s,%s)\n",entry->key,entry->value);
 	}
 
 	/* If this profile already exists, then replace old one */
-	for(i=0;i<nclistlength(profiles);i++) {
+	for(size_t i=0;i<nclistlength(profiles);i++) {
 	    struct AWSprofile* p = (struct AWSprofile*)nclistget(profiles,i);
 	    if(strcasecmp(p->name,profile->name)==0) {
 		nclistset(profiles,i,profile);

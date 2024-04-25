@@ -12,6 +12,8 @@ Currently two operations are defined:
 */
 
 #include "config.h"
+#include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -30,7 +32,7 @@ Currently two operations are defined:
    necessary in order to get to the right NC* instance.
 */
 
-#if defined(ENABLE_DAP4) || defined(ENABLE_DAP2)
+#if defined(NETCDF_ENABLE_DAP4) || defined(NETCDF_ENABLE_DAP2)
 EXTERNL NC* NCD4_get_substrate(NC* nc);
 EXTERNL NC* NCD2_get_substrate(NC* nc);
 static NC*
@@ -235,7 +237,7 @@ nc_copy_data_all(int ncid, nc_type xtype, const void* memory, size_t count, void
 
     /* allocate the top-level */
     if(count > 0) {
-        if((copy = calloc(xsize,count))==NULL)
+        if((copy = calloc(count,xsize))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
     }
     stat = nc_copy_data(ncid,xtype,memory,count,copy);
@@ -411,7 +413,7 @@ dump_datar(int ncid, nc_type xtype, Position* offset, NCbytes* buf)
 	break;
     }
     if(xtype <= NC_MAX_ATOMIC_TYPE)
-	offset->offset += xsize;
+        offset->offset += (ptrdiff_t)xsize;
 
 done:
     return stat;
@@ -440,12 +442,12 @@ dump_vlen(int ncid, nc_type xtype, nc_type basetype, Position* offset, NCbytes* 
 	voffset.offset = 0;
         for(i=0;i<vl->len;i++) {
 	    if(i > 0) ncbytescat(buf," ");
-	    voffset.offset = NC_read_align(voffset.offset,alignment);
+	    voffset.offset = (ptrdiff_t)NC_read_align((uintptr_t)voffset.offset, alignment);
 	    if((stat = dump_datar(ncid,basetype,&voffset,buf))) goto done;
 	}
     } 
     ncbytescat(buf,")}");
-    offset->offset += sizeof(nc_vlen_t);
+    offset->offset += (ptrdiff_t)sizeof(nc_vlen_t);
     
 done:
     return stat;
@@ -469,12 +471,12 @@ dump_opaque(int ncid, nc_type xtype, size_t size, Position* offset, NCbytes* buf
     /* basically a fixed size sequence of bytes */
     ncbytescat(buf,"|");
     for(i=0;i<size;i++) {
-	unsigned char x = *(offset->memory+offset->offset+i);
+	unsigned char x = (unsigned char)*(offset->memory+offset->offset+i);
 	snprintf(sx,sizeof(sx),"%2x",x);
 	ncbytescat(buf,sx);
     }
     ncbytescat(buf,"|");
-    offset->offset += size;
+    offset->offset += (ptrdiff_t)size;
     return NC_NOERR;
 }
 
@@ -482,7 +484,7 @@ static int
 dump_compound(int ncid, nc_type xtype, size_t size, size_t nfields, Position* offset, NCbytes* buf)
 {
     int stat = NC_NOERR;
-    size_t fid, i, arraycount;
+    size_t i;
     ptrdiff_t saveoffset;
     int ndims;
     int dimsizes[NC_MAX_VAR_DIMS];
@@ -492,7 +494,7 @@ dump_compound(int ncid, nc_type xtype, size_t size, size_t nfields, Position* of
     ncbytescat(buf,"<");
 
     /* Get info about each field in turn and dump it */
-    for(fid=0;fid<nfields;fid++) {
+    for(int fid=0;fid<nfields;fid++) {
 	size_t fieldalignment;
 	nc_type fieldtype;
 	char name[NC_MAX_NAME];
@@ -513,9 +515,9 @@ dump_compound(int ncid, nc_type xtype, size_t size, size_t nfields, Position* of
 	ncbytescat(buf,")");
 	if(ndims == 0) {ndims=1; dimsizes[0]=1;} /* fake the scalar case */
 	/* Align to this field */
-	offset->offset = saveoffset + fieldalignment;
+	offset->offset = saveoffset + (ptrdiff_t)fieldalignment;
 	/* compute the total number of elements in the field array */
-	arraycount = 1;
+	int arraycount = 1;
 	for(i=0;i<ndims;i++) arraycount *= dimsizes[i];
 	for(i=0;i<arraycount;i++) {
 	    if(i > 0) ncbytescat(buf," ");
@@ -525,7 +527,7 @@ dump_compound(int ncid, nc_type xtype, size_t size, size_t nfields, Position* of
     ncbytescat(buf,">");
     /* Return to beginning of the compound and move |compound| */
     offset->offset = saveoffset;
-    offset->offset += size;
+    offset->offset += (ptrdiff_t)size;
 
 done:
     return stat;

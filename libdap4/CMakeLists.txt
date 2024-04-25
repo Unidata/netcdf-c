@@ -20,14 +20,14 @@ set_property(SOURCE d4meta.c
     SKIP_UNITY_BUILD_INCLUSION ON)
 
 add_library(dap4 OBJECT ${dap4_SOURCES})
-target_link_libraries(dap4 PUBLIC ${CURL_LIBRARIES})
+target_link_libraries(dap4 PUBLIC CURL::libcurl ${CURL_LIBRARIES})
 target_include_directories(dap4 PUBLIC ${CURL_INCLUDE_DIRS})
 target_compile_options(dap4
   PRIVATE
     -DCURL_STATICLIB=1
 )
 
-if (ENABLE_DLL)
+if (NETCDF_ENABLE_DLL)
   target_compile_definitions(dap4 PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 

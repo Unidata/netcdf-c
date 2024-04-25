@@ -25,13 +25,6 @@ extern NC_Dispatch UDF0_DISPATCH;
 extern NC_Dispatch UDF1_DISPATCH;
 #endif /* USE_UDF1 */
 
-#ifdef USE_NETCDF4
-/* Pointers to dispatch tables for user-defined formats. */
-extern NC_Dispatch *UDF0_dispatch_table;
-extern NC_Dispatch *UDF1_dispatch_table;
-#endif /* USE_NETCDF4 */
-
-
 
 /**
  * @internal Initialize netCDF-4. If user-defined format(s) have been

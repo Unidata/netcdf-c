@@ -224,13 +224,13 @@ printfilterlist(NC_VAR_INFO_T* var, const char* tag, int line)
 int
 NC4_hdf5_filter_freelist(NC_VAR_INFO_T* var)
 {
-    int i, stat=NC_NOERR;
+    int stat=NC_NOERR;
     NClist* filters = (NClist*)var->filters;
 
     if(filters == NULL) goto done;
 PRINTFILTERLIST(var,"free: before");
     /* Free the filter list backward */
-    for(i=nclistlength(filters)-1;i>=0;i--) {
+    for(size_t i = nclistlength(filters);i-->0;) {
 	struct NC_HDF5_Filter* spec = (struct NC_HDF5_Filter*)nclistremove(filters,i);
 	if(spec->nparams > 0) nullfree(spec->params);
 	nullfree(spec);
@@ -312,11 +312,10 @@ done:
 int
 NC4_hdf5_filter_remove(NC_VAR_INFO_T* var, unsigned int id)
 {
-    int k;
     NClist* flist = (NClist*)var->filters;
 
     /* Walk backwards */
-    for(k=nclistlength(flist)-1;k>=0;k--) {
+    for(size_t k = nclistlength(flist); k-->0;) {
 	struct NC_HDF5_Filter* f = (struct NC_HDF5_Filter*)nclistget(flist,k);
         if(f->filterid == id) {
 	    /* Remove from variable */

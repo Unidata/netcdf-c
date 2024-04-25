@@ -119,11 +119,11 @@ extern int ncgdebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 156 "ncgen.y"
+#line 156 "ncgen/ncgen.y"
 
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
-long           mark; /* track indices into the sequence*/
+size_t         mark; /* track indices into the sequence*/
 int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant*    constant;

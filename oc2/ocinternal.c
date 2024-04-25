@@ -385,15 +385,13 @@ static OCerror
 ocextractddsinmemory(OCstate* state, OCtree* tree, OCflags flags)
 {
     OCerror stat = OC_NOERR;
-    size_t ddslen, bod, bodfound;
+    size_t ddslen, bod;
     /* Read until we find the separator (or EOF)*/
-    bodfound = ocfindbod(state->packet,&bod,&ddslen);
-    if(!bodfound) {/* No BOD; pretend */
-	bod = tree->data.bod;
-	ddslen = tree->data.datasize;
+    int bodfound = ocfindbod(state->packet,&bod,&ddslen);
+    if(bodfound) {
+        tree->data.bod = (off_t)bod;
+        tree->data.ddslen = (off_t)ddslen;
     }
-    tree->data.bod = bod;
-    tree->data.ddslen = ddslen;
     /* copy out the dds */
     if(ddslen > 0) {
         tree->text = (char*)ocmalloc(ddslen+1);
@@ -421,11 +419,18 @@ static OCerror
 ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
 {
     OCerror stat = OC_NOERR;
+
     size_t ddslen, bod, bodfound;
+    int retVal;
 
     /* Read until we find the separator (or EOF)*/
     ncbytesclear(state->packet);
-    rewind(tree->data.file);
+    retVal = fseek(tree->data.file, 0L, SEEK_SET);  
+    if (retVal != 0) {
+    	stat = OC_EDATADDS;
+        return OCTHROW(stat);
+    }
+
     bodfound = 0;
     do {
         char chunk[1024];
@@ -437,16 +442,10 @@ ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
 	ncbytesnull(state->packet);
 	bodfound = ocfindbod(state->packet,&bod,&ddslen);
     } while(!bodfound);
-    if(!bodfound) {/* No BOD; pretend */
-	bod = tree->data.bod;
-	ddslen = tree->data.datasize;
-#ifdef OCDEBUG
-fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
-(unsigned long)ddslen,(unsigned long)bod);
-#endif
+    if(bodfound) {
+        tree->data.bod = (off_t)bod;
+        tree->data.ddslen = (off_t)ddslen;
     }
-    tree->data.bod = bod;
-    tree->data.ddslen = ddslen;
     /* copy out the dds */
     if(ddslen > 0) {
         tree->text = (char*)ocmalloc(ddslen+1);
@@ -511,8 +510,8 @@ ocget_rcproperties(OCstate* state)
 	    unsigned long interval=0;
 	    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
 	        fprintf(stderr,"Illegal KEEPALIVE VALUE: %s\n",option);
-	    state->curlkeepalive.idle = idle;
-	    state->curlkeepalive.interval = interval;
+	    state->curlkeepalive.idle = (long)idle;
+	    state->curlkeepalive.interval = (long)interval;
 	    state->curlkeepalive.active = 1;
 	}
     }

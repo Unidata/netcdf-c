@@ -434,7 +434,7 @@ main(int argc, char **argv)
       for (dim_combo = 0; dim_combo < NUM_DIM_COMBOS; dim_combo++)
       {
          char filename[NC_MAX_NAME + 1];
-         int dim_len = dim_combo ? NC_UNLIMITED : DHR_LEN;
+         size_t dim_len = dim_combo ? NC_UNLIMITED : DHR_LEN;
          int expected_unlimdimid = dim_combo ? 0 : -1;
          char *default_fill = ((char *)"");
          char **string_fillp = dim_combo == 3 ? my_string_fill : &default_fill;
@@ -450,7 +450,7 @@ main(int argc, char **argv)
          /* Create a scalar variable for the empty string. */
          if (nc_def_var(ncid, VAR_NAME2, NC_STRING, 0, NULL, &varid2)) ERR;
          if (dim_combo == 3)
-            if (nc_put_att(ncid, varid, _FillValue, NC_STRING, 1, my_string_fill)) ERR;
+            if (nc_put_att(ncid, varid, NC_FillValue, NC_STRING, 1, my_string_fill)) ERR;
 
          /* Check some stuff. */
          if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -464,7 +464,7 @@ main(int argc, char **argv)
          if (dim_combo)
          {
             size_t start[NDIMS], count[NDIMS] = {1};
-            int counter = 1;
+            size_t counter = 1;
             
             /* Write one record at a time. */
             for (start[0] = 0; start[0] < DHR_LEN; start[0]++)

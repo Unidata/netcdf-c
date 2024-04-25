@@ -225,7 +225,7 @@ define_metadata(int ncid)
     /* Create data to write */
     float_data = FLOATVAL;
 
-    for (i = 0; i < DIM1_LEN; i++)
+    for (short i = 0; i < DIM1_LEN; i++)
         taxi_distance[i] = i;
 
     for (i = 0; i < dimprod; i++)
@@ -301,7 +301,7 @@ modify_file(int ncid)
     if((stat=nc_enddef(ncid))) goto done;
     /* Write data to new variable */
     for(i=0;i<len;i++)
-	data[i] = i;
+       data[i] = (int)i;
     if((stat=nc_put_var_int(ncid,varid3,data))) goto done;
 done:
     return stat;
@@ -327,7 +327,7 @@ modify_file_extra(int ncid)
     if((stat=nc_enddef(ncid))) goto done;
     /* Write data to new variable */
     for(i=0;i<DIMX_LEN;i++)
-	data[i] = i;
+       data[i] = (int)i;
     if((stat=nc_put_var_int(ncid,varidx,data))) goto done;
 done:
     return stat;
@@ -383,27 +383,27 @@ verify_file(int ncid, int modified, int extra)
 
     CHECK(nc_get_att_text(ncid, NC_GLOBAL, ATT0_NAME, att0_in));
     att0_in[sizeof(ATT0_TEXT)] = '\0';
-    if (strcmp(att0_in, ATT0_TEXT)) CHECK(NC_EINVAL);
+    if (strcmp(att0_in, ATT0_TEXT) != 0) CHECK(NC_EINVAL);
 
     /* CHECK dimensions. */
     CHECK(nc_inq_dim(ncid, dimid[0], name_in, &len_in));
-    if (strcmp(name_in, DIM0_NAME)) CHECK(NC_EINVAL);
+    if (strcmp(name_in, DIM0_NAME) != 0) CHECK(NC_EINVAL);
     CHECK(nc_inq_dim(ncid, dimid[1], name_in, &len_in));
-    if (strcmp(name_in, DIM1_NAME) || len_in != DIM1_LEN) CHECK(NC_EINVAL);
+    if (strcmp(name_in, DIM1_NAME) != 0 || len_in != DIM1_LEN) CHECK(NC_EINVAL);
     if(extra) {
         CHECK(nc_inq_dim(ncid, dimid[2], name_in, &len_in));
-        if (strcmp(name_in, DIMX_NAME) || len_in != DIMX_LEN) CHECK(NC_EINVAL);
+        if (strcmp(name_in, DIMX_NAME) != 0 || len_in != DIMX_LEN) CHECK(NC_EINVAL);
     }
 
     /* CHECK variables. */
     CHECK(nc_inq_var(ncid, varid[0], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-    if (strcmp(name_in, VAR0_NAME) || type_in != NC_INT || ndims_in != NDIMS0 ||
+    if (strcmp(name_in, VAR0_NAME) != 0 || type_in != NC_INT || ndims_in != NDIMS0 ||
     dimid_in[0] != 0 || dimid_in[1] != 1 || natts_in != 0) CHECK(NC_EINVAL);
     CHECK(nc_inq_var(ncid, varid[1], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-    if (strcmp(name_in, VAR1_NAME) || type_in != NC_SHORT || ndims_in != 1 || dimid_in[0] != 1 || natts_in != 0)
+    if (strcmp(name_in, VAR1_NAME) != 0 || type_in != NC_SHORT || ndims_in != 1 || dimid_in[0] != 1 || natts_in != 0)
     	CHECK(NC_EINVAL);
     CHECK(nc_inq_var(ncid, varid[2], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-    if (strcmp(name_in, VAR2_NAME) || type_in != NC_FLOAT || ndims_in != 0 || natts_in != 0)
+    if (strcmp(name_in, VAR2_NAME) != 0 || type_in != NC_FLOAT || ndims_in != 0 || natts_in != 0)
     	CHECK(NC_EINVAL);
 
     CHECK(nc_get_var_int(ncid, varid[0], nightdata_in));
@@ -422,7 +422,7 @@ verify_file(int ncid, int modified, int extra)
     if(modified) {
 	size_t unlimlen;
 	CHECK(nc_inq_var(ncid, varid[3], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-        if (strcmp(name_in, VAR3_NAME) || type_in != NC_INT || ndims_in != 1 ||
+        if (strcmp(name_in, VAR3_NAME) != 0 || type_in != NC_INT || ndims_in != 1 ||
 	    dimid_in[0] != 0 || natts_in != 0) CHECK(NC_EINVAL);
         CHECK(nc_inq_dimlen(ncid, dimid_in[0], &unlimlen));
         CHECK(nc_get_var_int(ncid, varid[3], milesdata_in));
@@ -434,7 +434,7 @@ verify_file(int ncid, int modified, int extra)
     if(extra) {
 	size_t xlen;
 	CHECK(nc_inq_var(ncid, varid[4], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-        if (strcmp(name_in, VARX_NAME) || type_in != NC_INT || ndims_in != 1 ||
+        if (strcmp(name_in, VARX_NAME) != 0 || type_in != NC_INT || ndims_in != 1 ||
 	    dimid_in[0] != dimid[2] || natts_in != 0) CHECK(NC_EINVAL);
         CHECK(nc_inq_dimlen(ncid, dimid_in[0], &xlen));
         CHECK(nc_get_var_int(ncid, varid[4], expenses_in));

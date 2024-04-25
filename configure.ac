@@ -280,8 +280,8 @@ AC_SUBST([DOXYGEN_SERVER_BASED_SEARCH], ["NO"])
 AC_ARG_ENABLE([doxygen-pdf-output],
     [AS_HELP_STRING([--enable-doxygen-pdf-output],
         [Build netCDF library documentation in PDF format. Experimental.])])
-               AM_CONDITIONAL([NC_ENABLE_DOXYGEN_PDF_OUTPUT], [test "x$enable_doxygen_pdf_output" = xyes])
-AC_SUBST([NC_ENABLE_DOXYGEN_PDF_OUTPUT], [$enable_doxygen_pdf_output])
+               AM_CONDITIONAL([NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT], [test "x$enable_doxygen_pdf_output" = xyes])
+AC_SUBST([NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT], [$enable_doxygen_pdf_output])
 
 AC_ARG_ENABLE([dot],
 	[AS_HELP_STRING([--enable-dot],
@@ -596,7 +596,7 @@ XMLPARSER="tinyxml2 (bundled)"
 fi
 
 # Need a condition and subst for this
-AM_CONDITIONAL(ENABLE_LIBXML2, [test "x$enable_libxml2" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_LIBXML2, [test "x$enable_libxml2" = xyes])
 AC_SUBST([XMLPARSER],[${XMLPARSER}])
 
 ###
@@ -616,9 +616,9 @@ test "x$enable_quantize" = xno || enable_quantize=yes
 
 AC_MSG_RESULT($enable_quantize)                               
 if test "x${enable_quantize}" = xyes; then
-   AC_DEFINE([ENABLE_QUANTIZE], [1], [if true, enable quantize support])
+   AC_DEFINE([NETCDF_ENABLE_QUANTIZE], [1], [if true, enable quantize support])
 fi
-AM_CONDITIONAL(ENABLE_QUANTIZE, [test x$enable_quantize = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_QUANTIZE, [test x$enable_quantize = xyes])
 
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
@@ -682,14 +682,14 @@ AC_DEFINE_UNQUOTED([REMOTETESTSERVERS], ["$REMOTETESTSERVERS"], [the testservers
 # Set the config.h flags
 if test "x$enable_dap" = xyes; then
    AC_DEFINE([USE_DAP], [1], [if true, build DAP Client])
-   AC_DEFINE([ENABLE_DAP], [1], [if true, build DAP Client])
+   AC_DEFINE([NETCDF_ENABLE_DAP], [1], [if true, build DAP Client])
 fi
 
 if test "x$enable_dap_remote_tests" = xyes; then
-   AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
+   AC_DEFINE([NETCDF_ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
 fi
 if test "x$enable_external_server_tests" = xyes; then
-   AC_DEFINE([ENABLE_EXTERNAL_SERVER_TESTS], [1], [if true, do remote external tests])
+   AC_DEFINE([NETCDF_ENABLE_EXTERNAL_SERVER_TESTS], [1], [if true, do remote external tests])
 fi
 
 AC_MSG_CHECKING([whether the time-consuming dap tests should be enabled (default off)])
@@ -712,10 +712,10 @@ if test "x$enable_nczarr" = xyes ; then
 fi
 
 if test "x$enable_nczarr" = xyes; then
-   AC_DEFINE([ENABLE_NCZARR], [1], [if true, build NCZarr Client])
-   AC_SUBST(ENABLE_NCZARR)
+   AC_DEFINE([NETCDF_ENABLE_NCZARR], [1], [if true, build NCZarr Client])
+   AC_SUBST(NETCDF_ENABLE_NCZARR)
 fi
-AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_NCZARR, [test x$enable_nczarr = xyes])
 
 ##########
 # Look for Standardized libraries
@@ -877,7 +877,7 @@ else
    AC_MSG_RESULT([${enable_nczarr_zip}])
 
    if test "x$enable_nczarr_zip" = xyes ; then
-   AC_DEFINE([ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
+   AC_DEFINE([NETCDF_ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
    fi
 
    # Check for enabling of S3 support
@@ -969,23 +969,23 @@ else
    fi
 
    if test "x$enable_s3" = xyes ; then
-   AC_DEFINE([ENABLE_S3], [1], [if true, build netcdf-c with S3 support enabled])
+   AC_DEFINE([NETCDF_ENABLE_S3], [1], [if true, build netcdf-c with S3 support enabled])
    fi
 
    if test "x$enable_s3_aws" = xyes ; then
       LIBS="$LIBS$S3LIBS"
-      AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
+      AC_DEFINE([NETCDF_ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
    fi
 
    if test "x$enable_s3_internal" = xyes ; then
-      AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
+      AC_DEFINE([NETCDF_ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
    fi
 
    AC_DEFINE_UNQUOTED([WITH_S3_TESTING], [$with_s3_testing], [control S3 testing.])
 
    if test "x$with_s3_testing" = xyes ; then
    AC_MSG_WARN([*** DO NOT SPECIFY WITH_S3_TESTING=YES UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
-   AC_DEFINE([ENABLE_S3_TESTALL], [yes], [control S3 testing.])
+   AC_DEFINE([NETCDF_ENABLE_S3_TESTALL], [yes], [control S3 testing.])
    fi
 fi
 
@@ -1066,7 +1066,7 @@ AC_ARG_ENABLE([utilities],
 test "x$nc_build_c" = xno && enable_utilities=no
 test "x$enable_utilities" = xno && nc_build_utilities=no
 AC_MSG_RESULT($nc_build_utilities)
-AM_CONDITIONAL(BUILD_UTILITIES, [test x$nc_build_utilities = xyes])
+AM_CONDITIONAL(NETCDF_BUILD_UTILITIES, [test x$nc_build_utilities = xyes])
 
 # Does the user want to disable all tests?
 AC_MSG_CHECKING([whether test should be built and run])
@@ -1330,7 +1330,7 @@ if test "x$enable_hdf5" = "xno" ; then
 fi
 
 if test "x$enable_dap4" = xyes; then
-   AC_DEFINE([ENABLE_DAP4], [1], [if true, build DAP4 Client])
+   AC_DEFINE([NETCDF_ENABLE_DAP4], [1], [if true, build DAP4 Client])
 fi
 
 # check for useful, but not essential, memio support
@@ -1399,7 +1399,7 @@ if test "x$found_curl" = xno && test "x$enable_byterange" = xyes ; then
 fi
 
 if test "x$enable_byterange" = xyes; then
-    AC_DEFINE([ENABLE_BYTERANGE], [1], [if true, support byte-range read of remote datasets.])
+    AC_DEFINE([NETCDF_ENABLE_BYTERANGE], [1], [if true, support byte-range read of remote datasets.])
 fi
 
 # Does the user want to disable atexit?
@@ -1422,7 +1422,7 @@ if test "x$enable_atexit_finalize" = xyes ; then
 fi
 
 if test "x$enable_atexit_finalize" = xyes ; then
-  AC_DEFINE([ENABLE_ATEXIT_FINALIZE], [1], [If true, enable nc_finalize via atexit()])
+  AC_DEFINE([NETCDF_ENABLE_ATEXIT_FINALIZE], [1], [If true, enable nc_finalize via atexit()])
 fi
 
 # Need libdl(d) for plugins
@@ -1448,9 +1448,9 @@ if test "x$enable_plugins" = xyes && test "x$enable_shared" = xno; then
 fi
 
 if test "x$enable_plugins" = xyes; then
-    AC_DEFINE([ENABLE_PLUGINS], [1], [if true, support dynamically loaded plugins])
+    AC_DEFINE([NETCDF_ENABLE_PLUGINS], [1], [if true, support dynamically loaded plugins])
 fi
-AM_CONDITIONAL(ENABLE_PLUGINS, [test "x$enable_plugins" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_PLUGINS, [test "x$enable_plugins" = xyes])
 AC_SUBST(USEPLUGINS, [${enable_plugins}])
 
 AC_FUNC_ALLOCA
@@ -1530,9 +1530,9 @@ else
 fi
 
 if test "x${enable_cdf5}" = xyes; then
-   AC_DEFINE([ENABLE_CDF5], [1], [if true, enable CDF5 Support])
+   AC_DEFINE([NETCDF_ENABLE_CDF5], [1], [if true, enable CDF5 Support])
 fi
-AM_CONDITIONAL(ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
+AM_CONDITIONAL(NETCDF_ENABLE_CDF5, [test x$enable_cdf5 = xyes ])
 
 $SLEEPCMD
 if test "$ac_cv_type_uchar" = yes ; then
@@ -1639,7 +1639,7 @@ if test "x$enable_hdf5" = xyes; then
    # See if hdf5 library supports Read-Only S3 (byte-range) driver
    AC_SEARCH_LIBS([H5Pset_fapl_ros3],[hdf5_hldll hdf5_hl], [has_hdf5_ros3=yes], [has_hdf5_ros3=no])
    if test "x$has_hdf5_ros3" = xyes && test "x$enable_byterange" = xyes; then
-    AC_DEFINE([ENABLE_HDF5_ROS3], [1], [if true, support byte-range using hdf5 virtual file driver.])
+    AC_DEFINE([NETCDF_ENABLE_HDF5_ROS3], [1], [if true, support byte-range using hdf5 virtual file driver.])
    fi
 
    # Check to see if HDF5 library is 1.10.3 or greater. If so, allows
@@ -1887,15 +1887,15 @@ enable_nczarr_filter_testing=no
 fi
 
 if test "x$enable_nczarr_filters" = xyes; then
-   AC_DEFINE([ENABLE_NCZARR_FILTERS], [1], [if true, enable NCZarr filters])
+   AC_DEFINE([NETCDF_ENABLE_NCZARR_FILTERS], [1], [if true, enable NCZarr filters])
 fi
 
 # Client side filter registration is permanently disabled
 enable_clientside_filters=no
 
 AM_CONDITIONAL(ENABLE_CLIENTSIDE_FILTERS, [test x$enable_clientside_filters = xyes])
-AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
-AM_CONDITIONAL(ENABLE_NCZARR_FILTERS, [test x$enable_nczarr_filters = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_NCZARR_FILTERS, [test x$enable_nczarr_filters = xyes])
 
 # Automake conditionals need to be called, whether the answer is yes
 # or no.
@@ -1904,14 +1904,14 @@ AM_CONDITIONAL(TEST_PARALLEL4, [test "x$enable_parallel4" = xyes -a "x$enable_pa
 AM_CONDITIONAL(BUILD_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
 # Provide protocol specific flags
-AM_CONDITIONAL(ENABLE_DAP, [test "x$enable_dap" = xyes])
-AM_CONDITIONAL(ENABLE_DAP4, [test "x$enable_dap4" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_DAP, [test "x$enable_dap" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_DAP4, [test "x$enable_dap4" = xyes])
 AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes])
-AM_CONDITIONAL(ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
-AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
-AM_CONDITIONAL(ENABLE_EXTERNAL_SERVER_TESTS, [test "x$enable_external_server_tests" = xyes])
-AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
-AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_EXTERNAL_SERVER_TESTS, [test "x$enable_external_server_tests" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
@@ -1926,17 +1926,17 @@ AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
 AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
-AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 # We need to simplify the set of S3 and Zarr flag combinations
-AM_CONDITIONAL(ENABLE_S3, [test "x$enable_s3" = xyes])
-AM_CONDITIONAL(ENABLE_S3_AWS, [test "x$enable_s3_aws" = xyes])
-AM_CONDITIONAL(ENABLE_S3_INTERNAL, [test "x$enable_s3_internal" = xyes])
-AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
-AM_CONDITIONAL(ENABLE_S3_TESTPUB, [test "x$with_s3_testing" != xno]) # all => public
-AM_CONDITIONAL(ENABLE_S3_TESTALL, [test "x$with_s3_testing" = xyes])
-AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_S3, [test "x$enable_s3" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_S3_AWS, [test "x$enable_s3_aws" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_S3_INTERNAL, [test "x$enable_s3_internal" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_S3_TESTPUB, [test "x$with_s3_testing" != xno]) # all => public
+AM_CONDITIONAL(NETCDF_ENABLE_S3_TESTALL, [test "x$with_s3_testing" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
 AM_CONDITIONAL(HAVE_DEFLATE, [test "x$have_deflate" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
 AM_CONDITIONAL(HAVE_H5Z_SZIP, [test "x$enable_hdf5_szip" = xyes])
@@ -2045,7 +2045,7 @@ AC_SUBST(HAS_S3_AWS,[$enable_s3_aws])
 AC_SUBST(HAS_S3_INTERNAL,[$enable_s3_internal])
 AC_SUBST(HAS_HDF5_ROS3,[$has_hdf5_ros3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
-AC_SUBST(ENABLE_S3_TESTING,[$with_s3_testing])
+AC_SUBST(NETCDF_ENABLE_S3_TESTING,[$with_s3_testing])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 AC_SUBST(HAS_QUANTIZE,[$enable_quantize])

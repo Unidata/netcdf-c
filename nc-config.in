@@ -80,6 +80,7 @@ Available values for OPTION include:
   --libdir        Library directory
   --plugindir     Plugin directory
   --version       Library version
+  --build-system  Build System
 
 EOF
 
@@ -120,6 +121,7 @@ all()
         echo "  --libdir           -> $libdir"
         echo "  --plugindir        -> $plugindir"
         echo "  --version          -> $version"
+        echo "  --build-system     -> autotools"
         echo
 }
 
@@ -156,7 +158,9 @@ while test $# -gt 0; do
     --all)
         all
         ;;
-
+    --build-system)
+        echo "autotools"
+        ;;
     --cc)
         echo $cc
         ;;

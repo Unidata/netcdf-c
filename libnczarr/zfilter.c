@@ -423,12 +423,12 @@ done:
 int
 NCZ_filter_remove(NC_VAR_INFO_T* var, unsigned int id)
 {
-    int k, stat = NC_NOERR;
+    int stat = NC_NOERR;
     NClist* flist = (NClist*)var->filters;
 
     ZTRACE(6,"var=%s id=%u",var->hdr.name,id);
     /* Walk backwards */
-    for(k=nclistlength(flist)-1;k>=0;k--) {
+    for(size_t k = nclistlength(flist); k-->0;) {
 	struct NCZ_Filter* f = (struct NCZ_Filter*)nclistget(flist,k);
         if(f->hdf5.id == id) {
 	    /* Remove from variable */
@@ -523,7 +523,7 @@ nc_var_filter_remove(int ncid, int varid, unsigned int filterid)
 }
 #endif
 
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 int
 NCZ_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
                    const unsigned int* params)
@@ -743,7 +743,7 @@ done:
     return ZUNTRACE(stat);
 }
 
-#endif /*ENABLE_NCZARR_FILTERS*/
+#endif /*NETCDF_ENABLE_NCZARR_FILTERS*/
 
 /**************************************************/
 /* Filter application functions */
@@ -760,7 +760,7 @@ NCZ_filter_initialize(void)
     codec_defaults = nclistnew();
     NCZ_filter_initialized = 1;
     memset(loaded_plugins,0,sizeof(loaded_plugins));
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     if((stat = NCZ_load_all_plugins())) goto done;
 #endif
 
@@ -775,7 +775,7 @@ NCZ_filter_finalize(void)
     int i;
     ZTRACE(6,"");
     if(!NCZ_filter_initialized) goto done;
-#ifdef ENABLE_NCZARR_FILTERS
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     /* Reclaim all loaded filters */
 #ifdef DEBUGL
     fprintf(stderr,">>>  DEBUGL: finalize reclaim:\n");
@@ -896,9 +896,8 @@ fprintf(stderr,">>> next: alloc=%u used=%u buf=%p\n",(unsigned)next_alloc,(unsig
 	    }
 	} else {
 	    /* Apply in reverse order */
-            int k;
-            for(k=(int)nclistlength(chain)-1;k>=0;k--) {
-              f = (struct NCZ_Filter*)nclistget(chain,(size_t)k);	
+            for(size_t k=nclistlength(chain); k-->0;) {
+              f = (struct NCZ_Filter*)nclistget(chain, k);
 		if(f->flags & FLAG_SUPPRESS) continue; /* this filter should not be applied */
 	        ff = f->plugin->hdf5.filter;
 	        /* code can be simplified */

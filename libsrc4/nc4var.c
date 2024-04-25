@@ -84,7 +84,7 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
     assert(nc && grp && h5);
 
     /* Find the var. */
-    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,(size_t)varid);
     if(!var)
         return NC_ENOTVAR;
     assert(var && var->hdr.id == varid);
@@ -129,7 +129,7 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
         return ret;
 
     if (sizep)
-        *sizep = real_size / MEGABYTE;
+        *sizep = (int)(real_size / MEGABYTE);
     if (nelemsp)
         *nelemsp = (int)real_nelems;
     if(preemptionp)
@@ -204,7 +204,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     }
 
     /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
         return NC_ENOTVAR;
     assert(var && var->hdr.id == varid);
 
@@ -214,7 +214,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     if (xtypep)
         *xtypep = var->type_info->hdr.id;
     if (ndimsp)
-        *ndimsp = var->ndims;
+        *ndimsp = (int)var->ndims;
     if (dimidsp)
         for (d = 0; d < var->ndims; d++)
             dimidsp[d] = var->dimids[d];
@@ -575,7 +575,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 	    }else if (quantize_mode == NC_QUANTIZE_BITROUND){
 
 	      /* BitRound interprets nsd as number of significant binary digits (bits) */
-	      prc_bnr_xpl_rqr = nsd;
+	      prc_bnr_xpl_rqr = (unsigned short)nsd;
 	      
 	    }
 	    
@@ -585,7 +585,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
 
 		/* Create mask */
-		msk_f32_u32_zro = 0u; /* Zero all bits */
+		msk_f32_u32_zro = 0U; /* Zero all bits */
 		msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
 		
 		/* BitShave mask for AND: Left shift zeros into bits to be
@@ -605,7 +605,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 
 		bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;
 		/* Create mask. */
-		msk_f64_u64_zro = 0ul; /* Zero all bits. */
+		msk_f64_u64_zro = 0UL; /* Zero all bits. */
 		msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones. */
 		
 		/* BitShave mask for AND: Left shift zeros into bits to be
@@ -1457,11 +1457,11 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		    /* 20211003 Continuous determination of dgt_nbr improves CR by ~10% */
 		    dgt_nbr = (int)floor(xpn_bs2 * dgt_per_bit + mnt_log10_fabs) + 1; /* DGG19 p. 4102 (8.67) */
 		    qnt_pwr = (int)floor(bit_per_dgt * (dgt_nbr - nsd)); /* DGG19 p. 4101 (7) */
-		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
+		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : (unsigned short)abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
 		    prc_bnr_xpl_rqr--; /* 20211003 Reduce formula result by 1 bit: Passes all tests, improves CR by ~10% */
 
 		    bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
-		    msk_f32_u32_zro = 0u; /* Zero all bits */
+		    msk_f32_u32_zro = 0U; /* Zero all bits */
 		    msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
 		    /* Bit Shave mask for AND: Left shift zeros into bits to be rounded, leave ones in untouched bits */
 		    msk_f32_u32_zro <<= bit_xpl_nbr_zro;
@@ -1491,11 +1491,11 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		    /* 20211003 Continuous determination of dgt_nbr improves CR by ~10% */
 		    dgt_nbr = (int)floor(xpn_bs2 * dgt_per_bit + mnt_log10_fabs) + 1; /* DGG19 p. 4102 (8.67) */
 		    qnt_pwr = (int)floor(bit_per_dgt * (dgt_nbr - nsd)); /* DGG19 p. 4101 (7) */
-		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
+		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : (unsigned short)abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
 		    prc_bnr_xpl_rqr--; /* 20211003 Reduce formula result by 1 bit: Passes all tests, improves CR by ~10% */
 
 		    bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;
-		    msk_f64_u64_zro = 0ull; /* Zero all bits */
+		    msk_f64_u64_zro = 0ULL; /* Zero all bits */
 		    msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones */
 		    /* Bit Shave mask for AND: Left shift zeros into bits to be rounded, leave ones in untouched bits */
 		    msk_f64_u64_zro <<= bit_xpl_nbr_zro;
@@ -1763,8 +1763,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
         LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
              "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[0]));
     }
-    if (var->ndims > 1 && var->ndims == num_unlim) { /* all dims unlimited */
-        suggested_size = pow((double)DEFAULT_CHUNK_SIZE/type_size, 1.0/(double)(var->ndims));
+    if (var->ndims > 1 && (float)var->ndims == num_unlim) { /* all dims unlimited */
+        suggested_size = (size_t)pow((double)DEFAULT_CHUNK_SIZE/(double)type_size, 1.0/(double)(var->ndims));
         for (d = 0; d < var->ndims; d++)
         {
             var->chunksizes[d] = suggested_size ? suggested_size : 1;
@@ -1778,8 +1778,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     for (d = 0; d < var->ndims; d++)
         if (!var->chunksizes[d])
         {
-            suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size),
-                                  1.0/(double)(var->ndims - num_unlim)) * var->dim[d]->len - .5);
+            suggested_size = (size_t)(pow((double)DEFAULT_CHUNK_SIZE/(num_values * (double)type_size),
+                                        1.0/(double)((double)var->ndims - num_unlim)) * (double)var->dim[d]->len - .5);
             if (suggested_size > var->dim[d]->len)
                 suggested_size = var->dim[d]->len;
             var->chunksizes[d] = suggested_size ? suggested_size : 1;

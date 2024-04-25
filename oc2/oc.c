@@ -1762,13 +1762,13 @@ fetch command.
 \retval the HTTP code
 */
 
-OCerror
+int
 oc_httpcode(OCobject link)
 {
     OCstate* state;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
-    return state->error.httpcode;
+    return (int)state->error.httpcode;
 }
 
 /**************************************************/
