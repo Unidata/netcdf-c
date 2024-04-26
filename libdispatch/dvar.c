@@ -867,9 +867,7 @@ nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
 
     /* This will cause H5Pset_szip to be called when the var is
      * created. */
-    unsigned int params[2];
-    params[0] = options_mask;
-    params[1] = pixels_per_block;
+    unsigned int params[2] = {(unsigned int)options_mask, (unsigned int)pixels_per_block};
     if ((ret = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, params)))
         return ret;
 

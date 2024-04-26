@@ -5,6 +5,7 @@
  *********************************************************************/
 
 #include "includes.h"
+#include <stddef.h>
 
 #ifdef ENABLE_JAVA
 
@@ -37,14 +38,14 @@ static void genj_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 void
 genjava_netcdf(void)
 {
-    int idim, ivar, iatt, maxdims;
-    int ndims, nvars, natts, ngatts;
+    size_t idim, ivar, iatt;
+    int maxdims;
     const char *filename = rootgroup->file.filename;
 
-    ndims = listlength(dimdefs);
-    nvars = listlength(vardefs);
-    natts = listlength(attdefs);
-    ngatts = listlength(gattdefs);
+    size_t ndims = listlength(dimdefs);
+    size_t nvars = listlength(vardefs);
+    size_t natts = listlength(attdefs);
+    size_t ngatts = listlength(gattdefs);
 
     /* Construct the main class */
     codeline("import java.util.*;");

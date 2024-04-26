@@ -16,7 +16,7 @@
 #include "isnan.h"
 
 #define FILE8_NAME "tst_nans.nc"
-#define FV_NAME _FillValue	/* defined in netcdf.h */
+#define FV_NAME NC_FillValue	/* defined in netcdf.h */
 #define FV_NVALS 1
 #define ATT_NAME "att"
 #define NDIMS 1

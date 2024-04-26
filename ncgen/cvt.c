@@ -9,6 +9,7 @@
 #include "bytebuffer.h"
 #include "isnan.h"
 #include <math.h>
+#include <stddef.h>
 
 
 #ifndef nulldup
@@ -71,7 +72,7 @@ case CASE(NC_CHAR,NC_CHAR):
     tmp.charv  = src->value.charv;
     break;
 case CASE(NC_CHAR,NC_BYTE):
-    tmp.int8v  = (unsigned char)src->value.charv;
+    tmp.int8v  = (signed char)src->value.charv;
     break;
 case CASE(NC_CHAR,NC_UBYTE):
     tmp.uint8v	= (unsigned char)src->value.charv;
@@ -559,8 +560,8 @@ case CASE(NC_OPAQUE,NC_DOUBLE):
     tmp.doublev = *(double*)bytes;
   break;
 case CASE(NC_OPAQUE,NC_OPAQUE):
-    tmp.opaquev.stringv = (char*)ecalloc((size_t)src->value.opaquev.len+1);
-    memcpy(tmp.opaquev.stringv,src->value.opaquev.stringv, (size_t)src->value.opaquev.len);
+    tmp.opaquev.stringv = (char*)ecalloc(src->value.opaquev.len+1);
+    memcpy(tmp.opaquev.stringv,src->value.opaquev.stringv, src->value.opaquev.len);
     tmp.opaquev.len = src->value.opaquev.len;
     tmp.opaquev.stringv[tmp.opaquev.len] = '\0';
     break;
@@ -636,11 +637,10 @@ convertstringtochars(NCConstant* str)
 {
     int i;
     Datalist* dl;
-    int slen;
     char* s;
 
-    slen = str->value.stringv.len;
-    dl = builddatalist(slen);
+    size_t slen = str->value.stringv.len;
+    dl = builddatalist((int)slen);
     s = str->value.stringv.stringv;
     for(i=0;i<slen;i++) {
 	NCConstant con;
