@@ -673,17 +673,17 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
              var->hdr.name));
 
         /* If there's a _FillValue attribute, delete it. */
-        retval = NC4_HDF5_del_att(ncid, varid, _FillValue);
+        retval = NC4_HDF5_del_att(ncid, varid, NC_FillValue);
         if (retval && retval != NC_ENOTATT)
             return retval;
 
         /* Create a _FillValue attribute; will also fill in var->fill_value */
-        if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->hdr.id,
+        if ((retval = nc_put_att(ncid, varid, NC_FillValue, var->type_info->hdr.id,
                                  1, fill_value)))
             return retval;
     } else if (var->fill_value && no_fill && (*no_fill)) { /* Turning off fill value? */
         /* If there's a _FillValue attribute, delete it. */
-        retval = NC4_HDF5_del_att(ncid, varid, _FillValue);
+        retval = NC4_HDF5_del_att(ncid, varid, NC_FillValue);
         if (retval && retval != NC_ENOTATT) return retval;
 	if((retval = NC_reclaim_data_all(h5->controller,var->type_info->hdr.id,var->fill_value,1))) return retval;
 	var->fill_value = NULL;

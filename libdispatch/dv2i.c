@@ -1411,7 +1411,7 @@ ncattput(
     const void*	value
 )
 {
-	const int status = nc_put_att(ncid, varid, name, datatype, len, value);
+	const int status = nc_put_att(ncid, varid, name, datatype, (size_t)len, value);
 	if(status != NC_NOERR)
 	{
 		nc_advise("ncattput", status, "ncid %d", ncid);

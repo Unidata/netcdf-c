@@ -736,7 +736,7 @@ ncexhashiterate(NCexhashmap* map, ncexhashkey_t* keyp, uintptr_t* datap)
 void
 ncexhashprint(NCexhashmap* hm)
 {
-    int dirindex,index;
+    int index;
 
     if(hm == NULL) {fprintf(stderr,"NULL"); fflush(stderr); return;}
     fprintf(stderr,"{depth=%u leaflen=%u",hm->depth,hm->leaflen);
@@ -745,9 +745,9 @@ ncexhashprint(NCexhashmap* hm)
 		hm->iterator.leaf,hm->iterator.index);
     }
     fprintf(stderr,"\n");
-    for(dirindex=0;dirindex<(1<<hm->depth);dirindex++) {
+    for(size_t dirindex=0;dirindex<(1<<hm->depth);dirindex++) {
 	NCexleaf* leaf = hm->directory[dirindex];
-	fprintf(stderr,"\tdirectory[%03d|%sb]=(%04x)[(%u)^%d|%d|",
+	fprintf(stderr,"\tdirectory[%03zu|%sb]=(%04x)[(%u)^%d|%d|",
 		dirindex,ncexbinstr(dirindex,hm->depth),
 		leaf->active,
 		(unsigned)(0xffff & (uintptr_t)leaf),
@@ -776,10 +776,9 @@ ncexhashprint(NCexhashmap* hm)
 void
 ncexhashprintdir(NCexhashmap* map, NCexleaf** dir)
 {
-    int dirindex;
-    for(dirindex=0;dirindex<(1<<map->depth);dirindex++) {
+    for(unsigned long long dirindex=0;dirindex<(1<<map->depth);dirindex++) {
 	NCexleaf* leaf = dir[dirindex];
-	fprintf(stderr,"\tdirectory[%03d|%sb]=%d/%p\n",
+	fprintf(stderr,"\tdirectory[%03llu|%sb]=%d/%p\n",
 		dirindex,ncexbinstr(dirindex,map->depth),leaf->uid,leaf);
     }
     fflush(stderr);
@@ -831,14 +830,14 @@ ncexbinstr(ncexhashkey_t hkey, int depth)
 void
 ncexhashprintstats(NCexhashmap* map)
 {
-    int nactive, nleaves;
+    int nactive;
     NCexleaf* leaf = NULL;
     double leafavg = 0.0;
     double leafload = 0.0;
     unsigned long long dirsize, leafsize, total;
     
     nactive = 0;
-    nleaves = 0;
+    unsigned long long nleaves = 0;
     for(leaf=map->leaves;leaf;leaf=leaf->next) {
         nleaves++;
 	nactive += leaf->active;
@@ -850,7 +849,7 @@ ncexhashprintstats(NCexhashmap* map)
     if(nactive != map->nactive) {
 	fprintf(stderr,"nactive mismatch: map->active=%d actual=%d\n",map->nactive,nactive);
     }
-    fprintf(stderr,"|directory|=%llu nleaves=%d nactive=%d",
+    fprintf(stderr,"|directory|=%llu nleaves=%llu nactive=%d",
 	(unsigned long long)(1<<(map->depth)),nleaves,nactive);
     fprintf(stderr," |leaf|=%d nactive/nleaves=%g", map->leaflen, leafavg);
     fprintf(stderr," load=%g",leafload);

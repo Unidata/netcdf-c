@@ -564,7 +564,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
      * Since fill mismatch is no longer required, we need to convert the
      * att's type to the vars's type as part of storing.
      */
-    if (!strcmp(att->hdr.name, _FillValue) && varid != NC_GLOBAL)
+    if (!strcmp(att->hdr.name, NC_FillValue) && varid != NC_GLOBAL)
     {
         /* Fill value must have exactly one value */
         if (len != 1)

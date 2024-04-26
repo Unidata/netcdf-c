@@ -156,9 +156,9 @@ cloneconstant(NCConstant* con)
 	newcon->value.stringv.stringv = s;
 	break;
     case NC_OPAQUE:
-	s = (char*)ecalloc((size_t)newcon->value.opaquev.len+1);
+	s = (char*)ecalloc(newcon->value.opaquev.len+1);
 	if(newcon->value.opaquev.len > 0)
-	    memcpy(s,newcon->value.opaquev.stringv, (size_t)newcon->value.opaquev.len);
+	    memcpy(s,newcon->value.opaquev.stringv, newcon->value.opaquev.len);
 	s[newcon->value.opaquev.len] = '\0';
 	newcon->value.opaquev.stringv = s;
 	break;
@@ -219,7 +219,7 @@ datalistline(Datalist* ds)
 */
 
 static char* commifyr(char* p, Bytebuffer* buf);
-static char* wordstring(char* p, Bytebuffer* buf, int quote);
+static char* wordstring(char* p, Bytebuffer* buf, char quote);
 
 void
 commify(Bytebuffer* buf)
@@ -242,7 +242,7 @@ static char*
 commifyr(char* p, Bytebuffer* buf)
 {
     int comma = 0;
-    int c;
+    char c;
     while((c=*p++)) {
 	if(c == ' ') continue;
 	if(c == ',') continue;
@@ -267,7 +267,7 @@ commifyr(char* p, Bytebuffer* buf)
 char*
 word(char* p, Bytebuffer* buf)
 {
-    int c;
+    char c;
     while((c=*p++)) {
 	if(c == '}' || c == ' ' || c == ',') break;
 	if(c == '\\') {
@@ -275,16 +275,16 @@ word(char* p, Bytebuffer* buf)
 	    c=*p++;
 	    if(!c) break;
 	}
-	bbAppend(buf,(char)c);	
+	bbAppend(buf, c);
     }	
     p--; /* leave terminator for parent */
     return p;
 }
 
 static char*
-wordstring(char* p, Bytebuffer* buf, int quote)
+wordstring(char* p, Bytebuffer* buf, char quote)
 {
-    int c;
+    char c;
     bbAppend(buf,quote);
     while((c=*p++)) {	    
 	if(c == '\\') {
@@ -309,7 +309,7 @@ alignbuffer(NCConstant* prim, Bytebuffer* buf)
 {
     int stat = NC_NOERR;
     size_t alignment;
-    int pad,offset;
+    size_t pad,offset;
 
     ASSERT(prim->nctype != NC_COMPOUND);
 
@@ -392,7 +392,7 @@ vbbprintf(Bytebuffer* buf, const char* fmt, va_list argv)
 {
     char tmp[128];
     const char* p;
-    int c;
+    char c;
     int hcount;
     int lcount;
 
@@ -481,8 +481,8 @@ retry:	    switch ((c=*p++)) {
 		bbCat(buf,text);
 		break;		
 	    case 'c':
-		c = va_arg(argv,int);
-		bbAppend(buf,(char)c);
+		c = (char)va_arg(argv,int);
+		bbAppend(buf,c);
 		break;		
             default:
 		PANIC1("vbbprintf: unknown specifier: %c",(char)c);
@@ -629,11 +629,10 @@ dlset(Datalist* dl, size_t pos, NCConstant* constant)
 NCConstant*
 dlremove(Datalist* dl, size_t pos)
 {
-    int i;
     NCConstant* con = NULL;
     ASSERT(dl->length > 0 && pos < dl->length);	
     con = dl->data[pos];
-    for(i=pos+1;i<dl->length;i++)
+    for(size_t i=pos+1;i<dl->length;i++)
         dl->data[i-1] = dl->data[i];
     dl->length--;
     return con;
@@ -642,10 +641,9 @@ dlremove(Datalist* dl, size_t pos)
 void
 dlinsert(Datalist* dl, size_t pos, Datalist* insertion)
 {
-    int i;
-    int len1 = datalistlen(dl);
-    int len2 = datalistlen(insertion);
-    int delta = len1 - pos;
+    size_t len1 = datalistlen(dl);
+    size_t len2 = datalistlen(insertion);
+    ptrdiff_t delta = (ptrdiff_t)(len1 - pos);
     dlsetalloc(dl, len2+len1+1);
 
    
@@ -653,7 +651,7 @@ dlinsert(Datalist* dl, size_t pos, Datalist* insertion)
     if(delta > 0)
         memmove(&dl->data[pos+len2],&dl->data[pos], (size_t)delta*sizeof(NCConstant*));
     dl->length += len2;
-    for(i=0;i<len2;i++) {
+    for(size_t i=0;i<len2;i++) {
 	NCConstant* con = insertion->data[i];
 	con = cloneconstant(con);
         dl->data[pos+i] = con;
@@ -701,7 +699,7 @@ clonedatalist(Datalist* dl)
 
     if(dl == NULL) return NULL;
     len = datalistlen(dl);
-    newdl = builddatalist(len);
+    newdl = builddatalist((int)len);
     /* initialize */
     for(i=0;i<len;i++) {
 	NCConstant* con = datalistith(dl,i);
@@ -776,8 +774,7 @@ freedatalist(Datalist* list)
 void
 reclaimalldatalists(void)
 {
-    int i;
-    for(i=0;i<listlength(alldatalists);i++) {
+    for(size_t i=0;i<listlength(alldatalists);i++) {
         Datalist* di = listget(alldatalists,i);
 	if(di != NULL)
 	    reclaimdatalist(di);

@@ -1005,9 +1005,9 @@ main(int argc, char **argv)
 		if (nc_create(FILE_NAME, mode, &ncid)) ERR;
 		if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
 		if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
-		if (nc_put_att_float(ncid, varid1, _FillValue, NC_FLOAT, 1, &custom_fill_float)) ERR;
+		if (nc_put_att_float(ncid, varid1, NC_FillValue, NC_FLOAT, 1, &custom_fill_float)) ERR;
 		if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
-		if (nc_put_att_double(ncid, varid2, _FillValue, NC_DOUBLE, 1, &custom_fill_double)) ERR;
+		if (nc_put_att_double(ncid, varid2, NC_FillValue, NC_DOUBLE, 1, &custom_fill_double)) ERR;
 
 		/* Turn on quantize for both vars. */
 		if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NSD_3)) ERR;
