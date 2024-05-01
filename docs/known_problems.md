@@ -207,8 +207,7 @@ Currently the workarounds are to either
 -   Use netCDF-4.1.2-beta2 or later with HDF5 1.8.6
 
 The HDF5 1.8.5-patch1 release is available from the HDF5 site at
-<http://www.hdfgroup.org/ftp/HDF5/prev-releases/> or from the netCDF-4
-ftp site at <ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4>.
+<http://www.hdfgroup.org/ftp/HDF5/prev-releases/>.
 
 ### Make tries to regenerate documentation with texi2dvi command {#texi2dvi}
 
@@ -511,8 +510,7 @@ that there is a workaround:
 John Storrs reported a bug using ncdump -v applied to netCDF-4 files, in
 which an erroneous 'group not found' message was displayed for valid
 group/var names. This is fixed in the next release, and the fix is also
-in the [current snapshot
-release](ftp://ftp.unidata.ucar.edu/pub/netcdf/snapshot/).
+in the current snapshot release.
 
 Known Problems with netCDF 4.0
 ------------------------------
@@ -594,8 +592,7 @@ the link flags in the generated Makefiles. Set LDFLAGS to include
 There is a bug in the 4.0 release related to the lengths of dimensions
 when more than one unlimited dimension is used in the same variable.
 
-The bug is fixed in the latest [netCDF-4 snapshot
-release](ftp://ftp.unidata.ucar.edu/pub/netcdf/snapshot/netcdf-4-daily.tar.gz).
+The bug is fixed in the latest netCDF-4 snapshot release.
 
 ### Fortran90 interface Using Intel ifort under Cygwin {#ifort-f90-cygwin}
 
@@ -1245,9 +1242,7 @@ serious bug in using the new large file support in netCDF 3.6.0. Users
 of the new large file facilities are cautioned to either apply [this
 one-line patch to netCDF
 3.6.0](/software/netcdf/patches/patch-3.6.0-cdf2) or to upgrade from
-version 3.6.0 to the current release version 3.6.0-p1, available from
-[netcdf.tar.Z](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.Z) or
-[netcdf.tar.gz](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz).
+version 3.6.0 to the current release version 3.6.0-p1.
 Until you can upgrade, avoid rewriting in place any large (&gt; 2 GiB)
 netCDF files that use the new 64-bit offset format under the conditions
 described below.
@@ -1292,15 +1287,13 @@ format?](/software/netcdf/faq.html#Large%20File%20Support5).
 
 ### Cygwin Build Doesn't Work {#bad-cygwin}
 
-To build on Cygwin, you must get the [latest 3.6.1 beta
-release](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-beta.tar.gz).
+To build on Cygwin, you must get the latest 3.6.1 beta release.
 
 ### Windows DLL doesn't include F77 API {#dll-fortran}
 
 The netCDF windows DLL doesn't include the Fortran API. We are working
 on this problem for the next release. Meanwhile, if you need the fortran
-API in your DLL, you'll have to use the [netCDF 3.5.1
-DLL](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-3.5.1-win32dll.zip).
+API in your DLL, you'll have to use the netCDF 3.5.1 DLL.
 
 ### F90 tests fail with Portland F90 compiler {#portland-f90}
 
@@ -1367,8 +1360,8 @@ With some fortran compilers, such as Absoft, the configure script
 stupidly adds a -Df2cFortran to the C preprocessor flags, which causes
 the fortran tests in nf\_test to fail to link.
 
-This problem is fixed in the 3.6.1 beta release. Get the [3.6.1 beta
-release](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-beta.tar.Z).
+This problem is fixed in the 3.6.1 beta release. Get the 3.6.1 beta
+release.
 
 ### Message: "ncgenyy.c is out-of-date with respect to ncgen.l" {#ncgen-timestamp}
 
@@ -1421,8 +1414,8 @@ is present on the platform. As a result, the C++ interface is never
 built.
 
 This problem is fixed in the 3.6.1 beta release. Cygwin users interested
-in the C++ interface should get the [3.6.1 beta
-release](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-3.6.1-beta1.tar.Z).
+in the C++ interface should get the 3.6.1 beta
+release.
 
 ### Large file problems in Visual C++ compile {#visualcpp_largefile}
 
@@ -1431,8 +1424,8 @@ correctly in the 3.6.0 release of the code and project files needed to
 compile the netCDF library with Visual C++.NET.
 
 This problem is fixed in the 3.6.1 beta release. Users interested in
-building their own DLL should get the [3.6.1 beta
-release](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-3.6.1-beta1.tar.Z).
+building their own DLL should get the 3.6.1 beta
+release.
 The DLL offered on the binary release page is 3.6.1 beta.
 
 ### When using TEMP\_LARGE, need a trailing slash {#temp_large}
@@ -1443,8 +1436,8 @@ to work. For example, use 'setenv TEMP\_LARGE /tmp/' instead of 'setenv
 TEMP\_LARGE /tmp', as one would usually expect, and as the documentation
 describes.
 
-This problem is fixed in the [3.6.1 beta
-release](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-3.6.1-beta1.tar.Z).
+This problem is fixed in the 3.6.1 beta
+release.
 Users of 3.6.0 should specify the trailing slash to use the TEMP\_LARGE
 environment variable in make extra\_test.
 
