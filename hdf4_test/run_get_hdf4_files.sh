@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# This shell gets some sample HDF4 files from the netCDF ftp site for
-# testing. Then it runs program tst_interops3 on the test file to
-# check that HDF4 reading works.
+# This shell gets some sample HDF4 files for testing.  
+# Then it runs program tst_interops3 on the test file 
+# to check that HDF4 reading works.
 
 # Ed Hartnett
 
@@ -12,14 +12,14 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 # Uncomment for quiet wget operation.
 #Q=-q
 
-# Get a file from the ftp site; retry several times
+# Get a file from the resources site; retry several times
 getfile() {
-   FTPFILE="ftp://ftp.unidata.ucar.edu/pub/netcdf/sample_data/hdf4/$1.gz"
+   DATAFILE="https://resources.unidata.ucar.edu/sample_data/hdf4/$1.gz"
 
    for try in 1 2 3 4 ; do # try 4 times
 
      # signal success/failure
-     if wget -c $Q --passive-ftp $FTPFILE || curl -O $FTPFILE ; then
+     if wget -c $Q --passive-ftp $DATAFILE || curl -O $DATAFILE ; then
        return 0 # got it
      fi
      echo "wget failed: try $try"
