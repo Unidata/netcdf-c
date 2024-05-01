@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This shell gets some files from the netCDF ftp site for testing,
+# This shell gets some sample data files for testing,
 # then runs the tst_knmi benchmarking program.
 # Ed Hartnett
 
