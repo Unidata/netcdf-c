@@ -6,7 +6,7 @@
 # See netcdf-c/COPYRIGHT file for more info.
 set(CMAKE_BUILD_TYPE "")
 
-if(MSVC)
+if(WIN32)
   set(PLUGINEXT "dll")
   set(PLUGINPRE "__nc") 
 else()
@@ -124,7 +124,7 @@ macro(installplugin PLUG)
 endmacro()
 
 install(DIRECTORY DESTINATION ${PLUGIN_INSTALL_DIR})
-if(Bzip2_FOUND)
+if(Bzip2_FOUND OR Bz2_FOUND)
   installplugin(h5bzip2)
 endif()
 if(Zstd_FOUND)
