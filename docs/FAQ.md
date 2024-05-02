@@ -400,9 +400,6 @@ netCDF-4.1.3 with 32- and 64-bit versions, Fortran bindings, and OPeNDAP
 support. The announcement of the availability of that port is
 [here](https://www.unidata.ucar.edu/mailing_lists/archives/netcdfgroup/2011/msg00363.html).
 
-User Veit Eitner has contributed a port of 4.1.1 to Visual Studio,
-including an F90 port to Intel Fortran. Download [source (ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-4.1.1-win32-src.zip)](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-4.1.1-win32-src.zip) or [binary](https://downloads.unidata.ucar.edu/netcdf-c) versions. This port was done before the code was refactored in 4.1.2.
-
 How can I use netCDF-4 with Windows? {#How-can-I-use-netCDF-4-with-Windows}
 -----------------
 
@@ -418,18 +415,7 @@ utilities and just install them on your system.
 
 Unlike Unix builds, the Visual Studio build **always** requires HDF5,
 zlib, and szlib in all cases. All Windows DLL users must also have the
-HDF5, zlib, and szlib DLLs. These are now available from the Unidata FTP
-site:
-
--   [zlib DLLs for 32-bit Windows](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/zlib123-vs2005.zip)
--   [szlib DLLs for 32-bit Windows](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/szip21-vs6-enc.zip)
--   [HDF5 DLLs for 32-bit Windows](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/5-181-win-vs2005.zip)
-
-Two versions of the netCDF DLLs are available, for different Fortran
-compilers:
-
--   [NetCDF for Intel and Portland Group Fortran compilers.](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/win32_vs_PGI_dll_4.0.1.zip)
--   [NetCDF for other Fortran compilers.](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/win32_vs_f2c_dll_4.0.1.zip)
+HDF5, zlib, and szlib DLLs. 
 
 To use netCDF, install the DLLs in /system/win32 and the .h files in a
 directory known to your compiler, and define the DLL\_NETCDF
@@ -469,9 +455,6 @@ of the oddities of Windows can be found here:
     Leichter.
 -   [cygwin mailing list explanation of Windows DL requirements.](http://cygwin.com/ml/cygwin/2000-06/msg00688.html)
 -   [-mno-cygwin - Building Mingw executables using Cygwin](http://www.delorie.com/howto/cygwin/mno-cygwin-howto.html)
-
-Once you have the netCDF DLL, you may wish to call it from Visual Basic.
-The [netCDF VB wrapper](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf_vb_net_wrapper.zip) will help you do this.
 
 The SDS ([Scientific DataSet](http://research.microsoft.com/en-us/projects/sds/)) library and tools provide .Net developers a way to read, write and share scalars, vectors, and multidimensional grids using CSV, netCDF, and other file formats. It currently uses netCDF version 4.0.1. In addition to .Net libraries, SDS provides a set of utilities and packages: an sds command line utility, a DataSet Viewer application and an add-in for Microsoft Excel 2007 (and later versions).
 
