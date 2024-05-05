@@ -8,7 +8,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-. "$srcdir/test_nczarr.sh"
+. "${srcdir}/test_nczarr.sh"
 
 # Isolate both test and S3
 s3isolate "testdir_ncgen4"
@@ -32,24 +32,11 @@ tst_solar_1 \
 tst_nul4 \
 "       
 
-# These tests need to leave _FillValue
-FVTESTS="tst_nans"
-
-ALLTESTS="$TESTS $FVTESTS"
-
 # Location constants
 cdl="$srcdir/../ncdump/cdl"
 expected="$srcdir/../ncdump/expected"
 
 # Functions
-
-# See if this is an FVTEST
-testiffv() {
-    ok=0
-    for FV in $FVTESTS ; do
-      if test "x$FV" = "x$1" ; then ok=1; fi            
-    done
-}
 
 # Remove fillvalue attribute since zarr generates it when hdf5 does not
 fvclean() {
@@ -60,7 +47,7 @@ fvclean() {
 
 difftest() {
 echo ""; echo "*** Test zext=$zext"
-for t in ${ALLTESTS} ; do
+for t in ${TESTS} ; do
    echo "*** Testing: ${t}"
    # determine if we need the specflag set
    # determine properties
@@ -71,12 +58,7 @@ for t in ${ALLTESTS} ; do
    fileargs $t
    ${NCGEN} -4 -lb -o ${fileurl} ${cdl}/${ref}.cdl
    ${NCDUMP} ${headflag} ${specflag} -n ${ref} ${fileurl} > tmp_${t}.dmp
-   testiffv $t
-   if test "x$ok" = x0 ; then
-     fvclean tmp_${t}.dmp tmp_${t}.dmpx
-   else
-      cp tmp_${t}.dmp tmp_${t}.dmpx     
-   fi
+   fvclean tmp_${t}.dmp tmp_${t}.dmpx
    # compare against  expected
    diff -b -w ${expected}/${ref}.dmp ./tmp_${t}.dmpx
    echo "*** SUCCEED: ${t}"

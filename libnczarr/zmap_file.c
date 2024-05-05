@@ -36,12 +36,6 @@
 #define S_ISDIR(mode) ((mode) & _S_IFDIR)
 #define S_ISREG(mode) ((mode) & _S_IFREG)
 #endif
-#if 0
-#ifndef __cplusplus
-#include <io.h>
-#include <iostream>
-#endif
-#endif
 #endif
 
 #include "fbits.h"
@@ -59,17 +53,18 @@
 #define SKIPLAST 1
 #define WHOLEPATH 0
 
+/* Current API struct versions */
 #define NCZM_FILE_V1 1
 
 #ifdef S_IRUSR
-static int NC_DEFAULT_CREATE_PERMS =
+static mode_t NC_DEFAULT_CREATE_PERMS =
            (S_IRUSR|S_IWUSR        |S_IRGRP|S_IWGRP);
-static int NC_DEFAULT_RWOPEN_PERMS =
+static mode_t NC_DEFAULT_RWOPEN_PERMS =
            (S_IRUSR|S_IWUSR        |S_IRGRP|S_IWGRP);
-static int NC_DEFAULT_ROPEN_PERMS =
+static mode_t NC_DEFAULT_ROPEN_PERMS =
 //           (S_IRUSR                |S_IRGRP);
            (S_IRUSR|S_IWUSR        |S_IRGRP|S_IWGRP);
-static int NC_DEFAULT_DIR_PERMS =
+static mode_t NC_DEFAULT_DIR_PERMS =
   	   (S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IWGRP);
 #else
 static int NC_DEFAULT_CREATE_PERMS = 0660;
@@ -127,6 +122,7 @@ static int zfparseurl(const char* path0, NCURI** urip);
 static int zffullpath(ZFMAP* zfmap, const char* key, char**);
 static void zfrelease(ZFMAP* zfmap, FD* fd);
 static void zfunlink(const char* canonpath);
+static int zfile_listallR(ZFMAP* map, NCbytes* prefix, int depth, NClist* matches);
 
 static int platformerr(int err);
 static int platformcreatefile(mode_t mode, const char* truepath,FD*);
@@ -153,7 +149,7 @@ zfileinitialize(void)
     if(!zfinitialized) {
         ZTRACE(5,NULL);
 	const char* env = NULL;
-	int perms = 0;
+	mode_t perms = 0;
 	env = getenv("NC_DEFAULT_CREATE_PERMS");
 	if(env != NULL && strlen(env) > 0) {
 	    if(sscanf(env,"%d",&perms) == 1) NC_DEFAULT_CREATE_PERMS = perms;
@@ -179,7 +175,7 @@ zfileinitialize(void)
 */
 
 static int
-zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp)
+zfilecreate(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP** mapp)
 {
     int stat = NC_NOERR;
     char* canonpath = NULL;
@@ -256,7 +252,7 @@ done:
 */
 
 static int
-zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp)
+zfileopen(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP** mapp)
 {
     int stat = NC_NOERR;
     char* canonpath = NULL;
@@ -342,8 +338,8 @@ zfileexists(NCZMAP* map, const char* key)
     ZTRACE(5,"map=%s key=%s",zfmap->map.url,key);
     switch(stat=zflookupobj(zfmap,key,&fd)) {
     case NC_NOERR: break;
-    case NC_ENOOBJECT: stat = NC_EEMPTY;
-    case NC_EEMPTY: break;
+    case NC_ENOOBJECT: break;
+    case NC_EEMPTY: stat = NC_ENOOBJECT; break; /* key refers to a directory */
     default: break;
     }
     zfrelease(zfmap,&fd);    
@@ -365,8 +361,8 @@ zfilelen(NCZMAP* map, const char* key, size64_t* lenp)
         /* Get file size */
         if((stat=platformseek(&fd, SEEK_END, &len))) goto done;
 	break;
-    case NC_ENOOBJECT: stat = NC_EEMPTY;
-    case NC_EEMPTY: break;
+    case NC_ENOOBJECT: break;
+    case NC_EEMPTY: stat = NC_ENOOBJECT; break; /* key refers to a directory */
     default: break;
     }
     zfrelease(zfmap,&fd);
@@ -395,8 +391,8 @@ zfileread(NCZMAP* map, const char* key, size64_t start, size64_t count, void* co
         if((stat = platformseek(&fd, SEEK_SET, &start))) goto done;
         if((stat = platformread(&fd, count, content))) goto done;
 	break;
-    case NC_ENOOBJECT: stat = NC_EEMPTY;
-    case NC_EEMPTY: break;
+    case NC_ENOOBJECT: break;
+    case NC_EEMPTY: stat = NC_ENOOBJECT; break; /* key refers to a directory */
     default: break;
     }
     
@@ -467,19 +463,68 @@ zfileclose(NCZMAP* map, int delete)
 }
 
 /*
-Return a list of names immediately "below" a specified prefix key.
+Return a list of simple names immediately "below" a specified prefix key.
 In theory, the returned list should be sorted in lexical order,
 but it possible that it is not.
 The prefix key is not included. 
 */
 int
-zfilesearch(NCZMAP* map, const char* prefixkey, NClist* matches)
+zfilelist(NCZMAP* map, const char* prefixkey, NClist* matches)
+{
+    int retval = NC_NOERR;
+    ZFMAP* zfmap = (ZFMAP*)map;
+    char* fullpath = NULL;
+    NClist* nextlevel = nclistnew();
+    NCbytes* path = ncbytesnew();
+
+    ZTRACE(5,"map=%s prefixkey=%s",map->url,prefixkey);
+
+    /* Make the root path be true */
+    if(prefixkey == NULL || strlen(prefixkey)==0 || strcmp(prefixkey,"/")==0)
+	fullpath = strdup(zfmap->root);
+    else if((retval = nczm_concat(zfmap->root,prefixkey,&fullpath))) goto done;
+
+    /* get names of the next level path entries */
+    retval = platformdircontent(fullpath, nextlevel);
+    if(retval == NC_NOERR) {
+    } else if(retval == NC_EEMPTY) {
+        retval = NC_NOERR;
+	goto done;
+    } else if(retval == NC_ENOOBJECT) {
+        goto done;
+    } else {
+        goto done;
+    }
+
+    while(nclistlength(nextlevel) > 0) {
+	char* segment = nclistremove(nextlevel,0);
+	/* remove any leading '/' */
+	if(segment[0] == '/') segment++;
+	nclistpush(matches,segment);
+    }
+
+done:
+    nclistfreeall(nextlevel);
+    ncbytesfree(path);
+    nullfree(fullpath);
+    return ZUNTRACEX(retval,"|matches|=%d",(int)nclistlength(matches));
+}
+
+/*
+Return a list of all content-bearing keys beginning with specified prefix.
+In theory, the returned list should be sorted in lexical order,
+but it possible that it is not.
+The returned keys have the prefix removed.
+*/
+int
+zfilelistall(NCZMAP* map, const char* prefixkey, NClist* matches)
 {
     int stat = NC_NOERR;
     ZFMAP* zfmap = (ZFMAP*)map;
     char* fullpath = NULL;
     NClist* nextlevel = nclistnew();
-    NCbytes* buf = ncbytesnew();
+    NCbytes* path = ncbytesnew();
+    size_t prefixlen, pathlen;
 
     ZTRACE(5,"map=%s prefixkey=%s",map->url,prefixkey);
 
@@ -488,27 +533,77 @@ zfilesearch(NCZMAP* map, const char* prefixkey, NClist* matches)
 	fullpath = strdup(zfmap->root);
     else if((stat = nczm_concat(zfmap->root,prefixkey,&fullpath))) goto done;
 
-    /* get names of the next level path entries */
-    switch (stat = platformdircontent(fullpath, nextlevel)) {
+    /* prime the key tracker */
+    /* Ensure leading '/' */
+    if(fullpath[0] != '/')
+        ncbytescat(path,"/");
+    ncbytescat(path,fullpath);
+    ncbytescat(path,prefixkey);
+    /* Ensure no trailing '/' */
+    pathlen = ncbyteslength(path);
+    if(pathlen > 1 && ncbytesget(path,pathlen-1) == '/') {
+	pathlen--;
+        ncbytessetlength(path,pathlen); /* truncate last char */
+    }	
+    ncbytesnull(path); /* make nul terminated */
+    prefixlen = ncbyteslength(path); /* remember the prefix string */
+
+    if((stat = zfile_listallR(zfmap,path,0,matches))) goto done;
+
+    /* Remove prefix from all entries in matches */
+    ncbytessetlength(path,prefixlen); /* restore */
+    ncbytesnull(path);
+    if((stat = nczm_removeprefix(ncbytescontents(path),nclistlength(matches),(char**)nclistcontents(matches)))) goto done;
+
+    /* Lexical sort the results */
+    NCZ_sortstringlist(nclistcontents(matches),nclistlength(matches));
+
+done:
+    nclistfreeall(nextlevel);
+    ncbytesfree(path);
+    nullfree(fullpath);
+    return ZUNTRACEX(stat,"|matches|=%d",(int)nclistlength(matches));
+}
+
+/* zfile_listall recursive helper */
+static int
+zfile_listallR(ZFMAP* map, NCbytes* key, int depth, NClist* matches)
+{
+    int retval = NC_NOERR;
+    NClist* nextlevel = nclistnew();
+    size_t i;
+
+    /* get names of the next level path entries just below key */
+    switch (retval = platformdircontent(ncbytescontents(key), nextlevel)) {
     case NC_NOERR: /* ok */
 	break;
     case NC_EEMPTY: /* not a dir */
-	stat = NC_NOERR;
+	retval = NC_NOERR;
 	goto done;
     case NC_ENOOBJECT:
     default:
 	goto done;
     }
-    while(nclistlength(nextlevel) > 0) {
-	char* segment = nclistremove(nextlevel,0);
-	nclistpush(matches,segment);
+    /* Recurse to walk tree depth first; also record keys */
+    for(i=0;i<nclistlength(nextlevel);i++) {
+	size_t keylen;
+	char* segment;
+	struct stat statbuf;
+
+	keylen = nclistlength(key);
+	segment = nclistget(nextlevel,i);
+	ncbytescat(key,"/");
+	ncbytescat(key,segment);
+	if((retval = NCstat(ncbytescontents(key),&statbuf))) goto done;
+	if(!S_ISDIR(statbuf.st_mode)) nclistpush(matches,nulldup(ncbytescontents(key)));
+	if((retval = zfile_listallR(map,key,depth+1,matches))) goto done;
+	/* reset */
+	ncbytessetlength(key,keylen);
     }
     
 done:
     nclistfreeall(nextlevel);
-    ncbytesfree(buf);
-    nullfree(fullpath);
-    return ZUNTRACEX(stat,"|matches|=%d",(int)nclistlength(matches));
+    return retval;
 }
 
 /**************************************************/
@@ -530,7 +625,7 @@ static int
 zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
 {
     int stat = NC_NOERR;
-    size_t i;
+    int i;
     int len;
     char* fullpath = NULL;
     NCbytes* path = ncbytesnew();
@@ -539,11 +634,14 @@ zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
     ZTRACE(5,"map=%s key=%s nskip=%d",zfmap->map.url,key,nskip);
     if((stat=nczm_split(key,segments)))
 	goto done;    
-    len = nclistlength(segments);
+    len = (int)nclistlength(segments);
     len -= nskip; /* leave off last nskip segments */
     ncbytescat(path,zfmap->root); /* We need path to be absolute */
+    /* open and optionally create the root directory */	
+    if((stat = platformcreatedir(zfmap->map.mode,ncbytescontents(path)))) goto done;
+    /* Create subsidary groups (if any) */
     for(i=0;i<len;i++) {
-	const char* seg = nclistget(segments,i);
+	const char* seg = nclistget(segments,(size_t)i);
 	ncbytescat(path,"/");
 	ncbytescat(path,seg);
 	/* open and optionally create the directory */	
@@ -614,7 +712,8 @@ static NCZMAP_API zapi = {
     zfilelen,
     zfileread,
     zfilewrite,
-    zfilesearch,
+    zfilelist,
+    zfilelistall,
 };
 
 static int
@@ -709,7 +808,7 @@ platformcreatefile(mode_t mode, const char* canonpath, FD* fd)
     int stat = NC_NOERR;
     int ioflags = 0;
     int createflags = 0;
-    int permissions = NC_DEFAULT_ROPEN_PERMS;
+    mode_t permissions = NC_DEFAULT_ROPEN_PERMS;
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
     
@@ -738,6 +837,7 @@ platformcreatefile(mode_t mode, const char* canonpath, FD* fd)
 	stat = platformerr(errno);
         goto done; /* could not open */
     }
+
 done:
     errno = 0;
     return ZUNTRACEX(stat,"fd=%d",(fd?fd->fd:-1));
@@ -749,7 +849,7 @@ platformopenfile(mode_t mode, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
-    int permissions = 0;
+    mode_t permissions = 0;
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
@@ -1066,9 +1166,9 @@ platformseek(FD* fd, int pos, size64_t* sizep)
     ret = NCfstat(fd->fd, &statbuf);    
     if(ret < 0)
 	{ret = platformerr(errno); goto done;}
-    if(sizep) size = *sizep; else size = 0;
+    if(sizep) size = (off_t)*sizep; else size = 0;
     newsize = lseek(fd->fd,size,pos);
-    if(sizep) *sizep = newsize;
+    if(sizep) *sizep = (size64_t)newsize;
 done:
     errno = 0;
     return ZUNTRACEX(ret,"sizep=%llu",*sizep);
@@ -1089,7 +1189,7 @@ platformread(FD* fd, size64_t count, void* content)
         ssize_t red;
         if((red = read(fd->fd,readpoint,need)) <= 0)
 	    {stat = errno; goto done;}
-        need -= red;
+        need -= (size_t)red;
 	readpoint += red;
     }
 done:
@@ -1112,25 +1212,12 @@ platformwrite(FD* fd, size64_t count, const void* content)
         ssize_t red = 0;
         if((red = write(fd->fd,(void*)writepoint,need)) <= 0)	
 	    {ret = NC_EACCESS; goto done;}
-        need -= red;
+        need -= (size_t)red;
 	writepoint += red;
     }
 done:
     return ZUNTRACE(ret);
 }
-
-#if 0
-static int
-platformcwd(char** cwdp)
-{
-    char buf[4096];
-    char* cwd = NULL;
-    cwd = NCcwd(buf,sizeof(buf));
-    if(cwd == NULL) return errno;
-    if(cwdp) *cwdp = strdup(buf);
-    return NC_NOERR;
-}
-#endif
 
 /* When we are finished accessing FD; essentially
    equivalent to closing the file descriptor.
@@ -1143,22 +1230,6 @@ platformrelease(FD* fd)
     fd->fd = -1;
     (void)ZUNTRACE(NC_NOERR);
 }
-
-#if 0
-/* Close FD => return typ to FDNONE */
-*/
-static void
-platformclose(FD* fd)
-{
-    if(fd->typ == FDFILE) {
-        if(fd->fd >=0) close(fd->u,fd);
-	fd->fd = -1;
-    } else if(fd->type == FDDIR) {
-	if(fd->u.dir) NCclosedir(fd->u,dir);
-    }
-    fd->typ = FDNONE;
-}
-#endif
 
 
 #ifdef VERIFY
@@ -1197,38 +1268,3 @@ verifykey(const char* key, int isdir)
 }
 #endif
 
-#if 0
-/* Return NC_EINVAL if path does not exist; els 1/0 in isdirp and local path in canonpathp */
-static int
-testifdir(const char* path, int* isdirp, char** canonpathp)
-{
-    int ret = NC_NOERR;
-    char* tmp = NULL;
-    char* canonpath = NULL;
-    struct stat statbuf;
-
-    /* Make path be windows compatible */
-    if((ret = nczm_fixpath(path,&tmp))) goto done;
-    if((canonpath = NCpathcvt(tmp))==NULL) {ret = NC_ENOMEM; goto done;}
-
-    errno = 0;
-    ret = NCstat(canonpath, &statbuf);
-    if(ret < 0) {
-        if(errno == ENOENT)
-	    ret = NC_ENOTFOUND;  /* path does not exist */
-	else
-	    ret = platformerr(errno);
-	goto done;
-    }
-    /* Check for being a directory */
-    if(isdirp) {
-        if(S_ISDIR(statbuf.st_mode)) {*isdirp = 1;} else {*isdirp = 0;}
-    }
-    if(canonpathp) {*canonpathp = canonpath; canonpath = NULL;}
-done:
-    errno = 0;
-    nullfree(tmp);
-    nullfree(canonpath);
-    return ZUNTRACE(ret);    
-}
-#endif /* 0 */

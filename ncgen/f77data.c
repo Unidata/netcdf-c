@@ -5,7 +5,7 @@
 
 #include "includes.h"
 
-#ifdef ENABLE_F77
+#ifdef NETCDF_ENABLE_F77
 
 #include <math.h> 
 
@@ -134,4 +134,4 @@ static Generator f77_generator_singleton = {
 };
 Generator* f77_generator = &f77_generator_singleton;
 
-#endif /*ENABLE_F77*/
+#endif /*NETCDF_ENABLE_F77*/

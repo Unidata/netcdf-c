@@ -3,7 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "$srcdir/test_nczarr.sh"
+. "${srcdir}/test_nczarr.sh"
 
 # This shell script tests support for the NC_STRING type
 
@@ -12,6 +12,11 @@ set -e
 s3isolate "testdir_strings"
 THISDIR=`pwd`
 cd $ISOPATH
+
+remmaxstrlen() {
+#    sed -e '/maxstrlen/d' $1 >$2
+  cat $1 >$2
+}
 
 testcase() {
 zext=$1
@@ -26,7 +31,7 @@ fileargs tmp_string_nczarr "mode=nczarr,$zext"
 nczarrurl="$fileurl"
 nczarrfile="$file"
 
-# setupp
+# setup
 deletemap $zext $zarrfile
 deletemap $zext $nczarrfile
 
@@ -44,10 +49,12 @@ ${NCDUMP} -n ref_string $nczarrurl > tmp_string_nczarr_${zext}.cdl
 ${ZMD} -t 'string/6' $nczarrurl > tmp_string_nczarr_${zext}.txt
 
 echo "*** verify zarr output"
-diff -bw ${srcdir}/ref_string_zarr.baseline tmp_string_zarr_${zext}.cdl
+remmaxstrlen ${srcdir}/ref_string_zarr.baseline tmp_ref_string_zarr.baseline
+diff -bw tmp_ref_string_zarr.baseline tmp_string_zarr_${zext}.cdl
 
 echo "*** verify nczarr output"
-diff -bw ${srcdir}/ref_string_nczarr.baseline tmp_string_nczarr_${zext}.cdl
+remmaxstrlen ${srcdir}/ref_string_nczarr.baseline tmp_ref_string_nczarr.baseline
+diff -bw tmp_ref_string_nczarr.baseline tmp_string_nczarr_${zext}.cdl
 }
 
 testcase file

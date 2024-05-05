@@ -14,17 +14,17 @@ define_netcdf(void)
 {
 
     /* Execute exactly one of these */
-#ifdef ENABLE_C
+#ifdef NETCDF_ENABLE_C
     if (l_flag == L_C) genc_netcdf(); else /* create C code to create netcdf */
 #endif
-#ifdef ENABLE_F77
+#ifdef NETCDF_ENABLE_F77
     if (l_flag == L_F77) genf77_netcdf(); else /* create Fortran code */
 #endif
-#ifdef ENABLE_JAVA
+#ifdef NETCDF_ENABLE_JAVA
     if(l_flag == L_JAVA) genjava_netcdf(); else
 #endif
 /* Binary is the default */
-#ifdef ENABLE_BINARY
+#ifdef NETCDF_ENABLE_BINARY
     genbin_netcdf(); /* create netcdf */
 #else
     derror("No language specified");
@@ -36,16 +36,16 @@ define_netcdf(void)
 void
 close_netcdf(void)
 {
-#ifdef ENABLE_C
+#ifdef NETCDF_ENABLE_C
     if (l_flag == L_C) genc_close(); else /* create C code to close netcdf */
 #endif
-#ifdef ENABLE_F77
+#ifdef NETCDF_ENABLE_F77
     if (l_flag == L_F77) genf77_close(); else
 #endif
-#ifdef ENABLE_JAVA
+#ifdef NETCDF_ENABLE_JAVA
     if (l_flag == L_JAVA) genjava_close(); else
 #endif
-#ifdef ENABLE_BINARY
+#ifdef NETCDF_ENABLE_BINARY
     if (l_flag == L_BINARY) genbin_close();
 #endif
 }

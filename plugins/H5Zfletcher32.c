@@ -89,7 +89,7 @@ H5Z_filter_fletcher32(unsigned flags, size_t H5_ATTR_UNUSED cd_nelmts, const uns
     uint32_t reversed_fletcher; /* Possible wrong checksum value */
     uint8_t  c[4];
     uint8_t  tmp;
-    size_t   ret_value = 0;     /* Return value */
+    int   ret_value = 0;     /* Return value */
 
     FUNC_ENTER_STATIC
 
@@ -138,7 +138,7 @@ H5Z_filter_fletcher32(unsigned flags, size_t H5_ATTR_UNUSED cd_nelmts, const uns
 
         /* Set return values */
         /* (Re-use the input buffer, just note that the size is smaller by the size of the checksum) */
-        ret_value = nbytes-FLETCHER_LEN;
+        ret_value = (int)(nbytes-FLETCHER_LEN);
     } else { /* Write */
         unsigned char *dst;     /* Temporary pointer to destination buffer */
 
@@ -164,12 +164,12 @@ H5Z_filter_fletcher32(unsigned flags, size_t H5_ATTR_UNUSED cd_nelmts, const uns
         *buf_size = nbytes + FLETCHER_LEN;
 	*buf = outbuf;
 	outbuf = NULL;
-	ret_value = *buf_size;
+	ret_value = (int)*buf_size;
     }
 
 done:
     if(outbuf)
         H5MM_xfree(outbuf);
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI((size_t)ret_value)
 }
 

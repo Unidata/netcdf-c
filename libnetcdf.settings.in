@@ -31,7 +31,6 @@ Benchmarks:		@HAS_BENCHMARKS@
 NetCDF-2 API:		@HAS_NC2@
 HDF4 Support:		@HAS_HDF4@
 HDF5 Support:		@HAS_HDF5@
-NetCDF-4 API:		@HAS_NC4@
 CDF5 Support:		@HAS_CDF5@
 NC-4 Parallel Support:	@HAS_PARALLEL4@
 PnetCDF Support:	@HAS_PNETCDF@

@@ -29,6 +29,12 @@ noinst_LTLIBRARIES = libnczarr.la
 
 # The source files.
 libnczarr_la_SOURCES = \
+zinfer.c \
+znc4.c \
+zfill.c \
+zformat.c \
+zformat2.c \
+zformat3.c \
 zarr.c \
 zattr.c \
 zxcache.c \
@@ -46,13 +52,14 @@ zmap_file.c \
 zodom.c \
 zopen.c \
 zprov.c \
-zsync.c \
 ztype.c \
 zutil.c \
 zvar.c \
 zwalk.c \
 zdebug.c \
 zarr.h \
+zfill.h \
+zformat.h \
 zcache.h \
 zchunking.h \
 zdispatch.h \
@@ -62,14 +69,11 @@ zmap.h \
 zodom.h \
 zprovenance.h \
 zfilter.h \
+znc4.h \
 zdebug.h
 
 if NETCDF_ENABLE_NCZARR_ZIP
 libnczarr_la_SOURCES += zmap_zip.c 
-endif
-
-if NETCDF_ENABLE_NCZARR_FILTERS
-libnczarr_la_SOURCES += zfilter.c
 endif
 
 if NETCDF_ENABLE_S3
@@ -77,6 +81,10 @@ libnczarr_la_SOURCES += zmap_s3sdk.c
 if NETCDF_ENABLE_S3_AWS
 AM_CXXFLAGS += -std=c++11
 endif
+endif
+
+if NETCDF_ENABLE_NCZARR_FILTERS
+libnczarr_la_SOURCES += zfilter.c
 endif
 
 # For now, ignore these

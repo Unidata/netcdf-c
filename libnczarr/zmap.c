@@ -9,8 +9,10 @@
 #include "ncpathmgr.h"
 
 /**************************************************/
-/* Import the current implementations */
+typedef int (*NCZWALKFCN)(NCZMAP*,const char*,const char*,void*);
 
+/**************************************************/
+/*Forward*/
 
 /**************************************************/
 
@@ -22,8 +24,10 @@ nczmap_features(NCZM_IMPL impl)
 #ifdef NETCDF_ENABLE_NCZARR_ZIP
     case NCZM_ZIP: return zmap_zip.features;
 #endif
+
 #ifdef NETCDF_ENABLE_S3
-    case NCZM_S3: return zmap_s3sdk.features;
+    case NCZM_S3: case NCZM_GS3:
+        return zmap_s3sdk.features;
 #endif
     default: break;
     }
@@ -31,7 +35,7 @@ nczmap_features(NCZM_IMPL impl)
 }
 
 int
-nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp)
+nczmap_create(NCZM_IMPL impl, const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP** mapp)
 {
     int stat = NC_NOERR;
     NCZMAP* map = NULL;
@@ -60,6 +64,7 @@ nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* 
 #endif
 #ifdef NETCDF_ENABLE_S3
     case NCZM_S3:
+    case NCZM_GS3:
         stat = zmap_s3sdk.create(path, mode, flags, parameters, &map);
 	if(stat) goto done;
 	break;
@@ -74,7 +79,7 @@ done:
 }
 
 int
-nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp)
+nczmap_open(NCZM_IMPL impl, const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP** mapp)
 {
     int stat = NC_NOERR;
     NCZMAP* map = NULL;
@@ -98,6 +103,7 @@ nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* pa
 #endif
 #ifdef NETCDF_ENABLE_S3
     case NCZM_S3:
+    case NCZM_GS3:
         stat = zmap_s3sdk.open(path, mode, flags, parameters, &map);
 	if(stat) goto done;
 	break;
@@ -129,6 +135,7 @@ nczmap_truncate(NCZM_IMPL impl, const char *path)
 #endif
 #ifdef NETCDF_ENABLE_S3
     case NCZM_S3:
+    case NCZM_GS3:
         if((stat = zmap_s3sdk.truncate(path))) goto done;
 	break;
 #endif
@@ -175,26 +182,25 @@ nczmap_write(NCZMAP* map, const char* key, size64_t count, const void* content)
     return map->api->write(map, key, count, content);
 }
 
-/* Define a static qsort comparator for strings for use with qsort */
-static int
-cmp_strings(const void* a1, const void* a2)
+int
+nczmap_list(NCZMAP* map, const char* prefix, NClist* matches)
 {
-    const char** s1 = (const char**)a1;
-    const char** s2 = (const char**)a2;
-    return strcmp(*s1,*s2);
+    int stat = NC_NOERR;
+    if((stat = map->api->list(map, prefix, matches)) == NC_NOERR) {
+        if((stat = NCZ_sortstringlist(nclistcontents(matches),nclistlength(matches)))) goto done; /* sort the list */
+    }
+done:
+    return stat;
 }
 
 int
-nczmap_search(NCZMAP* map, const char* prefix, NClist* matches)
+nczmap_listall(NCZMAP* map, const char* prefix, NClist* matches)
 {
     int stat = NC_NOERR;
-    if((stat = map->api->search(map, prefix, matches)) == NC_NOERR) {
-        /* sort the list */
-        if(nclistlength(matches) > 1) {
-	    void* base = nclistcontents(matches);
-            qsort(base, nclistlength(matches), sizeof(char*), cmp_strings);
-	}
+    if((stat = map->api->listall(map, prefix, matches)) == NC_NOERR) {
+        if((stat = NCZ_sortstringlist(nclistcontents(matches),nclistlength(matches)))) goto done; /* sort the list */
     }
+done:
     return stat;
 }
 
@@ -282,6 +288,10 @@ nczm_appendn(char** resultp, int n, ...)
 
 /* A segment is defined as a '/' plus characters following up
    to the end or upto the next '/'
+@param key   [in] to divide
+@param nsegs [in] no. of segs in prefix; < 0 means count from right
+@param prefixp [out] concat of prefix segs
+@param suffixp [out] concat of suffix segs
 */
 int
 nczm_divide_at(const char* key, int nsegs, char** prefixp, char** suffixp)
@@ -289,7 +299,8 @@ nczm_divide_at(const char* key, int nsegs, char** prefixp, char** suffixp)
     int stat = NC_NOERR;
     char* prefix = NULL;
     char* suffix = NULL;
-    size_t len, i;
+    int len;
+    int i;
     ptrdiff_t delta;
     const char* p;
     int abssegs = (nsegs >= 0 ?nsegs: -nsegs);
@@ -339,7 +350,7 @@ done:
 int
 nczm_clear(NCZMAP* map)
 {
-    if(map) 
+    if(map)
 	nullfree(map->url);
     return NC_NOERR;
 }
@@ -439,7 +450,7 @@ nczm_segment1(const char* path, char** seg1p)
     delta = (q-p);
     if((seg1 = (char*)malloc((size_t)delta+1))==NULL)
         {ret = NC_ENOMEM; goto done;}
-    memcpy(seg1,p,delta);
+    memcpy(seg1,p,(size_t)delta);
     seg1[delta] = '\0';
 
     if(seg1p) {*seg1p = seg1; seg1 = NULL;}
@@ -501,33 +512,27 @@ done:
     return THROW(stat);    
 }
 
-/* bubble sort a list of strings */
-void
-nczm_sortlist(NClist* l)
-{
-    nczm_sortenvv(nclistlength(l),(char**)nclistcontents(l));
-}
 
-static int
-nczm_compare(const void* arg1, const void* arg2)
-{
-    char* n1 = *((char**)arg1);
-    char* n2 = *((char**)arg2);
-    return strcmp(n1,n2);
-}
 
-/* quick sort a list of strings */
-void
-nczm_sortenvv(size_t n, char** envv)
+/* Remove a given prefix from the front of each given key */
+int
+nczm_removeprefix(const char* prefix, size_t nkeys, char** keys)
 {
-    if(n <= 1) return;
-    qsort(envv, n, sizeof(char*), nczm_compare);
-#if 0
-{int i;
-for(i=0;i<n;i++)
-fprintf(stderr,">>> sorted: [%d] %s\n",i,(const char*)envv[i]);
-}
-#endif
+    int stat = NC_NOERR;
+    size_t i,prefixlen;
+
+    if(nkeys == 0 || keys == NULL) return stat;
+    prefixlen = strlen(prefix);
+    for(i=0;i<nkeys;i++) {
+	if(strncmp(keys[i],prefix,prefixlen)==0) {
+	    char* newkey = strdup(keys[i]+prefixlen);
+	    if(newkey == NULL) return NC_ENOMEM;
+	    nullfree(keys[i]);
+	    keys[i] = newkey;
+	    newkey = NULL;
+	}
+    }
+    return stat;
 }
 
 void
@@ -544,4 +549,49 @@ NCZ_freeenvv(int n, char** envv)
 	}
     }
     free(envv);    
+}
+
+const char*
+NCZ_mapkind(NCZM_IMPL impl)
+{
+    switch (impl) {
+    case NCZM_UNDEF: return "NCZM_UNDEF";
+    case NCZM_FILE: return "NCZM_FILE";
+    case NCZM_ZIP: return "NCZM_ZIP";
+    case NCZM_S3: return "NCZM_S3";
+    case NCZM_GS3: return "NCZM_GS3";
+    default: break;
+    }
+    return "Unknown";
+}
+
+int
+nczmap_walk(NCZMAP* map, const char* prefix, NCZWALKFCN fcn, void* param)
+{
+    int stat = NC_NOERR;
+    NCbytes* path = ncbytesnew();
+    NClist* subtree = nclistnew();
+    size_t i;
+
+    assert(prefix != NULL && strlen(prefix) > 0);
+    if(prefix[0] != '/') ncbytescat(path,"/");
+    ncbytescat(path,prefix);
+
+    /* get list of all keys below the prefix */
+    if((stat=nczmap_listall(map,ncbytescontents(path),subtree))) goto done;
+    if(nclistlength(subtree) == 0) goto done; /* empty subtree */
+    
+    /* Apply fcn to all paths in subtree */
+    for(i=0;i<nclistlength(subtree);i++) {
+        const char* key = nclistget(subtree,i);
+	if(key == NULL) continue;
+	/* invoke function */
+	stat = fcn(map,ncbytescontents(path),key,param);
+	if(stat != NC_NOERR) goto done;
+    }
+
+done:
+    ncbytesfree(path);
+    nclistfreeall(subtree);
+    return THROW(stat);
 }

@@ -3,7 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "$srcdir/test_nczarr.sh"
+. "${srcdir}/test_nczarr.sh"
 
 set -e
 
@@ -27,12 +27,10 @@ ${ZMD} -h $fileurl > tmp_jsonconvention_${zext}.txt
 # Clean up extraneous changes so comparisons work
 # remove '\n' from ref file before comparing
 #sed -e 's|\\n||g' < ${srcdir}/ref_jsonconvention.cdl > tmp_jsonconvention_clean.cdl
-cat < ${srcdir}/ref_jsonconvention.cdl > tmp_jsonconvention_clean.cdl
-cat < tmp_jsonconvention_${zext}.cdl > tmp_jsonconvention_clean_${zext}.cdl 
-sed -e 's|\(.z[a-z][a-z]*\) : ([0-9][0-9]*)|\1 : ()|g' < tmp_jsonconvention_${zext}.txt >tmp1.tmp 
-sed -e 's|"_NCProperties": "version=[0-9],[^"]*",||' <tmp1.tmp > tmp_jsonconvention_clean_${zext}.txt 
-diff -b tmp_jsonconvention_clean.cdl tmp_jsonconvention_clean_${zext}.cdl
-diff -b ${srcdir}/ref_jsonconvention.zmap tmp_jsonconvention_clean_${zext}.txt
+sclean tmp_jsonconvention_${zext}.cdl
+zmapclean tmp_jsonconvention_${zext}.txt
+diff -b $srcdir/ref_jsonconvention.cdl tmp_jsonconvention_${zext}.cdl
+diff -b ${srcdir}/ref_jsonconvention.zmap tmp_jsonconvention_${zext}.txt
 }
 
 testcase file

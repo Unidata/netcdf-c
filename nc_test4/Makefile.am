@@ -78,7 +78,7 @@ TESTS += tst_szip.sh
 endif
 
 # Filter Tests (requires ncdump and ncgen and HDF5)
-if USE_HDF5
+if NETCDF_ENABLE_PLUGINS
 if NETCDF_ENABLE_FILTER_TESTING
 extradir =
 check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat
@@ -108,7 +108,7 @@ TESTS += tst_filterinstall.sh
 endif
 
 endif # NETCDF_ENABLE_FILTER_TESTING
-endif # USE_HDF5
+endif # NETCDF_ENABLE_PLUGINS
 endif # NETCDF_BUILD_UTILITIES
 
 # This are extra tests that will only be run if netcdf-4 is configured
@@ -127,7 +127,7 @@ ref_tst_interops4.nc CMakeLists.txt run_grp_rename.sh			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl noop.cdl ref_filtered.cdl		\
-ref_unfiltered.cdl ref_bzip2.c findplugin.in ref_unfilteredvv.cdl	\
+ref_unfiltered.cdl ref_bzip2.c ref_unfilteredvv.cdl	\
 ref_filteredvv.cdl ref_multi.cdl                                        \
 ref_ncgenF.cdl ref_nccopyF.cdl                                          \
 ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
@@ -153,18 +153,15 @@ tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp tmp_*.cdl
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 
-clean-local:
-	rm -fr testdir_* testset_*
-
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
 
 # The (otherwise unused) program build_fixedstring.c
 # is used to generate the test file ref_fixedstring.h5.
-# That test file is build and included as part of the distribution,
+# That test file is built and included as part of the distribution,
 # so the build_fixedstring.c program generally does not need to
 # be executed unless the test file needs to be modified..
-
-check_PROGRAMS += build_fixedstring
-ref_fixedstring.h5: build_fixedstring.c
-	${srcdir}/buildfixedstring
+noinst_PROGRAMS = build_fixedstring
+build_fixedstring_SOURCES = build_fixedstring.c
+ref_fixedstring.h5:
+	${builddir}/build_fixedstring

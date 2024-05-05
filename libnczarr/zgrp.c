@@ -70,7 +70,7 @@ NCZ_def_grp(int parent_ncid, const char *name, int *new_ncid)
     ((NCZ_GRP_INFO_T*)g->format_grp_info)->common.file = h5;
 
     /* For new groups, there are no atts to read from file. */
-    g->atts_read = 1;
+    NCZ_setatts_read((NC_OBJ*)g);
 
     /* Return the ncid to the user. */
     if (new_ncid)

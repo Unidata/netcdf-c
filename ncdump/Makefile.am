@@ -249,6 +249,6 @@ tmp_keyword1.cdl tmp_keyword2.cdl tmp_keyword3.cdl tmp_keyword4.cdl     \
 type_*.nc copy_type_*.cdl                                               \
 scope_*.nc copy_scope_*.cdl keyword5.nc tst_enum_undef.cdl tst_times_nc4.cdl
 
-# Remove directories
+
 clean-local:
-	rm -fr rcmergedir rchome testset_*
+	rm -fr rcmergedir rchome

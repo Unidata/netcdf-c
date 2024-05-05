@@ -52,13 +52,13 @@ DAPSUBSTRATE(NC* nc)
 typedef struct Position{char* memory; ptrdiff_t offset;} Position;
 
 /* Forward */
-#ifdef USE_NETCDF4
 static int dump_datar(int ncid, nc_type xtype, Position*, NCbytes* buf);
+#ifdef USE_NETCDF4
 static int dump_compound(int ncid, nc_type xtype, size_t size, size_t nfields, Position* offset, NCbytes* buf);
 static int dump_vlen(int ncid, nc_type xtype, nc_type basetype, Position* offset, NCbytes* buf);
 static int dump_enum(int ncid, nc_type xtype, nc_type basetype, Position* offset, NCbytes* buf);
 static int dump_opaque(int ncid, nc_type xtype, size_t size, Position* offset, NCbytes* buf);
-#endif
+#endif /*USE_NETCDF4*/
 
 /**
 \ingroup user_types 
@@ -275,7 +275,7 @@ NC_type_alignment(int ncid, nc_type xtype, size_t* alignp)
 done:
     return stat;
 }
-#endif
+#endif /*USE_NETCDF4*/
 
 /**************************************************/
 /* Dump an instance into a bytebuffer
@@ -311,7 +311,6 @@ nc_dump_data(int ncid, nc_type xtype, const void* memory, size_t count, char** b
         if((stat=dump_datar(ncid,xtype,&offset,buf))) /* dump one instance */
 	    break;
     }
-
     if(bufp) *bufp = ncbytesextract(buf);
 
 done:
@@ -396,7 +395,7 @@ dump_datar(int ncid, nc_type xtype, Position* offset, NCbytes* buf)
 	ncbytescat(buf,s);
 	ncbytescat(buf,"\"");
 	} break;
-#endif
+#endif /*USE_NETCDF4*/
     default:
 #ifdef USE_NETCDF4
     	/* dump a user type */
@@ -407,9 +406,9 @@ dump_datar(int ncid, nc_type xtype, Position* offset, NCbytes* buf)
         case NC_VLEN: stat = dump_vlen(ncid,xtype,basetype,offset,buf); break;
         default: stat = NC_EBADTYPE; break;
         }
-#else
+#else /*!USE_NETCDF4*/
 	stat = NC_EBADTYPE;
-#endif
+#endif /*USE_NETCDF4*/
 	break;
     }
     if(xtype <= NC_MAX_ATOMIC_TYPE)
@@ -532,7 +531,7 @@ dump_compound(int ncid, nc_type xtype, size_t size, size_t nfields, Position* of
 done:
     return stat;
 }
-#endif
+#endif /*USE_NETCDF4*/
 
 /* Extended version that can handle atomic typeids */
 int
@@ -544,7 +543,7 @@ NC_inq_any_type(int ncid, nc_type typeid, char *name, size_t *size,
     if(typeid >= NC_FIRSTUSERTYPEID) {
         stat = nc_inq_user_type(ncid,typeid,name,size,basetypep,nfieldsp,classp);
     } else
-#endif
+#endif /*USE_NETCDF4*/
     if(typeid > NC_NAT && typeid <= NC_MAX_ATOMIC_TYPE) {
 	if(basetypep) *basetypep = NC_NAT;
 	if(nfieldsp) *nfieldsp = 0;

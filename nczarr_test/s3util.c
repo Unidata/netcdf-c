@@ -83,7 +83,7 @@ static void printcontent(size64_t len, const char* content, nc_type nctype);
 static void
 usage(void)
 {
-    fprintf(stderr,"usage: s3util  list|print|upload|download|clear -u <url> [-k <key.] [-f <filename>]\n");
+    fprintf(stderr,"usage: s3util  list|print|upload|download|clear -u <url> [-k <key>] [-f <filename>]\n");
     exit(1);
 }
 
@@ -112,7 +112,10 @@ static int
 s3shutdown(int deleteit)
 {
     int stat = NC_NOERR;
-    stat = NC_s3sdkclose(s3sdk.s3client, &s3sdk.s3, deleteit, &s3sdk.errmsg);
+    if(deleteit) {
+        stat = s3clear();
+    }
+    stat = NC_s3sdkclose(s3sdk.s3client, &s3sdk.errmsg);
     return stat;
 }
 
@@ -258,13 +261,13 @@ s3list(void)
 
     if(s3setup()) goto done;
 
-    stat = NC_s3sdksearch(s3sdk.s3client, s3sdk.s3.bucket, s3sdk.s3.rootkey, &nkeys, &keys, &s3sdk.errmsg);
+    stat = NC_s3sdklistall(s3sdk.s3client, s3sdk.s3.bucket, s3sdk.s3.rootkey, &nkeys, &keys, &s3sdk.errmsg);
     if(stat) goto done;
 
     if(nkeys > 0) {
         size_t i;
 	/* Sort the list -- shortest first */
-	nczm_sortenvv(nkeys,keys);
+	NC_sortenvv(nkeys,keys);
 	for(i=0;i<nkeys;i++) {
 	    printf("[%u] %s\n",(unsigned)i,keys[i]);
 	}
@@ -287,12 +290,12 @@ s3clear(void)
 
     if(s3setup()) goto done;
 
-    if((stat = NC_s3sdksearch(s3sdk.s3client, s3sdk.s3.bucket, s3sdk.s3.rootkey, &nkeys, &keys, &s3sdk.errmsg))) goto done;
+    if((stat = NC_s3sdklistall(s3sdk.s3client, s3sdk.s3.bucket, s3sdk.s3.rootkey, &nkeys, &keys, &s3sdk.errmsg))) goto done;
 
     if(nkeys > 0 && keys != NULL) {
 	size_t i;
 	/* Sort the list -- shortest first */
-	nczm_sortenvv(nkeys,keys);
+	NC_sortenvv(nkeys,keys);
 	if(dumpoptions.verbose) {
             printf("deleted keys:\n");
 	    for(i=0;i<nkeys;i++) {

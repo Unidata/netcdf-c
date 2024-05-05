@@ -19,8 +19,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <string.h>
 #include <stddef.h> /* size_t, ptrdiff_t */
+#include <string.h>
 #include <assert.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -46,9 +46,12 @@ extern "C" {
 #include "ncs3sdk.h"
 #include "ncindex.h"
 #include "ncjson.h"
+#include "ncproplist.h"
 
 #include "zmap.h"
 #include "zinternal.h"
+#include "zfilter.h"
+#include "zformat.h"
 #include "zdispatch.h"
 #include "zprovenance.h"
 #include "zodom.h"
@@ -56,6 +59,10 @@ extern "C" {
 #include "zcache.h"
 #include "zarr.h"
 #include "zdebug.h"
+
+
+EXTERNL void zdfaltstrlen(size_t* p, size_t strlen);
+EXTERNL void zmaxstrlen(size_t* p, size_t strlen);
 
 #ifdef __cplusplus
 }

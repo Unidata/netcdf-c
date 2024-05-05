@@ -34,8 +34,8 @@ NCZ_compute_chunk_ranges(
         NCZChunkRange* ncr)
 {
     int stat = NC_NOERR;
-    int i;
-    int rank = common->rank;
+    size_t i;
+    size_t rank = common->rank;
 
     for(i=0;i<rank;i++) {
 	if((stat = compute_intersection(&slices[i],common->chunklens[i],common->isunlimited[i],&ncr[i])))
@@ -84,7 +84,7 @@ This is somewhat complex because:
 */
 
 int
-NCZ_compute_projections(struct Common* common,  int r, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections)
+NCZ_compute_projections(struct Common* common,  size_t r, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections)
 {
     int stat = NC_NOERR;
     NCZProjection* projection = NULL;
@@ -96,7 +96,8 @@ NCZ_compute_projections(struct Common* common,  int r, size64_t chunkindex, cons
     projection = &projections[n];
     if(n > 0) {
 	/* Find last non-skipped projection */
-	for(size_t i=n;i-->0;) { /* walk backward */
+	size_t i;
+	for(i=n;--i>=0;) { /* walk backward */
             if(!projections[i].skip) {
 	        prev = &projections[i];
 		break;
@@ -214,7 +215,7 @@ Create a vector of projections wrt a slice and a sequence of chunks.
 int
 NCZ_compute_per_slice_projections(
 	struct Common* common,
-	int r, /* which dimension are we projecting? */
+	size_t r, /* which dimension are we projecting? */
         const NCZSlice* slice, /* the slice for which projections are computed */
 	const NCZChunkRange* range, /* range */
 	NCZSliceProjections* slp)
@@ -289,25 +290,13 @@ verifyslice(const NCZSlice* slice)
 }
 
 void
-NCZ_clearsliceprojections(int count, NCZSliceProjections* slpv)
+NCZ_clearsliceprojections(size_t count, NCZSliceProjections* slpv)
 {
     if(slpv != NULL) {
-	int i;
+	size_t i;
         for(i=0;i<count;i++) {
 	    NCZSliceProjections* slp = &slpv[i];
 	    nullfree(slp->projections);	
 	}
     }
 }
-
-#if 0
-static void
-clearallprojections(NCZAllProjections* nap)
-{
-    if(nap != NULL) {
-	int i;
-	for(i=0;i<nap->rank;i++) 
-	    nclistfreeall(&nap->allprojections[i].projections);
-    }
-}
-#endif

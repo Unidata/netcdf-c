@@ -7,7 +7,7 @@
 #include "includes.h"
 #include <stddef.h>
 
-#ifdef ENABLE_F77
+#ifdef NETCDF_ENABLE_F77
 
 #undef TRACE
 
@@ -862,4 +862,4 @@ genf77_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
     codeline("call check_err(stat)");
 }
 
-#endif /*ENABLE_F77*/
+#endif /*NETCDF_ENABLE_F77*/

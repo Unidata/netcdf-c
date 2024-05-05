@@ -107,8 +107,7 @@ NCZ_def_dim(int ncid, const char *name, size_t len, int *idp)
 
     /* Add a dimension to the list. The ID must come from the file
      * information, since dimids are visible in more than one group. */
-    if ((stat = nc4_dim_list_add(grp, norm_name, len, -1, &dim)))
-        return stat;
+    if ((stat = nc4_dim_list_add(grp, norm_name, len, -1, &dim))) return stat;
 
     {
         NCZ_DIM_INFO_T* diminfo = NULL;
@@ -272,4 +271,15 @@ NCZ_rename_dim(int ncid, int dimid, const char *name)
         return NC_EINTERNAL;
 
     return NC_NOERR;
+}
+
+int
+NCZ_reclaim_dim(NC_DIM_INFO_T* dim)
+{
+    int stat = NC_NOERR;
+    if(dim != NULL) {
+	nullfree(dim->format_dim_info);
+	stat = nc4_dim_list_del(dim->container,dim);
+    }
+    return stat;
 }

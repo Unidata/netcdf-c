@@ -72,9 +72,18 @@ static const char* keywords[] = {
 NULL
 };
 
+static const char* hidden_attributes[] = {
+NCPROPS,
+SUPERBLOCKATT,
+ISNETCDF4ATT,
+NULL
+};
+
 /*Forward*/
 static int searchgrouptreedim(int ncid, int dimid, int* parentidp);
 extern int nc__testurl(const char*,char**);
+static int count_hidden_atts(int ncid, int ngatts);
+static int ishidden(const char* name);
 
 static int iskeyword(const char* kw)
 {
@@ -769,9 +778,10 @@ pr_att(
 #ifdef USE_NETCDF4
     if (ncid == getrootid(ncid)
         && varid == NC_GLOBAL
-        && strcmp(att.name,NCPROPS)==0)
+        && ishidden(att.name))
 	return; /* will be printed elsewhere */
 #endif
+
     NC_CHECK( nc_inq_att(ncid, varid, att.name, &att.type, &att.len) );
     att.tinfo = get_typeinfo(att.type);
 
@@ -1597,6 +1607,7 @@ do_ncdump_rec(int ncid, const char *path)
    int ndims;			/* number of dimensions */
    int nvars;			/* number of variables */
    int ngatts;			/* number of global attributes */
+   int nhidden;			/* number of global hidden attributes */
    int xdimid;			/* id of unlimited dimension */
    int varid;			/* variable id */
    int rootncid;		/* id of root group */
@@ -1893,7 +1904,10 @@ do_ncdump_rec(int ncid, const char *path)
       if(var.dims) {free((void*)var.dims); var.dims = NULL;}
    }
 
-   if (ngatts > 0 || formatting_specs.special_atts) {
+   /* Get count of hidden global attributes */
+   nhidden = count_hidden_atts(ncid,ngatts);
+
+   if (ngatts > nhidden || formatting_specs.special_atts) {
       printf ("\n");
       indent_out();
       if (is_root)
@@ -1905,9 +1919,9 @@ do_ncdump_rec(int ncid, const char *path)
        pr_att(ncid, kind, NC_GLOBAL, "", ia);
    }
    if (is_root && formatting_specs.special_atts) { /* output special attribute
-					   * for format variant */
+					   	    * for format variant */
 
-     pr_att_hidden(ncid, kind);
+       pr_att_hidden(ncid, kind);
        pr_att_global_format(ncid, kind);
    }
 
@@ -2600,4 +2614,33 @@ done:
     nclistfree(queue);
     nullfree(ids);
     return ret;
+}
+
+/* Test if name is hidden attribute */
+static int
+ishidden(const char* name)
+{
+    const char** p;
+    for(p=hidden_attributes;*p;p++) {
+        if(strcmp(*p,name)==0) return 1;
+    }
+    return 0;
+}
+
+/* Count number of hidden (WRT ncdump) attributes */
+static int
+count_hidden_atts(int ncid, int ngatts)
+{
+    int nhidden = 0;
+#ifdef USE_NETCDF4
+    int ia;
+    char aname[NC_MAX_NAME];
+    if (ncid != getrootid(ncid) || ngatts == 0) return 0; 
+    for(ia=0;ia<ngatts;ia++) {
+        NC_CHECK( nc_inq_attname(ncid, NC_GLOBAL, ia, aname) );
+        /* see if this is a hidden attribute name */
+	if(ishidden(aname)) nhidden++;
+    }
+#endif
+    return nhidden;
 }

@@ -31,13 +31,18 @@ Thus one key is "contained" (possibly transitively)
 by another if one key is a prefix (in the string sense) of the other.
 So in this sense the key "/x/y/z" is contained by the key  "/x/y".
 
-In this model all keys "exist" but only some keys refer to
-objects containing content -- content bearing.
-An important restriction is placed on the structure of the tree.
-Namely, keys are only defined for content-bearing objects.
-Further, all the leaves of the tree are these content-bearing objects.
-This means that the key for one content-bearing object cannot
-be a prefix of any other key.
+In this model some keys refer to objects containing content -- content
+bearing.  All other keys are treated as non-existent.  An important
+restriction is placed on the structure of the tree.  Namely, keys are
+only defined for content-bearing objects.  Further, all the leaves of
+the tree are these content-bearing objects.  This means that the key
+for one content-bearing object cannot be a prefix of any other key.
+As a rule, an attempt to access a key that does not exist if flagged
+using the NC_ENOOBJECT error return. Internally, in some zmap implementations,
+NC_EEMPTY is used to signal that an attempt was made to access
+an object that technically exists, but should be treated as non-existent.
+The canonical case for this is in zmap_file.c, where directories
+technically exist, but are invisible outside the zmap API.
 
 There several other concepts of note.
 1. Dataset - a dataset is the complete tree contained by the key defining
@@ -53,8 +58,42 @@ It wraps an internal C dispatch table manager
 for implementing an abstract data structure
 implementing the key/object model.
 
-Search:
-The search function has two purposes:
+List:
+The list function has two purposes:
+   a. Support reading of pure zarr datasets (because they do not explicitly
+      track their contents).
+   b. Debugging to allow raw examination of the storage. See zdump
+      for example.
+
+The list function takes a prefix path which has a key syntax (see above).
+The set of legal keys is the set of keys such that the key references
+a content-bearing object -- e.g. /x/y/.zarray or /.zgroup. Essentially
+this is the set of keys pointing to the leaf objects of the tree of keys
+constituting a dataset. This set potentially limits the set of keys that need to be
+examined during search.
+
+Ideally the search function would return 
+the set of names that are immediate suffixes of a
+given prefix path. That is, if <prefix> is the prefix path,
+then search returns all <name> such that  <prefix>/<name> is itself a prefix of a "legal" key.
+This could be used to implement glob style searches such as "/x/y/ *" or "/x/y/ **"
+
+This semantics was chosen because it appears to be the minimum required to implement
+all other kinds of search using recursion. So for example
+1. Avoid returning keys that are not a prefix of some legal key.
+2. Avoid returning all the legal keys in the dataset because that set may be very large;
+   although the implementation may still have to examine all legal keys to get the desired subset.
+3. Allow for use of partial read mechanisms such as iterators, if available.
+   This can support processing a limited set of keys for each iteration. This is a
+   straighforward tradeoff of space over time.
+
+This is doable in S3 search using common prefixes with a delimiter of '/', although
+the implementation is a bit tricky. For the file system zmap implementation, the legal search keys can be obtained
+one level at a time, which directly implements the search semantics. For the zip file implementation,
+this semantics is not possible, so the whole tree must be obtained and searched.
+
+List:
+The list function is an extension of the has one purpose
    a. Support reading of pure zarr datasets (because they do not explicitly
       track their contents).
    b. Debugging to allow raw examination of the storage. See zdump
@@ -112,17 +151,18 @@ always lead to something: a directory or a file.
 
 In any case, the zmap API returns three distinguished error code:
 1. NC_NOERR if a operation succeeded
-2. NC_EEMPTY is returned when accessing a key that has no content or does not exist.
+2. NC_EOBJECT is returned when accessing a key that that does not exist.
 
 This does not preclude other errors being returned such NC_EACCESS or NC_EPERM or NC_EINVAL
 if there are permission errors or illegal function arguments, for example.
 It also does not preclude the use of other error codes internal to the zmap
-implementation. So zmap_file, for example, uses NC_ENOTFOUND internally
+implementation. So zmap_file, for example, uses NC_ENOTFOUND or NC_EMPTY internally
 because it is possible to detect the existence of directories and files.
 This does not propagate to the API.
 
-Note that NC_EEMPTY is a new error code to signal to that the
-caller asked for non-content-bearing key.
+Note that NC_EEMPTY is a new error code to signal occurrence
+of objects like directories that are needed for the implemenation,
+but are not content-bearing.
 
 The current set of operations defined for zmaps are define with the
 generic nczm_xxx functions below.
@@ -154,6 +194,7 @@ NCZM_UNDEF=0, /* In-memory implementation */
 NCZM_FILE=1,	/* File system directory-based implementation */
 NCZM_ZIP=2,	/* Zip-file based implementation */
 NCZM_S3=3,	/* Amazon S3 implementation */
+NCZM_GS3=4,	/* Google S3 implementation */
 } NCZM_IMPL;
 
 /* Define the default map implementation */
@@ -164,6 +205,10 @@ typedef size64_t NCZM_FEATURES;
 /* powers of 2 */
 #define NCZM_UNIMPLEMENTED 1 /* Unknown/ unimplemented */
 #define NCZM_WRITEONCE 2     /* Objects can only be written once */
+
+#ifndef HAVE_MODE_T
+typedef int mode_t;
+#endif
 
 /*
 For each dataset, we create what amounts to a class
@@ -177,10 +222,11 @@ so we can cast to this form; avoids need for
 a separate per-implementation malloc piece.
 
 */
+
 typedef struct NCZMAP {
     NCZM_IMPL format;
     char* url;
-    int mode;
+    mode_t mode;
     size64_t flags; /* Passed in by caller */
     struct NCZMAP_API* api;
 } NCZMAP;
@@ -201,15 +247,17 @@ struct NCZMAP_API {
 	int (*len)(NCZMAP* map, const char* key, size64_t* sizep);
 	int (*read)(NCZMAP* map, const char* key, size64_t start, size64_t count, void* content);
 	int (*write)(NCZMAP* map, const char* key, size64_t count, const void* content);
-        int (*search)(NCZMAP* map, const char* prefix, struct NClist* matches);
+    /* List Operations */
+        int (*list)(NCZMAP* map, const char* prefix, struct NClist* matches);
+        int (*listall)(NCZMAP* map, const char* prefix, struct NClist* matches);
 };
 
 /* Define the Dataset level API */
 typedef struct NCZMAP_DS_API {
     int version;
     NCZM_FEATURES features;
-    int (*create)(const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
-    int (*open)(const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
+    int (*create)(const char *path, mode_t mode, size64_t constraints, void* parameters, NCZMAP** mapp);
+    int (*open)(const char *path, mode_t mode, size64_t constraints, void* parameters, NCZMAP** mapp);
     int (*truncate)(const char* url);
 } NCZMAP_DS_API;
 
@@ -299,7 +347,19 @@ next segment of legal objects that are immediately contained by the prefix key.
 @return NC_NOERR if the operation succeeded
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
-EXTERNL int nczmap_search(NCZMAP* map, const char* prefix, struct NClist* matches);
+EXTERNL int nczmap_list(NCZMAP* map, const char* prefix, struct NClist* matches);
+
+/**
+Return a vector of keys representing the
+list of all objects whose key is prefixed by the specified prefix arg.
+In effect it returns the complete subtree below a specified prefix.
+@param map -- the containing map
+@param prefix -- the key into the tree whose subtree of keys is to be returned.
+@param matches -- return the set of keys in this list; might be empty
+@return NC_NOERR if the operation succeeded
+@return NC_EXXX if the operation failed for one of several possible reasons
+*/
+EXTERNL int nczmap_listall(NCZMAP* map, const char* prefix, struct NClist* matches);
 
 /**
 "Truncate" the storage associated with a map. Delete all contents except
@@ -320,8 +380,8 @@ Close a map
 EXTERNL int nczmap_close(NCZMAP* map, int deleteit);
 
 /* Create/open and control a dataset using a specific implementation */
-EXTERNL int nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
-EXTERNL int nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
+EXTERNL int nczmap_create(NCZM_IMPL impl, const char *path, mode_t mode, size64_t constraints, void* parameters, NCZMAP** mapp);
+EXTERNL int nczmap_open(NCZM_IMPL impl, const char *path, mode_t mode, size64_t constraints, void* parameters, NCZMAP** mapp);
 
 #ifdef NETCDF_ENABLE_S3
 EXTERNL void NCZ_s3finalize(void);
@@ -367,11 +427,29 @@ EXTERNL int nczm_canonicalpath(const char* path, char** cpathp);
 EXTERNL int nczm_basename(const char* path, char** basep);
 EXTERNL int nczm_segment1(const char* path, char** seg1p);
 EXTERNL int nczm_lastsegment(const char* path, char** lastp);
+EXTERNL int nczm_removeprefix(const char* prefix, size_t nkeys, char** keys);
 
-/* bubble sorts (note arguments) */
-EXTERNL void nczm_sortlist(struct NClist* l);
-EXTERNL void nczm_sortenvv(size_t n, char** envv);
 EXTERNL void NCZ_freeenvv(int n, char** envv);
+EXTERNL const char* NCZ_mapkind(NCZM_IMPL impl);
+
+/**
+Walk a subtree of paths and invoke a function on each path.
+The walk is breadth-first.
+
+The function signature is:
+int (*fcn)(NCZMAP* map, const char* path, void* param);
+
+If the function returns NC_NOERR, then the walk continues.
+If the function returns an error, then the walk terminates and returns the error.
+
+@param map -- the containing map
+@param prefix -- the prefix key the tree where the search is to occur
+@param fcn -- the function to invoke
+@param param -- passed as extra argument to fcn
+@return NC_NOERR if the operation succeeded
+@return NC_EXXX if the operation failed for one of several possible reasons
+*/
+EXTERNL int nczmap_walk(NCZMAP* map, const char* prefix, int (*fcn)(NCZMAP*,const char*,const char*,void*), void* param);
 
 #ifdef __cplusplus
 }

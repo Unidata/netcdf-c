@@ -6,7 +6,7 @@
 
 #include "includes.h"
 
-#ifdef ENABLE_JAVA
+#ifdef NETCDF_ENABLE_JAVA
 
 #undef JGDB
 
@@ -1598,4 +1598,4 @@ jprefixed(List* prefix, char* suffix, char* separator)
 #endif /*USE_NETCDF4*/
 
 
-#endif /*ENABLE_JAVA*/
+#endif /*NETCDF_ENABLE_JAVA*/

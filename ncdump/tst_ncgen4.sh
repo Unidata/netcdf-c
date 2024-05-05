@@ -5,6 +5,8 @@
 # tst_ncgen4_classic.sh
 # Dennis Heimbigner
 
+BASH="bash"
+
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
@@ -24,14 +26,14 @@ export verbose
 
 KFLAG=3 ; export KFLAG
 echo "*** Performing diff tests: k=3"
-bash  ${srcdir}/tst_ncgen4_diff.sh
+${BASH} ${srcdir}/tst_ncgen4_diff.sh
 echo "*** Performing cycle tests: k=3"
-bash  ${srcdir}/tst_ncgen4_cycle.sh
+${BASH}  ${srcdir}/tst_ncgen4_cycle.sh
 KFLAG=4 ; export KFLAG
 echo "*** Performing diff tests: k=4"
-bash  ${srcdir}/tst_ncgen4_diff.sh
+${BASH}  ${srcdir}/tst_ncgen4_diff.sh
 echo "*** Performing cycle tests: k=4"
-bash  ${srcdir}/tst_ncgen4_cycle.sh
+${BASH}  ${srcdir}/tst_ncgen4_cycle.sh
 rm -rf ${RESULTSDIR}
 echo "SUCCESS!!"
 exit 0

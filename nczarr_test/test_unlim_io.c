@@ -89,7 +89,7 @@ int
 main(int argc, char** argv)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     
     if((stat=getoptions(&argc,&argv))) goto done;
     if((stat=verifyoptions(options))) goto done;

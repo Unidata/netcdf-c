@@ -78,7 +78,7 @@ H5Z__filter_deflate(unsigned flags, size_t cd_nelmts,
 {
     void	*outbuf = NULL;         /* Pointer to new buffer */
     int		status;                 /* Status from zlib operation */
-    size_t	ret_value = 0;          /* Return value */
+    int	ret_value = 0;          /* Return value */
 
     FUNC_ENTER_STATIC
 
@@ -152,7 +152,7 @@ H5Z__filter_deflate(unsigned flags, size_t cd_nelmts,
 	*buf = outbuf;
 	outbuf = NULL;
 	*buf_size = nalloc;
-	ret_value = z_strm.total_out;
+	ret_value = (int)z_strm.total_out;
 
         /* Finish uncompressing the stream */
 	(void)inflateEnd(&z_strm);
@@ -196,13 +196,13 @@ H5Z__filter_deflate(unsigned flags, size_t cd_nelmts,
 	    *buf = outbuf;
 	    outbuf = NULL;
 	    *buf_size = nbytes;
-	    ret_value = z_dst_nbytes;
+	    ret_value = (int)z_dst_nbytes;
 	} /* end else */
     } /* end else */
 
 done:
     if(outbuf)
         H5MM_xfree(outbuf);
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI((size_t)ret_value)
 }
 

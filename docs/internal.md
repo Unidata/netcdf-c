@@ -13,6 +13,7 @@ It covers the following issues.
 * [Inferring File Types](#intern_infer)
 * [Adding a Standard Filter](#intern_filters)
 * [Test Interference](#intern_isolation)
+* [Managing NCZarr Tests](#intern_nczarr_tests)
 
 # 1. Including C++ Code in the netcdf-c Library {#intern_cpp}
 
@@ -655,31 +656,34 @@ It soon became apparent that there were resources shared between tests and that 
 execution sometimes caused interference between tests.
 
 In order to fix the inter-test interference, several approaches were used.
-1. Renaming resources (primarily files) so that tests would create difference test files.
+1. Renaming resources (primarily files) so that tests would create different test files.
 2. Telling the test system that there were explicit dependencies between tests so that they would not be run in parallel.
 3. Isolating test resources by creating independent directories for each test.
 
 ## Test Isolation
-The isolation mechanism is currently used mostly in nczarr_tests.
+The isolation mechanism is currently used mostly in nczarr_tests/v3_nczarr_tests.
 It requires that tests are all executed inside a shell script.
 When the script starts, it invokes a shell function called "isolate".
-This function looks in current directory for a directory called "testset_\<uid\>".
-If "testset_\<uid\> is not found then it creates it.
-This directory is then used to isolate all test output.
+This function looks in current directory for a directory called "alltests_\<uid\>/\<test_directory\>",
+where "\<test_directory\>" is the name of a test directory such as "nczarr_tests", or "nc_test4", etc.
+If "alltests_\<uid\>/\<test_directory\>" is not found then it creates it.
+This directory is then used to isolate all test output for the specified test directory.
+After calling "isolate", the script enters the "alltests_\<uid\>/\<test_directory\>"
+directory.
 
-After calling "isolate", the script enters the "testset_\<uid\>"
-directory.  Then each actual test creates a directory in which to
+Within the test directory, each actual test creates a directory in which to
 store any file resources that it creates during execution.
-Suppose, for example, that the shell script is called "run_XXXX.sh".
-The isolate function creates a directory with the general name "testset_\<uid\>".
-Then the run_XXX.sh script creates a directory "testset_\<uid\>/testdir_XXX",
+Suppose, for example, that the shell script is called "run_XXXX.sh", and is in the "ncdump" test directory.
+The isolate function creates a directory with the general name "alltests_\<uid\>/ncdump".
+Then the run_XXX.sh script creates a directory "alltests_\<uid\>/ncdump/testdir_XXX",
 enters it and runs the test.
-During cleanup, specifically "make clean", all the testset_\<uid\> directories are deleted.
+During cleanup, specifically "make clean", the directory alltests_\<uid\> is deleted, which of course
+deletes all the subsidiary test directories.
 
 The "\<uid\>" is a unique identifier created using the "date +%s" command. It returns an integer
 representing the number of seconds since the start of the so-called "epoch" basically
 "00:00:00 UTC, 1 January 1970". Using a date makes it easier to detect and reclaim obsolete
-testset directories.
+"alltests" directories.
 
 ## Cloud Test Isolation
 
@@ -693,10 +697,12 @@ interfere with local testing by individual users.
 This problem is difficult to solve, but a mostly complete solution has been implemented
 possible with cmake, but not (as yet) possible with automake.
 
-In any case, there is a shell function called s3isolate in nczarr_test/test_nczarr.sh that operates on cloud resources in a way that is similar to the isolate function.
+In any case, there is a shell function called s3isolate in
+nczarr_test/test_nczarr.sh that operates on cloud resources in a way
+that is similar to the isolate function.
 The s3isolate does several things:
 1. It invokes isolate to ensure local isolation.
-2. It creates a path prefix relative to the Unidata S3 bucket that has the name "testset_\<uid\>", where this name
+2. It creates a path prefix relative to the Unidata S3 bucket that has the name "alltests_\<uid\>/\<test_directory\>", where this name
    is the same as the one created by the isolate function.
 3. It appends the uid to a file called s3cleanup_\<pid\>.uids. This file may accumulate several uids indicating
    the keys that need to be cleaned up. The pid is a separate small unique id to avoid s3cleanup interference.
@@ -704,7 +710,7 @@ The s3isolate does several things:
 The test script then ensures that any cloud resources are created as extensions of the path prefix.
 
 Cleanup of S3 resources is complex.
-In configure.ac or the top-level CMakeList.txt files, the path "netcdf-c/testset_\<uid\>"
+In configure.ac or the top-level CMakeList.txt files, the path "netcdf-c/alltests_\<uid\>>"
 is created and via configuration commands, is propagated to various Makefile.am
 and specific script files.
 
@@ -717,9 +723,8 @@ In cmake, the CTestCustom.cmake mechanism is used and contains the following com
  ENDIF()
 ````
 
-In automake, the "check-local" extension mechanism is used
-because it is invoked after all tests are run in the nczarr_test
-directory. So nczarr_test/Makefile.am contains the following
+In automake, the "clean-local" extension mechanism is used.
+So nczarr_test/Makefile.am contains the following
 equivalent code:
 ````
  if NETCDF_ENABLE_S3_TESTALL
@@ -763,9 +768,40 @@ This file is called "s3cleanup_\<pid\>.json".
 5. Use the "aws delete-objects" command to delete the keys.
 6. Repeat steps 4 and 5 for each set of 500 keys.
 
+# 6. Managing NCZarr Tests {#intern_nczarr_tests}
+
+When testing NCZarr, it is necessary to run tests for (NC)Zarr version 2 (aka V2) and for (NC)Zarr version 3 (aka V3).
+In support of this, there are two test directories: *nczarr_test* and *v3_nczarr_test*.
+When the tests in *nczarr_test* are executed, they default to using Zarr version 2 (=> NCZarr version 2).
+Similarly, when the tests in *v3_nczarr_test* are executed, they default to using Zarr version 3 (=> NCZarr version 3).
+
+It turns out that almost all of the V2 tests can be reused for testing V3.
+So, the tests in *v3_nczarr_test* are copies of the tests in *nczarr_test*.
+It turns out that automake is not easily capable of copying those tests on the fly.
+This is principally because the automake *make distcheck* command does not allow
+modifications to the source directory, but only to the build directory. This means
+that the tests must be heavily modified to handle the two cases where scripts, programs,
+and test data are in _\$\$\{srcdir\}_ versus when they are in _\$\$\{builddir\}_.
+
+## AutoMake Testing
+For AutoMake testing, selected V2 tests are copied to the *v3_nczarr_test*
+directory using the *BUILT_SOURCES* mechanism.
+If a new test is added to the *nczarr_test* directory, then its manifestation
+in the *v3_nczarr_test* must be decided.
+
+If the test can be used directly, then the file v3_nczarr_test must be modified
+and added to the TESTFILES_NCZARR variable. If the data files
+referenced by the test can be used directly, then they should be added to the
+TESTDATA_NCZARR variable.
+
+If the test must be modified for V3 use, then the modified
+test should be github-add'ed to the v3_nczarr_test directory
+and inserted into the Makefile.am. Similarly, any V3 specific
+data files must be manually added to the Makefile.am and github-add'ed.
+
 # Point of Contact {#intern_poc}
 
 *Author*: Dennis Heimbigner<br>
 *Email*: dmh at ucar dot edu<br>
 *Initial Version*: 12/22/2021<br>
-*Last Revised*: 9/16/2023
+*Last Revised*: 4/10/2024

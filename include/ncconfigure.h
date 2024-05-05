@@ -10,18 +10,31 @@
 #ifndef NCCONFIGURE_H
 #define NCCONFIGURE_H 1
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <errno.h>
+#include <assert.h>
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef __APPLE__ /* GCC strikes again */
+#ifndef uint
+typedef unsigned int uint;
+#endif
+#ifndef ushort
+typedef unsigned short ushort;
+#endif
 #endif
 
 /*
@@ -31,6 +44,11 @@ typically, alternatives to
 missing functions should be
 defined and missing types defined.
 */
+
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#endif
 
 #ifdef _WIN32
 
@@ -49,7 +67,7 @@ typedef int mode_t;
 #define F_OK 00
 #endif
 
-#endif
+#endif /*_WIN32*/
 
 /*Warning: Cygwin with -ansi does not define these functions
   in its headers.*/
@@ -134,6 +152,9 @@ unsigned long long int strtoull(const char*, char**, int);
 #endif /*_WIN32*/
 
 #ifndef nulldup
+#ifndef _WIN32
+#pragma GCC diagnostic ignored "-Wnonnull"
+#endif
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
 #endif
 
@@ -170,14 +191,14 @@ typedef unsigned long long uint64;
 typedef unsigned long long uint64_t;
 #endif
 
-#ifndef _WIN32
 #ifndef HAVE_UINTPTR_T
 #ifndef uintptr_t
 #if SIZEOF_VOIDP == 8
+static int vp8;
 #define uintptr_t unsigned long
 #else
+static int vp4;
 #define uintptr_t unsigned int
-#endif
 #endif
 #endif
 #endif

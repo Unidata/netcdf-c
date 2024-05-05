@@ -209,3 +209,18 @@ ncbytesremove(NCbytes* bb, unsigned long pos)
     bb->length--;
     return TRUE;
 }
+
+/* Insert n bytes into the buffer at position pos*/
+int
+ncbytesinsert(NCbytes* bb, size_t pos, size_t n, const char* s)
+{
+    if(bb == NULL) return ncbytesfail();
+    if(pos > bb->length) ncbytesfail();
+    if((bb->length + n) >= bb->alloc) if(!ncbytessetalloc(bb,bb->length+n+1)) return ncbytesfail();
+    if(bb->length > 0)
+        memmove(bb->content+pos+n,bb->content+pos,(bb->length - pos));
+    memcpy(bb->content+pos,s,n);    
+    bb->length += n;    
+    bb->content[bb->length] = '\0';
+    return TRUE;
+}

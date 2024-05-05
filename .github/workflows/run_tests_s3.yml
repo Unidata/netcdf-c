@@ -11,6 +11,9 @@ name: Run S3 netCDF Tests (under Ubuntu Linux)
 
 on: [workflow_dispatch]
 
+env:
+  REMOTETESTDOWN: ${{ vars.REMOTETESTDOWN }}
+
 concurrency:  
   group: ${{ github.workflow}}-${{ github.head_ref }}  
   cancel-in-progress: true

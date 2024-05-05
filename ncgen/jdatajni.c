@@ -12,7 +12,7 @@ See \ref copyright file for more info.
 #include "includes.h"
 #include "ncoffsets.h"
 
-#ifdef ENABLE_JAVA
+#ifdef NETCDF_ENABLE_JAVA
 
 extern List* vlenconstants;  /* List<Constant*>;*/
 
@@ -527,4 +527,4 @@ jvlenalignment(void)
     return nctypealignment(NC_VLEN);
 }
 
-#endif /*ENABLE_JAVA*/
+#endif /*NETCDF_ENABLE_JAVA*/

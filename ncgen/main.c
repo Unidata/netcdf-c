@@ -388,19 +388,19 @@ main(
 	    syntax_only = 1;
     }
 
-#ifndef ENABLE_C
+#ifndef NETCDF_ENABLE_C
     if(l_flag == L_C) {
 	  fprintf(stderr,"C not currently supported\n");
 	  code=1; goto done;
     }
 #endif
-#ifndef ENABLE_BINARY
+#ifndef NETCDF_ENABLE_BINARY
     if(l_flag == L_BINARY) {
 	  fprintf(stderr,"Binary netcdf not currently supported\n");
 	  code=1; goto done;
     }
 #endif
-#ifndef ENABLE_JAVA
+#ifndef NETCDF_ENABLE_JAVA
     if(l_flag == L_JAVA) {
 	  fprintf(stderr,"Java not currently supported\n");
 	  code=1; goto done;
@@ -409,7 +409,7 @@ main(
     if(l_flag == L_JAVA && mainname != NULL && strcmp(mainname,"main")==0)
       mainname = "Main";
 #endif
-#ifndef ENABLE_F77
+#ifndef NETCDF_ENABLE_F77
     if(l_flag == L_F77) {
 	  fprintf(stderr,"F77 not currently supported\n");
 	  code=1; goto done;

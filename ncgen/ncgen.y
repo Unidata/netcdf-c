@@ -131,11 +131,11 @@ static long long extractint(NCConstant* con);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
 static int parsecodecsflag(const char* sdata0, Specialdata* special);
+#endif
 static Symbol* identkeyword(const Symbol*);
 
 #ifdef GENDEBUG1
 static void printfilters(int nfilters, NC_H5_Filterspec** filters);
-#endif
 #endif
 
 int yylex(void);

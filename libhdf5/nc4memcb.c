@@ -74,10 +74,7 @@
  * @author Dennis Heimbigner
 */
 
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <stdio.h>
+#include "config.h"
 
 #include <hdf5.h>
 #include <hdf5_hl.h>

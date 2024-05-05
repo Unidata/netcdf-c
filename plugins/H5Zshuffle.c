@@ -141,7 +141,7 @@ H5Z__filter_shuffle(unsigned flags, size_t cd_nelmts, const unsigned cd_values[]
     size_t j;                   /* Local index variable */
 #endif /* NO_DUFFS_DEVICE */
     size_t leftover;            /* Extra bytes at end of buffer */
-    size_t ret_value = 0;       /* Return value */
+    herr_t ret_value = 0;       /* Return value */
 
     /* Check arguments */
     if (cd_nelmts!=H5Z_SHUFFLE_TOTAL_NPARMS || cd_values[H5Z_SHUFFLE_PARM_SIZE]==0)
@@ -302,9 +302,9 @@ H5Z__filter_shuffle(unsigned flags, size_t cd_nelmts, const unsigned cd_values[]
     } /* end else */
 
     /* Set the return value */
-    ret_value = nbytes;
+    ret_value = (int)nbytes;
 
 done:
-    return ret_value;
+    return (size_t)ret_value;
 }
 

@@ -16,4 +16,5 @@ variables:
 		fractional_snow_cover:time_coverage_start = "2003-01-05" ;
 		fractional_snow_cover:units = "percent" ;
 		fractional_snow_cover:url = "http://www.globsnow.info/" ;
+ 		fractional_snow_cover:_FillValue = NaNf ;
 }

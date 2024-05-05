@@ -85,6 +85,7 @@ if(UNAME)
   getuname(osname -s)
   getuname(osrel  -r)
   getuname(cpu    -m)
+  getuname(host   -n)
   set(TMP_BUILDNAME "${osname}-${osrel}-${cpu}")
 endif()
 
@@ -382,13 +383,13 @@ if(MSVC)
 endif()
 
 # Option to build netCDF Version 2
-OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
-set(BUILD_V2 ${ENABLE_V2_API})
-if(NOT ENABLE_V2_API)
+OPTION (NETCDF_ENABLE_V2_API "Build netCDF Version 2." ON)
+set(BUILD_V2 ${NETCDF_ENABLE_V2_API})
+if(NOT NETCDF_ENABLE_V2_API)
   set(NO_NETCDF_2 ON)
-else(NOT ENABLE_V2_API)
+else(NOT NETCDF_ENABLE_V2_API)
   set(USE_NETCDF_2 TRUE)
-endif(NOT ENABLE_V2_API)
+endif(NOT NETCDF_ENABLE_V2_API)
 
 # Option to build utilities
 option(NETCDF_BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
@@ -431,40 +432,49 @@ endif()
 # Format Option checks
 ################################
 
-# We need to now treat enable-netcdf4 and enable-hdf5 as separate,
-# but for back compatability, we need to treat enable-netcdf4
-# as equivalent to enable-hdf5.
-# We detect this using these rules:
-# 1. if NETCDF_ENABLE_HDF5 is off then disable hdf5
-# 2. if NETCDF_ENABLE_NETCDF_4 is off then disable hdf5
-# 3. else enable hdf5
-option(NETCDF_ENABLE_NETCDF_4 "Use HDF5." ON)
-option(NETCDF_ENABLE_HDF5 "Use HDF5." ON)
-if(NOT NETCDF_ENABLE_HDF5 OR NOT NETCDF_ENABLE_NETCDF_4)
-  set(NETCDF_ENABLE_HDF5 OFF CACHE BOOL "Use HDF5" FORCE)
+# NETCDF_ENABLE_NETCDF_4/NETCDF_ENABLE_NETCDF4
+# have been deprecated for a while.
+# Here we disable them completely.
+option(NETCDF_ENABLE_NETCDF_4 "Use HDF5." OFF)
+option(NETCDF_ENABLE_NETCDF4 "Use HDF5." OFF)
+if(NETCDF_ENABLE_NETCDF4 OR NETCDF_ENABLE_NETCDF_4)
+  message(FATAL_ERROR "NETCDF_ENABLE_NETCDF4/NETCDF_ENABLE_NETCDF_4 are obsolete. Please use NETCDF_ENABLE_HDF5 instead.")
 endif()
+
+option(NETCDF_ENABLE_HDF5 "Use HDF5." ON)
 option(NETCDF_ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
-
-
 option(NETCDF_ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 option(NETCDF_ENABLE_NCZARR "Enable NCZarr Client." ON)
 option(NETCDF_ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
 set(NETCDF_ENABLE_CDF5 AUTO CACHE STRING "AUTO")
 option(NETCDF_ENABLE_CDF5 "Enable CDF5 support" ON)
 
-if(DEFINED NETCDF_ENABLE_NETCDF4)
-  message(FATAL_ERROR "NETCDF_ENABLE_NETCDF4 is deprecated. Please use NETCDF_ENABLE_NETCDF_4 instead.")
-endif()
+# Decide default Zarr Format for creation
+OPTION(NETCDF_ENABLE_DEFAULT_ZARR_FORMAT_V3 "Specify the default Zarr format is V3" OFF)
+if(NETCDF_ENABLE_DEFAULT_ZARR_FORMAT_V3)
+SET(DFALTZARRFORMAT 3 CACHE STRING "")
+ELSE()
+SET(DFALTZARRFORMAT 2 CACHE STRING "")
+ENDIF()
+
+IF(NETCDF_ENABLE_NCZARR)
+  SET(NETCDF_ENABLE_NCZARR_V3 ON CACHE BOOL "Enable Zarr V3" FORCE)
+  # V3 is enabled if NCzarr is enabled
+ELSE()
+  SET(NETCDF_ENABLE_NCZARR_V3 OFF CACHE BOOL "Enable Zarr V3" FORCE)
+ENDIF()
 
 # Netcdf-4 support (i.e. libsrc4) is required by more than just HDF5 (e.g. NCZarr)
 # So depending on what above formats are enabled, enable netcdf-4
+# as a short-hand for this boolean expression
 if(NETCDF_ENABLE_HDF5 OR NETCDF_ENABLE_HDF4 OR NETCDF_ENABLE_NCZARR)
-  set(NETCDF_ENABLE_NETCDF_4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
+  set(USE_NETCDF4 ON)
+else()
+  set(USE_NETCDF4 OFF)
 endif()
 
 # enable|disable all forms of network access
 option(NETCDF_ENABLE_REMOTE_FUNCTIONALITY "Enable|disable all forms remote data access (DAP, S3, etc)" ON)
-message(">>> NETCDF_ENABLE_REMOTE_FUNCTIONALITY=${NETCDF_ENABLE_REMOTE_FUNCTIONALITY}")
 if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
 message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP[4]=NO")
 set(NETCDF_ENABLE_DAP OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP=NO" FORCE)
@@ -484,10 +494,7 @@ endif()
 # Did the user specify a default minimum blocksize for posixio?
 set(NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic and 64-bit offset format files.")
 
-if(NETCDF_ENABLE_NETCDF_4)
-  set(USE_NETCDF4 ON CACHE BOOL "")
-  set(NETCDF_ENABLE_NETCDF_4 ON CACHE BOOL "")
-else()
+if(NOT USE_NETCDF4)
   set(USE_HDF4_FILE_TESTS OFF)
   set(USE_HDF4 OFF)
   set(NETCDF_ENABLE_HDF4_FILE_TESTS OFF)
@@ -496,18 +503,18 @@ endif()
 
 # Option Logging, only valid for netcdf4.
 option(NETCDF_ENABLE_LOGGING "Enable Logging." OFF)
-if(NOT NETCDF_ENABLE_NETCDF_4)
+if(NOT USE_NETCDF4)
 set(NETCDF_ENABLE_LOGGING OFF)
 endif()
 if(NETCDF_ENABLE_LOGGING)
-  target_compile_definitions(netcdf PRIVATE LOGGING ENABLE_SET_LOG_LEVEL)
+  target_compile_definitions(netcdf PRIVATE LOGGING NETCDF_ENABLE_SET_LOG_LEVEL)
   set(LOGGING ON)
-  set(ENABLE_SET_LOG_LEVEL ON)
+  set(NETCDF_ENABLE_SET_LOG_LEVEL ON)
 endif()
 option(NETCDF_ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
-if(NETCDF_ENABLE_NETCDF_4 AND NOT NETCDF_ENABLE_LOGGING AND NETCDF_ENABLE_SET_LOG_LEVEL_FUNC)
+if(USE_NETCDF4 AND NOT NETCDF_ENABLE_LOGGING AND NETCDF_ENABLE_SET_LOG_LEVEL_FUNC)
   target_compile_definitions(netcdf PRIVATE -DENABLE_SET_LOG_LEVEL)
-  set(ENABLE_SET_LOG_LEVEL ON)
+  set(NETCDF_ENABLE_SET_LOG_LEVEL ON)
 endif()
 
 # Option to allow for strict null file padding.
@@ -562,6 +569,12 @@ set(NETCDF_ENABLE_EXTERNAL_SERVER_TESTS OFF CACHE BOOL "" FORCE)
 set(NETCDF_ENABLE_DAP_LONG_TESTS OFF CACHE BOOL "" FORCE)
 endif()
 
+# Provide a global control for remotetest.
+if ("$ENV{REMOTETESTDOWN}" STREQUAL "yes")
+message(WARNING "ENV(REMOTETESTDOWN) => NETCDF_ENABLE_DAP_REMOTE_TESTS == OFF")
+set(NETCDF_ENABLE_DAP_REMOTE_TESTS OFF CACHE BOOL "" FORCE)
+endif()
+
 set(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 set(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
@@ -599,7 +612,7 @@ if(NOT ENABLE_PLUGIN_INSTALL)
     unset(PLUGIN_INSTALL_DIR CACHE)
 endif()
 
-if(ENABLE_PLUGIN_INSTALL)
+if(NETCDF_ENABLE_PLUGIN_INSTALL)
     if(NOT DEFINED PLUGIN_INSTALL_DIR)
       # Default to HDF5_PLUGIN_PATH or its default directories
       if(DEFINED ENV{HDF5_PLUGIN_PATH})
@@ -615,7 +628,7 @@ if(ENABLE_PLUGIN_INSTALL)
     endif()
 endif()
 
-if(ENABLE_PLUGIN_INSTALL)
+if(NETCDF_ENABLE_PLUGIN_INSTALL)
   # Use the lowest priority dir in the path
   if(NOT ISMSVC AND NOT ISMINGW)
     string(REPLACE ":" ";" PATH_LIST ${PLUGIN_INSTALL_DIR})
@@ -764,13 +777,17 @@ if(NETCDF_ENABLE_TESTS)
   set(NC_CTEST_DROP_SITE "cdash.unidata.ucar.edu:443" CACHE STRING "Dashboard location for CTest-based testing purposes.")
   set(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
   set(SUBMIT_URL "https://cdash.unidata.ucar.edu:443")
-  find_program(HOSTNAME_CMD NAMES hostname)
-  if(NOT WIN32)
-    set(HOSTNAME_ARG "-s")
-  endif()
-  if(HOSTNAME_CMD)
-    execute_process(COMMAND ${HOSTNAME_CMD} "${HOSTNAME_ARG}" OUTPUT_VARIABLE HOSTNAME OUTPUT_STRIP_TRAILING_WHITESPACE)
-    set(NC_CTEST_SITE "${HOSTNAME}" CACHE STRING "Hostname of test machine.")
+  if("${host}" STREQUAL "")
+    find_program(HOSTNAME_CMD NAMES hostname)
+    if(NOT WIN32)
+      set(HOSTNAME_ARG "-s")
+    endif()
+    if(HOSTNAME_CMD)
+      execute_process(COMMAND ${HOSTNAME_CMD} "${HOSTNAME_ARG}" OUTPUT_VARIABLE HOSTNAME OUTPUT_STRIP_TRAILING_WHITESPACE)
+      set(NC_CTEST_SITE "${HOSTNAME}" CACHE STRING "Hostname of test machine.")
+    endif()
+  else()
+    set(NC_CTEST_SITE "${host}" CACHE STRING "Hostname of test machine.")
   endif()
 
   if(NC_CTEST_SITE)
@@ -837,12 +854,6 @@ set(TEMP_LARGE "." CACHE STRING "Location to store large file tests.")
 option(NETCDF_ENABLE_FSYNC "Enable experimental fsync code." OFF)
 if(NETCDF_ENABLE_FSYNC)
   set(USE_FSYNC ON)
-endif()
-
-# Temporary
-OPTION (ENABLE_JNA "Enable jna bug fix code." OFF)
-if(ENABLE_JNA)
-  set(JNA ON)
 endif()
 
 # Linux specific large file support flags.
@@ -930,7 +941,7 @@ endif(NETCDF_ENABLE_ERANGE_FILL)
 # Now NETCDF_ENABLE_ERANGE_FILL is either AUTO, ON, or OFF
 
 # More relaxed coordinate check is now mandatory for all builds.
-set(ENABLE_ZERO_LENGTH_COORD_BOUND ON)
+set(NETCDF_ENABLE_ZERO_LENGTH_COORD_BOUND ON)
 
 # check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
 if(USE_PNETCDF)
@@ -953,7 +964,7 @@ if(NETCDF_ENABLE_ERANGE_FILL)
   set(M4FLAGS "-DERANGE_FILL" CACHE STRING "")
 endif()
 
-if(ENABLE_ZERO_LENGTH_COORD_BOUND)
+if(NETCDF_ENABLE_ZERO_LENGTH_COORD_BOUND)
   message(STATUS "Enabling a more relaxed check for NC_EINVALCOORDS")
   target_compile_definitions(netcdf PRIVATE RELAX_COORD_BOUND)
 endif()
@@ -962,7 +973,7 @@ endif()
 option(NETCDF_ENABLE_PARALLEL_TESTS "Enable Parallel IO Tests. Requires HDF5/NetCDF4 with parallel I/O Support." "${HDF5_PARALLEL}")
 if(NETCDF_ENABLE_PARALLEL_TESTS AND USE_PARALLEL)
   set(TEST_PARALLEL ON CACHE BOOL "")
-  if(USE_NETCDF4)
+  if(USE_HDF5)
     set(TEST_PARALLEL4 ON CACHE BOOL "")
   endif()
 endif()
@@ -996,12 +1007,8 @@ if (NOT NETCDF_ENABLE_PLUGINS AND NETCDF_ENABLE_NCZARR_FILTERS)
 endif()
 
 IF (NOT NETCDF_ENABLE_NCZARR)
-  message(WARNING "NETCDF_ENABLE_NCZARR==NO => NETCDF_ENABLE_NCZARR_FILTERS==NO AND NETCDF_ENABLE_NCZARR_FILTER_TESTING==NO")
+  message(WARNING "NETCDF_ENABLE_NCZARR==NO => NETCDF_ENABLE_NCZARR_FILTERS==NO")
   set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Disable NCZARR_FILTERS" FORCE)
-endif()
-
-IF (NOT NETCDF_ENABLE_NCZARR_FILTERS)
-    set(NETCDF_ENABLE_NCZARR_FILTER_TESTING OFF CACHE BOOL "Enable NCZarr Filter Testing" FORCE)
 endif()
 
 set(ENABLE_CLIENTSIDE_FILTERS OFF)
@@ -1211,6 +1218,7 @@ CHECK_TYPE_SIZE("ssize_t"   SIZEOF_SSIZE_T)
 if(SIZEOF_SSIZE_T)
   set(HAVE_SSIZE_T TRUE)
 endif(SIZEOF_SSIZE_T)
+
 CHECK_TYPE_SIZE("ptrdiff_t" SIZEOF_PTRDIFF_T)
 if(SIZEOF_PTRDIFF_T)
   set(HAVE_PTRDIFF_T TRUE)
@@ -1252,6 +1260,7 @@ CHECK_FUNCTION_EXISTS(strlcat   HAVE_STRLCAT)
 CHECK_FUNCTION_EXISTS(strlcpy  HAVE_STRLCPY)
 CHECK_FUNCTION_EXISTS(strdup  HAVE_STRDUP)
 CHECK_FUNCTION_EXISTS(strndup HAVE_STRNDUP)
+CHECK_FUNCTION_EXISTS(strlen  HAVE_STRLEN)
 CHECK_FUNCTION_EXISTS(strtoll HAVE_STRTOLL)
 CHECK_FUNCTION_EXISTS(strcasecmp  HAVE_STRCASECMP)
 CHECK_FUNCTION_EXISTS(strtoull  HAVE_STRTOULL)
@@ -1373,6 +1382,7 @@ add_definitions(-DHAVE_CONFIG_H)
 include_directories(${netCDF_BINARY_DIR})
 # End autotools-style checks for config.h
 
+
 #####
 # Set the true names of all the libraries, if customized by external project
 #####
@@ -1386,7 +1396,7 @@ if(USE_PNETCDF)
 endif(USE_PNETCDF)
 
 if(USE_NETCDF4)
-  add_subdirectory(libsrc4)
+add_subdirectory(libsrc4)
 endif()
 
 if(USE_HDF5)
@@ -1450,7 +1460,7 @@ endif()
 
 # Enable tests
 if(NETCDF_ENABLE_TESTS)
-  if(ENABLE_V2_API)
+  if(NETCDF_ENABLE_V2_API)
     add_subdirectory(nctest)
   endif()
   add_subdirectory(nc_test)
@@ -1475,7 +1485,16 @@ if(NETCDF_ENABLE_TESTS)
     add_subdirectory(unit_test)
   endif(NETCDF_ENABLE_UNIT_TESTS)
   if(NETCDF_ENABLE_NCZARR)
+    include_directories(nczarr_test)
     add_subdirectory(nczarr_test)
+    if(NETCDF_ENABLE_S3)
+        if(NOT ISCMAKE)
+	    # Cannot create target because another target with
+	    # the same name already exists.
+	    # See documentation for policy CMP0002 for more details.
+	    add_subdirectory(v3_nczarr_test)
+	endif()
+    endif()
   endif()
 endif()
 
@@ -1498,12 +1517,16 @@ add_subdirectory(docs)
 # in the libdir.
 ##
 if(MSVC)
-  file(GLOB COPY_FILES ${CMAKE_PREFIX_PATH}/lib/*.lib)
+  foreach(CPP ${CMAKE_PREFIX_PATH})
+    file(GLOB COPY_FILES ${CPP}/lib/*.lib)
+  endforeach()
   install(FILES ${COPY_FILES}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
   COMPONENT dependencies)
 
-  file(GLOB COPY_FILES ${CMAKE_PREFIX_PATH}/bin/*.dll)
+  foreach(CPP ${CMAKE_PREFIX_PATH})
+    file(GLOB COPY_FILES ${CPP}/bin/*.dll)
+  endforeach()
   string(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
   install(FILES ${COPY_FILES}
   DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -1608,8 +1631,6 @@ ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_
 set(host_cpu "${cpu}")
 set(host_vendor "${osname}")
 set(host_os "${osrel}")
-set(abs_top_builddir "${CMAKE_CURRENT_BINARY_DIR}")
-set(abs_top_srcdir "${CMAKE_CURRENT_SOURCE_DIR}")
 string(RANDOM LENGTH 3 ALPHABET "0123456789" PLATFORMUID)
 math(EXPR PLATFORMUID "${PLATFORMUID} + 1" OUTPUT_FORMAT DECIMAL)
        
@@ -1623,10 +1644,10 @@ set(LDFLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_${CMAKE_BU
 is_disabled(BUILD_SHARED_LIBS enable_static)
 is_enabled(BUILD_SHARED_LIBS enable_shared)
 
-is_enabled(ENABLE_V2_API HAS_NC2)
-is_enabled(NETCDF_ENABLE_NETCDF_4 HAS_NC4)
+is_enabled(NETCDF_ENABLE_V2_API HAS_NC2)
 is_enabled(NETCDF_ENABLE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
+is_enabled(USE_NETCDF4 HAS_NC4)
 is_enabled(OFF HAS_BENCHMARKS)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
@@ -1638,7 +1659,7 @@ is_enabled(NETCDF_ENABLE_BYTERANGE HAS_BYTERANGE)
 is_enabled(NETCDF_ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
-is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
+is_enabled(NETCDF_ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(NETCDF_ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
@@ -1648,7 +1669,6 @@ is_enabled(NETCDF_ENABLE_S3_INTERNAL HAS_S3_INTERNAL)
 is_enabled(HAS_HDF5_ROS3 HAS_HDF5_ROS3)
 is_enabled(NETCDF_ENABLE_NCZARR HAS_NCZARR)
 is_enabled(NETCDF_ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
-is_enabled(NETCDF_ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
 is_enabled(NETCDF_ENABLE_QUANTIZE HAS_QUANTIZE)
 is_enabled(NETCDF_ENABLE_LOGGING HAS_LOGGING)
 is_enabled(NETCDF_ENABLE_FILTER_TESTING DO_FILTER_TESTS)
@@ -1748,6 +1768,8 @@ configure_file(
 set(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/test_common.in)
 set(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
+set(abs_top_builddir "${CMAKE_CURRENT_BINARY_DIR}")
+set(abs_top_srcdir "${CMAKE_CURRENT_SOURCE_DIR}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 ####
@@ -1762,10 +1784,9 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/s3gc.in ${CMAKE_CURRENT_BINARY_DIR}/s
 #####
 # Build and copy nc_test4/findplugin.sh to various places
 #####
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nczarr_test/findplugin.sh @ONLY NEWLINE_STYLE LF)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
+foreach(CC nc_test4 nczarr_test v3_nczarr_test plugins examples/C)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/${CC}/findplugin.sh @ONLY NEWLINE_STYLE LF)
+endforeach()
 
 if(NETCDF_ENABLE_BENCHMARKS)
   if(NETCDF_ENABLE_PARALLEL4)

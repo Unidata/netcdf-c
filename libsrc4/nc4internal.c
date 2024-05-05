@@ -25,6 +25,7 @@
 #include "ncutf8.h"
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
 #include "ncrc.h"
 
 /** @internal Number of reserved attributes. These attributes are
@@ -36,30 +37,38 @@
 */
 
 /** @internal List of reserved attributes.
-    WARNING: This list must be in (strcmp) sorted order for binary search. */
-static const NC_reservedatt NC_reserved[] = {
+    WARNING: This list will be sorted in (strcmp) sorted order for binary search.
+    So order here does not matter; the table will be modified by sorting.
+*/
+static NC_reservedatt NC_reserved[] = {
     {NC_ATT_CLASS, READONLYFLAG|HIDDENATTRFLAG},			/*CLASS*/
     {NC_ATT_DIMENSION_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*DIMENSION_LIST*/
     {NC_ATT_NAME, READONLYFLAG|HIDDENATTRFLAG},				/*NAME*/
     {NC_ATT_REFERENCE_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*REFERENCE_LIST*/
-    {NC_XARRAY_DIMS, READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},		/*_ARRAY_DIMENSIONS*/
+    {NC_XARRAY_DIMS, READONLYFLAG|HIDDENATTRFLAG},			/*_ARRAY_DIMENSIONS*/
     {NC_ATT_CODECS, VARFLAG|READONLYFLAG|NAMEONLYFLAG},			/*_Codecs*/
     {NC_ATT_FORMAT, READONLYFLAG},					/*_Format*/
-    {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG},				/*_IsNetcdf4*/
+    {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG|VIRTUALFLAG},		/*_IsNetcdf4*/
     {NCPROPS,READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},			/*_NCProperties*/
-    {NC_NCZARR_ATTR_UC, READONLYFLAG|HIDDENATTRFLAG},			/*_NCZARR_ATTR */
     {NC_ATT_COORDINATES, READONLYFLAG|HIDDENATTRFLAG},			/*_Netcdf4Coordinates*/
     {NC_ATT_DIMID_NAME, READONLYFLAG|HIDDENATTRFLAG},			/*_Netcdf4Dimid*/
-    {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG},				/*_SuperblockVersion*/
+    {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG|VIRTUALFLAG},		/*_SuperblockVersion*/
     {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
     {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
+    {NC_NCZARR_SUPERBLOCK, READONLYFLAG|HIDDENATTRFLAG},		/*_nczarr_superblock */
+    {NC_NCZARR_GROUP, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_group */
+    {NC_NCZARR_ARRAY, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_array */
     {NC_NCZARR_ATTR, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_attr */
+    {NC_NCZARR_ATTR_UC, READONLYFLAG|HIDDENATTRFLAG},			/*_NCZARR_ATTR_UC */
 };
-#define NRESERVED (sizeof(NC_reserved) / sizeof(NC_reservedatt))  /*|NC_reservedatt|*/
+#define NRESERVED (sizeof(NC_reserved) / sizeof(NC_reservedatt))  /*|NC_reserved|*/
 
+/*Forward */
 static int NC4_move_in_NCList(NC* nc, int new_id);
+static int bincmp(const void* arg1, const void* arg2);
+static int sortcmp(const void* arg1, const void* arg2);
 
-#if NC_HAS_LOGGING
+#if LOGGING
 /* This is the severity level of messages which will be logged. Use
    severity 0 for errors, 1 for important log messages, 2 for less
    important, etc. */
@@ -129,7 +138,7 @@ nc_log(int severity, const char *fmt, ...)
     fprintf(f, "\n");
     fflush(f);
 }
-#endif /* NC_HAS_LOGGING */
+#endif /* LOGGING */
 
 /**
  * @internal Check and normalize and name.
@@ -788,14 +797,16 @@ nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
     /* Allocate space for dimension information. */
     if (ndims)
     {
-      if (!(var->dim = calloc((size_t)ndims, sizeof(NC_DIM_INFO_T *))))
+	if(var->dim != NULL) free(var->dim);
+	if (!(var->dim = calloc(ndims, sizeof(NC_DIM_INFO_T *))))
             return NC_ENOMEM;
-      if (!(var->dimids = calloc((size_t)ndims, sizeof(int))))
+	if(var->dimids != NULL) free(var->dimids);
+        if (!(var->dimids = calloc(ndims, sizeof(int))))
             return NC_ENOMEM;
 
         /* Initialize dimids to illegal values (-1). See the comment
            in nc4_rec_match_dimscales(). */
-      memset(var->dimids, -1, (size_t)ndims * sizeof(int));
+        memset(var->dimids, -1, (size_t)ndims * sizeof(int));
     }
 
     return NC_NOERR;
@@ -1706,7 +1717,7 @@ nc4_normalize_name(const char *name, char *norm_name)
     return NC_NOERR;
 }
 
-#ifdef ENABLE_SET_LOG_LEVEL
+#ifdef NETCDF_ENABLE_SET_LOG_LEVEL
 
 /**
  * Initialize parallel I/O logging. For parallel I/O builds, open log
@@ -1719,7 +1730,7 @@ nc4_init_logging(void)
 {
     int ret = NC_NOERR;
 
-#if NC_HAS_LOGGING
+#if LOGGING
 #if NC_HAS_PARALLEL4
     if (!LOG_FILE && nc_log_level >= 0)
     {
@@ -1745,7 +1756,7 @@ nc4_init_logging(void)
             return NC_EINTERNAL;
     }
 #endif /* NC_HAS_PARALLEL4 */
-#endif /* NC_HAS_LOGGING */
+#endif /* LOGGING */
 
     return ret;
 }
@@ -1759,7 +1770,7 @@ nc4_init_logging(void)
 void
 nc4_finalize_logging(void)
 {
-#if NC_HAS_LOGGING
+#if LOGGING
 #if NC_HAS_PARALLEL4
     if (LOG_FILE)
     {
@@ -1767,7 +1778,7 @@ nc4_finalize_logging(void)
         LOG_FILE = NULL;
     }
 #endif /* NC_HAS_PARALLEL4 */
-#endif /* NC_HAS_LOGGING */
+#endif /* LOGGING */
 }
 
 /**
@@ -1786,7 +1797,7 @@ nc4_finalize_logging(void)
 int
 nc_set_log_level(int new_level)
 {
-#if NC_HAS_LOGGING
+#if LOGGING
     /* Remember the new level. */
     nc_log_level = new_level;
 
@@ -1803,13 +1814,13 @@ nc_set_log_level(int new_level)
 #endif /* NC_HAS_PARALLEL4 */
     
     LOG((1, "log_level changed to %d", nc_log_level));
-#endif /*NC_HAS_LOGGING */
+#endif /*LOGGING */
     
     return NC_NOERR;
 }
-#endif /* ENABLE_SET_LOG_LEVEL */
+#endif /* NETCDF_ENABLE_SET_LOG_LEVEL */
 
-#if NC_HAS_LOGGING
+#if LOGGING
 #define MAX_NESTS 10
 /**
  * @internal Recursively print the metadata of a group.
@@ -1978,7 +1989,7 @@ log_metadata_nc(NC_FILE_INFO_T *h5)
     return NC_NOERR;
 }
 
-#endif /*NC_HAS_LOGGING */
+#endif /*LOGGING */
 
 /**
  * @internal Show the in-memory metadata for a netcdf file. This
@@ -1995,7 +2006,7 @@ int
 NC4_show_metadata(int ncid)
 {
     int retval = NC_NOERR;
-#if NC_HAS_LOGGING
+#if LOGGING
     NC_FILE_INFO_T *h5;
     int old_log_level = nc_log_level;
 
@@ -2007,7 +2018,7 @@ NC4_show_metadata(int ncid)
     nc_log_level = 2;
     retval = log_metadata_nc(h5);
     nc_log_level = old_log_level;
-#endif /*NC_HAS_LOGGING*/
+#endif /*LOGGING*/
     return retval;
 }
 
@@ -2021,6 +2032,7 @@ NC4_show_metadata(int ncid)
 const NC_reservedatt*
 NC_findreserved(const char* name)
 {
+#if 0
     int n = NRESERVED;
     int L = 0;
     int R = (n - 1);
@@ -2037,6 +2049,32 @@ NC_findreserved(const char* name)
             R = (m - 1);
     }
     return NULL;
+#else
+    return (const NC_reservedatt*)bsearch(name,NC_reserved,NRESERVED,sizeof(NC_reservedatt),bincmp);
+#endif
+}
+
+void
+NC_initialize_reserved(void)
+{
+    /* Guarantee the reserved attribute list is sorted */
+    qsort((void*)NC_reserved,NRESERVED,sizeof(NC_reservedatt),sortcmp);
+}       
+
+static int
+sortcmp(const void* arg1, const void* arg2)
+{
+    NC_reservedatt* r1 = (NC_reservedatt*)arg1;
+    NC_reservedatt* r2 = (NC_reservedatt*)arg2;
+    return strcmp(r1->name,r2->name);
+}
+
+static int
+bincmp(const void* arg1, const void* arg2)
+{
+    const char* name = (const char*)arg1;
+    NC_reservedatt* ra = (NC_reservedatt*)arg2;
+    return strcmp(name,ra->name);
 }
 
 static int
@@ -2049,155 +2087,4 @@ NC4_move_in_NCList(NC* nc, int new_id)
 	    ((NC_OBJ*)nc->dispatchdata)->id = nc->ext_ncid;
     }
     return stat;
-}
-
-/**************************************************/
-/* NCglobal state management */
-
-static NCglobalstate* nc_globalstate = NULL;
-
-static int
-NC_createglobalstate(void)
-{
-    int stat = NC_NOERR;
-    const char* tmp = NULL;
-    
-    if(nc_globalstate == NULL) {
-        nc_globalstate = calloc(1,sizeof(NCglobalstate));
-    }
-    /* Initialize struct pointers */
-    if((nc_globalstate->rcinfo = calloc(1,sizeof(struct NCRCinfo)))==NULL)
-            {stat = NC_ENOMEM; goto done;}
-    if((nc_globalstate->rcinfo->entries = nclistnew())==NULL)
-            {stat = NC_ENOMEM; goto done;}
-    if((nc_globalstate->rcinfo->s3profiles = nclistnew())==NULL)
-            {stat = NC_ENOMEM; goto done;}
-
-    /* Get environment variables */
-    if(getenv(NCRCENVIGNORE) != NULL)
-        nc_globalstate->rcinfo->ignore = 1;
-    tmp = getenv(NCRCENVRC);
-    if(tmp != NULL && strlen(tmp) > 0)
-        nc_globalstate->rcinfo->rcfile = strdup(tmp);
-    /* Initialize chunk cache defaults */
-    nc_globalstate->chunkcache.size = DEFAULT_CHUNK_CACHE_SIZE;		    /**< Default chunk cache size. */
-    nc_globalstate->chunkcache.nelems = DEFAULT_CHUNKS_IN_CACHE;	    /**< Default chunk cache number of elements. */
-    nc_globalstate->chunkcache.preemption = DEFAULT_CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
-    
-done:
-    return stat;
-}
-
-/* Get global state */
-NCglobalstate*
-NC_getglobalstate(void)
-{
-    if(nc_globalstate == NULL)
-        NC_createglobalstate();
-    return nc_globalstate;
-}
-
-void
-NC_freeglobalstate(void)
-{
-    if(nc_globalstate != NULL) {
-        nullfree(nc_globalstate->tempdir);
-        nullfree(nc_globalstate->home);
-        nullfree(nc_globalstate->cwd);
-	nullfree(nc_globalstate->aws.default_region);
-	nullfree(nc_globalstate->aws.config_file);
-	nullfree(nc_globalstate->aws.profile);
-	nullfree(nc_globalstate->aws.access_key_id);
-	nullfree(nc_globalstate->aws.secret_access_key);
-        if(nc_globalstate->rcinfo) {
-	    NC_rcclear(nc_globalstate->rcinfo);
-	    free(nc_globalstate->rcinfo);
-	}
-	free(nc_globalstate);
-	nc_globalstate = NULL;
-    }
-}
-/**************************************************/
-/* Specific property functions */
-
-/**
-Provide a function to store global data alignment
-information.
-Repeated calls to nc_set_alignment will overwrite any existing values.
-
-If defined, then for every file created or opened after the call to
-nc_set_alignment, and for every new variable added to the file, the
-most recently set threshold and alignment values will be applied
-to that variable.
-
-The nc_set_alignment function causes new data written to a
-netCDF-4 file to be aligned on disk to a specified block
-size. To be effective, alignment should be the system disk block
-size, or a multiple of it. This setting is effective with MPI
-I/O and other parallel systems.
-
-This is a trade-off of write speed versus file size. Alignment
-leaves holes between file objects. The default of no alignment
-writes file objects contiguously, without holes. Alignment has
-no impact on file readability.
-
-Alignment settings apply only indirectly, through the file open
-functions. Call nc_set_alignment first, then nc_create or
-nc_open for one or more files. Current alignment settings are
-locked in when each file is opened, then forgotten when the same
-file is closed. For illustration, it is possible to write
-different files at the same time with different alignments, by
-interleaving nc_set_alignment and nc_open calls.
-
-Alignment applies to all newly written low-level file objects at
-or above the threshold size, including chunks of variables,
-attributes, and internal infrastructure. Alignment is not locked
-in to a data variable. It can change between data chunks of the
-same variable, based on a file's history.
-
-Refer to H5Pset_alignment in HDF5 documentation for more
-specific details, interactions, and additional rules.
-
-@param threshold The minimum size to which alignment is applied.
-@param alignment The alignment value.
-
-@return ::NC_NOERR No error.
-@return ::NC_EINVAL Invalid input.
-@author Dennis Heimbigner
-@ingroup datasets
-*/
-int
-nc_set_alignment(int threshold, int alignment)
-{
-    NCglobalstate* gs = NC_getglobalstate();
-    gs->alignment.threshold = threshold;
-    gs->alignment.alignment = alignment;
-    gs->alignment.defined = 1;
-    return NC_NOERR;
-}
-
-/**
-Provide get function to retrieve global data alignment
-information.
-
-The nc_get_alignment function return the last values set by
-nc_set_alignment.  If nc_set_alignment has not been called, then
-it returns the value 0 for both threshold and alignment.
-
-@param thresholdp Return the current minimum size to which alignment is applied or zero.
-@param alignmentp Return the current alignment value or zero.
-
-@return ::NC_NOERR No error.
-@return ::NC_EINVAL Invalid input.
-@author Dennis Heimbigner
-@ingroup datasets
-*/
-
-int
-nc_get_alignment(int* thresholdp, int* alignmentp)
-{
-    NCglobalstate* gs = NC_getglobalstate();
-    if(thresholdp) *thresholdp = gs->alignment.threshold;
-    if(alignmentp) *alignmentp = gs->alignment.alignment;
-    return NC_NOERR;
 }

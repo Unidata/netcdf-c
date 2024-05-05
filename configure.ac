@@ -38,7 +38,7 @@ AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=21:2:2
 
 # Create the VERSION file, which contains the package version from AC_INIT.
 # This file is apparently unused. But see the bottom of Makefile.am
-# echo AC_PACKAGE_VERSION>VERSION
+#echo AC_PACKAGE_VERSION>VERSION_FILE
 
 AC_SUBST(PACKAGE_VERSION)
 
@@ -132,28 +132,11 @@ AC_DEFINE_UNQUOTED([WINVERBUILD], [$WINVERBUILD], [windows version build])
 
 AC_MSG_NOTICE([checking supported formats])
 
-# An explicit disable of netcdf-4 | netcdf4 is treated as if it was disable-hdf5
-AC_MSG_CHECKING([whether we should build with netcdf4 (alias for HDF5)])
-AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
-              [(Deprecated) Synonym for --enable-hdf5)])])
-test "x$enable_netcdf4" = xno || enable_netcdf4=yes
-AC_MSG_RESULT([$enable_netcdf4 (Deprecated) Please use --disable-hdf5)])
-AC_MSG_CHECKING([whether we should build with netcdf-4 (alias for HDF5)])
-AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
-              [(synonym for --disable-netcdf4)])])
-test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
-AC_MSG_RESULT([$enable_netcdf_4])
-# Propagate the alias
-if test "x$enable_netcdf_4" = xno ; then enable_netcdf4=no; fi
-if test "x$enable_netcdf4" = xno ; then enable_netcdf_4=no; fi
-
 # Does the user want to use HDF5?
 AC_MSG_CHECKING([whether we should build with HDF5])
 AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
               [do not build with HDF5])])
 test "x$enable_hdf5" = xno || enable_hdf5=yes
-if test "x$enable_netcdf4" = xno ; then enable_hdf5=no ; fi
-# disable-netcdf4 is synonym for disable-hdf5
 AC_MSG_RESULT([$enable_hdf5])
 
 # Check whether we want to enable CDF5 support.
@@ -215,14 +198,20 @@ AC_ARG_ENABLE([nczarr],
 test "x$enable_nczarr" = xno || enable_nczarr=yes
 AC_MSG_RESULT($enable_nczarr)
 
-# HDF5 | HDF4 | NCZarr => netcdf-4
-if test "x$enable_hdf5" = xyes || test "x$enable_hdf4" = xyes || test "x$enable_nczarr" = xyes ; then
-enable_netcdf_4=yes
+# Choose the default Zarr format
+AC_MSG_CHECKING([whether Zarr format 3 is the default])
+AC_ARG_ENABLE([default-zarr-format_v3],
+              [AS_HELP_STRING([--enable-default-zarr-format_v3],
+                              [Specify the default Zarr format.])])
+test "x$enable_default_zarr_format_v3" = xyes | enable_default_zarr_format_v3=no # V2 is the default by default
+AC_MSG_RESULT([$enable_default_zarr_format_v3}])
+if test "x$enable_default_zarr_format_v3" = xyes; then
+   DFALTZARRFORMAT=3
+else
+DFALTZARRFORMAT=2
 fi
-AC_MSG_CHECKING([whether netcdf-4 should be forcibly enabled])
-AC_MSG_RESULT([$enable_netcdf_4])
-# Synonym
-enable_netcdf4=${enable_netcdf_4}
+AC_DEFINE_UNQUOTED([DFALTZARRFORMAT], [$DFALTZARRFORMAT], [Default Zarr format])
+AC_SUBST([DFALTZARRFORMAT],[$DFALTZARRFORMAT])
 
 AC_MSG_NOTICE([checking user options])
 
@@ -238,7 +227,7 @@ AC_DEFINE_UNQUOTED([NCIO_MINBLOCKSIZE], [$NCIO_MINBLOCKSIZE], [min blocksize for
 # Find valgrind, if available, and add targets for it.
 AX_VALGRIND_DFLT([sgcheck], [off])
 AX_VALGRIND_CHECK
-AM_CONDITIONAL(ENABLE_VALGRIND, [test "x$VALGRIND_ENABLED" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_VALGRIND, [test "x$VALGRIND_ENABLED" = xyes])
 
 ###
 # Doxygen and doxygen-related options.
@@ -280,8 +269,8 @@ AC_SUBST([DOXYGEN_SERVER_BASED_SEARCH], ["NO"])
 AC_ARG_ENABLE([doxygen-pdf-output],
     [AS_HELP_STRING([--enable-doxygen-pdf-output],
         [Build netCDF library documentation in PDF format. Experimental.])])
-               AM_CONDITIONAL([NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT], [test "x$enable_doxygen_pdf_output" = xyes])
-AC_SUBST([NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT], [$enable_doxygen_pdf_output])
+               AM_CONDITIONAL([NC_NETCDF_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT], [test "x$enable_doxygen_pdf_output" = xyes])
+AC_SUBST([NC_NETCDF_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT], [$enable_doxygen_pdf_output])
 
 AC_ARG_ENABLE([dot],
 	[AS_HELP_STRING([--enable-dot],
@@ -455,18 +444,6 @@ AC_ARG_ENABLE([logging],
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
-# Does the user want to turn off nc_set_log_level() function? (It will
-# always be defined if --enable-logging is used.)
-AC_MSG_CHECKING([whether nc_set_log_level() function is included (will do nothing unless enable-logging is also used)])
-AC_ARG_ENABLE([set_log_level_func], [AS_HELP_STRING([--disable-set-log-level-func],
-              [disable the nc_set_log_level function])])
-test "x$enable_set_log_level_func" = xno -a "x$enable_logging" = xno || enable_set_log_level_func=yes
-if test "x$enable_set_log_level_func" = xyes -a "x$enable_netcdf_4" = xyes; then
-   AC_DEFINE([ENABLE_SET_LOG_LEVEL], 1, [If true, define nc_set_log_level.])
-fi
-AC_MSG_RESULT($enable_set_log_level_func)
-
-
 # CURLOPT_USERNAME is not defined until curl version 7.19.1
 # CURLOPT_PASSWORD is not defined until curl version 7.19.1
 # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
@@ -627,10 +604,18 @@ AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
                                  [disable dap remote tests])])
 # Default on
-test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
-if test "x$enable_dap" = "xno" ; then
+test "x$enable_dap_remote_tests" = xyes || enable_dap_remote_tests=no
+
+if test "x$enable_dap" = "xno"; then
   enable_dap_remote_tests=no
 fi
+
+# Provide a global control for remotetest.
+if test "xREMOTETESTDOWN" = xyes ; then
+  AC_MSG_WARN("ENV(REMOTETESTDOWN) => netcdf_enable_dap_remote_tests == no")
+  enable_dap_remote_tests=no
+fi
+
 AC_MSG_RESULT($enable_dap_remote_tests)
 
 AC_MSG_CHECKING([whether use of external (non-unidata) servers should be enabled])
@@ -701,14 +686,6 @@ AC_MSG_RESULT([$enable_dap_long_tests])
 if test "x$enable_dap_remote_tests" = "xno" || test "x$enable_external_server_tests" = "xno" ; then
   AC_MSG_NOTICE([--disable-dap-remote|external-server-tests => --disable_dap_long_tests])
   enable_dap_long_tests=no
-fi
-
-# Control zarr storage
-if test "x$enable_nczarr" = xyes ; then
-  if test "x$enable_netcdf_4" = xno ; then
-    AC_MSG_WARN([netCDF-4 disabled, so you must not enable nczarr])
-    enable_nczarr=no
-  fi
 fi
 
 if test "x$enable_nczarr" = xyes; then
@@ -871,8 +848,6 @@ else
    AC_MSG_RESULT([${have_zip}])
    enable_nczarr_zip=${have_zip} # alias
 
-
-
    AC_MSG_CHECKING([whether nczarr zip support is enabled])
    AC_MSG_RESULT([${enable_nczarr_zip}])
 
@@ -987,6 +962,26 @@ else
    AC_MSG_WARN([*** DO NOT SPECIFY WITH_S3_TESTING=YES UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
    AC_DEFINE([NETCDF_ENABLE_S3_TESTALL], [yes], [control S3 testing.])
    fi
+fi
+
+# For convenience, define USE_NETCDF4
+if test "x${enable_hdf5}" = xyes || test "x${enable_nczarr}" = xyes || test "x${enable_dap4}" = xyes ; then
+enable_netcdf4=yes
+AC_DEFINE([USE_NETCDF4], [1], [convenience to avoid having to specify the above test])
+else
+enable_netcdf4=no
+fi
+AM_CONDITIONAL([USE_NETCDF4], [test x$enable_netcdf4 = xyes])
+
+# Does the user want to turn off nc_set_log_level() function? (It will
+# always be defined if --enable-logging is used.)
+AC_MSG_CHECKING([whether nc_set_log_level() function is included (will do nothing unless enable-logging is also used)])
+AC_ARG_ENABLE([set_log_level_func], [AS_HELP_STRING([--disable-set-log-level-func],
+              [disable the nc_set_log_level function])])
+test "x$enable_set_log_level_func" = xno -a "x$enable_logging" = xno || enable_set_log_level_func=yes
+AC_MSG_RESULT($enable_set_log_level_func)
+if test "x$enable_set_log_level_func" = xyes -a "x$enable_netcdf4" = xyes; then
+   AC_DEFINE([NETCDF_ENABLE_SET_LOG_LEVEL], 1, [If true, define nc_set_log_level.])
 fi
 
 # Check whether we want to enable strict null byte header padding.
@@ -1585,10 +1580,6 @@ fi
 AC_CHECK_LIB([m], [floor], [],
 [AC_MSG_ERROR([Can't find or link to the math library.])])
 
-if test "x$enable_netcdf_4" = xyes; then
-   AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
-fi
-
 # Set defaults
 hdf5_parallel=no
 hdf5_supports_par_filters=no
@@ -1683,8 +1674,6 @@ if test "x$enable_hdf5" = xyes; then
 
 fi
 
-AM_CONDITIONAL(ENABLE_NCDUMPCHUNKS, [test "x$has_readchunks" = xyes ])
-
 # If the user wants hdf4 built in, check it out.
 if test "x$enable_hdf4" = xyes; then
    AC_CHECK_LIB([jpeg], [jpeg_CreateCompress], [],
@@ -1765,7 +1754,7 @@ if test "x$enable_pnetcdf" = xyes -o "x$enable_parallel4" = xyes; then
 else
   enable_parallel=no
 fi
-AM_CONDITIONAL(ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
+AM_CONDITIONAL(NETCDF_ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
 
 if test "x$hdf5_parallel" = xyes; then
   # Provide more precise parallel control
@@ -1840,10 +1829,6 @@ if test "x$enable_erange_fill" = xyes ; then
 fi
 AC_SUBST(M4FLAGS)
 
-# No logging for netcdf-3.
-if test "x$enable_netcdf_4" = xno; then
-   enable_logging=no
-fi
 if test "x$enable_logging" = xyes; then
    AC_DEFINE([LOGGING], 1, [If true, turn on logging.])
 fi
@@ -1856,46 +1841,37 @@ AC_ARG_ENABLE([nczarr-filters], [AS_HELP_STRING([--disable-nczarr-filters],
 test "x$enable_nczarr_filters" = xno || enable_nczarr_filters=yes
 AC_MSG_RESULT([$enable_nczarr_filters])
 
-# Control filter test/example
-AC_MSG_CHECKING([whether filter testing should be run])
-AC_ARG_ENABLE([filter-testing],
-              [AS_HELP_STRING([--disable-filter-testing],
-                              [Do not run filter test and example; requires shared libraries and HDF5|NCZarr])])
-test "x$enable_filter_testing" = xno || enable_filter_testing=yes
-AC_MSG_RESULT($enable_filter_testing)
-
 # Apply constraints
 if test "x$enable_plugins" = xno ; then
 AC_MSG_WARN([--disable-plugins => --disable-nczarr-filters])
 enable_nczarr_filters=no
 fi
 
-if test "x$enable_plugins" = xno ; then
-AC_MSG_WARN([--disable-plugins => --disable-filter-testing])
-enable_filter_testing=no
-fi
-
-if test "x$enable_filter_testing" = xno; then
-AC_MSG_WARN([--disable-filter-testing => --disable-nczarr-filter-testing])
-enable_nczarr_filter_testing=no
-fi
-
 if test "x$enable_nczarr" = xno; then
 AC_MSG_WARN([--disable-nczarr => --disable-nczarr-filters])
 enable_nczarr_filters=no
-enable_nczarr_filter_testing=no
 fi
 
 if test "x$enable_nczarr_filters" = xyes; then
    AC_DEFINE([NETCDF_ENABLE_NCZARR_FILTERS], [1], [if true, enable NCZarr filters])
 fi
 
-# Client side filter registration is permanently disabled
-enable_clientside_filters=no
+# Control filter test/example
+AC_MSG_CHECKING([whether filter testing should be run])
+AC_ARG_ENABLE([filter-testing],
+              [AS_HELP_STRING([--disable-filter-testing],
+                              [Do not run filter test and example; otherwise requires shared libraries and HDF5|NCZarr])])
+test "x$enable_filter_testing" = xno || enable_filter_testing=yes
+AC_MSG_RESULT($enable_filter_testing)
 
-AM_CONDITIONAL(ENABLE_CLIENTSIDE_FILTERS, [test x$enable_clientside_filters = xyes])
-AM_CONDITIONAL(NETCDF_ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
-AM_CONDITIONAL(NETCDF_ENABLE_NCZARR_FILTERS, [test x$enable_nczarr_filters = xyes])
+if test "x$enable_plugins" = xno ; then
+AC_MSG_WARN([--disable-plugins => --disable-filter-testing])
+enable_filter_testing=no
+fi
+
+if test "x$enable_filter_testing" = xyes; then
+  AC_DEFINE([NETCDF_ENABLE_FILTER_TESTING], [1], [if true, enable filter testing])
+fi
 
 # Automake conditionals need to be called, whether the answer is yes
 # or no.
@@ -1915,20 +1891,21 @@ AM_CONDITIONAL(NETCDF_ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = x
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
-AM_CONDITIONAL(USE_NETCDF4, [test x$enable_netcdf_4 = xyes])
 AM_CONDITIONAL(USE_HDF5, [test x$enable_hdf5 = xyes])
 AM_CONDITIONAL(USE_HDF4, [test x$enable_hdf4 = xyes])
 AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
-AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
+AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_hdf5 = xyes -o x$enable_dap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
-AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
+AM_CONDITIONAL(NETCDF_ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_NCZARR_FILTERS, [test x$enable_nczarr_filters = xyes])
 # We need to simplify the set of S3 and Zarr flag combinations
 AM_CONDITIONAL(NETCDF_ENABLE_S3, [test "x$enable_s3" = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_S3_AWS, [test "x$enable_s3_aws" = xyes])
@@ -1946,12 +1923,9 @@ AM_CONDITIONAL(HAVE_ZSTD, [test "x$have_zstd" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
-if test "x$enable_netcdf_4" = xyes; then
+if test "x$enable_hdf5" = xyes; then
    AC_TYPE_LONG_LONG_INT
    AC_TYPE_UNSIGNED_LONG_LONG_INT
-dnl    if test ! "x$ac_cv_type_long_long_int" = xyes -o ! "x$ac_cv_type_unsigned_long_long_int" = xyes; then
-dnl       AC_MSG_ERROR([This platform does not support long long types. These are required for netCDF-4.])
-dnl    fi
 fi
 
 # Create the file name for a "make ftpbin" which is used to generate a
@@ -1963,7 +1937,7 @@ fi
 # meteor strike.
 AC_MSG_CHECKING([what to call the output of the ftpbin target])
 BINFILE_NAME=binary-netcdf-$PACKAGE_VERSION
-test "x$enable_netcdf_4" = xno && BINFILE_NAME=${BINFILE_NAME}_nc3
+test "x$enable_hdf5" = xno && BINFILE_NAME=${BINFILE_NAME}_nc3
 BINFILE_NAME=${BINFILE_NAME}.tar
 AC_SUBST(BINFILE_NAME)
 AC_MSG_RESULT([$BINFILE_NAME $FC $CXX])
@@ -2024,7 +1998,6 @@ AC_SUBST(HAS_DAP,[$enable_dap])
 AC_SUBST(HAS_DAP2,[$enable_dap])
 AC_SUBST(HAS_DAP4,[$enable_dap4])
 AC_SUBST(HAS_NC2,[$nc_build_v2])
-AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_CDF5,[$enable_cdf5])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_BENCHMARKS,[$enable_benchmarks])
@@ -2047,7 +2020,7 @@ AC_SUBST(HAS_HDF5_ROS3,[$has_hdf5_ros3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(NETCDF_ENABLE_S3_TESTING,[$with_s3_testing])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
-AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
+AC_SUBST(NCZARR_DEFAULT_FORMAT,[$DFALTZARRFORMAT])
 AC_SUBST(HAS_QUANTIZE,[$enable_quantize])
 AC_SUBST(HAS_LOGGING,[$enable_logging])
 AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
@@ -2142,7 +2115,7 @@ else # --with-plugin-dir=<dir|path>
     with_plugin_dir_setting="$with_plugin_dir"
     enable_plugin_dir=yes
 fi
-AM_CONDITIONAL([ENABLE_PLUGIN_DIR], [test "x$enable_plugin_dir" = xyes])
+AM_CONDITIONAL([NETCDF_ENABLE_PLUGIN_DIR], [test "x$enable_plugin_dir" = xyes])
 AC_SUBST([PLUGIN_INSTALL_DIR], [$with_plugin_dir])
 # Better value for libnetcdf.settings
 AC_SUBST([PLUGIN_INSTALL_DIR_SETTING], [$with_plugin_dir_setting])
@@ -2190,7 +2163,6 @@ AC_DEFUN([AX_SET_META],[
 #####
 AC_SUBST([NC_VERSION]) NC_VERSION=$VERSION
 AX_SET_META([NC_HAS_NC2],[$nc_build_v2],[yes])
-AX_SET_META([NC_HAS_NC4],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
 AX_SET_META([NC_HAS_BENCHMARKS],[$enable_benchmarks],[yes])
 AX_SET_META([NC_HAS_HDF5],[$enable_hdf5],[yes])
@@ -2243,10 +2215,9 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES(test_common.sh:test_common.in)
 AC_CONFIG_FILES(s3cleanup.sh:s3cleanup.in, [chmod ugo+x s3cleanup.sh])
 AC_CONFIG_FILES(s3gc.sh:s3gc.in, [chmod ugo+x s3gc.sh])
-AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x nc_test4/findplugin.sh])
-AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x nczarr_test/findplugin.sh])
-AC_CONFIG_FILES(plugins/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x plugins/findplugin.sh])
-AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x examples/C/findplugin.sh])
+AC_CONFIG_FILES(nc_test4/findplugin.sh:plugins/findplugin.in, [chmod ugo+x nc_test4/findplugin.sh])
+AC_CONFIG_FILES(plugins/findplugin.sh:plugins/findplugin.in, [chmod ugo+x plugins/findplugin.sh])
+AC_CONFIG_FILES(examples/C/findplugin.sh:plugins/findplugin.in, [chmod ugo+x examples/C/findplugin.sh])
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in, [chmod ugo+x ncdap_test/findtestserver.c])
 AC_CONFIG_FILES([nc_test/run_pnetcdf_tests.sh:nc_test/run_pnetcdf_tests.sh.in],[chmod ugo+x nc_test/run_pnetcdf_tests.sh])
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
@@ -2255,15 +2226,13 @@ AC_CONFIG_FILES([h5_test/run_par_tests.sh], [chmod ugo+x h5_test/run_par_tests.s
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
 AC_CONFIG_FILES([nc_perf/run_par_bm_test.sh], [chmod ugo+x nc_perf/run_par_bm_test.sh])
 AC_CONFIG_FILES([nc_perf/run_gfs_test.sh], [chmod ugo+x nc_perf/run_gfs_test.sh])
-AC_CONFIG_FILES(nczarr_test/timer_utils.h:unit_test/timer_utils.h)
-AC_CONFIG_FILES(nczarr_test/timer_utils.c:unit_test/timer_utils.c)
-AC_CONFIG_FILES(nczarr_test/test_filter.c:nc_test4/test_filter.c)
-AC_CONFIG_FILES(nczarr_test/test_filter_misc.c:nc_test4/test_filter_misc.c)
-AC_CONFIG_FILES(nczarr_test/tst_multifilter.c:nc_test4/tst_multifilter.c)
-AC_CONFIG_FILES(nczarr_test/test_filter_repeat.c:nc_test4/test_filter_repeat.c)
-AC_CONFIG_FILES(nczarr_test/test_filter_order.c:nc_test4/test_filter_order.c)
 AC_CONFIG_FILES([examples/C/run_par_test.sh], [chmod ugo+x examples/C/run_par_test.sh])
 AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
+
+# Config and copy into nczarr_test/v3_nczarr_test
+AC_CONFIG_FILES(nczarr_test/findplugin.sh:plugins/findplugin.in, [chmod ugo+x nczarr_test/findplugin.sh])
+AC_CONFIG_FILES(v3_nczarr_test/findplugin.sh:plugins/findplugin.in, [chmod ugo+x v3_nczarr_test/findplugin.sh])
+
 AC_CONFIG_FILES([Makefile
                  netcdf.pc
                  libnetcdf.settings
@@ -2308,7 +2277,10 @@ AC_CONFIG_FILES([Makefile
                  dap4_test/Makefile
                  plugins/Makefile
 		 nczarr_test/Makefile
+ 		 v3_nczarr_test/Makefile
                  ])
 AC_OUTPUT()
 
 cat libnetcdf.settings
+cat config.h
+

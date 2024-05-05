@@ -11,91 +11,106 @@
  */
 
 #include "zincludes.h"
-#include <stddef.h>
+#include "znc4.h"
 
 #undef DEBUG
 
+/*mnemonic*/
+#define TESTUNLIM 1
+
 /**************************************************/
-/* Static zarr type name table */
+/**
+Type Issues:
 
-/* Table of nc_type X {Zarr,NCZarr} X endianness
-Issue: Need to distinquish NC_STRING && MAXSTRLEN==1 from NC_CHAR
-in a way that allows other Zarr implementations to read the data.
+There are (currently) two type issues that need special hacks.
+1. Need dtypes to distinquish NC_STRING && MAXSTRLEN==1
+   (assuming fixed size strings) from NC_CHAR in a way
+   that allows other Zarr implementations to read the data.
+2. Need a fake dtype to support the JSON convention allowing
+   an attribute's value to be a JSON value.
 
-Available info:
-Write: we have the netcdf type, so there is no ambiguity.
-Read: we have the variable type and also any attribute dtype,
-but those types are ambiguous.
-We also have the attribute vs variable type problem.
-For pure zarr, we have to infer the type of an attribute,
-so if we have "var:strattr = \"abcdef\"", then we need
-to decide how to infer the type: NC_STRING vs NC_CHAR.
-
-Solution:
-For variables and for NCZarr type attributes, distinquish by using:
+Zarr Version 2:
+-------------------
+For issue 1, use these dtypes to distinquish NC_STRING && MAXSTRLEN==1 from NC_CHAR
 * ">S1" for NC_CHAR.
 * "|S1" for NC_STRING && MAXSTRLEN==1
 * "|Sn" for NC_STRING && MAXSTRLEN==n
-This is admittedly a bit of a hack, and the first case in particular
-will probably cause errors in some other Zarr implementations; the Zarr
-spec is unclear about what combinations are legal.
 Note that we could use "|U1", but since this is utf-16 or utf-32
 in python, it may cause problems when reading what amounts to utf-8.
 
-For attributes, we infer:
-* NC_CHAR if the hint is 0
-  - e.g. var:strattr = 'abcdef'" => NC_CHAR
-* NC_STRING if hint is NC_STRING.
-  - e.g. string var:strattr = \"abc\", \"def\"" => NC_STRING
+For issue 2, use this type to identify a JSON valued attribute.
+* "|J0"
 
-Note also that if we read a pure zarr file we will probably always
-see "|S1", so we will never see a variable of type NC_CHAR.
-We might however see an attribute of type string.
+These choices are admittedly a bit of a hack, and the first case in particular
+will probably cause errors in some other Zarr implementations; the Zarr spec
+is unclear about what combinations are legal. Issue 2 will only be interpreted by
+NCZarr code, so that choice is arbitrary.
+
+Zarr Version 3:
+-------------------
+For issues 1 and 2, we have the following table:
+| dtype | type_alias |
+| ----- | ---------- |
+| uint8 | char       |
+| rn    | string     |
+| uint8 | json       |
+
+
+In the event that we are reading a pure Zarr file, we need to make
+inferences about the above issues but lacking any NCZarr hints.
+
+First, we need to define a rule to define what attribute values can be
+considered a "complex" json expression. So when we read the JSON
+value of an attribute, that value is classified as complex or simple.
+Simple valued attributes will be mapped to atomic-valued
+netcdf attributes.  Complex valued attributes are "unparsed" to a
+string and the attribute is stored as an NC_CHAR typed attribute.
+
+The current rule for defining a complex JSON valued attribute is defined
+by the function NCZ_iscomplexjson(). Basically the rule is as follows:
+1. If the attribute value is a single atomic value or NULL or a JSON array
+   of atomic values, then the attribute value is SIMPLE.
+2. Otherwise, the attribute value is COMPLEX.
+
+In the event that we want to write a complex JSON valued attribute,
+we use the following rules in order (see NCZ_iscomplexjsontext()):
+1. Attribute type is not of type NC_CHAR => not complex
+2. Attribute value contains no unescaped '[' and no unescaped '{' => not complex
+3. The value, treated as a string, is not JSON parseable => notcomplex
+4. else the value can be treated as a complex json value.
+
+This is admittedly a hack that uses rule 2 to delay parsing the
+attribute value as long as possible. Note the rules will change
+when/if structured types (e.g. compound, complex) are added.
+
+Assuming the attribute value is not a complex JSON expression, we assume
+the value is a single atomic value or an array of atomic values.
+
+We infer the type -- see NCZ_inferattrtype() -- by looking at the
+first (possibly only) value of the attribute. The only tricky part of this
+occurs when we have a JSON string value. We need to decide if the type
+should be treated as NC_CHAR or as NC_STRING.
+The current rules are as follows:
+1. choose NC_CHAR if:
+    a. The value is a single value (not a JSON array) and NCJsort == NCJ_STRING
+    b. The value is an array and each element of the array
+       is a single character.
+2. else choose NC_STRING.
+
+So, for example:
+* "a" => NC_CHAR
+* "abcdef" => NC_CHAR
+* ["abcdef"] => NC_STRING
+* ["a","b","c","d","e","f"] => NC_CHAR
+* ["abc", "def"] => NC_STRING
+
 */
-static const struct ZTYPES {
-    char* zarr[3];
-    char* nczarr[3];
-} znames[NUM_ATOMIC_TYPES] = {
-/* nc_type          Pure Zarr          NCZarr
-                   NE   LE     BE       NE    LE    BE*/
-/*NC_NAT*/	{{NULL,NULL,NULL},   {NULL,NULL,NULL}},
-/*NC_BYTE*/	{{"|i1","<i1",">i1"},{"|i1","<i1",">i1"}},
-/*NC_CHAR*/	{{">S1",">S1",">S1"},{">S1",">S1",">S1"}},
-/*NC_SHORT*/	{{"|i2","<i2",">i2"},{"|i2","<i2",">i2"}},
-/*NC_INT*/	{{"|i4","<i4",">i4"},{"|i4","<i4",">i4"}},
-/*NC_FLOAT*/	{{"|f4","<f4",">f4"},{"|f4","<f4",">f4"}},
-/*NC_DOUBLE*/	{{"|f8","<f8",">f8"},{"|f8","<f8",">f8"}},
-/*NC_UBYTE*/	{{"|u1","<u1",">u1"},{"|u1","<u1",">u1"}},
-/*NC_USHORT*/	{{"|u2","<u2",">u2"},{"|u2","<u2",">u2"}},
-/*NC_UINT*/	{{"|u4","<u4",">u4"},{"|u4","<u4",">u4"}},
-/*NC_INT64*/	{{"|i8","<i8",">i8"},{"|i8","<i8",">i8"}},
-/*NC_UINT64*/	{{"|u8","<u8",">u8"},{"|u8","<u8",">u8"}},
-/*NC_STRING*/	{{"|S%d","|S%d","|S%d"},{"|S%d","|S%d","|S%d"}},
-};
-
-#if 0
-static const char* zfillvalue[NUM_ATOMIC_TYPES] = {
-NULL, /*NC_NAT*/
-"-127", /*NC_BYTE*/
-"0", /*NC_CHAR*/
-"-32767", /*NC_SHORT*/
-"-2147483647", /*NC_INT*/
-"9.9692099683868690e+36f", /* near 15 * 2^119 */ /*NC_FLOAT*/
-"9.9692099683868690e+36", /*NC_DOUBLE*/
-"255", /*NC_UBYTE*/
-"65535", /*NC_USHORT*/
-"4294967295", /*NC_UINT*/
-"-9223372036854775806", /*NC_INT64*/
-"18446744073709551614", /*NC_UINT64*/
-"", /*NC_STRING*/
-};
-#endif
 
 /* map nc_type -> NCJ_SORT */
-static int zjsonsort[NUM_ATOMIC_TYPES] = {
+static int zjsonsort[N_NCZARR_TYPES] = {
 NCJ_UNDEF, /*NC_NAT*/
 NCJ_INT, /*NC_BYTE*/
-NCJ_INT, /*NC_CHAR*/
+NCJ_STRING, /*NC_CHAR*/
 NCJ_INT, /*NC_SHORT*/
 NCJ_INT, /*NC_INT*/
 NCJ_DOUBLE, /*NC_FLOAT*/
@@ -106,9 +121,14 @@ NCJ_INT, /*NC_UINT*/
 NCJ_INT, /*NC_INT64*/
 NCJ_INT, /*NC_UINT64*/
 NCJ_STRING, /*NC_STRING*/
+NCJ_DICT, /*NC_JSON*/
 };
 
 /* Forward */
+static int splitfqn(const char* fqn0, NClist* segments);
+static int locatedimbyname(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* dimname, NC_DIM_INFO_T** dimp, NC_GRP_INFO_T** grpp);
+static int isconsistentdim(NC_DIM_INFO_T* dim, NCZ_DimInfo* dimdata, int testunlim);
+static int locateconsistentdim(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCZ_DimInfo* dimdata, int testunlim, NC_DIM_INFO_T** dimp, NC_GRP_INFO_T** grpp);
 
 /**************************************************/
 
@@ -227,7 +247,7 @@ ncz_splitkey(const char* key, NClist* segments)
 @param zmap - [in] controlling zarr map
 @param key - [in] .z... object to load
 @param jsonp - [out] root of the loaded json
-@return NC_NOERR
+@return NC_NOERR || NC_EXXX
 @author Dennis Heimbigner
 */
 int
@@ -238,17 +258,21 @@ NCZ_downloadjson(NCZMAP* zmap, const char* key, NCjson** jsonp)
     char* content = NULL;
     NCjson* json = NULL;
 
-    if((stat = nczmap_len(zmap, key, &len)))
-	goto done;
+    switch (stat = nczmap_len(zmap, key, &len)) {
+    case NC_NOERR: break;
+    case NC_ENOOBJECT: stat = NC_NOERR; goto ret;
+    default: goto done;
+    }
+
     if((content = malloc(len+1)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     if((stat = nczmap_read(zmap, key, 0, len, (void*)content)))
 	goto done;
     content[len] = '\0';
 
-    if((stat = NCJparse(content,0,&json)) < 0)
-	{stat = NC_ENCZARR; goto done;}
+    NCJcheck(NCJparse(content,0,&json));
 
+ret:
     if(jsonp) {*jsonp = json; json = NULL;}
 
 done:
@@ -277,8 +301,7 @@ NCZ_uploadjson(NCZMAP* zmap, const char* key, NCjson* json)
 fprintf(stderr,"uploadjson: %s\n",key); fflush(stderr);
 #endif
     /* Unparse the modified json tree */
-    if((stat = NCJunparse(json,0,&content)))
-	goto done;
+    NCJcheck(NCJunparse(json,0,&content));
     ZTRACEMORE(4,"\tjson=%s",content);
     
 if(getenv("NCS3JSON") != NULL)
@@ -293,87 +316,13 @@ done:
     return ZUNTRACE(stat);
 }
 
-#if 0
-/**
-@internal create object, return empty dict; ok if already exists.
-@param zmap - [in] map
-@param key - [in] key of the object
-@param jsonp - [out] return parsed json
-@return NC_NOERR
-@return NC_EINVAL if object exists
-@author Dennis Heimbigner
-*/
-int
-NCZ_createdict(NCZMAP* zmap, const char* key, NCjson** jsonp)
-{
-    int stat = NC_NOERR;
-    NCjson* json = NULL;
-
-    /* See if it already exists */
-    stat = NCZ_downloadjson(zmap,key,&json);
-    if(stat != NC_NOERR) {
-	if(stat == NC_EEMPTY) {/* create it */
-	    if((stat = nczmap_def(zmap,key,NCZ_ISMETA)))
-		goto done;	    
-        } else
-	    goto done;
-    } else {
-	/* Already exists, fail */
-	stat = NC_EINVAL;
-	goto done;
-    }
-    /* Create the empty dictionary */
-    if((stat = NCJnew(NCJ_DICT,&json)))
-	goto done;
-    if(jsonp) {*jsonp = json; json = NULL;}
-done:
-    NCJreclaim(json);
-    return stat;
-}
-
-/**
-@internal create object, return empty array; ok if already exists.
-@param zmap - [in] map
-@param key - [in] key of the object
-@param jsonp - [out] return parsed json
-@return NC_NOERR
-@return NC_EINVAL if object exits
-@author Dennis Heimbigner
-*/
-int
-NCZ_createarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
-{
-    int stat = NC_NOERR;
-    NCjson* json = NULL;
-
-    stat = NCZ_downloadjson(zmap,key,&json);
-    if(stat != NC_NOERR) {
-	if(stat == NC_EEMPTY) {/* create it */
-	    if((stat = nczmap_def(zmap,key,NCZ_ISMETA)))
-		goto done;	    
-	    /* Create the initial array */
-	    if((stat = NCJnew(NCJ_ARRAY,&json)))
-		goto done;
-        } else {
-	    stat = NC_EINVAL;
-	    goto done;
-	}
-    }
-    if(json->sort != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
-    if(jsonp) {*jsonp = json; json = NULL;}
-done:
-    NCJreclaim(json);
-    return stat;
-}
-#endif /*0*/
-
 /**
 @internal Get contents of a meta object; fail it it does not exist
 @param zmap - [in] map
 @param key - [in] key of the object
 @param jsonp - [out] return parsed json
 @return NC_NOERR
-@return NC_EEMPTY [object did not exist]
+@return NC_ENOOBJECT [object did not exist]
 @author Dennis Heimbigner
 */
 int
@@ -382,9 +331,10 @@ NCZ_readdict(NCZMAP* zmap, const char* key, NCjson** jsonp)
     int stat = NC_NOERR;
     NCjson* json = NULL;
 
-    if((stat = NCZ_downloadjson(zmap,key,&json)))
-	goto done;
-    if(NCJsort(json) != NCJ_DICT) {stat = NC_ENCZARR; goto done;}
+    if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
+    if(json != NULL) {
+        if(NCJsort(json) != NCJ_DICT) {stat = NC_ENCZARR; goto done;}
+    }
     if(jsonp) {*jsonp = json; json = NULL;}
 done:
     NCJreclaim(json);
@@ -397,7 +347,7 @@ done:
 @param key - [in] key of the object
 @param jsonp - [out] return parsed json
 @return NC_NOERR
-@return NC_EEMPTY [object did not exist]
+@return NC_ENOOBJECT [object did not exist]
 @author Dennis Heimbigner
 */
 int
@@ -406,33 +356,13 @@ NCZ_readarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
     int stat = NC_NOERR;
     NCjson* json = NULL;
 
-    if((stat = NCZ_downloadjson(zmap,key,&json)))
-	goto done;
+    if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
     if(NCJsort(json) != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
     if(jsonp) {*jsonp = json; json = NULL;}
 done:
     NCJreclaim(json);
     return stat;
 }
-
-#if 0
-/**
-@internal Given an nc_type, produce the corresponding
-default fill value as a string.
-@param nctype - [in] nc_type
-@param defaltp - [out] pointer to hold pointer to the value
-@return NC_NOERR
-@author Dennis Heimbigner
-*/
-
-int
-ncz_default_fill_value(nc_type nctype, const char** dfaltp)
-{
-    if(nctype <= 0 || nctype > NC_MAX_ATOMIC_TYPE) return NC_EINVAL;
-    if(dfaltp) *dfaltp = zfillvalue[nctype];
-    return NC_NOERR;	        
-}
-#endif
 
 /**
 @internal Given an nc_type, produce the corresponding
@@ -446,7 +376,7 @@ fill value JSON type
 int
 ncz_fill_value_sort(nc_type nctype, int* sortp)
 {
-    if(nctype <= 0 || nctype > NC_MAX_ATOMIC_TYPE) return NC_EINVAL;
+    if(nctype <= 0 || nctype > N_NCZARR_TYPES) return NC_EINVAL;
     if(sortp) *sortp = zjsonsort[nctype];
     return NC_NOERR;	        
 }
@@ -482,7 +412,7 @@ NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, char dimsep, NC
     NCbytes* path = ncbytesnew();
 
     /* Get the list of names just below prefix */
-    if((stat = nczmap_search(map,prefix,matches))) goto done;
+    if((stat = nczmap_list(map,prefix,matches))) goto done;
     for(i=0;i<nclistlength(matches);i++) {
 	const char* name = nclistget(matches,i);
 	size_t namelen= strlen(name);	
@@ -500,8 +430,11 @@ NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, char dimsep, NC
 	ncbytescat(path,name);
 	ncbytescat(path,tag);
 	/* See if this object exists */
-        if((stat = nczmap_exists(map,ncbytescontents(path))) == NC_NOERR)
-	    nclistpush(objlist,name);
+        switch(stat = nczmap_exists(map,ncbytescontents(path))) {
+	case NC_NOERR: nclistpush(objlist,name); break;
+	case NC_ENOOBJECT: /*fall thru*/
+	default: goto done;
+	}
     }
 
 done:
@@ -510,212 +443,58 @@ done:
     return stat;
 }
 
-#if 0
-/* Convert a netcdf-4 type integer */
+
+/* Infer the attribute's type based on its value(s).*/
 int
-ncz_nctypedecode(const char* snctype, nc_type* nctypep)
-{
-    unsigned nctype = 0;
-    if(sscanf(snctype,"%u",&nctype)!=1) return NC_EINVAL;
-    if(nctypep) *nctypep = nctype;
-    return NC_NOERR;
-}
-#endif
-
-/**
-@internal Given an nc_type+other, produce the corresponding dtype string.
-@param nctype     - [in] nc_type
-@param endianness - [in] endianness
-@param purezarr   - [in] 1=>pure zarr, 0 => nczarr
-@param strlen     - [in] max string length
-@param namep      - [out] pointer to hold pointer to the dtype; user frees
-@return NC_NOERR
-@return NC_EINVAL
-@author Dennis Heimbigner
-*/
-
-int
-ncz_nctype2dtype(nc_type nctype, int endianness, int purezarr, int len, char** dnamep)
-{
-    char dname[64];
-    char* format = NULL;
-
-    if(nctype <= NC_NAT || nctype > NC_MAX_ATOMIC_TYPE) return NC_EINVAL;
-    if(purezarr)
-        format = znames[nctype].zarr[endianness];
-    else
-        format = znames[nctype].nczarr[endianness];
-    snprintf(dname,sizeof(dname),format,len);
-    if(dnamep) *dnamep = strdup(dname);
-    return NC_NOERR;		
-}
-
-/*
-@internal Convert a numcodecs dtype spec to a corresponding nc_type.
-@param nctype   - [in] dtype the dtype to convert
-@param nctype   - [in] typehint help disambiguate char vs string
-@param purezarr - [in] 1=>pure zarr, 0 => nczarr
-@param nctypep  - [out] hold corresponding type
-@param endianp  - [out] hold corresponding endianness
-@param typelenp - [out] hold corresponding type size (for fixed length strings)
-@return NC_NOERR
-@return NC_EINVAL
-@author Dennis Heimbigner
-*/
-
-int
-ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nctypep, int* endianp, int* typelenp)
+NCZ_inferattrtype(const NCjson* values, nc_type typehint, nc_type* typeidp)
 {
     int stat = NC_NOERR;
-    int typelen = 0;
-    int count;
-    char tchar;
-    nc_type nctype = NC_NAT;
-    int endianness = -1;
-    const char* p;
-    int n;
-
-    if(endianp) *endianp = NC_ENDIAN_NATIVE;
-    if(nctypep) *nctypep = NC_NAT;
-
-    if(dtype == NULL) goto zerr;
-    p = dtype;
-    switch (*p++) {
-    case '<': endianness = NC_ENDIAN_LITTLE; break;
-    case '>': endianness = NC_ENDIAN_BIG; break;
-    case '|': endianness = NC_ENDIAN_NATIVE; break;
-    default: p--; endianness = NC_ENDIAN_NATIVE; break;
-    }
-    tchar = *p++; /* get the base type */
-    /* Decode the type length */
-    count = sscanf(p,"%d%n",&typelen,&n);
-    if(count == 0) goto zerr;
-    p += n;
-
-    /* Short circuit fixed length strings */
-    if(tchar == 'S') {
-	/* Fixed length string */
-	switch (typelen) {
-	case 1:
-	    nctype = (endianness == NC_ENDIAN_BIG ? NC_CHAR : NC_STRING);
-	    if(purezarr) nctype = NC_STRING; /* Zarr has no NC_CHAR type */
-	    break;
-	default:
-	    nctype = NC_STRING;
-	    break;
-	}
-	/* String/char have no endianness */
-	endianness = NC_ENDIAN_NATIVE;
-    } else {
-	switch(typelen) {
-        case 1:
-	    switch (tchar) {
-  	    case 'i': nctype = NC_BYTE; break;
-   	    case 'u': nctype = NC_UBYTE; break;
-	    default: goto zerr;
-	    }
-	    break;
-        case 2:
-	switch (tchar) {
-	case 'i': nctype = NC_SHORT; break;
-	case 'u': nctype = NC_USHORT; break;
-	default: goto zerr;
-	}
-	break;
-        case 4:
-	switch (tchar) {
-	case 'i': nctype = NC_INT; break;
-	case 'u': nctype = NC_UINT; break;
-	case 'f': nctype = NC_FLOAT; break;
-	default: goto zerr;
-	}
-	break;
-        case 8:
-	switch (tchar) {
-	case 'i': nctype = NC_INT64; break;
-	case 'u': nctype = NC_UINT64; break;
-	case 'f': nctype = NC_DOUBLE; break;
-	default: goto zerr;
-	}
-	break;
-        default: goto zerr;
-        }
-    }
-
-#if 0
-    /* Convert NC_ENDIAN_NATIVE and NC_ENDIAN_NA */
-    if(endianness == NC_ENDIAN_NATIVE)
-        endianness = (NC_isLittleEndian()?NC_ENDIAN_LITTLE:NC_ENDIAN_BIG);
-#endif
-
-    if(nctypep) *nctypep = nctype;
-    if(typelenp) *typelenp = typelen;
-    if(endianp) *endianp = endianness;
-
-done:
-    return stat;
-zerr:
-    stat = NC_ENCZARR;
-    goto done;
-}
-
-/* Infer the attribute's type based
-primarily on the first atomic value encountered
-recursively.
-*/
-int
-NCZ_inferattrtype(NCjson* value, nc_type typehint, nc_type* typeidp)
-{
-    int i,stat = NC_NOERR;
     nc_type typeid;
-    NCjson* j = NULL;
     unsigned long long u64;
     long long i64;
     int negative = 0;
+    int singleton = 0;
+    const NCjson* value = NULL;
 
-    if(NCJsort(value) == NCJ_ARRAY && NCJlength(value) == 0)
+    if(NCJsort(values) == NCJ_ARRAY && NCJarraylength(values) == 0)
         {typeid = NC_NAT; goto done;} /* Empty array is illegal */
 
-    if(NCJsort(value) == NCJ_NULL)
+    if(NCJsort(values) == NCJ_NULL)
         {typeid = NC_NAT; goto done;} /* NULL is also illegal */
 
-    if(NCJsort(value) == NCJ_DICT) /* Complex JSON expr -- a dictionary */
-        {typeid = NC_NAT; goto done;}
+    if(typehint == NC_JSON)
+        {typeid = NC_JSON; goto done;}
 
-    /* If an array, make sure all the elements are simple */
-    if(value->sort == NCJ_ARRAY) {
-	for(i=0;i<NCJlength(value);i++) {
-	    j=NCJith(value,i);
-	    if(!NCJisatomic(j))
-	        {typeid = NC_NAT; goto done;}
-	}
+    if(NCZ_iscomplexjson(values,typehint))
+        {typeid = NC_JSON; goto done;}
+
+    assert(NCJisatomic(values) || (NCJsort(values) == NCJ_ARRAY /*&& all i: NCJisatomic(NCJith(values)) == NCJ_ARRAY*/));
+
+    /* Get the first element */
+    if(NCJsort(values) == NCJ_ARRAY) {
+	value = NCJith(values,0);
+    } else if(NCJisatomic(values)) {
+        value = values; /*singleton*/
+	singleton = 1;
     }
 
-    /* Infer from first element */
-    if(value->sort == NCJ_ARRAY) {
-        j=NCJith(value,0);
-	return NCZ_inferattrtype(j,typehint,typeidp);
-    }
-
-    /* At this point, value is a primitive JSON Value */
-
+    /* Look at the first element */
     switch (NCJsort(value)) {
     case NCJ_NULL:
-        typeid = NC_NAT;
-	return NC_NOERR;
-    case NCJ_DICT:
-    	typeid = NC_CHAR;
-	goto done;
     case NCJ_UNDEF:
-	return NC_EINVAL;
-    default: /* atomic */
+	stat = NC_EINVAL;
+	goto done;
+    case NCJ_ARRAY:
+    case NCJ_DICT:
+    	typeid = NC_JSON;
+	goto done;
+    default: /* atomic type */
 	break;
     }
 
-    if(NCJstring(value) != NULL)
-        negative = (NCJstring(value)[0] == '-');
-    switch (value->sort) {
+    switch (NCJsort(value)) {
     case NCJ_INT:
+        if(NCJstring(value) != NULL) negative = (NCJstring(value)[0] == '-');
 	if(negative) {
 	    sscanf(NCJstring(value),"%lld",&i64);
 	    u64 = (unsigned long long)i64;
@@ -730,11 +509,28 @@ NCZ_inferattrtype(NCjson* value, nc_type typehint, nc_type* typeidp)
 	typeid = NC_UBYTE;
 	break;
     case NCJ_STRING: /* requires special handling as an array of characters */
-	typeid = NC_CHAR;
+	typeid = NC_STRING;
 	break;
     default:
 	stat = NC_ENCZARR;
+	goto done;
     }
+
+    /* Infer NC_CHAR vs NC_STRING */
+    if(typeid == NC_STRING) {
+	if(singleton && NCJsort(value) == NCJ_STRING)
+	    typeid = NC_CHAR;
+	else if(NCJsort(values) == NCJ_ARRAY) {
+	    int ischar1;
+	    size_t i;
+	    for(ischar1=1,i=0;i<NCJarraylength(values);i++) {
+		NCjson* jelem = NCJith(values,i);
+		if(NCJsort(jelem) != NCJ_STRING || strlen(NCJstring(jelem)) != 1) {ischar1 = 0; break;}
+	    }
+	    if(ischar1) typeid = NC_CHAR;
+	}
+    }
+
 done:
     if(typeidp) *typeidp = typeid;
     return stat;
@@ -863,9 +659,9 @@ int
 NCZ_swapatomicdata(size_t datalen, void* data, int typesize)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
 
-    assert(datalen % typesize == 0);
+    assert(datalen % (size_t)typesize == 0);
 
     if(typesize == 1) goto done;
 
@@ -878,7 +674,7 @@ NCZ_swapatomicdata(size_t datalen, void* data, int typesize)
         case 8: swapinline64(p); break;
         default: break;
 	}
-	i += typesize;
+	i += (size_t)typesize;
     }
 done:
     return THROW(stat);
@@ -906,7 +702,7 @@ NCZ_clonestringvec(size_t len, const char** vec)
 }
 
 void
-NCZ_freestringvec(size_t len, char** vec)
+NCZ_clearstringvec(size_t len, char** vec)
 {
     size_t i;
     if(vec == NULL) return;
@@ -917,6 +713,12 @@ NCZ_freestringvec(size_t len, char** vec)
     for(i=0;i<len;i++) {
 	nullfree(vec[i]);
     }
+}
+
+void
+NCZ_freestringvec(size_t len, char** vec)
+{
+    NCZ_clearstringvec(len,vec);
     nullfree(vec);
 }
 
@@ -948,64 +750,34 @@ NCZ_chunkpath(struct ChunkKey key)
     return path;    
 }
 
-int
-NCZ_reclaim_fill_value(NC_VAR_INFO_T* var)
-{
-    int stat = NC_NOERR;
-    if(var->fill_value) {
-	int tid = var->type_info->hdr.id;
-	stat = NC_reclaim_data_all(var->container->nc4_info->controller,tid,var->fill_value,1);
-	var->fill_value = NULL;
-    }
-    /* Reclaim any existing fill_chunk */
-    if(!stat) stat = NCZ_reclaim_fill_chunk(((NCZ_VAR_INFO_T*)var->format_var_info)->cache);
-    return stat;
-}
-
-int
-NCZ_copy_fill_value(NC_VAR_INFO_T* var, void**  dstp)
-{
-    int stat = NC_NOERR;
-    int tid = var->type_info->hdr.id;
-    void* dst = NULL;
-
-    if(var->fill_value) {
-	if((stat = NC_copy_data_all(var->container->nc4_info->controller,tid,var->fill_value,1,&dst))) goto done;
-    }
-    if(dstp) {*dstp = dst; dst = NULL;}
-done:
-    if(dst) (void)NC_reclaim_data_all(var->container->nc4_info->controller,tid,dst,1);
-    return stat;
-}
-
 
 /* Get max str len for a variable or grp */
 /* Has side effect of setting values in the
    internal data structures */
-int
+size_t
 NCZ_get_maxstrlen(NC_OBJ* obj)
 {
-    int maxstrlen = 0;
+    size_t maxstrlen = 0;
     assert(obj->sort == NCGRP || obj->sort == NCVAR);
     if(obj->sort == NCGRP) {
         NC_GRP_INFO_T* grp = (NC_GRP_INFO_T*)obj;
 	NC_FILE_INFO_T* file = grp->nc4_info;
 	NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
 	if(zfile->default_maxstrlen == 0)
-	    zfile->default_maxstrlen = NCZ_MAXSTR_DEFAULT;
+	    zdfaltstrlen(&zfile->default_maxstrlen,NCZ_MAXSTR_DEFAULT);
 	maxstrlen = zfile->default_maxstrlen;
     } else { /*(obj->sort == NCVAR)*/
         NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)obj;
 	NCZ_VAR_INFO_T* zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
         if(zvar->maxstrlen == 0)
-	    zvar->maxstrlen = NCZ_get_maxstrlen((NC_OBJ*)var->container);
+	    zmaxstrlen(&zvar->maxstrlen,NCZ_get_maxstrlen((NC_OBJ*)var->container));
 	maxstrlen = zvar->maxstrlen;
     }
     return maxstrlen;
 }
 
 int
-NCZ_fixed2char(const void* fixed, char** charp, size_t count, int maxstrlen)
+NCZ_fixed2char(const void* fixed, char** charp, size_t count, size_t maxstrlen)
 {
     size_t i;
     unsigned char* sp = NULL;
@@ -1027,7 +799,7 @@ NCZ_fixed2char(const void* fixed, char** charp, size_t count, int maxstrlen)
 }
 
 int
-NCZ_char2fixed(const char** charp, void* fixed, size_t count, int maxstrlen)
+NCZ_char2fixed(const char** charp, void* fixed, size_t count, size_t maxstrlen)
 {
     size_t i;
     unsigned char* p = fixed;
@@ -1066,43 +838,19 @@ NCZ_copy_data(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const void* memory, size
     return stat;
 }
 
-#if 0
-/* Recursive helper */
-static int
-checksimplejson(NCjson* json, int depth)
-{
-    int i;
-
-    switch (NCJsort(json)) {
-    case NCJ_ARRAY:
-	if(depth > 0) return 0;  /* e.g. [...,[...],...]  or [...,{...},...] */
-	for(i=0;i < NCJlength(json);i++) {
-	    NCjson* j = NCJith(json,i);
-	    if(!checksimplejson(j,depth+1)) return 0;
-        }
-	break;
-    case NCJ_DICT:
-    case NCJ_NULL:
-    case NCJ_UNDEF:
-	return 0;
-    default: break;
-    }
-    return 1;
-}
-#endif
-
 /* Return 1 if the attribute will be stored as a complex JSON valued attribute; return 0 otherwise */
 int
-NCZ_iscomplexjson(NCjson* json, nc_type typehint)
+NCZ_iscomplexjson(const NCjson* json, nc_type typehint)
 {
-    int i, stat = 0;
+    int stat = 0;
+    size_t i;
 
     switch (NCJsort(json)) {
     case NCJ_ARRAY:
-	/* If the typehint is NC_CHAR, then always treat it as complex */
-	if(typehint == NC_CHAR) {stat = 1; goto done;}
+	/* If the typehint is NC_JSON, then always treat it as complex */
+	if(typehint == NC_JSON) {stat = 1; goto done;}
 	/* Otherwise see if it is a simple vector of atomic values */
-	for(i=0;i < NCJlength(json);i++) {
+	for(i=0;i < NCJarraylength(json);i++) {
 	    NCjson* j = NCJith(json,i);
 	    if(!NCJisatomic(j)) {stat = 1; goto done;}
         }
@@ -1115,4 +863,490 @@ NCZ_iscomplexjson(NCjson* json, nc_type typehint)
     }
 done:
     return stat;
+}
+
+/* Return 1 if the attribute value as a string should be stored as complex json
+Assumes attribute type is NC_CHAR.
+See zutil.c documentation.
+@param text of the attribute as a string
+@param jsonp return the parsed json here (if parseable)
+@return 1 if is complex json
+*/
+int
+NCZ_iscomplexjsontext(size_t textlen, const char* text, NCjson** jsonp)
+{
+    NCjson* json = NULL;
+    const char* p;
+    int iscomplex, instring;
+    size_t i;
+
+    if(jsonp) *jsonp = NULL;
+    if(text == NULL || textlen < 2) return 0;
+
+    instring = 0;
+    iscomplex = 0;
+    for(i=0,p=text;i<textlen;i++,p++) {
+	switch (*p) {
+	case '\\': p++; break;
+	case '"': instring = (instring?0:1); break;
+	case '[': case '{': case ']': case '}':
+	    iscomplex=1;
+	    goto loopexit;
+	    break;
+	default: break;
+	}
+    }
+loopexit:
+    if(!iscomplex) return 0;
+    /* Final test: must be parseable */
+    if(NCJparsen(textlen,text,0,&json)<0) return 0;
+    if(json == NULL) return 0;/* not JSON parseable */
+    if(jsonp) {*jsonp = json; json = NULL;}
+    NCJreclaim(json);
+    return 1;
+}
+
+/* Caller must free return value */
+int
+NCZ_makeFQN(NC_GRP_INFO_T* parent, const char* objname, NCbytes* fqn)
+{
+    int stat = NC_NOERR;
+    size_t i;
+    NClist* segments = nclistnew();
+    NC_GRP_INFO_T* grp = NULL;
+    char* escaped = NULL;
+
+    /* Add in the object name */
+    if((escaped = NCZ_backslashescape(objname))==NULL) goto done;
+    nclistpush(segments,escaped);
+    escaped = NULL;
+
+    /* Collect the group prefix segments (escaped) */
+    for(grp=parent;grp->parent!=NULL;grp=grp->parent) {
+	/* Add in the group name */
+	if((escaped = NCZ_backslashescape(grp->hdr.name))==NULL) goto done;
+        nclistpush(segments,escaped);
+	escaped = NULL;
+    }
+    
+    /* Create the the fqn */
+    for(i=0;i<nclistlength(segments);i++) {
+	const char* s = (const char*)nclistget(segments,i);
+        ncbytesinsert(fqn,0,strlen(s),s);
+        ncbytesinsert(fqn,0,1,"/");
+    }
+done:
+    nclistfreeall(segments);
+    nullfree(escaped);
+    return THROW(stat);
+}
+
+/* Find an object matching the given name and of given sort.
+@param parent start search here
+@param fqn path to the object
+@param sort of desired object
+@param objectp return pointer to matching object, or if not found,
+               then to the group where it should have been found.
+@return NC_NOERR
+@return NC_ENOOBJECT if object not found (=> objectp contains where it should be)
+@return NC_EXXX
+*/
+int
+NCZ_locateFQN(NC_GRP_INFO_T* parent, const char* fqn, NC_SORT sort, NC_OBJ** objectp, char** basenamep)
+{
+    int ret = NC_NOERR;
+    size_t i;
+    NC_GRP_INFO_T* grp = NULL;
+    NC_OBJ* object = NULL;
+    NClist* segments = nclistnew();
+    size_t count = 0;
+
+    assert(fqn != NULL && fqn[0] == '/');
+    /* Step 1: Break fqn into segments at occurrences of '/' */
+    if((ret = splitfqn(fqn,segments))) goto done;
+    count = nclistlength(segments);
+
+    /* walk to convert to groups + 1 left over for the final object*/
+    grp = parent;
+    for(i=0;i<count-1;i++){
+	const char* segment = (const char*)nclistget(segments,i);
+	NC_OBJ* object = NULL;
+	/* Walk the group prefixes */
+	object = ncindexlookup(grp->children,segment);
+	if(object == NULL || object->sort != NCGRP) {ret = NC_ENOOBJECT; goto done;}
+	grp = (NC_GRP_INFO_T*)object; object = NULL;
+    }
+    /* Find an object to match the sort and last segment */
+    do {
+	const char* segment = (const char*)nclistget(segments,count-1); /* last segment */
+	/* pass up to the caller */
+	if(basenamep) *basenamep = strdup(segment);
+        object = ncindexlookup(grp->children,segment);
+        if(object != NULL && (sort == NCNAT || sort == NCGRP)) break; /* match */
+        object = ncindexlookup(grp->dim,segment);
+        if(object != NULL && (sort == NCNAT || sort == NCDIM)) break; /* match */
+        object = ncindexlookup(grp->vars,segment);
+        if(object != NULL && (sort == NCNAT || sort == NCVAR)) break; /* match */
+	object = ncindexlookup(grp->type,segment);
+        if(object != NULL && (sort == NCNAT || sort == NCTYP)) break; /* match */
+	object = ncindexlookup(grp->att,segment);
+        if(object != NULL && (sort == NCNAT || sort == NCATT)) break; /* match */
+	object = NULL; /* not found */
+    } while(0);
+    if(object == NULL) {object = (NC_OBJ*)grp; ret = NC_ENOOBJECT;}
+    if(objectp) *objectp = object;
+done:
+    nclistfreeall(segments);
+    return THROW(ret);
+}
+
+static int
+splitfqn(const char* fqn0, NClist* segments)
+{
+    int i,stat = NC_NOERR;
+    char* fqn = NULL;
+    char* p = NULL;
+    char* start = NULL;
+    int count = 0;
+
+    assert(fqn0 != NULL && fqn0[0] == '/');
+    fqn = strdup(fqn0);
+    start = fqn+1; /* leave off the leading '/' */
+    if(strlen(start) > 0) count=1; else count = 0;
+    /* Break fqn into pieces at occurrences of '/' */
+    for(p=start;*p;) {
+	switch(*p) {
+	case '\\':
+	    p+=2;
+	    break;
+	case '/': /*capture the piece name */
+	    *p++ = '\0';
+	    start = p; /* mark start of the next part */
+	    count++;
+	    break;
+	default: /* ordinary char */
+	    p++;
+	    break;
+	}
+    }
+    /* collect segments */
+    p = fqn+1;
+    for(i=0;i<count;i++){
+	char* descaped = NCZ_deescape(p);
+	nclistpush(segments,descaped);
+	p += (strlen(p)+1);
+    }
+    nullfree(fqn);
+    return stat;
+}
+
+char*
+NCZ_backslashescape(const char* s)
+{
+    const char* p;
+    char* q;
+    size_t len;
+    char* escaped = NULL;
+
+    len = strlen(s);
+    escaped = (char*)malloc(1+(2*len)); /* max is everychar is escaped */
+    if(escaped == NULL) return NULL;
+    for(p=s,q=escaped;*p;p++) {
+        char c = *p;
+        switch (c) {
+	case '\\':
+	case '.':
+	case '@':
+	    *q++ = '\\'; *q++ = '\\';
+	    break;
+	default: *q++ = c; break;
+        }
+    }
+    *q = '\0';
+    return escaped;
+}
+
+char*
+NCZ_deescape(const char* esc)
+{
+    size_t len;
+    char* s;
+    const char* p;
+    char* q;
+
+    if(esc == NULL) return NULL;
+    len = strlen(esc);
+    s = (char*)malloc(len+1);
+    if(s == NULL) return NULL;
+    for(p=esc,q=s;*p;) {
+	switch (*p) {
+	case '\\':
+	     p++;
+	     /* fall thru */
+	default: *q++ = *p++; break;
+	}
+    }
+    *q = '\0';
+    return s;
+}
+
+/* Define a static qsort comparator for strings for use with qsort.
+   It sorts by length and then content */
+static int
+cmp_strings(const void* a1, const void* a2)
+{
+    const char** s1 = (const char**)a1;
+    const char** s2 = (const char**)a2;
+    int slen1 = (int)strlen(*s1);
+    int slen2 = (int)strlen(*s2);
+    if(slen1 != slen2) return (slen1 - slen2);
+    return strcmp(*s1,*s2);
+}
+
+int
+NCZ_sortstringlist(void* vec, size_t count)
+{
+    if(vec != NULL && count > 0) {
+        qsort(vec, count, sizeof(void*), cmp_strings);
+    }
+    return NC_NOERR;
+}
+
+void
+NCZ_freeAttrInfoVec(struct NCZ_AttrInfo* ainfo)
+{
+    struct NCZ_AttrInfo* ap;
+    if(ainfo == NULL) return;
+    for(ap=ainfo;ap->name;ap++) {
+        nullfree(ap->name);
+        NCJreclaim(ap->values);
+    }
+    free(ainfo);
+}
+
+void
+NCZ_setatts_read(NC_OBJ* container)
+{
+    if(container->sort == NCGRP)
+        ((NC_GRP_INFO_T*)container)->atts_read = 1;
+    else /* container->sort == NCVAR */
+        ((NC_VAR_INFO_T*)container)->atts_read = 1;
+}
+
+/* Convert a list of integer strings to size64_t integers */
+int
+NCZ_decodesizet64vec(const NCjson* jshape, size64_t* shapes)
+{
+    int stat = NC_NOERR;
+    size_t i;
+    
+    for(i=0;i<NCJarraylength(jshape);i++) {
+	struct ZCVT zcvt;
+	nc_type typeid = NC_NAT;
+	NCjson* jv = NCJith(jshape,i);
+	if((stat = NCZ_json2cvt(jv,&zcvt,&typeid))) goto done;
+	switch (typeid) {
+	case NC_INT64:
+	    if(zcvt.int64v < 0) {stat = (THROW(NC_ENCZARR)); goto done;}
+	    shapes[i] = (size64_t)zcvt.int64v;
+	    break;
+	case NC_UINT64:
+	    shapes[i] = zcvt.uint64v;
+	    break;
+	default: {stat = (THROW(NC_ENCZARR)); goto done;}
+	}
+    }
+
+done:
+    return THROW(stat);
+}
+
+/* Convert a list of integer strings to size_t integer */
+int
+NCZ_decodesizetvec(const NCjson* jshape, size_t* shapes)
+{
+    int stat = NC_NOERR;
+    size_t i;
+
+    for(i=0;i<NCJarraylength(jshape);i++) {
+	struct ZCVT zcvt;
+	nc_type typeid = NC_NAT;
+	NCjson* jv = NCJith(jshape,i);
+	if((stat = NCZ_json2cvt(jv,&zcvt,&typeid))) goto done;
+	switch (typeid) {
+	case NC_INT64:
+	    if(zcvt.int64v < 0) {stat = (THROW(NC_ENCZARR)); goto done;}
+	    shapes[i] = (size_t)zcvt.int64v;
+	    break;
+	case NC_UINT64:
+	    shapes[i] = (size_t)zcvt.uint64v;
+	    break;
+	default: {stat = (THROW(NC_ENCZARR)); goto done;}
+	}
+    }
+
+done:
+    return THROW(stat);
+}
+
+void
+NCZ_clear_diminfo(size_t rank, NCZ_DimInfo* diminfo)
+{
+    size_t i;
+    for(i=0;i<rank;i++) {
+	nullfree(diminfo[i].name);
+	nullfree(diminfo[i].fqn);
+    }
+}
+
+void
+NCZ_reclaim_diminfo_list(NClist* diminfo)
+{
+    if(diminfo != NULL) {
+        size_t i;
+	for(i=0;i<nclistlength(diminfo);i++) {
+	    NCZ_DimInfo* di = (NCZ_DimInfo*)nclistget(diminfo,i);
+	    if(di != NULL) {
+	        nullfree(di->name);
+	        nullfree(di->fqn);
+	        free(di);
+	    }
+	}
+	nclistfree(diminfo);
+    }
+}
+
+/** Locate/create a dimension that is either consistent or unique.
+@param dim test this dim for consistency with dimdata
+@param dimdata about the dimension properties 
+@param testunlim 1=>test matching unlimited flags; 0=>test for size only
+*/
+static int
+isconsistentdim(NC_DIM_INFO_T* dim, NCZ_DimInfo* dimdata, int testunlim)
+{
+    if(dim->len != dimdata->shape) return 0;
+    if(testunlim) {
+	if(dim->unlimited && !dimdata->unlimited) return 0;
+	if(!dim->unlimited && dimdata->unlimited) return 0;
+    }
+    return 1;
+}
+
+/** Locate a dimension by name only moving to higher groups as needed.
+@param file dataset
+@param grp grp to start search
+@param dimname to find
+@param dimp store dim here; null if not found
+@param grpp store grp containing the matched dimension
+Note: *dimp != NULL => *grpp != NULL && *dimp==NULL => *grpp==NULL
+Note: *dimp == NULL => no dim exists with matching name
+*/
+static int
+locatedimbyname(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* dimname, NC_DIM_INFO_T** dimp, NC_GRP_INFO_T** grpp)
+{
+    int stat = NC_NOERR;
+    NC_DIM_INFO_T* dim = NULL;
+    NC_GRP_INFO_T* g = NULL;
+    NC_GRP_INFO_T* dimg = NULL;
+        
+    if(dimp) *dimp = NULL;
+    if(grpp) *grpp = NULL;
+
+    /* Search upwards in containing groups */
+    for(g=grp;g != NULL;g=g->parent) {
+	dim = (NC_DIM_INFO_T*)ncindexlookup(g->dim,dimname);
+	if(dim != NULL) {dimg = g; break;}
+	dim = NULL;
+    }
+    if(dimp) *dimp = dim;
+    if(grpp) *grpp = dimg;
+    return THROW(stat);
+}
+
+/** Locate a dimension by dimdata moving to higher groups as needed.
+@param file dataset
+@param grp grp to start search
+@param dimdata for consistency test
+@param testunlim 1 => include unlim in test
+@param dimp store dim here; null if not found
+@param grpp store grp containing dim here;
+Note: *dimp != NULL => *grpp != NULL && *dimp==NULL => *grpp==NULL
+Note that *dimp==NULL && *grpp==NULL => there was no dim with given name.
+*/
+static int
+locateconsistentdim(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCZ_DimInfo* dimdata, int testunlim, NC_DIM_INFO_T** dimp, NC_GRP_INFO_T** grpp)
+{
+    int stat = NC_NOERR;
+    NC_DIM_INFO_T* dim = NULL;
+    NC_GRP_INFO_T* g = NULL;
+   
+    if(dimp) *dimp = NULL;        
+
+    for(g=grp;g != NULL;g=g->parent,dim=NULL) {
+        if((stat = locatedimbyname(file,g,dimdata->name,&dim,&g))) goto done;
+        if(dim == NULL) break; /* no name match */
+	/* See if consistent */
+	if(isconsistentdim(dim,dimdata,!TESTUNLIM)) break; /* use this dim */
+    }
+
+    if(dimp) *dimp = dim;
+    if(grpp) *grpp = g;
+done:
+    return THROW(stat);
+}
+
+/** Locate/create a dimension that is either consistent or unique.
+@param file dataset
+@param parent default grp for creating group
+@param dimdata about the dimension properties 
+@param dimp store matching dim here
+@param dimname store the unique name
+*/
+int
+NCZ_uniquedimname(NC_FILE_INFO_T* file, NC_GRP_INFO_T* parent, NCZ_DimInfo* dimdata, NC_DIM_INFO_T** dimp, NCbytes* dimname)
+{
+    int stat = NC_NOERR;
+    size_t loopcounter;
+    NC_DIM_INFO_T* dim = NULL;
+    NC_GRP_INFO_T* grp = NULL;	    
+    char digits[NC_MAX_NAME];
+    NCbytes* newname = ncbytesnew();
+
+    if(*dimp) *dimp = NULL;
+    
+    ncbytescat(dimname,dimdata->name); /* Use this name as candidate */
+
+    /* See if there is an accessible consistent dimension with same name */
+    if((stat = locateconsistentdim(file,parent,dimdata,!TESTUNLIM,&dim,&grp))) goto done;
+
+    if(dim != NULL) goto ret; /* we found a consistent dim already exists */
+    if(dim == NULL && grp == NULL) goto ret; /* Ok to create the dim in the parent group */
+
+    /* Dim exists, but is inconsistent */
+    /* Otherwise, we have to find a unique name that can be created in parent group */
+    for(loopcounter=1;;loopcounter++) {
+	/* cleanup from last loop */
+        dim = NULL; /* reset loop exit */
+	nullfree(dimdata->fqn); dimdata->fqn = NULL;
+        /* Make unique name using loopcounter */
+	ncbytesclear(newname);
+	ncbytescat(newname,dimdata->name);
+	snprintf(digits,sizeof(digits),"_%zu",loopcounter);
+	ncbytescat(newname,digits);
+	/* See if there is an accessible dimension with same name and in this parent group */
+	dim = (NC_DIM_INFO_T*)ncindexlookup(parent->dim,dimdata->name);
+	if(dim != NULL && isconsistentdim(dim,dimdata,!TESTUNLIM)) {
+	    /* Return this name */
+	    ncbytesclear(dimname);
+	    ncbytescat(dimname,ncbytescontents(newname));
+	    break;
+	} /* else try another name */
+    } /* loopcounter */		
+
+ret:
+    if(dimp) *dimp = dim;
+
+done:
+    ncbytesfree(newname);
+    return THROW(stat);
 }

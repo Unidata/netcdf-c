@@ -8,7 +8,7 @@
 #include "includes.h"
 #include "ncoffsets.h"
 
-#ifdef ENABLE_BINARY
+#ifdef NETCDF_ENABLE_BINARY
 
 /**************************************************/
 /* Code for generating binary data lists*/
@@ -473,5 +473,5 @@ alignto(int alignment, Bytebuffer* buf, int base)
 	bbAppendn(buf,(void*)zeros,pad);
     }
 }
-#endif /*ENABLE_BINARY*/
+#endif /*NETCDF_ENABLE_BINARY*/
 

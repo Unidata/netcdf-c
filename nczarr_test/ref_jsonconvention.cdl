@@ -5,8 +5,9 @@ variables:
 	int v(d1) ;
 		v:varjson1 = "{\"key1\": [1,2,3], \"key2\": {\"key3\": \"abc\"}}" ;
 		v:varjson2 = "[[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]]" ;
-		v:varvec1  = "1.0, 0.0, 0.0" ;
-		v:varvec2  = "[0.,0.,1.]" ;
+		v:varjson3 = "[0.,0.,1.]" ;
+		v:varchar1  = "1.0, 0.0, 0.0" ;
+		v:_FillValue = -2147483647 ;
 
 // global attributes:
 		:globalfloat = 1. ;

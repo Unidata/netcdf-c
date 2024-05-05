@@ -1,8 +1,8 @@
-/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata
    See the COPYRIGHT file for more information. */
 
-#ifndef UTILS_H
-#define UTILS_H 1
+#ifndef NCVUTILS_H
+#define NCVUTILS_H 1
 
 /* Define a header-only simple version of a dynamically expandable list and byte buffer */
 /* To be used in code that should be independent of libnetcdf */
@@ -15,8 +15,8 @@ typedef struct VList {
 
 typedef struct VString {
   int nonextendible; /* 1 => fail if an attempt is made to extend this string*/
-  unsigned int alloc;
-  unsigned int length;
+  unsigned alloc;
+  unsigned length;
   char* content;
 } VString;
 
@@ -55,7 +55,7 @@ static void
 vlistexpand(VList* l)
 {
   void** newcontent = NULL;
-  size_t newsz;
+  unsigned newsz;
 
   if(l == NULL) return;
   newsz = (l->length * 2) + 1; /* basically double allocated space */
@@ -132,11 +132,11 @@ static void
 vsexpand(VString* vs)
 {
   char* newcontent = NULL;
-  size_t newsz;
+  unsigned newsz;
 
   if(vs == NULL) return;
   assert(vs->nonextendible == 0);
-  newsz = (vs->alloc + VSTRALLOC); /* basically double allocated space */
+  newsz = (vs->alloc + VSTRALLOC); /* increase allocated space */
   if(vs->alloc >= newsz) return; /* space already allocated */
   newcontent=(char*)calloc(1,newsz+1);/* always room for nul term */
   assert(newcontent != NULL);
@@ -154,7 +154,7 @@ vsappendn(VString* vs, const char* elem, unsigned n)
 {
   size_t need;
   assert(vs != NULL && elem != NULL);
-  if(n == 0) {n = strlen(elem);}
+  if(n == 0) {n = (unsigned)strlen(elem);}
   need = vs->length + n;
   if(vs->nonextendible) {
      /* Space must already be available */
@@ -166,7 +166,7 @@ vsappendn(VString* vs, const char* elem, unsigned n)
   memcpy(&vs->content[vs->length],elem,n);
   vs->length += n;
   if(!vs->nonextendible)
-      vs->content[vs->length] = '\0';
+      vs->content[vs->length] = '\0'; /* guarantee nul term */
 }
 
 static void
@@ -196,7 +196,12 @@ static char*
 vsextract(VString* vs)
 {
     char* x = NULL;
-    if(vs == NULL || vs->content == NULL) return NULL;
+    if(vs == NULL) return NULL;
+    if(vs->content == NULL) {
+	/* guarantee content existence and nul terminated */
+	if((vs->content = calloc(1,sizeof(char)))==NULL) return NULL;
+	vs->length = 0;
+    }
     x = vs->content;
     vs->content = NULL;
     vs->length = 0;
@@ -239,4 +244,4 @@ util_initialize(void)
 #define vsclear(vs)  vssetlength(vs,0)
 #define vssetlength(vs,len)  do{if((vs)!=NULL) (vs)->length=len;} while(0)
 
-#endif /*UTILS_H*/
+#endif /*NCVUTIL_H*/

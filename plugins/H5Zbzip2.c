@@ -126,9 +126,9 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Feed data to the decompression process and get decompressed data. */
     stream.next_out = outbuf;
-    stream.avail_out = outbuflen;
+    stream.avail_out = (unsigned)outbuflen;
     stream.next_in = *buf;
-    stream.avail_in = nbytes;
+    stream.avail_in = (unsigned)nbytes;
     do {
       ret = BZ2_bzDecompress(&stream);
       if (ret < 0) {
@@ -145,7 +145,7 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
           goto cleanupAndFail;
         }
         stream.next_out = newbuf + outbuflen;  /* half the new buffer behind */
-        stream.avail_out = outbuflen;  /* half the new buffer ahead */
+        stream.avail_out = (unsigned)outbuflen;  /* half the new buffer ahead */
         outbuf = newbuf;
         outbuflen = newbuflen;
       }
@@ -174,7 +174,7 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Get compression block size if present. */
     if (cd_nelmts > 0) {
-      blockSize100k = cd_values[0];
+      blockSize100k = (int)cd_values[0];
       if (blockSize100k < 1 || blockSize100k > 9) {
 	fprintf(stderr, "invalid compression block size: %d\n", blockSize100k);
 	goto cleanupAndFail;
@@ -191,8 +191,8 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
     }
 
     /* Compress data. */
-    odatalen = outbuflen;
-    ret = BZ2_bzBuffToBuffCompress(outbuf, &odatalen, *buf, nbytes,
+    odatalen = (unsigned)outbuflen;
+    ret = BZ2_bzBuffToBuffCompress(outbuf, &odatalen, *buf, (unsigned)nbytes,
                                    blockSize100k, 0, 0);
     outdatalen = odatalen;
     if (ret != BZ_OK) {

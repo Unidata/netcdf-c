@@ -1,7 +1,7 @@
-[0] /.nczarr : (50) |{
+[0] /.zgroup : (50) |{
 "foo": 42,
 "bar": "apples",
 "baz": [1, 2, 3, 4]}|
-[2] /meta1/.zarray : (34) |{
+[1] /meta1/.zarray : (34) |{
 "shape": [1,2,3],
 "dtype": "<1"}|

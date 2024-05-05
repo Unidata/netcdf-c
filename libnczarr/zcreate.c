@@ -42,7 +42,7 @@ ncz_create_file(const char *path, int cmode, size_t initialsz, NClist* controls,
     if ((retval = nc4_file_list_add(ncid, path, cmode, (void**)&h5)))
         BAIL(retval);
     assert(h5 && h5->root_grp);
-    h5->root_grp->atts_read = 1;
+    NCZ_setatts_read((NC_OBJ*)h5->root_grp);
 
     h5->mem.inmemory = ((cmode & NC_INMEMORY) == NC_INMEMORY);
     h5->mem.diskless = ((cmode & NC_DISKLESS) == NC_DISKLESS);

@@ -12,8 +12,10 @@ export TEST_COMMON_SH=1
 # Define various global constants
 
 # Define location of execution
-TOPSRCDIR='@abs_top_srcdir@'
-TOPBUILDDIR='@abs_top_builddir@'
+abs_top_srcdir=@abs_top_srcdir@
+abs_top_builddir=@abs_top_builddir@
+TOPSRCDIR="${abs_top_srcdir}"
+TOPBUILDDIR="${abs_top_builddir}"
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@ISMSVC@
   FP_WINVERMAJOR=@WINVERMAJOR@
@@ -41,8 +43,9 @@ FEATURE_S3_INTERNAL=@HAS_S3_INTERNAL@
 FEATURE_S3=@HAS_S3@
 FEATURE_NCZARR=@HAS_NCZARR@
 FEATURE_S3TESTS=@NETCDF_ENABLE_S3_TESTING@
-FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
+FEATURE_NCZARR_ZIP=@HAS_NCZARR_ZIP@
 FEATURE_LARGE_TESTS=@DO_LARGE_TESTS@
+FEATURE_ZARRDFALTFORMAT=@NCZARR_DEFAULT_FORMAT@
 
 # Thredds-test server is currently disabled
 #FEATURE_THREDDSTEST=1
@@ -146,7 +149,7 @@ fi
 # We also assume we are executing in builddir
 builddir=`pwd`
 
-# execdir is an alias for builddir
+# execdir is usually an alias for builddir
 execdir="${builddir}"
 
 # pick off the last component as the relative name of this directory
@@ -172,17 +175,17 @@ fi
 
 # We need to locate certain executables (and other things),
 # capture absolute paths, and make visible
-export NCDUMP="${top_builddir}/ncdump${VS}/${DL}ncdump${ext}"
-export NCCOPY="${top_builddir}/ncdump${VS}/${DL}nccopy${ext}"
-export NCGEN="${top_builddir}/ncgen${VS}/${DL}ncgen${ext}"
-export NCGEN3="${top_builddir}/ncgen3${VS}/${DL}ncgen3${ext}"
-export NCPATHCVT="${top_builddir}/ncdump${VS}/${DL}ncpathcvt${ext}"
+export NCDUMP="${abs_top_builddir}/ncdump${VS}/${DL}ncdump${ext}"
+export NCCOPY="${abs_top_builddir}/ncdump${VS}/${DL}nccopy${ext}"
+export NCGEN="${abs_top_builddir}/ncgen${VS}/${DL}ncgen${ext}"
+export NCGEN3="${abs_top_builddir}/ncgen3${VS}/${DL}ncgen3${ext}"
+export NCPATHCVT="${abs_top_builddir}/ncdump${VS}/${DL}ncpathcvt${ext}"
 
 # Temporary hacks (until we have a test_utils directory)
 # to locate certain specific test files
-ncgen3c0="${top_srcdir}/ncgen3/c0.cdl"
-ncgenc0="${top_srcdir}/ncgen/c0.cdl"
-ncgenc04="${top_srcdir}/ncgen/c0_4.cdl"
+ncgen3c0="${abs_top_srcdir}/ncgen3/c0.cdl"
+ncgenc0="${abs_top_srcdir}/ncgen/c0.cdl"
+ncgenc04="${abs_top_srcdir}/ncgen/c0_4.cdl"
 
 # Set LC_ALL
 if test "x$FP_ISMSVC" = xyes || test "x$FP_ISCYGWIN" = xyes; then export LC_ALL="en_US.utf8"; fi
@@ -211,19 +214,27 @@ cd $builddir
 # Parallel make can cause inter-test interference (mostly because of historical naming issues).
 # As a protection against this, the isolate() function supports the creation of an
 # isolation directory in which created products are stored.
-# Cleanup can be accomplished by deleting the whole isolation directory.
-# The name of the isolation directory is by convention "testdir_<random>".
+# The top level isolation directory is by convention "testdir_<random>".
 # The isolation dir is created within the ${builddir} directory.
 # The <random> is a generated 32 bit unsigned random integer to make the chance
 # of collision very small.
 # Process ID was not used because of the small but real chance of collision.
+# Within the top-level isolation directory, each test directory creates its own
+# isolation directory. So, for example, the "nczarr_test" test directory
+# create a directory "nczarr_test" under the top-level isolation directory.
+# Thus it creates a directory whose path is "testdir_<random>/nczarr_test".
+# Finally, note that cleanup can be accomplished by deleting the
+# whole isolation directory: testdir_<random>.
 
 isolate() {
-  if test "x$ISOPATH" = x ; then
-      ISOTESTSET="${builddir}/testset_"
-      if test "x$NOISOPATH" = x ; then ISOTESTSET="${ISOTESTSET}${TESTUID}"; fi    
+  if test "x${ISOPATH}" = x ; then
+      # Get the root directory for these tests
+      ISOTESTDIR=`pwd`
+      ISOTESTDIR=`basename ${ISOTESTDIR}`
+      if test "x$NOISOPATH" = x ; then ISOUID="${TESTUID}"; else ISOUID="0"; fi    
+      ISOPATH="${top_builddir}/alltests_${ISOUID}/${ISOTESTDIR}"
       ISODIR="$1"
-      ISOPATH="${ISOTESTSET}/$ISODIR"
+      ISOPATH="${ISOPATH}/${ISODIR}"
       rm -fr $ISOPATH
       mkdir -p $ISOPATH
   fi

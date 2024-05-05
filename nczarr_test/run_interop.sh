@@ -1,11 +1,9 @@
 #!/bin/sh
 
-set -e
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "$srcdir/test_nczarr.sh"
+. "${srcdir}/test_nczarr.sh"
 
 set -e
 
@@ -45,7 +43,6 @@ testcasezip() {
 }
 
 testcases3() {
-  set -x
   echo -e "\to Running S3 Testcase:\t$1\t$2"
   zext=s3
   base=$1
@@ -55,7 +52,7 @@ testcases3() {
   echo "flags: $flags"
   # Dumping everything causes timeout so dump a single var
   ${NCDUMP} -v "group_with_dims/var2D" $flags $url > tmp_${base}_${zext}.cdl
-  # Find the proper ref file
+  # Use the proper ref file
   diff -b ${ISOPATH}/ref_${base}_2d.cdl tmp_${base}_${zext}.cdl
   set +x
 }
@@ -77,7 +74,7 @@ case "$zext" in
 	;;
     s3)
 	# Read a test case created by netcdf-java zarr.
-	# unpack
+	# unpack the diff baseline files
 	# Use gunzip because it always appears to be available
         gunzip -c ${srcdir}/ref_zarr_test_data.cdl.gz > ${ISOPATH}/ref_zarr_test_data.cdl
         gunzip -c ${srcdir}/ref_zarr_test_data_2d.cdl.gz > ${ISOPATH}/ref_zarr_test_data_2d.cdl

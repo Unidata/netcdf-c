@@ -16,13 +16,22 @@ if test "x$NCZARR_S3_TEST_BUCKET" = x ; then
 fi
 export NCZARR_S3_TEST_URL="https://${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
 
-if test "x$VALGRIND" != x ; then
-    ZMD="valgrind --leak-check=full ${execdir}/zmapio"
-    S3UTIL="valgrind --leak-check=full ${execdir}/s3util"
+# TAG for zarr format to use; uses the environment variable NCZARRFORMAT
+if test "x${NCZARRFORMAT}" = x3 ; then
+    export ZDF="_v3"
 else
-    ZMD="${execdir}/zmapio"
-    S3UTIL="${execdir}/s3util"
+    export ZDF=""
 fi
+
+# Fix execdir
+NCZARRDIR="${execdir}/../nczarr_test"
+
+ZMD="${NCZARRDIR}/${DL}zmapio"
+S3UTIL="${NCZARRDIR}/${DL}s3util"
+ZS3PARSE="${NCZARRDIR}/${DL}zs3parse"
+NCDUMPCHUNKS="${NCZARRDIR}/${DL}ncdumpchunks"
+ZHEX="${NCZARRDIR}/${DL}zhex"
+ZISJSON="${NCZARRDIR}/${DL}zisjson"
 
 # Check settings
 checksetting() {
@@ -66,14 +75,14 @@ deletemap() {
     case "$1" in
     file) rm -fr $2;;
     zip) rm -f $2;;
-    s3) S3KEY=`${execdir}/zs3parse -k $2`; s3sdkdelete $S3KEY ;;
+    s3) S3KEY=`${ZS3PARSE} -k $2`; s3sdkdelete $S3KEY ;;
     *) echo "unknown kind: $1" ; exit 1;;
     esac
 }
 
 mapstillexists() {
     mapstillexists=0
-    if "${execdir}/zmapio $fileurl" &> /dev/null ; then
+    if "${ZMD} $fileurl" &> /dev/null ; then
       echo "delete failed: $1"
       mapstillexists=1
     fi
@@ -88,9 +97,9 @@ fileargs() {
     S3PATH="${NCZARR_S3_TEST_URL}/${S3ISOPATH}"
     fileurl="${S3PATH}/${f}#${frag}"
     file=$fileurl
-    S3HOST=`${execdir}/zs3parse -h $S3PATH`
-    S3BUCKET=`${execdir}/zs3parse -b $S3PATH`
-    S3PREFIX=`${execdir}/zs3parse -k $S3PATH`
+    S3HOST=`${ZS3PARSE} -h $S3PATH`
+    S3BUCKET=`${ZS3PARSE} -b $S3PATH`
+    S3PREFIX=`${ZS3PARSE} -k $S3PATH`
     ;;
   *)
     file="${f}.$zext"
@@ -103,18 +112,32 @@ dumpmap() {
     zext=$1
     zbase=`basename $2 ".$zext"`
     fileargs $zbase
-    ${execdir}/zmapio -t int -x objdump $fileurl > $3
+    ${ZMD} -t int -x objdump $fileurl > $3
 }
 
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent
 sclean() {
-    cat $1 \
- 	| sed -e '/:_IsNetcdf4/d' \
-	| sed -e '/:_Endianness/d' \
-	| sed -e '/_NCProperties/d' \
-	| sed -e '/_SuperblockVersion/d' \
-	| cat > $2
+sed -i.bak -e '/:_IsNetcdf4/d' $1
+sed -i.bak -e '/:_Endianness/d' $1
+sed -i.bak -e '/_NCProperties/d' $1
+sed -i.bak -e '/_SuperblockVersion/d' $1
+}
+
+# s3clean plus remove additional lines
+scleanplus() {
+sclean $1
+sed -i.bak -e '/_Format/d' $1
+sed -i.bak -e '/_global attributes:/d' $1 
+}
+
+# Function to rewrite selected key values in a zmapio output.
+# because these values might be platform dependent
+zmapclean() {
+sed -i.bak -e 's|^\([^(]*\)([0-9][0-9]*)|\1()|' $1
+sed -i.bak -e 's/"_NCProperties":[ ]*"version=\([0-9]\),[^"]*"/"_NCProperties": "version=\1,netcdf=0.0.0,nczarr=0.0.0"/g' $1
+sed -i.bak -e 's/"_nczarr_superblock":[ ]*{[^}]*}/"_nczarr_superblock": {"version": "0.0.0", "format": 2}/g' $1
+sed -i.bak -e 's/"_nczarr_superblock":[ ]*{[^}]*}/"_nczarr_superblock": {"version": "0.0.0", "format": 2}/g' $1
 }
 
 # Make sure execdir and srcdir absolute paths are available
@@ -153,7 +176,7 @@ resetrc() {
 }
 
 s3sdkdelete() {
-if test -f ${execdir}/s3util ; then
+if test -f ${S3UTIL} ; then
   ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
 elif which aws ; then
   aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
@@ -163,7 +186,7 @@ fi
 }
 
 s3sdkcleanup() {
-if test -f ${execdir}/s3util ; then
+if test -f ${S3UTIL} ; then
   ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
 elif which aws ; then
   aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
@@ -174,12 +197,12 @@ fi
 
 # Create an isolation path for S3; build on the isolation directory
 s3isolate() {
-  if test "x$S3ISOPATH" = x ; then
-    if test "x$ISOPATH" = x ; then isolate "$1"; fi
-    S3ISODIR="$ISODIR"
-    S3ISOTESTSET="${S3TESTSUBTREE}/testset_"
-    if test "x$NOISOPATH" = x ; then S3ISOTESTSET="${S3ISOTESTSET}${TESTUID}"; fi    
-    S3ISOPATH="${S3ISOTESTSET}/$S3ISODIR"
+  if test "x${S3ISOPATH}" = x ; then
+    if test "x${ISOPATH}" = x ; then isolate "$1"; fi
+    # Need isolation path to include the test directory
+    BNAME=`basename $srcdir`
+    S3ISODIR="${BNAME}_${TESTUID}/${ISODIR}"
+    S3ISOPATH="${S3TESTSUBTREE}/${S3ISODIR}"
   fi
 }
 

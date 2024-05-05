@@ -7,7 +7,7 @@
 #include "nclog.h"
 #include <stddef.h>
 
-#ifdef ENABLE_BINARY
+#ifdef NETCDF_ENABLE_BINARY
 
 /* Forward */
 static void alignto(size_t alignment, Bytebuffer* buf, size_t base);
@@ -594,5 +594,5 @@ done:
 #endif /*0*/
 
 
-#endif /*ENABLE_BINARY*/
+#endif /*NETCDF_ENABLE_BINARY*/
 

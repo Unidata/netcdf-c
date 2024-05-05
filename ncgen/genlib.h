@@ -112,7 +112,7 @@ extern char* indented(int n);
 
 /* Generators for cdf, c, and fortran */
 
-#ifdef ENABLE_BINARY
+#ifdef NETCDF_ENABLE_BINARY
 /* from: genbin.c */
 extern Generator* bin_generator;
 extern void genbin_netcdf(void);
@@ -122,7 +122,7 @@ extern int binary_generate_data(Datalist* data, Symbol* tsym, Datalist* fillvalu
 extern int binary_reclaim_data(Symbol* tsym, void* memory, size_t count);
 #endif
 
-#ifdef ENABLE_C
+#ifdef NETCDF_ENABLE_C
 /* from: genc.c */
 extern Generator* c_generator;
 extern void genc_netcdf(void);
@@ -135,7 +135,7 @@ extern const char* cname(Symbol* sym);
 
 #endif
 
-#ifdef ENABLE_F77
+#ifdef NETCDF_ENABLE_F77
 /* from: genf77.c */
 extern Generator* f77_generator;
 extern void genf77_netcdf(void);
@@ -144,7 +144,7 @@ extern const char* f77name(Symbol*);
 extern const char* f77typename(Symbol*);
 #endif
 
-#ifdef ENABLE_JAVA
+#ifdef NETCDF_ENABLE_JAVA
 /* from: genj.c */
 extern Generator* j_generator;
 extern void genjava_netcdf(void);

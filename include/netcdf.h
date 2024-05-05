@@ -1,5 +1,4 @@
 /*! \file
-
 Main header file for the C API.
 
 Copyright 2018, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
@@ -119,6 +118,7 @@ extern "C" {
         0x0002
    All upper 16 bits are unused except
         0x20000
+        0x40000
 */
 
 /* Lower 16 bits */
@@ -163,7 +163,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() */
 
 /* Upper 16 bits */
-#define NC_NOATTCREORD  0x20000 /**< Disable the netcdf-4 (hdf5) attribute creation order tracking */
+#define NC_NOATTCREORD       0x20000 /**< Disable the netcdf-4 (hdf5) attribute creation order tracking */
 #define NC_NODIMSCALE_ATTACH 0x40000 /**< Disable the netcdf-4 (hdf5) attaching of dimscales to variables (#2128) */
 
 #define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of user-defined format magic number. */
@@ -521,8 +521,9 @@ by the desired type. */
 #define NC_EOBJECT       (-140)    /**< Some object exists when it should not */
 #define NC_ENOOBJECT     (-141)    /**< Some object not found */
 #define NC_EPLUGIN       (-142)    /**< Unclassified failure in accessing a dynamically loaded plugin> */
+#define NC_ENOTZARR      (-143)    /**< Malformed (NC)Zarr file */
 
-#define NC4_LAST_ERROR   (-142)    /**< @internal All netCDF errors > this. */
+#define NC4_LAST_ERROR   (-143)    /**< @internal All netCDF errors > this. */
 
 /* Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
 #define NC_EURL         (NC_EDAPURL)   /**< Malformed URL */

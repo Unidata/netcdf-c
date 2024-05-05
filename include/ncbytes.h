@@ -47,6 +47,9 @@ EXTERNL int ncbytesremove(NCbytes*,unsigned long);
 /* Concatenate a null-terminated string to the end of the buffer */
 EXTERNL int ncbytescat(NCbytes*,const char*);
 
+/* Insert n bytes into the buffer at position pos*/
+EXTERNL int ncbytesinsert(NCbytes*,size_t pos, size_t n, const char*);
+
 /* Set the contents of the buffer; mark the buffer as non-extendible */
 EXTERNL int ncbytessetcontents(NCbytes*, void*, unsigned long);
 

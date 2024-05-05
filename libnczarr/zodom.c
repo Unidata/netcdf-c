@@ -5,20 +5,20 @@
 #include "zincludes.h"
 
 /*Forward*/
-static int buildodom(int rank, NCZOdometer** odomp);
+static int buildodom(size_t rank, NCZOdometer** odomp);
 
 void
 nczodom_reset(NCZOdometer* odom)
 {
-    int r;
+    size_t r;
     for(r=0;r<odom->rank;r++)
         odom->index[r] = odom->start[r];
 }
 
 NCZOdometer*
-nczodom_new(int rank, const size64_t* start, const size64_t* stop, const size64_t* stride, const size64_t* len)
+nczodom_new(size_t rank, const size64_t* start, const size64_t* stop, const size64_t* stride, const size64_t* len)
 {
-    int i;
+    size_t i;
     NCZOdometer* odom = NULL;
     if(buildodom(rank,&odom)) return NULL;
     odom->properties.stride1 = 1; /* assume */
@@ -38,7 +38,7 @@ nczodom_new(int rank, const size64_t* start, const size64_t* stop, const size64_
 }
 
 NCZOdometer*
-nczodom_fromslices(int rank, const NCZSlice* slices)
+nczodom_fromslices(size_t rank, const NCZSlice* slices)
 {
     size_t i;
     NCZOdometer* odom = NULL;
@@ -83,8 +83,8 @@ nczodom_more(const NCZOdometer* odom)
 void
 nczodom_next(NCZOdometer* odom)
 {
-    int i;
-    int rank;
+    size_t i;
+    size_t rank;
     rank = odom->rank;
     for(i=rank-1;i>=0;i--) {
 	odom->index[i] += odom->stride[i];
@@ -106,9 +106,9 @@ nczodom_indices(const NCZOdometer* odom)
 size64_t
 nczodom_offset(const NCZOdometer* odom)
 {
-    int i;
+    size_t i;
     size64_t offset;
-    int rank = odom->rank;
+    size_t rank = odom->rank;
 
     offset = 0;
     for(i=0;i<rank;i++) {
@@ -123,7 +123,7 @@ nczodom_offset(const NCZOdometer* odom)
 }
 
 static int
-buildodom(int rank, NCZOdometer** odomp)
+buildodom(size_t rank, NCZOdometer** odomp)
 {
     int stat = NC_NOERR;
     NCZOdometer* odom = NULL;
@@ -186,7 +186,7 @@ void
 nczodom_print(const NCZOdometer* odom)
 {
     size_t i;
-    fprintf(stderr,"odom{rank=%d offset=%llu avail=%llu",odom->rank,nczodom_offset(odom),nczodom_avail(odom));
+    fprintf(stderr,"odom{rank=%zu offset=%llu avail=%llu",odom->rank,nczodom_offset(odom),nczodom_avail(odom));
     fprintf(stderr," start=(");
         for(i=0;i<odom->rank;i++) {fprintf(stderr,"%s%llu",(i==0?"":" "),(unsigned long long)odom->start[i]);}
 	fprintf(stderr,")");

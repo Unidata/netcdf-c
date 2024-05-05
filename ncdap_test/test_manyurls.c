@@ -5,12 +5,14 @@
 
 #include "manyurls.h"
 
-#undef VERBOSE
+#define VERBOSE
 
 int main()
 {
     int i,ncid;
     char** p;
+    int nerrors = 0;
+    int nnotfound = 0;
 
     for(i=1,p=urllist;i<100;p++,i++) {
 	    char* tp = *p;	
@@ -27,14 +29,18 @@ int main()
 #ifdef VERBOSE
 	        printf("{%d} %s\n",i,tp);
 #endif
-		status = NC_NOERR;
+		nnotfound++;
 		break;
 	    default:
 	        fprintf(stderr,"*** %s\n",nc_strerror(status));
-		return 1;
+		nerrors++;
+		break;
             }
-            // nc_close(ncid);
+            if(status) nc_close(ncid);
+	    status = NC_NOERR;
     }
-    return 0;
+    fprintf(stderr,">>> not-found=%d errors=%d\n",nnotfound,nerrors);
+    fflush(stderr);
+    return (nnotfound+nerrors > 0 ? 1: 0);
 }
 

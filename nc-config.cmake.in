@@ -39,13 +39,6 @@ else
     has_nc2="yes"
 fi
 
-has_nc4="@USE_NETCDF4@"
-if [ -z "$has_nc4" -o "$has_nc4" = "OFF" ]; then
-    has_nc4="no"
-else
-    has_nc4="yes"
-fi
-
 has_logging="@NETCDF_ENABLE_LOGGING@"
 if [ -z "$has_logging" -o "$has_logging" = "OFF" ]; then
     has_logging="no"
@@ -150,8 +143,7 @@ Available values for OPTION include:
   --has-dap4         whether DAP4 is enabled in this build
   --has-dap          same as --has-dap2 (Deprecated)
   --has-nc2          whether NetCDF-2 API is enabled
-  --has-nc4          whether NetCDF-4/HDF-5 is enabled in this build
-  --has-hdf5         whether HDF5 is used in build (always the same as --has-nc4)
+  --has-hdf5         whether HDF5 is used in build
   --has-hdf4         whether HDF4 was used in build
   --has-logging      whether logging is enabled with --enable-logging.
   --has-pnetcdf      whether PnetCDF was used in build
@@ -197,7 +189,6 @@ all()
         echo "  --has-dap2         -> $has_dap2"
         echo "  --has-dap4         -> $has_dap4"
         echo "  --has-nc2          -> $has_nc2"
-        echo "  --has-nc4          -> $has_nc4"
         echo "  --has-hdf5         -> $has_hdf5"
         echo "  --has-hdf4         -> $has_hdf4"
         echo "  --has-logging      -> $has_logging"
@@ -285,10 +276,6 @@ while test $# -gt 0; do
 
     --has-nc2)
         echo $has_nc2
-        ;;
-
-    --has-nc4)
-        echo $has_nc4
         ;;
 
     --has-hdf5)

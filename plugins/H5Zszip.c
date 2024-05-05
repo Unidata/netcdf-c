@@ -77,7 +77,7 @@ H5Z___can_apply_szip(hid_t H5_ATTR_UNUSED dcpl_id, hid_t type_id, hid_t H5_ATTR_
     FUNC_ENTER_STATIC
 
     /* Get datatype's size, for checking the "bits-per-pixel" */
-    if((dtype_size = (8 * H5Tget_size(type_id))) == 0)
+    if((dtype_size = (8 * (unsigned)H5Tget_size(type_id))) == 0)
         HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL, "bad datatype size")
 
     /* Range check datatype's size */
@@ -147,7 +147,7 @@ H5Z___set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id)
         HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL, "bad datatype precision");
 
     if(dtype_precision < dtype_size) {
-        dtype_offset = H5Tget_offset(type_id);
+        dtype_offset = (size_t)H5Tget_offset(type_id);
         if(dtype_offset != 0)
             dtype_precision = dtype_size;
     } /* end if */
@@ -159,7 +159,7 @@ H5Z___set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id)
     } /* end if */
 
     /* Set "local" parameter for this dataset's "bits-per-pixel" */
-    cd_values[H5Z_SZIP_PARM_BPP] = dtype_precision;
+    cd_values[H5Z_SZIP_PARM_BPP] = (unsigned)dtype_precision;
 
     /* Get dimensions for dataspace */
     if((ndims = H5Sget_simple_extent_dims(space_id, dims, NULL)) < 0)
@@ -184,7 +184,7 @@ H5Z___set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id)
             HGOTO_ERROR(H5E_PLINE, H5E_CANTGET, FAIL, "unable to get number of points in the dataspace")
         if(npoints < cd_values[H5Z_SZIP_PARM_PPB])
             HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "pixels per block greater than total number of elements in the chunk")
-        scanline = MIN((cd_values[H5Z_SZIP_PARM_PPB] * SZ_MAX_BLOCKS_PER_SCANLINE), npoints);
+        scanline = (hsize_t)MIN((cd_values[H5Z_SZIP_PARM_PPB] * SZ_MAX_BLOCKS_PER_SCANLINE), npoints);
     }
     else {
         if(scanline <= SZ_MAX_PIXELS_PER_SCANLINE)
@@ -202,7 +202,7 @@ H5Z___set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id)
 
     /* Set the correct endianness flag for szip */
     /* (Note: this may not handle non-atomic datatypes well) */
-    cd_values[H5Z_SZIP_PARM_MASK] &= ~(H5_SZIP_LSB_OPTION_MASK|H5_SZIP_MSB_OPTION_MASK);
+    cd_values[H5Z_SZIP_PARM_MASK] &= ~((unsigned)(H5_SZIP_LSB_OPTION_MASK|H5_SZIP_MSB_OPTION_MASK));
     switch(dtype_order) {
         case H5T_ORDER_LE:      /* Little-endian byte order */
             cd_values[H5Z_SZIP_PARM_MASK] |= H5_SZIP_LSB_OPTION_MASK;
@@ -250,7 +250,7 @@ static size_t
 H5Z___filter_szip(unsigned flags, size_t cd_nelmts, const unsigned cd_values[],
     size_t nbytes, size_t *buf_size, void **buf)
 {
-    size_t ret_value = 0;       /* Return value */
+    int ret_value = 0;       /* Return value */
     size_t size_out  = 0;       /* Size of output buffer */
     unsigned char *outbuf = NULL;    /* Pointer to new output buffer */
     unsigned char *newbuf = NULL;    /* Pointer to input buffer */
@@ -305,7 +305,7 @@ H5Z___filter_szip(unsigned flags, size_t cd_nelmts, const unsigned cd_values[],
         *buf = outbuf;
         outbuf = NULL;
         *buf_size = nalloc;
-        ret_value = size_out;
+        ret_value = (int)size_out;
     }
     /* Output; compress */
     else {
@@ -332,13 +332,13 @@ H5Z___filter_szip(unsigned flags, size_t cd_nelmts, const unsigned cd_values[],
         *buf = outbuf;
         outbuf = NULL;
         *buf_size = nbytes+4;
-        ret_value = size_out+4;
+        ret_value = (int)(size_out+4);
     }
 
 done:
     if(outbuf)
         H5MM_xfree(outbuf);
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI((size_t)ret_value)
 }
 
 /* External Discovery Functions */

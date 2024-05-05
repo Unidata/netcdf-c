@@ -12,7 +12,6 @@ THISDIR=`pwd`
 cd $ISOPATH
 
 TC="${execdir}/test_unlim_io -4"
-ZM="${execdir}/zmapio -t int"
 
 remfile() {
   case "$zext" in
@@ -69,7 +68,7 @@ $TC -d 0,0 -c 2,2 -s 0,0 -e 2,2 -v 17 -Ocw "$file"
 ${NCDUMP} -n tmp_unlim_io2 tmp_unlim_io2.nc >tmp_unlim_io2.nc.txt
 ${NCDUMP} -n tmp_unlim_io2 "$file" >tmp_unlim_io2.${zext}.txt
 diff -b tmp_unlim_io2.nc.txt tmp_unlim_io2.${zext}.txt
-${execdir}/ncdumpchunks -v v "$file"
+${NCDUMPCHUNKS} -v v "$file"
 }
 
 testcase3() {

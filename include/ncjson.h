@@ -48,6 +48,11 @@ and do the command:
 
 #define NCJ_NSORTS   8
 
+/* Dump/text/unparse flags */
+#define NCJFLAG_NONE	    0
+#define NCJFLAG_INDENTED    1
+
+
 /* Define a struct to store primitive values as unquoted
    strings. The sort will provide more info.  Do not bother with
    a union since the amount of saved space is minimal.
@@ -57,7 +62,7 @@ typedef struct NCjson {
     int sort;     /* of this object */
     char* string; /* sort != DICT|ARRAY */
     struct NCjlist {
-	    int len;
+	    size_t len;
 	    struct NCjson** contents;
     } list; /* sort == DICT|ARRAY */
 } NCjson;
@@ -96,7 +101,7 @@ OPTEXPORT int NCJnewstring(int sort, const char* value, NCjson** jsonp);
 OPTEXPORT int NCJnewstringn(int sort, size_t len, const char* value, NCjson** jsonp);
 
 /* Get dict key value by name */
-OPTEXPORT int NCJdictget(const NCjson* dict, const char* key, NCjson** valuep);
+OPTEXPORT int NCJdictget(const NCjson* dict, const char* key, const NCjson** valuep);
 
 /* Convert one json sort to  value of another type; don't use union so we can know when to reclaim sval */
 OPTEXPORT int NCJcvt(const NCjson* value, int outsort, struct NCJconst* output);
@@ -107,8 +112,14 @@ OPTEXPORT int NCJaddstring(NCjson* json, int sort, const char* s);
 /* Append value to an array or dict object. */
 OPTEXPORT int NCJappend(NCjson* object, NCjson* value);
 
-/* Insert key-value pair into a dict object. key will be copied */
-OPTEXPORT int NCJinsert(NCjson* object, char* key, NCjson* value);
+/* Insert (string)key-(NCjson*)value pair into a dict object. key will be copied */
+OPTEXPORT int NCJinsert(NCjson* object, const char* key, NCjson* jvalue);
+
+/* Insert key-value pair into a dict object. key and value will be copied */
+OPTEXPORT int NCJinsertstring(NCjson* object, const char* key, const char* value);
+
+/* Insert key-value pair into a dict object. key and value will be copied */
+OPTEXPORT int NCJinsertint(NCjson* object, const char* key, int n);
 
 /* Unparser to convert NCjson object to text in buffer */
 OPTEXPORT int NCJunparse(const NCjson* json, unsigned flags, char** textp);
@@ -120,7 +131,11 @@ OPTEXPORT int NCJclone(const NCjson* json, NCjson** clonep);
 /* dump NCjson* object to output file */
 OPTEXPORT void NCJdump(const NCjson* json, unsigned flags, FILE*);
 /* convert NCjson* object to output string */
-OPTEXPORT const char* NCJtotext(const NCjson* json);
+OPTEXPORT const char* NCJtotext(const NCjson* json, unsigned flags);
+
+/* Sort a dictionary by key */
+OPTEXPORT void NCJdictsort(NCjson* jdict);
+
 #endif
 
 #if defined(__cplusplus)
@@ -130,20 +145,26 @@ OPTEXPORT const char* NCJtotext(const NCjson* json);
 /* Getters */
 #define NCJsort(x) ((x)->sort)
 #define NCJstring(x) ((x)->string)
-#define NCJlength(x) ((x)==NULL ? 0 : (x)->list.len)
+#define NCJarraylength(x) ((x)==NULL ? 0 : (x)->list.len)
+#define NCJdictlength(x) ((x)==NULL ? 0 : ((x)->list.len) / 2)
 #define NCJcontents(x) ((x)->list.contents)
 #define NCJith(x,i) ((x)->list.contents[i])
+#define NCJdictkey(x,i) ((x)->list.contents[(i)*2])
+#define NCJdictvalue(x,i) ((x)->list.contents[((i)*2)+1])
 
 /* Setters */
 #define NCJsetsort(x,s) (x)->sort=(s)
 #define NCJsetstring(x,y) (x)->string=(y)
 #define NCJsetcontents(x,c) (x)->list.contents=(c)
-#define NCJsetlength(x,l) (x)->list.len=(l)
+#define NCJsetarraylength(x,l) (x)->list.len=(l)
+#define NCJsetdictlength(x,l) (x)->list.len=((l)*2)
 
 /* Misc */
 #define NCJisatomic(j) ((j)->sort != NCJ_ARRAY && (j)->sort != NCJ_DICT && (j)->sort != NCJ_NULL && (j)->sort != NCJ_UNDEF)
 
 /**************************************************/
+/* Error detection helper */
+#define NCJcheck(expr) do{if((expr) < 0) abort();}while(0)
+/**************************************************/
 
-#endif /*NCJSON_H*/
-
+#endif /*!NCJSON_H!*/ /* Leave the ! as a tag for sed */

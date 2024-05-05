@@ -19,7 +19,9 @@ static char* urllist[] = {
 "https://www.ncei.noaa.gov/thredds-coastal/dodsC/us_east/us_east_20091119_to_20130404/20100103/ncom_relo_useast_u_2010010300_t003.nc?water_u[0][0:39][751][287],water_v[0][0:39][751][287]",
 "https://www.ncei.noaa.gov/thredds-coastal/dodsC/us_east/us_east_20091119_to_20130404/20100103/ncom_relo_useast_u_2010010300_t006.nc?water_u[0][0:39][751][287],water_v[0][0:39][751][287]",
 "https://www.ncei.noaa.gov/thredds-coastal/dodsC/us_east/us_east_20091119_to_20130404/20100103/ncom_relo_useast_u_2010010300_t009.nc?water_u[0][0:39][751][287],water_v[0][0:39][751][287]",
+#ifdef DISABLE_TEST_CASE
 "https://www.ncei.noaa.gov/thredds-coastal/dodsC/us_east/us_east_20091119_to_20130404/20100103/ncom_relo_useast_u_2010010300_t012.nc?water_u[0][0:39][751][287],water_v[0][0:39][751][287]",
+#endif
 "https://www.ncei.noaa.gov/thredds-coastal/dodsC/us_east/us_east_20091119_to_20130404/20100103/ncom_relo_useast_u_2010010300_t015.nc?water_u[0][0:39][751][287],water_v[0][0:39][751][287]",
 "https://www.ncei.noaa.gov/thredds-coastal/dodsC/us_east/us_east_20091119_to_20130404/20100103/ncom_relo_useast_u_2010010300_t018.nc?water_u[0][0:39][751][287],water_v[0][0:39][751][287]",
 "https://www.ncei.noaa.gov/thredds-coastal/dodsC/us_east/us_east_20091119_to_20130404/20100103/ncom_relo_useast_u_2010010300_t021.nc?water_u[0][0:39][751][287],water_v[0][0:39][751][287]",

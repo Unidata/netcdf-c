@@ -17,7 +17,7 @@ ALTPLUGINDIR = ${abs_top_builddir}/plugins/plugindir
 RPATH = -rpath $(abs_builddir)/.libs
 
 # This is where the plugins are to be installed
-if ENABLE_PLUGIN_DIR
+if NETCDF_ENABLE_PLUGIN_DIR
   plugindir = @PLUGIN_INSTALL_DIR@
 else
   plugindir = ${ALTPLUGINDIR}
@@ -39,7 +39,7 @@ LDADD = $(top_builddir)/liblib/libnetcdf.la
 LIBADD = $(top_builddir)/liblib/libnetcdf.la
 endif
 
-EXTRA_DIST = CMakeLists.txt
+EXTRA_DIST = CMakeLists.txt findplugin.in
 
 # The HDF5 filter wrappers
 EXTRA_DIST += \
@@ -119,7 +119,7 @@ lib__nch5bzip2_la_SOURCES += ${BZIP2SRC}
 endif
 plugins_to_install += lib__nch5bzip2.la
 
-if ENABLE_PLUGIN_DIR
+if NETCDF_ENABLE_PLUGIN_DIR
 plugin_LTLIBRARIES += $(plugins_to_install)
 else
 check_LTLIBRARIES += $(plugins_to_install)

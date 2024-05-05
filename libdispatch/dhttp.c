@@ -161,7 +161,7 @@ nc_http_close(NC_HTTP_STATE* state)
 #ifdef NETCDF_ENABLE_S3
     case HTTPS3: {
 	if(state->s3.s3client)
-            NC_s3sdkclose(state->s3.s3client, state->s3.info, 0, NULL);
+            NC_s3sdkclose(state->s3.s3client, NULL);
         NC_s3clear(state->s3.info);
 	nullfree(state->s3.info);
 	state->s3.s3client = NULL;

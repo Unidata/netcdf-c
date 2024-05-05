@@ -7,7 +7,7 @@
 #include "includes.h"
 #include <ctype.h>	/* for isprint() */
 
-#ifdef ENABLE_CML
+#ifdef NETCDF_ENABLE_CML
 
 #undef TRACE
 
@@ -541,4 +541,4 @@ xflush(void)
     }
 }
 
-#endif /*ENABLE_CML*/
+#endif /*NETCDF_ENABLE_CML*/

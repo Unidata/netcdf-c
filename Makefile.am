@@ -110,7 +110,7 @@ endif
 
 # Build Cloud Storage if desired.
 if NETCDF_ENABLE_NCZARR
-ZARR_TEST_DIR = nczarr_test
+ZARR_TEST_DIRS = nczarr_test v3_nczarr_test
 ZARR = libnczarr
 endif
 
@@ -129,7 +129,7 @@ if BUILD_TESTSETS
 TESTDIRS = $(H5_TEST_DIR)
 TESTDIRS += $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)
 TESTDIRS += $(BENCHMARKS_DIR) $(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
-TESTDIRS += ${ZARR_TEST_DIR}
+TESTDIRS += ${ZARR_TEST_DIRS}
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
@@ -218,10 +218,14 @@ if NETCDF_ENABLE_S3_TESTALL
 	mv ${abs_top_builddir}/tmp_@PLATFORMUID@.uids ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 endif
 
-if NETCDF_ENABLE_S3_TESTALL
+clean-local:
+	rm -fr alltests_*
+
 distclean-local:
+if NETCDF_ENABLE_S3_TESTALL
 	rm -f ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 endif
 
 # Remove the VERSION file
-CLEANFILES = VERSION
+CLEANFILES = VERSION_FILE
+

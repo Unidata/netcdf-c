@@ -44,32 +44,35 @@ findtestserver_SOURCES = findtestserver.c
 pingurl_SOURCES = pingurl.c
 
 if NETCDF_BUILD_UTILITIES
-TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh tst_zero_len_var.sh
+TESTS += tst_ber.sh tst_formatx.sh tst_fillmismatch.sh tst_zero_len_var.sh
 endif
 
+if NETCDF_ENABLE_EXTERNAL_SERVER_TESTS
+if NETCDF_ENABLE_DAP_REMOTE_TESTS
+
+if NETCDF_BUILD_UTILITIES
 # Remote servers
+TESTS += tst_ber.sh tst_formatx.sh tst_fillmismatch.sh tst_zero_len_var.sh
+TESTS += tst_remote3.sh testurl.sh
 # iridl.ldeo.columbia.edu
 TESTS += tst_encode.sh
 # test.opendap.org
 TESTS += tst_hyrax.sh
-
-TESTS += test_partvar
+# Various
+TESTS += tst_longremote3.sh
+tst_longremote3.log: tst_remote3.log
+endif
 
 if NETCDF_ENABLE_DAP_LONG_TESTS
- TESTS += tst_longremote3.sh
- tst_longremote3.log: tst_remote3.log
-if NETCDF_ENABLE_EXTERNAL_SERVER_TESTS
  test_manyurls_SOURCES = test_manyurls.c manyurls.h
  check_PROGRAMS += test_manyurls
  test_manyurls.log: tst_longremote3.log
  TESTS += test_manyurls
 endif
-endif
 
+TESTS += test_partvar
 test_partvar_SOURCES = test_partvar.c
-
 t_misc_SOURCES = t_misc.c
-
 #TESTS += t_ncf330
 TESTS += t_misc
 
@@ -83,6 +86,9 @@ check_PROGRAMS += test_varm3
 check_PROGRAMS += test_partvar
 check_PROGRAMS += t_misc
 check_PROGRAMS += t_ncf330
+
+endif
+endif
 
 if NETCDF_ENABLE_DAP_AUTH_TESTS
 TESTS += testauth.sh
@@ -129,9 +135,8 @@ clean-local: clean-local-check
 .PHONY: clean-local-check
 
 clean-local-check:
-	-rm -rf results
-	-rm -f .dodsrc
-	-rm -fr testdir_* testset_*
+	rm -rf results
+	rm -f .dodsrc
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

@@ -11,6 +11,7 @@ variables:
 		FRLAKE:valid_range = -999999986991104., 999999986991104. ;
 		FRLAKE:vmax = 999999986991104. ;
 		FRLAKE:vmin = -999999986991104. ;
+		FRLAKE:_FillValue = NaNf ;
 	float FRLAND(lat, lon) ;
 		FRLAND:fmissing_value = 999999986991104. ;
 		FRLAND:long_name = "fraction_of_land" ;
@@ -19,14 +20,7 @@ variables:
 		FRLAND:valid_range = -999999986991104., 999999986991104. ;
 		FRLAND:vmax = 999999986991104. ;
 		FRLAND:vmin = -999999986991104. ;
-	float FRLANDICE(lat, lon) ;
-		FRLANDICE:fmissing_value = 999999986991104. ;
-		FRLANDICE:long_name = "fraction_of_land_ice" ;
-		FRLANDICE:standard_name = "fraction_of_land_ice" ;
-		FRLANDICE:units = "1" ;
-		FRLANDICE:valid_range = -999999986991104., 999999986991104. ;
-		FRLANDICE:vmax = 999999986991104. ;
-		FRLANDICE:vmin = -999999986991104. ;
+		FRLAND:_FillValue = NaNf ;
 	float FROCEAN(lat, lon) ;
 		FROCEAN:fmissing_value = 999999986991104. ;
 		FROCEAN:long_name = "fraction_of_ocean" ;
@@ -35,4 +29,14 @@ variables:
 		FROCEAN:valid_range = -999999986991104., 999999986991104. ;
 		FROCEAN:vmax = 999999986991104. ;
 		FROCEAN:vmin = -999999986991104. ;
+		FROCEAN:_FillValue = NaNf ;
+	float FRLANDICE(lat, lon) ;
+		FRLANDICE:fmissing_value = 999999986991104. ;
+		FRLANDICE:long_name = "fraction_of_land_ice" ;
+		FRLANDICE:standard_name = "fraction_of_land_ice" ;
+		FRLANDICE:units = "1" ;
+		FRLANDICE:valid_range = -999999986991104., 999999986991104. ;
+		FRLANDICE:vmax = 999999986991104. ;
+		FRLANDICE:vmin = -999999986991104. ;
+		FRLANDICE:_FillValue = NaNf ;
 }

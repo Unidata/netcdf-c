@@ -34,10 +34,10 @@
 #include "nctime.h"
 
 /* Local Configuration flags*/
-#define ENABLE_BINARY
-#define ENABLE_C
-#define ENABLE_F77
-#define ENABLE_JAVA
+#define NETCDF_ENABLE_BINARY
+#define NETCDF_ENABLE_C
+#define NETCDF_ENABLE_F77
+#define NETCDF_ENABLE_JAVA
 
 #include "netcdf.h"
 #include "netcdf_filter.h"

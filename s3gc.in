@@ -3,7 +3,7 @@
 # Uncomment to get verbose output
 #VERBOSE=1
 
-if test "x$VERBOSE" = x1 ; then set -x; fi
+if test "x$VERBOSE" = x2 ; then set -x; fi
 
 # Constants passed in from configure.ac/CMakeLists
 abs_top_srcdir='@abs_top_srcdir@'
@@ -74,23 +74,33 @@ done < s3gc.keys
 # Look at each key and see if it is less than lastdate.
 # If so, then record that key
 
+captureuid() {
+    PFX="$1"
+    # Capture the uid for this key         
+    s3uid1=`echo $key | sed -e "s|$S3TESTSUBTREE/${PFX}_\([0-9][0-9]*\)/.*|\1|"`
+    # also check the obsolete path
+    s3uid2=`echo $key | sed -e "s|$S3TESTSUBTREE/testset_\([0-9][0-9]*\)/.*|\1|"`
+    # check that we got a uid       
+    if test "x$s3uid1" != x ; then s3uid="$s3uid1"; else s3uid="$s3uid2"; fi
+    if test "x$s3uid" != x ; then
+        # Test age of the uid
+        if test $((s3uid < lastdate)) = 1; then
+          MATCHKEYS="${MATCHKEYS} $key"
+        fi
+    else
+        if test "x$VERBOSE" = x1 ; then echo "Excluding \"$key\""; fi
+    fi
+}
+
 # Capture the keys with old uids to delete
 unset MATCHKEYS
 for key in $ALLKEYS ; do
     case "$key" in
-        "$S3TESTSUBTREE/testset_"*)
-             # Capture the uid for this key         
-             s3uid=`echo $key | sed -e "s|$S3TESTSUBTREE/testset_\([0-9][0-9]*\)/.*|\1|"`
-             # check that we got a uid       
-             if test "x$s3uid" != x ; then
-                # Test age of the uid
-                if test $((s3uid < lastdate)) = 1; then
-                    MATCHKEYS="${MATCHKEYS} $key"
-                fi
-             else
-                 if test "x$VERBOSE" = x1 ; then echo "Excluding \"$key\""; fi
-             fi
-	     ;;
+        "$S3TESTSUBTREE/alltests_"*) captureuid "alltests" ;;
+        "$S3TESTSUBTREE/nczarr_test_"*) captureuid "nczarr_test" ;;
+        "$S3TESTSUBTREE/v3_nczarr_test_"*) captureuid "v3_nczarr_test" ;;
+        "$S3TESTSUBTREE/v3_tests_"*) captureuid "v3_tests" ;;
+        "$S3TESTSUBTREE/testset_"*) captureuid "testset" ;;
         *) if test "x$VERBOSE" = x1; then echo "Ignoring \"$key\""; fi ;;
     esac
 done

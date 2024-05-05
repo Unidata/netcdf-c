@@ -11,18 +11,43 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 
 if test "x$TESTNCZARR" = x1 ; then
-. "$srcdir/test_nczarr.sh"
+. ${builddir}/test_nczarr.sh
 s3isolate "testdir_specific_filters"
 THISDIR=`pwd`
 cd $ISOPATH
 fi
 
-if test "x$TESTNCZARR" = x1 ; then
-BLOSCARGS="32001,0,0,0,256,5,1,1"
-BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
+zarrfilt() {
+XCODEC="[{"
+if test "x$TESTNCZARR" = x1 && test "x$NCZARRFORMAT" = x3 ; then
+  XCODEC="${XCODEC}\"name\": \"$1\", \"configuration\": {"
 else
-BLOSCARGS="32001,0,0,4,256,5,1,1"
-BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
+  XCODEC="${XCODEC}\"id\": \"$1\","
+fi
+shift
+blank=
+while test 0 -lt $#; do
+    key=`echon "$1" | cut -d: -f1`
+    val=`echon "$1" | cut -d: -f2`
+    XCODEC="${XCODEC}${blank}\"$key\": $val"
+    shift
+    blank=", "
+done
+if test "x$TESTNCZARR" = x1 && test "x$NCZARRFORMAT" = x3 ; then
+XCODEC="${XCODEC}}}]"
+else
+XCODEC="${XCODEC}}]"
+fi
+}
+
+if test "x$TESTNCZARR" = x1 ; then
+  BLOSCARGS="32001,0,0,0,256,5,1,1"
+  zarrfilt blosc clevel:5 blocksize:256 cname:\"lz4\" shuffle:1  
+  BLOSCCODEC="$XCODEC"
+else
+  BLOSCARGS="32001,0,0,4,256,5,1,1"
+  zarrfilt blosc clevel:5 blocksize:256 cname:\"lz4\" shuffle:1  
+  BLOSCCODEC="$XCODEC"
 fi
 
 # Load the findplugins function
@@ -132,16 +157,16 @@ testshuffle() {
 testdeflate() {
   zext=$1
   if ! avail deflate; then return 0; fi
-  runfilter $zext deflate '1,9' '[{\"id\": \"zlib\",\"level\": \"9\"}]'
-  # need to replace _DeflateLevel
-#  sed -e 's/_DeflateLevel = 9/_Filter = "1,9"/' < tmp_filt_deflate.dump > tmp_filt_deflatex.dump
+  zarrfilt zlib level:9
+  runfilter $zext deflate '1,9' "$XCODEC"
   diff -b -w "tmp_filt_deflate.cdl" "tmp_filt_deflate.dump"
 }
 
 testbzip2() {
   zext=$1
   if ! avail bzip2; then return 0; fi
-  runfilter $zext bzip2 '307,9' '[{\"id\": \"bz2\",\"level\": \"9\"}]'
+  zarrfilt bz2 level:9
+  runfilter $zext bzip2 '307,9' "$XCODEC"
   diff -b -w "tmp_filt_bzip2.cdl" "tmp_filt_bzip2.dump"
 }
 
@@ -149,7 +174,8 @@ testszip() {
   zext=$1
   if ! avail szip; then return 0; fi
 #  H5_SZIP_NN_OPTION_MASK=32;  H5_SZIP_MAX_PIXELS_PER_BLOCK_IN=32
-  runfilter $zext szip '4,32,32' '[{\"id\": \"szip\",\"mask\": 32,\"pixels-per-block\": 32}]'
+  zarrfilt szip mask:32 pixels-per-block:32
+  runfilter $zext szip '4,32,32' "$XCODEC"
   diff -b -w "tmp_filt_szip.cdl" "tmp_filt_szip.dump"
 }
 
@@ -163,7 +189,8 @@ testblosc() {
 testzstd() {
   zext=$1
   if ! avail zstd; then return 0; fi
-  runfilter $zext zstd '32015,1' '[{\"id\": \"zstd\",\"level\": \"1\"}]'
+  zarrfilt zstd level:1
+  runfilter $zext zstd '32015,1' "$XCODEC"
   diff -b -w "tmp_filt_zstd.cdl" "tmp_filt_zstd.dump"
 }
 

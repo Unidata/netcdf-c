@@ -3,7 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "$srcdir/test_nczarr.sh"
+. "${srcdir}/test_nczarr.sh"
 
 # This shell script tests bug reported in github issue 
 # https://github.com/Unidata/netcdf-c/issues/1826

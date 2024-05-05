@@ -6,7 +6,7 @@
 #include "includes.h"
 #include <stddef.h>
 
-#ifdef ENABLE_C
+#ifdef NETCDF_ENABLE_C
 
 #include <math.h> 
 #ifndef isnan
@@ -216,4 +216,4 @@ static Generator c_generator_singleton = {
 };
 Generator* c_generator = &c_generator_singleton;
 
-#endif /*ENABLE_C*/
+#endif /*NETCDF_ENABLE_C*/

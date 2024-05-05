@@ -4,7 +4,10 @@
 
 name: Run CDash Ubuntu/Linux netCDF Tests
 
-on: workflow_dispatch
+on: [workflow_dispatch]
+
+env:
+  REMOTETESTDOWN: ${{ vars.REMOTETESTDOWN }}
     
 concurrency:  
   group: ${{ github.workflow}}-${{ github.head_ref }}  

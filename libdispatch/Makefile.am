@@ -21,7 +21,8 @@ dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c nclist.c	\
 ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c dauth.c doffsets.c	\
 dpathmgr.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c dinfermodel.c	\
 daux.c dinstance.c dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c	\
-ncjson.c ds3util.c dparallel.c dmissing.c dinstance_intern.c
+ncjson.c ds3util.c dparallel.c dmissing.c dinstance_intern.c            \
+ncproplist.c
 
 # Add the utf8 codebase
 libdispatch_la_SOURCES += utf8proc.c utf8proc.h
@@ -50,7 +51,7 @@ endif # NETCDF_ENABLE_BYTERANGE
 if NETCDF_ENABLE_S3
 if NETCDF_ENABLE_S3_INTERNAL
 # Renamed to avoid conflicts with the HDF5 files
-libdispatch_la_SOURCES += ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h ncutil.h nccurl_setup.h \
+libdispatch_la_SOURCES += ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h nccurl_setup.h \
 			  nccurl_sha256.c nccurl_sha256.h nccurl_hmac.c nccurl_hmac.h
 AM_CPPFLAGS += -I$(top_srcdir)/libncxml
 libdispatch_la_CPPFLAGS += ${AM_CPPFLAGS}

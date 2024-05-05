@@ -283,6 +283,8 @@ const char *nc_strerror(int ncerr1)
 	 return "NetCDF: Some object not found";
       case NC_EPLUGIN:
 	 return "NetCDF: Unclassified failure in accessing a dynamically loaded plugin";
+      case NC_ENOTZARR:
+	 return "Malformed (NC)Zarr file";
      default:
 #ifdef USE_PNETCDF
         /* The behavior of ncmpi_strerror here is to return

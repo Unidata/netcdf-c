@@ -9,7 +9,7 @@
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
-. "$srcdir/test_nczarr.sh"
+. "${srcdir}/test_nczarr.sh"
 
 s3isolate "testdir_perf_chunks1"
 THISDIR=`pwd`

@@ -89,12 +89,12 @@ buildplugin(nczmisc "zmisc")
 buildplugin(nczhdf5filters "zhdf5filters" netcdf)
 buildplugin(nczstdfilters "zstdfilters" netcdf)
 
-if(ENABLE_BLOSC)
+if(NETCDF_ENABLE_BLOSC)
   set(h5blosc_SOURCES H5Zblosc.c)
   buildplugin(h5blosc "h5blosc" netcdf;${Blosc_LIBRARIES})
 endif()
 
-if(ENABLE_ZSTD)
+if(NETCDF_ENABLE_ZSTD)
   set(h5zstd_SOURCES H5Zzstd.c H5Zzstd.h)
   buildplugin(h5zstd "h5zstd" netcdf;${Zstd_LIBRARIES})
 endif()
@@ -115,7 +115,7 @@ endif()
 
 
 # Installation
-if(ENABLE_PLUGIN_INSTALL)
+if(NETCDF_ENABLE_PLUGIN_INSTALL)
 
 macro(installplugin PLUG)
   set(INSTALLED_PLUGIN_LIB "${PLUGINPRE}${PLUG}.${PLUGINEXT}")
@@ -144,7 +144,7 @@ if(NETCDF_ENABLE_NCZARR)
   endif()
 endif()
 
-endif(ENABLE_PLUGIN_INSTALL)
+endif(NETCDF_ENABLE_PLUGIN_INSTALL)
 
 endif(NETCDF_ENABLE_PLUGINS)
 

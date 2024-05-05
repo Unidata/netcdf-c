@@ -60,20 +60,7 @@ The query and fragment are optional.
 ### Examples of URL Paths for NetCDF-C
 * https://thredds.ucar.edu/catalog
 
-## Addendum A. Amazon S3 Specific URLS {#nc_paths_s3_urls}
-A URL path is required for accessing datasets on the Amazon S3 storage cloud.
-Unfortunately S3 URLs are complicated.
-It has the following features:
-* Protocol: _https_ or _s3_. The _s3_ scheme is equivalent to "https" plus setting various tags in the query and/or fragment part of the URL.
-* Host: Amazon S3 defines three forms: _Virtual_, _Path_, and _S3_
-  + _Virtual_: the host includes the bucket name as in __bucket.s3.&lt;region&gt;.amazonaws.com__ or __bucket.s3.amazonaws.com__
-  + _Path_: the host does not include the bucket name, but rather the bucket name is the first segment of the path. For example __s3.&lt;region&gt;.amazonaws.com/bucket__ or __s3.amazonaws.com/bucket__
-  + _S3_: the protocol is "s3:" and if the host is a single name, then it is interpreted as the bucket. The region is determined using an algorithm defined in the nczarr documentation.
-  + _Other_: It is possible to use other non-Amazon cloud storage, but that is cloud library dependent.
-* Query: currently not used.
-* Fragment: the fragment is of the form _key=value&key=value&..._. Depending on the key, the _value_ part may be left out and some default value will be used. The exact set of possible keys is defined in the nczarr documentation.
-
-## Addendum B. Known Fragment Keys {#nc_paths_frag_keys}
+## Addendum A. Known Fragment Keys {#nc_paths_frag_keys}
 
 The fragment part of a URL is used to pass information deep into
 the netcdf-c library to control its actions.
@@ -106,3 +93,37 @@ The *mode* key supports the following values
 * _log_ -- turn on logging for the duration of the data request
 * _show=fetch_ -- log curl fetch commands
 
+## Addendum B. Amazon S3 Specific URLS {#nc_paths_s3_urls}
+A URL path is required for accessing datasets on the Amazon S3 storage cloud.
+Unfortunately S3 URLs are complicated.
+They can have the following forms:
+* _Virtual_: the host starts with the bucket name; e.g. __bucket.s3.&lt;region&gt;.amazonaws.com__ | __bucket.s3.amazonaws.com__
+* _Path_: the host does not include the bucket name, but rather the bucket name is the first segment of the path. For example __s3.&lt;region&gt;.amazonaws.com/bucket__ or __s3.amazonaws.com/bucket__
+* _Protocol_: the protocol is "s3:" and if the host is a single name, then it is interpreted as the bucket. The region is determined using an algorithm defined in the nczarr documentation.
+
+For all of the above URL forms, there are two additional pieces.
+* Query: currently not used.
+* Fragment: the fragment is of the form _key=value&key=value&..._. Depending on the key, the _value_ part may be left out and some default value will be used. The exact set of possible keys is defined in the nczarr documentation.
+
+## Addendum C. Google Storage Specific URLS {#nc_paths_google_urls}
+Google provides an interface to its storage that is compatible with
+the Amazon S3 REST API.
+A URL path is required for accessing datasets on the Google storage cloud.
+Note that the Google host is always "storage.googleapis.com"
+and has no concept of region.
+It has the following forms.
+* _Path_: the bucket name is the first segment of the path.
+For example __storage.googleapis.com/bucket__.
+* _Protocol_: the protocol is "gs3:" and if the host is a single name, then it is interpreted as the bucket. The _gs3_ scheme is equivalent to "https" plus setting various tags in the query and/or fragment part of the URL.
+For example __gs3://bucket/__.
+
+For all of the above URL forms, there are two additional pieces.
+* Query: currently not used.
+* Fragment: the fragment is of the form _key=value&key=value&..._. Depending on the key, the _value_ part may be left out and some default value will be used. The exact set of possible keys is defined in the nczarr documentation.
+
+## Point of Contact {#nc_paths_poc}
+
+__Author__: Dennis Heimbigner<br>
+__Email__: dmh at ucar dot edu<br>
+__Initial Version__: 4/10/2020<br>
+__Last Revised__: 11/01/2023

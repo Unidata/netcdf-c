@@ -32,9 +32,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
 
 #define CURL_DISABLE_TYPECHECK 1
 #include <curl/curl.h>

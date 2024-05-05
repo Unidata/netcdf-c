@@ -17,6 +17,7 @@
 
 #include "zincludes.h"
 #include "zfilter.h"
+#include "zfill.h"
 
 /* Forward */
 
@@ -26,6 +27,9 @@
    important, etc. */
 extern int nc_log_level;
 #endif /* LOGGING */
+
+const NCproplist* NCplistzarrv2 = NULL;
+const NCproplist* NCplistzarrv3 = NULL;
 
 #ifdef LOOK
 /**
@@ -61,7 +65,12 @@ NCZ_initialize_internal(void)
     ngs = NC_getglobalstate();
     if(ngs != NULL) {
         /* Defaults */
-	ngs->zarr.dimension_separator = DFALT_DIM_SEPARATOR;
+	ngs->zarr.default_zarrformat = DFALTZARRFORMAT;
+
+	if(ngs->zarr.default_zarrformat == 3)
+	    ngs->zarr.dimension_separator = DFALT_DIM_SEPARATOR_V3;
+	else
+	    ngs->zarr.dimension_separator = DFALT_DIM_SEPARATOR_V2;
         dimsep = NC_rclookup("ZARR.DIMENSION_SEPARATOR",NULL,NULL);
         if(dimsep != NULL) {
             /* Verify its value */
@@ -69,6 +78,11 @@ NCZ_initialize_internal(void)
 		ngs->zarr.dimension_separator = dimsep[0];
         }    
     }
+    /* Build some common proplists */
+    NCplistzarrv2 = ncplistnew();
+    ncplistadd((NCproplist*)NCplistzarrv2,"zarrformat",(uintptr_t)2);
+    NCplistzarrv3 = ncplistnew();
+    ncplistadd((NCproplist*)NCplistzarrv3,"zarrformat",(uintptr_t)3);
 
     return stat;
 }
@@ -88,6 +102,11 @@ NCZ_finalize_internal(void)
 #ifdef NETCDF_ENABLE_S3
     NCZ_s3finalize();
 #endif
+
+    /* Cleanup common proplists */
+    ncplistfree((NCproplist*)NCplistzarrv2); NCplistzarrv2 = NULL;
+    ncplistfree((NCproplist*)NCplistzarrv3); NCplistzarrv3 = NULL;
+
     return NC_NOERR;
 }
 
@@ -113,7 +132,7 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid,
     *maxlen = 0;
 
     /* Find this var. */
-    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,(size_t)varid);
     if (!var) return NC_ENOTVAR;
     assert(var->hdr.id == varid);
 
@@ -125,93 +144,9 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid,
     else
     {
         /* Get the number of records in the dataset. */
-#ifdef LOOK
-#if 0
-not needed        if ((retval = ncz_open_var_grp2(grp, var->hdr.id, &datasetid)))
-            BAIL(retval);
-#endif
-        if ((spaceid = H5Dget_space(datasetid)) < 0)
-            BAIL(NC_EHDFERR);
-        /* If it's a scalar dataset, it has length one. */
-        if (H5Sget_simple_extent_type(spaceid) == H5S_SCALAR)
-        {
-            *maxlen = (var->dimids && var->dimids[0] == dimid) ? 1 : 0;
-        }
-        else
-        {
-            /* Check to make sure ndims is right, then get the len of each
-               dim in the space. */
-            if ((dataset_ndims = H5Sget_simple_extent_ndims(spaceid)) < 0)
-                BAIL(NC_EHDFERR);
-            if (dataset_ndims != var->ndims)
-                BAIL(NC_EHDFERR);
-            if (!(h5dimlen = malloc(dataset_ndims * sizeof(hsize_t))))
-                BAIL(NC_ENOMEM);
-            if (!(h5dimlenmax = malloc(dataset_ndims * sizeof(hsize_t))))
-                BAIL(NC_ENOMEM);
-            if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid,
-                                                           h5dimlen, h5dimlenmax)) < 0)
-                BAIL(NC_EHDFERR);
-            LOG((5, "find_var_dim_max_length: varid %d len %d max: %d",
-                 varid, (int)h5dimlen[0], (int)h5dimlenmax[0]));
-            for (d=0; d<dataset_ndims; d++) {
-                if (var->dimids[d] == dimid) {
-                    *maxlen = *maxlen > h5dimlen[d] ? *maxlen : h5dimlen[d];
-                }
-            }
-        }
-#endif /*LOOK*/
     }
-
-#ifdef LOOK
-exit:
-    if (spaceid > 0 && H5Sclose(spaceid) < 0)
-        BAIL2(NC_EHDFERR);
-    if (h5dimlen) free(h5dimlen);
-    if (h5dimlenmax) free(h5dimlenmax);
-#endif
     return retval;
 }
-
-#ifdef LOOK
-/**
- * @internal Search for type with a given HDF type id.
- *
- * @param h5 File
- * @param target_hdf_typeid ZARR type ID to find.
- *
- * @return Pointer to type info struct, or NULL if not found.
- * @author Dennis Heimbigner, Ed Hartnett
- */
-NC_TYPE_INFO_T *
-ncz_rec_find_hdf_type(NC_FILE_INFO_T *h5, hid_t target_hdf_typeid)
-{
-    NC_TYPE_INFO_T *type;
-    int i;
-
-    assert(h5);
-
-    for (i = 0; i < nclistlength(h5->alltypes); i++)
-    {
-        type = (NC_TYPE_INFO_T*)nclistget(h5->alltypes, i);
-        if(type == NULL) continue;
-
-#ifdef LOOK
-        /* Select the ZARR typeid to use. */
-        hdf_typeid = ncz_type->native_hdf_typeid ?
-            ncz_type->native_hdf_typeid : ncz_type->hdf_typeid;
-
-        /* Is this the type we are searching for? */
-        if ((equal = H5Tequal(hdf_typeid, target_hdf_typeid)) < 0)
-            return NULL;
-        if (equal)
-            return type;
-#endif
-    }
-    /* Can't find it. Fate, why do you mock me? */
-    return NULL;
-}
-#endif
 
 /**
  * @internal Find the actual length of a dim by checking the length of
@@ -230,7 +165,7 @@ ncz_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 {
     NC_VAR_INFO_T *var;
     int retval;
-    int i;
+    size_t i;
 
     assert(grp && len);
     LOG((3, "%s: grp->name %s dimid %d", __func__, grp->hdr.name, dimid));
@@ -260,277 +195,6 @@ ncz_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
     return NC_NOERR;
 }
 
-#if 0
-/**
- * @internal Close ZARR resources for global atts in a group.
- *
- * @param grp Pointer to group info struct.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EHDFERR ZARR error.
- * @author Dennis Heimbigner, Ed Hartnett
- */
-
-static int
-close_gatts(NC_GRP_INFO_T *grp)
-{
-    NC_ATT_INFO_T *att;
-    int a;
-
-    for (a = 0; a < ncindexsize(grp->att); a++)
-    {
-        att = (NC_ATT_INFO_T *)ncindexith(grp->att, a);
-        assert(att && att->format_att_info);
-
-#ifdef LOOK
-        /* Close the ZARR typeid. */
-        if (ncz_att->native_hdf_typeid &&
-            H5Tclose(ncz_att->native_hdf_typeid) < 0)
-            return NC_EHDFERR;
-#endif
-    }
-    return NC_NOERR;
-}
-#endif /*0*/
-
-#if 0
-/**
- * @internal Close ZARR resources for vars in a group.
- *
- * @param grp Pointer to group info struct.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EHDFERR ZARR error.
- * @author Dennis Heimbigner, Ed Hartnett
- */
-static int
-close_vars(NC_GRP_INFO_T *grp)
-{
-    NC_VAR_INFO_T *var;
-    NC_ATT_INFO_T *att;
-    int a, i;
-
-    for (i = 0; i < ncindexsize(grp->vars); i++)
-    {
-        var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
-        assert(var && var->format_var_info);
-
-        /* Close the ZARR dataset associated with this var. */
-#ifdef LOOK
-        if (ncz_var->hdf_datasetid)
-#endif
-        {
-#ifdef LOOK
-            LOG((3, "closing ZARR dataset %lld", ncz_var->hdf_datasetid));
-            if (H5Dclose(ncz_var->hdf_datasetid) < 0)
-                return NC_EHDFERR;
-#endif
-            if (var->fill_value)
-            {
-                if (var->type_info)
-                {
-		    int stat = NC_NOERR;
-		    if((stat = NC_reclaim_data(grp->nc4_info,var->type_info->hdr.id,var->fill_value,1)))
-		        return stat;
-		    nullfree(var->fill_value);
-                }
-            }
-        }
-
-#ifdef LOOK
-        /* Delete any ZARR dimscale objid information. */
-        if (ncz_var->dimscale_ncz_objids)
-            free(ncz_var->dimscale_ncz_objids);
-#endif
-
-        for (a = 0; a < ncindexsize(var->att); a++)
-        {
-            att = (NC_ATT_INFO_T *)ncindexith(var->att, a);
-            assert(att && att->format_att_info);
-
-#ifdef LOOK
-            /* Close the ZARR typeid if one is open. */
-            if (ncz_att->native_hdf_typeid &&
-                H5Tclose(ncz_att->native_hdf_typeid) < 0)
-                return NC_EHDFERR;
-#endif
-        }
-
-	/* Reclaim filters */
-	if(var->filters != NULL) {
-	    (void)NCZ_filter_freelists(var);
-	}
-	var->filters = NULL;
-
-    }
-
-    return NC_NOERR;
-}
-#endif /*0*/
-
-#if 0
-/**
- * @internal Close ZARR resources for dims in a group.
- *
- * @param grp Pointer to group info struct.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EHDFERR ZARR error.
- * @author Dennis Heimbigner, Ed Hartnett
- */
-static int
-close_dims(NC_GRP_INFO_T *grp)
-{
-    NC_DIM_INFO_T *dim;
-    int i;
-
-    for (i = 0; i < ncindexsize(grp->dim); i++)
-    {
-        dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, i);
-        assert(dim && dim->format_dim_info);
-
-#ifdef LOOK
-        /* If this is a dim without a coordinate variable, then close
-         * the ZARR DIM_WITHOUT_VARIABLE dataset associated with this
-         * dim. */
-        if (ncz_dim->hdf_dimscaleid && H5Dclose(ncz_dim->hdf_dimscaleid) < 0)
-            return NC_EHDFERR;
-#endif
-    }
-
-    return NC_NOERR;
-}
-#endif /*0*/
-
-#if 0
-/**
- * @internal Close ZARR resources for types in a group.  Set values to
- * 0 after closing types. Because of type reference counters, these
- * closes can be called multiple times.
- *
- * @param grp Pointer to group info struct.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EHDFERR ZARR error.
- * @author Dennis Heimbigner, Ed Hartnett
- */
-static int
-close_types(NC_GRP_INFO_T *grp)
-{
-    int i;
-
-    for (i = 0; i < ncindexsize(grp->type); i++)
-    {
-        NC_TYPE_INFO_T *type;
-
-        type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
-        assert(type && type->format_type_info);
-
-#ifdef LOOK
-        /* Close any open user-defined ZARR typeids. */
-        if (ncz_type->hdf_typeid && H5Tclose(ncz_type->hdf_typeid) < 0)
-            return NC_EHDFERR;
-        ncz_type->hdf_typeid = 0;
-        if (ncz_type->native_hdf_typeid &&
-            H5Tclose(ncz_type->native_hdf_typeid) < 0)
-            return NC_EHDFERR;
-        ncz_type->native_hdf_typeid = 0;
-#endif
-    }
-
-    return NC_NOERR;
-}
-#endif /*0*/
-
-#if 0
-/**
- * @internal Recursively free ZARR objects for a group (and everything
- * it contains).
- *
- * @param grp Pointer to group info struct.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EHDFERR ZARR error.
- * @author Dennis Heimbigner, Ed Hartnett
- */
-static int
-ncz_rec_grp_NCZ_del(NC_GRP_INFO_T *grp)
-{
-    int i;
-    int retval;
-
-    assert(grp && grp->format_grp_info);
-    LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
-
-    /* Recursively call this function for each child, if any, stopping
-     * if there is an error. */
-    for (i = 0; i < ncindexsize(grp->children); i++)
-        if ((retval = ncz_rec_grp_NCZ_del((NC_GRP_INFO_T *)ncindexith(grp->children,
-                                                                       i))))
-            return retval;
-
-    /* Close ZARR resources associated with global attributes. */
-    if ((retval = close_gatts(grp)))
-        return retval;
-
-    /* Close ZARR resources associated with vars. */
-    if ((retval = close_vars(grp)))
-        return retval;
-
-    /* Close ZARR resources associated with dims. */
-    if ((retval = close_dims(grp)))
-        return retval;
-
-    /* Close ZARR resources associated with types. */
-    if ((retval = close_types(grp)))
-        return retval;
-
-    /* Close the ZARR group. */
-    LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
-#ifdef LOOK
-    if (ncz_grp->hdf_grpid && H5Gclose(ncz_grp->hdf_grpid) < 0)
-        return NC_EHDFERR;
-#endif
-
-    return NC_NOERR;
-}
-#endif /*0*/
-
-/**
- * @internal Given an ncid and varid, get pointers to the group and var
- * metadata. Lazy var metadata reads are done as needed.
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param h5 Pointer that gets pointer to the NC_FILE_INFO_T struct
- * for this file. Ignored if NULL.
- * @param grp Pointer that gets pointer to group info. Ignored if
- * NULL.
- * @param var Pointer that gets pointer to var info. Ignored if NULL.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_ENOTVAR Variable not found.
- * @author Dennis Heimbigner, Ed Hartnett
- */
-int
-ncz_find_grp_file_var(int ncid, int varid, NC_FILE_INFO_T **h5,
-                         NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var)
-{
-    NC_FILE_INFO_T *my_h5;
-    NC_VAR_INFO_T *my_var;
-    int retval;
-
-    /* Delegate to libsrc4 */
-    if((retval = nc4_find_grp_h5_var(ncid,varid,&my_h5,grp,&my_var))) return retval;
-
-    /* Do we need to read var metadata? */
-    if (!my_var->meta_read && my_var->created)
-        if ((retval = ncz_get_var_meta(my_h5, my_var)))
-            return retval;
-    if (var) *var = my_var;
-    if (h5) *h5 = my_h5;
-    return NC_NOERR;
-}
 
 /**
  * @internal Given an ncid, varid, and attribute name, return
@@ -591,7 +255,7 @@ ncz_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
     /* Read the attributes for this var, if any */
     switch (retval = ncz_getattlist(my_grp, varid, &my_var, &attlist)) {
     case NC_NOERR: assert(attlist); break;
-    case NC_EEMPTY: retval = NC_NOERR; attlist = NULL; break; /* variable has no attributes */
+    case NC_ENOOBJECT: retval = NC_NOERR; attlist = NULL; break; /* variable has no attributes */
     default: return retval; /* significant error */
     }
 
@@ -608,7 +272,7 @@ ncz_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
     if (att)
     {
         my_att = use_name ? (NC_ATT_INFO_T *)ncindexlookup(attlist, my_norm_name) :
-            (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
+            (NC_ATT_INFO_T *)ncindexith(attlist, (size_t)attnum);
         if (!my_att)
             return NC_ENOTATT;
     }
@@ -642,75 +306,20 @@ ncz_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
 int
 NCZ_ensure_fill_value(NC_VAR_INFO_T *var)
 {
-    size_t size;
-    int retval = NC_NOERR;
-    NC_FILE_INFO_T *h5 = var->container->nc4_info;
+    int stat = NC_NOERR;
 
     if(var->no_fill)
         return NC_NOERR;
 
-#if 0 /*LOOK*/
-    /* Find out how much space we need for this type's fill value. */
-    if (var->type_info->nc_type_class == NC_VLEN)
-        size = sizeof(nc_vlen_t);
-    else if (var->type_info->nc_type_class == NC_STRING)
-        size = sizeof(char *);
-    else
-#endif
-
-    if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size))) goto done;
-    assert(size);
-
     /* If the user has set a fill_value for this var, use, otherwise find the default fill value. */
-
-    if (var->fill_value == NULL) {
-	/* initialize the fill_value to the default */
-	/* Allocate the fill_value space. */
-        if((var->fill_value = calloc(1, size))==NULL)
-	    {retval = NC_ENOMEM; goto done;}
-        if((retval = nc4_get_default_fill_value(var->type_info, var->fill_value))) {
-            /* Note: release memory, but don't return error on failure */
-	    (void)NCZ_reclaim_fill_value(var);
-	    retval = NC_NOERR;
-	    goto done;
-        }
+    if(var->fill_value == NULL) {
+        if((stat = NCZ_set_fill_value(var->container->nc4_info,var,var->no_fill,var->fill_value))) goto done;
     }
     assert(var->fill_value != NULL);
 
     LOG((4, "Found a fill value for var %s", var->hdr.name));
-#if 0 /*LOOK*/
-	/* Need to copy both vlen and a single basetype */
-        if (var->type_info->nc_type_class == NC_VLEN)
-        {
-            nc_vlen_t *in_vlen = (nc_vlen_t *)(var->fill_value);
-	    nc_vlen-t *fv_vlen = (nc_vlen_t *)fill;
-            size_t basetypesize = 0;
-
-            if((retval=nc4_get_typelen_mem(h5, var->type_info->u.v.base_nc_typeid, &basetypesize)))
-                return retval;
-
-            fv_vlen->len = in_vlen->len;
-            if (!(fv_vlen->p = malloc(basetypesize * in_vlen->len)))
-            {
-                free(*fillp);
-                *fillp = NULL;
-                return NC_ENOMEM;
-            }
-            memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * basetypesize);
-        }
-        else if (var->type_info->nc_type_class == NC_STRING)
-        {
-            if (*(char **)var->fill_value)
-                if (!(**(char ***)fillp = strdup(*(char **)var->fill_value)))
-                {
-                    free(*fillp);
-                    *fillp = NULL;
-                    return NC_ENOMEM;
-                }
-        }
-#endif /*0*/
 done:
-    return retval;
+    return THROW(stat);
 }
 
 #ifdef LOGGING
@@ -807,4 +416,17 @@ NCZ_inq_format_extended(int ncid, int *formatp, int *modep)
         *formatp = NC_FORMATX_NCZARR;
 
     return NC_NOERR;
+}
+
+
+void
+zdfaltstrlen(size_t* p, size_t strlen)
+{
+    *p = strlen;
+}
+
+void
+zmaxstrlen(size_t* p, size_t strlen)
+{
+    *p = strlen;
 }

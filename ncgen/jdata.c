@@ -5,7 +5,7 @@
 
 #include "includes.h"
 
-#ifdef ENABLE_JAVA
+#ifdef NETCDF_ENABLE_JAVA
 
 #include <math.h> 
 #ifndef isnan
@@ -168,4 +168,4 @@ static Generator j_generator_singleton = {
 };
 Generator* j_generator = &j_generator_singleton;
 
-#endif /*ENABLE_JAVA*/
+#endif /*NETCDF_ENABLE_JAVA*/

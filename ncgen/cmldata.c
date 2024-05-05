@@ -11,7 +11,7 @@ See \ref copyright file for more info.
 
 #include "includes.h"
 
-#ifdef ENABLE_CML
+#ifdef NETCDF_ENABLE_CML
 
 /**************************************************/
 /* Code for generating CML data lists*/
@@ -492,4 +492,4 @@ gencml_stringarray(Symbol* sym, Datasrc* src, Bytebuffer* databuf)
     }
 }
 
-#endif /*ENABLE_CML*/
+#endif /*NETCDF_ENABLE_CML*/

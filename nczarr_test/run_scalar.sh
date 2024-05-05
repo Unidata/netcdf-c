@@ -3,7 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "$top_srcdir/nczarr_test/test_nczarr.sh"
+. "${srcdir}/test_nczarr.sh"
 
 set -e
 
@@ -16,6 +16,7 @@ cd $ISOPATH
 zarrscalar() {
     rm -f $2
     sed -e '/dimensions:/d' -e '/_scalar_ =/d' -e '/int v/ s|(_scalar_)||' <$1 >$2
+cat $1 > rescale_$1
 }
 
 testcase() {

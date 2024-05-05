@@ -160,7 +160,7 @@ nc_inq_var_filterx(int ncid, int varid, char** textp)
     /* Get the filters on this variable */
     if((stat = nc_inq_var_filterx_ids(ncid,varid,&text))) goto done;
     /* Parse it */
-    if((stat = NCJparse(text,0,&json))) goto done;
+    if(NCJparse(text,0,&json)<0) goto done;
     if(json->sort != NCJ_ARRAY)
         {stat = NC_EFILTER; goto done;}
     if(NCJlength(json) == 0 || NCJcontents(json) == NULL)
@@ -179,7 +179,7 @@ nc_inq_var_filterx(int ncid, int varid, char** textp)
 /**************************************************/
 /* Support direct user defined filters */
 
-#ifdef ENABLE_CLIENTSIDE_FILTERS
+#ifdef NETCDF_ENABLE_CLIENTSIDE_FILTERS
 
 /* Use void* to avoid having to include hdf.h*/
 EXTERNL int
@@ -240,4 +240,4 @@ int stat = NC_NOERR;
 #endif
     return stat;
 }
-#endif /*ENABLE_CLIENTSIDE_FILTERS*/
+#endif /*NETCDF_ENABLE_CLIENTSIDE_FILTERS*/

@@ -9,7 +9,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 
 if test "x$TESTNCZARR" = x1 ; then
-. "$srcdir/test_nczarr.sh"
+. ${builddir}/test_nczarr.sh
 s3isolate "testdir_mud4"
 else
 isolate "testdir_mud4"

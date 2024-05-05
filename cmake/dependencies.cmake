@@ -211,6 +211,7 @@ if(USE_HDF5)
     set(HDF5_HAS_PAR_FILTERS FALSE CACHE BOOL "" )
     set(HAS_PAR_FILTERS no CACHE STRING "" )
   endif()
+
 endif(USE_HDF5)
 
 ################################

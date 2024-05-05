@@ -5,10 +5,14 @@
 #
 # Dennis Heimbigner
 
-#add_compile_options("/showincludes")
-
 # The source files for the HDF5 dispatch layer.
-set(libnczarr_SOURCES
+SET(libnczarr_SOURCES
+zinfer.c
+znc4.c
+zfill.c
+zformat.c
+zformat2.c
+zformat3.c
 zarr.c
 zattr.c
 zxcache.c
@@ -19,7 +23,6 @@ zcvt.c
 zdim.c
 zdispatch.c
 zfile.c
-zfilter.c
 zgrp.c
 zinternal.c
 zmap.c
@@ -27,13 +30,14 @@ zmap_file.c
 zodom.c
 zopen.c
 zprov.c
-zsync.c
 ztype.c
 zutil.c
 zvar.c
 zwalk.c
 zdebug.c
 zarr.h
+zfill.h
+zformat.h
 zcache.h
 zchunking.h
 zdispatch.h
@@ -43,16 +47,25 @@ zmap.h
 zodom.h
 zprovenance.h
 zfilter.h
+znc4.h
 zdebug.h
 )
 
 if(NETCDF_ENABLE_NCZARR_ZIP)
-    set(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
+    SET(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
 endif()
 
 if(NETCDF_ENABLE_S3) 
-    set(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_s3sdk.c)
+    SET(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_s3sdk.c)
 endif()
+
+if(NETCDF_ENABLE_NCZARR_FILTERS)
+    SET(libnczarr_SOURCES ${libnczarr_SOURCES} zfilter.c)
+endif()
+
+set_property(SOURCE zdispatch.c
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)
 
 # Build the Zarr dispatch layer as a library that will be included in
 # the netCDF library.
@@ -73,5 +86,20 @@ if (NETCDF_ENABLE_DLL)
     target_compile_definitions(nczarr PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 
+target_link_libraries(nczarr PUBLIC ${CURL_LIBRARIES})
+target_include_directories(nczarr PUBLIC ${CURL_INCLUDE_DIRS})
+target_compile_options(nczarr
+  PRIVATE
+    -DCURL_STATICLIB=1
+)
+
+if (NETCDF_ENABLE_DLL)
+  target_compile_definitions(nczarr PRIVATE DLL_NETCDF DLL_EXPORT)
+endif()
+
+if(STATUS_PARALLEL)
+  target_link_libraries(nczarr PUBLIC MPI::MPI_C)
+endif(STATUS_PARALLEL)
+
 # Remember to package this file for CMake builds.
-ADD_EXTRA_DIST(${libnczarr_SOURCES} CMakeLists.txt)
+add_extra_dist(${libnczarr_SOURCES} CMakeLists.txt)

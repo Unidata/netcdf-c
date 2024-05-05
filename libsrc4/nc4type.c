@@ -15,33 +15,7 @@
 #include "nc4dispatch.h"
 #include <stddef.h>
 
-#if 0
-#ifdef NETCDF_ENABLE_DAP4
-EXTERNL NC* NCD4_get_substrate_nc(int ncid);
-#endif
-#endif
-
-/* The sizes of types may vary from platform to platform, but within
- * netCDF files, type sizes are fixed. */
-#define NC_CHAR_LEN sizeof(char)      /**< @internal Size of char. */
 #define NC_STRING_LEN sizeof(char *)  /**< @internal Size of char *. */
-#define NC_BYTE_LEN 1     /**< @internal Size of byte. */
-#define NC_SHORT_LEN 2    /**< @internal Size of short. */
-#define NC_INT_LEN 4      /**< @internal Size of int. */
-#define NC_FLOAT_LEN 4    /**< @internal Size of float. */
-#define NC_DOUBLE_LEN 8   /**< @internal Size of double. */
-#define NC_INT64_LEN 8    /**< @internal Size of int64. */
-
-/** @internal Names of atomic types. */
-const char* nc4_atomic_name[NUM_ATOMIC_TYPES] = {"none", "byte", "char",
-                                           "short", "int", "float",
-                                           "double", "ubyte",
-                                           "ushort", "uint",
-                                           "int64", "uint64", "string"};
-static const size_t nc4_atomic_size[NUM_ATOMIC_TYPES] = {0, NC_BYTE_LEN, NC_CHAR_LEN, NC_SHORT_LEN,
-                                                      NC_INT_LEN, NC_FLOAT_LEN, NC_DOUBLE_LEN,
-                                                      NC_BYTE_LEN, NC_SHORT_LEN, NC_INT_LEN, NC_INT64_LEN,
-                                                      NC_INT64_LEN, NC_STRING_LEN};
 
 /**
  * @internal Find all user-defined types for a location. This finds
@@ -91,64 +65,6 @@ NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
 }
 
 /**
- * @internal Get the name and size of an atomic type. For strings, 1 is
- * returned.
- *
- * @param typeid1 Type ID.
- * @param name Gets the name of the type.
- * @param size Gets the size of one element of the type in bytes.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EBADTYPE Type not found.
- * @author Dennis Heimbigner
- */
-int
-NC4_inq_atomic_type(nc_type typeid1, char *name, size_t *size)
-{
-    LOG((2, "nc_inq_atomic_type: typeid %d",  typeid1));
-
-    if (typeid1 >= NUM_ATOMIC_TYPES)
-	return NC_EBADTYPE;
-    if (name)
-            strcpy(name, nc4_atomic_name[typeid1]);
-    if (size)
-            *size = nc4_atomic_size[typeid1];
-    return NC_NOERR;
-}
-
-/**
- * @internal Get the id and size of an atomic type by name.
- *
- * @param name [in] the name of the type.
- * @param idp [out] the type index of the type.
- * @param sizep [out] the size of one element of the type in bytes.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EBADTYPE Type not found.
- * @author Dennis Heimbigner
- */
-int
-NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep)
-{
-    int i;
-
-    LOG((2, "nc_lookup_atomic_type: name %s ", name));
-
-    if (name == NULL || strlen(name) == 0)
-	return NC_EBADTYPE;
-    for(i=0;i<NUM_ATOMIC_TYPES;i++) {
-	if(strcasecmp(name,nc4_atomic_name[i])==0) {	
-	    if(idp) *idp = i;
-            if(sizep) *sizep = nc4_atomic_size[i];
-	    return NC_NOERR;
-        }
-    }
-    return NC_EBADTYPE;
-}
-
-/**
  * @internal Get the name and size of a type.
  * For VLEN the base type len is returned.
  *
@@ -175,11 +91,7 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
     /* If this is an atomic type, the answer is easy. */
     if (typeid1 < NUM_ATOMIC_TYPES)
     {
-        if (name)
-            strcpy(name, nc4_atomic_name[typeid1]);
-        if (size)
-            *size = nc4_atomic_size[typeid1];
-        return NC_NOERR;
+	return NC4_inq_atomic_type(typeid1,name,size);
     }
 
     /* Not an atomic type - so find group. */
@@ -567,16 +479,21 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
     NC_FILE_INFO_T *h5;
     NC_TYPE_INFO_T *type = NULL;
     char *norm_name = NULL;
-    int i, retval = NC_NOERR;
+    int retval = NC_NOERR;
 
-    /* Handle atomic types. */
-    for (i = 0; i < NUM_ATOMIC_TYPES; i++)
-        if (!strcmp(name, nc4_atomic_name[i]))
-        {
-            if (typeidp)
-                *typeidp = i;
-            goto done;
-        }
+    /* Normalize name. */
+    if (!(norm_name = (char*)malloc(strlen(name) + 1)))
+        {retval = NC_ENOMEM; goto done;}
+    if ((retval = nc4_normalize_name(name, norm_name)))
+	goto done;
+
+    switch(retval = NC4_inq_atomic_typeid(ncid,norm_name,typeidp)) {
+    case NC_NOERR: goto done;
+    case NC_EBADTYPE: retval = NC_NOERR; break;
+    default: goto done;
+    }
+
+    /* Must be a user-defined type */
 
     /* Find info for this file and group, and set pointer to each. */
     if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
@@ -588,12 +505,6 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
      * the middle). */
     if (name[0] != '/' && strstr(name, "/"))
         {retval = NC_EINVAL; goto done;}
-
-    /* Normalize name. */
-    if (!(norm_name = (char*)malloc(strlen(name) + 1)))
-        {retval = NC_ENOMEM; goto done;}
-    if ((retval = nc4_normalize_name(name, norm_name)))
-	goto done;
 
     /* If this is a fqn, then walk the sequence of parent groups to the last group
        and see if that group has a type of the right name */
@@ -659,57 +570,24 @@ int
 nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype, int *type_class)
 {
     int retval = NC_NOERR;
+    NC_TYPE_INFO_T *type;
 
     LOG((4, "%s xtype: %d", __func__, xtype));
     assert(type_class);
 
     /* If this is an atomic type, the answer is easy. */
-    if (xtype <= NC_STRING)
-    {
-        switch (xtype)
-        {
-        case NC_BYTE:
-        case NC_UBYTE:
-        case NC_SHORT:
-        case NC_USHORT:
-        case NC_INT:
-        case NC_UINT:
-        case NC_INT64:
-        case NC_UINT64:
-            /* NC_INT is class used for all integral types */
-            *type_class = NC_INT;
-            break;
-
-        case NC_FLOAT:
-        case NC_DOUBLE:
-            /* NC_FLOAT is class used for all floating-point types */
-            *type_class = NC_FLOAT;
-            break;
-
-        case NC_CHAR:
-            *type_class = NC_CHAR;
-            break;
-
-        case NC_STRING:
-            *type_class = NC_STRING;
-            break;
-
-        default:
-            BAIL(NC_EBADTYPE);
-        }
+    retval = NC4_get_atomic_typeclass(xtype,type_class);
+    switch (retval) {
+    case NC_NOERR: goto exit;
+    case NC_EBADTYPE: break;
+    default: goto exit;
     }
-    else
-    {
-        NC_TYPE_INFO_T *type;
-
-        /* See if it's a used-defined type */
-        if ((retval = nc4_find_type(h5, xtype, &type)))
-            BAIL(retval);
-        if (!type)
-            BAIL(NC_EBADTYPE);
-
-        *type_class = type->nc_type_class;
-    }
+    /* See if it's a used-defined type */
+    if ((retval = nc4_find_type(h5, xtype, &type)))
+        BAIL(retval);
+    if (!type)
+        BAIL(NC_EBADTYPE);
+    *type_class = type->nc_type_class;
 
 exit:
     return retval;

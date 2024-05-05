@@ -12,6 +12,8 @@ Cloud Storage Access Using The NetCDF-C Library
 The NetCDF-C library supports limited access to cloud storage.
 Currently, that access is restricted to the Amazon S3 cloud storage,
 so this document is S3-centric.
+Limited support is also provided for the Google cloud storage.
+Google provides an S3 compatible REST API (See the _quickstart_paths.md document).
 It is expected that over time, access to additional cloud stores will be added,
 and this document will be expanded to cover those additional cases.
 

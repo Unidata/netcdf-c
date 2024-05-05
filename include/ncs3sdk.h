@@ -18,6 +18,9 @@ typedef enum NCS3SVC {NCS3UNK=0, /* unknown */
 		 NCS3GS=0   /* storage.googleapis.com */
 } NCS3SVC;
 
+/* Opaque Handles */
+struct NClist;
+
 typedef struct NCS3INFO {
     char* host; /* non-null if other*/
     char* region; /* region */
@@ -54,9 +57,10 @@ EXTERNL int NC_s3sdkbucketdelete(void* s3client, NCS3INFO* info, char** errmsgp)
 EXTERNL int NC_s3sdkinfo(void* client0, const char* bucket, const char* pathkey, unsigned long long* lenp, char** errmsgp);
 EXTERNL int NC_s3sdkread(void* client0, const char* bucket, const char* pathkey, unsigned long long start, unsigned long long count, void* content, char** errmsgp);
 EXTERNL int NC_s3sdkwriteobject(void* client0, const char* bucket, const char* pathkey, unsigned long long count, const void* content, char** errmsgp);
-EXTERNL int NC_s3sdkclose(void* s3client0, NCS3INFO* info, int deleteit, char** errmsgp);
-EXTERNL int NC_s3sdkgetkeys(void* s3client0, const char* bucket, const char* prefix, size_t* nkeysp, char*** keysp, char** errmsgp);
-EXTERNL int NC_s3sdksearch(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp);
+EXTERNL int NC_s3sdkclose(void* s3client0, char** errmsgp);
+EXTERNL int NC_s3sdktruncate(void* s3client0, const char* bucket, const char* prefix, char** errmsgp);
+EXTERNL int NC_s3sdklist(void* s3client0, const char* bucket, const char* prefix, size_t* nkeysp, char*** keysp, char** errmsgp);
+EXTERNL int NC_s3sdklistall(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp);
 EXTERNL int NC_s3sdkdeletekey(void* client0, const char* bucket, const char* pathkey, char** errmsgp);
 
 /* From ds3util.c */

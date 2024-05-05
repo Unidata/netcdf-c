@@ -9,8 +9,9 @@
  * @author Dennis Heimbigner, Ed Hartnett
  */
 
-#include "zincludes.h"
 #include <math.h> /* For pow() used below. */
+#include "zincludes.h"
+#include "zfill.h"
 
 /* Mnemonics */
 #define CREATE 0
@@ -21,7 +22,7 @@
 static void
 reportchunking(const char* title, NC_VAR_INFO_T* var)
 {
-    int i;
+    size_t i;
     char buf[8192];
 
     buf[0] = '\0'; /* for strlcat */
@@ -69,21 +70,21 @@ reportchunking(const char* title, NC_VAR_INFO_T* var)
 static int
 check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksizes)
 {
-    double dprod;
+    size_t dprod;
     size_t type_len;
-    int d;
+    size_t d;
     int retval = NC_NOERR;
 
     if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->hdr.id, &type_len)))
 	goto done;
     if (var->type_info->nc_type_class == NC_VLEN)
-	dprod = (double)sizeof(nc_hvl_t);
+	dprod = sizeof(nc_hvl_t);
     else
-	dprod = (double)type_len;
+	dprod = type_len;
     for (d = 0; d < var->ndims; d++)
-	dprod *= (double)chunksizes[d];
+	dprod *= chunksizes[d];
 
-    if (dprod > (double) NC_MAX_UINT)
+    if (dprod > NC_MAX_UINT)
 	{retval = NC_EBADCHUNK; goto done;}
 done:
     return retval;
@@ -103,9 +104,10 @@ done:
 int
 ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
-    int d;
+    size_t d;
     size_t type_size;
-    float num_values = 1, num_unlim = 0;
+    size_t num_values = 1;
+    size_t num_unlim = 0;
     int retval;
     size_t suggested_size;
 #ifdef LOGGING
@@ -131,7 +133,7 @@ ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     {
 	assert(var->dim[d]);
 	if (! var->dim[d]->unlimited)
-	    num_values *= (float)var->dim[d]->len;
+	    num_values *= var->dim[d]->len;
 	else {
 	    num_unlim++;
 	    var->chunksizes[d] = 1; /* overwritten below, if all dims are unlimited */
@@ -152,7 +154,7 @@ ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 	     "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[0]));
     }
     if (var->ndims > 1 && var->ndims == num_unlim) { /* all dims unlimited */
-	suggested_size = pow((double)DEFAULT_CHUNK_SIZE/type_size, 1.0/(double)(var->ndims));
+	suggested_size = (size_t)pow((double)(DEFAULT_CHUNK_SIZE/type_size), 1.0/(double)(var->ndims));
 	for (d = 0; d < var->ndims; d++)
 	{
 	    var->chunksizes[d] = suggested_size ? suggested_size : 1;
@@ -166,8 +168,8 @@ ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     for (d = 0; d < var->ndims; d++)
 	if (!var->chunksizes[d])
 	{
-	    suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size),
-				  1.0/(double)(var->ndims - num_unlim)) * var->dim[d]->len - .5);
+	    suggested_size = (size_t)(pow((double)DEFAULT_CHUNK_SIZE/((double)(num_values * type_size)),
+				  1.0/(double)(var->ndims - num_unlim)) * (double)var->dim[d]->len - .5);
 	    if (suggested_size > var->dim[d]->len)
 		suggested_size = var->dim[d]->len;
 	    var->chunksizes[d] = suggested_size ? suggested_size : 1;
@@ -217,39 +219,6 @@ reportchunking("find_default: ",var);
     return NC_NOERR;
 }
 
-#if 0
-/**
- * @internal Give a var a secret ZARR name. This is needed when a var
- * is defined with the same name as a dim, but it is not a coord var
- * of that dim. In that case, the var uses a secret name inside the
- * ZARR file.
- *
- * @param var Pointer to var info.
- * @param name Name to use for base of secret name.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EMAXNAME Name too long to fit secret prefix.
- * @returns ::NC_ENOMEM Out of memory.
- * @author Dennis Heimbigner, Ed Hartnett
- */
-static int
-give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
-{
-    /* Set a different ncz name for this variable to avoid name
-     * clash. */
-    if (strlen(name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
-	return NC_EMAXNAME;
-	size_t ncz_name_size = (strlen(NON_COORD_PREPEND) + strlen(name) + 1) *
-	                       sizeof(char);
-    if (!(var->ncz_name = malloc(ncz_name_size)))
-	return NC_ENOMEM;
-
-    snprintf(var->ncz_name, ncz_name_size, "%s%s", NON_COORD_PREPEND, name);
-
-    return NC_NOERR;
-}
-#endif /*0*/
-
 /**
  * @internal This is called when a new netCDF-4 variable is defined
  * with nc_def_var().
@@ -283,20 +252,18 @@ give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
  */
 int
 NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
-	    const int *dimidsp, int *varidp)
+	    const int *dimids, int *varidp)
 {
     NC_GRP_INFO_T *grp;
     NC_VAR_INFO_T *var;
     NC_DIM_INFO_T *dim;
     NC_FILE_INFO_T *h5;
-    NC_TYPE_INFO_T *type = NULL;
-    NCZ_VAR_INFO_T* zvar = NULL;
     char norm_name[NC_MAX_NAME + 1];
     int d;
     int retval;
-    NCglobalstate* gstate = NC_getglobalstate();
+    NC_TYPE_INFO_T *type = NULL;
 
-    ZTRACE(1,"ncid=%d name=%s xtype=%d ndims=%d dimids=%s",ncid,name,xtype,ndims,nczprint_idvector(ndims,dimidsp));
+    ZTRACE(1,"ncid=%d name=%s xtype=%d ndims=%d dimids=%s",ncid,name,xtype,ndims,nczprint_idvector(ndims,dimids));
     
     /* Find info for this file and group, and set pointer to each. */
     if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
@@ -346,12 +313,12 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 	BAIL(retval);
 
     /* For non-scalar vars, dim IDs must be provided. */
-    if (ndims && !dimidsp)
+    if (ndims && !dimids)
 	BAIL(NC_EINVAL);
 
     /* Check all the dimids to make sure they exist. */
     for (d = 0; d < ndims; d++)
-	if ((retval = nc4_find_dim(grp, dimidsp[d], &dim, NULL)))
+	if ((retval = nc4_find_dim(grp, dimids[d], &dim, NULL)))
 	    BAIL(retval);
 
     /* These degrubbing messages sure are handy! */
@@ -360,7 +327,7 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     {
 	int dd;
 	for (dd = 0; dd < ndims; dd++)
-	    LOG((4, "dimid[%d] %d", dd, dimidsp[dd]));
+	    LOG((4, "dimid[%d] %d", dd, dimids[dd]));
     }
 #endif
 
@@ -374,12 +341,46 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     if ((retval = nc4_var_list_add(grp, norm_name, ndims, &var)))
 	BAIL(retval);
 
+    retval = NCZ_fillin_var(h5, var, type, (size_t)ndims, dimids, NULL, NULL, NC_ENDIAN_NATIVE);
+
+    if(retval == NC_NOERR) {
+        /* Return the varid. */
+        if (varidp)
+   	    *varidp = var->hdr.id;
+        type = NULL;
+    }
+exit:    
+    if (type)
+	if ((retval = nc4_type_free(type)))
+	    BAILLOG(retval);
+    return ZUNTRACE(retval);
+}
+
+/**
+Since variables are created in two places, encapsulate
+the fillin of the variable data. Not all data is filled in,
+but important &/or complex data is filled in.
+*/
+int
+NCZ_fillin_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NC_TYPE_INFO_T* type,
+		size_t ndims, const int* dimids,
+		size64_t* shape, size64_t* chunksizes,
+		int endianness)
+{
+    int stat = NC_NOERR;
+    size_t d;
+    NC_GRP_INFO_T* grp = file->root_grp; /* only used to get back to file */
+    NC_DIM_INFO_T* dim = NULL;
+    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
+    NCZ_VAR_INFO_T* zvar = NULL;
+    NCglobalstate* gstate = NC_getglobalstate();
+
     /* Add storage for NCZ-specific var info. */
-    if (!(var->format_var_info = calloc(1, sizeof(NCZ_VAR_INFO_T))))
-	BAIL(NC_ENOMEM);
-    zvar = var->format_var_info;
-    zvar->common.file = h5;
+    if (!(zvar = calloc(1, sizeof(NCZ_VAR_INFO_T)))) {stat = NC_ENOMEM; goto done;}
+    var->format_var_info = zvar;
+    zvar->common.file = file;
     zvar->scalar = (ndims == 0 ? 1 : 0);
+    zmaxstrlen(&zvar->maxstrlen,zfile->default_maxstrlen);
 
     zvar->dimension_separator = gstate->zarr.dimension_separator;
     assert(zvar->dimension_separator != 0);
@@ -387,7 +388,7 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     /* Set these state flags for the var. */
     var->is_new_var = NC_TRUE;
     var->meta_read = NC_TRUE;
-    var->atts_read = NC_TRUE;
+    NCZ_setatts_read((NC_OBJ*)var);
 
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
     /* Set the filter list */
@@ -400,52 +401,56 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 #ifdef LOOK
 var->type_info->rc++;
 #endif
-    type = NULL;
 
     /* Propagate the endianness */
-    var->endianness = var->type_info->endianness;
+    if(endianness == NC_ENDIAN_NATIVE)
+        var->endianness = var->type_info->endianness;
+    else
+	var->endianness = endianness;
+    var->type_info->endianness = var->endianness; /* back prop */
 
-    /* Set variables no_fill to match the database default unless the
-     * variable type is variable length (NC_STRING or NC_VLEN) or is
-     * user-defined type. */
-    if (var->type_info->nc_type_class <= NC_STRING)
-	var->no_fill = (h5->fill_mode == NC_NOFILL);
+    /* Indicate we do not have quantizer yet */
+    var->quantize_mode = -1;
 
-    /* Assign dimensions to the variable. At the same time, check to
-     * see if this is a coordinate variable. If so, it will have the
-     * same name as one of its dimensions. If it is a coordinate var,
-     * is it a coordinate var in the same group as the dim? Also, check
-     * whether we should use contiguous or chunked storage. */
-    var->storage = NC_CHUNKED;
+    /* should we use contiguous or chunked storage. */
+    var->storage = (zvar->scalar?NC_CONTIGUOUS:NC_CHUNKED);
+
+    /* Assign dimensions to the variable. */
+
+    /* Save the rank of the variable */
+    if((stat = nc4_var_set_ndims(var, (int)ndims))) goto done;
+
     for (d = 0; d < ndims; d++)
     {
 	NC_GRP_INFO_T *dim_grp;
 	/* Look up each dimension */
-	if ((retval = nc4_find_dim(grp, dimidsp[d], &dim, &dim_grp)))
-	    BAIL(retval);
+	if ((stat = nc4_find_dim(grp, dimids[d], &dim, &dim_grp))) goto done;
 	assert(dim && dim->format_dim_info);
 	/* Check for unlimited dimension and turn off contiguous storage. */
 	if (dim->unlimited)
 	    var->storage = NC_CHUNKED;
 	/* Track dimensions for variable */
-	var->dimids[d] = dimidsp[d];
+	var->dimids[d] = dimids[d];
 	var->dim[d] = dim;
+	if(shape != NULL) assert(shape[d] == (size64_t)var->dim[d]->len);
     }
 
-    /* Determine default chunksizes for this variable. (Even for
-     * variables which may be contiguous.) */
+    /* Determine  chunksizes for this variable. (Even for
+     * variables which may be scalar) */
     LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
 	 var->ndims, var->hdr.name));
     if(!var->chunksizes) {
 	if(var->ndims) {
-            if (!(var->chunksizes = calloc(var->ndims, sizeof(size_t))))
-	        BAIL(NC_ENOMEM);
-	    if ((retval = ncz_find_default_chunksizes2(grp, var)))
-	        BAIL(retval);
+            if (!(var->chunksizes = calloc(var->ndims, sizeof(size_t)))) {stat = NC_ENOMEM; goto done;}
+	    if(chunksizes != NULL) {
+		size_t j;
+		for(j=0;j<var->ndims;j++) var->chunksizes[j] = (size_t)chunksizes[j];
+	    } else {
+	        if ((stat = ncz_find_default_chunksizes2(grp, var))) goto done;
+	    }
         } else {
 	    /* Pretend that scalars are like var[1] */
-	    if (!(var->chunksizes = calloc(1, sizeof(size_t))))
-	        BAIL(NC_ENOMEM);
+	    if (!(var->chunksizes = calloc(1, sizeof(size_t)))) {stat = NC_ENOMEM; goto done;}
 	    var->chunksizes[0] = 1;
 	}
     }
@@ -453,29 +458,32 @@ var->type_info->rc++;
     /* Compute the chunksize cross product */
     zvar->chunkproduct = 1;
     if(!zvar->scalar)
-        {for(d=0;d<var->ndims;d++) {zvar->chunkproduct *= var->chunksizes[d];}}
+        {size_t k; for(k=0;k<var->ndims;k++) {zvar->chunkproduct *= var->chunksizes[k];}}
     zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 
     /* Set cache defaults */
     var->chunkcache = gstate->chunkcache;
 
     /* Create the cache */
-    if((retval=NCZ_create_chunk_cache(var,zvar->chunkproduct*var->type_info->size,zvar->dimension_separator,&zvar->cache)))
-	BAIL(retval);
+    if((stat=NCZ_create_chunk_cache(var,zvar->chunkproduct*var->type_info->size,zvar->dimension_separator,&zvar->cache)))
+	goto done;
 
     /* Set the per-variable chunkcache defaults */
     zvar->cache->params = var->chunkcache;
 
-    /* Return the varid. */
-    if (varidp)
-	*varidp = var->hdr.id;
-    LOG((4, "new varid %d", var->hdr.id));
+    /* Set variables no_fill to match the database default unless the
+     * variable type is variable length (NC_STRING or NC_VLEN) or is
+     * user-defined type. */
+    if (var->type_info->nc_type_class <= NC_STRING) { /* Make fill flags consistent */
+	int no_fill = (file->fill_mode == NC_NOFILL?1:0);
+	if((stat = NCZ_set_fill_value(file,var,no_fill,NULL))) goto done;
+        var->fill_val_changed = 0; /* But pretend it has not been changed */
+    }
 
-exit:
-    if (type)
-	if ((retval = nc4_type_free(type)))
-	    BAILLOG(retval);
-    return ZUNTRACE(retval);
+    if((stat = NCZ_adjust_var_cache(var))) goto done;
+
+done:
+    return THROW(stat);
 }
 
 /**
@@ -520,8 +528,8 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     NC_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
     NCZ_VAR_INFO_T *zvar;
-    int d;
-    int retval = NC_NOERR;
+    size_t d;
+    int stat = NC_NOERR;
     int storage = NC_CHUNKED;
     size_t contigchunksizes[NC_MAX_VAR_DIMS]; /* Fake chunksizes if storage is contiguous or compact */
 
@@ -539,17 +547,17 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	   );
 
     /* Find info for this file and group, and set pointer to each. */
-    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
+    if ((stat = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
 	goto done;
     assert(grp && h5);
 
     /* Trying to write to a read-only file? No way, Jose! */
     if (h5->no_write)
-	{retval = NC_EPERM; goto done;}
+	{stat = NC_EPERM; goto done;}
 
     /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
-	{retval = NC_ENOTVAR; goto done;}
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
+	{stat = NC_ENOTVAR; goto done;}
     assert(var && var->hdr.id == varid);
 
     zvar = var->format_var_info;
@@ -562,61 +570,29 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
 	if (nclistlength(((NClist*)var->filters)) > 0  || fletcher32 || shuffle)
-	    {retval = NC_EINVAL; goto done;}
+	    {stat = NC_EINVAL; goto done;}
 #endif
 #endif
 
     /* If the HDF5 dataset has already been created, then it is too
      * late to set all the extra stuff. */
     if (var->created)
-        {retval = NC_ELATEDEF; goto done;}
-
-#if 0
-    /* Check compression options. */
-    if (deflate && !deflate_level)
-	{retval = NC_EINVAL; goto done;}
-
-    /* Valid deflate level? */
-    if (deflate)
-    {
-	if (*deflate)
-	    if (*deflate_level < NC_MIN_DEFLATE_LEVEL ||
-		*deflate_level > NC_MAX_DEFLATE_LEVEL)
-		{retval = NC_EINVAL; goto done;}
-
-	/* For scalars, just ignore attempt to deflate. */
-	if (!var->ndims)
-	    goto done;
-
-	/* If szip is in use, return an error. */
-	if ((retval = nc_inq_var_szip(ncid, varid, &option_mask, NULL)))
-	    goto done;
-	if (option_mask)
-	    {retval = NC_EINVAL; goto done;}
-
-	/* Set the deflate settings. */
-	var->storage = NC_CONTIGUOUS;
-	var->deflate = *deflate;
-	if (*deflate)
-	    var->deflate_level = *deflate_level;
-	LOG((3, "%s: *deflate_level %d", __func__, *deflate_level));
-    }
-#endif
+        {stat = NC_ELATEDEF; goto done;}
 
     /* Shuffle filter? */
     if (shuffle && *shuffle) {
-	    retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_SHUFFLE,NULL,NULL);
-	    if(!retval || retval == NC_ENOFILTER) {
-	        if((retval = NCZ_def_var_filter(ncid,varid,H5Z_FILTER_SHUFFLE,0,NULL))) return retval;
+	    stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_SHUFFLE,NULL,NULL);
+	    if(!stat || stat == NC_ENOFILTER) {
+	        if((stat = NCZ_def_var_filter(ncid,varid,H5Z_FILTER_SHUFFLE,0,NULL))) return stat;
                 var->storage = NC_CHUNKED;
 	    }
     }
 
     /* Fletcher32 checksum error protection? */
     if (fletcher32 && fletcher32) {
-	retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_FLETCHER32,NULL,NULL);
-	if(!retval || retval == NC_ENOFILTER) {
-	    if((retval = NCZ_def_var_filter(ncid,varid,H5Z_FILTER_FLETCHER32,0,NULL))) return retval;
+	stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_FLETCHER32,NULL,NULL);
+	if(!stat || stat == NC_ENOFILTER) {
+	    if((stat = NCZ_def_var_filter(ncid,varid,H5Z_FILTER_FLETCHER32,0,NULL))) return stat;
             var->storage = NC_CHUNKED;
 	    }
     }
@@ -632,11 +608,11 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	{
 #ifdef NCZARR_FILTERS
 	    if (nclistlength(((NClist*)var->filters)) > 0)
-		{retval = NC_EINVAL; goto done;}
+		{stat = NC_EINVAL; goto done;}
 #endif
 	    for (d = 0; d < var->ndims; d++) {
 		if (var->dim[d]->unlimited)
-		    {retval = NC_EINVAL; goto done;}
+		    {stat = NC_EINVAL; goto done;}
 	        contigchunksizes[d] = var->dim[d]->len; /* Fake a single big chunk */
 	    }
 	    chunksizes = (const size_t*)contigchunksizes;
@@ -644,7 +620,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	}
 
 	if (storage == NC_CHUNKED && var->ndims == 0) {
-	    {retval = NC_EINVAL; goto done;}
+	    {stat = NC_EINVAL; goto done;}
 	} else if (storage == NC_CHUNKED && var->ndims > 0) {
 	    var->storage = NC_CHUNKED;
 	    
@@ -653,14 +629,14 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    if (chunksizes)
 	    {
 		/* Check the chunksizes for validity. */
-		if ((retval = check_chunksizes(grp, var, chunksizes)))
+		if ((stat = check_chunksizes(grp, var, chunksizes)))
 		    goto done;
 
 		/* Ensure chunksize is smaller than dimension size */
 		for (d = 0; d < var->ndims; d++)
 		    if (!var->dim[d]->unlimited && var->dim[d]->len > 0 &&
 			chunksizes[d] > var->dim[d]->len)
-			{retval = NC_EBADCHUNK; goto done;}
+			{stat = NC_EBADCHUNK; goto done;}
 	    }
 	}
 
@@ -680,7 +656,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    }
 	    /* If chunksizes == NULL or anyzero then use defaults */
 	    if(chunksizes == NULL || anyzero) { /* Use default chunking */
-		if ((retval = ncz_find_default_chunksizes2(grp, var)))
+		if ((stat = ncz_find_default_chunksizes2(grp, var)))
 		    goto done;
 	    }
 	    assert(var->chunksizes != NULL);
@@ -691,7 +667,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
             zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 	}
 	/* Adjust cache */
-        if((retval = NCZ_adjust_var_cache(var))) goto done;
+        if((stat = NCZ_adjust_var_cache(var))) goto done;
     
 #ifdef LOGGING
 	{
@@ -710,7 +686,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	     * by HDF5 and will cause a HDF5 error later. */
 	    if (*no_fill)
 		if (var->type_info->hdr.id == NC_STRING)
-		    {retval = NC_EINVAL; goto done;}
+		    {stat = NC_EINVAL; goto done;}
 
 	    /* Set the no-fill mode. */
 	    var->no_fill = NC_TRUE;
@@ -726,22 +702,11 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	LOG((4, "Copying fill value into metadata for variable %s",
 	     var->hdr.name));
 
-	/* If there's a _FillValue attribute, delete it. */
-	retval = NCZ_del_att(ncid, varid, NC_FillValue);
-	if (retval && retval != NC_ENOTATT)
-	    goto done;
+	/* (re-)set the NC_VAR_INFO_T.fill_value */	
+	if((stat = NCZ_set_fill_value(h5,var,*no_fill,fill_value))) goto done;
 
-        /* Create a _FillValue attribute; will also fill in var->fill_value */
-	if ((retval = nc_put_att(ncid, varid, NC_FillValue, var->type_info->hdr.id,
-				 1, fill_value)))
-	    goto done;
-        /* Reclaim any existing fill_chunk */
-        if((retval = NCZ_reclaim_fill_chunk(zvar->cache))) goto done;
-    } else if (var->fill_value && no_fill && (*no_fill)) { /* Turning off fill value? */
-        /* If there's a _FillValue attribute, delete it. */
-        retval = NCZ_del_att(ncid, varid, NC_FillValue);
-        if (retval && retval != NC_ENOTATT) return retval;
-	if((retval = NCZ_reclaim_fill_value(var))) return retval;
+        /* synchronize to Attribute */
+	if((stat = NCZ_copy_var_to_fillatt(h5,var,NULL))) goto done;
     }
 
     /* Is the user setting the endianness? */
@@ -763,7 +728,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	case NC_UINT64:
 	    break;
 	default:
-	    {retval = NC_EINVAL; goto done;}
+	    {stat = NC_EINVAL; goto done;}
 	}
 	var->type_info->endianness = *endianness;
 	/* Propagate */
@@ -831,7 +796,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     }
 
 done:
-    return ZUNTRACE(retval);
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -949,7 +914,8 @@ ncz_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
 {
     NC_VAR_INFO_T *var;
     size_t *cs;
-    int i, retval;
+    int retval;
+    size_t i;
 
     /* Get pointer to the var. */
     if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
@@ -963,7 +929,7 @@ ncz_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
 
     /* Copy to size_t array. */
     for (i = 0; i < var->ndims; i++)
-	cs[i] = chunksizesp[i];
+	cs[i] = (size_t)chunksizesp[i];
 
     retval = ncz_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
 			      &contiguous, cs, NULL, NULL, NULL, NULL, NULL);
@@ -1254,7 +1220,7 @@ NCZ_rename_var(int ncid, int varid, const char *name)
 	return THROW(retval);
 
     /* Get the variable wrt varid */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
 	return NC_ENOTVAR;
 
     /* Check if new name is in use; note that renaming to same name is
@@ -1295,11 +1261,6 @@ NCZ_rename_var(int ncid, int varid, const char *name)
 	int v;
 	char *ncz_name; /* Dataset will be renamed to this. */
 	ncz_name = use_secret_name ? var->ncz_name: (char *)name;
-
-	/* Do we need to read var metadata? */
-	if (!var->meta_read)
-	    if ((retval = ncz_get_var_meta(var)))
-		return THROW(retval);
 
 	if (var->ndims)
 	{
@@ -1490,7 +1451,7 @@ static void
 log_dim_info(NC_VAR_INFO_T *var, size64_t *fdims, size64_t *fmaxdims,
 	     size64_t *start, size64_t *count)
 {
-    int d2;
+    size_t d2;
 
     /* Print some debugging info... */
     LOG((4, "%s: var name %s ndims %d", __func__, var->hdr.name, var->ndims));
@@ -1546,8 +1507,9 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 #endif
     size64_t fdims[NC_MAX_VAR_DIMS];
     size64_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
-    size64_t stride[NC_MAX_VAR_DIMS], ones[NC_MAX_VAR_DIMS];
-    int retval, range_error = 0, i, d2;
+    size64_t stride[NC_MAX_VAR_DIMS];
+    int retval, range_error = 0;
+    size_t i, d2;
     void *bufr = NULL;
     int bufrd = 0; /* 1 => we allocated bufr */
     int need_to_convert = 0;
@@ -1591,7 +1553,6 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	start[0] = 0;
 	count[0] = 1;
 	stride[0] = 1;
-	ones[0] = 1;
     } else {
         for (i = 0; i < var->ndims; i++)
         {
@@ -1602,8 +1563,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	    fdims[i] = var->dim[i]->len;
 	    start[i] = startp[i];
 	    count[i] = countp ? countp[i] : fdims[i];
-	    stride[i] = stridep ? stridep[i] : 1;
-	    ones[i] = 1;
+	    stride[i] = stridep ? (size64_t)stridep[i] : 1;
 
   	    /* Check to see if any counts are zero. */
 	    if (!count[i])
@@ -1853,10 +1813,10 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     size64_t fdims[NC_MAX_VAR_DIMS]; /* size of the dimensions */
     size64_t start[NC_MAX_VAR_DIMS];
     size64_t stride[NC_MAX_VAR_DIMS];
-    size64_t ones[NC_MAX_VAR_DIMS];
     int no_read = 0, provide_fill = 0;
     int fill_value_size[NC_MAX_VAR_DIMS];
-    int retval, range_error = 0, i, d2;
+    int retval, range_error = 0;
+    size_t i, d2;
     void *bufr = NULL;
     int need_to_convert = 0;
     size_t len = 1;
@@ -1886,7 +1846,6 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	start[0] = 0;
 	count[0] = 1;
 	stride[0] = 1;
-	ones[0] = 1;
     } else {
         for (i = 0; i < var->ndims; i++)
         {
@@ -1895,9 +1854,8 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	        return NC_ESTRIDE;
 	    start[i] = startp[i];
 	    count[i] = countp[i];
-	    stride[i] = stridep ? stridep[i] : 1;
+	    stride[i] = stridep ? (size64_t)stridep[i] : 1;
 
-	    ones[i] = 1;
 	    /* if any of the count values are zero don't actually read. */
 	    if (count[i] == 0)
 	        no_read++;
@@ -1975,19 +1933,19 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	    if (!no_read)
 	    {
 		if (start[d2] >= (size64_t)fdims[d2])
-		    fill_value_size[d2] = count[d2];
+		    fill_value_size[d2] = (int)count[d2];
 		else if (endindex >= fdims[d2])
-		    fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2])/stride[d2]);
+		    fill_value_size[d2] = (int)(count[d2] - ((fdims[d2] - start[d2])/stride[d2]));
 		else
 		    fill_value_size[d2] = 0;
-		count[d2] -= fill_value_size[d2];
+		count[d2] -= (size64_t)fill_value_size[d2];
 		if (count[d2] == 0)
 		    no_read++;
 		if (fill_value_size[d2])
 		    provide_fill++;
 	    }
 	    else
-		fill_value_size[d2] = count[d2];
+		fill_value_size[d2] = (int)count[d2];
 	}
 	else /* Dim is not unlimited. */
 	{
@@ -1999,7 +1957,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	    if (count[d2] && endindex >= fdims[d2])
 		BAIL_QUIET(NC_EEDGE);
 	    /* Set the fill value boundary */
-	    fill_value_size[d2] = count[d2];
+	    fill_value_size[d2] = (int)count[d2];
 	}
     }
 
@@ -2087,7 +2045,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
 	/* How many fill values do we need? */
 	for (fill_len = 1, d2 = 0; d2 < var->ndims; d2++)
-	    fill_len *= (fill_value_size[d2] ? fill_value_size[d2] : 1);
+	    fill_len *= (size_t)(fill_value_size[d2] ? fill_value_size[d2] : 1);
 
 	/* Copy the fill value into the rest of the data buffer. */
 	filldata = (char *)data + real_data_size;
@@ -2338,39 +2296,78 @@ exit:
     return THROW(retval);
 }
 
-#if 0
-/**
-Given start+count+stride+dim vectors, determine the largest
-index touched per dimension. If that index is greater-than
-the dimension size, then do one of two things:
-1. If the dimension is fixed size, then return NC_EDIMSIZE.
-2. If the dimension is unlimited, then extend the size of that
-   dimension to cover that maximum point.
-
-@param var
-@param start vector
-@param count vector
-@param stride vector
-@param reading vs writing
-@return NC_EXXX error code
+/*Flush all chunks to disk. Create any that are missing
+and fill as needed.
 */
 int
-NCZ_update_dim_extents(NC_VAR_INFO_T* var, size64_t* start, size64_t* count, size64_t* stride, int reading)
+NCZ_write_var_data(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
 {
-    int r;
-    int rank = var->ndims;
+    int stat = NC_NOERR;
+    NCZ_VAR_INFO_T* zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
 
-    NC_UNUSED(reading);
+    NC_UNUSED(file);
+    ZTRACE(3,"var=%s",var->hdr.name);
 
-    for(r=0;r<rank;r++) {
-	NC_DIM_INFO_T* dim = var->dim[r];
-        size64_t endpoint; /* compute last point touched */
-	endpoint = start[r] + stride[r]*count[r] - stride[r];
-	if(dim->len < endpoint) {
-	    if(!dim->unlimited) return NC_EDIMSIZE;
-	    /*else*/ dim->len = endpoint+1; 
+    /* Flush the cache */
+    if(zvar->cache) {
+        if((stat = NCZ_flush_chunk_cache(zvar->cache))) goto done;
+    }
+
+#ifdef FILLONCLOSE
+    /* If fill is enabled, then create missing chunks */
+    if(!var->no_fill) {
+        size_t i;
+    NCZOdometer* chunkodom =  NULL;
+    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
+    NCZMAP* map = zfile->map;
+    size64_t start[NC_MAX_VAR_DIMS];
+    size64_t stop[NC_MAX_VAR_DIMS];
+    size64_t stride[NC_MAX_VAR_DIMS];
+    char* key = NULL;
+
+    if(var->ndims == 0) { /* scalar */
+	start[i] = 0;
+	stop[i] = 1;
+        stride[i] = 1;
+    } else {
+        for(i=0;i<var->ndims;i++) {
+	    size64_t nchunks = ceildiv(var->dim[i]->len,var->chunksizes[i]);
+	    start[i] = 0;
+	    stop[i] = nchunks;
+	    stride[i] = 1;
+        }
+    }
+
+    {
+	if(zvar->scalar) {
+	    if((chunkodom = nczodom_new(1,start,stop,stride,stop))==NULL)
+	} else {
+	    /* Iterate over all the chunks to create missing ones */
+	    if((chunkodom = nczodom_new(var->ndims,start,stop,stride,stop))==NULL)
+	        {stat = NC_ENOMEM; goto done;}
+	}
+	for(;nczodom_more(chunkodom);nczodom_next(chunkodom)) {
+	    size64_t* indices = nczodom_indices(chunkodom);
+	    /* Convert to key */
+	    if((stat = NCZ_buildchunkpath(zvar->cache,indices,&key))) goto done;
+	    switch (stat = nczmap_exists(map,key)) {
+	    case NC_NOERR: goto next; /* already exists */
+	    case NC_ENOOBJECT: break; /* does not exist, create it with fill */
+	    default: goto done; /* some other error */
+	    }
+            /* If we reach here, then chunk does not exist, create it with fill */
+	    assert(zvar->cache->fillchunk != NULL);
+	    if((stat=nczmap_write(map,key,0,zvar->cache->chunksize,zvar->cache->fillchunk))) goto done;
+next:
+	    nullfree(key);
+	    key = NULL;
 	}
     }
-    return NC_NOERR;
+    nczodom_free(chunkodom);
+    nullfree(key);
+    }
+#endif /*FILLONCLOSE*/
+
+done:
+    return ZUNTRACE(THROW(stat));
 }
-#endif

@@ -100,13 +100,15 @@ NCZ_get_codec_info(void)
 /* NCZarr Interface Functions */
 
 static int
-NCZ_misc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** paramsp)
+NCZ_misc_codec_to_hdf5(void* env, const char* codec_json, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
     NCjson* jtmp = NULL;
     size_t i,nparams = 0;
     unsigned* params = NULL;
+
+    NC_UNUSED(env);
 
     /* parse the JSON */
     if(NCJparse(codec_json,0,&jcodec))
@@ -151,11 +153,13 @@ done:
 }
 
 static int
-NCZ_misc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
+NCZ_misc_hdf5_to_codec(void* env, size_t nparams, const unsigned* params, char** codecp)
 {
     int i,stat = NC_NOERR;
     char json[4096];
     char value[1024];
+
+    NC_UNUSED(env);
 
     if(nparams == 0 || params == NULL)
         {stat = NC_EINVAL; goto done;}

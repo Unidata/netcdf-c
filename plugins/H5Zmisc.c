@@ -249,7 +249,7 @@ paramcheck(size_t nparams, const unsigned int* params, struct All* extracted)
     memset(&all,0,sizeof(all));
 
     if(nparams != NPARAMS) {
-	fprintf(stderr,">>> Incorrect number of parameters: expected=%ld sent=%ld\n",(unsigned long)NPARAMS,(unsigned long)nparams);
+	fprintf(stderr,">>> (0) Incorrect number of parameters: expected=%ld sent=%ld\n",(unsigned long)NPARAMS,(unsigned long)nparams);
 	goto fail;
     }
 

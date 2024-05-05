@@ -1,4 +1,15 @@
 ################################
+# 
+################################
+macro(argnil var)
+  if("${argn}" STREQUAL "")
+    set(${var} "" PARENT_SCOPE)
+  else()
+    set(${var} " ${argn}" PARENT_SCOPE)
+  endif()
+endmacro()
+
+################################
 # Macros
 ################################
 
@@ -267,13 +278,47 @@ endmacro()
 
 macro(add_sh_test prefix F)
   if(HAVE_BASH)
-    add_test(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${ARGN}")
+    argnil(nilargs ${ARGN})
+    add_test(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh${nilargs}")
   endif()
 endmacro()
 
 macro(getdpkg_arch arch)
   execute_process(COMMAND "${NC_DPKG}" "--print-architecture" OUTPUT_VARIABLE "${arch}" OUTPUT_STRIP_TRAILING_WHITESPACE)
 endmacro(getdpkg_arch)
+
+macro(NCZARR_SH_TEST basename src)
+  file(READ ${CMAKE_CURRENT_SOURCE_DIR}/../${src}/tst_${basename}.sh SHSOURCE)
+  # Make sure the order of prepended lines is correct
+  string(PREPEND SHSOURCE "TESTNCZARR=1\n")
+  string(PREPEND SHSOURCE "#!/bin/bash\n")
+  # Replace with FILE(CONFIGURE) when cmake 3.18 is in common use
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/run_${basename}.1 "${SHSOURCE}")
+  configure_file(${CMAKE_CURRENT_BINARY_DIR}/run_${basename}.1 ${CMAKE_CURRENT_BINARY_DIR}/run_${basename}.sh FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE @ONLY NEWLINE_STYLE LF)
+  file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/run_${basename}.1)
+endmacro(NCZARR_SH_TEST)
+
+macro(NCZARR_C_TEST basename newname src)
+  file(READ ${CMAKE_CURRENT_SOURCE_DIR}/../${src}/${basename}.c CSOURCE)
+  string(PREPEND CSOURCE "#define TESTNCZARR\n")
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${newname}.c "${CSOURCE}")
+endmacro(NCZARR_C_TEST)
+
+macro(build_bin_test_with_util_lib F UTIL_LIB)
+  build_bin_test(${F})
+  if(ENABLE_DLL)
+    target_compile_definitions(${F} PUBLIC -DDLL_NETCDF)
+  endif(ENABLE_DLL)
+  target_link_libraries(${F} ${UTIL_LIB} ${ALL_TLL_LIBS})
+endmacro()
+
+macro(add_bin_test_with_util_lib PREFIX F UTIL_LIB)
+  add_bin_test(${PREFIX} ${F})
+  if(ENABLE_DLL)
+    target_compile_definitions(${PREFIX}_${F} PUBLIC -DDLL_NETCDF)
+  endif(ENABLE_DLL)
+  target_link_libraries(${PREFIX}_${F} ${UTIL_LIB} ${ALL_TLL_LIBS})
+endmacro()
 
 ################################
 # Functions
