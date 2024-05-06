@@ -50,7 +50,7 @@ set_property(TARGET nc_test PROPERTY UNITY_BUILD OFF)
 # Some extra stand-alone tests
 SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta tst_inq_type tst_utf8_phrases tst_global_fillval tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef tst_default_format)
 
-IF(NOT MSVC)
+IF(NOT WIN32)
 SET(TESTS ${TESTS} tst_utf8_validate)
 ENDIF()
 
@@ -77,7 +77,7 @@ ENDIF()
 
 IF(LARGE_FILE_TESTS)
   SET(TESTS ${TESTS} quick_large_files tst_big_var6 tst_big_var2 tst_big_rvar tst_big_var tst_large tst_large_cdf5)
-  IF(NOT MSVC)
+  IF(NOT WIN32)
     SET(TESTS ${TESTS} large_files)
   ENDIF()
 
@@ -134,7 +134,7 @@ ENDIF(NETCDF_BUILD_UTILITIES)
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
-IF(MSVC)
+IF(WIN32)
 #MESSAGE(STATUS "XXX")
 #MESSAGE(STATUS "${COPY_FILES}")
 #MESSAGE(STATUS "${RUNTIME_OUTPUT_DIRECTORY}")
