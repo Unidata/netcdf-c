@@ -1,6 +1,6 @@
 set(libncpoco_SOURCES ncpoco.c ncpoco.h)
 
-if(MSVC)
+if(WIN32)
   set(libncpoco_SOURCES ${libncpoco_SOURCES} cp_win32.c)
 else()
   set(libncpoco_SOURCES ${libncpoco_SOURCES} cp_unix.c)
