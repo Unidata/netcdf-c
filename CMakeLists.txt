@@ -642,14 +642,10 @@ include(CMakeDependentOption)
 cmake_dependent_option(NETCDF_ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
   ON "BUILD_SHARED_LIBS" OFF)
 MESSAGE(STATUS "NETCDF_ENABLE_PLUGINS: ${NETCDF_ENABLE_PLUGINS}")
-if(MINGW)
-    message(STATUS "MINGW Detected, disabling plugins.")
-    set(NETCDF_ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
-else()
-  if(NOT WIN32)
-    if(HAVE_DLFCN_H)
-      include_directories("dlfcn.h")
-    endif()
+
+if(NOT WIN32)
+  if(HAVE_DLFCN_H)
+    include_directories("dlfcn.h")
   endif()
 endif()
 
