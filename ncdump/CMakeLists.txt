@@ -355,5 +355,5 @@ add_subdirectory(expected)
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
 
 if(NOT MSVC)
-  install(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
+  install(FILES ${MAN_FILES} DESTINATION "${CMAKE_INSTALL_MANDIR}/man1" COMPONENT documentation)
 endif()

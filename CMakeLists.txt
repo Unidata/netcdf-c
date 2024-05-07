@@ -1520,6 +1520,9 @@ configure_file(
 ###
 # Create pkgconfig files.
 ###
+if(NOT DEFINED CMAKE_INSTALL_MANDIR)
+  set(CMAKE_INSTALL_MANDIR "${CMAKE_INSTALL_PREFIX}/share/man/")
+endif()
 
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
   set(CMAKE_INSTALL_LIBDIR lib)

@@ -86,7 +86,7 @@ ENDIF()
 
 SET(MAN_FILES ncgen.1)
 IF(NOT MSVC)
-  INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1"
+  INSTALL(FILES ${MAN_FILES} DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
     COMPONENT documentation)
 ENDIF()
 SET(CLEANFILES c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c)
