@@ -112,6 +112,7 @@ jobs:
       - name: (CMake) Configure Build
         env:
           MAKE: "/usr/bin/make"
+          CXX: "/usr/bin/g++"
         run: |
           LDFLAGS="-Wl,--export-all-symbols" \
           MAKE=/usr/bin/make \
@@ -142,6 +143,7 @@ jobs:
       - name: (CMake) Build All
         env:
           MAKE: "/usr/bin/make"
+          CXX: "/usr/bin/g++"
         run: cmake --build build -j$(nproc)
         if: ${{ success() }}
 
