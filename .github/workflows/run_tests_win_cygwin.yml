@@ -113,7 +113,7 @@ jobs:
         run: |
           LDFLAGS="-Wl,--export-all-symbols" \
           cmake \
-          -G"UNIX Makefiles" \
+          -G"Unix Makefiles" \
           -B build \
           -S . \
           -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
