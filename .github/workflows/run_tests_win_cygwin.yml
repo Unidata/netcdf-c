@@ -16,7 +16,7 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        shell: bash -eo pipefail -o igncr "{0}"
+        shell: C:/cygwin/bin/bash.exe -eo pipefail -o igncr "{0}"
 
     name: Cygwin-based Autotools tests
     
@@ -26,13 +26,15 @@ jobs:
 
     steps:
       - name: Fix line endings
+        shell: pwsh
         run: git config --global core.autocrlf input
 
       - uses: actions/checkout@v4
 
-      - uses: cygwin/cygwin-install-action@v2
+      - uses: cygwin/cygwin-install-action@v4
         with:
           platform: x86_64
+          install-dir: 'C:\cygwin'
           packages: >-
             git automake libtool autoconf2.5 make libhdf5-devel
             libhdf4-devel zipinfo libxml2-devel perl zlib-devel
@@ -81,6 +83,7 @@ jobs:
           make check -j8 SHELL=/bin/dash
   
   build-and-test-cmake:
+    name: Cygwin-based CMake tests
     runs-on: windows-latest
     defaults:
       run:
@@ -89,8 +92,9 @@ jobs:
     steps:
 
       - run: git config --global core.autocrlf input
+        shell: pwsh
       - uses: actions/checkout@v4
-      - uses: cygwin/cygwin-install-action@v2
+      - uses: cygwin/cygwin-install-action@v4
         with:
           platform: x86_64
           install-dir: 'C:\cygwin'
