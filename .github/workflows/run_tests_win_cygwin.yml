@@ -112,11 +112,11 @@ jobs:
       - name: (CMake) Configure Build
         run: |
           LDFLAGS="-Wl,--export-all-symbols" \
-          cmake \
+          /usr/bin/cmake \
           -G"Unix Makefiles" \
           -B build \
           -S . \
-          -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+          -DCMAKE_INSTALL_PREFIX=/tmp \
           -DBUILD_SHARED_LIBS=ON \
           -DNETCDF_ENABLE_NETCDF_4=ON \
           -DNETCDF_ENABLE_DAP=ON \
