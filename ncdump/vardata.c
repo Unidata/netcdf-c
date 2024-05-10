@@ -20,6 +20,12 @@
 #include "vardata.h"
 #include "netcdf_aux.h"
 
+/* If set, then print char variables as utf-8.
+   If not set, then print non-printable characters as octal.
+   The latter was the default before this change.
+*/
+#define UTF8CHARS
+
 /* maximum len of string needed for one value of a primitive type */
 #define MAX_OUTPUT_LEN 100
 
@@ -340,6 +346,7 @@ pr_tvals(
     sp = vals + len;
     while (len != 0 && *--sp == '\0')
 	len--;
+    /* Walk the sequence of characters and write control characters in escape form. */
     for (iel = 0; iel < len; iel++) {
 	unsigned char uc;
 	switch (uc = (unsigned char)(*vals++ & 0377)) {
@@ -371,10 +378,12 @@ pr_tvals(
 	    printf("\\\"");
 	    break;
 	default:
-	    if (isprint(uc))
-		printf("%c",uc);
-	    else
+#ifdef UTF8CHARS
+	    if (!isprint(uc))
 		printf("\\%.3o",uc);
+	    else
+#endif /*UTF8CHARS*/
+		printf("%c",uc);
 	    break;
 	}
     }
