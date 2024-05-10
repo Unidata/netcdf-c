@@ -96,8 +96,8 @@ if(HAVE_M4)
       COMMAND ${NC_M4} ${ARGS_MANPAGE} "${CMAKE_CURRENT_BINARY_DIR}/netcdf.m4" > "${CMAKE_CURRENT_BINARY_DIR}/netcdf.3"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     )
-
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/netcdf.3" DESTINATION "share/man/man3" COMPONENT documentation)
+    
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/netcdf.3" DESTINATION "${CMAKE_INSTALL_MANDIR}/man3" COMPONENT documentation)
   endif(NOT MSVC)
 
 endif()
