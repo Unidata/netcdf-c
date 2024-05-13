@@ -103,9 +103,10 @@ libraries. (And, optionally, the szlib library). Versions required are
 at least HDF5 1.8.9, zlib 1.2.5, and curl 7.18.0 or later.
 (Optionally, if building with szlib, get szip 2.0 or later.)
 
-HDF5 1.8.9 and zlib 1.2.7 packages are available from the <a
-href="ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4">netCDF-4 ftp
-site</a>. If you wish to use the remote data client code, then you
+These packages are available at:
+https://resources.unidata.ucar.edu/netcdf/netcdf-4/
+
+If you wish to use the remote data client code, then you
 will also need libcurl, which can be obtained from the <a
 href="http://curl.haxx.se/download.html">curl website</a>.
 
@@ -314,7 +315,7 @@ $ make check install
 If parallel I/O access to netCDF classic, 64-bit offset, CDF-5 files is
 also needed, the PnetCDF library should also be installed.
 (Note: the previously recommended <a
-href=ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/pnetcdf.h>replacement
+href="https://resources.unidata.ucar.edu/netcdf/contrib/pnetcdf.h">replacement
 pnetcdf.h</a> should no longer be used.)  Then configure netCDF with the
 "--enable-pnetcdf" option.
 
@@ -361,7 +362,7 @@ Note: --disable prefix indicates that the option is normally enabled.
 <tr><td>--enable-netcdf-4<td>build with netcdf-4<td>HDF5 and zlib
 <tr><td>--enable-netcdf4<td>synonym for enable-netcdf-4
 <tr><td>--enable-hdf4<td>build netcdf-4 with HDF4 read capability<td>HDF4, HDF5 and zlib
-<tr><td>--enable-hdf4-file-tests<td>test ability to read HDF4 files<td>selected HDF4 files from Unidata ftp site
+<tr><td>--enable-hdf4-file-tests<td>test ability to read HDF4 files<td>selected HDF4 files from Unidata resources site
 <tr><td>--enable-pnetcdf<td>build netcdf-4 with parallel I/O for classic, 64-bit offset, and CDF-5 files using PnetCDF
 <tr><td>--enable-extra-example-tests<td>Run extra example tests<td>--enable-netcdf-4,GNU sed
 <tr><td>--enable-parallel-tests <td>run extra parallel IO tests<td>--enable-netcdf-4, parallel IO support
@@ -384,7 +385,7 @@ Note: --disable prefix indicates that the option is normally enabled.
 			  The benchmarks are a
                           bunch of extra tests, which are timed. We use these
                           tests to check netCDF performance.
-    <td>sample data files from the Unidata ftp site
+    <td>sample data files from the Unidata resources site
 <tr><td>--disable-extreme-numbers
 <td>don't use extreme numbers during testing, such as MAX_INT - 1<td>
 <tr><td>--enable-dll<td>build a win32 DLL<td>mingw compiler

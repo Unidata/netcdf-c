@@ -354,9 +354,9 @@ AC_MSG_RESULT([$enable_dynamic_loading])
 
 
 # Does the user want to turn on extra HDF4 file tests?
-AC_MSG_CHECKING([whether to fetch some sample HDF4 files from Unidata ftp site to test HDF4 reading (requires wget)])
+AC_MSG_CHECKING([whether to fetch some sample HDF4 files from Unidata resources site to test HDF4 reading (requires wget)])
 AC_ARG_ENABLE([hdf4-file-tests], [AS_HELP_STRING([--enable-hdf4-file-tests],
-              [get some HDF4 files from Unidata ftp site and test that they can be read])])
+              [get some HDF4 files from Unidata resources site and test that they can be read])])
 test "x$enable_hdf4" = xyes -a "x$enable_hdf4_file_tests" = xyes || enable_hdf4_file_tests=no
 if test "x$enable_hdf4_file_tests" = xyes; then
    AC_DEFINE([USE_HDF4_FILE_TESTS], 1, [If true, use use wget to fetch some sample HDF4 data, and then test against it.])
@@ -1096,7 +1096,7 @@ fi
 AC_MSG_CHECKING([whether benchmarks should be run])
 AC_ARG_ENABLE([benchmarks],
               [AS_HELP_STRING([--enable-benchmarks],
-                              [Run benchmarks. This will cause sample data files from the Unidata ftp
+                              [Run benchmarks. This will cause sample data files from the Unidata resources
                               site to be fetched. The benchmarks are a bunch of extra tests, which
                               are timed. We use these tests to check netCDF performance.])])
 test "x$enable_benchmarks" = xyes || enable_benchmarks=no
