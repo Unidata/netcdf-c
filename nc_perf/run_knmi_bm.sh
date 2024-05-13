@@ -15,7 +15,7 @@ echo "Getting KNMI test files $file_list"
 for f1 in $file_list
 do
     if ! test -f $f1; then
-	wget https://resources.unidata.ucar.edu/sample_data/$f1.gz
+	wget https://resources.unidata.ucar.edu/netcdf/sample_data/$f1.gz
 	gunzip $f1.gz
     fi
 done

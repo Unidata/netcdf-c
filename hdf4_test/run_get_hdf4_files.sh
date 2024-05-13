@@ -14,7 +14,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 # Get a file from the resources site; retry several times
 getfile() {
-   DATAFILE="https://resources.unidata.ucar.edu/sample_data/hdf4/$1.gz"
+   DATAFILE="https://resources.unidata.ucar.edu/netcdf/sample_data/hdf4/$1.gz"
 
    for try in 1 2 3 4 ; do # try 4 times
 
@@ -30,7 +30,7 @@ getfile() {
 
 set -e
 echo ""
-echo "Getting HDF4 sample files from Unidata FTP site..."
+echo "Getting HDF4 sample files from Unidata resources site..."
 
 file_list="AMSR_E_L2_Rain_V10_200905312326_A.hdf AMSR_E_L3_DailyLand_V06_20020619.hdf \
     MYD29.A2009152.0000.005.2009153124331.hdf MYD29.A2002185.0000.005.2007160150627.hdf \
