@@ -133,6 +133,9 @@ are set when opening a binary file on Windows. */
 /* if true, enable client side filters */
 #cmakedefine ENABLE_CLIENT_FILTERS 1
 
+/* if true, enable filter testing */
+#cmakedefine NETCDF_ENABLE_FILTER_TESTING 1
+
 /* if true, enable strict null byte header padding. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
 
@@ -167,7 +170,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine NETCDF_ENABLE_S3_INTERNAL 1
 
 /* if true, enable S3 testing*/
-#cmakedefine WITH_S3_TESTING "PUBLIC"
+#cmakedefine WITH_S3_TESTING "${WITH_S3_TESTING}"
 
 /* S3 Test Bucket */
 #define S3TESTBUCKET "${S3TESTBUCKET}"
@@ -198,6 +201,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if blosc library available. */
 #cmakedefine HAVE_BLOSC 1
+
+/* if true enable tests that access external servers */
+#cmakedefine NETCDF_ENABLE_EXTERNAL_SERVER_TESTS 1
 
 /* Define to 1 if you have hdf5_coll_metadata_ops */
 #cmakedefine HDF5_HAS_COLL_METADATA_OPS 1
@@ -397,6 +403,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `strlcpy' function. */
 #cmakedefine HAVE_STRLCPY 1
 
+/* Define to 1 if you have the `strlen' function. */
+#cmakedefine HAVE_STRLEN 1
+
 /* Define to 1 if you have the `strtoll' function. */
 #cmakedefine HAVE_STRTOLL 1
 
@@ -487,7 +496,7 @@ with zip */
 #cmakedefine NETCDF_ENABLE_DOXYGEN 1
 #cmakedefine NETCDF_ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1
-#cmakedefine ENABLE_CDMREMOTE 1
+#cmakedefine NETCDF_ENABLE_CDMREMOTE 1
 #cmakedefine USE_HDF5 1
 #cmakedefine ENABLE_FILEINFO 1
 #cmakedefine TEST_PARALLEL ${TEST_PARALLEL}
@@ -570,6 +579,9 @@ with zip */
 /* The size of `size_t', as computed by sizeof. */
 #cmakedefine SIZEOF_SIZE_T ${SIZEOF_SIZE_T}
 
+/* The size of `ssize_t', as computed by sizeof. */
+#cmakedefine SIZEOF_SSIZE_T ${SIZEOF_SSIZE_T}
+
 /* The size of `uint', as computed by sizeof. */
 #cmakedefine SIZEOF_UINT ${SIZEOF_UINT}
 
@@ -635,10 +647,10 @@ with zip */
 #cmakedefine USE_STDIO 1
 
 /* if true, multi-filters enabled*/
-#cmakedefine ENABLE_MULTIFILTERS 1
+#cmakedefine NETCDF_ENABLE_MULTIFILTERS 1
 
 /* if true, enable nczarr blosc support */
-#cmakedefine ENABLE_BLOSC 1
+#cmakedefine NETCDF_ENABLE_BLOSC 1
 
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"

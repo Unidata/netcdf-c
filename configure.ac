@@ -1765,7 +1765,7 @@ if test "x$enable_pnetcdf" = xyes -o "x$enable_parallel4" = xyes; then
 else
   enable_parallel=no
 fi
-AM_CONDITIONAL(ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
+AM_CONDITIONAL(NETCDF_ENABLE_PARALLEL, [test x$enable_parallel = xyes ])
 
 if test "x$hdf5_parallel" = xyes; then
   # Provide more precise parallel control
