@@ -104,7 +104,7 @@ load(NCPSharedLib* lib , const char* path0, int flags)
 	int errcode = GetLastError();
 	char* msg = NULL;
         FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                          NULL, errcode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), &msg, 0, NULL);
+                          NULL, errcode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (char*)&msg, 0, NULL);
 	memset(lib->err.msg,0,sizeof(lib->err.msg));
 	if(msg)
 	    strncpy(lib->err.msg,msg,sizeof(lib->err.msg));
