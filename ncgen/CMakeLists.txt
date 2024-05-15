@@ -51,10 +51,10 @@ TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
 ####
 # We have to do a little tweaking
 # to remove the Release/ and Debug/ directories
-# in MSVC builds.  This is required to get
+# in Windows builds.  This is required to get
 # test scripts to work.
 ####
-IF(MSVC)
+IF(WIN32)
   SET_TARGET_PROPERTIES(ncgen PROPERTIES RUNTIME_OUTPUT_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR})
   SET_TARGET_PROPERTIES(ncgen PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG

@@ -33,7 +33,7 @@ IF(NETCDF_ENABLE_TESTS)
     ENDIF(HAVE_BASH)
   ENDIF()
 
-  IF(NOT MSVC)
+  IF(NOT WIN32)
     add_bin_env_test(ncdap t_dap3a)
     add_bin_env_test(ncdap test_cvt)
     add_bin_env_test(ncdap test_vara)
