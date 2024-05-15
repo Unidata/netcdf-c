@@ -110,7 +110,7 @@ macro(add_bin_env_temp_large_test prefix F)
   endif()
 
   add_test(${prefix}_${F} bash "-c" "TEMP_LARGE=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
-  if(MSVC)
+  if(WIN32)
     set_property(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
     set_target_properties(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
       ${CMAKE_CURRENT_BINARY_DIR})
@@ -163,7 +163,7 @@ endmacro()
 macro(add_bin_test_no_prefix F)
   build_bin_test(${F} ${ARGN})
   add_test(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
-  if(MSVC)
+  if(WIN32)
     set_property(TEST ${F} PROPERTY FOLDER "tests/")
     set_target_properties(${F} PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -176,7 +176,7 @@ endmacro()
 # Binary tests which are used by a script looking for a specific name.
 macro(build_bin_test_no_prefix F)
   build_bin_test(${F})
-  if(MSVC)
+  if(WIN32)
     #SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
     set_target_properties(${F} PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -201,7 +201,7 @@ macro(add_bin_test prefix F)
   add_test(${prefix}_${F}
            ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F}
            )
-  if(MSVC)
+  if(WIN32)
     set_property(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
     set_target_properties(${prefix}_${F}
       PROPERTIES
