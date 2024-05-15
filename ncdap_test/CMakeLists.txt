@@ -33,12 +33,13 @@ IF(NETCDF_ENABLE_TESTS)
     ENDIF(HAVE_BASH)
   ENDIF()
 
-  IF(NOT MSVC)
+  IF(NOT WIN32)
     add_bin_env_test(ncdap t_dap3a)
     add_bin_env_test(ncdap test_cvt)
     add_bin_env_test(ncdap test_vara)
   ENDIF()
 
+  IF(NETCDF_ENABLE_EXTERNAL_SERVER_TESTS)
   IF(NETCDF_ENABLE_DAP_REMOTE_TESTS)
 
     IF(NETCDF_BUILD_UTILITIES)
@@ -63,6 +64,7 @@ IF(NETCDF_ENABLE_TESTS)
     IF(NETCDF_ENABLE_EXTERNAL_SERVER_TESTS)
           add_bin_test(ncdap test_manyurls)
           SET_TESTS_PROPERTIES(ncdap_test_manyurls PROPERTIES RUN_SERIAL TRUE)
+    ENDIF()
     ENDIF()
 
     IF(NETCDF_ENABLE_DAP_AUTH_TESTS)
