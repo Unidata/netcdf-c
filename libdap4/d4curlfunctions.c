@@ -363,8 +363,8 @@ NCD4_get_rcproperties(NCD4INFO* state)
 	    unsigned long interval=0;
 	    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
 	        fprintf(stderr,"Illegal KEEPALIVE VALUE: %s\n",option);
-	    state->curl->keepalive.idle = idle;
-	    state->curl->keepalive.interval = interval;
+	    state->curl->keepalive.idle = (long)idle;
+	    state->curl->keepalive.interval = (long)interval;
 	    state->curl->keepalive.active = 1;
 	}
     }

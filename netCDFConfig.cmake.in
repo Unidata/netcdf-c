@@ -5,7 +5,9 @@
 @PACKAGE_INIT@
 
 set(NetCDFVersion "@PACKAGE_VERSION@")
-
+set_and_check(netCDF_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@")
+set_and_check(netCDF_INCLUDE_DIR "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@")
+set_and_check(netCDF_LIB_DIR "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@")
 set(netCDF_LIBRARIES netCDF::netcdf)
 
 # include target information

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This shell gets some files from the netCDF ftp site for testing,
+# This shell gets some sample data files for testing,
 # then runs the tst_knmi benchmarking program.
 # Ed Hartnett
 
@@ -15,7 +15,7 @@ echo "Getting KNMI test files $file_list"
 for f1 in $file_list
 do
     if ! test -f $f1; then
-	wget ftp://ftp.unidata.ucar.edu/pub/netcdf/sample_data/$f1.gz
+	wget https://resources.unidata.ucar.edu/netcdf/sample_data/$f1.gz
 	gunzip $f1.gz
     fi
 done
