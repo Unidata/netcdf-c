@@ -382,13 +382,13 @@ if(MSVC)
 endif()
 
 # Option to build netCDF Version 2
-OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
-set(BUILD_V2 ${ENABLE_V2_API})
-if(NOT ENABLE_V2_API)
+OPTION (NETCDF_ENABLE_V2_API "Build netCDF Version 2." ON)
+set(BUILD_V2 ${NETCDF_ENABLE_V2_API})
+if(NOT NETCDF_ENABLE_V2_API)
   set(NO_NETCDF_2 ON)
-else(NOT ENABLE_V2_API)
+else(NOT NETCDF_ENABLE_V2_API)
   set(USE_NETCDF_2 TRUE)
-endif(NOT ENABLE_V2_API)
+endif(NOT NETCDF_ENABLE_V2_API)
 
 # Option to build utilities
 option(NETCDF_BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
@@ -642,14 +642,10 @@ include(CMakeDependentOption)
 cmake_dependent_option(NETCDF_ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
   ON "BUILD_SHARED_LIBS" OFF)
 MESSAGE(STATUS "NETCDF_ENABLE_PLUGINS: ${NETCDF_ENABLE_PLUGINS}")
-if(MINGW)
-    message(STATUS "MINGW Detected, disabling plugins.")
-    set(NETCDF_ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
-else()
-  if(NOT WIN32)
-    if(HAVE_DLFCN_H)
-      include_directories("dlfcn.h")
-    endif()
+
+if(NOT WIN32)
+  if(HAVE_DLFCN_H)
+    include_directories("dlfcn.h")
   endif()
 endif()
 
@@ -1450,7 +1446,7 @@ endif()
 
 # Enable tests
 if(NETCDF_ENABLE_TESTS)
-  if(ENABLE_V2_API)
+  if(NETCDF_ENABLE_V2_API)
     add_subdirectory(nctest)
   endif()
   add_subdirectory(nc_test)
@@ -1524,6 +1520,9 @@ configure_file(
 ###
 # Create pkgconfig files.
 ###
+if(NOT DEFINED CMAKE_INSTALL_MANDIR)
+  set(CMAKE_INSTALL_MANDIR "${CMAKE_INSTALL_PREFIX}/share/man/")
+endif()
 
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
   set(CMAKE_INSTALL_LIBDIR lib)
@@ -1623,7 +1622,7 @@ set(LDFLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_${CMAKE_BU
 is_disabled(BUILD_SHARED_LIBS enable_static)
 is_enabled(BUILD_SHARED_LIBS enable_shared)
 
-is_enabled(ENABLE_V2_API HAS_NC2)
+is_enabled(NETCDF_ENABLE_V2_API HAS_NC2)
 is_enabled(NETCDF_ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(NETCDF_ENABLE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
@@ -1638,7 +1637,7 @@ is_enabled(NETCDF_ENABLE_BYTERANGE HAS_BYTERANGE)
 is_enabled(NETCDF_ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
-is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
+is_enabled(NETCDF_ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(NETCDF_ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)

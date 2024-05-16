@@ -6,7 +6,7 @@
 # See netcdf-c/COPYRIGHT file for more info.
 set(CMAKE_BUILD_TYPE "")
 
-if(MSVC)
+if(WIN32)
   set(PLUGINEXT "dll")
   set(PLUGINPRE "__nc") 
 else()
@@ -89,12 +89,12 @@ buildplugin(nczmisc "zmisc")
 buildplugin(nczhdf5filters "zhdf5filters" netcdf)
 buildplugin(nczstdfilters "zstdfilters" netcdf)
 
-if(ENABLE_BLOSC)
+if(NETCDF_ENABLE_BLOSC)
   set(h5blosc_SOURCES H5Zblosc.c)
   buildplugin(h5blosc "h5blosc" netcdf;${Blosc_LIBRARIES})
 endif()
 
-if(ENABLE_ZSTD)
+if(NETCDF_ENABLE_ZSTD)
   set(h5zstd_SOURCES H5Zzstd.c H5Zzstd.h)
   buildplugin(h5zstd "h5zstd" netcdf;${Zstd_LIBRARIES})
 endif()
@@ -124,7 +124,7 @@ macro(installplugin PLUG)
 endmacro()
 
 install(DIRECTORY DESTINATION ${PLUGIN_INSTALL_DIR})
-if(Bzip2_FOUND)
+if(Bzip2_FOUND OR Bz2_FOUND)
   installplugin(h5bzip2)
 endif()
 if(Zstd_FOUND)

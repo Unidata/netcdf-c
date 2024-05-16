@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include "d4includes.h"
+#include "d4util.h"
 
 /*
 The primary purpose of this code is to recursively traverse
@@ -51,7 +52,7 @@ NCD4_swapdata(NCD4response* resp, NCD4node* var, int doswap)
 	    if((ret=walkSeqArray(resp,var,var,offset,doswap))) goto done;
 	    break;
 	}
-	var->data.dap4data.size = DELTA(offset,var->data.dap4data.memory);
+	var->data.dap4data.size = (d4size_t)DELTA(offset,var->data.dap4data.memory);
 	/* skip checksum, if there is one */
         if(resp->inferredchecksumming)
 	    INCR(offset,CHECKSUMSIZE);
@@ -77,8 +78,8 @@ walkAtomicVar(NCD4response* resp, NCD4node* topvar, NCD4node* var, NCD4offset* o
 	subsort = var->basetype->basetype->subsort;
     /* Only need to swap multi-byte integers and floats */
     if(subsort != NC_STRING) {
-        int typesize = NCD4_typesize(subsort);
-	d4size_t totalsize = typesize*dimproduct;
+        size_t typesize = NCD4_typesize(subsort);
+        d4size_t totalsize = typesize*dimproduct;
 	if(typesize == 1) {
 	    INCR(offset,totalsize);
 	} else { /*(typesize > 1)*/

@@ -79,6 +79,7 @@ endif
 
 # Filter Tests (requires ncdump and ncgen and HDF5)
 if USE_HDF5
+if NETCDF_ENABLE_PLUGINS
 if NETCDF_ENABLE_FILTER_TESTING
 extradir =
 check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat
@@ -108,6 +109,7 @@ TESTS += tst_filterinstall.sh
 endif
 
 endif # NETCDF_ENABLE_FILTER_TESTING
+endif # NETCDF_ENABLE_PLUGINS
 endif # USE_HDF5
 endif # NETCDF_BUILD_UTILITIES
 

@@ -21,7 +21,7 @@ TEST_EXTENSIONS = .sh
 
 AM_CPPFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
-LDADD = ${top_builddir}/liblib/libnetcdf.la
+LDADD += ${top_builddir}/liblib/libnetcdf.la
 AM_CXXFLAGS = 
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =

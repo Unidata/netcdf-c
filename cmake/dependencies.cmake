@@ -69,7 +69,7 @@ if(NETCDF_ENABLE_HDF4)
   message(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
   # Option to enable HDF4 file tests.
-  option(NETCDF_ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires curl)." ON)
+  option(NETCDF_ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata resources site to test with (requires curl)." ON)
   if(NETCDF_ENABLE_HDF4_FILE_TESTS)
     find_program(PROG_CURL NAMES curl)
     if(PROG_CURL)

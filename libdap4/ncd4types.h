@@ -13,6 +13,7 @@ are defined here.
 
 #undef COMPILEBYDEFAULT
 
+#include "ncdap.h"
 #include "ncrc.h"
 #include "ncauth.h"
 
@@ -206,10 +207,10 @@ struct NCD4node {
         NClist* values;
     } attr;
     struct { /* sort == NCD4_OPAQUE */
-	long long size; /* 0 => var length */
+        size_t size; /* 0 => var length */
     } opaque;
     struct { /* sort == NCD4_DIMENSION */
-	long long size;
+	size_t size;
 	int isunlimited;
 	int isanonymous;
     } dim;
