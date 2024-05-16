@@ -93,8 +93,8 @@ clean-local: clean-local-check
 .PHONY: clean-local-check
 
 clean-local-check:
-	-rm -rf results results_*
-	-rm -f .dodsrc .daprc .ncrc .netrc
+	rm -rf results results_*
+	rm -f .dodsrc .daprc .ncrc .netrc
 
 # The shell file maketests.sh is used to build the testdata
 # for dap4 testing. It creates and fills the directories

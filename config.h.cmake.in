@@ -130,8 +130,8 @@ are set when opening a binary file on Windows. */
 /* if true, enable CDF5 Support */
 #cmakedefine NETCDF_ENABLE_CDF5 1
 
-/* if true, enable client side filters */
-#cmakedefine ENABLE_CLIENT_FILTERS 1
+/* if true, enable filter testing */
+#cmakedefine NETCDF_ENABLE_FILTER_TESTING 1
 
 /* if true, enable filter testing */
 #cmakedefine NETCDF_ENABLE_FILTER_TESTING 1
@@ -468,9 +468,6 @@ with zip */
 /* if true, HDF5 is at least version 1.10.5 and supports UTF8 paths */
 #cmakedefine HDF5_UTF8_PATHS 1
 
-/* if true, include JNA bug fix */
-#cmakedefine JNA 1
-
 /* do large file tests */
 #cmakedefine LARGE_FILE_TESTS 1
 
@@ -479,6 +476,9 @@ with zip */
 
 /* If true, define nc_set_log_level. */
 #cmakedefine ENABLE_SET_LOG_LEVEL 1
+
+/* If true, define nc_set_log_level_func */
+#cmakedefine NETCDF_ENABLE_SET_LOG_LEVEL_FUNC 1
 
 /* min blocksize for posixio. */
 #cmakedefine NCIO_MINBLOCKSIZE ${NCIO_MINBLOCKSIZE}
@@ -651,6 +651,9 @@ with zip */
 
 /* if true, enable nczarr blosc support */
 #cmakedefine NETCDF_ENABLE_BLOSC 1
+
+/* if true enable tests that access external servers */
+#cmakedefine NETCDF_ENABLE_EXTERNAL_SERVER_TESTS 1
 
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"

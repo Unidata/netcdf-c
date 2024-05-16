@@ -129,7 +129,7 @@ ref_tst_interops4.nc CMakeLists.txt run_grp_rename.sh			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl noop.cdl ref_filtered.cdl		\
-ref_unfiltered.cdl ref_bzip2.c findplugin.in ref_unfilteredvv.cdl	\
+ref_unfiltered.cdl ref_bzip2.c ref_unfilteredvv.cdl	\
 ref_filteredvv.cdl ref_multi.cdl                                        \
 ref_ncgenF.cdl ref_nccopyF.cdl                                          \
 ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
