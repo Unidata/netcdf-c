@@ -1,9 +1,9 @@
 netcdf \2004050300_eta_211 {
 dimensions:
 	record = UNLIMITED ; // (1 currently)
-	_AnonymousDim1 = 1 ;
-	_AnonymousDim4 = 4 ;
-	_AnonymousDim15 = 15 ;
+	_Anonymous_Dim_1 = 1 ;
+	_Anonymous_Dim_4 = 4 ;
+	_Anonymous_Dim_15 = 15 ;
 variables:
 	double reftime(record) ;
 		string reftime:units = "hours since 1992-1-1" ;
@@ -11,7 +11,7 @@ variables:
 	double valtime(record) ;
 		string valtime:units = "hours since 1992-1-1" ;
 		string valtime:long_name = "valid time" ;
-	float Z_sfc(_AnonymousDim1, _AnonymousDim4, _AnonymousDim15) ;
+	float Z_sfc(_Anonymous_Dim_1, _Anonymous_Dim_4, _Anonymous_Dim_15) ;
 		string Z_sfc:navigation = "nav" ;
 		float Z_sfc:_FillValue = -9999.006f ;
 		string Z_sfc:units = "gp m" ;

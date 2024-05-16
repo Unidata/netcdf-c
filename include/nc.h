@@ -137,4 +137,12 @@ EXTERNL int NC_copy_data_all(NC* nc, nc_type xtypeid, const void* memory, size_t
 #define USED2INFO(nc) ((1<<(nc->dispatch->model)) & (1<<NC_FORMATX_DAP2))
 #define USED4INFO(nc) ((1<<(nc->dispatch->model)) & (1<<NC_FORMATX_DAP4))
 
+/* In DAP4 and Zarr (and maybe other places in the future)
+   we may have dimensions with a size, but no name.
+   In this case we need to create a name based on the size.
+   As a rule, the dimension name is NCDIMANON_<n> where n is the size
+   and NCDIMANON is a prefix defined here.
+*/
+#define NCDIMANON "_Anonymous_Dim"   
+
 #endif /* _NC_H_ */
