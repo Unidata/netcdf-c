@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
-* Cleanup various obsolete options and do some code refactoring. See [Github #????](https://github.com/Unidata/netcdf-c/issues/????) for more information.
+* Cleanup various obsolete options and do some code refactoring. See [Github #2926](https://github.com/Unidata/netcdf-c/issues/2926) for more information.
 * Convert the Zarr-related ENABLE_XXX options to NETCDF_ENABLE_XXX options (part of the cmake overhaul). See [Github #2923](https://github.com/Unidata/netcdf-c/issues/2923) for more information.
 * Refactor macro `_FillValue` to `NC_FillValue` to avoid conflict with libc++ headers. See [Github #2858](https://github.com/Unidata/netcdf-c/issues/2858) for more information.
 * Changed `cmake` build options to be prefaced with `NETCDF`, to bring things in to line with best practices.  This will permit a number of overall quality of life improvements to netCDF, in terms of allowing it to be more easily integrated with upstream projects via `FetchContent()`, `subdirectory()`, etc. Currently, the naming convention in use thus far will still work, but will result in warning messages about deprecation, and instructions on how to update your workflow. See [Github #2895](https://github.com/Unidata/netcdf-c/pull/2895) for more information.
