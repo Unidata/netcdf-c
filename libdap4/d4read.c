@@ -37,7 +37,7 @@ deltatime(struct timeval time0,struct timeval time1)
 #endif
 
 int
-NCD4_readDMR(NCD4INFO* state, int flags, NCURI* url, NCD4response* resp)
+NCD4_readDMR(NCD4INFO* state, NCURI* url, NCD4response* resp)
 {
     int stat = NC_NOERR;
     ncbytesclear(state->curl->packet);
@@ -46,7 +46,7 @@ NCD4_readDMR(NCD4INFO* state, int flags, NCURI* url, NCD4response* resp)
 }
 
 int
-NCD4_readDAP(NCD4INFO* state, int flags, NCURI* url, NCD4response* resp)
+NCD4_readDAP(NCD4INFO* state, NCURI* url, NCD4response* resp)
 {
     int stat = NC_NOERR;
     
