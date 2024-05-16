@@ -39,7 +39,7 @@ static int convertString(union ATOMICS* converter, NCD4node* type, const char* s
 static void* copyAtomic(union ATOMICS* converter, nc_type type, size_t len, void* dst, NClist* blobs);
 static int decodeEconst(NCD4meta* builder, NCD4node* enumtype, const char* nameorval, union ATOMICS* converter);
 static int downConvert(union ATOMICS* converter, NCD4node* type);
-static void freeStringMemory(char** mem, int count);
+static void freeStringMemory(char** mem, size_t count);
 static size_t getDimrefs(NCD4node* var, int* dimids);
 static size_t getDimsizes(NCD4node* var, int* dimsizes);
 static d4size_t getpadding(d4size_t offset, size_t alignment);
@@ -255,7 +255,7 @@ buildDimension(NCD4meta* builder, NCD4node* dim)
     if(dim->dim.isunlimited) {
 	NCCHECK((nc_def_dim(group->meta.id,dim->name,NC_UNLIMITED,&dim->meta.id)));
     } else {
-	NCCHECK((nc_def_dim(group->meta.id,dim->name,(size_t)dim->dim.size,&dim->meta.id)));
+	NCCHECK((nc_def_dim(group->meta.id,dim->name,dim->dim.size,&dim->meta.id)));
     }
 done:
     return THROW(ret);
@@ -535,7 +535,7 @@ buildAtomicVar(NCD4meta* builder, NCD4node* var)
 #endif
 
     rank = getDimrefs(var,dimids);
-    NCCHECK((nc_def_var(group->meta.id,var->name,var->basetype->meta.id,rank,dimids,&var->meta.id)));
+    NCCHECK((nc_def_var(group->meta.id,var->name,var->basetype->meta.id,(int)rank,dimids,&var->meta.id)));
     /* Tag the var */
     savevarbyid(group,var);
 
@@ -705,11 +705,10 @@ getDimsizes(NCD4node* var, int* dimsizes)
 /* Utilities */
 
 static void
-freeStringMemory(char** mem, int count)
+freeStringMemory(char** mem, size_t count)
 {
-    int i;
     if(mem == NULL) return;
-    for(i=0;i<count;i++) {
+    for(size_t i=0;i<count;i++) {
 	char* p = mem[i];
         if(p) free(p);
     }
