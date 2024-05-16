@@ -72,7 +72,7 @@
 
 #include "config.h"
 #include "dapparselex.h"
-#include "dapy.h"
+#include "dap.tab.h"
 int dapdebug = 0;
 
 #line 79 "dapy.c" /* yacc.c:339  */
@@ -94,7 +94,7 @@ int dapdebug = 0;
 #endif
 
 /* In a future release of Bison, this section will be replaced
-   by #include "dapy.h".  */
+   by #include "dap.tab.h".  */
 #ifndef YY_DAP_DAP_TAB_H_INCLUDED
 # define YY_DAP_DAP_TAB_H_INCLUDED
 /* Debug traces.  */
