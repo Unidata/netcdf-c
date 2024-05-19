@@ -2101,14 +2101,15 @@ void
 NC_freeglobalstate(void)
 {
     if(nc_globalstate != NULL) {
-        nullfree(nc_globalstate->tempdir);
-        nullfree(nc_globalstate->home);
-        nullfree(nc_globalstate->cwd);
+    nullfree(nc_globalstate->tempdir);
+    nullfree(nc_globalstate->home);
+    nullfree(nc_globalstate->cwd);
 	nullfree(nc_globalstate->aws.default_region);
 	nullfree(nc_globalstate->aws.config_file);
 	nullfree(nc_globalstate->aws.profile);
 	nullfree(nc_globalstate->aws.access_key_id);
 	nullfree(nc_globalstate->aws.secret_access_key);
+    nullfree(nc_globalstate->aws.session_token);
         if(nc_globalstate->rcinfo) {
 	    NC_rcclear(nc_globalstate->rcinfo);
 	    free(nc_globalstate->rcinfo);

@@ -76,6 +76,7 @@ NC_s3sdkinitialize(void)
 	gs->aws.config_file = nulldup(getenv("AWS_CONFIG_FILE"));
 	gs->aws.profile = nulldup(getenv("AWS_PROFILE"));
 	gs->aws.secret_access_key = nulldup(getenv("AWS_SECRET_ACCESS_KEY"));
+    gs->aws.session_token = nulldup(getenv("AWS_SESSION_TOKEN"));
     }
     return NC_NOERR;
 }
@@ -503,6 +504,10 @@ NC_aws_load_credentials(NCglobalstate* gstate)
 	    entry->key = strdup("aws_secret_access_key");
 	    entry->value = strdup(gs->aws.secret_access_key);
 	    nclistpush(dfalt->entries,entry); entry = NULL;
+        if((entry = (struct AWSentry*)calloc(1,sizeof(struct AWSentry)))==NULL) {stat = NC_ENOMEM; goto done;}
+        entry->key = strdup("aws_session_token");
+        entry->value = strdup(gs->aws.session_token);
+        nclistpush(dfalt->entries,entry); entry = NULL;
 	}
     }
 
