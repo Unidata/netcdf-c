@@ -930,7 +930,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
                 if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
                     BAIL(NC_EHDFERR);
 	    } else
-#endif /*ENABLE_ROS3*/
+#endif /*NETCDF_ENABLE_ROS3*/
 	    {/* Configure FAPL to use our byte-range file driver */
                 if (H5Pset_fapl_http(fapl_id) < 0)
                     BAIL(NC_EHDFERR);

@@ -20,7 +20,7 @@
 #include "netcdf.h"
 #include "netcdf_filter.h"
 
-#ifdef ENABLE_BLOSC
+#ifdef NETCDF_ENABLE_BLOSC
 #include <blosc.h>
 #endif
 

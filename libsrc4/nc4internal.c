@@ -1803,7 +1803,7 @@ nc_set_log_level(int new_level)
 #endif /* NC_HAS_PARALLEL4 */
     
     LOG((1, "log_level changed to %d", nc_log_level));
-#endif /*NC_HAS_LOGGING */
+#endif /* LOGGING */
     
     return NC_NOERR;
 }

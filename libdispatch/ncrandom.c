@@ -13,13 +13,16 @@
 #include <stdio.h>
 #endif
 
+#if defined(_WIN32) || defined(_MSC_VER)
+extern errno_t rand_s(unsigned int *randomValue);
+#endif
 
 /* Support platform independent generation of 32-bit unsigned int random numbers */
 
 int
 main() {
     unsigned int urnd = 0; /* range 0..2147483647 */
-#if defined(WIN32) || defined(_MSC_VER)
+#if defined(_WIN32) || defined(_MSC_VER)
     (void)rand_s(&urnd);
 #else
     long rnd;
