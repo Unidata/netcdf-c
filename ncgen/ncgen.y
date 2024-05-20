@@ -128,10 +128,10 @@ static Symbol* makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int 
 static int containsfills(Datalist* list);
 static void vercheck(int ncid);
 static long long extractint(NCConstant* con);
+static Symbol* identkeyword(const Symbol*);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
 static int parsecodecsflag(const char* sdata0, Specialdata* special);
-static Symbol* identkeyword(const Symbol*);
 
 #ifdef GENDEBUG1
 static void printfilters(int nfilters, NC_H5_Filterspec** filters);

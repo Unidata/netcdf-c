@@ -119,6 +119,7 @@ extern "C" {
         0x0002
    All upper 16 bits are unused except
         0x20000
+        0x40000
 */
 
 /* Lower 16 bits */

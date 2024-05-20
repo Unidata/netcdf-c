@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+#include "config.h"
 #include "ncdispatch.h"
 #include "ncd4dispatch.h"
 #include "d4includes.h"
