@@ -2,6 +2,9 @@ name: NetCDF-C CMake CI - Windows
 
 on: [pull_request, workflow_dispatch]
 
+env:
+  REMOTETESTDOWN: ${{ vars.REMOTETESTDOWN }}
+
 concurrency:  
   group: ${{ github.workflow }}-${{ github.head_ref }}  
   cancel-in-progress: true

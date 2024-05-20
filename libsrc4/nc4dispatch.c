@@ -56,10 +56,13 @@ NC4_initialize(void)
     if(getenv(NCLOGLEVELENV) != NULL) {
         char* slevel = getenv(NCLOGLEVELENV);
         long level = atol(slevel);
+#ifdef USE_NETCDF4
         if(level >= 0)
             nc_set_log_level((int)level);
     }
 #endif
+#endif
+    NC_initialize_reserved();
     return ret;
 }
 

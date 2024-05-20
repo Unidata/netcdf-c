@@ -40,7 +40,6 @@
 #define NC_VERSION       "@NC_VERSION@"
 
 #define NC_HAS_NC2       @NC_HAS_NC2@ /*!< API version 2 support. */
-#define NC_HAS_NC4       @NC_HAS_NC4@ /*!< API version 4 support. */
 #define NC_HAS_HDF4      @NC_HAS_HDF4@ /*!< HDF4 support. */
 #define NC_HAS_HDF5      @NC_HAS_HDF5@ /*!< HDF5 support. */
 #define NC_HAS_SZIP      @NC_HAS_SZIP@ /*!< szip support */
@@ -50,7 +49,6 @@
 #define NC_HAS_BYTERANGE @NC_HAS_BYTERANGE@ /*!< Byterange support. */
 #define NC_HAS_DISKLESS  @NC_HAS_DISKLESS@ /*!< diskless support. */
 #define NC_HAS_MMAP      @NC_HAS_MMAP@ /*!< mmap support. */
-#define NC_HAS_JNA       @NC_HAS_JNA@ /*!< jna support. */
 #define NC_HAS_PNETCDF   @NC_HAS_PNETCDF@ /*!< PnetCDF support. */
 #define NC_HAS_PARALLEL4 @NC_HAS_PARALLEL4@ /*!< parallel IO support via HDF5 */
 #define NC_HAS_PARALLEL  @NC_HAS_PARALLEL@ /*!< parallel IO support via HDF5 and/or PnetCDF. */

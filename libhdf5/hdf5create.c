@@ -11,7 +11,6 @@
 #include "config.h"
 #include "netcdf.h"
 #include "ncpathmgr.h"
-#include "ncpathmgr.h"
 #include "hdf5internal.h"
 
 /** @internal These flags may not be set for create. */

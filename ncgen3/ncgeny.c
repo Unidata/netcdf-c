@@ -74,7 +74,7 @@
 #define yychar          ncgchar
 
 /* First part of user prologue.  */
-#line 9 "ncgen3/ncgen.y"
+#line 9 "ncgen.y"
 
 #ifdef sccs
 static char SccsId[] = "$Id: ncgen.y,v 1.34 2010/03/31 18:18:41 dmh Exp $";
@@ -1281,13 +1281,13 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* $@1: %empty  */
-#line 117 "ncgen3/ncgen.y"
+#line 117 "ncgen.y"
                    { init_netcdf(); }
 #line 1287 "ncgeny.c"
     break;
 
   case 3: /* $@2: %empty  */
-#line 120 "ncgen3/ncgen.y"
+#line 120 "ncgen.y"
                    {
 		       if (derror_count == 0)
 			 define_netcdf(netcdfname);
@@ -1298,7 +1298,7 @@ yyreduce:
     break;
 
   case 4: /* ncdesc: NETCDF '{' $@1 dimsection vasection $@2 datasection '}'  */
-#line 128 "ncgen3/ncgen.y"
+#line 128 "ncgen.y"
                    {
 		       if (derror_count == 0)
 			 close_netcdf();
@@ -1307,7 +1307,7 @@ yyreduce:
     break;
 
   case 11: /* dimdecl: dimd '=' INT_CONST  */
-#line 143 "ncgen3/ncgen.y"
+#line 143 "ncgen.y"
                    { if (int_val <= 0)
 			 derror("dimension length must be positive");
 		     dims[ndims].size = (size_t)int_val;
@@ -1317,7 +1317,7 @@ yyreduce:
     break;
 
   case 12: /* dimdecl: dimd '=' DOUBLE_CONST  */
-#line 149 "ncgen3/ncgen.y"
+#line 149 "ncgen.y"
                    { /* for rare case where 2^31 < dimsize < 2^32 */
 		       if (double_val <= 0)
 			 derror("dimension length must be positive");
@@ -1332,7 +1332,7 @@ yyreduce:
     break;
 
   case 13: /* dimdecl: dimd '=' NC_UNLIMITED_K  */
-#line 160 "ncgen3/ncgen.y"
+#line 160 "ncgen.y"
                    {  if (rec_dim != -1)
 			 derror("only one NC_UNLIMITED dimension allowed");
 		     rec_dim = ndims; /* the unlimited (record) dimension */
@@ -1343,7 +1343,7 @@ yyreduce:
     break;
 
   case 14: /* dimd: dim  */
-#line 168 "ncgen3/ncgen.y"
+#line 168 "ncgen.y"
                    {
 		    if (yyvsp[0]->is_dim == 1) {
 		        derror( "duplicate dimension declaration for %s",
@@ -1363,43 +1363,43 @@ yyreduce:
     break;
 
   case 27: /* type: BYTE_K  */
-#line 200 "ncgen3/ncgen.y"
+#line 200 "ncgen.y"
                           { type_code = NC_BYTE; }
 #line 1369 "ncgeny.c"
     break;
 
   case 28: /* type: CHAR_K  */
-#line 201 "ncgen3/ncgen.y"
+#line 201 "ncgen.y"
                           { type_code = NC_CHAR; }
 #line 1375 "ncgeny.c"
     break;
 
   case 29: /* type: SHORT_K  */
-#line 202 "ncgen3/ncgen.y"
+#line 202 "ncgen.y"
                           { type_code = NC_SHORT; }
 #line 1381 "ncgeny.c"
     break;
 
   case 30: /* type: INT_K  */
-#line 203 "ncgen3/ncgen.y"
+#line 203 "ncgen.y"
                           { type_code = NC_INT; }
 #line 1387 "ncgeny.c"
     break;
 
   case 31: /* type: FLOAT_K  */
-#line 204 "ncgen3/ncgen.y"
+#line 204 "ncgen.y"
                           { type_code = NC_FLOAT; }
 #line 1393 "ncgeny.c"
     break;
 
   case 32: /* type: DOUBLE_K  */
-#line 205 "ncgen3/ncgen.y"
+#line 205 "ncgen.y"
                           { type_code = NC_DOUBLE; }
 #line 1399 "ncgeny.c"
     break;
 
   case 35: /* $@3: %empty  */
-#line 211 "ncgen3/ncgen.y"
+#line 211 "ncgen.y"
                    {
 		    static struct vars dummyvar;
 
@@ -1436,7 +1436,7 @@ yyreduce:
     break;
 
   case 36: /* varspec: var $@3 dimspec  */
-#line 244 "ncgen3/ncgen.y"
+#line 244 "ncgen.y"
                    {
 		    vars[nvars].ndims = nvdims;
 		    nvars++;
@@ -1445,7 +1445,7 @@ yyreduce:
     break;
 
   case 42: /* vdim: dim  */
-#line 258 "ncgen3/ncgen.y"
+#line 258 "ncgen.y"
                    {
 		    if (nvdims >= NC_MAX_VAR_DIMS) {
 		       derror("%s has too many dimensions",vars[nvars].name);
@@ -1469,7 +1469,7 @@ yyreduce:
     break;
 
   case 43: /* $@4: %empty  */
-#line 279 "ncgen3/ncgen.y"
+#line 279 "ncgen.y"
                    {
                    defatt();
 		   }
@@ -1477,7 +1477,7 @@ yyreduce:
     break;
 
   case 44: /* attdecl: att $@4 '=' attvallist  */
-#line 283 "ncgen3/ncgen.y"
+#line 283 "ncgen.y"
                    {
                    equalatt();
 		   }
@@ -1485,7 +1485,7 @@ yyreduce:
     break;
 
   case 45: /* $@5: %empty  */
-#line 288 "ncgen3/ncgen.y"
+#line 288 "ncgen.y"
                    {
                    defatt();
 		   }
@@ -1493,7 +1493,7 @@ yyreduce:
     break;
 
   case 46: /* gattdecl: gatt $@5 '=' attvallist  */
-#line 292 "ncgen3/ncgen.y"
+#line 292 "ncgen.y"
                    {
                    equalatt();
 		   }
@@ -1501,7 +1501,7 @@ yyreduce:
     break;
 
   case 48: /* gatt: ':' attr  */
-#line 300 "ncgen3/ncgen.y"
+#line 300 "ncgen.y"
                    {
 		    varnum = NC_GLOBAL;  /* handle of "global" attribute */
 		   }
@@ -1509,7 +1509,7 @@ yyreduce:
     break;
 
   case 49: /* avar: var  */
-#line 306 "ncgen3/ncgen.y"
+#line 306 "ncgen.y"
                    { if (yyvsp[0]->is_var == 1)
 		       varnum = yyvsp[0]->vnum;
 		    else {
@@ -1522,7 +1522,7 @@ yyreduce:
     break;
 
   case 50: /* attr: IDENT  */
-#line 316 "ncgen3/ncgen.y"
+#line 316 "ncgen.y"
                    {
 		       /* make sure atts array will hold attributes */
 		       grow_aarray(natts,  /* must hold natts+1 atts */
@@ -1536,7 +1536,7 @@ yyreduce:
     break;
 
   case 53: /* aconst: attconst  */
-#line 330 "ncgen3/ncgen.y"
+#line 330 "ncgen.y"
                    {
 		    if (valtype == NC_UNSPECIFIED)
 		      valtype = atype_code;
@@ -1547,7 +1547,7 @@ yyreduce:
     break;
 
   case 54: /* attconst: CHAR_CONST  */
-#line 339 "ncgen3/ncgen.y"
+#line 339 "ncgen.y"
                    {
 		       atype_code = NC_CHAR;
 		       *char_valp++ = char_val;
@@ -1557,7 +1557,7 @@ yyreduce:
     break;
 
   case 55: /* attconst: TERMSTRING  */
-#line 345 "ncgen3/ncgen.y"
+#line 345 "ncgen.y"
                    {
 		       atype_code = NC_CHAR;
 		       {
@@ -1574,7 +1574,7 @@ yyreduce:
     break;
 
   case 56: /* attconst: BYTE_CONST  */
-#line 358 "ncgen3/ncgen.y"
+#line 358 "ncgen.y"
                    {
 		       atype_code = NC_BYTE;
 		       *byte_valp++ = byte_val;
@@ -1584,7 +1584,7 @@ yyreduce:
     break;
 
   case 57: /* attconst: SHORT_CONST  */
-#line 364 "ncgen3/ncgen.y"
+#line 364 "ncgen.y"
                    {
 		       atype_code = NC_SHORT;
 		       *short_valp++ = short_val;
@@ -1594,7 +1594,7 @@ yyreduce:
     break;
 
   case 58: /* attconst: INT_CONST  */
-#line 370 "ncgen3/ncgen.y"
+#line 370 "ncgen.y"
                    {
 		       atype_code = NC_INT;
 		       *int_valp++ = int_val;
@@ -1604,7 +1604,7 @@ yyreduce:
     break;
 
   case 59: /* attconst: FLOAT_CONST  */
-#line 376 "ncgen3/ncgen.y"
+#line 376 "ncgen.y"
                    {
 		       atype_code = NC_FLOAT;
 		       *float_valp++ = float_val;
@@ -1614,7 +1614,7 @@ yyreduce:
     break;
 
   case 60: /* attconst: DOUBLE_CONST  */
-#line 382 "ncgen3/ncgen.y"
+#line 382 "ncgen.y"
                    {
 		       atype_code = NC_DOUBLE;
 		       *double_valp++ = double_val;
@@ -1624,7 +1624,7 @@ yyreduce:
     break;
 
   case 66: /* $@6: %empty  */
-#line 398 "ncgen3/ncgen.y"
+#line 398 "ncgen.y"
                    {
 		       valtype = vars[varnum].type; /* variable type */
 		       valnum = 0;	/* values accumulated for variable */
@@ -1679,7 +1679,7 @@ yyreduce:
     break;
 
   case 67: /* datadecl: avar $@6 '=' constlist  */
-#line 449 "ncgen3/ncgen.y"
+#line 449 "ncgen.y"
                    {
 		       if (valnum < var_len) { /* leftovers */
 			   nc_fill(valtype,
@@ -1698,7 +1698,7 @@ yyreduce:
     break;
 
   case 70: /* $@7: %empty  */
-#line 468 "ncgen3/ncgen.y"
+#line 468 "ncgen.y"
                    {
 		       if(valnum >= var_len) {
 			   if (vars[varnum].dims[0] != rec_dim) { /* not recvar */
@@ -1727,7 +1727,7 @@ yyreduce:
     break;
 
   case 71: /* dconst: $@7 const  */
-#line 493 "ncgen3/ncgen.y"
+#line 493 "ncgen.y"
                    {
 		       if (not_a_string) {
 			   switch (valtype) {
@@ -1757,7 +1757,7 @@ yyreduce:
     break;
 
   case 72: /* const: CHAR_CONST  */
-#line 521 "ncgen3/ncgen.y"
+#line 521 "ncgen.y"
                    {
 		       atype_code = NC_CHAR;
 		       switch (valtype) {
@@ -1787,7 +1787,7 @@ yyreduce:
     break;
 
   case 73: /* const: TERMSTRING  */
-#line 547 "ncgen3/ncgen.y"
+#line 547 "ncgen.y"
                    {
 		       not_a_string = 0;
 		       atype_code = NC_CHAR;
@@ -1846,7 +1846,7 @@ yyreduce:
     break;
 
   case 74: /* const: BYTE_CONST  */
-#line 602 "ncgen3/ncgen.y"
+#line 602 "ncgen.y"
                    {
 		       atype_code = NC_BYTE;
 		       switch (valtype) {
@@ -1876,7 +1876,7 @@ yyreduce:
     break;
 
   case 75: /* const: SHORT_CONST  */
-#line 628 "ncgen3/ncgen.y"
+#line 628 "ncgen.y"
                    {
 		       atype_code = NC_SHORT;
 		       switch (valtype) {
@@ -1906,7 +1906,7 @@ yyreduce:
     break;
 
   case 76: /* const: INT_CONST  */
-#line 654 "ncgen3/ncgen.y"
+#line 654 "ncgen.y"
                    {
 		       atype_code = NC_INT;
 		       switch (valtype) {
@@ -1936,7 +1936,7 @@ yyreduce:
     break;
 
   case 77: /* const: FLOAT_CONST  */
-#line 680 "ncgen3/ncgen.y"
+#line 680 "ncgen.y"
                    {
 		       atype_code = NC_FLOAT;
 		       switch (valtype) {
@@ -1966,7 +1966,7 @@ yyreduce:
     break;
 
   case 78: /* const: DOUBLE_CONST  */
-#line 706 "ncgen3/ncgen.y"
+#line 706 "ncgen.y"
                    {
 		       atype_code = NC_DOUBLE;
 		       switch (valtype) {
@@ -1999,7 +1999,7 @@ yyreduce:
     break;
 
   case 79: /* const: FILLVALUE  */
-#line 735 "ncgen3/ncgen.y"
+#line 735 "ncgen.y"
                    {
 		       /* store fill_value */
 		       switch (valtype) {
@@ -2228,7 +2228,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 770 "ncgen3/ncgen.y"
+#line 770 "ncgen.y"
 
 
 /* HELPER PROGRAMS */
