@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -29,9 +30,11 @@
 #include "ncpathmgr.h"
 
 #define NC_MAX_PATH 4096
-
+#ifndef nulldup
+ #define nulldup(x) ((x)?strdup(x):(x))
+#endif
 /**************************************************/
-/**
+/** \internal
  * Provide a hidden interface to allow utilities
  * to check if a given path name is really an ncdap4 url.
  * If no, return null, else return basename of the url
@@ -64,7 +67,7 @@ NC__testurl(const char* path, char** basenamep)
     return ok;
 }
 
-/* Return 1 if this machine is little endian */
+/** \internal Return 1 if this machine is little endian */
 int
 NC_isLittleEndian(void)
 {
@@ -76,6 +79,7 @@ NC_isLittleEndian(void)
     return (u.bytes[0] == 1 ? 1 : 0);
 }
 
+/** \internal */
 char*
 NC_backslashEscape(const char* s)
 {
@@ -103,6 +107,7 @@ NC_backslashEscape(const char* s)
     return escaped;
 }
 
+/** \internal */
 char*
 NC_backslashUnescape(const char* esc)
 {
@@ -127,6 +132,7 @@ NC_backslashUnescape(const char* esc)
     return s;
 }
 
+/** \internal */
 char*
 NC_entityescape(const char* s)
 {
@@ -161,13 +167,13 @@ NC_entityescape(const char* s)
     return escaped;
 }
 
-char*
-/*
+/** \internal
 Depending on the platform, the shell will sometimes
 pass an escaped octotherpe character without removing
 the backslash. So this function is appropriate to be called
 on possible url paths to unescape such cases. See e.g. ncgen.
 */
+char*
 NC_shellUnescape(const char* esc)
 {
     size_t len;
@@ -192,7 +198,7 @@ NC_shellUnescape(const char* esc)
     return s;
 }
 
-/**
+/** \internal
 Wrap mktmp and return the generated path,
 or null if failed.
 Base is the base file path. XXXXX is appended
@@ -206,48 +212,98 @@ NC_mktmp(const char* base)
     int fd = -1;
     char* tmp = NULL;
     size_t len;
+#ifndef HAVE_MKSTEMP
+    int tries;
+#define MAXTRIES 4
+#else
+    mode_t mask;
+#endif
 
     len = strlen(base)+6+1;
-    if((tmp = (char*)malloc(len))==NULL)
+    if((tmp = (char*)calloc(1,len))==NULL)
         goto done;
-    strncpy(tmp,base,len);
+#ifdef HAVE_MKSTEMP
+    strlcat(tmp,base,len);
     strlcat(tmp, "XXXXXX", len);
+    mask=umask(0077);
     fd = NCmkstemp(tmp);
+    (void)umask(mask);
+#else /* !HAVE_MKSTEMP */
+    /* Need to simulate by using some kind of pseudo-random number */
+    for(tries=0;tries<MAXTRIES;tries++) {
+	int rno = rand();
+	char spid[7];
+	if(rno < 0) rno = -rno;
+	tmp[0] = '\0';
+        strlcat(tmp,base,len);
+        snprintf(spid,sizeof(spid),"%06d",rno);
+        strlcat(tmp,spid,len);
+        fd=NCopen3(tmp,O_RDWR|O_CREAT, _S_IREAD|_S_IWRITE);
+	if(fd >= 0) break; /* sucess */
+	fd = -1; /* try again */
+    }
+#endif /* !HAVE_MKSTEMP */
     if(fd < 0) {
-       nclog(NCLOGERR, "Could not create temp file: %s",tmp);
-       goto done;
+        nclog(NCLOGERR, "Could not create temp file: %s",tmp);
+        nullfree(tmp);
+	tmp = NULL;
+        goto done;
     }
 done:
     if(fd >= 0) close(fd);
     return tmp;
 }
 
+/** \internal */
 int
 NC_readfile(const char* filename, NCbytes* content)
 {
+    int stat;
+    stat = NC_readfilen(filename, content, -1);
+    return stat;
+}
+
+int
+NC_readfilen(const char* filename, NCbytes* content, long long amount)
+{
     int ret = NC_NOERR;
     FILE* stream = NULL;
-    char part[1024];
 
-#ifdef _WIN32
-    stream = NCfopen(filename,"rb");
-#else
     stream = NCfopen(filename,"r");
-#endif
     if(stream == NULL) {ret=errno; goto done;}
-    for(;;) {
-	size_t count = fread(part, 1, sizeof(part), stream);
-	if(count <= 0) break;
-	ncbytesappendn(content,part,count);
-	if(ferror(stream)) {ret = NC_EIO; goto done;}
-	if(feof(stream)) break;
-    }
-    ncbytesnull(content);
+    ret = NC_readfileF(stream,content,amount);
+    if (stream) fclose(stream);
 done:
-    if(stream) fclose(stream);
     return ret;
 }
 
+int
+NC_readfileF(FILE* stream, NCbytes* content, long long amount)
+{
+#define READ_BLOCK_SIZE 4194304
+    int ret = NC_NOERR;
+    size_t red = 0;
+    char *part = (char*) malloc(READ_BLOCK_SIZE);
+
+    while(amount < 0 || red < amount) {
+	size_t count = fread(part, 1, READ_BLOCK_SIZE, stream);
+	if(ferror(stream)) {ret = NC_EIO; goto done;}
+	if(count > 0) ncbytesappendn(content,part,(unsigned long)count);
+	red += count;
+    if (feof(stream)) break;
+    }
+    /* Keep only amount */
+    if(amount >= 0) {
+	if(red > amount) ncbytessetlength(content, (unsigned long)amount); /* read too much */
+	if(red < amount) ret = NC_ETRUNC; /* |file| < amount */
+    }
+    ncbytesnull(content);
+done:
+    free(part);
+    return ret;
+}
+
+/** \internal */
 int
 NC_writefile(const char* filename, size_t size, void* content)
 {
@@ -258,26 +314,22 @@ NC_writefile(const char* filename, size_t size, void* content)
 
     if(content == NULL) {content = ""; size = 0;}
 
-#ifdef _WIN32
-    stream = NCfopen(filename,"wb");
-#else
     stream = NCfopen(filename,"w");
-#endif
     if(stream == NULL) {ret=errno; goto done;}
     p = content;
     remain = size;
     while(remain > 0) {
 	size_t written = fwrite(p, 1, remain, stream);
 	if(ferror(stream)) {ret = NC_EIO; goto done;}
-	if(feof(stream)) break;
 	remain -= written;
+    if (feof(stream)) break;
     }
 done:
     if(stream) fclose(stream);
     return ret;
 }
 
-/*
+/** \internal
 Parse a path as a url and extract the modelist.
 If the path is not a URL, then return a NULL list.
 If a URL, but modelist is empty or does not exist,
@@ -289,7 +341,7 @@ NC_getmodelist(const char* modestr, NClist** modelistp)
     int stat=NC_NOERR;
     NClist* modelist = NULL;
 
-    modelist = nclistnew();    
+    modelist = nclistnew();
     if(modestr == NULL || strlen(modestr) == 0) goto done;
 
     /* Parse the mode string at the commas or EOL */
@@ -303,7 +355,7 @@ done:
     return stat;
 }
 
-/*
+/** \internal
 Check "mode=" list for a path and return 1 if present, 0 otherwise.
 */
 int
@@ -319,7 +371,7 @@ NC_testpathmode(const char* path, const char* tag)
     return found;
 }
 
-/*
+/** \internal
 Check "mode=" list for a url and return 1 if present, 0 otherwise.
 */
 int
@@ -327,11 +379,11 @@ NC_testmode(NCURI* uri, const char* tag)
 {
     int stat = NC_NOERR;
     int found = 0;
-    int i;
+    size_t i;
     const char* modestr = NULL;
     NClist* modelist = NULL;
 
-    modestr = ncurifragmentlookup(uri,"mode");    
+    modestr = ncurifragmentlookup(uri,"mode");
     if(modestr == NULL) goto done;
     /* Parse mode str */
     if((stat = NC_getmodelist(modestr,&modelist))) goto done;
@@ -339,14 +391,54 @@ NC_testmode(NCURI* uri, const char* tag)
     for(i=0;i<nclistlength(modelist);i++) {
         const char* mode = (const char*)nclistget(modelist,i);
 	if(strcasecmp(mode,tag)==0) {found = 1; break;}
-    }    
+    }
 done:
     nclistfreeall(modelist);
     return found;
 }
 
-#if ! defined __INTEL_COMPILER 
+/** \internal
+Add tag to fragment mode list unless already present.
+*/
+int
+NC_addmodetag(NCURI* uri, const char* tag)
+{
+    int stat = NC_NOERR;
+    int found = 0;
+    const char* modestr = NULL;
+    char* modevalue = NULL;
+    NClist* modelist = NULL;
+
+    modestr = ncurifragmentlookup(uri,"mode");
+    if(modestr != NULL) {
+        /* Parse mode str */
+        if((stat = NC_getmodelist(modestr,&modelist))) goto done;
+    } else
+        modelist = nclistnew();
+    /* Search for tag */
+    for(size_t i=0;i<nclistlength(modelist);i++) {
+        const char* mode = (const char*)nclistget(modelist,i);
+	if(strcasecmp(mode,tag)==0) {found = 1; break;}
+    }
+    /* If not found, then add to modelist */
+    if(!found) nclistpush(modelist,strdup(tag));
+    /* Convert modelist back to string */
+    if((stat=NC_joinwith(modelist,",",NULL,NULL,&modevalue))) goto done;
+    /* modify the url */
+    if((stat=ncurisetfragmentkey(uri,"mode",modevalue))) goto done;
+
+done:
+    nclistfreeall(modelist);
+    nullfree(modevalue);
+    return stat;
+}
+
+#if ! defined __INTEL_COMPILER
 #if defined __APPLE__ 
+/** \internal */
+
+#if ! defined HAVE_DECL_ISINF
+
 int isinf(double x)
 {
     union { unsigned long long u; double f; } ieee754;
@@ -355,6 +447,10 @@ int isinf(double x)
            ( (unsigned)ieee754.u == 0 );
 }
 
+#endif /* HAVE_DECL_ISINF */
+
+#if ! defined HAVE_DECL_ISNAN
+/** \internal */
 int isnan(double x)
 {
     union { unsigned long long u; double f; } ieee754;
@@ -363,10 +459,12 @@ int isnan(double x)
            ( (unsigned)ieee754.u != 0 ) > 0x7ff00000;
 }
 
+#endif /* HAVE_DECL_ISNAN */
+
 #endif /*APPLE*/
 #endif /*!_INTEL_COMPILER*/
 
-
+/** \internal */
 int
 NC_split_delim(const char* arg, char delim, NClist* segments)
 {
@@ -387,9 +485,9 @@ NC_split_delim(const char* arg, char delim, NClist* segments)
         len = (q - p);
 	if(len == 0)
 	    {stat = NC_EURL; goto done;}
-	if((seg = malloc(len+1)) == NULL)
+	if((seg = malloc((size_t)len+1)) == NULL)
 	    {stat = NC_ENOMEM; goto done;}
-	memcpy(seg,p,len);
+	memcpy(seg,p,(size_t)len);
 	seg[len] = '\0';
 	nclistpush(segments,seg);
 	seg = NULL; /* avoid mem errors */
@@ -401,32 +499,43 @@ done:
     return stat;
 }
 
-/* concat the the segments with each segment preceded by '/' */
+/** \internal concat the the segments with each segment preceded by '/' */
 int
 NC_join(NClist* segments, char** pathp)
 {
+    return NC_joinwith(segments,"/","/",NULL,pathp);
+}
+
+/** \internal
+Concat the the segments with separator.
+@param segments to join
+@param sep to use between segments
+@param prefix put at front of joined string: NULL => no prefix
+@param suffix put at end of joined string: NULL => no suffix
+@param pathp return the join in this
+*/
+int
+NC_joinwith(NClist* segments, const char* sep, const char* prefix, const char* suffix, char** pathp)
+{
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     NCbytes* buf = NULL;
+    size_t seplen = nulllen(sep);
 
     if(segments == NULL)
 	{stat = NC_EINVAL; goto done;}
     if((buf = ncbytesnew())==NULL)
 	{stat = NC_ENOMEM; goto done;}
-    if(nclistlength(segments) == 0)
-        ncbytescat(buf,"/");
-    else for(i=0;i<nclistlength(segments);i++) {
+    if(prefix) ncbytescat(buf,prefix);
+    for(i=0;i<nclistlength(segments);i++) {
 	const char* seg = nclistget(segments,i);
-	if(seg[0] != '/')
-	    ncbytescat(buf,"/");
-	ncbytescat(buf,seg);		
+	if(i>0 && strncmp(seg,sep,seplen)!=0)
+	    ncbytescat(buf,sep);
+	ncbytescat(buf,seg);
     }
-
+    if(suffix) ncbytescat(buf,suffix);
+    if(pathp) *pathp = ncbytesextract(buf);
 done:
-    if(!stat) {
-	if(pathp) *pathp = ncbytesextract(buf);
-    }
     ncbytesfree(buf);
     return stat;
 }
-

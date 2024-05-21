@@ -9,8 +9,12 @@
 #include        "ncoffsets.h"
 #include        "netcdf_aux.h"
 #include        "dump.h"
+#include <stddef.h>
 
 #undef VERIFY
+#ifndef __MINGW32__
+#define HHPRINT
+#endif
 
 #define XVSNPRINTF vsnprintf
 /*
@@ -144,9 +148,9 @@ cloneconstant(NCConstant* con)
 	if(newcon->value.stringv.len == 0)
 	    s = NULL;
 	else {
-	    s = (char*)ecalloc(newcon->value.stringv.len+1);
+	    s = (char*)ecalloc((size_t)newcon->value.stringv.len+1);
 	    if(newcon->value.stringv.len > 0)
-	        memcpy(s,newcon->value.stringv.stringv,newcon->value.stringv.len);
+	        memcpy(s,newcon->value.stringv.stringv, (size_t)newcon->value.stringv.len);
 	    s[newcon->value.stringv.len] = '\0';
 	}
 	newcon->value.stringv.stringv = s;
@@ -154,7 +158,7 @@ cloneconstant(NCConstant* con)
     case NC_OPAQUE:
 	s = (char*)ecalloc(newcon->value.opaquev.len+1);
 	if(newcon->value.opaquev.len > 0)
-	    memcpy(s,newcon->value.opaquev.stringv,newcon->value.opaquev.len);
+	    memcpy(s,newcon->value.opaquev.stringv, newcon->value.opaquev.len);
 	s[newcon->value.opaquev.len] = '\0';
 	newcon->value.opaquev.stringv = s;
 	break;
@@ -215,7 +219,7 @@ datalistline(Datalist* ds)
 */
 
 static char* commifyr(char* p, Bytebuffer* buf);
-static char* wordstring(char* p, Bytebuffer* buf, int quote);
+static char* wordstring(char* p, Bytebuffer* buf, char quote);
 
 void
 commify(Bytebuffer* buf)
@@ -238,7 +242,7 @@ static char*
 commifyr(char* p, Bytebuffer* buf)
 {
     int comma = 0;
-    int c;
+    char c;
     while((c=*p++)) {
 	if(c == ' ') continue;
 	if(c == ',') continue;
@@ -263,7 +267,7 @@ commifyr(char* p, Bytebuffer* buf)
 char*
 word(char* p, Bytebuffer* buf)
 {
-    int c;
+    char c;
     while((c=*p++)) {
 	if(c == '}' || c == ' ' || c == ',') break;
 	if(c == '\\') {
@@ -271,16 +275,16 @@ word(char* p, Bytebuffer* buf)
 	    c=*p++;
 	    if(!c) break;
 	}
-	bbAppend(buf,(char)c);	
+	bbAppend(buf, c);
     }	
     p--; /* leave terminator for parent */
     return p;
 }
 
 static char*
-wordstring(char* p, Bytebuffer* buf, int quote)
+wordstring(char* p, Bytebuffer* buf, char quote)
 {
-    int c;
+    char c;
     bbAppend(buf,quote);
     while((c=*p++)) {	    
 	if(c == '\\') {
@@ -303,22 +307,25 @@ static const char zeros[] =
 void
 alignbuffer(NCConstant* prim, Bytebuffer* buf)
 {
-    int alignment,pad,offset;
+    int stat = NC_NOERR;
+    size_t alignment;
+    size_t pad,offset;
 
     ASSERT(prim->nctype != NC_COMPOUND);
 
     if(prim->nctype == NC_ECONST)
-        alignment = ncaux_class_alignment(prim->value.enumv->typ.typecode);
+        stat = ncaux_class_alignment(prim->value.enumv->typ.typecode,&alignment);
     else if(usingclassic && prim->nctype == NC_STRING)
-        alignment = ncaux_class_alignment(NC_CHAR);
+        stat = ncaux_class_alignment(NC_CHAR,&alignment);
     else if(prim->nctype == NC_CHAR)
-        alignment = ncaux_class_alignment(NC_CHAR);
+        stat = ncaux_class_alignment(NC_CHAR,&alignment);
     else
-        alignment = ncaux_class_alignment(prim->nctype);
-    offset = bbLength(buf);
-    pad = getpadding(offset,alignment);
-    if(pad > 0) {
-	bbAppendn(buf,(void*)zeros,pad);
+        stat = ncaux_class_alignment(prim->nctype,&alignment);
+    if(!stat) {
+        offset = bbLength(buf);
+        pad = getpadding(offset,alignment);
+        if(pad > 0)
+   	    bbAppendn(buf,(void*)zeros,pad);
     }
 }
 
@@ -385,7 +392,7 @@ vbbprintf(Bytebuffer* buf, const char* fmt, va_list argv)
 {
     char tmp[128];
     const char* p;
-    int c;
+    char c;
     int hcount;
     int lcount;
 
@@ -413,10 +420,15 @@ retry:	    switch ((c=*p++)) {
 		goto retry;	        
 	    case 'u':
 		if(hcount == 2) {
-   	            snprintf(tmp,sizeof(tmp),"%hhu",
-			(unsigned char)va_arg(argv,unsigned int));
+   	            snprintf(tmp,sizeof(tmp),
+#ifdef HHPRINT
+			"%hhu"
+#else
+			"%2u"
+#endif
+			,(unsigned char)va_arg(argv,unsigned int));
 		} else if(hcount == 1) {
-   	            snprintf(tmp,sizeof(tmp),"%hu",
+   	            snprintf(tmp,sizeof(tmp), "%hu",
 			(unsigned short)va_arg(argv,unsigned int));
 		} else if(lcount == 2) {
    	            snprintf(tmp,sizeof(tmp),"%llu",
@@ -432,8 +444,13 @@ retry:	    switch ((c=*p++)) {
 		break;
 	    case 'd':
 		if(hcount == 2) {
-   	            snprintf(tmp,sizeof(tmp),"%hhd",
-			(signed char)va_arg(argv,signed int));
+   	            snprintf(tmp,sizeof(tmp),
+#ifdef HHPRINT
+			"%hhd"
+#else
+			"%2d"
+#endif
+			,(signed char)va_arg(argv,signed int));
 		} else if(hcount == 1) {
    	            snprintf(tmp,sizeof(tmp),"%hd",
 			(signed short)va_arg(argv,signed int));
@@ -464,8 +481,8 @@ retry:	    switch ((c=*p++)) {
 		bbCat(buf,text);
 		break;		
 	    case 'c':
-		c = va_arg(argv,int);
-		bbAppend(buf,(char)c);
+		c = (char)va_arg(argv,int);
+		bbAppend(buf,c);
 		break;		
             default:
 		PANIC1("vbbprintf: unknown specifier: %c",(char)c);
@@ -587,8 +604,8 @@ builddatalist(int initial)
     initial++; /* for header*/
     ci = (Datalist*)ecalloc(sizeof(Datalist));
     if(ci == NULL) semerror(0,"out of memory\n");
-    ci->data = (NCConstant**)ecalloc(sizeof(NCConstant*)*initial);
-    ci->alloc = initial;
+    ci->data = (NCConstant**)ecalloc(sizeof(NCConstant*) * (size_t)initial);
+    ci->alloc = (size_t)initial;
     ci->length = 0;
     return ci;
 }
@@ -612,11 +629,10 @@ dlset(Datalist* dl, size_t pos, NCConstant* constant)
 NCConstant*
 dlremove(Datalist* dl, size_t pos)
 {
-    int i;
     NCConstant* con = NULL;
     ASSERT(dl->length > 0 && pos < dl->length);	
     con = dl->data[pos];
-    for(i=pos+1;i<dl->length;i++)
+    for(size_t i=pos+1;i<dl->length;i++)
         dl->data[i-1] = dl->data[i];
     dl->length--;
     return con;
@@ -625,18 +641,17 @@ dlremove(Datalist* dl, size_t pos)
 void
 dlinsert(Datalist* dl, size_t pos, Datalist* insertion)
 {
-    int i;
-    int len1 = datalistlen(dl);
-    int len2 = datalistlen(insertion);
-    int delta = len1 - pos;
-    dlsetalloc(dl,len2+len1+1);
+    size_t len1 = datalistlen(dl);
+    size_t len2 = datalistlen(insertion);
+    ptrdiff_t delta = (ptrdiff_t)(len1 - pos);
+    dlsetalloc(dl, len2+len1+1);
 
    
     /* move contents of dl up to make room for insertion */
     if(delta > 0)
-        memmove(&dl->data[pos+len2],&dl->data[pos],delta*sizeof(NCConstant*));
+        memmove(&dl->data[pos+len2],&dl->data[pos], (size_t)delta*sizeof(NCConstant*));
     dl->length += len2;
-    for(i=0;i<len2;i++) {
+    for(size_t i=0;i<len2;i++) {
 	NCConstant* con = insertion->data[i];
 	con = cloneconstant(con);
         dl->data[pos+i] = con;
@@ -684,7 +699,7 @@ clonedatalist(Datalist* dl)
 
     if(dl == NULL) return NULL;
     len = datalistlen(dl);
-    newdl = builddatalist(len);
+    newdl = builddatalist((int)len);
     /* initialize */
     for(i=0;i<len;i++) {
 	NCConstant* con = datalistith(dl,i);
@@ -759,8 +774,7 @@ freedatalist(Datalist* list)
 void
 reclaimalldatalists(void)
 {
-    int i;
-    for(i=0;i<listlength(alldatalists);i++) {
+    for(size_t i=0;i<listlength(alldatalists);i++) {
         Datalist* di = listget(alldatalists,i);
 	if(di != NULL)
 	    reclaimdatalist(di);

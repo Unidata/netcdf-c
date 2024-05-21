@@ -83,11 +83,8 @@ COLUMBIA="http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.NASA-GMAO/.MONTH
 # Known to fail
 
 XFAILTESTS=
-
-# Suppress some tests if not windows platform.
-if test "x$FP_ISMSVC" != xyes ; then
-    XFAILTESTS="$XFAILTESTS test.67"
-fi
+# Suppress some tests because of floating point precision issues
+XFAILTESTS="$XFAILTESTS test.67"
 
 # Following tests must be run as not cached
 NOCACHETESTS="test.07"
@@ -119,16 +116,16 @@ computewhich() { # set REMOTETESTS and constrained
 constrain() {
   T="$1;;" # add semicolons to fake out the cut command
   # see if we are using constraints will set testname and ce and testno and constrained
-  testname=`echo -n $T | cut "-d;" -f1`
-  testno=`echo -n $T | cut "-d;" -f2`
-  ce=`echo -n $T | cut "-d;" -f3`
+  testname=`echon $T | cut "-d;" -f1`
+  testno=`echon $T | cut "-d;" -f2`
+  ce=`echon $T | cut "-d;" -f3`
   if test "x$ce" = x ; then constrained=0; else constrained=1; fi
 }
 
 setcache() {
   CACHE="[cache]"
   if test "x${NOCACHETESTS}" != x ; then
-    if IGNORE=`echo -n " ${NOCACHETESTS} " | fgrep " $1 "`; then CACHE=; fi
+    if IGNORE=`echon " ${NOCACHETESTS} " | fgrep " $1 "`; then CACHE=; fi
   fi
   PARAMS="${PARAMS}${CACHE}"
 }
@@ -136,7 +133,7 @@ setcache() {
 setprefetch() {
   PREFETCH="[prefetch]"
   if test "x${NOPREFETCHTESTS}" != x ; then
-    if IGNORE=`echo -n " ${NOPREFETCHTESTS} " | fgrep " $1 "`; then PREFETCH=; fi
+    if IGNORE=`echon " ${NOPREFETCHTESTS} " | fgrep " $1 "`; then PREFETCH=; fi
   fi
   PARAMS="${PARAMS}${PREFETCH}"
 }
@@ -158,9 +155,9 @@ for x in ${REMOTETESTS} ; do
   if test "x$quiet" = "x0" ; then echo "*** Testing: ${name} ; url=$url" ; fi
   # determine if this is an xfailtest
   isxfail=0
-  if test "x${XFAILTESTS}" != x ; then
-    if IGNORE=`echo -n " ${XFAILTESTS} " | fgrep " ${name} "`; then isxfail=1; fi
-  fi
+  for xf in $XFAILTESTS ; do
+    if test "x$xf" = "x${name}" ; then isxfail=1; fi
+  done
   ok=1
   if ${NCDUMP} ${DUMPFLAGS} "${url}" | sed 's/\\r//g' > ${name}.dmp ; then ok=$ok; else ok=0; fi
   # compare with expected

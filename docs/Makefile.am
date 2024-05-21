@@ -8,16 +8,15 @@
 
 # These files will be included with the dist.
 EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html	\
-mainpage.dox tutorial.dox cdl.dox			\
-architecture.dox internal.dox windows-binaries.md			\
-building-with-cmake.md CMakeLists.txt groups.dox notes.md	\
-install-fortran.md all-error-codes.md credits.md auth.md filters.md \
-obsolete/fan_utils.html indexing.dox	\
-inmemory.md attribute_conventions.md FAQ.md	                \
-file_format_specifications.md known_problems.md COPYRIGHT.md		\
-inmeminternal.dox              \
-testserver.dox byterange.dox   \
-nczarr.md
+mainpage.dox tutorial.dox architecture.dox internal.md			\
+windows-binaries.md dispatch.md building-with-cmake.md CMakeLists.txt groups.dox	\
+notes.md install-fortran.md credits.md auth.md filters.md		\
+obsolete/fan_utils.html indexing.dox inmemory.md FAQ.md			\
+known_problems.md COPYRIGHT.md inmeminternal.dox testserver.dox		\
+byterange.md nczarr.md quantize.md all-error-codes.md                   \
+quickstart_paths.md cloud.md header.html attribute_conventions.md \
+file_format_specifications.md quickstart_filters.md \
+doxygen-awesome-css netcdf-50x50.png
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
@@ -57,8 +56,7 @@ endif
 # includes them in the documentation.
 
 doxyfile.stamp:
-	$(DOXYGEN) Doxyfile \
-	cp auth.md obsolete/fan_utils.html html
+	$(DOXYGEN) Doxyfile && cp $(top_srcdir)/docs/auth.md $(top_srcdir)/docs/obsolete/fan_utils.html html
 
 CLEANFILES = doxyfile.stamp
 
@@ -66,6 +64,7 @@ CLEANFILES = doxyfile.stamp
 # everything needed for the website. Run this and copy the resulting
 # tarball to the /contents/netcdf/docs directory to update the on-line
 # docs.
+# UPDATE Nov 12, 2021: docs now published to Unidata artifacts server.
 web-tarball: doxyfile.stamp
 	cd html; tar cf ../netcdf_docs.tar *
 	gzip -f netcdf_docs.tar

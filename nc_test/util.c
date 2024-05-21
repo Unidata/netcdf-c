@@ -48,7 +48,7 @@ inRange_uchar(const int     cdf_format,
     if (cdf_format < NC_FORMAT_CDF5 && xtype == NC_BYTE) {
         /* netCDF specification make a special case for type conversion between
          * uchar and scahr: do not check for range error. See
-         * http://www.unidata.ucar.edu/software/netcdf/docs/data_type.html#type_conversion
+         * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
          */
         return(value >= 0 && value <= 255);
         /* this is to ensure value is within the range of uchar */
@@ -88,8 +88,8 @@ inRange_float(const double value, const nc_type xtype)
         case NC_UBYTE:  min = 0;            max = X_UCHAR_MAX;  break;
         case NC_USHORT: min = 0;            max = X_USHORT_MAX; break;
         case NC_UINT:   min = 0;            max = X_UINT_MAX;   break;
-        case NC_INT64:  min = X_INT64_MIN;  max = X_INT64_MAX;  break;
-        case NC_UINT64: min = 0;            max = X_UINT64_MAX; break;
+        case NC_INT64:  min = X_INT64_MIN;  max = (double)X_INT64_MAX;  break;
+        case NC_UINT64: min = 0;            max = (double)X_UINT64_MAX; break;
 	default:  assert(0);
     }
     if(!( value >= min && value <= max)) {
@@ -126,7 +126,7 @@ inRange3(const int    cdf_format,
 {
     /* netCDF specification make a special case for type conversion between
      * uchar and NC_BYTE: do not check for range error. See
-     * http://www.unidata.ucar.edu/software/netcdf/docs/data_type.html#type_conversion
+     * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
      * The _uchar and _schar functions were introduced in netCDF-3 to eliminate
      * an ambiguity, and support both signed and unsigned byte data. In
      * netCDF-2, whether the external NC_BYTE type represented signed or
@@ -170,8 +170,8 @@ equal(const double x,
         /* because in-memory data type char can be signed or unsigned,
          * type cast the value from external NC_CHAR before the comparison
          */
-        char x2 = (char) x;
-        char y2 = (char) y;
+        char x2 = *(char *)&x;
+        char y2 = *(char *)&y;
         return ABS(x2-y2) <= epsilon * MAX( ABS(x2), ABS(y2));
     }
 
@@ -194,8 +194,8 @@ equal2(const double x,
         /* because in-memory data type char can be signed or unsigned,
          * type cast the value from external NC_CHAR before the comparison
          */
-        char x2 = (char) x;
-        char y2 = (char) y;
+        char x2 = *(char *)&x;
+        char y2 = *(char *)&y;
         return ABS(x2-y2) <= epsilon * MAX( ABS(x2), ABS(y2));
     }
 
@@ -229,7 +229,7 @@ size_t roll( size_t n )
 	 * We don't use RAND_MAX here because not all compilation
 	 * environments define it (e.g. gcc(1) under SunOS 4.1.4).
 	 */
-	r = (size_t)(((rand() % 32768) / 32767.0) * (n - 1) + 0.5);
+       r = (size_t)(((rand() % 32768) / 32767.0) * ((double)n - 1) + 0.5);
     while (r >= n);
 
     return r;
@@ -319,8 +319,8 @@ int nc2dbl ( const nc_type xtype, const void *p, double *result)
 #endif
         case NC_FLOAT:  *result = *((float *)              p); break;
         case NC_DOUBLE: *result = *((double *)             p); break;
-        case NC_INT64:  *result = *((long long *)          p); break;
-        case NC_UINT64: *result = *((unsigned long long *) p); break;
+        case NC_INT64:  *result = (double)*((long long *)          p); break;
+        case NC_UINT64: *result = (double)*((unsigned long long *) p); break;
         default: return 1;
     }
     return 0;
@@ -343,7 +343,7 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
              * reporting it as a range error.
              */
             if ( r < X_CHAR_MIN || r > X_CHAR_MAX ) return 2;
-            *((signed char*) p) = (signed char)r;
+            *((unsigned char*) p) = (unsigned char)r;
             break;
         case NC_BYTE:
             r = floor(0.5+d);
@@ -413,8 +413,8 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
 double
 hash( const nc_type xtype, const int rank, const size_t *index )
 {
-    double base;
-    double result;
+    double base = 0;
+    double result = 0;
     int  d;       /* index of dimension */
 
 	/* If vector then elements 0 & 1 are min & max. Elements 2 & 3 are */
@@ -504,7 +504,7 @@ hash( const nc_type xtype, const int rank, const size_t *index )
 	}
 	result = rank < 0 ? base * 7 : base * (rank + 1);
 	for (d = 0; d < abs(rank); d++)
-	    result = base * (result + index[d]);
+            result = base * (result + (double)index[d]);
     }
     return result;
 }
@@ -628,7 +628,7 @@ hash4(const int        cdf_format,
 
     /* netCDF specification make a special case for type conversion between
      * uchar and NC_BYTE: do not check for range error. See
-     * http://www.unidata.ucar.edu/software/netcdf/docs/data_type.html#type_conversion
+     * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
      * The _uchar and _schar functions were introduced in netCDF-3 to eliminate
      * an ambiguity, and support both signed and unsigned byte data. In
      * netCDF-2, whether the external NC_BYTE type represented signed or
@@ -670,8 +670,7 @@ char2type(char letter) {
 static void
 init_dims(const char *digit)
 {
-	int dimid;			/* index of dimension */
-	for (dimid = 0; dimid < NDIMS; dimid++)
+	for (size_t dimid = 0; dimid < NDIMS; dimid++)
 	{
 		dim_len[dimid] = dimid == 0 ? NRECS : dimid;
 		dim_name[dimid][0] = 'D';
@@ -683,8 +682,7 @@ init_dims(const char *digit)
 static void
 init_gatts(const char *type_letter)
 {
-	int attid;
-	for (attid = 0; attid < numGatts; attid++)
+	for (size_t attid = 0; attid < numGatts; attid++)
 	{
 		gatt_name[attid][0] = 'G';
 		gatt_name[attid][1] = type_letter[attid];
@@ -726,7 +724,7 @@ init_gvars (void)
 	int rank;
 	int vn;			/* var number */
 	int xtype;		/* index of type */
-	int an;			/* attribute number */
+	size_t an;			/* attribute number */
 
 	assert(sizeof(max_dim_len)/sizeof(max_dim_len[0]) >= MAX_RANK);
 
@@ -744,11 +742,11 @@ init_gvars (void)
 		for (jj = 0; jj < nvars; jj++)
 		{
 				/* number types of this shape */
-			const int ntypes = rank < 2 ? numTypes : 1;
+			const size_t ntypes = rank < 2 ? numTypes : 1;
 
 			int tc;
 			for (tc = 0; tc < ntypes;
-			     tc++, vn++, xtype = (xtype + 1) % numTypes)
+			     tc++, vn++, xtype = (xtype + 1) % (int)numTypes)
 			{
 				size_t tmp[MAX_RANK];
 
@@ -781,7 +779,7 @@ init_gvars (void)
 						assert (var_dimid[vn][dn] <= 9);
 						var_name[vn][dn + 1] = digit[var_dimid[vn][dn]];
 						var_shape[vn][dn] = var_dimid[vn][dn] ?
-							var_dimid[vn][dn] : NRECS;
+                                                	(size_t)var_dimid[vn][dn] : NRECS;
 						var_nels[vn] *= var_shape[vn][dn];
 					}
 				} /* dn block */
@@ -969,7 +967,7 @@ check_dims(int  ncid)
 void
 check_vars(int  ncid)
 {
-    size_t index[MAX_RANK];
+    size_t index[MAX_RANK] = {0};
     char  text, name[NC_MAX_NAME];
     int  i, err;		/* status */
     size_t  j;
@@ -1006,7 +1004,7 @@ check_vars(int  ncid)
           	err = nc_get_var1_text(ncid, i, index, &text);
             IF (err)
 		    error("nc_get_var1_text: %s", nc_strerror(err));
-            IF (text != (char)expect) {
+            IF ((unsigned char)text != (unsigned char)expect) {
               error("Var %s [%lu] value read %hhd not that expected %g ",
                   var_name[i], j, text, expect);
 		    print_n_size_t(var_rank[i], index);
@@ -1073,8 +1071,9 @@ check_atts(int  ncid)
 		    error("nc_get_att_text: %s", nc_strerror(err));
 		for (k = 0; k < ATT_LEN(i,j); k++) {
 		    expect = hash(xtype, -1, &k);
-		    IF (text[k] != (char)expect) {
-			error("nc_get_att_text: unexpected value");
+		    IF ((unsigned char)text[k] != (unsigned char)expect) {
+            error("Var %s [%lu] value read %hhd not that expected %g ",
+                  var_name[i], j, text, expect);
             	    } else {
               		nok++;
             	    }
@@ -1223,9 +1222,9 @@ char* nc_err_code_name(int err)
     if (err > 0) { /* system error */
         const char *cp = (const char *) strerror(err);
         if (cp == NULL)
-            sprintf(unknown_str,"Unknown error code %d",err);
+            snprintf(unknown_str,sizeof(unknown_str),"Unknown error code %d",err);
         else
-            sprintf(unknown_str,"Error code %d (%s)",err,cp);
+            snprintf(unknown_str,sizeof(unknown_str),"Error code %d (%s)",err,cp);
         return unknown_str;
     }
 
@@ -1395,7 +1394,7 @@ char* nc_err_code_name(int err)
 #endif
 #endif
         default:
-              sprintf(unknown_str,"Unknown code %d",err);
+              snprintf(unknown_str,sizeof(unknown_str),"Unknown code %d",err);
     }
     return unknown_str;
 }

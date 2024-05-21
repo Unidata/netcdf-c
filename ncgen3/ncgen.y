@@ -66,13 +66,13 @@ static void *rec_cur;		/* pointer to where next data value goes */
 static void *rec_start;		/* start of space for data */
 
 /* Forward declarations */
-void defatt();
-void equalatt();
+void defatt(void);
+void equalatt(void);
 
 #ifdef YYLEX_PARAM
 int yylex(YYLEX_PARAM);
 #else
-int yylex();
+int yylex(void);
 #endif
 
 #ifdef vms
@@ -142,7 +142,7 @@ dimdecline:     dimdecl
 dimdecl:        dimd '=' INT_CONST
 		   { if (int_val <= 0)
 			 derror("dimension length must be positive");
-		     dims[ndims].size = int_val;
+		     dims[ndims].size = (size_t)int_val;
 		     ndims++;
 		   }
                 | dimd '=' DOUBLE_CONST
@@ -629,10 +629,10 @@ const:         CHAR_CONST
 		       atype_code = NC_SHORT;
 		       switch (valtype) {
 			 case NC_CHAR:
-			   *char_valp++ = short_val;
+			   *char_valp++ = (char)short_val;
 			   break;
 			 case NC_BYTE:
-			   *byte_valp++ = short_val;
+			   *byte_valp++ = (signed char)short_val;
 			   break;
 			 case NC_SHORT:
 			   *short_valp++ = short_val;
@@ -655,19 +655,19 @@ const:         CHAR_CONST
 		       atype_code = NC_INT;
 		       switch (valtype) {
 			 case NC_CHAR:
-			   *char_valp++ = int_val;
+			   *char_valp++ = (char)int_val;
 			   break;
 			 case NC_BYTE:
-			   *byte_valp++ = int_val;
+			   *byte_valp++ = (signed char)int_val;
 			   break;
 			 case NC_SHORT:
-			   *short_valp++ = int_val;
+			   *short_valp++ = (short)int_val;
 			   break;
 			 case NC_INT:
 			   *int_valp++ = int_val;
 			   break;
 			 case NC_FLOAT:
-			   *float_valp++ = int_val;
+			   *float_valp++ = (float)int_val;
 			   break;
 			 case NC_DOUBLE:
 			   *double_valp++ = int_val;
@@ -681,16 +681,16 @@ const:         CHAR_CONST
 		       atype_code = NC_FLOAT;
 		       switch (valtype) {
 			 case NC_CHAR:
-			   *char_valp++ = float_val;
+			   *char_valp++ = (char)float_val;
 			   break;
 			 case NC_BYTE:
-			   *byte_valp++ = float_val;
+			   *byte_valp++ = (signed char)float_val;
 			   break;
 			 case NC_SHORT:
-			   *short_valp++ = float_val;
+			   *short_valp++ = (short)float_val;
 			   break;
 			 case NC_INT:
-			   *int_valp++ = float_val;
+			   *int_valp++ = (int)float_val;
 			   break;
 			 case NC_FLOAT:
 			   *float_valp++ = float_val;
@@ -707,22 +707,22 @@ const:         CHAR_CONST
 		       atype_code = NC_DOUBLE;
 		       switch (valtype) {
 			 case NC_CHAR:
-			   *char_valp++ = double_val;
+			   *char_valp++ = (char)double_val;
 			   break;
 			 case NC_BYTE:
-			   *byte_valp++ = double_val;
+			   *byte_valp++ = (signed char)double_val;
 			   break;
 			 case NC_SHORT:
-			   *short_valp++ = double_val;
+			   *short_valp++ = (short)double_val;
 			   break;
 			 case NC_INT:
-			   *int_valp++ = double_val;
+			   *int_valp++ = (int)double_val;
 			   break;
 			 case NC_FLOAT:
 			   if (double_val == NC_FILL_DOUBLE)
 			     *float_valp++ = NC_FILL_FLOAT;
 			   else
-			     *float_valp++ = double_val;
+			     *float_valp++ = (float)double_val;
 			   break;
 			 case NC_DOUBLE:
 			   *double_valp++ = double_val;
@@ -770,7 +770,7 @@ const:         CHAR_CONST
 %%
 
 /* HELPER PROGRAMS */
-void defatt()
+void defatt(void)
 {
     valnum = 0;
     valtype = NC_UNSPECIFIED;
@@ -785,7 +785,7 @@ void defatt()
     double_valp = (double *) att_space;
 }
 
-void equalatt()
+void equalatt(void)
 {
     /* check if duplicate attribute for this var */
     int i;
@@ -802,13 +802,13 @@ void equalatt()
     /* shrink space down to what was really needed */
     att_space = erealloc(att_space, valnum*nctypesize(valtype));
     atts[natts].val = att_space;
-    if (STREQ(atts[natts].name, _FillValue) &&
+    if (STREQ(atts[natts].name, NC_FillValue) &&
         atts[natts].var != NC_GLOBAL) {
         nc_putfill(atts[natts].type,atts[natts].val,
                    &vars[atts[natts].var].fill_value);
         if(atts[natts].type != vars[atts[natts].var].type) {
             derror("variable %s: %s type mismatch",
-                   vars[atts[natts].var].name, _FillValue);
+                   vars[atts[natts].var].name, NC_FillValue);
         }
     }
     natts++;

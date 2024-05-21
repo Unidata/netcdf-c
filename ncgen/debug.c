@@ -7,8 +7,6 @@ See COPYRIGHT for license information.
 
 #define TRACE
 
-extern char* ncclassname(nc_class);
-
 #ifdef TRACE
 #define T(fcn,mem) {if(trace) {fprintf(stderr,"X: %s: %p\n", fcn,mem);}}
 #else

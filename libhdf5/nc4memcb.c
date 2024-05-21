@@ -723,7 +723,7 @@ NC4_image_init(NC_FILE_INFO_T* h5)
     char                file_name[64];	/* Filename buffer */
     size_t              alloc_incr;     /* Buffer allocation increment */
     size_t              min_incr = 65536; /* Minimum buffer increment */
-    double              buf_prcnt = 0.1f;  /* Percentage of buffer size to set
+    double              buf_prcnt = 0.1;  /* Percentage of buffer size to set
                                              as increment */
     unsigned imageflags;
     int create = 0;
@@ -753,8 +753,8 @@ NC4_image_init(NC_FILE_INFO_T* h5)
     /* set allocation increment to a percentage of the supplied buffer size, or
      * a pre-defined minimum increment value, whichever is larger
      */
-    if ((buf_prcnt * h5->mem.memio.size) > min_incr)
-        alloc_incr = (size_t)(buf_prcnt * h5->mem.memio.size);
+    if ((size_t)(buf_prcnt * (double)h5->mem.memio.size) > min_incr)
+        alloc_incr = (size_t)(buf_prcnt * (double)h5->mem.memio.size);
     else
         alloc_incr = min_incr;
 
@@ -794,6 +794,10 @@ NC4_image_init(NC_FILE_INFO_T* h5)
     if (H5Pset_file_image(fapl, udata->app_image_ptr, udata->app_image_size) < 0)
         goto out;
 
+    /* Maintain a backward link */
+    h5->mem.udata = (void*)udata;
+    udata = NULL;
+
     /* define a unique file name */
     snprintf(file_name, (sizeof(file_name) - 1), "file_image_%ld", file_name_counter++);
 
@@ -813,10 +817,6 @@ NC4_image_init(NC_FILE_INFO_T* h5)
         if ((file_id = nc4_H5Fopen(file_name, file_open_flags, fapl)) < 0)
             goto out;
     }
-
-    /* Maintain a backward link */
-    h5->mem.udata = (void*)udata;
-    udata = NULL;
 
 done:
     /* Reclaim the fapl object */
@@ -854,22 +854,25 @@ NC4_image_finalize(void* _udata)
 }
 
 int
-NC4_extract_file_image(NC_FILE_INFO_T* h5)
+NC4_extract_file_image(NC_FILE_INFO_T* h5, int abort)
 {
     int stat = NC_NOERR;
     H5LT_file_image_ud_t *udata;
 
     udata = (H5LT_file_image_ud_t *)h5->mem.udata;
-    assert(udata != NULL);
+    if(abort && udata == NULL) {
+        stat = NC_EHDFERR;
+    } else {
+        assert(udata != NULL);
 
-    /* Fill in h5->mem.memio from udata */
-    h5->mem.memio.memory = udata->vfd_image_ptr;
-    h5->mem.memio.size = udata->vfd_image_size;
+        /* Fill in h5->mem.memio from udata */
+        h5->mem.memio.memory = udata->vfd_image_ptr;
+        h5->mem.memio.size = udata->vfd_image_size;
 
-    /* Move control */
-    udata->vfd_image_ptr = NULL;
-    udata->vfd_image_size = 0;
-    
+        /* Move control */
+        udata->vfd_image_ptr = NULL;
+        udata->vfd_image_size = 0;
+    }
     return stat;
 }
 

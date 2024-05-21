@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include <nc_tests.h>
+#include <stddef.h>
 #include "err_macros.h"
 
 #define FILE_NAME "tst_global_fillval.nc"
@@ -28,8 +29,8 @@ main(int argc, char **argv)
     {
 
 	int n = 0;
-    int i;
-    int num_formats = 2;
+    size_t i;
+    size_t num_formats = 2;
     int *formats = NULL;
 	/* Determine how many formats are in use. */
 
@@ -37,7 +38,7 @@ main(int argc, char **argv)
     num_formats += 2;
 #endif
 
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
     num_formats++;
 #endif
 
@@ -46,7 +47,7 @@ main(int argc, char **argv)
 
 	formats[n++] = 0;
 	formats[n++] = NC_64BIT_OFFSET;
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
 	formats[n++] = NC_64BIT_DATA;
 #endif
 #ifdef USE_HDF5

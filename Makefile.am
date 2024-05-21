@@ -7,16 +7,33 @@
 
 # Ed Hartnett, Ward Fisher
 
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
+
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
+
+TESTS_ENVIRONMENT =
+TEST_EXTENSIONS = .sh
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT += export SETX=1;
+
+##
+# Turn off plugin directory during distcheck, see
+# comment thread at https://github.com/Unidata/netcdf-c/pull/2348
+# for more information.
+##
+AM_DISTCHECK_CONFIGURE_FLAGS = --without-plugin-dir
 
 # These files get added to the distribution.
 EXTRA_DIST = README.md COPYRIGHT INSTALL.md test_prog.c lib_flags.am	\
 cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in		\
 cmake_uninstall.cmake.in FixBundle.cmake.in nc-config.cmake.in		\
-RELEASE_NOTES.md CTestCustom.cmake CTestConfig.cmake.in			\
+RELEASE_NOTES.md CTestConfig.cmake.in CTestCustom.cmake.in		\
 libnetcdf.settings.in netCDFConfig.cmake.in CMakeInstallation.cmake	\
-test-driver-verbose test_common.in
+test-driver-verbose test_common.in fuzz CITATION.cff
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
@@ -32,7 +49,7 @@ V2_TEST = nctest
 endif
 
 # Does the user want to build ncgen/ncdump?
-if BUILD_UTILITIES
+if NETCDF_BUILD_UTILITIES
 NCGEN3 = ncgen3
 NCGEN = ncgen
 NCDUMP = ncdump
@@ -59,17 +76,21 @@ endif
 endif
 
 # Build the dap2 client
-if ENABLE_DAP
+if NETCDF_ENABLE_DAP
 OCLIB = oc2
 DAP2 = libdap2
 NCDAP2TESTDIR = ncdap_test
 endif
 
-if ENABLE_DAP4
+if NETCDF_ENABLE_DAP4
 DAP4 = libdap4
-XML = libncxml
 NCDAP4TESTDIR = dap4_test
+XML = libncxml
 endif #DAP4
+
+if NETCDF_ENABLE_S3_INTERNAL
+XML = libncxml # Internal S3 requires XML
+endif #NETCDF_ENABLE_S3_INTERNAL
 
 # Build PnetCDF
 if USE_PNETCDF
@@ -83,18 +104,18 @@ LIBHDF4 = libhdf4
 endif
 
 # Build Plugin support
-if ENABLE_PLUGINS
+if NETCDF_ENABLE_PLUGINS
 NCPOCO = libncpoco
 endif
 
 # Build Cloud Storage if desired.
-if ENABLE_NCZARR
-ZARR_TEST_DIR = nczarr_test
-ZARR = libnczarr 
+if NETCDF_ENABLE_NCZARR
+ZARR_TEST_DIRS = nczarr_test
+ZARR = libnczarr
 endif
 
 # Optionally build test plugins
-if ENABLE_FILTER_TESTING
+if NETCDF_ENABLE_PLUGINS
 PLUGIN_DIR = plugins
 endif
 
@@ -105,18 +126,19 @@ endif # BUILD_BENCHMARKS
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)
+TESTDIRS = $(H5_TEST_DIR)
+TESTDIRS += $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)
 TESTDIRS += $(BENCHMARKS_DIR) $(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
-TESTDIRS += ${ZARR_TEST_DIR}
+TESTDIRS += ${ZARR_TEST_DIRS}
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
-SUBDIRS = include $(H5_TEST_DIR) ${XML} libdispatch libsrc $(LIBSRC4_DIR)	\
+SUBDIRS = include ${XML} libdispatch libsrc $(LIBSRC4_DIR)	\
 $(LIBSRCP) $(LIBHDF4) $(LIBHDF5) $(OCLIB) $(DAP2) ${DAP4} \
 ${NCPOCO} ${ZARR} liblib \
-$(NCGEN3) $(NCGEN) $(NCDUMP) ${PLUGIN_DIR} $(TESTDIRS) docs		\
+$(NCGEN3) $(NCGEN) $(NCDUMP) ${PLUGIN_DIR} $(TESTDIRS) docs	\
 $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
@@ -143,32 +165,6 @@ mm4::
 	for m in ${MM4} ; do \
 	  b=`basename $$m` ; d=`dirname $$m`;\
 	  pushd $$d; m4 -s $${b}.m4 > $${b}.c ; popd; done
-
-#####
-# If ENABLE_FORTRAN was turned on,
-# we have new make targets, build-netcdf-fortran and
-# install-netcdf-fortran.
-#####
-
-###
-# build-netcdf-fortran
-###
-if BUILD_FORTRAN
-
-build-netcdf-fortran:
-	echo "Downloading and Building NetCDF-Fortran"
-	chmod u+x $(abs_top_builddir)/postinstall.sh
-	sh -c "$(abs_top_builddir)/postinstall.sh -t autotools -a build"
-
-###
-# install-netcdf-fortran
-###
-install-netcdf-fortran:
-	echo "Installing NetCDF-Fortran"
-	chmod u+x $(abs_top_builddir)/postinstall.sh
-	sh -c "$(abs_top_builddir)/postinstall.sh -t autotools -a install"
-
-endif
 
 check_nc_config:
 	$(CC) `./nc-config --cflags` test_prog.c -o test_prog `./nc-config --libs`
@@ -199,11 +195,33 @@ install-data-hook:
 	@echo '| but your platform is probably different in some ways.       |'
 	@echo '|                                                             |'
 	@echo '| If any tests fail, please see the netCDF web site:          |'
-	@echo '| http://www.unidata.ucar.edu/software/netcdf/                |'
+	@echo '| https://www.unidata.ucar.edu/software/netcdf/                |'
 	@echo '|                                                             |'
 	@echo '| NetCDF is developed and maintained at the Unidata Program   |'
 	@echo '| Center. Unidata provides a broad array of data and software |'
 	@echo '| tools for use in geoscience education and research.         |'
-	@echo '| http://www.unidata.ucar.edu                                 |'
+	@echo '| https://www.unidata.ucar.edu                                 |'
 	@echo '+-------------------------------------------------------------+'
 	@echo ''
+
+
+# Create the VERSION file after the build
+# in case it is being used by packagers
+# Also track the S3 cleanup id
+all-local: liblib/libnetcdf.la
+	echo ${PACKAGE_VERSION} > VERSION
+if NETCDF_ENABLE_S3_TESTALL
+	rm -f ${abs_top_builddir}/tmp_@PLATFORMUID@.uids
+	echo "@TESTUID@" >> ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
+	cat ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids | sort | uniq > ${abs_top_builddir}/tmp_@PLATFORMUID@.uids
+	rm -f ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
+	mv ${abs_top_builddir}/tmp_@PLATFORMUID@.uids ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
+endif
+
+if NETCDF_ENABLE_S3_TESTALL
+distclean-local:
+	rm -f ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
+endif
+
+# Remove the VERSION file
+CLEANFILES = VERSION

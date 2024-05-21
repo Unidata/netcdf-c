@@ -9,6 +9,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+s3isolate "testdir_mapapi"
+THISDIR=`pwd`
+cd $ISOPATH
+
 # Test map implementations for consistency at the zmap API
 # level. This allows testing of implementations that do not admit
 # of easy examination of the actual storage.  For example it is
@@ -94,6 +98,7 @@ if test "x$FEATURE_S3TESTS" = xyes ; then
   echo ""; echo "*** Test zmap_s3sdk"
   export PROFILE="-p default"
   testmapcreate s3; testmapmeta s3; testmapdata s3; testmapsearch s3
+  s3sdkdelete "/${S3ISOPATH}" # Cleanup
 fi
 }
 

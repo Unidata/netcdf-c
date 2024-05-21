@@ -82,7 +82,7 @@ get_file_size(char *filename, size_t *file_size)
     FILE *fp;
     assert(filename && file_size);
 
-    fp = fopen(filename, "r");
+    fp = NCfopen(filename, "r");
     if (fp)
     {
         fseek(fp, 0 , SEEK_END);
@@ -290,7 +290,7 @@ write_meta(int ncid, int *data_varid, int s, int f, int nsd, int deflate, int u,
     {
         char data_var_name[NC_MAX_NAME + 1];
 
-        sprintf(data_var_name, "var_%d", dv);
+        snprintf(data_var_name, sizeof(data_var_name), "var_%d", dv);
         if (nc_redef(ncid)) ERR;
         if (nc_def_var(ncid, data_var_name, NC_FLOAT, NDIM4, dimid_data, &data_varid[dv])) ERR;
 
@@ -641,7 +641,7 @@ main(int argc, char **argv)
 
                     /* Use the same filename every time, so we don't
                      * create many large files, just one. ;-) */
-                    sprintf(file_name, "%s.nc", TEST_NAME);
+                    snprintf(file_name, sizeof(file_name), "%s.nc", TEST_NAME);
 
 		    /* nc_set_log_level(3); */
 		    /* Create a parallel netcdf-4 file. */

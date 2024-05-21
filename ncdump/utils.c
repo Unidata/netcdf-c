@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include "utils.h"
+#include "nccomps.h"
 #ifndef isascii
 EXTERNL int isascii(int c);
 #endif
@@ -79,10 +80,10 @@ erealloc (void* p0,			/* check return from realloc */
 }
 
 void
-check(int err, const char* file, const int line)
+check(int err, const char* file, const char* fcn, const int line)
 {
     fprintf(stderr,"%s\n",nc_strerror(err));
-    fprintf(stderr,"Location: file %s; line %d\n", file,line);
+    fprintf(stderr,"Location: file %s; fcn %s line %d\n",(file?file:"?"),(fcn?fcn:"?"),line);
     fflush(stderr); fflush(stdout);
     exit(1);
 }
@@ -316,7 +317,7 @@ nc_inq_dimid2(int ncid, const char *dimname, int *dimidp) {
     } 
 #ifdef USE_NETCDF4
     else {  /* Parse group name out and get dimid using that */
-      size_t grp_namelen = sp - dimname;
+      size_t grp_namelen = (size_t)(sp - dimname);
       char *grpname = emalloc(grp_namelen+1);
       
       int grpid;
@@ -349,10 +350,10 @@ isrecvar(int ncid, int varid)
 	int nunlimdims;
 	int *recdimids;
 	int dim, recdim;
-	dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+	dimids = (int *) emalloc((size_t)(ndims + 1) * sizeof(int));
 	NC_CHECK( nc_inq_vardimid(ncid, varid, dimids) );
 	NC_CHECK( nc_inq_unlimdims(ncid, &nunlimdims, NULL) );
-	recdimids = (int *) emalloc((nunlimdims + 1) * sizeof(int));
+	recdimids = (int *) emalloc((size_t)(nunlimdims + 1) * sizeof(int));
 	NC_CHECK( nc_inq_unlimdims(ncid, NULL, recdimids) );
 	for (dim = 0; dim < ndims && is_recvar == 0; dim++) {
 	    for(recdim = 0; recdim < nunlimdims; recdim++) {
@@ -503,7 +504,7 @@ nc_inq_grpname_count(int ncid, int igrp, char **lgrps, idnode_t *grpids) {
     NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
     if(numgrps > 0) {
 	/* Allocate memory to hold the list of group ids. */
-	ncids = emalloc(numgrps * sizeof(int));
+	ncids = emalloc((size_t)numgrps * sizeof(int));
 	/* Get the list of group ids. */
 	NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
 	/* Call this function recursively for each group. */
@@ -519,7 +520,7 @@ nc_inq_grpname_count(int ncid, int igrp, char **lgrps, idnode_t *grpids) {
 /* Check if any group names specified with "-g grp1,...,grpn" are
  * missing.  Returns total number of matching groups if no missing
  * groups detected, otherwise exits. */
-int
+size_t
 grp_matches(int ncid, int nlgrps, char** lgrps, idnode_t *grpids) {
     int ig;
     size_t total = 0;
@@ -648,7 +649,7 @@ nc_inq_varname_count(int ncid, char *varname) {
     NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
 	 
     /* Allocate memory to hold the list of group ids. */
-    ncids = emalloc((numgrps + 1) * sizeof(int));
+    ncids = emalloc((size_t)(numgrps + 1) * sizeof(int));
 	
     /* Get the list of group ids. */
     NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
@@ -690,7 +691,7 @@ make_lvars(char *optarg, int *nlvarsp, char ***lvarsp)
       if (*cp == ',')
  	nvars++;
     *nlvarsp = nvars;
-    *lvarsp = (char **) emalloc(nvars * sizeof(char*));
+    *lvarsp = (char **) emalloc((size_t)nvars * sizeof(char*));
     cpp = *lvarsp;
     /* copy variable names into list */
     for (cp = strtok(optarg, ","); cp != NULL; cp = strtok((char *) NULL, ",")) {
@@ -711,7 +712,7 @@ make_lgrps(char *optarg, int *nlgrps, char ***lgrpsp, idnode_t **grpidsp)
       if (*cp == ',')
  	ngrps++;
     *nlgrps = ngrps;
-    *lgrpsp = (char **) emalloc(ngrps * sizeof(char*));
+    *lgrpsp = (char **) emalloc((size_t)ngrps * sizeof(char*));
     cpp = *lgrpsp;
     /* copy group names into list */
     for (cp = strtok(optarg, ","); cp != NULL; cp = strtok((char *) NULL, ",")) {
@@ -851,7 +852,7 @@ nc_next_giter(ncgiter_t *iterp, int *grpidp) {
 	*grpidp = gs_pop(iterp);
 	NC_CHECK(nc_inq_grps2(*grpidp, &numgrps, NULL));
 	if(numgrps > 0) {
-	    grpids = (int *)emalloc(sizeof(int) * numgrps);
+	    grpids = (int *)emalloc(sizeof(int) * (size_t)numgrps);
 	    NC_CHECK(nc_inq_grps2(*grpidp, &numgrps, grpids));
 	    for(i = numgrps - 1; i >= 0; i--) { /* push ids on stack in reverse order */
 		gs_push(iterp, grpids[i]);
@@ -882,7 +883,7 @@ nc_free_giter(ncgiter_t *iterp)
  * for the group ids, then call again to get them.
  */
 int
-nc_inq_grps_full(int rootid, int *numgrps, int *grpids) 
+nc_inq_grps_full(int rootid, size_t *numgrps, int *grpids)
 {
     int stat = NC_NOERR;
     ncgiter_t *giter;		/* pointer to group iterator */
@@ -959,3 +960,39 @@ done:
 }
 #endif
 
+/*********************************************************************************/
+void nc_get_att_single_string(const int ncid, const int varid,
+                              const struct ncatt_t *att, char **str_out) {
+    if (att->type == NC_CHAR) {
+        // NC_CHAR type attribute
+        // Use a call to nc_get_att_text which expects to output the attribute value
+        // into a char * pointing to allocated memory. The number of bytes to allocate
+        // is the attribute length (which is the number of elements in a vector, 1 for
+        // scalar) times the size of each element in bytes. The attribute length is
+        // held in att->len, and the attribute element size is in att->tinfo->size.
+        *str_out = emalloc((att->len + 1) * att->tinfo->size);
+	(*str_out)[att->len] = '\0';
+        NC_CHECK(nc_get_att_text(ncid, varid, att->name, *str_out));
+    } else if (att->type == NC_STRING) {
+        // NC_STRING type attribute
+        // Use a call to nc_get_att_string which expects to output the attribute value
+        // into a vector of char pointers, where each entry points to allocated memory.
+        // The vector of char pointers needs to be allocated to the length (number of strings)
+        // times the size of each entry (size of a char *).
+        char **att_strings = emalloc((att->len + 1) * att->tinfo->size);
+        NC_CHECK(nc_get_att_string(ncid, varid, att->name, att_strings));
+        // str_out needs to be allocated to a size large enough to hold the string that
+        // the first pointer in att_strings is pointing to.
+        size_t att_str_len = strlen(att_strings[0]);
+        *str_out = emalloc((att_str_len + 1) * att->tinfo->size);
+	(*str_out)[att_str_len] = '\0';
+        strncpy(*str_out, att_strings[0], att_str_len);
+        nc_free_string(att->len, att_strings); /* Warning: does not free att_strings */
+	free(att_strings);
+    } else {
+        fprintf(stderr,"nc_get_att_single_string: unknown attribute type: %d\n", att->type);
+        fprintf(stderr,"                          must use one of:  NC_CHAR, NC_STRING\n");
+        fflush(stderr); fflush(stdout);
+        exit(2);
+    }
+}

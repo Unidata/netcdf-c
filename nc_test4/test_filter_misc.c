@@ -131,17 +131,24 @@ verifychunks(void)
 static int
 create(void)
 {
-    int i;
-
     /* Create a file with one big variable, but whose dimensions arte not a multiple of chunksize (to see what happens) */
     CHECK(nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid));
     CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
+    return NC_NOERR;
+}
+
+static int
+defvar(nc_type xtype)
+{
+    int i;
+
+    /* Create a file with one big variable, but whose dimensions arte not a multiple of chunksize (to see what happens) */
     for(i=0;i<ndims;i++) {
         char dimname[1024];
         snprintf(dimname,sizeof(dimname),"dim%d",i);
         CHECK(nc_def_dim(ncid, dimname, dimsize[i], &dimids[i]));
     }
-    CHECK(nc_def_var(ncid, "var", NC_FLOAT, ndims, dimids, &varid));
+    CHECK(nc_def_var(ncid, "var", xtype, (int)ndims, dimids, &varid));
     return NC_NOERR;
 }
 
@@ -184,22 +191,22 @@ openfile(void)
     }
     if(filterid != TEST_ID) {
         fprintf(stderr,"open: test id mismatch: %d\n",filterid);
+        free(params);
         return NC_EFILTER;
     }
     if(nparams != NPARAMS) {
-	size_t i;
-	unsigned int inqparams[MAXPARAMS];
+        size_t i;
         fprintf(stderr,"nparams  mismatch\n");
         for(nerrs=0,i=0;i<nparams;i++) {
-            if(inqparams[i] != baseline[i]) {
+            if(params[i] != baseline[i]) {
                 fprintf(stderr,"open: testparam mismatch: %ld\n",(unsigned long)i);
-		nerrs++;
-	    }
-	}
+                nerrs++;
+            }
+        }
     }
-    if(nerrs > 0) return NC_EFILTER; 
+    free(params);
 
-    if(params) free(params);
+    if(nerrs > 0) return NC_EFILTER;
 
     /* Verify chunking */
     if(!verifychunks())
@@ -345,8 +352,8 @@ buildbaseline(unsigned int testcasenumber)
         insert(7,&float4,sizeof(float4)); /* 7 float */
 	float8 = DBLVAL;
         insert(8,&float8,sizeof(float8)); /* 8 double */
-	val8 = -9223372036854775807L;
-        insert(10,&val8,sizeof(val8)); /* 10 signed long long */
+	long long sval8 = -9223372036854775807L;
+        insert(10,&sval8,sizeof(sval8)); /* 10 signed long long */
 	val8 = 18446744073709551615UL;
         insert(12,&val8,sizeof(val8)); /* 12 unsigned long long */
 	break;
@@ -370,6 +377,7 @@ test_test1(void)
 
     fprintf(stderr,"test1: compression.\n");
     create();
+    defvar(NC_FLOAT);
     setchunking();
     setvarfilter();
     showparameters();
@@ -401,6 +409,7 @@ test_test2(void)
 
     fprintf(stderr,"test2: dimsize %% chunksize != 0: compress.\n");
     create();
+    defvar(NC_FLOAT);
     setchunking();
     setvarfilter();
     showparameters();
@@ -433,6 +442,7 @@ test_test3(void)
 
     fprintf(stderr,"test3: dimsize %% chunksize != 0: compress.\n");
     create();
+    defvar(NC_FLOAT);
     setchunking();
     setvarfilter();
     showparameters();
@@ -480,8 +490,7 @@ odom_more(void)
 static int
 odom_next(void)
 {
-    int i; /* do not make unsigned */
-    for(i=ndims-1;i>=0;i--) {
+    for(size_t i=ndims;i-->0;) {
         odom[i] += 1;
         if(odom[i] < dimsize[i]) break;
         if(i == 0) return 0; /* leave the 0th entry if it overflows*/
@@ -496,8 +505,8 @@ odom_offset(void)
     int i;
     int offset = 0;
     for(i=0;i<ndims;i++) {
-        offset *= dimsize[i];
-        offset += odom[i];
+        offset *= (int)dimsize[i];
+        offset += (int)odom[i];
     }
     return offset;
 }
@@ -505,14 +514,7 @@ odom_offset(void)
 static float
 expectedvalue(void)
 {
-    int i;
-    float offset = 0;
-
-    for(i=0;i<ndims;i++) {
-        offset *= dimsize[i];
-        offset += odom[i];
-    }
-    return offset;
+    return (float)odom_offset();
 }
 
 static void

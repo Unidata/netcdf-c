@@ -1,0 +1,13 @@
+netcdf tst_enum_undef {
+types:
+  ubyte enum cloud_class_t {Cumulonimbus = 1, Stratus = 2, Stratocumulus = 3, 
+      Cumulus = 4, Altostratus = 5, Nimbostratus = 6, Altocumulus = 7, 
+      Cirrostratus = 8, Cirrocumulus = 9, Cirrus = 10, Missing = 255} ;
+dimensions:
+	station = 5 ;
+variables:
+	cloud_class_t primary_cloud(station) ;
+data:
+
+ primary_cloud = _UNDEFINED, Stratus, _UNDEFINED, Cumulonimbus, Missing ;
+}

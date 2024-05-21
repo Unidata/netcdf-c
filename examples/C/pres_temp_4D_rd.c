@@ -11,7 +11,7 @@ Research/Unidata. See COPYRIGHT file for conditions of use. */
  * the use of the netCDF C API.
  *
  * This is part of the netCDF package. Full documentation of the netCDF can be found at
- * http://www.unidata.ucar.edu/software/netcdf/docs.
+ * https://docs.unidata.ucar.edu/netcdf-c.
  *
  * @author Ed Hartnett
  */
@@ -79,7 +79,7 @@ main()
    float lats[NLAT], lons[NLON];
 
    /* Loop indexes. */
-   int lvl, lat, lon, rec, i = 0;
+   int lvl, lat, lon, i = 0;
    
    /* Error handling. */
    int retval;
@@ -128,7 +128,7 @@ main()
    start[3] = 0;
 
    /* Read and check one record at a time. */
-   for (rec = 0; rec < NREC; rec++)
+   for (size_t rec = 0; rec < NREC; rec++)
    {
       start[0] = rec;
       if ((retval = nc_get_vara_float(ncid, pres_varid, start, 

@@ -545,9 +545,9 @@ main(int argc, char **argv)
 	 /* hr data */
 	 hr_data_out[i].starfleet_id = i;
 	 hr_data_out[i].svc_rec = data[i];
-	 if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
-	 hr_data_out[i].max_temp = 99.99;
-	 hr_data_out[i].min_temp = -9.99;
+	 if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
+	 hr_data_out[i].max_temp = 99.99f;
+	 hr_data_out[i].min_temp = -9.99f;
 	 hr_data_out[i].percent_transporter_errosion = .030303;
       }
 
@@ -659,10 +659,10 @@ main(int argc, char **argv)
       /* Initialize data. */
       for (i = 0; i < DIM6_LEN; i++)
       {
-	 obsdata[i].day = 15 * i + 1;
-	 obsdata[i].elev = 2 * i + 1;
+         obsdata[i].day = (char)(15 * i + 1);
+	 obsdata[i].elev = (short)(2 * i + 1);
 	 obsdata[i].count = 2 * i + 1;
-	 obsdata[i].relhum = 2.0 * i + 1;
+	 obsdata[i].relhum = 2.0f * (float)i + 1;
 	 obsdata[i].time = 2.0 * i + 1;
       }
       missing_val.day = 99;
@@ -733,7 +733,7 @@ main(int argc, char **argv)
 	  val_in.relhum != missing_val.relhum) ERR;
 
       /* Read in each value and check */
-      for (i = 0; i < DIM6_LEN; i++) {
+      for (size_t i = 0; i < DIM6_LEN; i++) {
 	 size_t index[VAR6_RANK];
 	 index[0] = i;
 	 if (nc_get_var1(ncid, varid, index, (void *) &val_in)) ERR;
@@ -757,7 +757,6 @@ main(int argc, char **argv)
       int varid;
       nc_type typeid;
       char name_in[NC_MAX_NAME+1];
-      int i;
 
       typedef struct obs_t {
 	    char day ;
@@ -816,7 +815,7 @@ main(int argc, char **argv)
 	  val_in.relhum != missing_val.relhum) ERR;
 
       /* Read in each value and check */
-      for (i = 0; i < DIM6_LEN; i++) {
+      for (size_t i = 0; i < DIM6_LEN; i++) {
 	 size_t index[VAR6_RANK];
 	 index[0] = i;
 	 if (nc_get_var1(ncid, varid, index, (void *) &val_in)) ERR;
@@ -862,8 +861,8 @@ main(int argc, char **argv)
       /* Create some phony data. */
       for (i = 0; i < DIM1_LEN; i++)
       {
-	 if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
-	 hr_data_out[i].max_temp = 99.99;
+	 if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
+	 hr_data_out[i].max_temp = 99.99f;
       }
 
       /* Create a file with a nested compound type attribute and variable. */
@@ -927,9 +926,9 @@ main(int argc, char **argv)
       /* Create some phony data. */
       for (i = 0; i < DIM1_LEN; i++)
       {
-	 hr_data_out[i].max_temp = 99.99;
+	 hr_data_out[i].max_temp = 99.99f;
 	 for (j = 0; j < ARRAY_LEN; j++)
-	    hr_data_out[i].name[j] = j;
+           hr_data_out[i].name[j] = (char)j;
       }
 
       /* Create a file with a nested compound type attribute and variable. */

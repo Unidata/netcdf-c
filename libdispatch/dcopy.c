@@ -12,11 +12,17 @@
 #include "nc_logging.h"
 #include "nclist.h"
 
+static int NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2);
+
 #ifdef USE_NETCDF4
 
 static int searchgroup(int ncid1, int tid1, int grp, int* tid2);
 static int searchgrouptree(int ncid1, int tid1, int grp, int* tid2);
 
+#endif /*USE_NETCDF4*/
+
+
+#ifdef USE_NETCDF4
 /**
  * @internal Compare two netcdf types for equality. Must have the
  * ncids as well, to find user-defined types.
@@ -77,7 +83,7 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
 	 return ret;
 
       /* Check the obvious. */
-      if(size1 != size2 || class1 != class2 || strcmp(name1,name2))
+      if(size1 != size2 || class1 != class2 || strcmp(name1,name2) != 0)
 	 return NC_NOERR;
 
       /* Check user-defined types in detail. */
@@ -109,7 +115,7 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
 					     value1)) ||
 		   (ret = nc_inq_enum_member(ncid2, typeid2, i, name2,
 					     value2)) ||
-		   strcmp(name1, name2) || memcmp(value1, value2, size1))
+		   strcmp(name1, name2) != 0 || memcmp(value1, value2, size1) != 0)
 	       {
 		  free(value1);
 		  free(value2);
@@ -203,6 +209,8 @@ done:
     return ret;
 }
 
+#endif /* USE_NETCDF4 */
+
 /**
  * @internal Given a type in one file, find its equal (if any) in
  * another file. It sounds so simple, but it's a real pain!
@@ -232,14 +240,14 @@ NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2)
       return NC_NOERR;
    }
 
+#ifdef USE_NETCDF4
    /* Recursively search group ncid2 and its children
       to find a type that is equal (using compare_type)
       to xtype1. */
    ret = NC_rec_find_nc_type(ncid1, xtype1 , ncid2, xtype2);
+#endif /* USE_NETCDF4 */
    return ret;
 }
-
-#endif /* USE_NETCDF4 */
 
 /**
  * This will copy a variable that is an array of primitive type and
@@ -520,86 +528,34 @@ NC_copy_att(int ncid_in, int varid_in, const char *name,
    if ((res = nc_inq_att(ncid_in, varid_in, name, &xtype, &len)))
       return res;
 
-   if (xtype < NC_STRING)
    {
-      /* Handle non-string atomic types. */
-      if (len)
-      {
-         size_t size = NC_atomictypelen(xtype);
+	/* Copy arbitrary attributes. */
+        int class;
+        size_t size;
+        nc_type xtype_out = NC_NAT;
 
-         assert(size > 0);
-	 if (!(data = malloc(len * size)))
-	    return NC_ENOMEM;
+        if(xtype <= NC_MAX_ATOMIC_TYPE) {
+	    xtype_out = xtype;
+	    if((res = nc_inq_type(ncid_out,xtype_out,NULL,&size))) return res;
+	} else { /* User defined type */
+            /* Find out if there is an equal type in the output file. */
+            /* Note: original code used a libsrc4 specific internal function
+   	       which we had to "duplicate" here */
+            if ((res = NC_find_equal_type(ncid_in, xtype, ncid_out, &xtype_out)))
+  	        return res;
+            if (xtype_out) {
+		/* We found an equal type! */
+		if ((res = nc_inq_user_type(ncid_in, xtype, NULL, &size, NULL, NULL, &class)))
+		    return res;
+	    }
+	}
+        if((data = malloc(size * len))==NULL) {return NC_ENOMEM;}
+        res = nc_get_att(ncid_in, varid_in, name, data);
+	if(!res)
+	    res = nc_put_att(ncid_out, varid_out, name, xtype_out, len, data);
+	(void)nc_reclaim_data_all(ncid_out,xtype_out,data,len);
       }
 
-      res = nc_get_att(ncid_in, varid_in, name, data);
-      if (!res)
-	 res = nc_put_att(ncid_out, varid_out, name, xtype,
-			  len, data);
-      if (len)
-	 free(data);
-   }
-#ifdef USE_NETCDF4
-   else if (xtype == NC_STRING)
-   {
-      /* Copy string attributes. */
-      char **str_data;
-      if (!(str_data = malloc(sizeof(char *) * len)))
-	 return NC_ENOMEM;
-      res = nc_get_att_string(ncid_in, varid_in, name, str_data);
-      if (!res)
-	 res = nc_put_att_string(ncid_out, varid_out, name, len,
-				 (const char **)str_data);
-      nc_free_string(len, str_data);
-      free(str_data);
-   }
-   else
-   {
-      /* Copy user-defined type attributes. */
-      int class;
-      size_t size;
-      void *data;
-      nc_type xtype_out = NC_NAT;
-
-      /* Find out if there is an equal type in the output file. */
-      /* Note: original code used a libsrc4 specific internal function
-	 which we had to "duplicate" here */
-      if ((res = NC_find_equal_type(ncid_in, xtype, ncid_out, &xtype_out)))
-	 return res;
-      if (xtype_out)
-      {
-	 /* We found an equal type! */
-	 if ((res = nc_inq_user_type(ncid_in, xtype, NULL, &size,
-				    NULL, NULL, &class)))
-	    return res;
-	 if (class == NC_VLEN) /* VLENs are different... */
-	 {
-	    nc_vlen_t *vldata;
-	    int i;
-	    if (!(vldata = malloc(sizeof(nc_vlen_t) * len)))
-	       return NC_ENOMEM;
-	    if ((res = nc_get_att(ncid_in, varid_in, name, vldata)))
-	       return res;
-	    if ((res = nc_put_att(ncid_out, varid_out, name, xtype_out,
-				 len, vldata)))
-	       return res;
-	    for (i = 0; i < len; i++)
-	       if((res = nc_free_vlen(&vldata[i])))
-		  return res;
-	    free(vldata);
-         }
-	 else /* not VLEN */
-	 {
-	    if (!(data = malloc(size * len)))
-	       return NC_ENOMEM;
-	    res = nc_get_att(ncid_in, varid_in, name, data);
-	    if (!res)
-	       res = nc_put_att(ncid_out, varid_out, name, xtype_out, len, data);
-	    free(data);
-         }
-      }
-   }
-#endif /*!USE_NETCDF4*/
    return res;
 }
 
@@ -746,7 +702,7 @@ searchgrouptree(int ncid1, int tid1, int grp, int* tid2)
     int gid;
     uintptr_t id;
 
-    id = grp;
+    id = (uintptr_t)grp;
     nclistpush(queue,(void*)id); /* prime the queue */
     while(nclistlength(queue) > 0) {
         id = (uintptr_t)nclistremove(queue,0);
@@ -764,7 +720,7 @@ searchgrouptree(int ncid1, int tid1, int grp, int* tid2)
             goto done;
 	/* push onto the end of the queue */
         for(i=0;i<nids;i++) {
-	    id = ids[i];
+	    id = (uintptr_t)ids[i];
 	    nclistpush(queue,(void*)id);
 	}
 	free(ids); ids = NULL;
@@ -778,4 +734,5 @@ done:
     return ret;
 }
 
-#endif
+#endif /* USE_NETCDF4 */
+

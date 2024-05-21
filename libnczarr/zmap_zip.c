@@ -29,7 +29,7 @@
 
 #define NCZM_ZIP_V1 1
 
-#define ZIP_PROPERTIES (NCZM_WRITEONCE|NCZM_ZEROSTART)
+#define ZIP_PROPERTIES (NCZM_WRITEONCE)
 
 /*
 Do a simple mapping of our simplified map model
@@ -106,6 +106,7 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     zip_flags_t zipflags = 0;
     int zerrno = ZIP_ER_OK;
     ZINDEX zindex = -1;
+    char* abspath = NULL;
     
     NC_UNUSED(parameters);
     ZTRACE(6,"path=%s mode=%d flag=%llu",path,mode,flags);
@@ -132,9 +133,18 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     /* create => NC_WRITE */
     zzmap->map.mode = mode;
     zzmap->map.api = &zapi;
+
     /* Since root is in canonical form, we need to convert to local form */
     if((zzmap->root = NCpathcvt(url->path))==NULL)
         {stat = NC_ENOMEM; goto done;}
+
+    /* Make the root path be absolute */
+    if((abspath = NCpathabsolute(zzmap->root)) == NULL)
+	{stat = NC_EURL; goto done;}
+    nullfree(zzmap->root);
+    zzmap->root = abspath;    
+    abspath = NULL;
+
     /* Extract the dataset name */
     if((stat = nczm_basename(url->path,&zzmap->dataset))) goto done;
 
@@ -160,6 +170,7 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     if(mapp) {*mapp = (NCZMAP*)zzmap; zzmap = NULL;}
 
 done:
+    nullfree(abspath);
     ncurifree(url);
     if(zzmap) zipclose((NCZMAP*)zzmap,1);
     return ZUNTRACE(stat);
@@ -182,6 +193,7 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     NCURI*url = NULL;
     zip_flags_t zipflags = 0;
     int zerrno = ZIP_ER_OK;
+    char* abspath = NULL;
     
     NC_UNUSED(parameters);
     ZTRACE(6,"path=%s mode=%d flags=%llu",path,mode,flags);
@@ -210,6 +222,12 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     /* Since root is in canonical form, we need to convert to local form */
     if((zzmap->root = NCpathcvt(url->path))==NULL)
         {stat = NC_ENOMEM; goto done;}
+    /* Make the root path be absolute */
+    if((abspath = NCpathabsolute(zzmap->root)) == NULL)
+	{stat = NC_EURL; goto done;}
+    nullfree(zzmap->root);
+    zzmap->root = abspath;    
+    abspath = NULL;
 
     /* Set zip open flags */
     zipflags |= ZIP_CHECKCONS;
@@ -244,9 +262,62 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     if(mapp) {*mapp = (NCZMAP*)zzmap; zzmap = NULL;}
 
 done:
+    nullfree(abspath);
     ncurifree(url);
     if(zzmap) zipclose((NCZMAP*)zzmap,0);
 
+    return ZUNTRACE(stat);
+}
+
+static int
+ziptruncate(const char* surl)
+{
+    int stat = NC_NOERR;
+    NCURI* url = NULL;
+    int errorp = 0;
+    zip_t *zip = NULL;
+
+    ZTRACE(6,"url=%s",surl);
+    ncuriparse(surl,&url);
+    if(url == NULL) {stat = NC_EURL; goto done;}
+    zip = zip_open(url->path, ZIP_CREATE | ZIP_TRUNCATE, &errorp);
+    zip_close(zip);
+done:
+    ncurifree(url);
+    return stat;    
+}
+
+/**************************************************/
+/* Map API */
+
+static int
+zipclose(NCZMAP* map, int delete)
+{
+    int stat = NC_NOERR;
+    int zerrno = 0;
+    ZZMAP* zzmap = (ZZMAP*)map;
+
+    if(zzmap == NULL) return NC_NOERR;
+
+    ZTRACE(6,"map=%s delete=%d",map->url,delete);
+    
+    /* Close the zip */
+    if(delete)
+        zip_discard(zzmap->archive);
+    else {
+        if((zerrno=zip_close(zzmap->archive)))
+	    stat = ziperrno(zerrno);
+    }
+    if(delete)
+        NCremove(zzmap->root);
+
+    zzmap->archive = NULL;
+    nczm_clear(map);
+    nullfree(zzmap->root);
+    nullfree(zzmap->dataset);
+    zzmap->root = NULL;
+    freesearchcache(zzmap->searchcache);
+    free(zzmap);
     return ZUNTRACE(stat);
 }
 
@@ -356,7 +427,7 @@ done:
 }
 
 static int
-zipwrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const void* content)
+zipwrite(NCZMAP* map, const char* key, size64_t count, const void* content)
 {
     int stat = NC_NOERR;
     ZZMAP* zzmap = (ZZMAP*)map; /* cast to true type */
@@ -368,12 +439,9 @@ zipwrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const voi
     zip_error_t zerror;
     void* localbuffer = NULL;
 
-    ZTRACE(6,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
+    ZTRACE(6,"map=%s key=%s count=%llu",map->url,key,count);
 
     zip_error_init(&zerror);
-
-    if(start != 0 && (ZIP_PROPERTIES & NCZM_ZEROSTART))
-        {stat = NC_EEDGE; goto done;}
 
     /* Create directories */
     if((stat = zzcreategroup(zzmap,key,SKIPLAST))) goto done;
@@ -423,37 +491,6 @@ done:
     nullfree(localbuffer);
     zip_error_fini(&zerror);
     nullfree(truekey);
-    return ZUNTRACE(stat);
-}
-
-static int
-zipclose(NCZMAP* map, int delete)
-{
-    int stat = NC_NOERR;
-    int zerrno = 0;
-    ZZMAP* zzmap = (ZZMAP*)map;
-
-    if(zzmap == NULL) return NC_NOERR;
-
-    ZTRACE(6,"map=%s delete=%d",map->url,delete);
-    
-    /* Close the zip */
-    if(delete)
-        zip_discard(zzmap->archive);
-    else {
-        if((zerrno=zip_close(zzmap->archive)))
-	    stat = ziperrno(zerrno);
-    }
-    if(delete)
-        NCremove(zzmap->root);
-
-    zzmap->archive = NULL;
-    nczm_clear(map);
-    nullfree(zzmap->root);
-    nullfree(zzmap->dataset);
-    zzmap->root = NULL;
-    freesearchcache(zzmap->searchcache);
-    free(zzmap);
     return ZUNTRACE(stat);
 }
 
@@ -700,6 +737,7 @@ NCZMAP_DS_API zmap_zip = {
     ZIP_PROPERTIES,
     zipcreate,
     zipopen,
+    ziptruncate,
 };
 
 static NCZMAP_API zapi = {

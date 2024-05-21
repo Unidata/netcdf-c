@@ -9,6 +9,10 @@ IF(BUILD_SHARED_LIBS AND WIN32)
   remove_definitions(-DDLL_NETCDF)
 ENDIF()
 
+IF(USE_X_GETOPT)
+  SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
+ENDIF()
+
 SET(ncgen_FILES bindata.c bytebuffer.c cdata.c cvt.c data.c
 debug.c dump.c escapes.c f77data.c genbin.c
 genc.c genchar.c generate.c generr.c genf77.c
@@ -16,14 +20,23 @@ genj.c genlib.c getfill.c jdata.c list.c
 main.c ncgeny.c semantics.c
 util.c bytebuffer.h data.h debug.h dump.h
 generate.h generr.h genlib.h includes.h list.h
-ncgen.h ncgeny.h util.h)
+ncgen.h ncgeny.h util.h ${XGETOPTSRC})
+
+## 
+# Turn off inclusion of particular files when using the cmake-native
+# option to turn on Unity Builds.  
+#
+# For more information, see:
+#  * https://github.com/Unidata/netcdf-c/pull/2839/
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD_MODE.html#prop_tgt:UNITY_BUILD_MODE
+##
+set_property(SOURCE data.c
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)
 
 # Obsolete
 SET(OBSOLETE odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c)
-
-IF(USE_X_GETOPT)
-  SET(ncgen_FILES ${ncgen_FILES} XGetopt.c)
-ENDIF()
 
 # don't add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH
@@ -38,10 +51,10 @@ TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
 ####
 # We have to do a little tweaking
 # to remove the Release/ and Debug/ directories
-# in MSVC builds.  This is required to get
+# in Windows builds.  This is required to get
 # test scripts to work.
 ####
-IF(MSVC)
+IF(WIN32)
   SET_TARGET_PROPERTIES(ncgen PROPERTIES RUNTIME_OUTPUT_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR})
   SET_TARGET_PROPERTIES(ncgen PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
@@ -57,7 +70,7 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.l ${CMAKE_CURRENT_SOURCE_DIR}
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
 # Stuff to build if tests are enabled.
-IF(ENABLE_TESTS)
+IF(NETCDF_ENABLE_TESTS)
   FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
   FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
 
@@ -73,33 +86,38 @@ ENDIF()
 
 SET(MAN_FILES ncgen.1)
 IF(NOT MSVC)
-  INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1"
+  INSTALL(FILES ${MAN_FILES} DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
     COMPONENT documentation)
 ENDIF()
 SET(CLEANFILES c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${CLEANFILES}")
 
-# These rules are used if someone wants to rebuild ncgeny.c or ncgenl.c
-# Otherwise never invoked, but records how to do it.
-# BTW: note that renaming is essential because otherwise
-# autoconf will forcibly delete files of the name *.tab.*
+# With this option enabled, automatically generate the parser source
+# files from the yacc input files when they're changed. They don't
+# change very often, so this option is off by default.
+if (NETCDF_GENERATE_NCGEN)
+  find_program(FLEX flex REQUIRED)
+  find_program(BISON bison REQUIRED)
 
-ADD_CUSTOM_COMMAND(
-  OUTPUT ncgentab.h
-  COMMAND flex -Pncg -8 ncgen.l
-  COMMAND rm -f ncgenl.c
-  COMMAND mv lex.ncg.c ncgenl.c
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h ${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c ${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c
+    DEPENDS ncgen.y ncgen.l
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 
-  COMMAND bison -pncg -t -d ncgen.y
-  COMMAND rm -f ncgeny.c ncgeny.h
-  COMMAND mv ncgen.tab.c ncgeny.c
-  COMMAND mv ncgen.tab.h ncgeny.h
-  COMMAND mv ncgeny.h ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND mv ncgeny.c ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND mv ncgenl.c ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND ${FLEX} -Pncg -8 ncgen/ncgen.l
+    COMMAND mv lex.ncg.c "${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c"
 
-  )
-ADD_CUSTOM_TARGET(makeparser DEPENDS ncgentab.h)
+    COMMAND ${BISON} -pncg -t -d ncgen/ncgen.y
+    COMMAND mv ncgen.tab.c "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c"
+    COMMAND mv ncgen.tab.h "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h"
+
+    # Fix the `#line` preprocessor directives with the correct source paths
+    COMMAND sed -i s/ncgen.tab/ncgeny/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.c"
+    COMMAND sed -i s/lex.ncg/ncgenl/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgenl.c"
+    COMMAND sed -i s/ncgen.tab/ncgeny/ "${CMAKE_CURRENT_SOURCE_DIR}/ncgeny.h"
+    VERBATIM
+    )
+endif()
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)

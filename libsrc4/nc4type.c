@@ -13,28 +13,7 @@
  */
 #include "nc4internal.h"
 #include "nc4dispatch.h"
-
-/* The sizes of types may vary from platform to platform, but within
- * netCDF files, type sizes are fixed. */
-#define NC_CHAR_LEN sizeof(char)      /**< @internal Size of char. */
-#define NC_STRING_LEN sizeof(char *)  /**< @internal Size of char *. */
-#define NC_BYTE_LEN 1     /**< @internal Size of byte. */
-#define NC_SHORT_LEN 2    /**< @internal Size of short. */
-#define NC_INT_LEN 4      /**< @internal Size of int. */
-#define NC_FLOAT_LEN 4    /**< @internal Size of float. */
-#define NC_DOUBLE_LEN 8   /**< @internal Size of double. */
-#define NC_INT64_LEN 8    /**< @internal Size of int64. */
-
-/** @internal Names of atomic types. */
-const char* nc4_atomic_name[NUM_ATOMIC_TYPES] = {"none", "byte", "char",
-                                           "short", "int", "float",
-                                           "double", "ubyte",
-                                           "ushort", "uint",
-                                           "int64", "uint64", "string"};
-static const int nc4_atomic_size[NUM_ATOMIC_TYPES] = {0, NC_BYTE_LEN, NC_CHAR_LEN, NC_SHORT_LEN,
-                                                      NC_INT_LEN, NC_FLOAT_LEN, NC_DOUBLE_LEN,
-                                                      NC_BYTE_LEN, NC_SHORT_LEN, NC_INT_LEN, NC_INT64_LEN,
-                                                      NC_INT64_LEN, NC_STRING_LEN};
+#include <stddef.h>
 
 /**
  * @internal Find all user-defined types for a location. This finds
@@ -67,8 +46,7 @@ NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
 
     /* Count types. */
     if (grp->type) {
-        int i;
-        for(i=0;i<ncindexsize(grp->type);i++)
+        for(size_t i=0;i<ncindexsize(grp->type);i++)
         {
             if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
             if (typeids)
@@ -82,63 +60,6 @@ NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
         *ntypes = num;
 
     return NC_NOERR;
-}
-
-/**
- * @internal Get the name and size of an atomic type. For strings, 1 is
- * returned.
- *
- * @param typeid1 Type ID.
- * @param name Gets the name of the type.
- * @param size Gets the size of one element of the type in bytes.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EBADTYPE Type not found.
- * @author Dennis Heimbigner
- */
-int
-NC4_inq_atomic_type(nc_type typeid1, char *name, size_t *size)
-{
-    LOG((2, "nc_inq_atomic_type: typeid %d",  typeid1));
-
-    if (typeid1 >= NUM_ATOMIC_TYPES)
-	return NC_EBADTYPE;
-    if (name)
-            strcpy(name, nc4_atomic_name[typeid1]);
-    if (size)
-            *size = nc4_atomic_size[typeid1];
-    return NC_NOERR;
-}
-
-/**
- * @internal Get the id and size of an atomic type by name.
- *
- * @param name [in] the name of the type.
- * @param size [out] the size of one element of the type in bytes.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_EBADTYPE Type not found.
- * @author Dennis Heimbigner
- */
-int
-NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep)
-{
-    int i;
-
-    LOG((2, "nc_lookup_atomic_type: name %s ", name));
-
-    if (name == NULL || strlen(name) == 0)
-	return NC_EBADTYPE;
-    for(i=0;i<NUM_ATOMIC_TYPES;i++) {
-	if(strcasecmp(name,nc4_atomic_name[i])==0) {	
-	    if(idp) *idp = i;
-            if(sizep) *sizep = nc4_atomic_size[i];
-	    return NC_NOERR;
-        }
-    }
-    return NC_EBADTYPE;
 }
 
 /**
@@ -168,10 +89,7 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
     /* If this is an atomic type, the answer is easy. */
     if (typeid1 < NUM_ATOMIC_TYPES)
     {
-        if (name)
-            strcpy(name, nc4_atomic_name[typeid1]);
-        if (size)
-            *size = nc4_atomic_size[typeid1];
+	if((retval=NC4_inq_atomic_type(typeid1, name, size))) return retval;
         return NC_NOERR;
     }
 
@@ -180,7 +98,7 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
         return retval;
 
     /* Find this type. */
-    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+    if (!(type = nclistget(grp->nc4_info->alltypes, (size_t)typeid1)))
         return NC_EBADTYPE;
 
     if (name)
@@ -190,8 +108,6 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
     {
         if (type->nc_type_class == NC_VLEN)
             *size = sizeof(nc_vlen_t);
-        else if (type->nc_type_class == NC_STRING)
-            *size = NC_STRING_LEN;
         else
             *size = type->size;
     }
@@ -230,7 +146,7 @@ NC4_inq_user_type(int ncid, nc_type typeid1, char *name, size_t *size,
         return retval;
 
     /* Find this type. */
-    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+    if (!(type = nclistget(grp->nc4_info->alltypes, (size_t)typeid1)))
         return NC_EBADTYPE;
 
     /* Count the number of fields. */
@@ -249,9 +165,9 @@ NC4_inq_user_type(int ncid, nc_type typeid1, char *name, size_t *size,
     {
         if (type->nc_type_class == NC_VLEN)
             *size = sizeof(nc_vlen_t);
-        else if (type->nc_type_class == NC_STRING)
-            *size = NC_STRING_LEN;
-        else
+        else if (type->nc_type_class == NC_STRING) {
+	    if((retval=NC4_inq_type(ncid,typeid1,NULL,size))) return retval;
+        } else
             *size = type->size;
     }
     if (name)
@@ -309,11 +225,11 @@ NC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
         return retval;
 
     /* Find this type. */
-    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+    if (!(type = nclistget(grp->nc4_info->alltypes, (size_t)typeid1)))
         return NC_EBADTYPE;
 
     /* Find the field. */
-    if (!(field = nclistget(type->u.c.field,fieldid)))
+    if (!(field = nclistget(type->u.c.field, (size_t)fieldid)))
         return NC_EBADFIELD;
 
     if (name)
@@ -353,7 +269,7 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
     NC_FIELD_INFO_T *field;
     char norm_name[NC_MAX_NAME + 1];
     int retval;
-    int i;
+    size_t i;
 
     LOG((2, "nc_inq_compound_fieldindex: ncid 0x%x typeid %d name %s",
          ncid, typeid1, name));
@@ -393,8 +309,9 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
 }
 
 /**
- * @internal Get enum name from enum value. Name size will be <=
- * NC_MAX_NAME.
+ * @internal Get enum name from enum value. Name size will be <= NC_MAX_NAME.
+ * If the value is not a legitimate enum identifier and the value is zero
+ * (the default HDF5 enum fill value), then return the identifier "_UNDEFINED".
  *
  * @param ncid File and group ID.
  * @param xtype Type ID.
@@ -404,7 +321,7 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EBADTYPE Type not found.
- * @return ::NC_EINVAL Invalid type data.
+ * @return ::NC_EINVAL Invalid type data or no matching enum value is found
  * @author Ed Hartnett
  */
 int
@@ -414,7 +331,7 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
     NC_TYPE_INFO_T *type;
     NC_ENUM_MEMBER_INFO_T *enum_member;
     long long ll_val;
-    int i;
+    size_t i;
     int retval;
     int found;
 
@@ -425,7 +342,7 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
         return retval;
 
     /* Find this type. */
-    if (!(type = nclistget(grp->nc4_info->alltypes, xtype)))
+    if (!(type = nclistget(grp->nc4_info->alltypes, (size_t)xtype)))
         return NC_EBADTYPE;
 
     /* Complain if they are confused about the type. */
@@ -475,9 +392,13 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
     }
 
     /* If we didn't find it, life sucks for us. :-( */
-    if (!found)
-        return NC_EINVAL;
-
+    if(!found) {
+        if(value == 0) /* Special case for HDF5 default Fill Value*/
+	    strcpy(identifier, NC_UNDEFINED_ENUM_IDENT);
+        else
+            return NC_EINVAL;
+    }
+    
     return NC_NOERR;
 }
 
@@ -513,7 +434,7 @@ NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
         return retval;
 
     /* Find this type. */
-    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+    if (!(type = nclistget(grp->nc4_info->alltypes, (size_t)typeid1)))
         return NC_EBADTYPE;
 
     /* Complain if they are confused about the type. */
@@ -521,7 +442,7 @@ NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
         return NC_EBADTYPE;
 
     /* Move to the desired enum member in the list. */
-    if (!(enum_member = nclistget(type->u.e.enum_member, idx)))
+    if (!(enum_member = nclistget(type->u.e.enum_member, (size_t)idx)))
         return NC_EINVAL;
 
     /* Give the people what they want. */
@@ -702,3 +623,106 @@ nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype, int *type_class)
 exit:
     return retval;
 }
+
+/**
+ * @internal return 1 if type is fixed size; 0 otherwise.
+ *
+ * @param ncid file id
+ * @param xtype type id
+ * @param fixedsizep pointer into which 1/0 is stored
+ *
+ * @return ::NC_NOERR
+ * @return ::NC_EBADTYPE if bad type
+ * @author Dennis Heimbigner
+ */
+int
+NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* fixedsizep)
+{
+    int stat = NC_NOERR;   
+    int f = 0;
+    NC_FILE_INFO_T* h5 = NULL;
+    NC_TYPE_INFO_T* typ = NULL;
+
+    if(xtype < NC_STRING) {f = 1; goto done;}
+    if(xtype == NC_STRING) {f = 0; goto done;}
+
+#ifdef USE_NETCDF4
+    /* Must be user type */
+    if ((stat = nc4_find_grp_h5(ncid, NULL, &h5)))
+        goto done;
+    if((stat = nc4_find_type(h5,xtype,&typ))) goto done;
+    f = !typ->varsized;
+#endif
+done:
+    if(fixedsizep) *fixedsizep = f;
+    return stat;
+}
+
+
+/**
+For types with one or more subtypes (e.g. basetype or
+fieldtype), determine the varsizedness of the type based on the
+basetype.  The idea is to inform the code of the fact that
+parenttype has addedtype "inserted" into it.
+@param parenttype
+@param subtype
+*/
+
+int
+NC4_recheck_varsize(NC_TYPE_INFO_T* parenttype, nc_type subtype)
+{
+    int stat = NC_NOERR;
+    NC_FILE_INFO_T* file = NULL;
+    NC_TYPE_INFO_T* utype = NULL;
+    if(subtype < NC_STRING) goto done; /* will not change the "variable-sizedness" of parenttype */
+    if(subtype == NC_STRING) {parenttype->varsized = 1; goto done;}
+    /* Get the inferred user-type */
+    file = parenttype->container->nc4_info;
+    if((stat = nc4_find_type(file,subtype,&utype))) goto done;
+    switch (utype->nc_type_class) {
+    case NC_OPAQUE: case NC_ENUM: break; /* no change */
+    case NC_VLEN: parenttype->varsized = 1; break;
+    case NC_COMPOUND: if(utype->varsized) parenttype->varsized = 1; break;
+    }
+    
+done:
+    return stat;
+}
+
+/**
+When creating a type, mark it as variable-sized if known for sure.
+@param typ
+*/
+
+int
+NC4_set_varsize(NC_TYPE_INFO_T* typ)
+{
+    int stat = NC_NOERR;
+    if(typ->hdr.id < NC_STRING) goto done; /* will not change the "variable-sizedness" of typ */
+    if(typ->hdr.id == NC_STRING) {typ->varsized = 1; goto done;}
+    switch (typ->nc_type_class) {
+    case NC_OPAQUE: case NC_ENUM: break; /* no change */
+    case NC_VLEN: typ->varsized = 1; break;
+    case NC_COMPOUND: typ->varsized = 0; break; /* until proven otherwise */
+    }
+done:
+    return stat;
+}
+
+/**
+ * Test if a variable's type is fixed sized or not.
+ * @param var - to test
+ * @return 0 if fixed size, 1 otherwise.
+ */
+int
+NC4_var_varsized(NC_VAR_INFO_T* var)
+{
+    NC_TYPE_INFO_T* vtype = NULL;
+    
+    /* Check the variable type */
+    vtype = var->type_info;
+    if(vtype->hdr.id < NC_STRING) return 0;
+    if(vtype->hdr.id == NC_STRING) return 1;
+    return vtype->varsized;
+}
+

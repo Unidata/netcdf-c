@@ -18,11 +18,14 @@
 #include "config.h"
 #include "netcdf.h"
 #include "netcdf_filter.h"
+#include "netcdf_meta.h"
 #include "nc4internal.h"
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
-#include "netcdf_aux.h"
+#include <stdarg.h>
+#include <stddef.h>
+#include "ncrc.h"
 
 /** @internal Number of reserved attributes. These attributes are
  * hidden from the netcdf user, but exist in the implementation
@@ -33,37 +36,104 @@
 */
 
 /** @internal List of reserved attributes.
-    WARNING: This list must be in sorted order for binary search. */
-static const NC_reservedatt NC_reserved[] = {
+    WARNING: This list will be sorted in (strcmp) sorted order for binary search. 
+    So order here does not matter; the table will be modified by sorting.
+*/
+static NC_reservedatt NC_reserved[] = {
     {NC_ATT_CLASS, READONLYFLAG|HIDDENATTRFLAG},			/*CLASS*/
     {NC_ATT_DIMENSION_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*DIMENSION_LIST*/
     {NC_ATT_NAME, READONLYFLAG|HIDDENATTRFLAG},				/*NAME*/
     {NC_ATT_REFERENCE_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*REFERENCE_LIST*/
     {NC_XARRAY_DIMS, READONLYFLAG|HIDDENATTRFLAG},			/*_ARRAY_DIMENSIONS*/
-    {NC_ATT_CODECS, VARFLAG|READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},	/*_Codecs*/
+    {NC_ATT_CODECS, VARFLAG|READONLYFLAG|NAMEONLYFLAG},			/*_Codecs*/
     {NC_ATT_FORMAT, READONLYFLAG},					/*_Format*/
-    {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG},				/*_IsNetcdf4*/
-    {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},		/*_NCProperties*/
-    {NC_NCZARR_ATTR, READONLYFLAG|HIDDENATTRFLAG},			/*_NCZARR_ATTR*/
-    {NC_ATT_COORDINATES, READONLYFLAG|HIDDENATTRFLAG|MATERIALIZEDFLAG},	/*_Netcdf4Coordinates*/
-    {NC_ATT_DIMID_NAME, READONLYFLAG|HIDDENATTRFLAG|MATERIALIZEDFLAG},	/*_Netcdf4Dimid*/
-    {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG},				/*_SuperblockVersion*/
-    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG|MATERIALIZEDFLAG},		/*_nc3_strict*/
+    {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG|VIRTUALFLAG},		/*_IsNetcdf4*/
+    {NCPROPS,READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},			/*_NCProperties*/
+    {NC_NCZARR_ATTR_UC, READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},	/*_NCZARR_ATTR */
+    {NC_ATT_COORDINATES, READONLYFLAG|HIDDENATTRFLAG},			/*_Netcdf4Coordinates*/
+    {NC_ATT_DIMID_NAME, READONLYFLAG|HIDDENATTRFLAG},			/*_Netcdf4Dimid*/
+    {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG|VIRTUALFLAG},		/*_SuperblockVersion*/
+    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
+    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
+    {NC_NCZARR_ATTR, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_attr */
 };
-#define NRESERVED (sizeof(NC_reserved) / sizeof(NC_reservedatt))  /*|NC_reservedatt|*/
+#define NRESERVED (sizeof(NC_reserved) / sizeof(NC_reservedatt))  /*|NC_reservedatt*/
 
-/* These hold the file caching settings for the library. */
-size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
-size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
-float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
-
+/*Forward */
 static int NC4_move_in_NCList(NC* nc, int new_id);
+static int bincmp(const void* arg1, const void* arg2);
+static int sortcmp(const void* arg1, const void* arg2);
 
-#ifdef LOGGING
+#if LOGGING
 /* This is the severity level of messages which will be logged. Use
    severity 0 for errors, 1 for important log messages, 2 for less
    important, etc. */
 int nc_log_level = NC_TURN_OFF_LOGGING;
+#if NC_HAS_PARALLEL4
+/* File pointer for the parallel I/O log file. */
+FILE *LOG_FILE = NULL;
+#endif /* NC_HAS_PARALLEL4 */
+
+/* This function prints out a message, if the severity of
+ * the message is lower than the global nc_log_level. To use it, do
+ * something like this:
+ *
+ * nc_log(0, "this computer will explode in %d seconds", i);
+ *
+ * After the first arg (the severity), use the rest like a normal
+ * printf statement. Output will appear on stderr for sequential
+ * builds, and in a file nc4_log_R.log for each process for a parallel
+ * build, where R is the rank of the process.
+ *
+ * Ed Hartnett
+ */
+void
+nc_log(int severity, const char *fmt, ...)
+{
+    va_list argp;
+    int t;
+    FILE *f = stderr;
+
+    /* If the severity is greater than the log level, we don't print
+     * this message. */
+    if (severity > nc_log_level)
+        return;
+
+#if NC_HAS_PARALLEL4
+    /* For parallel I/O build, if MPI has been initialized, instead of
+     * printing logging output to stderr, it goes to a file for each
+     * process. */
+    {
+        int mpi_initialized;
+        int mpierr;
+
+        /* Check to see if MPI has been initialized. */
+        if ((mpierr = MPI_Initialized(&mpi_initialized)))
+            return;
+
+        /* If MPI has been initialized use a log file. */
+        assert(LOG_FILE);
+        if (mpi_initialized)
+            f = LOG_FILE;
+    }
+#endif /* NC_HAS_PARALLEL4 */
+
+    /* If the severity is zero, this is an error. Otherwise insert that
+       many tabs before the message. */
+    if (!severity)
+        fprintf(f, "ERROR: ");
+    for (t = 0; t < severity; t++)
+        fprintf(f, "\t");
+
+    /* Print out the variable list of args with vprintf. */
+    va_start(argp, fmt);
+    vfprintf(f, fmt, argp);
+    va_end(argp);
+
+    /* Put on a final linefeed. */
+    fprintf(f, "\n");
+    fflush(f);
+}
 #endif /* LOGGING */
 
 /**
@@ -163,7 +233,7 @@ nc4_file_list_add(int ncid, const char *path, int mode, void **dispatchdata)
  * integration.
  *
  * @param ncid The ncid of the file (aka ext_ncid).
- * @param new_ncid The new ncid index to use (i.e. the first two bytes
+ * @param new_ncid_index The new ncid index to use (i.e. the first two bytes
  * of the ncid).
  *
  * @return ::NC_NOERR No error.
@@ -407,7 +477,7 @@ nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5, NC_GRP_INFO_T **gr
     assert(my_grp && my_h5);
 
     /* Find the var. */
-    if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, varid)))
+    if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, (size_t)varid)))
         return NC_ENOTVAR;
     assert(my_var && my_var->hdr.id == varid);
 
@@ -443,7 +513,7 @@ nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
     LOG((4, "%s: dimid %d", __func__, dimid));
 
     /* Find the dim info. */
-    if (!((*dim) = nclistget(grp->nc4_info->alldims, dimid)))
+    if (!((*dim) = nclistget(grp->nc4_info->alldims, (size_t)dimid)))
         return NC_EBADDIM;
 
     /* Give the caller the group the dimension is in. */
@@ -487,7 +557,6 @@ nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
 {
     NC_GRP_INFO_T *g;
     NC_TYPE_INFO_T *type, *res;
-    int i;
 
     assert(start_grp);
 
@@ -497,7 +566,7 @@ nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name)
         return type;
 
     /* Search subgroups. */
-    for(i=0;i<ncindexsize(start_grp->children);i++) {
+    for(size_t i=0;i<ncindexsize(start_grp->children);i++) {
         g = (NC_GRP_INFO_T*)ncindexith(start_grp->children,i);
         if(g == NULL) continue;
         if ((res = nc4_rec_find_named_type(g, name)))
@@ -533,7 +602,7 @@ nc4_find_type(const NC_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **type)
         return NC_NOERR;
 
     /* Find the type. */
-    if (!(*type = nclistget(h5->alltypes,typeid)))
+    if (!(*type = nclistget(h5->alltypes, (size_t)typeid)))
         return NC_EBADTYPID;
 
     return NC_NOERR;
@@ -574,7 +643,7 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
     }
     else
     {
-        var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+        var = (NC_VAR_INFO_T*)ncindexith(grp->vars,(size_t)varid);
         if (!var) return NC_ENOTVAR;
 
         attlist = var->att;
@@ -586,7 +655,7 @@ nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name, int attnum,
     if (name)
         my_att = (NC_ATT_INFO_T *)ncindexlookup(attlist, name);
     else
-        my_att = (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
+        my_att = (NC_ATT_INFO_T *)ncindexith(attlist, (size_t)attnum);
 
     if (!my_att)
         return NC_ENOTATT;
@@ -650,7 +719,7 @@ obj_track(NC_FILE_INFO_T* file, NC_OBJ* obj)
         assert(NC_FALSE);
     }
     /* Insert at the appropriate point in the list */
-    nclistset(list,obj->id,obj);
+    nclistset(list,(size_t)obj->id,obj);
 }
 
 /**
@@ -661,8 +730,6 @@ obj_track(NC_FILE_INFO_T* file, NC_OBJ* obj)
  * @param name the name for the new variable
  * @param var Pointer in which to return a pointer to the new var.
  *
- * @param var Pointer to pointer that gets variable info struct.
- *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
@@ -671,6 +738,7 @@ int
 nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
 {
     NC_VAR_INFO_T *new_var = NULL;
+    NCglobalstate* gs = NC_getglobalstate();
 
     /* Allocate storage for new variable. */
     if (!(new_var = calloc(1, sizeof(NC_VAR_INFO_T))))
@@ -679,12 +747,12 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
     new_var->container = grp;
 
     /* These are the HDF5-1.8.4 defaults. */
-    new_var->chunk_cache_size = nc4_chunk_cache_size;
-    new_var->chunk_cache_nelems = nc4_chunk_cache_nelems;
-    new_var->chunk_cache_preemption = nc4_chunk_cache_preemption;
+    new_var->chunkcache.size = gs->chunkcache.size;
+    new_var->chunkcache.nelems = gs->chunkcache.nelems;
+    new_var->chunkcache.preemption = gs->chunkcache.preemption;
 
     /* Now fill in the values in the var info structure. */
-    new_var->hdr.id = ncindexsize(grp->vars);
+    new_var->hdr.id = (int)ncindexsize(grp->vars);
     if (!(new_var->hdr.name = strdup(name))) {
       if(new_var)
         free(new_var);
@@ -710,8 +778,6 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
  * @param var Pointer to the var.
  * @param ndims Number of dimensions for this var.
  *
- * @param var Pointer to pointer that gets variable info struct.
- *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
@@ -722,19 +788,19 @@ nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
     assert(var);
 
     /* Remember the number of dimensions. */
-    var->ndims = ndims;
+    var->ndims = (size_t)ndims;
 
     /* Allocate space for dimension information. */
     if (ndims)
     {
-        if (!(var->dim = calloc(ndims, sizeof(NC_DIM_INFO_T *))))
+      if (!(var->dim = calloc((size_t)ndims, sizeof(NC_DIM_INFO_T *))))
             return NC_ENOMEM;
-        if (!(var->dimids = calloc(ndims, sizeof(int))))
+      if (!(var->dimids = calloc((size_t)ndims, sizeof(int))))
             return NC_ENOMEM;
 
         /* Initialize dimids to illegal values (-1). See the comment
            in nc4_rec_match_dimscales(). */
-        memset(var->dimids, -1, ndims * sizeof(int));
+      memset(var->dimids, -1, (size_t)ndims * sizeof(int));
     }
 
     return NC_NOERR;
@@ -747,8 +813,6 @@ nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
  * @param name the name for the new variable
  * @param ndims the rank of the new variable
  * @param var Pointer in which to return a pointer to the new var.
- *
- * @param var Pointer to pointer that gets variable info struct.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
@@ -852,7 +916,7 @@ nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att)
     new_att->hdr.sort = NCATT;
 
     /* Fill in the information we know. */
-    new_att->hdr.id = ncindexsize(list);
+    new_att->hdr.id = (int)ncindexsize(list);
     if (!(new_att->hdr.name = strdup(name))) {
       if(new_att)
         free(new_att);
@@ -1050,6 +1114,9 @@ nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
     ncindexadd(grp->type, (NC_OBJ *)new_type);
     obj_track(grp->nc4_info,(NC_OBJ*)new_type);
 
+    /* back link */
+    new_type->container = grp;
+
     /* Return a pointer to the new type. */
     *type = new_type;
 
@@ -1097,7 +1164,7 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
     if (ndims)
     {
         int i;
-        if (!(field->dim_size = malloc(ndims * sizeof(int))))
+        if (!(field->dim_size = malloc((size_t)ndims * sizeof(int))))
         {
             free(field->hdr.name);
             free(field);
@@ -1108,7 +1175,7 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
     }
 
     /* Add object to lists */
-    field->hdr.id = nclistlength(parent->u.c.field);
+    field->hdr.id = (int)nclistlength(parent->u.c.field);
     nclistpush(parent->u.c.field,field);
 
     return NC_NOERR;
@@ -1163,7 +1230,6 @@ nc4_enum_member_add(NC_TYPE_INFO_T *parent, size_t size,
  *
  * @param field Pointer to field info of field to delete.
  *
- * @return ::NC_NOERR No error.
  * @author Ed Hartnett
  */
 static void
@@ -1191,7 +1257,7 @@ field_free(NC_FIELD_INFO_T *field)
 int
 nc4_type_free(NC_TYPE_INFO_T *type)
 {
-    int i;
+    size_t i;
 
     assert(type && type->rc && type->hdr.name);
 
@@ -1260,44 +1326,33 @@ nc4_type_free(NC_TYPE_INFO_T *type)
 int
 nc4_att_free(NC_ATT_INFO_T *att)
 {
-    int i;
+    int stat = NC_NOERR;
 
     assert(att);
     LOG((3, "%s: name %s ", __func__, att->hdr.name));
-
-    /* Free memory that was malloced to hold data for this
-     * attribute. */
-    if (att->data)
-        free(att->data);
 
     /* Free the name. */
     if (att->hdr.name)
         free(att->hdr.name);
 
-    /* If this is a string array attribute, delete all members of the
-     * string array, then delete the array of pointers to strings. (The
-     * array was filled with pointers by HDF5 when the att was read,
-     * and memory for each string was allocated by HDF5. That's why I
-     * use free and not nc_free, because the netCDF library didn't
-     * allocate the memory that is being freed.) */
-    if (att->stdata)
-    {
-        for (i = 0; i < att->len; i++)
-            if(att->stdata[i])
-                free(att->stdata[i]);
-        free(att->stdata);
+    if (att->data) {
+	NC_OBJ* parent;
+	NC_FILE_INFO_T* h5 = NULL;
+
+	/* Locate relevant objects */
+	parent = att->container;
+	if(parent->sort == NCVAR) parent = (NC_OBJ*)(((NC_VAR_INFO_T*)parent)->container);
+	assert(parent->sort == NCGRP);
+	h5 = ((NC_GRP_INFO_T*)parent)->nc4_info;
+	/* Reclaim the attribute data */
+	if((stat = NC_reclaim_data(h5->controller,att->nc_typeid,att->data,att->len))) goto done;
+	free(att->data); /* reclaim top level */
+	att->data = NULL;
     }
 
-    /* If this att has vlen data, release it. */
-    if (att->vldata)
-    {
-        for (i = 0; i < att->len; i++)
-            nc_free_vlen(&att->vldata[i]);
-        free(att->vldata);
-    }
-
+done:
     free(att);
-    return NC_NOERR;
+    return stat;
 }
 
 /**
@@ -1312,14 +1367,13 @@ nc4_att_free(NC_ATT_INFO_T *att)
 static int
 var_free(NC_VAR_INFO_T *var)
 {
-    int i;
     int retval;
 
     assert(var);
     LOG((4, "%s: deleting var %s", __func__, var->hdr.name));
 
     /* First delete all the attributes attached to this var. */
-    for (i = 0; i < ncindexsize(var->att); i++)
+    for (size_t i = 0; i < ncindexsize(var->att); i++)
         if ((retval = nc4_att_free((NC_ATT_INFO_T *)ncindexith(var->att, i))))
             return retval;
     ncindexfree(var->att);
@@ -1338,8 +1392,11 @@ var_free(NC_VAR_INFO_T *var)
         free(var->dim);
 
     /* Delete any fill value allocation. */
-    if (var->fill_value)
-        {free(var->fill_value); var->fill_value = NULL;}
+    if (var->fill_value) {
+	int tid = var->type_info->hdr.id;
+        if((retval = NC_reclaim_data_all(var->container->nc4_info->controller, tid, var->fill_value, 1))) return retval;
+	var->fill_value = NULL;
+    }
 
     /* Release type information */
     if (var->type_info)
@@ -1375,7 +1432,7 @@ nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     /* Remove from lists */
     i = ncindexfind(grp->vars, (NC_OBJ *)var);
     if (i >= 0)
-        ncindexidel(grp->vars, i);
+        ncindexidel(grp->vars, (size_t)i);
 
     return var_free(var);
 }
@@ -1418,7 +1475,7 @@ nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim)
     {
         int pos = ncindexfind(grp->dim, (NC_OBJ *)dim);
         if(pos >= 0)
-            ncindexidel(grp->dim, pos);
+            ncindexidel(grp->dim, (size_t)pos);
     }
 
     return dim_free(dim);
@@ -1436,7 +1493,6 @@ nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim)
 int
 nc4_rec_grp_del(NC_GRP_INFO_T *grp)
 {
-    int i;
     int retval;
 
     assert(grp);
@@ -1444,34 +1500,34 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
 
     /* Recursively call this function for each child, if any, stopping
      * if there is an error. */
-    for (i = 0; i < ncindexsize(grp->children); i++)
+    for (size_t i = 0; i < ncindexsize(grp->children); i++)
         if ((retval = nc4_rec_grp_del((NC_GRP_INFO_T *)ncindexith(grp->children,
                                                                   i))))
             return retval;
     ncindexfree(grp->children);
 
     /* Free attributes */
-    for (i = 0; i < ncindexsize(grp->att); i++)
+    for (size_t i = 0; i < ncindexsize(grp->att); i++)
         if ((retval = nc4_att_free((NC_ATT_INFO_T *)ncindexith(grp->att, i))))
             return retval;
     ncindexfree(grp->att);
 
     /* Delete all vars. */
-    for (i = 0; i < ncindexsize(grp->vars); i++) {
-	NC_VAR_INFO_T* v = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
+    for (size_t i = 0; i < ncindexsize(grp->vars); i++) {
+        NC_VAR_INFO_T* v = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
         if ((retval = var_free(v)))
             return retval;
     }
     ncindexfree(grp->vars);
 
     /* Delete all dims, and free the list of dims. */
-    for (i = 0; i < ncindexsize(grp->dim); i++)
+    for (size_t i = 0; i < ncindexsize(grp->dim); i++)
         if ((retval = dim_free((NC_DIM_INFO_T *)ncindexith(grp->dim, i))))
             return retval;
     ncindexfree(grp->dim);
 
     /* Delete all types. */
-    for (i = 0; i < ncindexsize(grp->type); i++)
+    for (size_t i = 0; i < ncindexsize(grp->type); i++)
         if ((retval = nc4_type_free((NC_TYPE_INFO_T *)ncindexith(grp->type, i))))
             return retval;
     ncindexfree(grp->type);
@@ -1481,6 +1537,55 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
 
     /* Free up this group */
     free(grp);
+
+    return NC_NOERR;
+}
+
+/**
+ * @internal Recursively delete the data for a group (and everything
+ * it contains) in our internal metadata store.
+ *
+ * @param grp Pointer to group info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
+int
+nc4_rec_grp_del_att_data(NC_GRP_INFO_T *grp)
+{
+    int retval;
+
+    assert(grp);
+    LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
+
+    /* Recursively call this function for each child, if any, stopping
+     * if there is an error. */
+    for (size_t i = 0; i < ncindexsize(grp->children); i++)
+        if ((retval = nc4_rec_grp_del_att_data((NC_GRP_INFO_T *)ncindexith(grp->children, i))))
+            return retval;
+
+    /* Free attribute data in this group */
+    for (size_t i = 0; i < ncindexsize(grp->att); i++) {
+        NC_ATT_INFO_T * att = (NC_ATT_INFO_T*)ncindexith(grp->att, i);
+        if((retval = NC_reclaim_data_all(grp->nc4_info->controller,att->nc_typeid,att->data,att->len)))
+            return retval;
+	att->data = NULL;
+	att->len = 0;
+	att->dirty = 0;
+    }
+
+    /* Delete att data from all contained vars in this group */
+    for (size_t i = 0; i < ncindexsize(grp->vars); i++) {
+	NC_VAR_INFO_T* v = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
+	for(size_t j=0;j<ncindexsize(v->att);j++) {
+	    NC_ATT_INFO_T* att = (NC_ATT_INFO_T*)ncindexith(v->att, j);
+   	    if((retval = NC_reclaim_data_all(grp->nc4_info->controller,att->nc_typeid,att->data,att->len)))
+	        return retval;
+	    att->data = NULL;
+	    att->len = 0;
+	    att->dirty = 0;
+	}
+    }
 
     return NC_NOERR;
 }
@@ -1499,7 +1604,7 @@ int
 nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
 {
     assert(att && list);
-    ncindexidel(list, ((NC_OBJ *)att)->id);
+    ncindexidel(list, (size_t)((NC_OBJ *)att)->id);
     return nc4_att_free(att);
 }
 
@@ -1549,6 +1654,15 @@ nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
     int retval;
 
     assert(h5);
+
+    /* Order is important here. We must delete the attribute contents
+       before deleteing any metadata because nc_reclaim_data depends
+       on the existence of the type info.
+    */
+
+    /* Delete all the attribute data contents in each group and variable. */
+    if ((retval = nc4_rec_grp_del_att_data(h5->root_grp)))
+        return retval;
 
     /* Delete all the list contents for vars, dims, and atts, in each
      * group. */
@@ -1600,13 +1714,74 @@ nc4_normalize_name(const char *name, char *norm_name)
 #ifdef ENABLE_SET_LOG_LEVEL
 
 /**
- * @internal Use this to set the global log level. Set it to
- * NC_TURN_OFF_LOGGING (-1) to turn off all logging. Set it to 0 to
- * show only errors, and to higher numbers to show more and more
- * logging details. If logging is not enabled with --enable-logging at
- * configure when building netCDF, this function will do nothing.
- * Note that it is possible to set the log level using the environment
- * variable named _NETCDF_LOG_LEVEL_ (e.g. _export NETCDF_LOG_LEVEL=4_).
+ * Initialize parallel I/O logging. For parallel I/O builds, open log
+ * file, if not opened yet, or increment ref count if already open.
+ *
+ * @author Ed Hartnett
+ */
+int
+nc4_init_logging(void)
+{
+    int ret = NC_NOERR;
+
+#if LOGGING
+#if NC_HAS_PARALLEL4
+    if (!LOG_FILE && nc_log_level >= 0)
+    {
+        char log_filename[NC_MAX_NAME];
+        int my_rank = 0;
+        int mpierr;
+        int mpi_initialized;
+
+        /* If MPI has been initialized find the rank. */
+        if ((mpierr = MPI_Initialized(&mpi_initialized)))
+            return NC_EMPI;
+        if (mpi_initialized)
+        {
+            if ((mpierr = MPI_Comm_rank(MPI_COMM_WORLD, &my_rank)))
+                return NC_EMPI;
+        }
+
+        /* Create a filename with the rank in it. */
+        snprintf(log_filename, sizeof(log_filename), "nc4_log_%d.log", my_rank);
+
+        /* Open a file for this rank to log messages. */
+        if (!(LOG_FILE = fopen(log_filename, "w")))
+            return NC_EINTERNAL;
+    }
+#endif /* NC_HAS_PARALLEL4 */
+#endif /* LOGGING */
+
+    return ret;
+}
+
+/**
+ * Finalize logging - close parallel I/O log files, if open. This does
+ * nothing if logging is not enabled.
+ *
+ * @author Ed Hartnett
+ */
+void
+nc4_finalize_logging(void)
+{
+#if LOGGING
+#if NC_HAS_PARALLEL4
+    if (LOG_FILE)
+    {
+        fclose(LOG_FILE);
+        LOG_FILE = NULL;
+    }
+#endif /* NC_HAS_PARALLEL4 */
+#endif /* LOGGING */
+}
+
+/**
+ * Use this to set the global log level. 
+ * 
+ * Set it to NC_TURN_OFF_LOGGING (-1) to turn off all logging. Set it
+ * to 0 to show only errors, and to higher numbers to show more and
+ * more logging details. If logging is not enabled when building
+ * netCDF, this function will do nothing.
  *
  * @param new_level The new logging level.
  *
@@ -1616,16 +1791,30 @@ nc4_normalize_name(const char *name, char *norm_name)
 int
 nc_set_log_level(int new_level)
 {
-#ifdef LOGGING
+#if LOGGING
     /* Remember the new level. */
     nc_log_level = new_level;
-    LOG((4, "log_level changed to %d", nc_log_level));
-#endif /*LOGGING */
-    return 0;
+
+#if NC_HAS_PARALLEL4
+    /* For parallel I/O builds, call the log init/finalize functions
+     * as needed, to open and close the log files. */
+    if (new_level >= 0)
+    {
+        if (!LOG_FILE)
+            nc4_init_logging();
+    }
+    else
+        nc4_finalize_logging();
+#endif /* NC_HAS_PARALLEL4 */
+    
+    LOG((1, "log_level changed to %d", nc_log_level));
+#endif /* LOGGING */
+    
+    return NC_NOERR;
 }
 #endif /* ENABLE_SET_LOG_LEVEL */
 
-#ifdef LOGGING
+#if LOGGING
 #define MAX_NESTS 10
 /**
  * @internal Recursively print the metadata of a group.
@@ -1687,7 +1876,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
             strcpy(dims_string, "");
             for (d = 0; d < var->ndims; d++)
             {
-                sprintf(temp_string, " %d", var->dimids[d]);
+                snprintf(temp_string, sizeof(temp_string), " %d", var->dimids[d]);
                 strcat(dims_string, temp_string);
             }
         }
@@ -1811,7 +2000,7 @@ int
 NC4_show_metadata(int ncid)
 {
     int retval = NC_NOERR;
-#ifdef LOGGING
+#if LOGGING
     NC_FILE_INFO_T *h5;
     int old_log_level = nc_log_level;
 
@@ -1837,6 +2026,7 @@ NC4_show_metadata(int ncid)
 const NC_reservedatt*
 NC_findreserved(const char* name)
 {
+#if 0
     int n = NRESERVED;
     int L = 0;
     int R = (n - 1);
@@ -1853,8 +2043,12 @@ NC_findreserved(const char* name)
             R = (m - 1);
     }
     return NULL;
+#else
+    return (const NC_reservedatt*)bsearch(name,NC_reserved,NRESERVED,sizeof(NC_reservedatt),bincmp);
+#endif
 }
 
+/* Ed Hartness requires this function */
 static int
 NC4_move_in_NCList(NC* nc, int new_id)
 {
@@ -1865,4 +2059,27 @@ NC4_move_in_NCList(NC* nc, int new_id)
 	    ((NC_OBJ*)nc->dispatchdata)->id = nc->ext_ncid;
     }
     return stat;
+}
+
+static int
+sortcmp(const void* arg1, const void* arg2)
+{
+    NC_reservedatt* r1 = (NC_reservedatt*)arg1;
+    NC_reservedatt* r2 = (NC_reservedatt*)arg2;
+    return strcmp(r1->name,r2->name);
+}
+
+static int
+bincmp(const void* arg1, const void* arg2)
+{
+    const char* name = (const char*)arg1;
+    NC_reservedatt* ra = (NC_reservedatt*)arg2;
+    return strcmp(name,ra->name);
+}
+
+void
+NC_initialize_reserved(void)
+{
+    /* Guarantee the reserved attribute list is sorted */
+    qsort((void*)NC_reserved,NRESERVED,sizeof(NC_reservedatt),sortcmp);
 }

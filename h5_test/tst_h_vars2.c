@@ -83,7 +83,7 @@ main()
 
         if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
         if (num_obj != NUM_ELEMENTS) ERR;
-        for (i = 0; i < num_obj; i++)
+        for (hsize_t i = 0; i < num_obj; i++)
         {
 #if H5_VERSION_GE(1,12,0)
             if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
@@ -96,7 +96,7 @@ main()
             if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
                                            NULL, 0, H5P_DEFAULT)) < 0) ERR;
             H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-                               name, size+1, H5P_DEFAULT);
+                               name, (size_t)size+1, H5P_DEFAULT);
             if (strcmp(name, names[i])) ERR;
         }
         if (H5Pclose(fapl_id) < 0 ||
@@ -166,7 +166,7 @@ main()
 
         if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
         if (num_obj != NUM_DIMSCALES) ERR;
-        for (i = 0; i < num_obj; i++)
+        for (hsize_t i = 0; i < num_obj; i++)
         {
 #if H5_VERSION_GE(1,12,0)
             if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
@@ -179,7 +179,7 @@ main()
             if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
                                            NULL, 0, H5P_DEFAULT)) < 0) ERR;
             if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-                                   name, size+1, H5P_DEFAULT) < 0) ERR;
+                                   name, (size_t)size+1, H5P_DEFAULT) < 0) ERR;
             if (strcmp(name, names[i])) ERR;
         }
         if (H5Pclose(fapl_id) < 0 ||
@@ -199,7 +199,7 @@ main()
         hid_t did, fapl_id, fcpl_id, gcpl_id, attid;
         hsize_t num_obj;
         hid_t fileid, grpid, spaceid;
-        float val = 3.1495;
+        float val = 3.1495f;
 #if H5_VERSION_GE(1,12,0)
         H5O_info2_t obj_info;
 #else
@@ -276,7 +276,7 @@ main()
         if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 0,
                                        NULL, 0, H5P_DEFAULT)) < 0) ERR;
         H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 0,
-                           name, size+1, H5P_DEFAULT);
+                           name, (size_t)size+1, H5P_DEFAULT);
         if (strcmp(name, VAR_NAME)) ERR;
         if (H5Pclose(fapl_id) < 0 ||
             H5Gclose(grpid) < 0 ||
@@ -478,7 +478,7 @@ main()
 	/* Create the variables. */
 	for (v = 0; v < NUM_DATASETS; v++)
 	{
-	    sprintf(var_name, "var_%d", v);
+	    snprintf(var_name, sizeof(var_name), "var_%d", v);
 	    /*       printf("creating var %s\n", var_name);*/
 	    if ((datasetid[v] = H5Dcreate1(grpid, var_name, H5T_NATIVE_INT,
 					  spaceid, plistid)) < 0) ERR_RET;

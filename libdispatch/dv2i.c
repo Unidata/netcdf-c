@@ -32,9 +32,9 @@ The V2 API is tested in test directory nctest.
 
 /** The subroutines in error.c emit no messages unless NC_VERBOSE bit
  * is on.  They call exit() when NC_FATAL bit is on. */
-int ncopts = (NC_FATAL | NC_VERBOSE) ;
+MSC_EXTRA int ncopts = (NC_FATAL | NC_VERBOSE) ;
 
-int ncerr = NC_NOERR ; /**< V2 API error code. */
+MSC_EXTRA int ncerr = NC_NOERR ; /**< V2 API error code. */
 
 #if SIZEOF_LONG == SIZEOF_SIZE_T
 /*
@@ -1254,7 +1254,7 @@ ncvarputg(
 		ret = nc_inq_vartype(ncid, varid, &type);
 		if(ret) return ret;
 				el_size = nctypelen(type);
-		imp = (ptrdiff_t*) malloc(ndims * sizeof(ptrdiff_t));
+		imp = (ptrdiff_t*) malloc((size_t)ndims * sizeof(ptrdiff_t));
 		for (i=0; i<ndims; i++) imp[i] = map[i] / el_size;
 	}
 
@@ -1327,7 +1327,7 @@ ncvargetg(
 		ret = nc_inq_vartype(ncid, varid, &type);
 		if(ret) return ret;
 		el_size = nctypelen(type);
-		imp = (ptrdiff_t*) malloc(ndims * sizeof(ptrdiff_t));
+		imp = (ptrdiff_t*) malloc((size_t)ndims * sizeof(ptrdiff_t));
 		for (i=0; i<ndims; i++) imp[i] = map[i] / el_size;
 	}
 
@@ -1411,7 +1411,7 @@ ncattput(
     const void*	value
 )
 {
-	const int status = nc_put_att(ncid, varid, name, datatype, len, value);
+	const int status = nc_put_att(ncid, varid, name, datatype, (size_t)len, value);
 	if(status != NC_NOERR)
 	{
 		nc_advise("ncattput", status, "ncid %d", ncid);

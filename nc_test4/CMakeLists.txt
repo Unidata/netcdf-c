@@ -22,35 +22,52 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_files6 tst_sync tst_h_strbug tst_h_refs tst_h_scalar tst_rename
   tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
-  tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_quantize)
+  tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_broken_files
+  tst_quantize tst_h_transient_types)
+
+IF(HAS_PAR_FILTERS)
+SET(NC4_tests $NC4_TESTS tst_alignment)
+ENDIF()
 
 # Note, renamegroup needs to be compiled before run_grp_rename
 
-IF(BUILD_UTILITIES)
+IF(NETCDF_BUILD_UTILITIES)
   SET(NC4_TESTS ${NC4_TESTS} tst_xplatform)
   build_bin_test(renamegroup)
   add_sh_test(nc_test4 run_grp_rename)
   build_bin_test(tst_charvlenbug)
+  build_bin_test(tst_vlenstr)
   ADD_SH_TEST(nc_test4 tst_misc)
   build_bin_test(tst_fillonly)
   ADD_SH_TEST(nc_test4 test_fillonly)
-IF(ENABLE_FILTER_TESTING)
+  ADD_SH_TEST(nc_test4 tst_fixedstring)
+IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
   build_bin_test(tst_filterparser)
   build_bin_test(test_filter)
   build_bin_test(test_filter_misc)
   build_bin_test(tst_multifilter)
   build_bin_test(test_filter_order)
   build_bin_test(test_filter_repeat)
-  ADD_SH_TEST(nc_test4 tst_filter)
-IF(ENABLE_BLOSC)
+  build_bin_test(tst_filter_vlen)
+  if(NOT MINGW)
+    ADD_SH_TEST(nc_test4 tst_filter)
+  endif()
   ADD_SH_TEST(nc_test4 tst_specific_filters)
-ENDIF()
-IF(ENABLE_CLIENTSIDE_FILTERS)
-  add_bin_test(nc_test4 test_filter_reg)
-ENDIF(ENABLE_CLIENTSIDE_FILTERS)
-ENDIF(ENABLE_FILTER_TESTING)
+  ADD_SH_TEST(nc_test4 tst_bloscfail)
+  ADD_SH_TEST(nc_test4 tst_filter_vlen)
+  IF(FALSE)
+    # This test is too dangerous to run in a parallel make environment.
+    # It causes race conditions. So suppress and only test by hand.
+    ADD_SH_TEST(nc_test4 tst_unknown)
+    # The tst_filterinstall test can only be run after an install
+    # occurred with --with-plugin-dir enabled. So there is no point
+    #in running it via make check. It is kept here so it can be
+    # manually invoked if desired
+    ADD_SH_TEST(nc_test4 tst_filterinstall)
+  ENDIF(FALSE)
+ENDIF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
 
-ENDIF(BUILD_UTILITIES)
+ENDIF(NETCDF_BUILD_UTILITIES)
 
 IF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
   SET(NC4_TESTS ${NC4_TESTS} tst_virtual_datasets)
@@ -63,7 +80,7 @@ ENDIF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
 BUILD_BIN_TEST(tst_empty_vlen_unlim)
 ADD_SH_TEST(nc_test4 run_empty_vlen_test)
 
-IF(NOT MSVC)
+IF(NOT WIN32)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
 ENDIF()
 
@@ -77,10 +94,10 @@ IF(LARGE_FILE_TESTS)
 ENDIF()
 
 
-IF(USE_SZIP)
+IF(HAVE_H5Z_SZIP)
   BUILD_BIN_TEST(test_szip)
   BUILD_BIN_TEST(h5testszip)
-  IF(BUILD_UTILITIES)
+  IF(NETCDF_BUILD_UTILITIES)
     add_sh_test(nc_test4 tst_szip)
   ENDIF()
 ENDIF()
@@ -89,7 +106,7 @@ ENDIF()
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/ref_bzip2.c ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.h5 ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
-IF(MSVC)
+IF(WIN32)
   FILE(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
 ENDIF()
 
@@ -104,6 +121,7 @@ IF(TEST_PARALLEL4)
   build_bin_test(tst_parallel3)
   build_bin_test(tst_parallel4)
   build_bin_test(tst_parallel5)
+  build_bin_test(tst_parallel6)
   build_bin_test(tst_parallel_zlib)
   build_bin_test(tst_parallel_compress)
   build_bin_test(tst_nc4perf)

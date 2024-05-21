@@ -1,0 +1,19 @@
+netcdf tmp_jsonconvention {
+dimensions:
+	d1 = 1 ;
+variables:
+	int v(d1) ;
+		v:varjson1 = "{\"key1\": [1,2,3], \"key2\": {\"key3\": \"abc\"}}" ;
+		v:varjson2 = "[[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]]" ;
+		v:varvec1  = "1.0, 0.0, 0.0" ;
+		v:varvec2  = "[0.,0.,1.]" ;
+
+// global attributes:
+		:globalfloat = 1. ;
+		:globalfloatvec = 1., 2. ;
+		:globalchar = "abc" ;
+		:globalillegal = "[ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 " ;
+data:
+
+ v = _ ;
+}

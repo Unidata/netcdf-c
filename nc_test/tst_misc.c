@@ -38,12 +38,12 @@ main(int argc, char **argv)
 
       /* Appease valgrind by initializing our data. */
       for (i = 0; i < DATA_LEN; i++)
-	 dummy_data[i] = i;
+         dummy_data[i] = (char)i;
 
-      for (i = DATA_LEN; i >= 0; i--)
+      for (size_t i = DATA_LEN; i--> 0;)
       {
 	 /* Create a small file which is not a netCDF file. */
-	 if (!(file = fopen(FILE_NAME, "w+"))) ERR;
+	 if (!(file = NCfopen(FILE_NAME, "w+"))) ERR;
 	 if (fwrite(dummy_data, 1, i, file) != i) ERR;
 	 if (fclose(file)) ERR;
 

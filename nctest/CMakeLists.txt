@@ -17,8 +17,21 @@ ADD_EXECUTABLE(nctest ${nctest_SRC})
 TARGET_LINK_LIBRARIES(nctest netcdf)
 ADD_TEST(nctest ${EXECUTABLE_OUTPUT_PATH}/nctest)
 
+## 
+# Turn off inclusion of particular files when using the cmake-native
+# option to turn on Unity Builds.  
+#
+# For more information, see:
+#  * https://github.com/Unidata/netcdf-c/pull/2839/
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD_MODE.html#prop_tgt:UNITY_BUILD_MODE
+##
+set_property(TARGET nctest PROPERTY UNITY_BUILD OFF)
+
 add_bin_test_no_prefix(tst_rename)
-add_sh_test(nctest compare_test_files)
-IF(HAVE_BASH)
-  SET_TESTS_PROPERTIES(nctest_compare_test_files PROPERTIES DEPENDS nctest)
-ENDIF(HAVE_BASH)
+IF(NETCDF_BUILD_UTILITIES)
+  add_sh_test(nctest compare_test_files)
+  IF(HAVE_BASH)
+    SET_TESTS_PROPERTIES(nctest_compare_test_files PROPERTIES DEPENDS nctest)
+  ENDIF(HAVE_BASH)
+ENDIF(NETCDF_BUILD_UTILITIES)

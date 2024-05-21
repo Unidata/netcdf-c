@@ -11,7 +11,7 @@ What Is netCDF?  {#What-Is-netCDF}
 
 
 NetCDF (network Common Data Form) is a set of interfaces for
-array-oriented data access and a [freely](http://www.unidata.ucar.edu/software/netcdf/docs/copyright.html) distributed
+array-oriented data access and a [freely](https://docs.unidata.ucar.edu/netcdf-c/current/copyright.html) distributed
 collection of data access libraries for C, Fortran, C++, Java, and other
 languages. The netCDF libraries support a machine-independent format for
 representing scientific data. Together, the interfaces, libraries, and
@@ -36,7 +36,7 @@ NetCDF data is:
 The netCDF software was developed by Glenn Davis, Russ Rew, Ed Hartnett,
 John Caron, Dennis Heimbigner, Steve Emmerson, Harvey Davies, and Ward
 Fisher at the Unidata Program Center in Boulder, Colorado, with
-[contributions](http://www.unidata.ucar.edu/software/netcdf/docs/credits.html) from many other netCDF users.
+[contributions](https://docs.unidata.ucar.edu/netcdf-c/current/credits.html) from many other netCDF users.
 
 ----------
 
@@ -46,10 +46,10 @@ How do I get the netCDF software package? {#HowdoIgetthenetCDFsoftwarepackage}
 
 The latest source distribution, which includes the C libraries and
 utility programs, is available from [the NetCDF Downloads
-page](/downloads/netcdf/index.jsp). Separate source distributions for
+page](https://downloads.unidata.ucar.edu/netcdf-c). Separate source distributions for
 the Java library, Fortran libraries, and C++ libraries are also
 available there. Installation instructions are available with the
-distribution or [online](http://www.unidata.ucar.edu/software/netcdf/docs/building.html).
+distribution or [online](https://docs.unidata.ucar.edu/netcdf-c/current/building.html).
 
 Binary distributions of netCDF are available for various platforms from
 package management systems such as dpkg, RPM, fink, MacPorts, Homebrew,
@@ -67,7 +67,7 @@ that is part of the netCDF software distribution. It is a command line
 tool that provides a text representation of a netCDF file's data, just its
 metadata, or just the data for specified
 variables, depending on what arguments you use. For more information,
-see the \ref ncdump_guide documentation.
+see the [ncdump User's Guide](https://docs.unidata.ucar.edu/nug/current/netcdf_utilities_guide.html#ncdump_guide) documentation.
 
 Another good tool for conversion of netCDF data to text is the ["ncks" program](http://nco.sourceforge.net/nco.html#ncks-netCDF-Kitchen-Sink) that's one of the utility programs in the [NCO (NetCDF Operators)](software.html#NCO) package. Similar capabilities are available using programs from the [CDO (Climate Data Operators)](software.html#CDO) software, commands from [NCL (NCAR Command Language)](software.html#NCL), or various other packages such as [ANAX](http://science.arm.gov/~cflynn/ARM_Tested_Tools/), cdf2asc, and NOESYS, all "third party" netCDF utilities developed and supported by other organizations. You can find more information about these third-party packages on the [Software for Manipulating or Displaying NetCDF Data](software.html) page.
 
@@ -84,7 +84,7 @@ indices. To interpret georeferencing metadata so you can print the data
 within a latitude/longitude bounding box, for example, you need a higher
 level tool that interprets conventions for specifying coordinates, such
 as the CF conventions. Or you can write a small program using one of the
-language APIs that provide netCDF support, for which [examples are available](http://www.unidata.ucar.edu/software/netcdf/examples/programs/).
+language APIs that provide netCDF support, for which [examples are available](https://www.unidata.ucar.edu/software/netcdf/examples/programs/).
 
 ----------
 
@@ -96,12 +96,12 @@ One way to convert data in text form to netCDF is to use the **ncgen**
 tool that is part of the netCDF software distribution. Using **ncgen** for
 this purpose is a two-step process:
 
-1.  Convert text data to a file in [CDL form](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html#CDL-Syntax) using a text
+1.  Convert text data to a file in [CDL form](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf.html#CDL-Syntax) using a text
     editor or text manipulation tools
 2.  Convert the CDL representation to netCDF using the **ncgen** tool with
     the "-o" or "-b" option
 
-For more information, see the [ncgen documentation](http://www.unidata.ucar.edu/software/netcdf/docs/ncgen-man-1.html).
+For more information, see the [ncgen documentation](https://docs.unidata.ucar.edu/netcdf-c/current/ncgen-man-1.html).
 
 If you have installed the NCAR Command Language
 ([NCL](http://www.ncl.ucar.edu/)) software, there are functions
@@ -122,7 +122,7 @@ write the data to a netCDF file using
 What's new in the latest netCDF release?
 
 
-[Release notes](http://www.unidata.ucar.edu/software/netcdf/release-notes-latest.html) for the
+[Release notes](https://www.unidata.ucar.edu/software/netcdf/release-notes-latest.html) for the
 latest netCDF release are available that describe new features and fixed
 bugs since the previous release.
 
@@ -139,8 +139,8 @@ attributes; what order to use for the dimensions of multidimensional
 variables; what variables to include in the same netCDF file; and how to
 use variable attributes to capture the structure and meaning of data. We
 provide some guidelines in the NetCDF User's Guide (e.g., the section on
-[Differences between Attributes and Variables](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/netcdf_data_set_components.html#differences_atts_vars))
-and in a new web document [Writing NetCDF Files: BestPractices](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/_best_practices.html), but we've found that
+[Differences between Attributes and Variables](https://docs.unidata.ucar.edu/nug/current/netcdf_data_set_components.html#differences_atts_vars))
+and in a new web document [Writing NetCDF Files: BestPractices](https://docs.unidata.ucar.edu/nug/current/_best_practices.html), but we've found that
 a little experience helps. Occasionally we have decided it was useful to
 change the structure of netCDF files after experience with how the data
 is used.
@@ -191,7 +191,7 @@ these mailing list actions:
 Where are some examples of netCDF datasets? {#Where-are-some-examples-of-netCDF-datasets}
 -----------------
 
-Here are some [example netCDF files](http://www.unidata.ucar.edu/software/netcdf/examples/files.html).
+Here are some [example netCDF files](https://www.unidata.ucar.edu/software/netcdf/examples/files.html).
 
 ----------
 
@@ -204,10 +204,10 @@ time-dependent data have been a past topic of discussion on the
 netcdfgroup mailing list. When the subject comes up, interesting
 discussions often result, so we've archived past discussions on this
 subject at
-[http://www.unidata.ucar.edu/software/netcdf/time/](http://www.unidata.ucar.edu/software/netcdf/time/).
+[https://www.unidata.ucar.edu/software/netcdf/time/](https://www.unidata.ucar.edu/software/netcdf/time/).
 
 A summary of Unidata's recommendations is available from
-[http://www.unidata.ucar.edu/software/netcdf/time/recs.html](http://www.unidata.ucar.edu/software/netcdf/time/recs.html).
+[https://www.unidata.ucar.edu/software/netcdf/time/recs.html](https://www.unidata.ucar.edu/software/netcdf/time/recs.html).
 Briefly, we recommend use of the units conventions supported by the
 [udunits library](/software/udunits/) for time and other units
 attributes.
@@ -215,7 +215,7 @@ attributes.
 Other groups have established more specific conventions that include the
 representation of time in netCDF files. For more information on such
 conventions, see the NetCDF Conventions Page at
-[http://www.unidata.ucar.edu/software/netcdf/conventions.html](http://www.unidata.ucar.edu/software/netcdf/conventions.html).
+[https://www.unidata.ucar.edu/software/netcdf/conventions.html](https://www.unidata.ucar.edu/software/netcdf/conventions.html).
 
 ----------
 
@@ -224,12 +224,12 @@ Who else uses netCDF? {#Who-else-uses-netCDF}
 
 The netCDF mailing list has over 500 addresses (some of which are
 aliases to more addresses) in thirty countries. Several groups have
-[adopted netCDF as a standard](http://www.unidata.ucar.edu/software/netcdf/docs/standards.html) for
+[adopted netCDF as a standard](https://docs.unidata.ucar.edu/netcdf-c/current/standards.html) for
 representing some forms of scientific data.
 
 A somewhat dated description of some of the projects and groups that
 have used netCDF is available from
-[http://www.unidata.ucar.edu/software/netcdf/usage.html](http://www.unidata.ucar.edu/software/netcdf/usage.html).
+[https://www.unidata.ucar.edu/software/netcdf/usage.html](https://www.unidata.ucar.edu/software/netcdf/usage.html).
 
 ----------
 
@@ -242,7 +242,7 @@ Rew, R. K., G. P. Davis, S. Emmerson, and H. Davies, **NetCDF User's
 Guide for C, An Interface for Data Access, Version 3**, April 1997.
 
 Current online and downloadable documentation is available from the
-[documentation directory](http://www.unidata.ucar.edu/software/netcdf/docs/).
+[documentation directory](https://docs.unidata.ucar.edu/netcdf-c/current/).
 
 Other references include:
 
@@ -255,7 +255,7 @@ Seventh International Conference on Interactive Information and
 Processing Systems for Meteorology, Oceanography, and Hydrology, New
 Orleans, La., American Meteorology Society, January 1991.
 
-Jenter, H. L. and R. P. Signell, 1992. "[NetCDF: A Freely-Available Software-Solution to Data-Access Problems for Numerical Modelers](http://www.unidata.ucar.edu/software/netcdf/papers/jenter_signell_92.pdf)". Proceedings
+Jenter, H. L. and R. P. Signell, 1992. "[NetCDF: A Freely-Available Software-Solution to Data-Access Problems for Numerical Modelers](https://www.unidata.ucar.edu/software/netcdf/papers/jenter_signell_92.pdf)". Proceedings
 of the American Society of Civil Engineers Conference on Estuarine and
 Coastal Modeling. Tampa, Florida.
 
@@ -298,9 +298,9 @@ Is there a document describing the actual physical format for a Unidata netCDF f
 A short document that specifies the [format of netCDF classic and 64-bit offset files](http://earthdata.nasa.gov/sites/default/files/esdswg/spg/rfc/esds-rfc-011/ESDS-RFC-011v2.00.pdf) has been approved as a standard by the NASA ESDS Software Process Group.
 
 In addition, the NetCDF User's Guide contains an
-[appendix](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html#File-Format) with the same format specification.
+[appendix](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf.html#File-Format) with the same format specification.
 
-The ["NetCDF File Structure and Performance"](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html#Structure) chapter provides a less formal explanation of the format of netCDF data to help clarify the performance implications of different data organizations.
+The ["NetCDF File Structure and Performance"](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf.html#Structure) chapter provides a less formal explanation of the format of netCDF data to help clarify the performance implications of different data organizations.
 
 If users only access netCDF data through the documented interfaces, future changes to the format will be transparent.
 
@@ -322,7 +322,7 @@ We test releases on the following operating systems with various compilers:
 -   Solaris
 -   Windows (some versions, see below)
 
-The [NetCDF Installation and Porting Guide](@ref getting_and_building_netcdf) explains how to build netCDF from source on various platforms. Often, it's as easy as running
+The [NetCDF Installation and Porting Guide](https://docs.unidata.ucar.edu/nug/current/getting_and_building_netcdf.html) explains how to build netCDF from source on various platforms. Often, it's as easy as running
 
 ~~~~ {.boldcode}
   ./configure
@@ -336,7 +336,7 @@ How can I use current versions of netCDF-4 with Windows? {#HowcanIusecu}
 ------------------
 
 
-See [http://www.unidata.ucar.edu/software/netcdf/docs/winbin.html](http://www.unidata.ucar.edu/software/netcdf/win_netcdf).
+See [https://docs.unidata.ucar.edu/netcdf-c/current/winbin.html](https://www.unidata.ucar.edu/software/netcdf/win_netcdf).
 
 How can I use netCDF-4.1 with Windows? {#HowcanIusenetCDF41withWindows}
 -----------------
@@ -398,10 +398,7 @@ A developer on the GMT Wiki has posted [detailed instructions for using CMake](h
 Another developer has contributed an unsupported native Windows build of
 netCDF-4.1.3 with 32- and 64-bit versions, Fortran bindings, and OPeNDAP
 support. The announcement of the availability of that port is
-[here](http://www.unidata.ucar.edu/mailing_lists/archives/netcdfgroup/2011/msg00363.html).
-
-User Veit Eitner has contributed a port of 4.1.1 to Visual Studio,
-including an F90 port to Intel Fortran. Download [source (ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-4.1.1-win32-src.zip)](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-4.1.1-win32-src.zip) or [binary](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-4.1.1-win32-bin.zip) versions. This port was done before the code was refactored in 4.1.2.
+[here](https://www.unidata.ucar.edu/mailing_lists/archives/netcdfgroup/2011/msg00363.html).
 
 How can I use netCDF-4 with Windows? {#How-can-I-use-netCDF-4-with-Windows}
 -----------------
@@ -418,18 +415,7 @@ utilities and just install them on your system.
 
 Unlike Unix builds, the Visual Studio build **always** requires HDF5,
 zlib, and szlib in all cases. All Windows DLL users must also have the
-HDF5, zlib, and szlib DLLs. These are now available from the Unidata FTP
-site:
-
--   [zlib DLLs for 32-bit Windows](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/zlib123-vs2005.zip)
--   [szlib DLLs for 32-bit Windows](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/szip21-vs6-enc.zip)
--   [HDF5 DLLs for 32-bit Windows](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/5-181-win-vs2005.zip)
-
-Two versions of the netCDF DLLs are available, for different Fortran
-compilers:
-
--   [NetCDF for Intel and Portland Group Fortran compilers.](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/win32_vs_PGI_dll_4.0.1.zip)
--   [NetCDF for other Fortran compilers.](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/win32_vs_f2c_dll_4.0.1.zip)
+HDF5, zlib, and szlib DLLs. 
 
 To use netCDF, install the DLLs in /system/win32 and the .h files in a
 directory known to your compiler, and define the DLL\_NETCDF
@@ -455,11 +441,11 @@ extensively tested in the classic model, but tests for groups,
 user-defined types, and other features of the expanded netCDF-4 data
 model have not yet been ported to Windows.
 
-The [NetCDF Installation and Porting Guide](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-install/index.html) documents how to
+The [NetCDF Installation and Porting Guide](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-install/index.html) documents how to
 use netCDF with Windows.
 
 Some users have built and released netCDF with Intel Fortran on Windows.
-See the [ifort entry in other builds document](http://www.unidata.ucar.edu/software/netcdf/docs/other-builds.html#ifort-361-windows).
+See the [ifort entry in other builds document](https://docs.unidata.ucar.edu/netcdf-c/current/other-builds.html#ifort-361-windows).
 
 Windows is a complicated platform to build on. Some useful explanations
 of the oddities of Windows can be found here:
@@ -469,9 +455,6 @@ of the oddities of Windows can be found here:
     Leichter.
 -   [cygwin mailing list explanation of Windows DL requirements.](http://cygwin.com/ml/cygwin/2000-06/msg00688.html)
 -   [-mno-cygwin - Building Mingw executables using Cygwin](http://www.delorie.com/howto/cygwin/mno-cygwin-howto.html)
-
-Once you have the netCDF DLL, you may wish to call it from Visual Basic.
-The [netCDF VB wrapper](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf_vb_net_wrapper.zip) will help you do this.
 
 The SDS ([Scientific DataSet](http://research.microsoft.com/en-us/projects/sds/)) library and tools provide .Net developers a way to read, write and share scalars, vectors, and multidimensional grids using CSV, netCDF, and other file formats. It currently uses netCDF version 4.0.1. In addition to .Net libraries, SDS provides a set of utilities and packages: an sds command line utility, a DataSet Viewer application and an add-in for Microsoft Excel 2007 (and later versions).
 
@@ -483,7 +466,7 @@ How do I build and install netCDF for a specific development environment? {#How-
 You have to build and install the netCDF C library first, before you build and install other language libraries that depend on it, such as Fortran, C++, or Python netCDF libraries. The netCDF Java library is mostly independent of the netCDF C library, unless you need to write netCDF-4 files from Java, in which case you will also need an installed netCDF C library.
 
 For more details, see
-[NetCDF Installation and Porting Guide](@ref getting_and_building_netcdf).
+[NetCDF Installation and Porting Guide](https://docs.unidata.ucar.edu/nug/current/getting_and_building_netcdf.html).
 
 
 ----------
@@ -525,7 +508,7 @@ The netCDF installation directory can be set at the time configure is
 run using the --prefix argument. If it is not specified, /usr/local is
 used as the default prefix.
 
-For more information see the [NetCDF Installation and Porting Guide](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-install).
+For more information see the [NetCDF Installation and Porting Guide](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-install).
 
 Formats, Data Models, and Software Releases {#formatsdatamodelssoftwarereleases}
 ===========================================
@@ -629,7 +612,7 @@ distinguish between netCDF-4 and netCDF-4 classic model files, using the
 
 
 In a program, you can call the function
-[nc_inq_format](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-c.html#nc_005finq-Family)(or [nf90_inq_format](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90.html#Compiling-and-Linking-with-the-NetCDF-Library) for the Fortran-90 interface) to determine the format variant of an open netCDF file.
+[nc_inq_format](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-c.html#nc_005finq-Family)(or [nf90_inq_format](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-f90.html#Compiling-and-Linking-with-the-NetCDF-Library) for the Fortran-90 interface) to determine the format variant of an open netCDF file.
 
 Finally, on a Unix system, one way to display the first four bytes of a
 file, say foo.nc, is to run the following command:
@@ -743,7 +726,7 @@ the following situations:
     compression or chunking
 -   you need to access data in all netCDF formats including netCDF-4 or
     netCDF-4 classic model formats
--   you need to write non-record variables larger than 4GiB or record variables with more than 4GiB per record (see ["Have all netCDF size limits been eliminated?"](http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#Large%20File%20Support10))
+-   you need to write non-record variables larger than 4GiB or record variables with more than 4GiB per record (see ["Have all netCDF size limits been eliminated?"](https://docs.unidata.ucar.edu/netcdf-c/current/faq.html#Large%20File%20Support10))
 -   you are installing netCDF to support other software packages that
     require netCDF-4 features
 -   you want to write data that takes advantage of compression,
@@ -821,7 +804,7 @@ To do this within a program, or if you want different variables to have
 different levels of deflation, define compression properties when each
 variable is defined. The function to call is
 [nc_def_var_deflate](/netcdf-c.html#nc_005fdef_005fvar_005fdeflate)
-for C programs, [nf90_def_var_deflate](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90.html#NF90_005fDEF_005fVAR_005fDEFLATE) for Fortran 90 programs, [NF_DEF_VAR_DEFLATE](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f77.html#NF_005fDEF_005fVAR_005fDEFLATE) for Fortran 77. For C++ programs, the experimental cxx4 API may be used,
+for C programs, [nf90_def_var_deflate](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-f90.html#NF90_005fDEF_005fVAR_005fDEFLATE) for Fortran 90 programs, [NF_DEF_VAR_DEFLATE](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-f77.html#NF_005fDEF_005fVAR_005fDEFLATE) for Fortran 77. For C++ programs, the experimental cxx4 API may be used,
 assuming you have configured with --enable-cxx-4.
 
 Although default variable chunking parameters may be adequate,
@@ -834,11 +817,11 @@ compression than chunks that included multiple horizontal slices. There
 are other factors in choosing chunk sizes, especially matching how the
 data will be accessed most frequently. Chunking properties may only be
 specified when a variable is first defined. The function to call is
-[nc_def_var_chunking](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-c.html#nc_005fdef_005fvar_005f)
+[nc_def_var_chunking](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-c.html#nc_005fdef_005fvar_005f)
 for C programs,
-[nf90_def_var_chunking](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90.html#NF90_005fDEF_005fVAR_005fCHUNKING)
+[nf90_def_var_chunking](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-f90.html#NF90_005fDEF_005fVAR_005fCHUNKING)
 for Fortran 90 programs, and
-[NF_DEF_VAR_CHUNKING](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f77.html#NF_005fDEF_005fVAR_005fCHUNKING)
+[NF_DEF_VAR_CHUNKING](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-f77.html#NF_005fDEF_005fVAR_005fCHUNKING)
 for Fortran 77 programs. For C++ programs, the experimental cxx4 API may
 be used, assuming you have configured with --enable-cxx-4.
 
@@ -892,7 +875,7 @@ model format file foo4c.nc, you could use:
   nccopy -k netCDF-4-classic foo3.nc foo4c.nc
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you have installed [NCO](http://www.unidata.ucar.edu/software/netcdf/software.html#NCO), the NCO
+If you have installed [NCO](https://www.unidata.ucar.edu/software/netcdf/software.html#NCO), the NCO
 utility "ncks" can be used to accomplish the same task, as follows:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~ {.boldcode}
@@ -941,7 +924,7 @@ classic format file foo3.nc, use:
   nccopy -k classic foo4c.nc foo3.nc
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you have installed [NCO](http://www.unidata.ucar.edu/software/netcdf/docs/software.html#NCO), the NCO utility "ncks" can be used to accomplish the same task, as follows:
+If you have installed [NCO](https://docs.unidata.ucar.edu/netcdf-c/current/software.html#NCO), the NCO utility "ncks" can be used to accomplish the same task, as follows:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~ {.boldcode}
   ncks -3 foo4c.nc foo3.nc
@@ -1010,7 +993,7 @@ the HDF5 library, version 1.8 or later, so in that respect netCDF-4
 files are already HDF5 files and need no conversion.
 
 The way netCDF-4 data objects are represented using HDF5 is described in
-detail in the User Manual section ["C.3 The NetCDF-4 Format"](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html#NetCDF_002d4-Format).
+detail in the User Manual section ["C.3 The NetCDF-4 Format"](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf.html#NetCDF_002d4-Format).
 
 Why aren't different extensions used for the different formats, for example ".nc3" and ".nc4"? {#why-arent-different-extensions-used}
 ------------------
@@ -1079,9 +1062,22 @@ and writable by programs that used older versions of the libraries.
 However, programs linked to older library versions will not be able to
 create new data objects with the new less-restrictive names.
 
-How difficult is it to convert my application to handle arbitrary netCDF-4 files? {#How-difficult-is-it-to-convert-my-application-to-handle-arbitrary-netCDF-4-files}
+Can I use UTF-8 File Names with Windows? {#Can-I-use-UTF-8-File-Names-with-Windows}
 -----------------
 
+Starting with Windows 10 build 17134, Windows can support use of
+the UTF-8 character set. We strongly encourage Windows users to
+enable this feature. This requires the following steps.
+
+1. In the "run" toolbar, execute the command "intl.cpl".
+2. Move to the Administrative tab.
+3. Move to "Change system locale"
+4. Check the box at the bottom labeled something like
+"Beta: Use Unicode UTF-8 for worldwide language support"
+
+
+How difficult is it to convert my application to handle arbitrary netCDF-4 files? {#How-difficult-is-it-to-convert-my-application-to-handle-arbitrary-netCDF-4-files}
+-----------------
 
 Modifying an application to fully support the new enhanced data model
 may be relatively easy or arbitrarily difficult :-), depending on what
@@ -1141,7 +1137,7 @@ Can I build netCDF with shared libraries? {#Can-I-build-netCDF-with-shared-libra
 Starting with version 3.6.2, netCDF can build shared libraries on
 platforms that support them, but by default netCDF will build static
 libraries only. To turn on shared libraries, use the --enable-shared
-option to the [netCDF configure script](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-install/Running-the-configure-Script.html).
+option to the [netCDF configure script](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-install/Running-the-configure-Script.html).
 
 ----------
 
@@ -1150,7 +1146,7 @@ How do I use netCDF shared libraries? {#How-do-I-use-netCDF-shared-libraries}
 
 
 With netCDF version 3.6.2, shared libraries can be built on platforms
-that support them by using the --enable-shared argument to [netCDF configure script](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-install/Running-the-configure-Script.html).
+that support them by using the --enable-shared argument to [netCDF configure script](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-install/Running-the-configure-Script.html).
 
 Users of earlier versions of netCDF can build shared libraries by
 setting flags correctly during builds.
@@ -1184,7 +1180,7 @@ will look in these places:
 5.  The directories specified in an OS file such as /etc/ld.conf.
 
 By default the netCDF library will be installed in /usr/local/lib. (This
-can be overridden with the --prefix option to the [netCDF configure script](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-install/Running-the-configure-Script.html)).
+can be overridden with the --prefix option to the [netCDF configure script](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf-install/Running-the-configure-Script.html)).
 
 An external site by Arnaud Desitter has a [table of different tools and command line options relating to shared libraries](http://www.fortran-2000.com/ArnaudRecipes/sharedlib.html) on Linux, Solaris, HP-UX, Tru64, AIX, SGI, Win32, MacOS X, VMS (wow!), and OS/390.
 
@@ -1203,7 +1199,7 @@ Was it possible to create netCDF files larger than 2 GiBytes before version 3.6?
 
 Yes, but there are significant restrictions on the structure of large
 netCDF files that result from the 32-bit relative offsets that are part
-of the classic netCDF format. For details, see [NetCDF Classic Format Limitations](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations)
+of the classic netCDF format. For details, see [NetCDF Classic Format Limitations](https://docs.unidata.ucar.edu/nug/current/netcdf_introduction.html#classic_format)
 in the User's Guide.
 
 ----------
@@ -1239,7 +1235,7 @@ This first netCDF format variant, the only format supported in versions
 32-bit file offset in the classic format limits the total sizes of all
 but the last non-record variables in a file to less than 2 GiB, with a
 similar limitation for the data within each record for record variables.
-For more information see [Classic Format Limitations](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations).
+For more information see [Classic Format Limitations](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations).
 
 The netCDF classic format is also identified as *version 1* or *CDF1* in
 reference to the format label at the start of a file.
@@ -1478,7 +1474,7 @@ purposes.
 
 It is also possible to overcome the 4 GiB variable restriction for a
 single fixed size variable, when there are no record variables, by
-making it the last variable, as explained in the example in [NetCDF Classic Format Limitations](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations).
+making it the last variable, as explained in the example in [NetCDF Classic Format Limitations](https://docs.unidata.ucar.edu/nug/current/netcdf_introduction.html#classic_format).
 
 ----------
 
@@ -1522,7 +1518,7 @@ variables. This means that subsequently adding a small variable to an
 existing file may be invalid, because it makes what was previously the
 last variable now in violation of the format size constraints. For
 details on the format size constraints, see the Users Guide sections
-[NetCDF Classic Format Limitations](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html#Classic-Limitations) and [NetCDF 64-bit Offset Format Limitations](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html#64-bit-Offset-Limitations).
+[NetCDF Classic Format Limitations](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf.html#Classic-Limitations) and [NetCDF 64-bit Offset Format Limitations](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf.html#64-bit-Offset-Limitations).
 
 If you get the netCDF library error "Invalid dimension size" for a
 non-negative size, you are exceeding the size limit of netCDF
@@ -1597,7 +1593,7 @@ Data Center at Goddard, and is freely available. It was originally a VMS
 FORTRAN interface for scientific data access. Unidata reimplemented the
 library from scratch to use [XDR](http://www.faqs.org/rfcs/rfc1832.html)
 for a machine-independent representation, designed the
-[CDL](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf/CDL-Syntax.htm) (network Common Data form Language) text
+[CDL](https://docs.unidata.ucar.edu/netcdf/NUG/_c_d_l.html) (network Common Data form Language) text
 representation for netCDF data, and added aggregate data access, a
 single-file implementation, named dimensions, and variable-specific
 attributes.
@@ -1688,7 +1684,7 @@ interface. As a command-line example, you could convert *fileIn.grib* to
 ~~~~
 
 For more details on using netCDF Java, see the CDM man pages for
-[nccopy](http://www.unidata.ucar.edu/software/netcdf-java/reference/manPages.html#nccopy).
+[nccopy](https://www.unidata.ucar.edu/software/netcdf-java/reference/manPages.html#nccopy).
 
 ----------
 
@@ -1746,7 +1742,7 @@ for 64-bit-offset format.
 So if you can compute how many records should be in the file, you can
 edit the second four bytes to fix this. You can find out how many
 records should be in the file from the size of the file and from the
-variable types and their shapes. See the [description of the netCDF format](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf.html#File-Format)
+variable types and their shapes. See the [description of the netCDF format](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf.html#File-Format)
 for classic and 64-bit offset files for how to figure out how large the
 file should be for fixed sized variables of particular shapes and for a
 specified number of record variables of particular shapes.
@@ -1781,7 +1777,7 @@ How do I search through past problem reports? {#How-do-I-search-through-past-pro
 -----------------
 
 
-A search link is available at the bottom of the [netCDF homepage](http://www.unidata.ucar.edu/software/netcdf/), providing a full-text search of the
+A search link is available at the bottom of the [netCDF homepage](https://www.unidata.ucar.edu/software/netcdf/), providing a full-text search of the
 support questions and answers about netCDF provided by Unidata support
 staff.
 
@@ -1931,23 +1927,12 @@ Not at this time; it is required to instead build first one version, and then th
 How can I specify linking against a particular library? {#partlib}
 -------------------------------------------------------
 
-It depends on the library.  To specify a custom `ZLib`, for example, you would do the following:
-
-        $ cmake [Source Directory] -DZLIB_LIBRARY=/path/to/my/zlib.lib
-
-
-`HDF5` is more complex, since it requires both the `hdf5` and `hdf5_hl` libraries. You would specify custom `HDF5` libraries as follows:
-
-        $ cmake [Source Directory] -DHDF5_C_LIBRARY=/path/to/hdf5.lib \
-            -DHDF5_HL_LIBRARY=/path/to/hdf5_hl.lib \
-            -DHDF5_INCLUDE_DIR=/path/to/hdf5/include
-
-
-Alternatively, you may specify:
+For most libraries, you can specify `<library name>_ROOT`. To specify
+custom `ZLib` and `HDF5`, for example, you would do the following:
 
         $ cmake [Source Directory] \
-            -DHDF5_LIBRARIES="/path/to/hdf5.lib;/path/to/hdf5_hl.lib" \
-            -DHDF5_INCLUDE_DIRS=/path/to/hdf5/include/
+              -DZLIB_ROOT=/path/to/zlib/install \
+              -DHDF5_ROOT=/path/to/hdf5/install
 
 
 What if I want to link against multiple libraries in a non-standard location {#nonstdloc}
@@ -1969,11 +1954,8 @@ How can I specify a Parallel Build using HDF5 {#parallelhdf}
 
 If cmake is having problems finding the parallel `HDF5` install, you can specify the location manually:
 
-
         $ cmake [Source Directory] -DENABLE_PARALLEL=ON \
-            -DHDF5_C_LIBRARY=/usr/lib64/openmpi/lib/libhdf5.so \
-            -DHDF5_HL_LIBRARY=/usr/lib64/openmpi/lib/libhdf5.hl.so \
-            -DHDF5_INCLUDE_DIR=/usr/include/openmpi-x86_64 \
+            -DHDF5_ROOT=/usr/lib64/openmpi/lib/
 
 You will, of course, need to use the location of the libraries specific to your development environment.
 

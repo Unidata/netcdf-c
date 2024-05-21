@@ -297,7 +297,7 @@ main()
 #endif
       HDF5_OBJID_T dimscale_obj[2], vars_dimscale_obj[2];
       int dimscale_cnt = 0;
-      int d, ndims;
+      int ndims;
 
       /* Open the file. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
@@ -355,7 +355,7 @@ main()
 		  if (num_scales != 1) ERR;
 
 		  /* Go through all dimscales for this var and learn about them. */
-		  for (d = 0; d < ndims; d++)
+		  for (unsigned int d = 0; d < ndims; d++)
 		  {
 		     if (H5DSiterate_scales(datasetid, d, NULL, alien_visitor2,
 		     &(vars_dimscale_obj[d])) < 0) ERR;
@@ -420,7 +420,7 @@ main()
 #endif
       HDF5_OBJID_T dimscale_obj[2], vars_dimscale_obj[2];
       int dimscale_cnt = 0;
-      int d, ndims;
+      int ndims;
 
       /* Create file access and create property lists. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
@@ -553,7 +553,7 @@ main()
 		  if (num_scales != 1) ERR;
 
 		  /* Go through all dimscales for this var and learn about them. */
-		  for (d = 0; d < ndims; d++)
+		  for (unsigned int d = 0; d < ndims; d++)
 		  {
 		     if (H5DSiterate_scales(datasetid, d, NULL, alien_visitor2,
 					    &(vars_dimscale_obj[d])) < 0) ERR;
@@ -633,6 +633,7 @@ main()
 	 hsize_t h5dimlen[DIMS2], h5dimlenmax[DIMS2], xtend_size[DIMS2] = {1, NUM_VALS};
 	 hsize_t start[DIMS2] = {0, 0};
 	 hsize_t count[DIMS2] = {1, NUM_VALS};
+	 hsize_t ones[DIMS2] = {1, 1};
 	 double value[NUM_VALS];
 	 int dataset_ndims;
 	 int i;
@@ -661,7 +662,7 @@ main()
 
 	 /* Set up the file and memory spaces. */
 	 if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
-				 start, NULL, count, NULL) < 0) ERR;
+				 start, NULL, ones, count) < 0) ERR;
 	 if ((mem_spaceid = H5Screate_simple(DIMS2, count, NULL)) < 0) ERR;
 
 	 /* Write a slice of data. */
@@ -683,7 +684,7 @@ main()
 	 /* Set up the file and memory spaces for a second slice. */
 	 start[0]++;
 	 if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
-				 start, NULL, count, NULL) < 0) ERR;
+				 start, NULL, ones, count) < 0) ERR;
 	 if ((mem_spaceid = H5Screate_simple(DIMS2, count, NULL)) < 0) ERR;
 
 	 /* Write a second slice of data. */
@@ -742,7 +743,7 @@ main()
 #endif
       HDF5_OBJID_T dimscale_obj[NUM_DIMSCALES1], vars_dimscale_obj[NUM_DIMSCALES1];
       int dimscale_cnt = 0;
-      int d, ndims;
+      int ndims;
 
       /* Create file access and create property lists. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
@@ -873,7 +874,7 @@ main()
 		  if (num_scales != 1) ERR;
 
 		  /* Go through all dimscales for this var and learn about them. */
-		  for (d = 0; d < ndims; d++)
+		  for (unsigned int d = 0; d < ndims; d++)
 		  {
 		     if (H5DSiterate_scales(datasetid, d, NULL, alien_visitor2,
 		     &(vars_dimscale_obj[d])) < 0) ERR;
@@ -946,7 +947,7 @@ main()
 #endif
       HDF5_OBJID_T dimscale_obj[NUM_DIMSCALES2], vars_dimscale_obj[NUM_DIMSCALES2];
       int dimscale_cnt = 0;
-      int d, ndims;
+      int ndims;
 
       /* Create file access and create property lists. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
@@ -1077,7 +1078,7 @@ main()
 		  if (num_scales != 1) ERR;
 
 		  /* Go through all dimscales for this var and learn about them. */
-		  for (d = 0; d < ndims; d++)
+		  for (unsigned int d = 0; d < ndims; d++)
 		  {
 		     if (H5DSiterate_scales(datasetid, d, NULL, alien_visitor2,
 		     &(vars_dimscale_obj[d])) < 0) ERR;

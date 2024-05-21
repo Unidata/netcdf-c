@@ -5,22 +5,59 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
+# Load only once
+if test "x$TEST_COMMON_SH" = x ; then
+export TEST_COMMON_SH=1
+
+# Define various global constants
+
 # Define location of execution
-TOPSRCDIR='@abs_top_srcdir@'
-TOPBUILDDIR='@abs_top_builddir@'
+abs_top_srcdir=@abs_top_srcdir@
+abs_top_builddir=@abs_top_builddir@
+TOPSRCDIR="${abs_top_srcdir}"
+TOPBUILDDIR="${abs_top_builddir}"
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@ISMSVC@
+  FP_WINVERMAJOR=@WINVERMAJOR@
+  FP_WINVERBUILD=@WINVERBUILD@
 FP_ISCYGWIN=@ISCYGWIN@
 FP_ISMINGW=@ISMINGW@
+FP_ISMSYS=@ISMSYS@
+FP_ISOSX=@ISOSX@
+
+FP_ISREGEDIT=@ISREGEDIT@
+FP_USEPLUGINS=@USEPLUGINS@
 
 # Feature flags
 FEATURE_HDF5=@HAS_HDF5@
+FEATURE_PARALLEL=@HAS_PARALLEL@
 
 # Define selected features of the build
 FEATURE_HDF5=@HAS_HDF5@
-FEATURE_S3TESTS=@DO_NCZARR_S3_TESTS@
-FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
 FEATURE_FILTERTESTS=@DO_FILTER_TESTS@
+FEATURE_PLUGIN_INSTALL_DIR=@PLUGIN_INSTALL_DIR@
+FEATURE_BYTERANGE=@HAS_BYTERANGE@
+FEATURE_ROS3=@HAS_HDF5_ROS3@
+FEATURE_S3_AWS=@HAS_S3_AWS@
+FEATURE_S3_INTERNAL=@HAS_S3_INTERNAL@
+FEATURE_S3=@HAS_S3@
+FEATURE_NCZARR=@HAS_NCZARR@
+FEATURE_S3TESTS=@NETCDF_ENABLE_S3_TESTING@
+FEATURE_NCZARR_ZIP=@HAS_NCZARR_ZIP@
+FEATURE_LARGE_TESTS=@DO_LARGE_TESTS@
+
+# Thredds-test server is currently disabled
+#FEATURE_THREDDSTEST=1
+
+# This is the Unidata S3 test bucket
+# All S3 tests should use this to store intermediate results.
+S3TESTBUCKET=@S3TESTBUCKET@
+
+# This is the s3 path within the Unidata bucket;
+# All S3 tests should use this to store intermediate results.
+S3TESTSUBTREE=@S3TESTSUBTREE@
+
+TESTUID=@TESTUID@
 
 set -e
 
@@ -79,8 +116,11 @@ if test "x$SETX" = x1 ; then set -x ; fi
 # On MINGW, bash and other POSIX utilities use a mounted root directory,
 # but executables compiled for Windows do not recognise the mount point.
 # Here we ensure that Windows paths are used in tests of Windows executables.
-if test "x@ISMINGW@" = xyes; then
+
+system=`uname`
+if test "x${system##MINGW*}" = x; then
   alias pwd='pwd -W'
+
 fi
 
 # We assume that TOPSRCDIR and TOPBUILDDIR are defined
@@ -91,19 +131,24 @@ top_builddir="$TOPBUILDDIR"
 # Currently not used, but left as a Visual Studio placeholder.
 # VS=Debug
 
+# Set when using gdb
+#DL=".libs/"
+
 # srcdir may or may not be defined, but if not, then create it
 if test "x$srcdir" = x ; then
   # we need to figure out our directory
   # pick off the last component as the relative name of this directory
   srcdir=`pwd`
-  current=`basename $srcdir`
-  srcdir="${top_srcdir}/$current"
+  if test "x$srcdir" != "x$top_srcdir" ; then
+      current=`basename $srcdir`
+      srcdir="${top_srcdir}/$current"
+  fi
 fi
 
 # We also assume we are executing in builddir
 builddir=`pwd`
 
-# execdir is an alias for builddir
+# execdir is usually an alias for builddir
 execdir="${builddir}"
 
 # pick off the last component as the relative name of this directory
@@ -117,9 +162,6 @@ cd $builddir; builddir=`pwd` ; cd $WD
 cd $top_builddir; top_builddir=`pwd` ; cd $WD
 cd $execdir; execdir=`pwd` ; cd $WD
 
-# If we have cygpath (which only exists under CYGWIN),
-# then try to normalize selected file paths.
-
 # For sun os
 export srcdir top_srcdir builddir top_builddir execdir
 
@@ -132,17 +174,61 @@ fi
 
 # We need to locate certain executables (and other things),
 # capture absolute paths, and make visible
-export NCDUMP="${top_builddir}/ncdump${VS}/ncdump${ext}"
-export NCCOPY="${top_builddir}/ncdump${VS}/nccopy${ext}"
-export NCGEN="${top_builddir}/ncgen${VS}/ncgen${ext}"
-export NCGEN3="${top_builddir}/ncgen3${VS}/ncgen3${ext}"
-export NCPATHCVT="${top_builddir}/ncdump${VS}/ncpathcvt${ext}"
+export NCDUMP="${abs_top_builddir}/ncdump${VS}/${DL}ncdump${ext}"
+export NCCOPY="${abs_top_builddir}/ncdump${VS}/${DL}nccopy${ext}"
+export NCGEN="${abs_top_builddir}/ncgen${VS}/${DL}ncgen${ext}"
+export NCGEN3="${abs_top_builddir}/ncgen3${VS}/${DL}ncgen3${ext}"
+export NCPATHCVT="${abs_top_builddir}/ncdump${VS}/${DL}ncpathcvt${ext}"
 
 # Temporary hacks (until we have a test_utils directory)
 # to locate certain specific test files
-ncgen3c0="${top_srcdir}/ncgen3/c0.cdl"
-ncgenc0="${top_srcdir}/ncgen/c0.cdl"
-ncgenc04="${top_srcdir}/ncgen/c0_4.cdl"
+ncgen3c0="${abs_top_srcdir}/ncgen3/c0.cdl"
+ncgenc0="${abs_top_srcdir}/ncgen/c0.cdl"
+ncgenc04="${abs_top_srcdir}/ncgen/c0_4.cdl"
+
+# Set LC_ALL
+if test "x$FP_ISMSVC" = xyes || test "x$FP_ISCYGWIN" = xyes; then export LC_ALL="en_US.utf8"; fi
+
+# Set HOME
+if test "x$FP_ISMSVC" = xyes || test "x$FP_MINGW" = xyes; then
+if test "x$HOME" = x ; then
+HOME=`echo $USERPROFILE |tr '\\\' '/'`
+export HOME
+fi
+fi
+
+# OS/X apparently has no echo -n option, so fake it
+echon() { echo "$@" | tr -d '\r\n' ; }
+
+# Test for filter availability
+avail() {
+if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi
+}
+
 
 # Make sure we are in builddir (not execdir)
 cd $builddir
+
+
+# Parallel make can cause inter-test interference (mostly because of historical naming issues).
+# As a protection against this, the isolate() function supports the creation of an
+# isolation directory in which created products are stored.
+# Cleanup can be accomplished by deleting the whole isolation directory.
+# The name of the isolation directory is by convention "testdir_<random>".
+# The isolation dir is created within the ${builddir} directory.
+# The <random> is a generated 32 bit unsigned random integer to make the chance
+# of collision very small.
+# Process ID was not used because of the small but real chance of collision.
+
+isolate() {
+  if test "x$ISOPATH" = x ; then
+      ISOTESTSET="${builddir}/testset_"
+      if test "x$NOISOPATH" = x ; then ISOTESTSET="${ISOTESTSET}${TESTUID}"; fi    
+      ISODIR="$1"
+      ISOPATH="${ISOTESTSET}/$ISODIR"
+      rm -fr $ISOPATH
+      mkdir -p $ISOPATH
+  fi
+}
+
+fi #TEST_COMMON_SH

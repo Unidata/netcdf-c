@@ -54,7 +54,7 @@ create_check_pnetcdf(char *fname, int cmode, int exp_format)
 
     exp_str = formatstr(exp_format);
 
-#ifndef ENABLE_CDF5
+#ifndef NETCDF_ENABLE_CDF5
     if (cmode & NC_64BIT_DATA) exp_err = NC_ENOTBUILT;
 #endif
 
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     cmode = NC_64BIT_OFFSET;
     nerrs += create_check_pnetcdf(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
     /* create a file in CDF5 format */
     cmode = NC_64BIT_DATA;
     nerrs += create_check_pnetcdf(fname, cmode, NC_FORMAT_64BIT_DATA);
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
     cmode = 0;
     nerrs += create_check_pnetcdf(fname, cmode, NC_FORMAT_64BIT_OFFSET);
 
-#ifdef ENABLE_CDF5
+#ifdef NETCDF_ENABLE_CDF5
     /* create a file in CDF5 format (this should ignore default) */
     cmode = NC_64BIT_DATA;
     nerrs += create_check_pnetcdf(fname, cmode, NC_FORMAT_64BIT_DATA);

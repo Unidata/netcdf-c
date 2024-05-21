@@ -16,7 +16,7 @@ See \ref copyright file for more info.
 #include <unistd.h>
 #endif
 
-#define DEBUG
+#undef DEBUG
 
 #include "netcdf.h"
 #include "nctestserver.h"
@@ -112,7 +112,11 @@ fflush(stderr);
 #ifndef NOHOME
     {
         /* Test 1: RC in HOME  */
-	home = getenv("HOME");
+#if defined(_WIN32) && !defined(__MINGW32__)
+        home = getenv("HOME");
+#else
+        home = getenv("USERPROFILE");
+#endif
         fprintf(stderr,"user:pwd in %s/%s\n",home,RC);
 	if(!testrc(home,url2)) {
 	    fprintf(stderr,"user:pwd in %s/%s failed\n",home,RC);
@@ -150,7 +154,7 @@ testrc(const char* prefix, const char* url)
     FILE* rc;
 
     snprintf(rcpath,sizeof(rcpath),"%s/%s",prefix,RC);
-    rc = fopen(rcpath,"w");
+    rc = NCfopen(rcpath,"w");
     if(rc == NULL) {
         fprintf(stderr,"Cannot create ./%s\n",RC);
         exit(1);
@@ -178,7 +182,7 @@ fillrc(const char* path)
     FILE* rc;
     killrc();
 
-    rc = fopen(path,"w");
+    rc = NCfopen(path,"w");
     if(rc == NULL) {
 	fprintf(stderr,"cannot create rc file: %s\n",path);
 	exit(1);

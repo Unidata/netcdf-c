@@ -46,7 +46,7 @@ d4odom_new(size_t rank,
     assert(odom->rank <= NC_MAX_VAR_DIMS);
     for(i=0;i<odom->rank;i++) {
 	size_t istart,icount,istop,ideclsize;
-	ptrdiff_t istride;
+	size_t istride;
 	istart = (start != NULL ? start[i] : 0);
 	icount = (count != NULL ? count[i] : (size != NULL ? size[i] : 1));
 	istride = (size_t)(stride != NULL ? stride[i] : 1);
@@ -78,7 +78,7 @@ d4odom_print(D4odometer* odom)
     if(odom->rank == 0) {
 	strlcat(line,"[]",sizeof(line));
     } else for(i=0;i<odom->rank;i++) {
-	sprintf(tmp,"[%lu/%lu:%lu:%lu]",
+	snprintf(tmp,sizeof(tmp),"[%lu/%lu:%lu:%lu]",
 		(size_t)odom->index[i],
 		(size_t)odom->start[i],
 		(size_t)odom->stride[i],
@@ -98,14 +98,13 @@ d4odom_more(D4odometer* odom)
 d4size_t
 d4odom_next(D4odometer* odom)
 {
-    int i; /* do not make unsigned */
     d4size_t count;
     if(odom->rank == 0) { /*scalar*/
 	odom->index[0]++;
 	return 0;
     }
     count = d4odom_offset(odom); /* convenience */
-    for(i=odom->rank-1;i>=0;i--) {
+    for(size_t i=odom->rank; i-- >0;) {
         odom->index[i] += odom->stride[i];
         if(odom->index[i] < odom->stop[i]) break;
 	if(i == 0) break; /* leave the 0th entry if it overflows*/

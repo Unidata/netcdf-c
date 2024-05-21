@@ -56,10 +56,10 @@
 #define NVARS_EX 4
 
 /* These are used to construct some example data. */
-#define SAMPLE_PRESSURE 900
-#define SAMPLE_TEMP 9.0
-#define START_LAT 25.0
-#define START_LON -125.0
+#define SAMPLE_PRESSURE 900.f
+#define SAMPLE_TEMP 9.0f
+#define START_LAT 25.0f
+#define START_LON -125.0f
 
 /* For the units attributes. */
 #define UNITS "units"
@@ -91,22 +91,22 @@ create_4D_example(char *file_name, int cmode)
    float lats[NLAT], lons[NLON];
 
    /* Loop indexes. */
-   int lvl, lat, lon, rec, i = 0;
+   int lvl, lat, lon, i = 0;
 
    /* Create some pretend data. If this wasn't an example program, we
     * would have some real data to write, for example, model
     * output. */
    for (lat = 0; lat < NLAT; lat++)
-      lats[lat] = START_LAT + 5.*lat;
+      lats[lat] = START_LAT + 5.f*(float)lat;
    for (lon = 0; lon < NLON; lon++)
-      lons[lon] = START_LON + 5.*lon;
+      lons[lon] = START_LON + 5.f*(float)lon;
 
    for (lvl = 0; lvl < NLVL; lvl++)
       for (lat = 0; lat < NLAT; lat++)
 	 for (lon = 0; lon < NLON; lon++)
 	 {
-	    pres_out[lvl][lat][lon] = SAMPLE_PRESSURE + i;
-	    temp_out[lvl][lat][lon] = SAMPLE_TEMP + i++;
+	    pres_out[lvl][lat][lon] = SAMPLE_PRESSURE + (float)i;
+	    temp_out[lvl][lat][lon] = SAMPLE_TEMP + (float)i++;
 	 }
 
    /* Create the file. */
@@ -182,7 +182,7 @@ create_4D_example(char *file_name, int cmode)
       surface temperature data. The arrays only hold one timestep worth
       of data. We will just rewrite the same data for each timestep. In
       a real application, the data would change between timesteps. */
-   for (rec = 0; rec < NREC; rec++)
+   for (size_t rec = 0; rec < NREC; rec++)
    {
       start[0] = rec;
 
@@ -307,7 +307,7 @@ main(int argc, char **argv)
    unsigned short ushort_out[DIM1_LEN][DIM2_LEN] = {{110, 128, 255},{110, 128, 255}};
    short short_in[DIM1_LEN][DIM2_LEN], short_out[DIM1_LEN][DIM2_LEN] = {{-110, -128, 255},{-110, -128, 255}};
    int int_in[DIM1_LEN][DIM2_LEN], int_out[DIM1_LEN][DIM2_LEN] = {{0, 128, 255},{0, 128, 255}};
-   float float_in[DIM1_LEN][DIM2_LEN], float_out[DIM1_LEN][DIM2_LEN] = {{-.1, 9999.99, 100.001},{-.1, 9999.99, 100.001}};
+   float float_in[DIM1_LEN][DIM2_LEN], float_out[DIM1_LEN][DIM2_LEN] = {{-.1f, 9999.99f, 100.001f},{-.1f, 9999.99f, 100.001f}};
    double double_in[DIM1_LEN][DIM2_LEN], double_out[DIM1_LEN][DIM2_LEN] = {{0.02, .1128, 1090.1},{0.02, .1128, 1090.1}};
    unsigned int uint_in[DIM1_LEN][DIM2_LEN], uint_out[DIM1_LEN][DIM2_LEN] = {{0, 128, 255},{0, 128, 255}};
    long long int64_in[DIM1_LEN][DIM2_LEN], int64_out[DIM1_LEN][DIM2_LEN] = {{-111, 777, 100},{-111, 777, 100}};
@@ -905,7 +905,7 @@ main(int argc, char **argv)
 
       /* Set up options for this var. */
       for (i = 0; i < NVARS5; i++)
-	 deflate_level[i] = i;
+	 deflate_level[i] = i + 1;
 
       /* Create a netcdf-4 file with one dim and two vars. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -999,7 +999,7 @@ main(int argc, char **argv)
       {
 	 if (nc_def_var(ncid, var_name[i], NC_DOUBLE, NDIMS, dimids,
 			&varid[i])) ERR;
-	 if (nc_def_var_deflate(ncid, varid[i], NC_NOSHUFFLE, 1, 0)) ERR;
+	 if (nc_def_var_deflate(ncid, varid[i], NC_NOSHUFFLE, 1, 1)) ERR;
 	 if (nc_def_var_fletcher32(ncid, varid[i], NC_FLETCHER32)) ERR;
       }
 
@@ -1019,7 +1019,7 @@ main(int argc, char **argv)
 	     ndims != 1 || natts != 0 || dimids_in[0] != 0) ERR;
 	 if (nc_inq_var_deflate(ncid, varid[i], &shuffle_in, &deflate_in,
 				&deflate_level_in)) ERR;
-	 if (shuffle_in != NC_NOSHUFFLE || !deflate_in || deflate_level_in != 0) ERR;
+	 if (shuffle_in != NC_NOSHUFFLE || !deflate_in || deflate_level_in != 1) ERR;
 	 if (nc_inq_var_fletcher32(ncid, varid[i], &checksum_in)) ERR;
 	 if (checksum_in != NC_FLETCHER32) ERR;
       }
@@ -1044,7 +1044,7 @@ main(int argc, char **argv)
 	 if (nc_inq_var_deflate(ncid, varid[i], &shuffle_in, &deflate_in,
 				&deflate_level_in)) ERR;
 	 if (shuffle_in != NC_NOSHUFFLE || !deflate_in ||
-	     deflate_level_in != 0) ERR;
+	     deflate_level_in != 1) ERR;
 	 if (nc_inq_var_fletcher32(ncid, varid[i], &checksum_in)) ERR;
 	 if (checksum_in != NC_FLETCHER32) ERR;
       }
@@ -1080,9 +1080,9 @@ main(int argc, char **argv)
       if (nc_def_var(ncid, VAR7_NAME, NC_USHORT, NDIMS, dimids, &varid)) ERR;
       if (nc_def_var(ncid, VAR8_NAME, NC_USHORT, NDIMS, dimids, &varid2)) ERR;
       if (nc_def_var(ncid, VAR9_NAME, NC_USHORT, NDIMS, dimids, &varid3)) ERR;
-      if (nc_put_att(ncid, varid3, _FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
+      if (nc_put_att(ncid, varid3, NC_FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
       if (nc_def_var(ncid, VAR10_NAME, NC_USHORT, NDIMS, dimids, &varid4)) ERR;
-      if (nc_put_att(ncid, varid4, _FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
+      if (nc_put_att(ncid, varid4, NC_FillValue, NC_USHORT, 1, &my_fill_value2)) ERR;
 
       /* Check stuff. */
       if (nc_inq_var(ncid, 0, name_in, &xtype_in, &ndims, dimids_in,
@@ -1279,7 +1279,7 @@ main(int argc, char **argv)
       /* Create a large number of variables. */
       for (i = 0; i < NUM_VARS; i++)
       {
-	 sprintf(varname, "a_%d", i);
+	 snprintf(varname, sizeof(varname), "a_%d", i);
 	 if (nc_def_var(ncid, varname, NC_FLOAT, 1, dimids, &varids[i])) {
 	    ERR;
 	    break;

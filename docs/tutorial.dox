@@ -68,7 +68,7 @@ The utility ncdump can be used to show the contents of netCDF
 files. By default, ncdump shows the CDL description of the file. This
 CDL description can be fed into ncgen to create the data file.
 
-See also: \ref ncdump_guide
+See also: [The ncdump User's Guide](https://docs.unidata.ucar.edu/nug/current/netcdf_utilities_guide.html#ncdump_guide)
 
 \subsection netcdf_utilities_ncgen ncgen
 
@@ -76,15 +76,15 @@ The ncgen utility can take an ASCII input file, in CDL format, and
 generate a binary netCDF file. It is the opposite of ncdump.
 
 See also:
-- \ref guide_ncgen
-- \ref guide_ncgen3
+- [ncgen](https://docs.unidata.ucar.edu/nug/current/netcdf_utilities_guide.html#guide_ncgen)
+- [ncgen3](https://docs.unidata.ucar.edu/nug/current/netcdf_utilities_guide.html#guide_ncgen3)
 
 \subsection netcdf_utilities_nccopy nccopy
 
 The nccopy utility can copy a netCDF file, changing binary format,
 chunk sizes, compression, and other storage settings.
 
-See also: \ref guide_nccopy
+See also: [nccopy](https://docs.unidata.ucar.edu/nug/current/netcdf_utilities_guide.html#guide_nccopy)
 
 \section external_netcdf_tools Tools for Manipulating NetCDF Files
 
@@ -100,13 +100,13 @@ many situations. Some of the tools on this list are developed at
 Unidata. The others are developed elsewhere, and we can make no
 guarantees about their continued availability or success. All of these
 tools are open-source.
-- <a href="http://www.unidata.ucar.edu/software/udunits">UDUNITS</a> - Unidata library to help with scientific units.
-- <a href="http://www.unidata.ucar.edu/software/idv">IDV</a> - Unidata's Integrated Data Viewer, a 3D visualization and analysis package (Java based).
+- <a href="https://www.unidata.ucar.edu/software/udunits">UDUNITS</a> - Unidata library to help with scientific units.
+- <a href="https://www.unidata.ucar.edu/software/idv">IDV</a> - Unidata's Integrated Data Viewer, a 3D visualization and analysis package (Java based).
 - <a href="http://www.ncl.ucar.edu">NCL</a> - NCAR Command Language, a graphics and data manipulation package.
 - <a href="http://grads.iges.org/grads/grads.html">GrADS</a> - The Grid Analysis and Display System package.
 - <a href="http://nco.sourceforge.net">NCO</a> - NetCDF Command line Operators, tools to manipulate netCDF files.
 
-A <a href="http://www.unidata.ucar.edu/netcdf/software.html">list of
+A <a href="https://www.unidata.ucar.edu/netcdf/software.html">list of
 netCDF tools</a> that we know about can be found on the website. If
 you know of any that should be added to this list, send email to
 support-netcdf@unidata.ucar.edu.
@@ -137,7 +137,7 @@ netcdf_documentation).
 In addition, many other language APIs exist, including Perl, Python,
 and Ruby. Most of these APIs were written and supported by netCDF
 users. Some of them are listed on
-the <a href="http://www.unidata.ucar.edu/netcdf/software.html">netCDF
+the <a href="https://www.unidata.ucar.edu/netcdf/software.html">netCDF
 software page</a>. Since these generally use the C API, they should
 work well with netCDF-4/HDF5 files, but the maintainers of the APIs
 must add support for netCDF-4 advanced features.
@@ -158,7 +158,7 @@ better type checking, better error handling, and better documentation.
 
 The netCDF-2 API is provided for backward compatibility. Documentation
 for the netCDF-2 API can be found on the netCDF website, see
-http://www.unidata.ucar.edu/netcdf/old_docs/really_old/guide_toc.html.
+https://www.unidata.ucar.edu/netcdf/old_docs/really_old/guide_toc.html.
 
 \page netcdf_documentation NetCDF Documentation
 
@@ -173,11 +173,11 @@ C, C++, Fortran 77, Fortran 90, and Java APIs:
 
 Man pages for the C, F77, and F90 interfaces, and ncgen and ncdump,
 are available on the documentation page of the netCDF web site
-(http://www.unidata.ucar.edu/netcdf/docs), and are installed with the
+(https://docs.unidata.ucar.edu/netcdf-c), and are installed with the
 libraries.
 
 The latest version of all netCDF documentation can always be found at
-the <a href="http://www.unidata.ucar.edu/netcdf/docs">netCDF
+the <a href="https://docs.unidata.ucar.edu/netcdf-c">netCDF
 documentation page</a>.
 
 \page netcdf_data_model The NetCDF Data Model
@@ -262,8 +262,9 @@ opaque types.
 </ul>
 
 These features may only be used when working with a netCDF-4/HDF5
-file. Files created in classic formats cannot support
-groups or user-defined types (see \ref netcdf_format).
+file. Files created in classic formats cannot support groups or
+user-defined types (see [NetCDF File
+Formats](https://docs.unidata.ucar.edu/nug/current/netcdf_introduction.html#netcdf_format)).
 
 <p>\image html nc4-model.png
 
@@ -455,7 +456,8 @@ of netCDF-4.
 - \ref example_simple_xy_nc4
 
 The examples are built and run with the “make check” command. (See
-\ref building).
+[Building
+netCDF-C](https://docs.unidata.ucar.edu/nug/current/getting_and_building_netcdf.html#building)).
 
 The corresponding examples in each language create identical netCDF
 data files. For example, the C program sfc_pres_temp_wr.c produces the
@@ -812,11 +814,13 @@ with nc_get_vara()/nc_put_vara().
 
 \page parallel_io Parallel I/O with NetCDF-4
 
-NetCDF-4 provides parallel file access to both classic and netCDF-4/HDF5 files.
-The parallel I/O to netCDF-4 files is achieved through the HDF5 library while
-the parallel I/O to classic files is through PnetCDF. A few functions have been
-added to the netCDF C API to handle parallel I/O. You must build netCDF-4
-properly to take advantage of parallel features (see \ref build_parallel).
+NetCDF-4 provides parallel file access to both classic and
+netCDF-4/HDF5 files.  The parallel I/O to netCDF-4 files is achieved
+through the HDF5 library while the parallel I/O to classic files is
+through PnetCDF. A few functions have been added to the netCDF C API
+to handle parallel I/O. You must build netCDF-4 properly to take
+advantage of parallel features (see [Building with Parallel I/O
+Support](https://docs.unidata.ucar.edu/nug/current/getting_and_building_netcdf.html#build_parallel)).
 
 The nc_open_par() and nc_create_par() functions are used to
 create/open a netCDF file with parallel access.

@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# This script runs some PnetCDF I/O tests
+
+set -e
+
+echo
+echo "Testing file created with PnetCDF is modifiable with netCDF..."
+./tst_pnetcdf
+
+echo "Testing file created with PnetCDF works when adding variables..."
+./tst_addvar tst_pnetcdf.nc
+
+# We assume a min of at least 2 processors is available
+@MPIEXEC@ -n 2 ./tst_parallel2
+
+# These tests work in either serial or parallel builds.
+@MPIEXEC@ -n 1 ./t_nc
+@MPIEXEC@ -n 1 ./tst_atts3
+@MPIEXEC@ -n 1 ./tst_nofill
+@MPIEXEC@ -n 1 ./nc_test
+@MPIEXEC@ -n 1 ./tst_default_format_pnetcdf
+@MPIEXEC@ -n 1 ./tst_small
+@MPIEXEC@ -n 1 ./tst_formatx_pnetcdf
+@MPIEXEC@ -n 1 ./tst_cdf5format
+
+

@@ -142,8 +142,8 @@ data:|DATA:		{return (DATA);}
                         yyerror("netCDF name required");
                         return (DATA); /* generate syntax error */
                 }
-		netcdfname = (char *) emalloc(t-s+1);
-		(void) strncpy(netcdfname, s, t-s);
+		netcdfname = (char *) emalloc((size_t)(t-s+1));
+		(void) strncpy(netcdfname, s, (size_t)(t-s));
 		netcdfname[t-s] = '\0';
 		deescapify(netcdfname);  /* so "\5foo" becomes "5foo", for example */
 		return (NETCDF);
@@ -181,12 +181,12 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
 [+-]?[0-9]*[0-9][Bb]  {
                 int ii;
 		if (sscanf((char*)yytext, "%d", &ii) != 1) {
-		    sprintf(errstr,"bad byte constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad byte constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
-                byte_val = ii;
+                byte_val = (signed char)ii;
 		if (ii != (int)byte_val) {
-		    sprintf(errstr,"byte constant out of range (-128,127): %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"byte constant out of range (-128,127): %s",(char*)yytext);
 		    yyerror(errstr);
 		}
 		return (BYTE_CONST);
@@ -194,23 +194,25 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
 
 [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]? {
 		if (sscanf((char*)yytext, "%le", &double_val) != 1) {
-		    sprintf(errstr,"bad long or double constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad long or double constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 return (DOUBLE_CONST);
                 }
 [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff] {
 		if (sscanf((char*)yytext, "%e", &float_val) != 1) {
-		    sprintf(errstr,"bad float constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad float constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 return (FLOAT_CONST);
                 }
 [+-]?[0-9]+[sS]|0[xX][0-9a-fA-F]+[sS] {
-		if (sscanf((char*)yytext, "%hd", &short_val) != 1) {
-		    sprintf(errstr,"bad short constant: %s",(char*)yytext);
+		int tmp = 0;
+		if (sscanf((char*)yytext, "%d", &tmp) != 1) {
+		    snprintf(errstr, sizeof(errstr),"bad short constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
+		short_val = (short)tmp;
 		return (SHORT_CONST);
 	        }
 [+-]?([1-9][0-9]*|0)[lL]? {
@@ -218,7 +220,7 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
                 errno = 0;
 		double_val = strtod((char*)yytext, &ptr);
 		if (errno != 0 && double_val == 0.0) {
-		    sprintf(errstr,"bad numerical constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad numerical constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 if (double_val < XDR_INT_MIN ||double_val > XDR_INT_MAX) {
@@ -234,7 +236,7 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
                 errno = 0;
 		long_val = strtol((char*)yytext, &ptr, 0);
 		if (errno != 0) {
-		    sprintf(errstr,"bad long constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad long constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 if (long_val < XDR_INT_MIN || long_val > XDR_INT_MAX) {
@@ -286,7 +288,7 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
 
 /* Hack to keep compile quiet */
 void
-ignore()
+ignore(void)
 {
 #ifndef YY_NO_UNPUT
     yyunput(0,NULL);

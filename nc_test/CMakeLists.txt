@@ -33,12 +33,24 @@ TARGET_INCLUDE_DIRECTORIES(nc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 TARGET_LINK_LIBRARIES(nc_test
   netcdf
   ${HAVE_LIBM}
+  ${ALL_TLL_LIBS}
   )
+
+## 
+# Turn off inclusion of particular files when using the cmake-native
+# option to turn on Unity Builds.  
+#
+# For more information, see:
+#  * https://github.com/Unidata/netcdf-c/pull/2839/
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD_MODE.html#prop_tgt:UNITY_BUILD_MODE
+##
+set_property(TARGET nc_test PROPERTY UNITY_BUILD OFF)
 
 # Some extra stand-alone tests
 SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta tst_inq_type tst_utf8_phrases tst_global_fillval tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef tst_default_format)
 
-IF(NOT MSVC)
+IF(NOT WIN32)
 SET(TESTS ${TESTS} tst_utf8_validate)
 ENDIF()
 
@@ -50,14 +62,22 @@ IF(USE_PNETCDF)
   build_bin_test_no_prefix(tst_pnetcdf)
   build_bin_test_no_prefix(tst_parallel2)
   build_bin_test_no_prefix(tst_addvar)
-  add_sh_test(nc_test run_pnetcdf_test)
+  build_bin_test_no_prefix(t_nc)
+  build_bin_test_no_prefix(tst_atts3)
+  build_bin_test_no_prefix(tst_default_format_pnetcdf)
+  build_bin_test_no_prefix(tst_small)
+  build_bin_test_no_prefix(tst_formatx_pnetcdf)
+  build_bin_test_no_prefix(tst_cdf5format)
+  build_bin_test_no_prefix(tst_nofill)
   add_bin_test(nc_test tst_formatx_pnetcdf)
   add_bin_test(nc_test tst_default_format_pnetcdf)
+  add_sh_test(nc_test run_pnetcdf_tests)
+  SET_TESTS_PROPERTIES(nc_test_run_pnetcdf_tests PROPERTIES RUN_SERIAL TRUE)
 ENDIF()
 
 IF(LARGE_FILE_TESTS)
   SET(TESTS ${TESTS} quick_large_files tst_big_var6 tst_big_var2 tst_big_rvar tst_big_var tst_large tst_large_cdf5)
-  IF(NOT MSVC)
+  IF(NOT WIN32)
     SET(TESTS ${TESTS} large_files)
   ENDIF()
 
@@ -81,34 +101,40 @@ ENDFOREACH()
 
 ADD_TEST(nc_test ${EXECUTABLE_OUTPUT_PATH}/nc_test)
 
-IF(BUILD_UTILITIES)
+IF(NETCDF_BUILD_UTILITIES)
 
     add_sh_test(nc_test run_diskless)
     IF(BUILD_MMAP)
       add_sh_test(nc_test run_mmap)
-      SET_TESTS_PROPERTIES(nc_test_run_mmap PROPERTIES RUN_SERIAL TRUE)
+      IF(HAVE_BASH)
+        SET_TESTS_PROPERTIES(nc_test_run_mmap PROPERTIES RUN_SERIAL TRUE)
+      ENDIF(HAVE_BASH)
     ENDIF(BUILD_MMAP)
     add_sh_test(nc_test run_diskless5)
     add_sh_test(nc_test run_inmemory)
     IF(LARGE_FILE_TESTS)
-      add_sh_test(nc_test run_diskless2)
+      IF(NOT USE_PARALLEL)
+        add_sh_test(nc_test run_diskless2)
+      ENDIF()
     ENDIF()
 
-    IF(ENABLE_BYTERANGE)
+    IF(NETCDF_ENABLE_BYTERANGE)
+      IF(NETCDF_ENABLE_EXTERNAL_SERVER_TESTS)
         build_bin_test_no_prefix(tst_byterange)
         add_sh_test(nc_test test_byterange)
+      ENDIF()
     ENDIF()
 
   IF(BUILD_MMAP)
     add_sh_test(nc_test run_mmap)
   ENDIF()
 
-ENDIF(BUILD_UTILITIES)
+ENDIF(NETCDF_BUILD_UTILITIES)
 
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
-IF(MSVC)
+IF(WIN32)
 #MESSAGE(STATUS "XXX")
 #MESSAGE(STATUS "${COPY_FILES}")
 #MESSAGE(STATUS "${RUNTIME_OUTPUT_DIRECTORY}")

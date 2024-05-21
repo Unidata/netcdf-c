@@ -10,6 +10,8 @@
 
 #include "config.h"
 
+struct ncatt_t;
+
 #ifndef NCSTREQ
 #define	NCSTREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
 #endif
@@ -18,7 +20,11 @@
 #define NC_GRP_DELIM '/'
 
 typedef int bool_t;
-enum {false=0, true=1};
+#ifndef false
+#define false 0
+#define true 1
+//enum {false=0, true=1};
+#endif
 
 struct safebuf_t;
 /* Buffer structure for implementing growable strings, used in
@@ -68,9 +74,9 @@ extern "C" {
  * debian package builders. They already use NDEBUG to turn off the
  * file names in asserts. */
 #ifdef NDEBUG
-#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,"",__LINE__);}
+#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,NULL,NULL,__LINE__);}
 #else
-#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,__FILE__,__LINE__);}
+#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,__FILE__,__func__,__LINE__);}
 #endif /* NDEBUG */
 
 /* Print error message to stderr and exit */
@@ -84,7 +90,7 @@ extern void*    ecalloc ( size_t size );
 extern void*    erealloc (void* p, size_t size );
 
 /* Check error return.  If bad, print error message and exit. */
-extern void check(int err, const char* file, const int line);
+extern void check(int err, const char* file, const char* fcn, const int line);
 
 /* Return malloced name with chars special to CDL escaped. */
 char* escaped_name(const char* cp);
@@ -122,7 +128,7 @@ extern bool_t	idmember ( const idnode_t* idlist, int id );
 extern bool_t	group_wanted ( int grpid, int nlgrps, const idnode_t* grpids );
 
 /* Check group list for missing groups */
-extern int grp_matches(int ncid, int nlgrps, char** lgrps, idnode_t *grpids);
+extern size_t grp_matches(int ncid, int nlgrps, char** lgrps, idnode_t *grpids);
 
 /* Returns 1 if string s1 ends with string s2, 0 otherwise. */
 extern int strendswith(const char *s1, const char *s2);
@@ -156,7 +162,7 @@ extern void freeidlist(idnode_t *idlist);
  * loses information about subgroup relationships, just flattening all
  * groups into a serial list.
  */
-extern int nc_inq_grps_full(int ncid, int *numgrps, int *ncids);
+extern int nc_inq_grps_full(int ncid, size_t *numgrps, int *ncids);
 
 /* 
  * More complex iterator interface: get group iterator for start group
@@ -176,6 +182,16 @@ extern int nc_next_giter(ncgiter_t *iterp, int *grpid);
  */
 extern void nc_free_giter(ncgiter_t *iterp);
 extern int getrootid(int grpid);
+
+/*
+ * Get attribute value for a single string value from either of NC_CHAR or NC_STRING types.
+ * This routine assumes that the attribute holds a single string value. If there are more
+ * than one string, subequent strings after the first one will be ignored.
+ *
+ * The caller is responsible for allocating and freeing memory for the str_out parameter.
+ */
+extern void nc_get_att_single_string(const int ncid, const int varid,
+                                     const struct ncatt_t *att, char **str_out);
 
 #ifdef __cplusplus
 }

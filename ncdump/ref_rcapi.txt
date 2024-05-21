@@ -1,0 +1,7 @@
+load:
+insert: key=key1 value=value1
+insert: before: key1 = (null)
+insert: after: key1 = value1
+replace: key=key1 value=value2
+replace: before: key1 = value1
+replace: after: key1 = value2

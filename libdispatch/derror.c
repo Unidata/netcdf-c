@@ -261,20 +261,20 @@ const char *nc_strerror(int ncerr1)
       case NC_EFILTER:
 	 return "NetCDF: Filter error: bad id or parameters or duplicate filter";
       case NC_ENOFILTER:
-	 return "NetCDF: Filter error: unimplemented filter encountered";
+	 return "NetCDF: Filter error: undefined filter encountered";
       case NC_ECANTEXTEND:
 	return "NetCDF: Attempt to extend dataset during NC_INDEPENDENT I/O operation. Use nc_var_par_access to set mode NC_COLLECTIVE before extending variable.";
       case NC_EMPI: return "NetCDF: MPI operation failed.";
       case NC_ERCFILE:
 	return "NetCDF: RC File Failure.";
-     case NC_ENULLPAD:
+      case NC_ENULLPAD:
        return "NetCDF: File fails strict Null-Byte Header check.";
-     case NC_EINMEMORY:
+      case NC_EINMEMORY:
        return "NetCDF: In-memory File operation failed.";
       case NC_ENCZARR:
 	 return "NetCDF: NCZarr error";
       case NC_ES3:
-	 return "NetCDF: AWS S3 error";
+	 return "NetCDF: S3 error";
       case NC_EEMPTY:
 	 return "NetCDF: Attempt to read empty NCZarr map key";
       case NC_EOBJECT:

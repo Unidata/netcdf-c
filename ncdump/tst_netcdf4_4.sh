@@ -53,22 +53,22 @@ diff -b tst_string_data.tmp ref_tst_string_data.tmp
 #${NCGEN} -v4 -b -o tst_noncoord.nc ${top_srcdir}/ncdump/ref_tst_noncoord.cdl
 
 echo '*** testing reference file ref_tst_compounds2.nc...'
-${NCDUMP} ${top_srcdir}/ncdump/ref_tst_compounds2.nc > tst_compounds2.cdl
+${NCDUMP} -n ref_tst_compounds2 ${top_srcdir}/ncdump/ref_tst_compounds2.nc > tst_compounds2.cdl
 diff -b tst_compounds2.cdl ${top_srcdir}/ncdump/ref_tst_compounds2.cdl
 
 echo '*** testing reference file ref_tst_compounds3.nc...'
-${NCDUMP} ${top_srcdir}/ncdump/ref_tst_compounds3.nc > tst_compounds3.cdl
+${NCDUMP} -n ref_tst_compounds3 ${top_srcdir}/ncdump/ref_tst_compounds3.nc > tst_compounds3.cdl
 diff -b tst_compounds3.cdl ${top_srcdir}/ncdump/ref_tst_compounds3.cdl
 
 echo '*** testing reference file ref_tst_compounds4.nc...'
-${NCDUMP} ${top_srcdir}/ncdump/ref_tst_compounds4.nc > tst_compounds4.cdl
+${NCDUMP} -n ref_tst_compounds4 ${top_srcdir}/ncdump/ref_tst_compounds4.nc > tst_compounds4.cdl
 diff -b tst_compounds4.cdl ${top_srcdir}/ncdump/ref_tst_compounds4.cdl
 
 # Exercise Jira NCF-213 bug fix
 #    rm -f tst_ncf213.cdl tst_ncf213.nc
 # Remove specific _NCProperties values
 ${NCGEN} -b -o tst_ncf213.nc $srcdir/ref_tst_ncf213.cdl
-${NCDUMP} -s -h tst_ncf213.nc > tst_ncf213.cdl
+${NCDUMP} -shF tst_ncf213.nc > tst_ncf213.cdl
 cleanncprops tst_ncf213.cdl tst_ncf213.tmp
 cleanncprops ${srcdir}/ref_tst_ncf213.cdl ref_tst_ncf213.tmp
 # Now compare

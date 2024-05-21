@@ -189,7 +189,7 @@ extern int xxdr_skip_strings(XXDR* xdrs, off_t n);
 
 extern unsigned int xxdr_roundup(off_t n); /* procedural version of RNDUP macro */
 
-extern void xxdr_init();
+extern void xxdr_init(void);
 
 /* Define some inlines */
 #define xxdr_length(xdrs) ((xdrs)->length)

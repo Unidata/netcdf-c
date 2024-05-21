@@ -1,5 +1,5 @@
 /*
-x *      Copyright 2018, University Corporation for Atmospheric Research
+ *      Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -15,7 +15,9 @@ x *      Copyright 2018, University Corporation for Atmospheric Research
 #include "XGetopt.h"
 #endif
 
+#ifdef UTTESST
 struct ZUTEST zutester;
+#endif
 
 struct UTOptions utoptions;
 
@@ -91,9 +93,6 @@ ut_init(int argc, char** argv, struct UTOptions * options)
                 break;
             case 's': /*slices*/
 		if((stat=parseslices(optarg,&options->nslices,options->slices))) usage(THROW(stat));
-                break;
-            case 'W': /*walk data*/
-		options->idatalen = parseintvector(optarg,4,(void**)&options->idata);
                 break;
             case '?':
                fprintf(stderr,"unknown option: '%c'\n",c);

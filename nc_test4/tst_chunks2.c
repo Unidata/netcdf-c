@@ -21,10 +21,9 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
    int d;
    float chunked = 1, unchunked = 1;
    size_t *num_chunks;
-   size_t chunk_size = 1;
 
    assert(waste && dimlen && chunksize && ndims);
-   if (!(num_chunks = calloc(ndims, sizeof(size_t)))) ERR;
+   if (!(num_chunks = calloc((size_t)ndims, sizeof(size_t)))) ERR;
 
 #ifdef PRINT_CHUNK_WASTE_REPORT
    printf("\n");
@@ -36,13 +35,13 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
       for (num_chunks[d] = 0; (num_chunks[d] * chunksize[d]) < (dimlen[d] ? dimlen[d] : 1);
 	   num_chunks[d]++)
 	 ;
-      chunked *= (num_chunks[d] * chunksize[d]);
+      chunked *= (float)(num_chunks[d] * chunksize[d]);
    }
 
    /* Calculate the minimum space required for this data
     * (i.e. unchunked) or one record of it. */
    for (d = 0; d < ndims; d++)
-      unchunked *= (dimlen[d] ? dimlen[d] : 1);
+      unchunked *= (float)(dimlen[d] ? dimlen[d] : 1);
 
 #ifdef PRINT_CHUNK_WASTE_REPORT
    printf("size for unchunked %g elements; size for chunked %g elements\n",
@@ -50,20 +49,17 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
 #endif
 
    /* Percent of the chunked file that is wasted space. */
-   *waste = ((float)(chunked - unchunked) / (float)chunked) * 100.0;
+   *waste = ((float)(chunked - unchunked) / (float)chunked) * 100.0f;
 
 #ifdef PRINT_CHUNK_WASTE_REPORT
    printf("\ndimlen\tchunksize\tnum_chunks\n");
-#endif
+   size_t chunk_size = 1;
    for (d = 0; d < ndims; d++)
    {
-#ifdef PRINT_CHUNK_WASTE_REPORT
       printf("%ld\t%ld\t\t%ld\n", (long int)dimlen[d], (long int)chunksize[d],
 	     (long int)num_chunks[d]);
-#endif
       chunk_size *= chunksize[d];
    }
-#ifdef PRINT_CHUNK_WASTE_REPORT
    printf("size of chunk: %ld elements; wasted space: %2.2f percent\n",
 	  (long int)chunk_size, *waste);
 #endif
@@ -161,7 +157,7 @@ main(int argc, char **argv)
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
       {
-	 sprintf(dim_name, "dim_%d", d);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
       }
 
@@ -199,7 +195,7 @@ main(int argc, char **argv)
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
       {
-	 sprintf(dim_name, "dim_%d", d);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
       }
 
@@ -237,7 +233,7 @@ main(int argc, char **argv)
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
       {
-	 sprintf(dim_name, "dim_%d", d);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
       }
 
@@ -278,7 +274,7 @@ main(int argc, char **argv)
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
       {
-	 sprintf(dim_name, "dim_%d", d);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
       }
 
@@ -318,7 +314,7 @@ main(int argc, char **argv)
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
       {
-	 sprintf(dim_name, "dim_%d", d);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
       }
 
@@ -359,8 +355,8 @@ main(int argc, char **argv)
 	 /* Create a few dimensions. */
 	 for (d = 0; d < NDIMS3; d++)
 	 {
-	    dim_len[d] = rand();
-	    sprintf(dim_name, "dim_%d", d);
+            dim_len[d] = (size_t)rand();
+	    snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	    if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
 	 }
 
@@ -393,13 +389,13 @@ main(int argc, char **argv)
       {
 	 if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
-	 dim_len[0] = rand();
-	 dim_len[1] = rand();
-	 dim_len[2] = rand() % 1000;
+	 dim_len[0] = (size_t)rand();
+         dim_len[1] = (size_t)rand();
+         dim_len[2] = (size_t)rand() % 1000;
 	 /* Create a few dimensions. */
 	 for (d = 0; d < NDIMS3; d++)
 	 {
-	    sprintf(dim_name, "dim_%d", d);
+	    snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	    if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
 	 }
 
@@ -432,13 +428,13 @@ main(int argc, char **argv)
       {
 	 if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
-	 dim_len[0] = rand();
-	 dim_len[1] = rand() % 1000;
-	 dim_len[2] = rand() % 1000;
+	 dim_len[0] = (size_t)rand();
+         dim_len[1] = (size_t)rand() % 1000;
+         dim_len[2] = (size_t)rand() % 1000;
 	 /* Create a few dimensions. */
 	 for (d = 0; d < NDIMS3; d++)
 	 {
-	    sprintf(dim_name, "dim_%d", d);
+	    snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	    if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
 	 }
 

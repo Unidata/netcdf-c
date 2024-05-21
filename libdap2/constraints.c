@@ -7,11 +7,11 @@
 #include "dceparselex.h"
 #include "dceconstraints.h"
 #include "dapdump.h"
+#include <stddef.h>
 
 static void completesegments(NClist* fullpath, NClist* segments);
 static NCerror qualifyprojectionnames(DCEprojection* proj);
 static NCerror qualifyprojectionsizes(DCEprojection* proj);
-static NCerror qualifyprojectionnames(DCEprojection* proj);
 static NCerror matchpartialname(NClist* nodes, NClist* segments, CDFnode** nodep);
 static int matchsuffix(NClist* matchpath, NClist* segments);
 static int iscontainer(CDFnode* node);
@@ -295,7 +295,7 @@ matchnode->ncfullname,dumpsegments(segments));
 	break;
     default: {
 	CDFnode* minnode = NULL;
-	int minpath = 0;
+	size_t minpath = 0;
 	int nmin = 0; /* to catch multiple ones with same short path */
 	/* ok, see if one of the matches has a path that is shorter
            then all the others */
@@ -338,7 +338,8 @@ done:
 static int
 matchsuffix(NClist* matchpath, NClist* segments)
 {
-    int i,pathstart;
+    size_t i;
+    int pathstart;
     int nsegs = nclistlength(segments);
     int pathlen = nclistlength(matchpath);
     int segmatch;
@@ -356,7 +357,7 @@ matchsuffix(NClist* matchpath, NClist* segments)
        matching as we go
     */
     for(i=0;i<nsegs;i++) {
-	CDFnode* node = (CDFnode*)nclistget(matchpath,pathstart+i);
+	CDFnode* node = (CDFnode*)nclistget(matchpath, (size_t)pathstart+i);
 	DCEsegment* seg = (DCEsegment*)nclistget(segments,i);
 	int rank = seg->rank;
 	segmatch = 1; /* until proven otherwise */
@@ -386,12 +387,12 @@ dapbuildvaraprojection(CDFnode* var,
 		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
 		     DCEprojection** projectionp)
 {
-    int i,j;
+    size_t i,j;
     NCerror ncstat = NC_NOERR;
     DCEprojection* projection = NULL;
     NClist* path = nclistnew();
     NClist* segments = NULL;
-    int dimindex;
+    size_t dimindex;
 
     /* Build a skeleton projection that has 1 segment for
        every cdfnode from root to the variable of interest.
@@ -463,9 +464,10 @@ dapiswholeslice(DCEslice* slice, CDFnode* dim)
 int
 dapiswholesegment(DCEsegment* seg)
 {
-    int i,whole;
+    size_t i;
+    int whole;
     NClist* dimset = NULL;
-    unsigned int rank;
+    size_t rank;
 
     if(seg->rank == 0) return 1;
     if(!seg->slicesdefined) return 0;
@@ -483,7 +485,8 @@ dapiswholesegment(DCEsegment* seg)
 int
 dapiswholeprojection(DCEprojection* proj)
 {
-    int i,whole;
+    size_t i;
+    int whole;
 
     ASSERT((proj->discrim == CES_VAR));
 
@@ -498,7 +501,7 @@ dapiswholeprojection(DCEprojection* proj)
 int
 dapiswholeconstraint(DCEconstraint* con)
 {
-    int i;
+    size_t i;
     if(con == NULL) return 1;
     if(con->projections != NULL) {
 	for(i=0;i<nclistlength(con->projections);i++) {
@@ -528,7 +531,7 @@ The term "expanded" means
 NCerror
 dapfixprojections(NClist* list)
 {
-    int i,j,k;
+    size_t i,j,k;
     NCerror ncstat = NC_NOERR;
     NClist* tmp = nclistnew(); /* misc. uses */
 
@@ -619,12 +622,11 @@ next:   continue;
     } /*for(;;)*/
 
     /* remove all NULL elements */
-    for(i=nclistlength(list)-1;i>=0;i--) {
-        DCEprojection* target = (DCEprojection*)nclistget(list,i);
-	if(target == NULL)
-	    nclistremove(list,i);
+    for(size_t n = nclistlength(list); n-->0;) {
+        DCEprojection* target = (DCEprojection*)nclistget(list,n);
+        if(target == NULL)
+            nclistremove(list,n);
     }
-
 done:
 #ifdef DEBUG
 fprintf(stderr,"fixprojection: exploded = %s\n",dumpprojections(list));
@@ -661,7 +663,7 @@ projectify(CDFnode* field, DCEprojection* container)
 static int
 slicematch(NClist* seglist1, NClist* seglist2)
 {
-    int i,j;
+    size_t i,j;
     if((seglist1 == NULL || seglist2 == NULL) && seglist1 != seglist2)
 	return 0;
     if(nclistlength(seglist1) != nclistlength(seglist2))
@@ -691,7 +693,7 @@ slicematch(NClist* seglist1, NClist* seglist2)
 int
 dapvar2projection(CDFnode* var, DCEprojection** projectionp)
 {
-    int i,j;
+    size_t i,j;
     int ncstat = NC_NOERR;
     NClist* path = nclistnew();
     NClist* segments;
@@ -707,7 +709,7 @@ dapvar2projection(CDFnode* var, DCEprojection** projectionp)
     for(i=0;i<nclistlength(path);i++) {
 	DCEsegment* segment = (DCEsegment*)dcecreate(CES_SEGMENT);
 	CDFnode* n = (CDFnode*)nclistget(path,i);
-	int localrank;
+	size_t localrank;
         NClist* dimset;
 
 	segment->annotation = (void*)n;
@@ -757,7 +759,7 @@ int
 daprestrictprojection(NClist* projections, DCEprojection* var, DCEprojection** resultp)
 {
     int ncstat = NC_NOERR;
-    int i;
+    size_t i;
     DCEprojection* result = NULL;
 #ifdef DEBUG1
 fprintf(stderr,"restrictprojection.before: constraints=|%s| vara=|%s|\n",
@@ -817,7 +819,7 @@ int
 dapshiftprojection(DCEprojection* projection)
 {
     int ncstat = NC_NOERR;
-    int i,j;
+    size_t i,j;
     NClist* segments;
 
 #ifdef DEBUG1
@@ -849,7 +851,7 @@ dapcomputeprojectedvars(NCDAPCOMMON* dapcomm, DCEconstraint* constraint)
 {
     NCerror ncstat = NC_NOERR;
     NClist* vars = NULL;
-    int i;
+    size_t i;
 
     vars = nclistnew();
 

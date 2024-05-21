@@ -65,7 +65,7 @@ main(int argc, char **argv)
       }
 
       /* Create a netCDF 64-bit offset format file. Write a value. */
-      sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+      snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE_NAME);
       printf("*** Creating %s for 64-bit offset large file test...", file_name);
       {
          if ((res = nc_create(file_name, cflag|NC_64BIT_OFFSET, &ncid)))

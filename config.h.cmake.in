@@ -57,23 +57,6 @@ are set when opening a binary file on Windows. */
    #define _OFF_T_DEFINED
    #endif
 
-   #ifdef _WIN32
-    #ifndef strcasecmp
-      #define strcasecmp _stricmp
-    #endif
-
-    #ifndef strincasecmp
-      #define strncasecmp _strnicmp
-    #endif
-
-    #ifndef snprintf
-     #if _MSC_VER<1900
-       #define snprintf _snprintf
-     #endif
-    #endif
-   #endif
-
-
    #define strdup _strdup
    #define fdopen _fdopen
    #define write _write
@@ -91,9 +74,6 @@ are set when opening a binary file on Windows. */
 /* Define if building universal (internal helper macro) */
 #cmakedefine AC_APPLE_UNIVERSAL_BUILD 1
 
-/* If true, will attempt to download and build netcdf-fortran. */
-#cmakedefine BUILD_FORTRAN 1
-
 /* default file chunk cache nelems. */
 #cmakedefine CHUNK_CACHE_NELEMS ${CHUNK_CACHE_NELEMS}
 
@@ -103,9 +83,6 @@ are set when opening a binary file on Windows. */
 /* default file chunk cache size in bytes. */
 #cmakedefine CHUNK_CACHE_SIZE ${CHUNK_CACHE_SIZE}
 
-/* default nczarr chunk cache size in bytes. */
-#cmakedefine CHUNK_CACHE_SIZE_NCZARR ${CHUNK_CACHE_SIZE_NCZARR}
-
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -114,7 +91,16 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if using `alloca.c'. */
 #cmakedefine C_ALLOCA 1
 
-/* num chunks in default per-var chunk cache. */
+/* default num chunks per cache. */
+#cmakedefine DEFAULT_CHUNKS_CACHE_SIZE ${DEFAULT_CHUNKS_CACHE_SIZE}
+
+/* default num chunks per cache. */
+#cmakedefine DEFAULT_CHUNK_CACHE_PREEMPTION ${DEFAULT_CHUNK_CACHE_PREEMPTION}
+
+/* default total chunks cache size. */
+#cmakedefine DEFAULT_CHUNK_CACHE_SIZE ${DEFAULT_CHUNK_CACHE_SIZE}
+
+/* default num chunks per cache. */
 #cmakedefine DEFAULT_CHUNKS_IN_CACHE ${DEFAULT_CHUNKS_IN_CACHE}
 
 /* default chunk size in bytes */
@@ -127,55 +113,70 @@ are set when opening a binary file on Windows. */
 #cmakedefine DLL_NETCDF 1
 
 /* if true, use atexist */
-#cmakedefine ENABLE_ATEXIT_FINALIZE 1
+#cmakedefine NETCDF_ENABLE_ATEXIT_FINALIZE 1
 
 /* if true, build byte-range Client */
-#cmakedefine ENABLE_BYTERANGE 1
+#cmakedefine NETCDF_ENABLE_BYTERANGE 1
+
+/* if true, enable ERANGE fill */
+#cmakedefine NETCDF_ENABLE_ERANGE_FILL 1
+#ifdef NETCDF_ENABLE_ERANGE_FILL
+#define ERANGE_FILL 1
+#endif
 
 /* if true, use hdf5 S3 virtual file reader */
-#cmakedefine ENABLE_HDF5_ROS3 1
+#cmakedefine NETCDF_ENABLE_HDF5_ROS3 1
 
 /* if true, enable CDF5 Support */
-#cmakedefine ENABLE_CDF5 1
+#cmakedefine NETCDF_ENABLE_CDF5 1
 
-/* if true, enable client side filters */
-#cmakedefine ENABLE_CLIENT_FILTERS 1
+/* if true, enable filter testing */
+#cmakedefine NETCDF_ENABLE_FILTER_TESTING 1
+
+/* if true, enable filter testing */
+#cmakedefine NETCDF_ENABLE_FILTER_TESTING 1
 
 /* if true, enable strict null byte header padding. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
 
 /* if true, build DAP2 and DAP4 Client */
-#cmakedefine ENABLE_DAP 1
+#cmakedefine NETCDF_ENABLE_DAP 1
 
 /* if true, build DAP4 Client */
-#cmakedefine ENABLE_DAP4 1
+#cmakedefine NETCDF_ENABLE_DAP4 1
 
 /* if true, do remote tests */
-#cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+#cmakedefine NETCDF_ENABLE_DAP_REMOTE_TESTS 1
 
 /* if true, enable NCZARR */
-#cmakedefine ENABLE_NCZARR 1
+#cmakedefine NETCDF_ENABLE_NCZARR 1
 
 /* if true, enable nczarr filter support */
-#cmakedefine ENABLE_NCZARR_FILTERS 1
-
-/* if true, enable S3 support */
-#cmakedefine ENABLE_NCZARR_S3 1
+#cmakedefine NETCDF_ENABLE_NCZARR_FILTERS 1
 
 /* if true, enable nczarr zip support */
-#cmakedefine ENABLE_NCZARR_ZIP 1
-
-/* if true, enable S3 testing*/
-#cmakedefine ENABLE_NCZARR_S3_TESTS 1
-
-/* if true, S3 SDK is available */
-#cmakedefine ENABLE_S3_SDK 1
+#cmakedefine NETCDF_ENABLE_NCZARR_ZIP 1
 
 /* if true, Allow dynamically loaded plugins */
-#cmakedefine ENABLE_PLUGINS 1
+#cmakedefine NETCDF_ENABLE_PLUGINS 1
 
-/* define the possible sources for remote test servers */
-#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
+/* if true, enable S3 support */
+#cmakedefine NETCDF_ENABLE_S3 1
+
+/* if true, AWS S3 SDK is available */
+#cmakedefine NETCDF_ENABLE_S3_AWS 1
+
+/* if true, Force use of S3 internal library */
+#cmakedefine NETCDF_ENABLE_S3_INTERNAL 1
+
+/* if true, enable S3 testing*/
+#cmakedefine WITH_S3_TESTING "${WITH_S3_TESTING}"
+
+/* S3 Test Bucket */
+#define S3TESTBUCKET "${S3TESTBUCKET}"
+
+/* S3 Working subtree path prefix*/
+#define S3TESTSUBTREE "${S3TESTSUBTREE}"
 
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
@@ -191,6 +192,18 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `atexit function. */
 #cmakedefine HAVE_ATEXIT 1
+
+/* Define to 1 if bzip2 library available. */
+#cmakedefine HAVE_BZ2 1
+
+/* Define to 1 if zstd library available. */
+#cmakedefine HAVE_ZSTD 1
+
+/* Define to 1 if blosc library available. */
+#cmakedefine HAVE_BLOSC 1
+
+/* if true enable tests that access external servers */
+#cmakedefine NETCDF_ENABLE_EXTERNAL_SERVER_TESTS 1
 
 /* Define to 1 if you have hdf5_coll_metadata_ops */
 #cmakedefine HDF5_HAS_COLL_METADATA_OPS 1
@@ -273,11 +286,8 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `H5Z_SZIP' function. */
 #cmakedefine HAVE_H5Z_SZIP 1
 
-/* Define to 1 if you have the <hdf5.h> header file. */
-#cmakedefine HAVE_HDF5_H 1
-
-/* Define to 1 if you have the <hdf5.h> header file. */
-#cmakedefine HAVE_HDF5_HL_H 1
+/* Define to 1 if you have libsz */
+#cmakedefine HAVE_SZ 1
 
 /* Define to 1 if the system has the type `int64'. */
 #cmakedefine HAVE_INT64 1
@@ -297,11 +307,8 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `mfhdf' library (-lmfhdf). */
 #cmakedefine HAVE_LIBMFHDF 1
 
-/* Define to 1 if you have the `pnetcdf' library (-lpnetcdf). */
-#cmakedefine HAVE_LIBPNETCDF 1
-
 /* Define to 1 if you have the libxml2 library. */
-#cmakedefine HAVE_LIBXML2 1
+#cmakedefine NETCDF_ENABLE_LIBXML2 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #cmakedefine HAVE_LOCALE_H 1
@@ -339,6 +346,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `snprintf' function. */
 #cmakedefine HAVE_SNPRINTF 1
 
+/* Define to 1 if the system has the type `mode_t'. */
+#cmakedefine HAVE_MODE_T 1
+
 /* Define to 1 if the system has the type `ssize_t'. */
 #cmakedefine HAVE_SSIZE_T 1
 
@@ -360,11 +370,8 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the <stdlib.h> header file. */
 #cmakedefine HAVE_STDLIB_H 1
 
-/* Define to 1 if you have the `strdup' function. */
-#cmakedefine HAVE_STRDUP 1
-
-/* Define to 1 if you have the `strndup` function. */
-#cmakedefine HAVE_STRNDUP
+/* Define to 1 if you have the <ctype.h> header file. */
+#cmakedefine HAVE_CTYPE_H 1
 
 /* Define to 1 if you have the <strings.h> header file. */
 #cmakedefine HAVE_STRINGS_H 1
@@ -381,8 +388,23 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the <libgen.h> header file. */
 #cmakedefine HAVE_LIBGEN_H 1
 
+/* Define to 1 if you have the `strdup' function. */
+#cmakedefine HAVE_STRDUP 1
+
+/* Define to 1 if you have the `strndup` function. */
+#cmakedefine HAVE_STRNDUP
+
+/* Define to 1 if you have the `strcasecmp` function. */
+#cmakedefine HAVE_STRCASECMP
+
 /* Define to 1 if you have the `strlcat' function. */
 #cmakedefine HAVE_STRLCAT 1
+
+/* Define to 1 if you have the `strlcpy' function. */
+#cmakedefine HAVE_STRLCPY 1
+
+/* Define to 1 if you have the `strlen' function. */
+#cmakedefine HAVE_STRLEN 1
 
 /* Define to 1 if you have the `strtoll' function. */
 #cmakedefine HAVE_STRTOLL 1
@@ -436,16 +458,6 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if the system has the type `ushort'. */
 #cmakedefine HAVE_USHORT 1
 
-/* if true, H5free_memory() will be used to free hdf5-allocated memory in
-   nc4file. */
-#cmakedefine HAVE_H5FREE_MEMORY 1
-
-/* if true, H5allocate_memory() will be used. */
-#cmakedefine HAVE_H5ALLOCATE_MEMORY 1
-
-/* if true, H5resize_memory() will be used. */
-#cmakedefine HAVE_H5RESIZE_MEMORY 1
-
 /* if true, hdf5 has parallelism enabled */
 #cmakedefine HDF5_PARALLEL 1
 
@@ -456,9 +468,6 @@ with zip */
 /* if true, HDF5 is at least version 1.10.5 and supports UTF8 paths */
 #cmakedefine HDF5_UTF8_PATHS 1
 
-/* if true, include JNA bug fix */
-#cmakedefine JNA 1
-
 /* do large file tests */
 #cmakedefine LARGE_FILE_TESTS 1
 
@@ -468,8 +477,8 @@ with zip */
 /* If true, define nc_set_log_level. */
 #cmakedefine ENABLE_SET_LOG_LEVEL 1
 
-/* max size of the default per-var chunk cache. */
-#cmakedefine MAX_DEFAULT_CACHE_SIZE ${MAX_DEFAULT_CACHE_SIZE}
+/* If true, define nc_set_log_level_func */
+#cmakedefine NETCDF_ENABLE_SET_LOG_LEVEL_FUNC 1
 
 /* min blocksize for posixio. */
 #cmakedefine NCIO_MINBLOCKSIZE ${NCIO_MINBLOCKSIZE}
@@ -484,16 +493,16 @@ with zip */
 #cmakedefine NO_IEEE_FLOAT 1
 
 #cmakedefine BUILD_V2 1
-#cmakedefine ENABLE_DOXYGEN 1
-#cmakedefine ENABLE_INTERNAL_DOCS 1
+#cmakedefine NETCDF_ENABLE_DOXYGEN 1
+#cmakedefine NETCDF_ENABLE_INTERNAL_DOCS 1
 #cmakedefine VALGRIND_TESTS 1
-#cmakedefine ENABLE_CDMREMOTE 1
+#cmakedefine NETCDF_ENABLE_CDMREMOTE 1
 #cmakedefine USE_HDF5 1
 #cmakedefine ENABLE_FILEINFO 1
 #cmakedefine TEST_PARALLEL ${TEST_PARALLEL}
 #cmakedefine BUILD_RPC 1
 #cmakedefine USE_X_GETOPT 1
-#cmakedefine ENABLE_EXTREME_NUMBERS 1
+#cmakedefine NETCDF_ENABLE_EXTREME_NUMBERS 1
 
 /* do not build the netCDF version 2 API */
 #cmakedefine NO_NETCDF_2 1
@@ -518,6 +527,12 @@ with zip */
 
 /* Define to the version of this package. */
 #cmakedefine PACKAGE_VERSION "${netCDF_VERSION}"
+
+/* Do we have access to the Windows Registry */
+#cmakedefine REGEDIT 1
+
+/* define the possible sources for remote test servers */
+#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 
 /* The size of `ulonglong` as computed by sizeof. */
 #cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@
@@ -563,6 +578,9 @@ with zip */
 
 /* The size of `size_t', as computed by sizeof. */
 #cmakedefine SIZEOF_SIZE_T ${SIZEOF_SIZE_T}
+
+/* The size of `ssize_t', as computed by sizeof. */
+#cmakedefine SIZEOF_SSIZE_T ${SIZEOF_SSIZE_T}
 
 /* The size of `uint', as computed by sizeof. */
 #cmakedefine SIZEOF_UINT ${SIZEOF_UINT}
@@ -629,16 +647,20 @@ with zip */
 #cmakedefine USE_STDIO 1
 
 /* if true, multi-filters enabled*/
-#cmakedefine ENABLE_MULTIFILTERS 1
+#cmakedefine NETCDF_ENABLE_MULTIFILTERS 1
 
 /* if true, enable nczarr blosc support */
-#cmakedefine ENABLE_BLOSC 1
+#cmakedefine NETCDF_ENABLE_BLOSC 1
 
-/* if true, enable nczarr szip support */
-#cmakedefine USE_SZIP 1
+/* if true enable tests that access external servers */
+#cmakedefine NETCDF_ENABLE_EXTERNAL_SERVER_TESTS 1
 
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"
+
+/* Capture  Windows version and build */
+#cmakedefine WINVERMAJOR ${WINVERMAJOR}
+#cmakedefine WINVERBUILD ${WINVERBUILD}
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -674,21 +696,6 @@ with zip */
 
 /* Define to `unsigned long if <sys/types.h> does not define. */
 #cmakedefine uintptr_t unsigned long
-
-/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
-#ifdef _WIN32
-    #ifndef HAVE_STRCASECMP
-	 #define strcasecmp _stricmp
-    #endif
-
-    #ifndef HAVE_STRNCASECMP
-	 #define strncasecmp _strnicmp
-    #endif
-
-    #ifndef HAVE_SNPRINTF
-	 #define snprintf _snprintf
-    #endif
-#endif
 
 #cmakedefine WORDS_BIGENDIAN
 

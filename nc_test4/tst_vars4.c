@@ -34,6 +34,7 @@ main(int argc, char **argv)
         nc_type type_in;
         size_t len_in;
 
+        nc_set_log_level(-1);
         if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dims[0])) ERR;
         if (nc_def_dim(ncid, Y_NAME, YDIM_LEN, &dims[1])) ERR;
@@ -49,6 +50,7 @@ main(int argc, char **argv)
         if (strcmp(name_in, Y_NAME)) ERR;
         if (len_in != YDIM_LEN) ERR;
         if (nc_close(ncid)) ERR;
+        nc_set_log_level(-1);
 
         /* Open the file and check. */
         if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
@@ -154,7 +156,6 @@ main(int argc, char **argv)
         int ndims, nvars, natts, unlimdimid;
 
         /* Create the test file with two scalar vars. */
-        /* nc_set_log_level(4); */
         if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
         if (nc_def_var(ncid, CLAIR, NC_INT, 0, NULL, &varid1)) ERR;
         if (nc_def_var(ncid, JAMIE, NC_INT, 0, NULL, &varid2)) ERR;

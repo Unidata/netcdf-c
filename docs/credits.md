@@ -1,7 +1,7 @@
 NetCDF Credits {#credits}
 ==============
 
-[Unidata](http://www.unidata.ucar.edu/) is sponsored by the [National
+[Unidata](https://www.unidata.ucar.edu/) is sponsored by the [National
 Science Foundation](http://www.nsf.gov/) and managed by the [University
 Corporation for Atmospheric Research](http://www2.ucar.edu/).
 
@@ -23,8 +23,8 @@ by Robert Pincus. Ed Hartnett updated and simplified the configure-based
 installation, enhanced Windows support, refactored the documentation
 while converting it into texinfo, and is the primary developer for
 netCDF-4. Dennis Heimbigner wrote the netCDF-4 version of ncgen, the C
-OPeNDAP client, the dispatch layer, and the implementation of diskless
-files. The nccopy utility was added by Russ Rew. Lynton Appel developed
+OPeNDAP client, the ncZarr interface, the dispatch layer, and the implementation 
+of diskless files. The nccopy utility was added by Russ Rew. Lynton Appel developed
 the C++ implementation for netCDF-4. Ward Fisher overhauled netCDF release-engineering, developed a new build-and-test framework using CMake, virtualization, and container technologies, moved sources to GitHub, developed a Windows/Microsoft Visual Studio port, refactored documentation for improved web access, and merged all the documentation into the sources for maintaining with Markdown and Doxygen.
 
 The following people have contributed related software, bug reports,

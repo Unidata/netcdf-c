@@ -129,14 +129,13 @@ dimchunkspec_parse(int igrp, const char *spec)
 	    size_t chunksize;
 
 	    for(; pp > np && *pp != '/'; pp--) { /* look backwards for "/" */
-		continue;
-	    }
+		}
 	    if(*pp != '/') {	/* no '/' found, no chunksize specified for dimension */
 		ret = NC_EINVAL;
 		goto done;
 	    }
 	    /* extract dimension name */
-	    dimname = (char *) emalloc(pp - np + 1);
+	    dimname = (char *) emalloc((size_t)(pp - np + 1));
 	    dp = dimname;
 	    while(np < pp) {
 		*dp++ = *np++;
@@ -196,7 +195,7 @@ dimchunkspec_size(int indimid) {
 /* Return number of dimensions for which chunking was specified in
  * chunkspec string on command line, 0 if no chunkspec string was
  * specified. */
-int
+size_t
 dimchunkspec_ndims(void) {
     return dimchunkspecs.ndims;
 }
@@ -337,8 +336,7 @@ done:
 int
 varchunkspec_kind(int grpid, int varid)
 {
-    int i;
-    for(i=0;i<listlength(varchunkspecs);i++) {
+    for(size_t i=0;i<listlength(varchunkspecs);i++) {
 	struct VarChunkSpec* spec = listget(varchunkspecs,i);
 	if(spec->igrpid == grpid && spec->ivarid == varid) 
 	    return spec->kind;
@@ -349,8 +347,7 @@ varchunkspec_kind(int grpid, int varid)
 bool_t
 varchunkspec_exists(int igrpid, int ivarid)
 {
-    int i;
-    for(i=0;i<listlength(varchunkspecs);i++) {
+    for(size_t i=0;i<listlength(varchunkspecs);i++) {
 	struct VarChunkSpec* spec = listget(varchunkspecs,i);
 	if(spec->igrpid == igrpid && spec->ivarid == ivarid)
 	    return true;
@@ -361,8 +358,7 @@ varchunkspec_exists(int igrpid, int ivarid)
 bool_t
 varchunkspec_omit(int igrpid, int ivarid)
 {
-    int i;
-    for(i=0;i<listlength(varchunkspecs);i++) {
+    for(size_t i=0;i<listlength(varchunkspecs);i++) {
 	struct VarChunkSpec* spec = listget(varchunkspecs,i);
 	if(spec->igrpid == igrpid && spec->ivarid == ivarid)
 	    return spec->omit;
@@ -373,8 +369,7 @@ varchunkspec_omit(int igrpid, int ivarid)
 size_t*
 varchunkspec_chunksizes(int igrpid, int ivarid)
 {
-    int i;
-    for(i=0;i<listlength(varchunkspecs);i++) {
+    for(size_t i=0;i<listlength(varchunkspecs);i++) {
 	struct VarChunkSpec* spec = listget(varchunkspecs,i);
 	if(spec->igrpid == igrpid && spec->ivarid == ivarid)
 	    return spec->chunksizes;
@@ -385,8 +380,7 @@ varchunkspec_chunksizes(int igrpid, int ivarid)
 size_t
 varchunkspec_rank(int igrpid, int ivarid)
 {
-    int i;
-    for(i=0;i<listlength(varchunkspecs);i++) {
+    for(size_t i=0;i<listlength(varchunkspecs);i++) {
 	struct VarChunkSpec* spec = listget(varchunkspecs,i);
 	if(spec->igrpid == igrpid && spec->ivarid == ivarid)
 	    return spec->rank;

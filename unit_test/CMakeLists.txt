@@ -13,21 +13,31 @@
 # so we don't want to make them external, which would be required to
 # run on Windows.
 
-SET(UNIT_TESTS test_ncuri test_pathcvt)
+SET(UNIT_TESTS test_ncuri)
 
-IF(NOT MSVC)
-  IF(ENABLE_NETCDF_4)
-    SET(UNIT_TESTS ${UNIT_TESTS} tst_nclist tst_nc4internal)
-  ENDIF(ENABLE_NETCDF_4)
-ENDIF(NOT MSVC)
+IF(USE_X_GETOPT)
+  SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
+ENDIF()
 
-FOREACH(CTEST ${UNIT_TESTS})
-  add_bin_test(unit_test ${CTEST})
-ENDFOREACH()
+IF(NETCDF_ENABLE_HDF5)
+  IF(NOT WIN32)
+    add_bin_test(unit_test tst_nclist)
+    add_bin_test(unit_test tst_nc4internal)
+  ENDIF(NOT WIN32)
+  build_bin_test(tst_reclaim ${XGETOPTSRC})
+  add_sh_test(unit_test run_reclaim_tests)
+ENDIF(NETCDF_ENABLE_HDF5)
 
-# Aws Tests
-build_bin_test(test_aws)
-ADD_SH_TEST(unit_test run_aws)
+# Path convert test(s)
+add_bin_test(unit_test test_pathcvt)
+
+IF(NETCDF_BUILD_UTILITIES)
+  IF(NETCDF_ENABLE_S3 AND WITH_S3_TESTING)
+  # SDK Test
+    build_bin_test(test_s3sdk ${XGETOPTSRC})
+    add_sh_test(unit_test run_s3sdk)
+  ENDIF()
+ENDIF()
 
 # Performance tests
 add_bin_test(unit_test tst_exhash timer_utils.c)

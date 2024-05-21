@@ -38,13 +38,14 @@
 
 int main(int argc, char* argv[])
 {
-    int i, j, rank, nprocs, ncid, cmode, varid[NVARS], dimid[2], *buf;
+    int i, j, rank, nprocs, ncid, cmode, varid[NVARS], dimid[2], *buf=NULL;
     int st, nerrs=0;
     char str[32];
     size_t start[2], count[2];
     MPI_Comm comm=MPI_COMM_SELF;
     MPI_Info info=MPI_INFO_NULL;
-
+    char file_name[NC_MAX_NAME + 1];
+    
     printf("\n*** Testing bug fix with changing PnetCDF variable offsets...");
 
     MPI_Init(&argc,&argv);
@@ -63,7 +64,9 @@ int main(int argc, char* argv[])
 #endif
 
     cmode = NC_CLOBBER;
-    st = nc_create_par(FILENAME, cmode, comm, info, &ncid);
+    snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILENAME);
+    st = nc_create_par(file_name, cmode, comm, info, &ncid);
+
 #ifdef USE_PNETCDF
     CHK_ERR(st)
 #else
@@ -78,11 +81,11 @@ int main(int argc, char* argv[])
     /* Odd numbers are fixed variables, even numbers are record variables */
     for (i=0; i<NVARS; i++) {
         if (i%2) {
-            sprintf(str,"fixed_var_%d",i);
+            snprintf(str, sizeof(str),"fixed_var_%d",i);
             st = nc_def_var(ncid, str, NC_INT, 1, dimid+1, &varid[i]); CHK_ERR(st)
         }
         else {
-            sprintf(str,"record_var_%d",i);
+            snprintf(str, sizeof(str),"record_var_%d",i);
             st = nc_def_var(ncid, str, NC_INT, 2, dimid, &varid[i]); CHK_ERR(st)
         }
     }
@@ -109,13 +112,13 @@ int main(int argc, char* argv[])
     if (info != MPI_INFO_NULL) MPI_Info_free(&info);
 
     /* re-open the file with netCDF (parallel) and enter define mode */
-    st = nc_open_par(FILENAME, NC_WRITE, comm, info, &ncid); CHK_ERR(st)
+    st = nc_open_par(file_name, NC_WRITE, comm, info, &ncid); CHK_ERR(st)
 
     st = nc_redef(ncid); CHK_ERR(st)
 
     /* add attributes to make header grow */
     for (i=0; i<NVARS; i++) {
-        sprintf(str, "annotation_for_var_%d",i);
+        snprintf(str, sizeof(str), "annotation_for_var_%d",i);
         st = nc_put_att_text(ncid, varid[i], "text_attr", strlen(str), str); CHK_ERR(st)
     }
     st = nc_enddef(ncid); CHK_ERR(st)
@@ -140,9 +143,8 @@ int main(int argc, char* argv[])
         }
     }
     st = nc_close(ncid); CHK_ERR(st)
-    free(buf);
-
 fn_exit:
+    free(buf);
     MPI_Finalize();
     err = nerrs;
     SUMMARIZE_ERR;

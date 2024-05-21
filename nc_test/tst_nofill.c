@@ -336,10 +336,10 @@ create_file(char *file_name, int fill_mode, size_t* sizehintp)
        {
 	   int izw;
 	   for(izw = 0; izw < TIME_LEN * LAT_LEN * LON_LEN; izw++) {
-	       zonal_wnd[izw] = 100 + i;
+               zonal_wnd[izw] = (float)(100 + i);
 	   }
 	   zonal_wnd_start[0] = 0;
-	   zonal_wnd_start[1] = i;
+	   zonal_wnd_start[1] = (size_t)i;
 	   zonal_wnd_start[2] = 0;
 	   zonal_wnd_start[3] = 0;
 	   zonal_wnd_count[0] = time_len;
@@ -370,7 +370,7 @@ main(int argc, char **argv)
     if (argc > 1) {
 	char *endptr, *str = argv[1];
 	errno = 0;
-	sizehint = strtol(str, &endptr, 0);
+	sizehint = (size_t)strtol(str, &endptr, 0);
 	/* check for various possible errors */
 	if ((errno == ERANGE && (sizehint == LONG_MAX || sizehint == LONG_MIN))
                    || (errno != 0 && sizehint == 0)) {
@@ -421,7 +421,7 @@ main(int argc, char **argv)
 	   char varname2[NC_MAX_NAME];
 	   /* How many values in this variable to compare? */
 	   if (nc_inq_varndims(ncid1, varid, &ndims)) ERR;
-	   dimids = malloc((ndims + 1) * sizeof(int));
+	   dimids = malloc((size_t)(ndims + 1) * sizeof(int));
 	   if (!dimids) ERR;
 	   if (nc_inq_vardimid (ncid1, varid, dimids)) ERR;
 	   nvals = 1;
@@ -486,8 +486,9 @@ main(int argc, char **argv)
        if (nc_close(ncid2)) ERR;
        SUMMARIZE_ERR;
    }
-   FINAL_RESULTS;
+
 #ifdef USE_PNETCDF
    MPI_Finalize();
 #endif
+   FINAL_RESULTS;
 }

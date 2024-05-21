@@ -13,7 +13,6 @@
 #include "netcdf.h"
 
 #include "config.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -55,9 +54,6 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 /** One mega-byte. */
 #define MEGABYTE 1048576
 
-/** The HDF5 ID for the szip filter. */
-#define HDF5_FILTER_SZIP 4
-
 #define X_SCHAR_MIN     (-128)          /**< Minimum signed char value. */
 #define X_SCHAR_MAX     127             /**< Maximum signed char value. */
 #define X_UCHAR_MAX     255U            /**< Maximum unsigned char value. */
@@ -84,9 +80,6 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 #define X_DOUBLE_MAX    1.7976931348623157e+308 /**< Maximum double value. */
 #define X_DOUBLE_MIN    (-X_DOUBLE_MAX)         /**< Minimum double value. */
 
-/** This is the number of netCDF atomic types. */
-#define NUM_ATOMIC_TYPES (NC_MAX_ATOMIC_TYPE + 1)
-
 /** Number of parameters needed for ZLIB filter. */
 #define CD_NELEMS_ZLIB 1
 
@@ -97,20 +90,16 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 #define NC4_DATA_SET(nc,data) ((nc)->dispatchdata = (void *)(data))
 
 /* Reserved attribute flags: must be powers of 2. */
-/** Hidden attributes; immutable and unreadable thru API. */
-#define HIDDENATTRFLAG 1
-
-/** Readonly attributes; readable, but immutable thru the API. */
-#define READONLYFLAG 2
-
-/** Subset of readonly flags; readable by name only thru the API. */
-#define NAMEONLYFLAG 4
-
-/** Subset of readonly flags; Value is actually in file. */
-#define MATERIALIZEDFLAG 8
-
-/** Per-variable attribute, as opposed to global */
-#define VARFLAG 16
+    /** Hidden attributes; immutable and unreadable thru API. */
+#   define HIDDENATTRFLAG 1
+    /** Readonly attributes; readable, but immutable thru the API. */
+#   define READONLYFLAG 2
+    /** Subset of readonly flags; readable by name only thru the API. */
+#   define NAMEONLYFLAG 4
+    /** Mark reserved attributes that are constructed on the fly when accessed */
+#   define VIRTUALFLAG 8
+    /** Per-variable attribute, as opposed to global */
+#   define VARFLAG 16
 
 /** Boolean type, to make the code easier to read. */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
@@ -118,6 +107,7 @@ typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 /* Forward declarations. */
 struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
+struct NCRCinfo;
 
 /**
  * This struct provides indexed Access to Meta-data objects. See the
@@ -133,7 +123,7 @@ typedef struct NC_OBJ
 {
     NC_SORT sort; /**< Type of object. */
     char* name;   /**< Name, assumed to be null terminated. */
-    size_t id;    /**< This objects ID. */
+    int id;    /**< This objects ID. */
 } NC_OBJ;
 
 /**
@@ -164,14 +154,12 @@ typedef struct NC_ATT_INFO
 {
     NC_OBJ hdr;             /**< The hdr contains the name and ID. */
     struct NC_OBJ *container;    /**< Pointer to containing group|var. */
-    int len;                /**< Length of attribute data. */
+    size_t len;             /**< Length of attribute data. */
     nc_bool_t dirty;        /**< True if attribute modified. */
     nc_bool_t created;      /**< True if attribute already created. */
     nc_type nc_typeid;      /**< NetCDF type of attribute's data. */
     void *format_att_info;  /**< Pointer to format-specific att info. */
     void *data;             /**< The attribute data. */
-    nc_vlen_t *vldata;      /**< VLEN data (only used for vlen types). */
-    char **stdata;          /**< String data (only for string type). */
 } NC_ATT_INFO_T;
 
 /** This is a struct to handle the var metadata. */
@@ -201,11 +189,11 @@ typedef struct NC_VAR_INFO
     int storage;                 /**< Storage of this var, compact, contiguous, or chunked. */
     int endianness;              /**< What endianness for the var? */
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
-    nc_bool_t shuffle;           /**< True if var has shuffle filter applied. */
-    nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied. */
-    size_t chunk_cache_size;     /**< Size in bytes of the var chunk cache. */
-    size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
-    float chunk_cache_preemption; /**< Chunk cache preemtion policy. */
+    struct ChunkCache {
+        size_t size;     /**< Size in bytes of the var chunk cache. */
+        size_t nelems;   /**< Number of slots in var chunk cache. */
+        float preemption; /**< Chunk cache preemtion policy. */
+    } chunkcache;
     int quantize_mode;           /**< Quantize mode. NC_NOQUANTIZE is 0, and means no quantization. */
     int nsd;                     /**< Number of significant digits if quantization is used, 0 if not. */
     void *format_var_info;       /**< Pointer to any binary format info. */
@@ -242,7 +230,8 @@ typedef struct NC_TYPE_INFO
     size_t size;                 /**< Size of the type in memory, in bytes */
     nc_bool_t committed;         /**< True when datatype is committed in the file */
     nc_type nc_type_class;       /**< NC_VLEN, NC_COMPOUND, NC_OPAQUE, NC_ENUM, NC_INT, NC_FLOAT, or NC_STRING. */
-    void *format_type_info;      /**< HDF5-specific type info. */
+    void *format_type_info;      /**< dispatcher-specific type info. */
+    int varsized; 	         /**< <! 1 if this type is (recursively) variable sized; 0 if fixed size */
 
     /** Information for each type or class */
     union {
@@ -276,32 +265,27 @@ typedef struct NC_GRP_INFO
     NCindex* vars;               /**< NCindex<NC_VAR_INFO_T> * */
 } NC_GRP_INFO_T;
 
-/* These constants apply to the cmode parameter in the
- * HDF5_FILE_INFO_T defined below. */
-/* Make sure they do not conflict with defined flags in netcdf.h */
-#define NC_CREAT 0x10002      /**< in create phase, cleared by ncendef */
-#define NC_INDEF 0x10008      /**< in define mode, cleared by ncendef */
-#define NC_NSYNC 0x10010   /**< synchronise numrecs on change */
-#define NC_HSYNC 0x10020   /**< synchronise whole header on change */
-#define NC_NDIRTY 0x10040  /**< numrecs has changed */
-#define NC_HDIRTY 0x10080  /**< header info has changed */
+/* These constants apply to the flags field in the
+ * NC_FILE_INFO_T defined below. */
+#define NC_INDEF  0x01  /**< in define mode, cleared by ncendef */
 
 /** This is the metadata we need to keep track of for each
-  * netcdf-4/HDF5 file. */
+  * netcdf-4/ file; used by libhdf5, libnczarr, and libdap4 */
 
-typedef struct  NC_FILE_INFO
+typedef struct NC_FILE_INFO
 {
     NC_OBJ hdr;
     NC *controller; /**< Pointer to containing NC. */
-#ifdef USE_PARALLEL4
+#ifdef USE_PARALLEL
     MPI_Comm comm;  /**< Copy of MPI Communicator used to open the file. */
     MPI_Info info;  /**< Copy of MPI Information Object used to open the file. */
 #endif
-    int flags;      /**< Flags used to open the file. */
-    int cmode;      /**< Create mode used to create the file. */
+    int cmode;      /**< Create/Open mode for the file. */
+    int flags;      /**< State transition flags . */
     nc_bool_t parallel;   /**< True if file is open for parallel access */
     nc_bool_t redef;      /**< True if redefining an existing file */
     nc_bool_t no_attr_create_order; /**< True if the creation order tracking of attributes is disabled (netcdf-4 only) */
+    nc_bool_t no_dimscale_attach; /**< True if attaching dimscales to variables is disabled (netcdf-4 only) */
     int fill_mode;        /**< Fill mode for vars - Unused internally currently */
     nc_bool_t no_write;   /**< true if nc_open has mode NC_NOWRITE. */
     NC_GRP_INFO_T *root_grp; /**< Pointer to root group. */
@@ -339,18 +323,14 @@ typedef struct
     void *p;    /**< Pointer to VL data */
 } nc_hvl_t;
 
-/* Misc functions */
-extern int NC4_inq_atomic_type(nc_type typeid1, char *name, size_t *size);
-extern int NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep);
-
-/* These functions convert between netcdf and HDF5 types. */
+/* These functions convert between different netcdf types. */
 extern int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
 extern int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 			    const nc_type dest_type, const size_t len, int *range_error,
 			    const void *fill_value, int strict_nc3, int quantize_mode,
 			    int nsd);
 
-/* These functions do HDF5 things. */
+/* These functions do netcdf-4 things. */
 extern int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 extern int nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
@@ -425,13 +405,23 @@ extern int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 /* Get the fill value for a var. */
 extern int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
-/* Find default fill value. */
-extern int nc4_get_default_fill_value(nc_type typecode, void *fill_value);
+/* Find default fill value for atomic type. */
+extern int nc4_get_default_atomic_fill_value(nc_type, void *fill_value);
+
+/* Find default fill value for any type */
+extern int nc4_get_default_fill_value(NC_TYPE_INFO_T*, void *fill_value);
 
 /* Get an att given pointers to file, group, and perhaps ver info. */
 extern int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
                      const char *name, nc_type *xtype, nc_type mem_type,
                      size_t *lenp, int *attnum, void *data);
+
+/* Get variable/fixed size flag for type (ncid API level)*/
+extern int NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* isfixedsizep);
+/* Manage the fixed/var sized'ness of a type */
+extern int NC4_recheck_varsize(NC_TYPE_INFO_T* parenttype, nc_type addedtype);
+extern int NC4_set_varsize(NC_TYPE_INFO_T* parenttype);
+extern int NC4_var_varsized(NC_VAR_INFO_T* var);
 
 /* Close the file. */
 extern int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
@@ -440,22 +430,69 @@ extern int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio
 extern int nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 extern int nc4_check_chunksizes(NC_GRP_INFO_T* grp, NC_VAR_INFO_T* var, const size_t* chunksizes);
 
-/* HDF5 initialization/finalization */
-extern int nc4_hdf5_initialized;
-extern void nc4_hdf5_initialize(void);
-extern void nc4_hdf5_finalize(void);
-
 /* This is only included if --enable-logging is used for configure; it
    prints info about the metadata to stderr. */
 #ifdef LOGGING
 extern int log_metadata_nc(NC_FILE_INFO_T *h5);
 #endif
 
+/**************************************************/
+/* Atomic types constants and functions */
+
+/** This is the number of netCDF atomic types (as opposed to max) . */
+#define NUM_ATOMIC_TYPES (NC_MAX_ATOMIC_TYPE + 1)
+
 /** @internal Names of atomic types. */
 extern const char* nc4_atomic_name[NUM_ATOMIC_TYPES];
 
+/* Misc functions */
+extern int NC4_inq_atomic_type(nc_type typeid1, char *name, size_t *size);
+extern int NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep);
+extern int NC4_inq_atomic_typeid(int ncid, const char *name, nc_type *typeidp);
+extern int NC4_get_atomic_typeclass(nc_type xtype, int *type_class);
+
+/**************************************************/
+/* Type alignment related functions */
+
+extern int nc_set_alignment(int threshold, int alignment);
+extern int nc_get_alignment(int* thresholdp, int* alignmentp);
+
+/**************************************************/
+/* Begin to collect global state info in one place (more to do) */
+
+typedef struct NCglobalstate {
+    int initialized;
+    char* tempdir; /* track a usable temp dir */
+    char* home; /* track $HOME */
+    char* cwd; /* track getcwd */
+    struct NCRCinfo* rcinfo; /* Currently only one rc file per session */
+    struct GlobalZarr { /* Zarr specific parameters */
+	char dimension_separator;
+	int default_zarrformat;
+    } zarr;
+    struct GlobalAWS { /* AWS S3 specific parameters/defaults */
+	char* default_region;
+	char* config_file;
+	char* profile;
+	char* access_key_id;
+	char* secret_access_key;
+    } aws;
+    struct Alignment { /* H5Pset_alignment parameters */
+        int defined; /* 1 => threshold and alignment explicitly set */
+	int threshold;
+	int alignment;
+    } alignment;
+    struct ChunkCache chunkcache;
+} NCglobalstate;
+
+extern struct NCglobalstate* NC_getglobalstate(void);
+extern void NC_freeglobalstate(void);
+
+/**************************************************/
 /* Binary searcher for reserved attributes */
 extern const NC_reservedatt* NC_findreserved(const char* name);
+/* reserved attribute initializer */
+extern void NC_initialize_reserved(void);
 
 /* Generic reserved Attributes */
 #define NC_ATT_REFERENCE_LIST "REFERENCE_LIST"
@@ -465,9 +502,16 @@ extern const NC_reservedatt* NC_findreserved(const char* name);
 #define NC_ATT_COORDINATES "_Netcdf4Coordinates" /*see hdf5internal.h:COORDINATES*/
 #define NC_ATT_FORMAT "_Format"
 #define NC_ATT_DIMID_NAME "_Netcdf4Dimid"
+#define NC_ATT_FILLVALUE "_FillValue"
 #define NC_ATT_NC3_STRICT_NAME "_nc3_strict"
 #define NC_XARRAY_DIMS "_ARRAY_DIMENSIONS"
 #define NC_ATT_CODECS "_Codecs"
-#define NC_NCZARR_ATTR "_NCZARR_ATTR"
+
+/* Must match values in libnczarr/zinternal.h */
+#define NC_NCZARR_SUPERBLOCK "_nczarr_superblock"
+#define NC_NCZARR_GROUP "_nczarr_group"
+#define NC_NCZARR_ARRAY "_nczarr_array"
+#define NC_NCZARR_ATTR "_nczarr_attr"
+#define NC_NCZARR_ATTR_UC "_NCZARR_ATTR" /* deprecated */
 
 #endif /* _NC4INTERNAL_ */

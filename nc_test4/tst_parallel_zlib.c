@@ -60,6 +60,13 @@ main(int argc, char **argv)
     /*printf("mpi_name: %s size: %d rank: %d\n", mpi_name,
       mpi_size, mpi_rank);*/
 
+    /* This program must have exactly 4 processors. */
+    if (mpi_size != 4) {
+      printf("Error: mpi_size must be 4 with this test.  mpi_size: %d used.\n",
+             mpi_size);
+      ERR;
+    }
+
 #ifdef USE_MPE
     MPE_Init_log();
     s_init = MPE_Log_get_event_number();
@@ -96,8 +103,8 @@ main(int argc, char **argv)
 
     /* Create a parallel netcdf-4 file. */
     /*nc_set_log_level(3);*/
-    /* sprintf(file_name, "%s/%s", TEMP_LARGE, FILE); */
-    sprintf(file_name, "%s", FILE);
+    /* snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE); */
+    snprintf(file_name, sizeof(file_name), "%s", FILE);
     if ((res = nc_create_par(file_name, NC_NETCDF4, comm, info, &ncid))) ERR;
 
     /* Create three dimensions. */

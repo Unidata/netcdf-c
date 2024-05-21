@@ -84,6 +84,7 @@ extern OCerror ocbreakpoint(OCerror err);
 extern OCerror occatch(OCerror err);
 extern CURLcode ocreportcurlerror(struct OCstate* state, CURLcode cstat);
 /* Place breakpoint on ocbreakpoint to catch errors close to where they occur*/
+/* Warning: do not evaluate e more than once */
 #define OCCATCH(e) occatch(e)
 #define OCCATCHCHK(e) (void)occatch(e)
 #define OCGOTO(label) {ocbreakpoint(-1); goto label;}

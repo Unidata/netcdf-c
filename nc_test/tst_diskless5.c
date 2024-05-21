@@ -91,7 +91,7 @@ main(int argc, const char* argv[])
 #endif
 
 #ifdef MEM
-    fd = open(PATH,O_RDONLY);
+    fd = NCopen2(PATH,O_RDONLY);
     if(fd < 0) {
 	fprintf(stderr,"could not open foo.nc\n");
 	assert(0);

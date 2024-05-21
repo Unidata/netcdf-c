@@ -5,6 +5,7 @@
 
 #include "dapincludes.h"
 #include "dapdump.h"
+#include <stddef.h>
 
 /*
 Grads servers always require a constraint,
@@ -24,7 +25,9 @@ static int iscacheableconstraint(DCEconstraint* con);
 int
 iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
 {
-    int i,j,found,index;
+    int found;
+    size_t j;
+    size_t index;
     NCcache* cache;
     NCcachenode* cachenode;
 
@@ -36,7 +39,8 @@ iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
     cache = nccomm->cdf.cache;
     cachenode = cache->prefetch;
     if(cachenode!= NULL) {
-        for(found=0,i=0;i<nclistlength(cachenode->vars);i++) {
+        found = 0;
+        for(size_t i=0;i<nclistlength(cachenode->vars);i++) {
             CDFnode* var = (CDFnode*)nclistget(cachenode->vars,i);
 	    if(var == target) {
                 if(cachenodep) *cachenodep = cachenode;
@@ -48,7 +52,7 @@ iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
 
     /*search other cache nodes starting at latest first */
     index = 0;
-    for(i=nclistlength(cache->nodes)-1;i>=0;i--) {
+    for(size_t i = nclistlength(cache->nodes); i-->0;) {
         cachenode = (NCcachenode*)nclistget(cache->nodes,i);
 	/* We currently do not try to match constraints;
            If the cachenode is constrained by more than
@@ -92,7 +96,7 @@ else
 NCerror
 prefetchdata(NCDAPCOMMON* nccomm)
 {
-    int i;
+    size_t i;
     NCFLAGS flags;
     NCerror ncstat = NC_NOERR;
     NClist* allvars = nccomm->cdf.ddsroot->tree->varnodes;
@@ -130,7 +134,7 @@ prefetchdata(NCDAPCOMMON* nccomm)
 	    /* Should be prefetchable */
 	    nclistpush(vars,(void*)var);
 if(SHOWFETCH) {
-nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
+nclog(NCLOGDEBUG,"prefetch: %s",var->ncfullname);
 }
 	}
     }
@@ -341,7 +345,7 @@ fprintf(stderr,"freecachenode: %s\n",
 void
 freenccache(NCDAPCOMMON* nccomm, NCcache* cache)
 {
-    int i;
+    size_t i;
     if(cache == NULL) return;
     freenccachenode(nccomm,cache->prefetch);
     for(i=0;i<nclistlength(cache->nodes);i++) {
@@ -367,7 +371,8 @@ createnccache(void)
 static int
 iscacheableprojection(DCEprojection* proj)
 {
-    int i,cacheable;
+    size_t i;
+    int cacheable;
     if(proj->discrim != CES_VAR) return 0;
     cacheable = 1; /* assume so */
     for(i=0;i<nclistlength(proj->var->segments);i++) {
@@ -380,7 +385,7 @@ iscacheableprojection(DCEprojection* proj)
 static int
 iscacheableconstraint(DCEconstraint* con)
 {
-    int i;
+    size_t i;
     if(con == NULL) return 1;
     if(con->selections != NULL && nclistlength(con->selections) > 0)
 	return 0; /* can't deal with selections */
@@ -400,7 +405,7 @@ A variable is prefetchable if
 NCerror
 markprefetch(NCDAPCOMMON* nccomm)
 {
-    int i,j;
+    size_t i,j;
     NClist* allvars = nccomm->cdf.fullddsroot->tree->varnodes;
     assert(allvars != NULL);
     /* mark those variables of sufficiently small size */
@@ -428,7 +433,7 @@ markprefetch(NCDAPCOMMON* nccomm)
             {
               extern char* ocfqn(OCddsnode);
               char *tmp = ocfqn(var->ocnode);
-              nclog(NCLOGDBG,"prefetchable: %s=%lu",
+              nclog(NCLOGDEBUG,"prefetchable: %s=%lu",
                     tmp,(unsigned long)nelems);
               free(tmp);
             }

@@ -265,10 +265,10 @@ NULLTEST
 static char*
 trim(const char* s)
 {
-    int i;
+    size_t i;
     size_t l = strlen(s);
     char* t = strdup(s);
-    for(i=l-1;i >= 0; i--) {
+    for(i=l; i--> 0;) {
         if(t[i] != ' ') break;
     }
     t[i+1] = '\0';
@@ -301,17 +301,16 @@ test(const struct Test* tests, const char* title)
         if(status != NC_NOERR) {pf = "Fail"; failures++; goto fail;}
 	/* 3. compare input with output */
 	{
-	    int dlen = strlen((const char*)p->data);
-	    int nlen = strlen((const char*)normal);
-	    int mlen,i;
+	    size_t dlen = strlen((const char*)p->data);
+	    size_t nlen = strlen((const char*)normal);
 	    if(dlen != nlen)
-		fprintf(stderr,"\t%s: length mismatch: in=%d norm=%d\n",p->id,dlen,nlen);
-	    mlen = (dlen < nlen ? dlen : nlen);
-	    for(i=0;i<mlen;i++) {
-		unsigned char cd = p->data[i];
+		fprintf(stderr,"\t%s: length mismatch: in=%zu norm=%zu\n",p->id,dlen,nlen);
+	    size_t mlen = (dlen < nlen ? dlen : nlen);
+	    for(size_t i=0;i<mlen;i++) {
+		unsigned char cd = (unsigned char)p->data[i];
 		unsigned char cn = normal[i];
 		if(cd != cn) {
-		    fprintf(stderr,"\t%s: [%d] data=|%02x| normal=|%02x|\n",p->id,i,cd,cn);
+		    fprintf(stderr,"\t%s: [%zu] data=|%02x| normal=|%02x|\n",p->id,i,cd,cn);
 		    break;
 		}
 	    }

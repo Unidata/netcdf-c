@@ -159,6 +159,9 @@
         <a href="#Max_diff_nc">Max_diff_nc</a>
       </li>
       <li>
+        <a href="#Met.3D">Met.3D</a>
+      </li>
+      <li>
         <a href="#MeteoExplorer" >MeteoExplorer</a>
       </li>
       <li>
@@ -780,8 +783,7 @@ or using ECMWF reanalysis on a reduced grid
     for printing selected data from netCDF arrays, copying ASCII data into netCDF
     arrays, and performing various operations (sum, mean, max, min, product, ...)
     on netCDF arrays. A library (fanlib) is also included that supports the use of
-    FAN from C programs. The package is available via anonymous FTP from <a
-    href="ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/fan.tar.Z">ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/fan.tar.Z</a>.
+    FAN from C programs. 
     Questions and comments may be sent to Harvey Davies, harvey.davies@csiro.au.
     <p></p>
     <h2><a id="FERRET" name="FERRET">FERRET</a></h2>
@@ -847,8 +849,7 @@ or using ECMWF reanalysis on a reduced grid
     <h2><a id="GDAL" name="GDAL">GDAL</a></h2>
 
     <p>
-      Frank Warmerdam's <a
-      href="http://www.remotesensing.org/gdal/index.html" >GDAL</a> is a
+      Frank Warmerdam's <a href="http://www.remotesensing.org/gdal/index.html" >GDAL</a> is a
       translator library for raster geospatial data formats that is released
       under an X/MIT style Open Source license.  As a library, it presents a
       <a href="http://www.remotesensing.org/gdal/gdal_datamodel.html"> single abstract data model</a> to the calling application for all
@@ -941,7 +942,7 @@ or using ECMWF reanalysis on a reduced grid
     Dr L. Mun Woo <mun.woo@uwa.edu.au>
     at ANFOG (Australian National Facility for Ocean Gliders)
     has developed
-    <a href="http://imos.org.au/facilities/oceangliders/glider-data/gliderscope/">Gliderscope</a>.
+    <a href="https://imos.org.au/gliderscope">Gliderscope</a>.
     Gliderscope is an IMOS (Integrated Marine Observing System)
     oceanographic software package allowing users quick easy visualisation
     of ocean glider data, via a convenient graphical user interface.
@@ -1484,7 +1485,7 @@ or using ECMWF reanalysis on a reduced grid
     <h2><a id="Max_diff_nc" name="Max_diff_nc">Max_diff_nc</a></h2>
 
     <p>
-      This is a program which compares two netCDF files. Variables with the
+    This is a program which compares two NetCDF files. Variables with the
       same ID in the two files are assumed to be of the same type and have
       the same shape.  For each such couple of variables, the program
       computes the maximum of the absolute value of the difference, and the
@@ -1499,6 +1500,12 @@ or using ECMWF reanalysis on a reduced grid
       This is a freely available tool.
     </p>
     <p></p>
+
+    <h2><a id="Met.3D" name="Met.3D"></a>Met.3D</h2>
+    <p>
+      Met.3D is an open-source visualisation tool for interactive, three-dimensional visualisation of numerical ensemble weather predictions and similar gridded atmospheric datasets. Met.3D uses state-of-the-art computer graphics technology and implements a number of recently proposed ensemble visualization methods to facilitate interactive 3D visual data analysis in a novel way.” <a href="https://met3d.wavestoweather.de/met-3d.html">https://met3d.wavestoweather.de/met-3d.html</a>
+    </p>
+
 
     <h2><a id="MeteoExplorer" name="MeteoExplorer"></a>MeteoExplorer</h2>
 
@@ -1605,11 +1612,9 @@ or using ECMWF reanalysis on a reduced grid
     <h2><a id="MexEPS" name="MexEPS">MexEPS</a></h2>
     <a href="http://www.pmel.noaa.gov/">PMEL</a> has developed a MATLAB interface, <a
     href="http://www.epic.noaa.gov/epic/software/mexeps.htm">MexEPS</a>, which supports
-    several netCDF file conventions, including <a
-    href="ftp://ftp.unidata.ucar.edu/pub/netcdf/Conventions/PMEL-EPIC/"> those adopted
-    by PMEL</a>. Many styles of time axes are supported and time manipulation routines
-    ease the use of the time axis in MATLAB. The MexEPS package supports the following
-    data formats:
+    several netCDF file conventions, including those adopted by PMEL. Many styles of 
+    time axes are supported and time manipulation routines ease the use of the time axis 
+    in MATLAB. The MexEPS package supports the following data formats:
     <ul>
       <li>
         reading, writing and editing netCDF files;
@@ -2009,7 +2014,7 @@ or using ECMWF reanalysis on a reduced grid
     <p>
     Dr L. Mun Woo of University of Western Australia <mun.woo@uwa.edu.au>
     has developed
-    <a href="http://imos.org.au/facilities/oceangliders/glider-data/netcdfninja/">NetCDF Ninja</a>,
+    <a href="https://imos.org.au/netcdfninja">NetCDF Ninja</a>,
     a graphical user interface that allows users to browse all
     the metadata contained in netCDF files, scrutinise the data using an
     interactive graphical plot and even make small alterations or export
@@ -3015,13 +3020,9 @@ or using ECMWF reanalysis on a reduced grid
 
     <h1><a id="user" name="user">User-Contributed Software</a></h1>
     <p>
-      Unidata makes available a separate
-      <a href="/software/netcdf/Contrib.html">catalog</a>
-      to a
-      <a href="ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/">directory</a>
-      of freely available, user-contributed software and documentation related to the
-      netCDF library. This software may be retrieved by anonymous FTP. We haven&#39;t
-      necessarily used or tested this software; we make it available &quot;as is&quot;.
+      Unidata had an archive of user-contributed software and documentation related to the
+      netCDF library. This software is available by request to support-netcdf@unidata.ucar.edu. 
+      We haven&#39;t necessarily used or tested this software; we make it available &quot;as is&quot;.
     </p>
     <p>
       The criteria for inclusion in the netcdf/contrib/ directory of user-contributed

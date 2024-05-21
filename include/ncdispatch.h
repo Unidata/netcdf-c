@@ -104,12 +104,12 @@ extern const NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
-#ifdef ENABLE_DAP
+#ifdef NETCDF_ENABLE_DAP
 extern const NC_Dispatch* NCD2_dispatch_table;
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
 #endif
-#ifdef ENABLE_DAP4
+#ifdef NETCDF_ENABLE_DAP4
 extern const NC_Dispatch* NCD4_dispatch_table;
 extern int NCD4_initialize(void);
 extern int NCD4_finalize(void);
@@ -138,7 +138,7 @@ extern int HDF4_initialize(void);
 extern int HDF4_finalize(void);
 #endif
 
-#ifdef ENABLE_NCZARR
+#ifdef NETCDF_ENABLE_NCZARR
 extern const NC_Dispatch* NCZ_dispatch_table;
 extern int NCZ_initialize(void);
 extern int NCZ_finalize(void);

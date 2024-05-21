@@ -9,7 +9,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 
-#define DEBUG
+#undef DEBUG
 
 static int ret = NC_NOERR;
 
@@ -109,7 +109,7 @@ main(int argc, char **argv)
 
     /* Fill in the data */
     if(option_unlimited) {
-	int nvals = UNLIM_SIZE * dim_lens[0];
+	size_t nvals = UNLIM_SIZE * dim_lens[0];
 	size_t start[2] = {0,0};
 	size_t count[2];
 	for(i=0;i<nvals;i++) {
@@ -126,7 +126,7 @@ main(int argc, char **argv)
     }
     /* fvar is unchanged */
     for(i=0; i < NVALS; i++) {
-        fvar_data[i] = NVALS - i;
+        fvar_data[i] = (float)(NVALS - i);
     }
     if (nc_put_var(ncid, fvarid, fvar_data)) LERR;
 
