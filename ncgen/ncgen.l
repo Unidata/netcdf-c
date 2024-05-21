@@ -138,6 +138,9 @@ struct Specialtoken specials[] = {
 {"_SuperblockVersion",_SUPERBLOCK,_SUPERBLOCK_FLAG},
 {"_Filter",_FILTER,_FILTER_FLAG},
 {"_Codecs",_CODECS,_CODECS_FLAG},
+{"_QuantizeBitGroomNumberOfSignificantDigits",_QUANTIZEBG,_QUANTIZEBG_FLAG},
+{"_QuantizeGranularBitRoundNumberOfSignificantDigits",_QUANTIZEGBR,_QUANTIZEGBR_FLAG},
+{"_QuantizeBitRoundNumberOfSignificantDigits",_QUANTIZEBR,_QUANTIZEBR_FLAG},
 {NULL,0} /* null terminate */
 };
 
@@ -216,7 +219,7 @@ NUMBER       [+-]?[0-9][0-9]*[Uu]?([BbSs]|[Ll]|[Ll][Ll])?
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
-SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"|"_Filter"|"_Codecs"
+SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"|"_Filter"|"_Codecs"|"_QuantizeBitgroomNumberOfSignificantDIgits"|"_QuantizeGranularBitRoundNumberOfSignificantDigits"|"_QuantizeBitRoundNumberOfSignificantDigits"
 
 USASCII   [\x01-\x7F]
 
@@ -238,13 +241,13 @@ yyerror("string too long, truncated\n");
 yytext[MAXTRST-1] = '\0';
 }
 */
-			len = unescape((char *)yytext+1,yyleng-2,!ISIDENT,&s);
+			len = unescape((char *)yytext+1,(size_t)(yyleng-2),!ISIDENT,&s);
 			if(len < 0) {
-			    sprintf(errstr,"Illegal character: %s",yytext);
+			    snprintf(errstr, sizeof(errstr),"Illegal character: %s",yytext);
 			    yyerror(errstr);
 			}
 			bbClear(lextext);
-			bbAppendn(lextext,s,len);
+			bbAppendn(lextext,s,(size_t)len);
 			bbNull(lextext);
 			if(s) efree(s);
 		 	return lexdebug(TERMSTRING);
@@ -254,11 +257,11 @@ yytext[MAXTRST-1] = '\0';
 		char* p = yytext+2;
 		int len = yyleng - 2;
 		bbClear(lextext);
-	        bbAppendn(lextext,p,len);
+	        bbAppendn(lextext,p,(size_t)len);
 	        if((len % 2) == 1) bbAppend(lextext,'0');
 		bbNull(lextext);
 		/* convert all chars to lower case */
-		for(p=bbContents(lextext);(int)*p;p++) *p = tolower(*p);
+		for(p=bbContents(lextext);*p;p++) *p = (char)tolower((int)*p);
 		return lexdebug(OPAQUESTRING);
 		}
 
@@ -339,7 +342,7 @@ NIL|nil|Nil {
 
 {PATH}		{
 		bbClear(lextext);
-		bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */
+		bbAppendn(lextext,(char*)yytext,(size_t)yyleng+1); /* include null */
 	        bbNull(lextext);
 		yylval.sym = makepath(bbContents(lextext));
 		return lexdebug(PATH);
@@ -348,7 +351,7 @@ NIL|nil|Nil {
 
 {SPECIAL}      {struct Specialtoken* st;
 		bbClear(lextext);
-		bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */
+		bbAppendn(lextext,(char*)yytext,(size_t)yyleng+1); /* include null */
 		bbNull(lextext);
 		for(st=specials;st->name;st++) {
 		    if(strcmp(bbContents(lextext),st->name)==0) {return lexdebug(st->token);}
@@ -357,11 +360,11 @@ NIL|nil|Nil {
 		}
 
 <TEXT>{DATASETID} {
-		    int c;
+		    char c;
 		    char* p; char* q;
 		    /* copy the trimmed name */
 		    bbClear(lextext);
-		    bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */
+		    bbAppendn(lextext,(char*)yytext,(size_t)yyleng+1); /* include null */
 		    bbNull(lextext);
 		    p = bbContents(lextext);
 		    q = p;
@@ -373,9 +376,9 @@ NIL|nil|Nil {
 		    return lexdebug(DATASETID);
 		}
 
-{ID}		{ char* id = NULL; int len;
+{ID}		{ char* id = NULL; size_t len;
 		    len = strlen(yytext);
-		    len = unescape(yytext,len,ISIDENT,&id);
+		    len = (size_t)unescape(yytext,len,ISIDENT,&id);
 		    if(NCSTREQ(id, FILL_STRING)) {
 			efree(id);
 		        return lexdebug(FILLMARKER);
@@ -392,7 +395,7 @@ NIL|nil|Nil {
 		  If out of any integer range, then complain
 		  Also, if the digits begin with 0, then assume octal.
 		*/
-		    int slen = strlen(ncgtext);
+		    size_t slen = strlen(ncgtext);
 		    char* stag = NULL;
 		    int tag = NC_NAT;
 		    int isneg = 0;
@@ -408,7 +411,7 @@ NIL|nil|Nil {
 		    /* capture the tag string */
 		    tag = collecttag(pos,&stag);
 		    if(tag == NC_NAT) {
-			sprintf(errstr,"Illegal integer suffix: %s",stag);
+			snprintf(errstr, sizeof(errstr),"Illegal integer suffix: %s",stag);
 			yyerror(errstr);
 			goto done;
 		    }
@@ -430,13 +433,13 @@ NIL|nil|Nil {
 			radix = 10;
 
 		    if(isneg && hasU) {
-			sprintf(errstr,"Unsigned integer cannot be signed: %s",ncgtext);
+			snprintf(errstr, sizeof(errstr),"Unsigned integer cannot be signed: %s",ncgtext);
 			yyerror(errstr);
 			goto done;
 		    }
 		    uint64_val = parseULL(radix, pos,&fail);
 		    if(fail) {
-			sprintf(errstr,"integer constant out of range: %s",ncgtext);
+			snprintf(errstr, sizeof(errstr),"integer constant out of range: %s",ncgtext);
 			yyerror(errstr);
 			goto done;
 		    }
@@ -450,7 +453,7 @@ NIL|nil|Nil {
 		    case NC_FORMAT_64BIT_OFFSET:
 		    case NC_FORMAT_NETCDF4_CLASSIC:
 			    if(nct > NC_INT) {
-				sprintf(errstr,"Illegal integer constant for classic format: %s",ncgtext);
+				snprintf(errstr, sizeof(errstr),"Illegal integer constant for classic format: %s",ncgtext);
 				yyerror(errstr);
 				goto done;
 			    }
@@ -466,19 +469,20 @@ done: return 0;
 {XUNUMBER}    {
 		int c;
 		int token = 0;
-		int slen = strlen(yytext);
+		size_t slen = strlen(yytext);
 		char* stag = NULL;
 	        int tag = NC_NAT;
 		char* hex = yytext+2; /* point to first true hex digit */
-		int xlen = (slen - 3);  /* true hex length */
+		size_t xlen = (slen - 3);  /* true hex length */
 
 		yytext[slen-1] = '\0';
 	        /* capture the tag string */
 		tag = collecttag(yytext,&stag);
 		if(tag == NC_NAT) {
-		    sprintf(errstr,"Illegal integer suffix: %s",stag);
+		    snprintf(errstr, sizeof(errstr),"Illegal integer suffix: %s",stag);
 		    yyerror(errstr);
-		    goto done;
+			//goto done;
+		    return 0;
 		}
 		yytext[slen - strlen(stag)] = '\0';
 	        if(xlen > 16) { /* truncate hi order digits */
@@ -487,7 +491,7 @@ done: return 0;
 		/* convert to an unsigned long long */
 		uint64_val = 0;
 		while((c=*hex++)) {
-		    unsigned int hexdigit = (c <= '9'?(c-'0'):(c-'a')+0xa);
+		    unsigned int hexdigit = (unsigned int)(c <= '9'?(c-'0'):(c-'a')+0xa);
 		    uint64_val = ((uint64_val << 4) | hexdigit);
 		}
 		switch (tag) {
@@ -503,7 +507,7 @@ done: return 0;
 		    break;
 		default: /* should never happen */
 		    if (sscanf((char*)yytext, "%i", &uint32_val) != 1) {
-		        sprintf(errstr,"bad unsigned int constant: %s",(char*)yytext);
+		        snprintf(errstr, sizeof(errstr),"bad unsigned int constant: %s",(char*)yytext);
 		        yyerror(errstr);
 		    }
 		    token = UINT_CONST;
@@ -512,38 +516,38 @@ done: return 0;
 	    }
 {DBLNUMBER}	{
 		if (sscanf((char*)yytext, "%le", &double_val) != 1) {
-		    sprintf(errstr,"bad long or double constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad long or double constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 return lexdebug(DOUBLE_CONST);
                 }
 {FLTNUMBER}  {
 		if (sscanf((char*)yytext, "%e", &float_val) != 1) {
-		    sprintf(errstr,"bad float constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad float constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 return lexdebug(FLOAT_CONST);
                 }
-\'[^\\]\'          {
+\'[^\\]\'       {
 	        (void) sscanf((char*)&yytext[1],"%c",&byte_val);
 		return lexdebug(BYTE_CONST);
                 }
 \'\\[0-7][0-7][0-7]\'  {
 		int oct = unescapeoct(&yytext[2]);
 		if(oct < 0) {
-		    sprintf(errstr,"bad octal character constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad octal character constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
-	        byte_val = (unsigned int)oct;
+	        byte_val = (signed char)oct;
 		return lexdebug(BYTE_CONST);
                 }
 \'\\[xX][0-9a-fA-F][0-9a-fA-F]\'  {
 		int hex = unescapehex(&yytext[3]);
 		if(byte_val < 0) {
-		    sprintf(errstr,"bad hex character constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad hex character constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
-		byte_val = (unsigned int)hex;
+		byte_val = (signed char)hex;
 		return lexdebug(BYTE_CONST);
                 }
 \'\\.\'        {
@@ -556,8 +560,9 @@ done: return 0;
 		  case 'r': byte_val = '\r'; break;
 		  case 't': byte_val = '\t'; break;
 		  case 'v': byte_val = '\v'; break;
+  		  case '0' : byte_val = '\0'; break;
 		  case '\\': byte_val = '\\'; break;
-		  case '?': byte_val = '\177'; break;
+		  case '?':  byte_val = '\177'; break;
 		  case '\'': byte_val = '\''; break;
 		  default: byte_val = (char)yytext[2];
 	           }
@@ -642,7 +647,7 @@ makepath(char* text0)
 	    refsym = lookupingroup(NC_GRP,ident,container);
 	    if(!lastident) {
 	        if(refsym == NULL) {
-	            sprintf(errstr,"Undefined or forward referenced group: %s",ident);
+	            snprintf(errstr, sizeof(errstr),"Undefined or forward referenced group: %s",ident);
 	            yyerror(errstr);
 		    refsym = rootgroup;
 	        } else
@@ -711,7 +716,7 @@ downconvert(unsigned long long uint64, int* tagp, int isneg, int hasU)
 {
     nc_type nct = NC_NAT;
     int tag = *tagp;
-    int bit63set = (uint64 >> 63);
+    int bit63set = (int)(uint64 >> 63);
     long long int64 = *((long long*)&uint64);
 
     if(isneg && hasU) {
@@ -837,8 +842,8 @@ collecttag(char* text, char** stagp)
     char* stag0;
 #define MAXTAGLEN 3
     char stag[MAXTAGLEN+1];
-    int slen = strlen(text);
-    int staglen;
+    size_t slen = strlen(text);
+    size_t staglen;
     int tag = NC_NAT;
     int hasU = 0;
 
@@ -880,6 +885,14 @@ collecttag(char* text, char** stagp)
 	tag = NC_NAT;
     }
     return tag;
+}
+
+static Symbol*
+identkeyword(const Symbol* kw)
+{
+    Symbol* sym = NULL;
+    sym = install(kw->name);
+    return sym;
 }
 
 static int

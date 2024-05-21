@@ -1,11 +1,12 @@
 netcdf ref_oldformat {
 dimensions:
+	lat = 8 ;
 	_zdim_8 = 8 ;
 	_zdim_10 = 10 ;
 variables:
-	int lat(_zdim_8) ;
+	int lat(lat) ;
 		lat:_FillValue = -1 ;
-		lat:lat_attr = "latitude" ;
+		string lat:lat_attr = "latitude" ;
 data:
 
  lat = 1, 2, 3, 4, 5, 6, 7, 8 ;
@@ -14,7 +15,7 @@ group: g1 {
   variables:
   	int pos(_zdim_8, _zdim_10) ;
   		pos:_FillValue = -1 ;
-  		pos:pos_attr = "latXlon" ;
+  		string pos:pos_attr = "latXlon" ;
 
   // group attributes:
   		:g1_attr = 17 ;

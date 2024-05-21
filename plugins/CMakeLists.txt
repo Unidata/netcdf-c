@@ -4,84 +4,152 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-SET(CMAKE_BUILD_TYPE "")
+set(CMAKE_BUILD_TYPE "")
 
-FILE(READ H5Znoop.c NOOP_SOURCE)
-FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c "#define NOOP_INSTANCE 1\n")
-FILE(APPEND ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c "${NOOP_SOURCE}")
+if(WIN32)
+  set(PLUGINEXT "dll")
+  set(PLUGINPRE "__nc") 
+else()
+   set(PLUGINPRE "lib__nc")
+   if(APPLE)
+     set(PLUGINEXT "dylib")
+   else()
+     set(PLUGINEXT "so")
+   endif()
+endif()
 
-SET(h5bzip2_SOURCES blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c H5Zbzip2.c ${NCJ})
+file(READ H5Znoop.c NOOP_SOURCE)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c "#define NOOP_INSTANCE 1\n")
+file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c "${NOOP_SOURCE}")
 
-SET(h5misc_SOURCES H5Zmisc.c H5Zutil.c h5misc.h)
+set(h5misc_SOURCES H5Zmisc.c H5Zutil.c h5misc.h)
 
-SET(h5noop_SOURCES H5Znoop.c H5Zutil.c h5noop.h)
-SET_SOURCE_FILES_PROPERTIES(H5Znoop.c PROPERTIES COMPILE_OPTIONS -DNOOP_INSTANCE=0)
+set(h5noop_SOURCES H5Znoop.c H5Zutil.c h5noop.h)
+set_source_files_properties(H5Znoop.c PROPERTIES COMPILE_OPTIONS -DNOOP_INSTANCE=0)
 
-SET(h5noop1_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c H5Zutil.c h5noop.h)
-SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c PROPERTIES COMPILE_OPTIONS -DNOOP_INSTANCE=1)
+set(h5noop1_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c H5Zutil.c h5noop.h)
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c PROPERTIES COMPILE_OPTIONS -DNOOP_INSTANCE=1)
 
-SET(h5shuffle_SOURCES H5Zshuffle.c)
-SET(h5fletcher32_SOURCES H5Zfletcher32.c H5checksum.c)
-SET(h5deflate_SOURCES H5Zdeflate.c)
+set(h5unknown_SOURCES H5Zunknown.c)
 
-SET(nczmisc_SOURCES NCZmisc.c)
-SET(nczdefaults_SOURCES NCZdefaults.c)
+set(h5shuffle_SOURCES H5Zshuffle.c)
+set(h5fletcher32_SOURCES H5Zfletcher32.c H5checksum.c)
+set(h5deflate_SOURCES H5Zdeflate.c)
 
-IF(ENABLE_FILTER_TESTING)
-IF(BUILD_UTILITIES)
+set(nczmisc_SOURCES NCZmisc.c)
+set(nczhdf5filters_SOURCES NCZhdf5filters.c)
+set(nczstdfilters_SOURCES NCZstdfilters.c)
 
+if(NETCDF_ENABLE_PLUGINS)
 # LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined
 
-SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_BINARY_DIR}")
-SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_BINARY_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}")
 
-MACRO(buildplugin TARGET TARGETLIB)
-    ADD_LIBRARY(${TARGET} MODULE ${${TARGET}_SOURCES})
-    SET_TARGET_PROPERTIES(${TARGET} PROPERTIES LIBRARY_OUTPUT_NAME ${TARGETLIB})
-    SET_TARGET_PROPERTIES(${TARGET} PROPERTIES ARCHIVE_OUTPUT_NAME ${TARGETLIB})
-    SET_TARGET_PROPERTIES(${TARGET} PROPERTIES RUNTIME_OUTPUT_NAME ${TARGETLIB})
-    TARGET_LINK_LIBRARIES(${TARGET} ${ALL_TLL_LIBS};${ARGN})
-  IF(MSVC)
+macro(buildplugin TARGET TARGETLIB)
+    set(MANGLELIB "${PLUGINPRE}${TARGETLIB}")
+    add_library(${TARGET} MODULE ${${TARGET}_SOURCES})
+    set_target_properties(${TARGET} PROPERTIES LIBRARY_OUTPUT_NAME ${MANGLELIB})
+    set_target_properties(${TARGET} PROPERTIES ARCHIVE_OUTPUT_NAME ${MANGLELIB})
+    set_target_properties(${TARGET} PROPERTIES RUNTIME_OUTPUT_NAME ${MANGLELIB})
+    set_target_properties(${TARGET} PROPERTIES PREFIX "") # Critical that this be set to ""
+    set_target_properties(${TARGET} PROPERTIES SUFFIX ".${PLUGINEXT}")
+    target_link_libraries(${TARGET} PUBLIC ${ALL_TLL_LIBS};${ARGN})
+  if(MSVC)
     target_compile_options(${TARGET} PRIVATE /Zi)
     # Tell linker to include symbol data
     set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "/INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF")
     # Set file name & location
     set_target_properties(${TARGET} PROPERTIES COMPILE_PDB_NAME ${TARGET} COMPILE_PDB_OUTPUT_DIR ${CMAKE_BINARY_DIR})
-  ENDIF()
-ENDMACRO()
+    if(MPI_C_INCLUDE_PATH)
+      target_include_directories(${TARGET} PRIVATE ${MPI_C_INCLUDE_PATH})
+    endif(MPI_C_INCLUDE_PATH)
+  endif()
 
-# Note we use name h5bzip2 instead of bzip2 to avoid logical
-# target name clash with examples/C/hdf5plugins
-buildplugin(h5bzip2 "h5bzip2")
-SET_TARGET_PROPERTIES(h5bzip2 PROPERTIES OUTPUT_NAME "bzip2")
+  if(STATUS_PARALLEL)
+    target_link_libraries(${TARGET} PUBLIC MPI::MPI_C)
+  endif(STATUS_PARALLEL)
 
-buildplugin(h5misc "h5misc")
+  if (USE_HDF5)
+    target_link_libraries(${TARGET} PRIVATE HDF5::HDF5)
+  endif(USE_HDF5)
+endmacro()
+
+buildplugin(h5misc "h5misc" netcdf)
 buildplugin(h5noop "h5noop")
 buildplugin(h5noop1 "h5noop1")
+buildplugin(h5unknown "h5unknown")
 
 buildplugin(h5shuffle "h5shuffle")
 buildplugin(h5fletcher32 "h5fletcher32")
 buildplugin(h5deflate "h5deflate")
 
-buildplugin(nczmisc "nczmisc")
-buildplugin(nczdefaults "nczdefaults" netcdf)
+buildplugin(nczmisc "zmisc")
+buildplugin(nczhdf5filters "zhdf5filters" netcdf)
+buildplugin(nczstdfilters "zstdfilters" netcdf)
 
-IF(ENABLE_BLOSC)
-SET(h5blosc_SOURCES H5Zblosc.c)
-buildplugin(h5blosc "h5blosc" netcdf;${Blosc_LIBRARIES})
-ENDIF()
+if(NETCDF_ENABLE_BLOSC)
+  set(h5blosc_SOURCES H5Zblosc.c)
+  buildplugin(h5blosc "h5blosc" netcdf;${Blosc_LIBRARIES})
+endif()
 
-IF(ENABLE_SZIP)
-SET(h5szip_SOURCES H5Zszip.c H5Zszip.h)
-buildplugin(h5szip "h5szip" ${Szip_LIBRARIES})
-ENDIF()
+if(NETCDF_ENABLE_ZSTD)
+  set(h5zstd_SOURCES H5Zzstd.c H5Zzstd.h)
+  buildplugin(h5zstd "h5zstd" netcdf;${Zstd_LIBRARIES})
+endif()
 
-ENDIF(BUILD_UTILITIES)
-ENDIF(ENABLE_FILTER_TESTING)
+# Need our version of szip if libsz available and we are not using HDF5
+if(HAVE_SZ)
+  set(h5szip_SOURCES H5Zszip.c H5Zszip.h)
+  buildplugin(h5szip "h5szip" ${Szip_LIBRARIES})
+endif()
+
+if(HAVE_LOCAL_BZ2)
+  set(h5bzip2_SOURCES H5Zbzip2.c blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c bzlib.h bzlib_private.h)
+  buildplugin(h5bzip2 "h5bzip2")
+else()
+  set(h5bzip2_SOURCES H5Zbzip2.c)
+  buildplugin(h5bzip2 "h5bzip2" ${Bzip2_LIBRARIES})
+endif()
+
+
+# Installation
+if(ENABLE_PLUGIN_INSTALL)
+
+macro(installplugin PLUG)
+  set(INSTALLED_PLUGIN_LIB "${PLUGINPRE}${PLUG}.${PLUGINEXT}")
+  message(STATUS "Installing: ${INSTALLED_PLUGIN_LIB} into ${PLUGIN_INSTALL_DIR}")
+  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${INSTALLED_PLUGIN_LIB} DESTINATION ${PLUGIN_INSTALL_DIR})
+endmacro()
+
+install(DIRECTORY DESTINATION ${PLUGIN_INSTALL_DIR})
+if(Bzip2_FOUND OR Bz2_FOUND)
+  installplugin(h5bzip2)
+endif()
+if(Zstd_FOUND)
+  installplugin(h5zstd)
+endif()
+if(Blosc_FOUND)
+  installplugin(h5blosc)
+endif()
+if(NETCDF_ENABLE_NCZARR)
+  installplugin(h5fletcher32)
+  installplugin(h5shuffle)
+  installplugin(h5deflate)
+  installplugin(zhdf5filters)
+  installplugin(zstdfilters)
+  if(Szip_FOUND)
+    installplugin(h5szip)
+  endif()
+endif()
+
+endif(ENABLE_PLUGIN_INSTALL)
+
+endif(NETCDF_ENABLE_PLUGINS)
 
 # Copy some test files from current source dir to out-of-tree build dir.
-FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
-IF(MSVC)
-  FILE(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
-ENDIF()
+file(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
+if(MSVC)
+  file(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
+endif()

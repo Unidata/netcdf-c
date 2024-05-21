@@ -1,0 +1,23 @@
+netcdf ECMWF_ERA-40_subset {
+dimensions:
+	time = UNLIMITED ; // (1 currently)
+	latitude = 1 ;
+	longitude = 1 ;
+variables:
+	short tcw.tcw(time, latitude, longitude) ;
+		tcw.tcw:scale_factor = 0.0013500981745481 ;
+		tcw.tcw:add_offset = 44.3250482744756 ;
+		tcw.tcw:_FillValue = -32767s ;
+		tcw.tcw:missing_value = -32767s ;
+		tcw.tcw:units = "kg m**-2" ;
+		tcw.tcw:long_name = "Total column water" ;
+
+// global attributes:
+		:Conventions = "CF-1.0" ;
+		:history = "2004-09-15 17:04:29 GMT by mars2netcdf-0.92" ;
+		:DODS_EXTRA.Unlimited_Dimension = "time" ;
+data:
+
+ tcw.tcw =
+  _ ;
+}

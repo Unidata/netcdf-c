@@ -8,7 +8,9 @@
 
 #include "ncexternl.h"
 
-/* Define flags to control what is included by ncuribuild*/
+/* Define flags to control what is included by ncuribuild;
+   protocol+host+port always included
+*/
 #define NCURIPATH	    1
 #define NCURIPWD	    2
 #define NCURIQUERY	    4
@@ -33,12 +35,8 @@ typedef struct NCURI {
     char* path;	      /*!< path */
     char* query;      /*!< query */
     char* fragment;   /*!< fragment */
-    char** fraglist; /* envv style list of decomposed fragment*/
-    char** querylist; /* envv style list of decomposed query*/
-#if 0
-    char* projection; /*!< without leading '?'*/
-    char* selection;  /*!< with leading '&'*/
-#endif
+    void* fraglist;   /* some representation of the decomposed fragment string */
+    void* querylist;   /* some representation of the decomposed query string */
 } NCURI;
 
 #if 0
@@ -79,11 +77,26 @@ EXTERNL int ncurisetquery(NCURI*,const char* query);
 /* Replace the fragment list */
 EXTERNL int ncurisetfragments(NCURI*, const char* fragments);
 
+/* Rebuild the uri */
+EXTERNL int ncurirebuild(NCURI*);
+
 /* Replace a specific &key=...& in uri fragment */
 EXTERNL int ncurisetfragmentkey(NCURI* duri,const char* key, const char* value);
 
 /* append a specific &key=...& in uri fragment */
 EXTERNL int ncuriappendfragmentkey(NCURI* duri,const char* key, const char* value);
+
+/* Replace a specific &key=...& in uri query */
+EXTERNL int ncurisetquerykey(NCURI* duri,const char* key, const char* value);
+
+/* append a specific &key=...& in uri query */
+EXTERNL int ncuriappendquerykey(NCURI* duri,const char* key, const char* value);
+
+/* Get the actual list of queryies */
+EXTERNL void* ncuriqueryparams(NCURI* uri);
+/* Get the actual list of frags */
+EXTERNL void* ncurifragmentparams(NCURI* uri);
+
 
 /* Construct a complete NC URI; caller frees returned string */
 EXTERNL char* ncuribuild(NCURI*,const char* prefix, const char* suffix, int flags);
@@ -99,12 +112,6 @@ EXTERNL const char* ncurifragmentlookup(NCURI*, const char* param);
     In any case, the result is imutable and should not be free'd.
 */
 EXTERNL const char* ncuriquerylookup(NCURI*, const char* param);
-
-/* Obtain the complete list of fragment pairs in envv format */
-EXTERNL const char** ncurifragmentparams(NCURI*);
-
-/* Obtain the complete list of query pairs in envv format */
-EXTERNL const char** ncuriqueryparams(NCURI*);
 
 /* URL Encode/Decode */
 EXTERNL char* ncuridecode(const char* s);

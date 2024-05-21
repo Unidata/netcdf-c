@@ -17,12 +17,14 @@
 
 #define FILE_NAME "tst_udf.nc"
 
-#if defined(_WIN32) || defined(_WIN64)
-int
-NC4_show_metadata(int ncid)
+#ifdef _MSC_VER
+static int
+NC4_no_show_metadata(int ncid)
 {
-    return 0;
+    return NC_NOERR;
 }
+
+#define NC4_show_metadata NC4_no_show_metadata
 #endif
 
 int
@@ -156,6 +158,13 @@ static NC_Dispatch tst_dispatcher = {
     NC_NOOP_inq_var_filter_ids,
     NC_NOOP_inq_var_filter_info,
 #endif
+#if NC_DISPATCH_VERSION >= 4
+    NC_NOTNC4_def_var_quantize,
+    NC_NOTNC4_inq_var_quantize,
+#endif
+#if NC_DISPATCH_VERSION >= 5
+    NC_NOOP_inq_filter_avail,
+#endif
 };
 
 /* This is the dispatch object that holds pointers to all the
@@ -248,9 +257,16 @@ static NC_Dispatch tst_dispatcher_bad_version = {
     NC_NOTNC4_def_var_filter,
     NC_NOTNC4_set_var_chunk_cache,
     NC_NOTNC4_get_var_chunk_cache,
-#if NC_DISPATCH_VERSION >= 2
+#if NC_DISPATCH_VERSION >= 3
     NC_NOOP_inq_var_filter_ids,
     NC_NOOP_inq_var_filter_info,
+#endif
+#if NC_DISPATCH_VERSION >= 4
+    NC_NOTNC4_def_var_quantize,
+    NC_NOTNC4_inq_var_quantize,
+#endif
+#if NC_DISPATCH_VERSION >= 5
+    NC_NOOP_inq_filter_avail,
 #endif
 };
 
@@ -291,7 +307,7 @@ main(int argc, char **argv)
              * priority. If NC_NETCDF4 flag were given priority, then
              * nc_abort() will not return TEST_VAL_42, but instead will
              * return 0. */
-            if (nc_open(FILE_NAME, mode[i]|NC_NETCDF4, &ncid)) ERR;
+            if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
             if (nc_inq_format(ncid, NULL) != TEST_VAL_42) ERR;
             if (nc_inq_format_extended(ncid, NULL, NULL) != TEST_VAL_42) ERR;
             if (nc_abort(ncid) != TEST_VAL_42) ERR;
@@ -309,7 +325,7 @@ main(int argc, char **argv)
         int i;
 
         /* Create a file with magic number at start. */
-        if (!(FP = fopen(FILE_NAME, "w"))) ERR;
+        if (!(FP = NCfopen(FILE_NAME, "w"))) ERR;
         if (fwrite(magic_number, sizeof(char), strlen(magic_number), FP)
             != strlen(magic_number)) ERR;
         if (fwrite(dummy_data, sizeof(char), strlen(dummy_data), FP)
@@ -320,6 +336,7 @@ main(int argc, char **argv)
         for (i = 0; i < NUM_UDFS; i++)
         {
             /* Add our test user defined format. */
+            mode[i] = mode[i]|NC_NETCDF4;
             if (nc_def_user_format(mode[i], &tst_dispatcher, magic_number)) ERR;
 
             /* Check that our user-defined format has been added. */
@@ -344,6 +361,7 @@ main(int argc, char **argv)
     printf("*** testing bad version causes dispatch table to be rejected...");
     {
         int i;
+        char magic_number[5] = "1111";
 
         /* Test all available user-defined format slots. */
         for (i = 0; i < NUM_UDFS; i++)
@@ -351,6 +369,9 @@ main(int argc, char **argv)
             /* Make sure our bad version format is rejected. */
             if (nc_def_user_format(mode[i], &tst_dispatcher_bad_version,
                                    NULL) != NC_EINVAL) ERR;
+            /* Make sure defining a magic number with netcdf3 is rejected. */
+            if (nc_def_user_format(NC_CLASSIC_MODEL, &tst_dispatcher, 
+                                   magic_number) != NC_EINVAL) ERR;
         }
     }
     SUMMARIZE_ERR;

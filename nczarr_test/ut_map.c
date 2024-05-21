@@ -3,6 +3,7 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#include "ncconfigure.h"
 #include "ut_includes.h"
 
 #undef DEBUG
@@ -66,6 +67,7 @@ main(int argc, char** argv)
     if((stat = NCpathcanonical(utoptions.output,&tmp))) goto done;
     free(utoptions.output);
     utoptions.output = tmp;
+fprintf(stderr,"file=%s output=%s\n",utoptions.file,utoptions.output);
 
     impl = kind2impl(utoptions.kind);
     url = makeurl(utoptions.file,impl,&utoptions);
@@ -87,6 +89,9 @@ simplecreate(void)
     NCZMAP* map = NULL;
     char* path = NULL;
 
+    if((stat = nczmap_truncate(impl,url)))
+	goto done;
+
     if((stat = nczmap_create(impl,url,0,0,NULL,&map)))
 	goto done;
 
@@ -94,7 +99,7 @@ simplecreate(void)
 	goto done;
 
     /* Write empty metadata content */
-    if((stat = nczmap_write(map, path, 0, 0, (const void*)"")))
+    if((stat = nczmap_write(map, path, 0, (const void*)"")))
 	goto done;
 
 done:
@@ -132,7 +137,7 @@ writemeta(void)
 
     if((stat=nczm_concat(META1,ZARRAY,&path)))
 	goto done;
-    if((stat = nczmap_write(map, path, 0, strlen(metadata1), metadata1)))
+    if((stat = nczmap_write(map, path, strlen(metadata1), metadata1)))
 	goto done;
     free(path); path = NULL;
 
@@ -155,7 +160,7 @@ writemeta2(void)
 
     if((stat=nczm_concat(META2,NCZARRAY,&path)))
 	goto done;
-    if((stat = nczmap_write(map, path, 0, strlen(metadata2), metadata2)))
+    if((stat = nczmap_write(map, path, strlen(metadata2), metadata2)))
 	goto done;
 
 done:
@@ -241,7 +246,6 @@ writedata(void)
     int i;
     size64_t totallen;
     char* data1p = (char*)&data1[0]; /* byte level version of data1 */
-    NCZM_FEATURES features;
 
     /* Create the data */
     for(i=0;i<DATA1LEN;i++) data1[i] = i;
@@ -254,24 +258,8 @@ writedata(void)
     if((stat=nczm_concat(DATA1,"0",&path)))
 	goto done;
 
-    features = nczmap_features(impl);
-    if((NCZM_ZEROSTART & features) || (NCZM_WRITEONCE & features)) {
-	if((stat = nczmap_write(map, path, 0, totallen, data1p)))
-	    goto done;
-    } else {
-        /* Write in 3 slices */
-        for(i=0;i<3;i++) {
-            size64_t start, count, third, last;
-	    third = (totallen+2) / 3; /* round up */
-            start = i * third;
-	    last = start + third;
-	    if(last > totallen) 
-	        last = totallen;
-  	    count = last - start;
-	    if((stat = nczmap_write(map, path, start, count, &data1p[start])))
-	        goto done;
-	}
-    }
+    if((stat = nczmap_write(map, path, totallen, data1p)))
+	goto done;
 
 done:
     /* Do not delete so we can look at it with ncdump */
@@ -287,7 +275,7 @@ readdata(void)
     NCZMAP* map = NULL;
     char* path = NULL;
     int data1[DATA1LEN];
-    int i;
+    size64_t i;
     size64_t chunklen, totallen;
     char* data1p = NULL; /* byte level pointer into data1 */
 
@@ -322,7 +310,7 @@ readdata(void)
     /* Validate */
     for(i=0;i<DATA1LEN;i++) {
 	if(data1[i] != i) {
-	    fprintf(stderr,"data mismatch: is: %d should be: %d\n",data1[i],i);
+	    fprintf(stderr,"data mismatch: is: %d should be: %llu\n",data1[i],i);
 	    stat = NC_EINVAL;
 	    goto done;
 	}
@@ -338,7 +326,8 @@ done:
 static int
 searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
 {
-    int i,stat = NC_NOERR;
+
+    int stat = NC_NOERR;
     NClist* matches = nclistnew();
     char prefix[4096]; /* only ok because we know testdata */
     size_t prefixlen;
@@ -356,7 +345,7 @@ searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
     default: goto done;
     }
     /* recurse */
-    for(i=0;i<nclistlength(matches);i++) {
+    for(size_t i=0;i<nclistlength(matches);i++) {
 	const char* key = nclistget(matches,i);
 	/* ensure trailing '/' */
         if(prefix[prefixlen-1] != '/')
@@ -376,7 +365,8 @@ done:
 static int
 search(void)
 {
-    int i,stat = NC_NOERR;
+
+    int stat = NC_NOERR;
     NCZMAP* map = NULL;
     NClist* objects = nclistnew();
 
@@ -389,9 +379,9 @@ search(void)
     /* Sort */
     ut_sortlist(objects);
     /* Print out the list */
-    for(i=0;i<nclistlength(objects);i++) {
+    for(size_t i=0;i<nclistlength(objects);i++) {
 	const char* key = nclistget(objects,i);
-	printf("[%d] %s\n",i,key);
+	printf("[%zu] %s\n",i,key);
     }
 
 done:

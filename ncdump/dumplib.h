@@ -87,7 +87,7 @@ extern int  is_user_defined_type ( nc_type type );
 extern void init_epsilons ( void );
 
 /* Initialize string buffer */
-safebuf_t *sbuf_new();
+safebuf_t *sbuf_new( void );
 
 /* Copy string s2 to buffer in sbuf, growing if necessary */
 void sbuf_cpy(safebuf_t *sbuf, const char *s2);
@@ -99,7 +99,7 @@ void sbuf_cat(safebuf_t *sbuf, const char *s2);
 void sbuf_catb(safebuf_t *s1, const safebuf_t *s2);
 
 /* Return length of the string in sbuf */
-size_t sbuf_len(const safebuf_t *sbuf);
+int sbuf_len(const safebuf_t *sbuf);
 
 /* Return the C string inside an sbuf */
 char *sbuf_str(const safebuf_t *sbuf);

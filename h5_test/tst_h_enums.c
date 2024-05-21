@@ -65,9 +65,9 @@ main()
       hid_t base_hdf_typeid;
 
 
-      for (i=0; i < NUM_VALS; i++)
+      for (short i=0; i < NUM_VALS; i++)
 	 val[i] = i*2;
-      for (i=0; i < DIM1_LEN; i++)
+      for (short i=0; i < DIM1_LEN; i++)
 	 data[i] = i*2;
 
       /* Open file. */
@@ -115,17 +115,13 @@ main()
       if (!types_equal) ERR;
 
       /* Check each value and number in the enum. */
-      for (i=0; i < NUM_VALS; i++)
+      for (unsigned int i=0; i < NUM_VALS; i++)
       {
 	 if (H5Tget_member_value(typeid, i, &the_value) < 0) ERR;
 	 if (the_value != val[i]) ERR;
 	 member_name = H5Tget_member_name(typeid, i);
 	 if (strcmp(member_name, love_how[i])) ERR;
-#ifdef HAVE_H5FREE_MEMORY
 	 H5free_memory(member_name);
-#else
-     free(member_name);
-#endif
       }
 
       /* Now read the data in the attribute and make sure it's what we
@@ -158,7 +154,7 @@ main()
       char lang[NUM_LANG][STR_LEN + 1] = {"C", "Fortran", "C++", "MISSING"};
       enum langs {CLANG=0, Fortran=1, CPP=2, MISSING=255};
       short the_value, fill_value = MISSING, data_point = CLANG;
-      hsize_t start[1] = {1}, count[1] = {1};
+      hsize_t start[1] = {1}, count[1] = {1}, one[1] = {1};
       int num_members;
       size_t size;
       hid_t base_hdf_typeid;
@@ -201,7 +197,7 @@ main()
       if ((mem_spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
       if ((file_spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
       if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
-			      start, NULL, count, NULL) < 0) ERR;
+			      start, NULL, one, count) < 0) ERR;
       if (H5Dwrite(datasetid, typeid, mem_spaceid, file_spaceid,
 		   H5P_DEFAULT, &data_point) < 0) ERR;
 
@@ -233,17 +229,13 @@ main()
       if (!types_equal) ERR;
 
       /* Check each value and number in the enum. */
-      for (i=0; i < NUM_LANG; i++)
+      for (unsigned int i=0; i < NUM_LANG; i++)
       {
 	 if (H5Tget_member_value(typeid, i, &the_value) < 0) ERR;
 	 if (the_value != val[i]) ERR;
 	 member_name = H5Tget_member_name(typeid, i);
 	 if (strcmp(member_name, lang[i])) ERR;
-#ifdef HAVE_H5FREE_MEMORY
 	 H5free_memory(member_name);
-#else
-     free(member_name);
-#endif
       }
 
       /* Now read the data in the dataset and make sure it's what we

@@ -5,7 +5,6 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Copyright by The HDF Group.                                               *
- * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
@@ -30,7 +29,12 @@
 
 #include "H5Ipublic.h"
 
+#if H5_VERSION_GE(1,13,2)
+#define H5_VFD_HTTP     ((H5FD_class_value_t)(514))
+#define H5FD_HTTP	(H5FDperform_init(H5FD_http_init))
+#else
 #define H5FD_HTTP	(H5FD_http_init())
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,9 +42,11 @@ extern "C" {
 
 #if 0
 H5_DLL hid_t H5FD_http_init(void);
+H5_DLL hid_t H5FD_http_finalize(void);
 H5_DLL herr_t H5Pset_fapl_http(hid_t fapl_id);
 #else
 EXTERNL hid_t H5FD_http_init(void);
+EXTERNL hid_t H5FD_http_finalize(void);
 EXTERNL herr_t H5Pset_fapl_http(hid_t fapl_id);
 #endif
 

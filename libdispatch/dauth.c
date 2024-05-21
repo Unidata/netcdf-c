@@ -17,9 +17,10 @@ See COPYRIGHT for license information.
 #include "netcdf.h"
 #include "ncbytes.h"
 #include "ncuri.h"
-#include "ncauth.h"
 #include "nclog.h"
 #include "ncpathmgr.h"
+#include "ncs3sdk.h"
+#include "ncauth.h"
 
 #ifdef _MSC_VER
 #include <windows.h>
@@ -38,7 +39,8 @@ static const char* AUTHDEFAULTS[] = {
 "HTTP.SSL.VERIFYHOST","-1", /* Use default */
 "HTTP.TIMEOUT","1800", /*seconds */ /* Long but not infinite */
 "HTTP.CONNECTTIMEOUT","50", /*seconds */ /* Long but not infinite */
-NULL
+"HTTP.ENCODE","1", /* Use default */
+NULL,
 };
 
 /* Forward */
@@ -83,11 +85,7 @@ NC_combinehostport(NCURI* uri)
     if(port != NULL) len += (1+strlen(port));
     hp = (char*)malloc(len+1);
     if(hp == NULL) return NULL;
-    strncpy(hp,host,len);
-    if(port != NULL) {
-	strlcat(hp,":",len+1);
-	strlcat(hp,port,len+1);
-    }
+    snprintf(hp, len+1, "%s%s%s", host, port ? ":" : "", port ? port : "");
     return hp;
 }
 
@@ -97,6 +95,7 @@ NC_authsetup(NCauth** authp, NCURI* uri)
     int ret = NC_NOERR;
     char* uri_hostport = NULL;
     NCauth* auth = NULL;
+    struct AWSprofile* ap = NULL;
 
     if(uri != NULL)
       uri_hostport = NC_combinehostport(uri);
@@ -112,8 +111,6 @@ NC_authsetup(NCauth** authp, NCURI* uri)
        to getinfo e.g. host+port  from url
     */
 
-    setauthfield(auth,"HTTP.DEFLATE",
-		      NC_rclookup("HTTP.DEFLATE",uri_hostport,uri->path));
     setauthfield(auth,"HTTP.VERBOSE",
 			NC_rclookup("HTTP.VERBOSE",uri_hostport,uri->path));
     setauthfield(auth,"HTTP.TIMEOUT",
@@ -180,8 +177,15 @@ NC_authsetup(NCauth** authp, NCURI* uri)
       nullfree(user);
       nullfree(pwd);
     }
+
     /* Get the Default profile */
-    auth->s3profile = strdup("default");
+    if((ret=NC_authgets3profile("no",&ap))) goto done;
+    if(ap == NULL)
+        if((ret=NC_authgets3profile("default",&ap))) goto done;
+    if(ap != NULL)
+        auth->s3profile = strdup(ap->name);
+    else
+        auth->s3profile = NULL;
 
     if(authp) {*authp = auth; auth = NULL;}
 done:
@@ -224,10 +228,10 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
 {
     int ret = NC_NOERR;
     if(value == NULL) goto done;
-    if(strcmp(flag,"HTTP.DEFLATE")==0) {
-        if(atoi(value)) auth->curlflags.compress = 1;
+    if(strcmp(flag,"HTTP.ENCODE")==0) {
+        if(atoi(value)) {auth->curlflags.encode = 1;} else {auth->curlflags.encode = 0;}
 #ifdef DEBUG
-        nclog(NCLOGNOTE,"HTTP.DEFLATE: %ld", (long)auth->curlflags.compress);
+        nclog(NCLOGNOTE,"HTTP.encode: %ld", (long)auth->curlflags.encode);
 #endif
     }
     if(strcmp(flag,"HTTP.VERBOSE")==0) {
@@ -277,7 +281,7 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
     }
     if(strcmp(flag,"HTTP.SSL.VERIFYPEER")==0) {
 	int v;
-        if((v = atol(value))) {
+        if((v = atoi(value))) {
 	    auth->ssl.verifypeer = v;
 #ifdef DEBUG
                 nclog(NCLOGNOTE,"HTTP.SSL.VERIFYPEER: %d", v);
@@ -286,7 +290,7 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
     }
     if(strcmp(flag,"HTTP.SSL.VERIFYHOST")==0) {
 	int v;
-        if((v = atol(value))) {
+        if((v = atoi(value))) {
 	    auth->ssl.verifyhost = v;
 #ifdef DEBUG
                 nclog(NCLOGNOTE,"HTTP.SSL.VERIFYHOST: %d", v);

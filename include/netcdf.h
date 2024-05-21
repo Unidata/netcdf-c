@@ -110,17 +110,19 @@ extern "C" {
  * the same type as the variable and this reserved name. The value you
  * give the attribute will be used as the fill value for that
  * variable. */
-#define _FillValue      "_FillValue"
+#define NC_FillValue      "_FillValue"
 #define NC_FILL         0       /**< Argument to nc_set_fill() to clear NC_NOFILL */
 #define NC_NOFILL       0x100   /**< Argument to nc_set_fill() to turn off filling of data. */
 
 /* Define the ioflags bits for nc_create and nc_open.
-   currently unused:
+   Currently unused in lower 16 bits:
         0x0002
-   and the whole upper 16 bits
-   Note: nc4internal also defines flags in this space even tho it should not.
-   so check there around #define NC_CREAT.
+   All upper 16 bits are unused except
+        0x20000
+        0x40000
 */
+
+/* Lower 16 bits */
 
 #define NC_NOWRITE       0x0000 /**< Set read-only access for nc_open(). */
 #define NC_WRITE         0x0001 /**< Set read-write access for nc_open(). */
@@ -161,7 +163,9 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_PERSIST       0x4000  /**< Save diskless contents to disk. Mode flag for nc_open() or nc_create() */
 #define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() */
 
-#define NC_NOATTCREORD   0x20000 /**< Disable the netcdf-4 (hdf5) attribute creation order tracking */
+/* Upper 16 bits */
+#define NC_NOATTCREORD  0x20000 /**< Disable the netcdf-4 (hdf5) attribute creation order tracking */
+#define NC_NODIMSCALE_ATTACH 0x40000 /**< Disable the netcdf-4 (hdf5) attaching of dimscales to variables (#2128) */
 
 #define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of user-defined format magic number. */
 
@@ -326,20 +330,35 @@ there. */
 #define NC_MIN_DEFLATE_LEVEL 0 /**< Minimum deflate level. */
 #define NC_MAX_DEFLATE_LEVEL 9 /**< Maximum deflate level. */
 
+#define NC_SZIP_NN 32 /**< SZIP NN option mask. */
+#define NC_SZIP_EC 4  /**< SZIP EC option mask. */
+
 #define NC_NOQUANTIZE 0 /**< No quantization in use. */    
-#define NC_QUANTIZE_BITGROOM 1 /**< Use bitgroom quantization. */
+#define NC_QUANTIZE_BITGROOM 1 /**< Use BitGroom quantization. */
+#define NC_QUANTIZE_GRANULARBR 2 /**< Use Granular BitRound quantization. */
+#define NC_QUANTIZE_BITROUND 3 /**< Use BitRound quantization. */
 
-/** When quantization is used for a variable, an attribute of this
- * name is added. */
-#define NC_QUANTIZE_ATT_NAME "_QuantizeBitgroomNumberOfSignificantDigits"
+/**@{*/
+/** When quantization is used for a variable, an attribute of the
+ * appropriate name is added. */
+#define NC_QUANTIZE_BITGROOM_ATT_NAME "_QuantizeBitGroomNumberOfSignificantDigits"
+#define NC_QUANTIZE_GRANULARBR_ATT_NAME "_QuantizeGranularBitRoundNumberOfSignificantDigits"
+#define NC_QUANTIZE_BITROUND_ATT_NAME "_QuantizeBitRoundNumberOfSignificantBits"
+/**@}*/
 
+/**@{*/
 /** For quantization, the allowed value of number of significant
- * digits for float. */
+ * decimal and binary digits, respectively, for float. */
 #define NC_QUANTIZE_MAX_FLOAT_NSD (7)
+#define NC_QUANTIZE_MAX_FLOAT_NSB (23)
+/**@}*/
 
+/**@{*/
 /** For quantization, the allowed value of number of significant
- * digits for double. */
+ * decimal and binary digits, respectively, for double. */
 #define NC_QUANTIZE_MAX_DOUBLE_NSD (15)
+#define NC_QUANTIZE_MAX_DOUBLE_NSB (52)
+/**@}*/
 
 /** The netcdf version 3 functions all return integer error status.
  * These are the possible values, in addition to certain values from
@@ -556,6 +575,14 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
 EXTERNL int
 nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number);
 
+/* Set the global alignment property */
+EXTERNL int
+nc_set_alignment(int threshold, int alignment);
+
+/* Get the global alignment property */
+EXTERNL int
+nc_get_alignment(int* thresholdp, int* alignmentp);
+
 EXTERNL int
 nc__create(const char *path, int cmode, size_t initialsz,
          size_t *chunksizehintp, int *ncidp);
@@ -737,16 +764,6 @@ EXTERNL int
 nc_inq_vlen(int ncid, nc_type xtype, char *name, size_t *datum_sizep,
             nc_type *base_nc_typep);
 
-/* When you read VLEN type the library will actually allocate the
- * storage space for the data. This storage space must be freed, so
- * pass the pointer back to this function, when you're done with the
- * data, and it will free the vlen memory. */
-EXTERNL int
-nc_free_vlen(nc_vlen_t *vl);
-
-EXTERNL int
-nc_free_vlens(size_t len, nc_vlen_t vlens[]);
-
 /* Put or get one element in a vlen array. */
 EXTERNL int
 nc_put_vlen_element(int ncid, int typeid1, void *vlen_element,
@@ -755,13 +772,6 @@ nc_put_vlen_element(int ncid, int typeid1, void *vlen_element,
 EXTERNL int
 nc_get_vlen_element(int ncid, int typeid1, const void *vlen_element,
                     size_t *len, void *data);
-
-/* When you read the string type the library will allocate the storage
- * space for the data. This storage space must be freed, so pass the
- * pointer back to this function, when you're done with the data, and
- * it will free the string memory. */
-EXTERNL int
-nc_free_string(size_t len, char **data);
 
 /* Find out about a user defined type. */
 EXTERNL int
@@ -805,6 +815,9 @@ nc_inq_enum_member(int ncid, nc_type xtype, int idx, char *name,
 
 
 /* Get enum name from enum value. Name size will be <= NC_MAX_NAME. */
+/* If value is zero and there is no matching ident, then return _UNDEFINED */
+#define NC_UNDEFINED_ENUM_IDENT "_UNDEFINED"
+
 EXTERNL int
 nc_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier);
 
@@ -1751,6 +1764,78 @@ nc_put_var_string(int ncid, int varid, const char **op);
 EXTERNL int
 nc_get_var_string(int ncid, int varid, char **ip);
 
+/* Begin instance walking functions */
+
+/* When you read an array of string typed instances, the library will allocate
+ * the storage space for the strings in the array (but not the array itself).
+ * The strings must be freed eventually, so pass the pointer to the array plus
+ * the number of elements in the array to this function when you're done with
+ * the data, and it will free the all the string instances.
+ * The caller is still responsible for free'ing the array itself,
+ * if it was dynamically allocated.
+ */
+EXTERNL int
+nc_free_string(size_t nelems, char **data);
+
+/* When you read an array of VLEN typed instances, the library will allocate
+ * the storage space for the data in each VLEN in the array (but not the array itself).
+ * That VLEN data must be freed eventually, so pass the pointer to the array plus
+ * the number of elements in the array to this function when you're done with
+ * the data, and it will free the all the VLEN instances.
+ * The caller is still responsible for free'ing the array itself,
+ * if it was dynamically allocated.
+ *
+ * WARNING: this function only works if the basetype of the vlen type
+ * is fixed size. This means it is an atomic type except NC_STRING,
+ * or an NC_ENUM, or and NC_OPAQUE, or an NC_COMPOUND where all
+ * the fields of the compound type are themselves fixed size.
+ */
+EXTERNL int
+nc_free_vlens(size_t nelems, nc_vlen_t vlens[]);
+
+/* This function is a special case of "nc_free_vlens" where nelem == 1 */
+EXTERNL int
+nc_free_vlen(nc_vlen_t *vl);
+
+/**
+Reclaim an array of instances of an arbitrary type.
+This function is intended for use with e.g. nc_get_vara
+or the input to e.g. nc_put_vara.
+This function recursively walks the top-level instances to
+reclaim any nested data such as vlen or strings or such.
+
+WARNING: nc_reclaim_data does not reclaim the top-level
+memory because we do not know how it was allocated.  However
+nc_reclaim_data_all does attempt to reclaim top-level memory.
+
+WARNING: all data blocks below the top-level (e.g. string
+instances) will be reclaimed, so do not call if there is any
+static data in the instance.
+
+Should work for any netcdf format.
+*/
+
+EXTERNL int nc_reclaim_data(int ncid, nc_type xtypeid, void* memory, size_t nelems);
+EXTERNL int nc_reclaim_data_all(int ncid, nc_type xtypeid, void* memory, size_t nelems);
+
+/**
+Copy vector of arbitrary type instances.  This recursively walks
+the top-level instances to copy any nested data such as vlen or
+strings or such.
+
+Assumes it is passed a pointer to count instances of xtype.
+WARNING: nc_copy_data does not copy the top-level memory, but
+assumes a block of proper size was passed in.  However
+nc_copy_data_all does allocate top-level memory copy.
+
+Should work for any netcdf format.
+*/
+
+EXTERNL int nc_copy_data(int ncid, nc_type xtypeid, const void* memory, size_t count, void* copy);
+EXTERNL int nc_copy_data_all(int ncid, nc_type xtypeid, const void* memory, size_t count, void** copyp);
+
+/* end recursive instance walking functions */
+
 /* Begin Deprecated, same as functions with "_ubyte" replaced by "_uchar" */
 EXTERNL int
 nc_put_att_ubyte(int ncid, int varid, const char *name, nc_type xtype,
@@ -1788,8 +1873,10 @@ nc_get_varm_ubyte(int ncid, int varid, const size_t *startp,
                   const ptrdiff_t * imapp, unsigned char *ip);
 EXTERNL int
 nc_put_var_ubyte(int ncid, int varid, const unsigned char *op);
+
 EXTERNL int
 nc_get_var_ubyte(int ncid, int varid, unsigned char *ip);
+
 /* End Deprecated */
 
 /* Set the log level. 0 shows only errors, 1 only major messages,
@@ -2014,6 +2101,14 @@ EXTERNL int nc_initialize(void);
    report errors. It is not required, however.
 */
 EXTERNL int nc_finalize(void);
+
+/* Programmatic access to the internal .rc table */
+
+/* Get the value corresponding to key | return NULL; caller frees  result */
+EXTERNL char* nc_rc_get(const char* key);
+
+/* Set/overwrite the value corresponding to key */
+EXTERNL int nc_rc_set(const char* key, const char* value);
 
 #if defined(__cplusplus)
 }

@@ -21,7 +21,7 @@
 #include "zincludes.h"
 #include "ncpathmgr.h"
 
-#define DEBUG
+#undef DEBUG
 
 #define AWSHOST ".amazonaws.com"
 

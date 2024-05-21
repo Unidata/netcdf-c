@@ -18,7 +18,7 @@ lib_LTLIBRARIES = libnetcdf.la
 # for information regarding incrementing `-version-info`.
 ##
 
-libnetcdf_la_LDFLAGS = -version-info 19:1:0
+libnetcdf_la_LDFLAGS = -version-info @netCDF_SO_VERSION@ ${NOUNDEFINED}
 
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD =
@@ -53,18 +53,25 @@ libnetcdf_la_LIBADD += ${top_builddir}/libhdf4/libnchdf4.la
 endif # USE_HDF4
 
 # + dap
-if ENABLE_DAP
+if NETCDF_ENABLE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/libdap2 -I${top_srcdir}/oc
 libnetcdf_la_LIBADD += ${top_builddir}/libdap2/libdap2.la
 libnetcdf_la_LIBADD += ${top_builddir}/oc2/liboc.la
-endif # ENABLE_DAP
+endif # NETCDF_ENABLE_DAP
 
-if ENABLE_DAP4
+if NETCDF_ENABLE_DAP4
 AM_CPPFLAGS += -I${top_srcdir}/libdap4
 libnetcdf_la_LIBADD += ${top_builddir}/libdap4/libdap4.la
+endif # NETCDF_ENABLE_DAP4
+
 AM_CPPFLAGS += -I${top_srcdir}/libncxml
+if NETCDF_ENABLE_DAP4
 libnetcdf_la_LIBADD += ${top_builddir}/libncxml/libncxml.la
-endif # ENABLE_DAP4
+else
+if NETCDF_ENABLE_S3_INTERNAL
+libnetcdf_la_LIBADD += ${top_builddir}/libncxml/libncxml.la
+endif
+endif # NETCDF_ENABLE_S3_INTERNAL || NETCDF_ENABLE_DAP4
 
 # NetCDF-4 ...
 if USE_NETCDF4
@@ -72,18 +79,18 @@ AM_CPPFLAGS += -I${top_srcdir}/libsrc4
 libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
 endif #USE_NETCDF4
 
-if ENABLE_NCZARR
+if NETCDF_ENABLE_NCZARR
 AM_CPPFLAGS += -I${top_srcdir}/libnczarr
 libnetcdf_la_LIBADD += ${top_builddir}/libnczarr/libnczarr.la
-if ENABLE_S3_SDK
+if NETCDF_ENABLE_S3_AWS
 libnetcdf_la_LIBADD += ${aws_cpp_sdk_core_LIBS} ${aws_cpp_sdk_s3_LIBS}
 endif
-endif #ENABLE_NCZARR
+endif #NETCDF_ENABLE_NCZARR
 
-if ENABLE_PLUGINS
+if NETCDF_ENABLE_PLUGINS
 AM_CPPFLAGS += -I${top_srcdir}/libncpoco
 libnetcdf_la_LIBADD += ${top_builddir}/libncpoco/libncpoco.la
-endif #ENABLE_PLUGINS
+endif #NETCDF_ENABLE_PLUGINS
 
 if ISCYGWIN
 # Force binary mode for file read/write

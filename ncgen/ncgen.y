@@ -66,9 +66,9 @@ static List* stack;
 static nc_type consttype;
 
 /* Misc. */
-static int stackbase;
-static int stacklen;
-static int count;
+static size_t stackbase;
+static size_t stacklen;
+static size_t count;
 static int opaqueid; /* counter for opaque constants*/
 static int arrayuid; /* counter for pseudo-array types*/
 
@@ -128,11 +128,13 @@ static Symbol* makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int 
 static int containsfills(Datalist* list);
 static void vercheck(int ncid);
 static long long extractint(NCConstant* con);
+static Symbol* identkeyword(const Symbol*);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
 static int parsecodecsflag(const char* sdata0, Specialdata* special);
+
 #ifdef GENDEBUG1
-static void printfilters(int nfilters, NC_ParsedFilterSpec** filters);
+static void printfilters(int nfilters, NC_H5_Filterspec** filters);
 #endif
 #endif
 
@@ -154,7 +156,7 @@ extern int lex_init(void);
 %union {
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
-long           mark; /* track indices into the sequence*/
+size_t         mark; /* track indices into the sequence*/
 int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant*    constant;
@@ -214,10 +216,14 @@ NCConstant*    constant;
 	_SUPERBLOCK
 	_FILTER
 	_CODECS
+        _QUANTIZEBG
+        _QUANTIZEGBR
+        _QUANTIZEBR
 	DATASETID
 
 %type <sym> ident typename primtype dimd varspec
 	    attrdecl enumid path dimref fielddim fieldspec
+	    varident
 %type <sym> typeref
 %type <sym> varref
 %type <sym> ambiguous_ref
@@ -306,7 +312,7 @@ optsemicolon: /*empty*/ | ';' ;
 enumdecl: primtype ENUM typename
           '{' enumidlist '}'
               {
-		int i;
+		size_t i;
                 addtogroup($3); /* sets prefix*/
                 $3->objectclass=NC_TYPE;
                 $3->subclass=NC_ENUM;
@@ -337,7 +343,7 @@ enumidlist:   enumid
 		{$$=listlength(stack); listpush(stack,(void*)$1);}
 	    | enumidlist ',' enumid
 		{
-		    int i;
+		    size_t i;
 		    $$=$1;
 		    /* check for duplicates*/
 		    stackbase=$1;
@@ -368,8 +374,8 @@ opaquedecl: OPAQUE_ '(' INT_CONST ')' typename
                     $5->objectclass=NC_TYPE;
                     $5->subclass=NC_OPAQUE;
                     $5->typ.typecode=NC_OPAQUE;
-                    $5->typ.size=int32_val;
-                    $5->typ.alignment=ncaux_class_alignment(NC_OPAQUE);
+                    $5->typ.size=(size_t)int32_val;
+                    (void)ncaux_class_alignment(NC_OPAQUE,&$5->typ.alignment);
                 }
             ;
 
@@ -383,13 +389,13 @@ vlendecl: typeref '(' '*' ')' typename
                     $5->typ.basetype=basetype;
                     $5->typ.typecode=NC_VLEN;
                     $5->typ.size=VLENSIZE;
-                    $5->typ.alignment=ncaux_class_alignment(NC_VLEN);
+                    (void)ncaux_class_alignment(NC_VLEN,&$5->typ.alignment);
                 }
           ;
 
 compounddecl: COMPOUND typename '{' fields '}'
           {
-	    int i,j;
+	    size_t i,j;
 	    vercheck(NC_COMPOUND);
             addtogroup($2);
 	    /* check for duplicate field names*/
@@ -426,7 +432,7 @@ fields:   field ';' {$$=$1;}
 
 field: typeref fieldlist
         {
-	    int i;
+	    size_t i;
 	    $$=$2;
 	    stackbase=$2;
 	    stacklen=listlength(stack);
@@ -511,7 +517,7 @@ vadecl_or_attr: vardecl {} | attrdecl {} ;
 
 vardecl:        typeref varlist
 		{
-		    int i;
+		    size_t i;
 		    stackbase=$2;
 		    stacklen=listlength(stack);
 		    /* process each variable in the varlist*/
@@ -539,9 +545,9 @@ varlist:      varspec
 	        {$$=$1; listpush(stack,(void*)$3);}
             ;
 
-varspec:        ident dimspec
+varspec:        varident dimspec
                     {
-		    int i;
+		    size_t i;
 		    Dimset dimset;
 		    Symbol* var = $1; /* for debugging */
 		    stacklen=listlength(stack);
@@ -552,7 +558,7 @@ varspec:        ident dimspec
 			count = NC_MAX_VAR_DIMS - 1;
 			stacklen = stackbase + count;
 		    }
-  	            dimset.ndims = count;
+  	            dimset.ndims = (int)count;
 		    /* extract the actual dimensions*/
 		    if(dimset.ndims > 0) {
 		        for(i=0;i<count;i++) {
@@ -602,7 +608,7 @@ fieldlist:
 fieldspec:
 	ident fielddimspec
 	    {
-		int i;
+		size_t i;
 		Dimset dimset;
 		stackbase=$2;
 		stacklen=listlength(stack);
@@ -612,7 +618,7 @@ fieldspec:
 		    count = NC_MAX_VAR_DIMS - 1;
 		    stacklen = stackbase + count;
 		}
-  	        dimset.ndims = count;
+  	        dimset.ndims = (int)count;
 		if(count > 0) {
 		    /* extract the actual dimensions*/
 		    for(i=0;i<count;i++) {
@@ -644,7 +650,7 @@ fielddim:
 	    {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
 	     char anon[32];
-	     sprintf(anon,"const%u",uint32_val);
+	     snprintf(anon, sizeof(anon),"const%u",uint32_val);
 	     $$ = install(anon);
 	     $$->objectclass = NC_DIM;
 	     $$->dim.isconstant = 1;
@@ -658,11 +664,11 @@ fielddim:
 		derror("field dimension must be positive");
 		YYABORT;
 	     }
-	     sprintf(anon,"const%d",int32_val);
+	     snprintf(anon, sizeof(anon),"const%d",int32_val);
 	     $$ = install(anon);
 	     $$->objectclass = NC_DIM;
 	     $$->dim.isconstant = 1;
-	     $$->dim.declsize = int32_val;
+	     $$->dim.declsize = (size_t)int32_val;
 	    }
 	;
 
@@ -769,6 +775,12 @@ attrdecl:
 	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _CODECS '=' conststring
 	    {$$ = makespecial(_CODECS_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEBG '=' constint
+	    {$$ = makespecial(_QUANTIZEBG_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEGBR '=' constint
+	    {$$ = makespecial(_QUANTIZEGBR_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEBR '=' constint
+	    {$$ = makespecial(_QUANTIZEBR_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _NOFILL '=' constbool
 	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ':' _FORMAT '=' conststring
@@ -889,7 +901,14 @@ constbool:
 
 /* End OF RULES */
 
-/* Push all idents thru here*/
+
+/* Push all idents thru these*/
+
+varident:
+	  IDENT {$$=$1;}
+	| DATA {$$=identkeyword($1);}
+	;
+
 ident:
 	IDENT {$$=$1;}
 	;
@@ -961,7 +980,7 @@ makeprimitivetype(nc_type nctype)
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
-    sym->typ.alignment = ncaux_class_alignment(nctype);
+    (void)ncaux_class_alignment(nctype,&sym->typ.alignment);
     /* Make the basetype circular so we can always ask for it */
     sym->typ.basetype = sym;
     sym->prefix = listnew();
@@ -1063,8 +1082,7 @@ makeconstdata(nc_type nctype)
 #ifdef USE_NETCDF4
 	case NC_OPAQUE: {
 	    char* s;
-	    int len;
-	    len = bbLength(lextext);
+	    size_t len = bbLength(lextext);
 	    s = (char*)ecalloc(len+1);
 	    strncpy(s,bbContents(lextext),len);
 	    s[len] = '\0';
@@ -1117,7 +1135,7 @@ addtogroup(Symbol* sym)
 static int
 dupobjectcheck(nc_class objectclass, Symbol* pattern)
 {
-    int i;
+    size_t i;
     Symbol* grp;
     if(pattern == NULL) return 0;
     grp = pattern->container;
@@ -1230,6 +1248,9 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	break;
     case _SUPERBLOCK_FLAG:
     case _DEFLATE_FLAG:
+    case _QUANTIZEBG_FLAG:
+    case _QUANTIZEGBR_FLAG:
+    case _QUANTIZEBR_FLAG:
 	tmp = nullconst();
         tmp->nctype = NC_INT;
 	convert1(con,tmp);
@@ -1294,9 +1315,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 derror("_FillValue attribute not associated with variable: %s",vsym->name);
             }
             if(tsym  == NULL) tsym = vsym->typ.basetype;
+#if 0 /* No longer require matching types */
             else if(vsym->typ.basetype != tsym) {
                 derror("_FillValue attribute type does not match variable type: %s",vsym->name);
             }
+#endif
             special->_Fillvalue = clonedatalist(list);
 	    /* Create the corresponding attribute */
             attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
@@ -1323,6 +1346,21 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             case _DEFLATE_FLAG:
                 special->_DeflateLevel = idata;
                 special->flags |= _DEFLATE_FLAG;
+                break;
+            case _QUANTIZEBG_FLAG:
+		special->_Quantizer = NC_QUANTIZE_BITGROOM;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEBG_FLAG;
+                break;
+            case _QUANTIZEGBR_FLAG:
+		special->_Quantizer = NC_QUANTIZE_GRANULARBR;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEGBR_FLAG;
+                break;
+            case _QUANTIZEBR_FLAG:
+		special->_Quantizer = NC_QUANTIZE_BITROUND;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEBR_FLAG;
                 break;
             case _SHUFFLE_FLAG:
                 special->_Shuffle = tf;
@@ -1606,16 +1644,16 @@ done:
 
 #ifdef GENDEBUG1
 static void
-printfilters(int nfilters, NC_FilterSpec** filters)
+printfilters(int nfilters, NC_H5_Filterspec** filters)
 {
     int i;
     fprintf(stderr,"xxx: nfilters=%lu: ",(unsigned long)nfilters);
     for(i=0;i<nfilters;i++) {
 	int k;
-	NC_Filterspec* sp = filters[i];
+	NC_H5_Filterspec* sp = filters[i];
         fprintf(stderr,"{");
-        fprintf(stderr,"filterid=%llu format=%d nparams=%lu params=%p",
-		sp->filterid,sp->format,(unsigned long)sp->nparams,sp->params);
+        fprintf(stderr,"filterid=%lu nparams=%lu params=%p",
+		(unsigned long)sp->filterid,(unsigned long)sp->nparams,sp->params);
 	if(sp->nparams > 0 && sp->params != NULL) {
             fprintf(stderr," params={");
             for(k=0;k<sp->nparams;k++) {

@@ -10,6 +10,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+s3isolate "testdir_fillonlyz"
+THISDIR=`pwd`
+cd $ISOPATH
+
 echo ""
 echo "*** Testing data conversions when a variable has fill value but never written"
 
@@ -18,11 +22,9 @@ zext=$1
 fileargs tmp_fillonly
 deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_fillonly.cdl
-${execdir}/tst_fillonlyz${ext} "$fileurl"
+${execdir}/test_fillonlyz${ext} "$fileurl"
 }
 
 testcase file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcase zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testcase s3; fi
-
-exit 0

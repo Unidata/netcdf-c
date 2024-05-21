@@ -92,7 +92,7 @@ main(int argc, char **argv)
 
     /* Create a parallel netcdf-4 file. */
     /*nc_set_log_level(3);*/
-    sprintf(file_name, "%s/%s", TEMP_LARGE, FILE);
+    snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE);
     if ((res = nc_create_par(file_name, NC_NETCDF4, comm,
 			     info, &ncid))) ERR;
 

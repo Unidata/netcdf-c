@@ -283,7 +283,8 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 static void
 dapaddyytext(DAPlexstate* lex, int c)
 {
-    ncbytesappend(lex->yytext,c);
+    ncbytesappend(lex->yytext, (char)c);
+    ncbytesnull(lex->yytext);
 }
 
 #ifndef DAP2ENCODE
@@ -373,7 +374,7 @@ daplexcleanup(DAPlexstate** lexstatep)
 */
 #ifdef DECODE_PARTIAL
 static const char* decodeset = /* Specify which characters are decoded */
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_!~*'-\"";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_!~*'-\"@";
 #endif
 
 char*

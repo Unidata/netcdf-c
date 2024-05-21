@@ -63,7 +63,7 @@ gencml_netcdf(void)
 
     /* Dump XML header */
     xline("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    xline("<netcdf xmlns=\"http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\">"); 
+    xline("<netcdf xmlns=\"https://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\">");
 
     xline("");
     xline("<explicit/>");
@@ -316,7 +316,7 @@ definextype(Symbol* tsym)
 		    if(j > 0) bbCat(dimbuf," ");
 		    dim = efield->typ.dimset.dimsyms[j];
 		    ASSERT(dim->dim.isconstant);
-		    sprintf(tmp,"%lu",(unsigned long)dim->dim.size);
+		    snprintf(tmp,sizeof(tmp),"%lu",(unsigned long)dim->dim.size);
 		    bbCat(dimbuf,tmp);
 		}
 		bbCat(dimbuf,"\"");

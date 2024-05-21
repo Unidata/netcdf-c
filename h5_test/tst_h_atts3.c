@@ -68,14 +68,14 @@ main()
 
       /* Create some output data: a struct s3 array (length ATT_LEN)
        * which holds an array of vlen (length NUM_VL) of struct s1. */
-      for (i = 0; i < ATT_LEN; i++)
+      for (size_t i = 0; i < ATT_LEN; i++)
 	 for (j = 0; j < NUM_VL; j++)
 	 {
 	    cvc_out[i].data[j].len = i + 1;
 	    if (!(cvc_out[i].data[j].p = calloc(sizeof(struct s1), cvc_out[i].data[j].len))) ERR;
 	    for (k = 0; k < cvc_out[i].data[j].len; k++)
 	    {
-	       ((struct s1 *)cvc_out[i].data[j].p)[k].x = 42.42;
+	       ((struct s1 *)cvc_out[i].data[j].p)[k].x = 42.42f;
 	       ((struct s1 *)cvc_out[i].data[j].p)[k].y = 2.0;
 	    }
 	 }
@@ -149,7 +149,7 @@ main()
       if (num_obj != NUM_OBJ) ERR;
 
       /* For each object in the group... */
-      for (i = 0; i < num_obj; i++)
+      for (hsize_t i = 0; i < num_obj; i++)
       {
 	 /* Get the name, and make sure this is a type. */
 
@@ -223,7 +223,7 @@ main()
 
       /* Create some output data: an array of vlen (length ATT_LEN) of
        * int. */
-      for (i = 0; i < ATT_LEN; i++)
+      for (size_t i = 0; i < ATT_LEN; i++)
       {
 	 vc_out[i].len = i + 1;
 	 if (!(vc_out[i].p = calloc(sizeof(int), vc_out[i].len))) ERR;
@@ -278,7 +278,7 @@ main()
       if (num_obj != NUM_OBJ_1) ERR;
 
       /* For each object in the group... */
-      for (i = 0; i < num_obj; i++)
+      for (hsize_t i = 0; i < num_obj; i++)
       {
 	 /* Get the name, and make sure this is a type. */
 #if H5_VERSION_GE(1,12,0)

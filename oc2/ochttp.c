@@ -69,7 +69,7 @@ ocfetchurl_file(CURL* curl, const char* url, FILE* stream,
 	    oclog(OCLOGNOTE,"filesize: %lu bytes",fetchdata.size);
 #endif
 	    if (sizep != NULL)
-		*sizep = fetchdata.size;
+                *sizep = (off_t)fetchdata.size;
 	    /* Get the last modified time */
 	    if(filetime != NULL)
                 cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
@@ -127,7 +127,7 @@ ocfetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 
 	/* Null terminate the buffer*/
 	len = ncbyteslength(buf);
-	ncbytesappend(buf, '\0');
+	ncbytesnull(buf);
 	ncbytessetlength(buf, len); /* don't count null in buffer size*/
 #ifdef OCDEBUG
 	nclog(NCLOGNOTE,"buffersize: %lu bytes",(off_t)ncbyteslength(buf));

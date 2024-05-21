@@ -8,7 +8,7 @@
 <!--BEGIN PROJECT_NAME--><title>$projectname: $title</title><!--END PROJECT_NAME-->
 <!--BEGIN !PROJECT_NAME--><title>$title</title><!--END !PROJECT_NAME-->
 <link href="$relpath^tabs.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="http://www.unidata.ucar.edu/js/jquery/jquery-latest.min.js"></script>
+<script type="text/javascript" src="https://docs.unidata.ucar.edu/js/jquery/jquery-latest.min.js"></script>
 <script type="text/javascript" src="$relpath^jquery.js"></script>
 <script type="text/javascript" src="$relpath^dynsections.js"></script>
 $treeview
@@ -17,22 +17,11 @@ $mathjax
 $extrastylesheet
 <script type="text/javascript">
   $( document ).ready(function() {
-  var $searchForm =  "<form name=\"google\" action=\"http://www.unidata.ucar.edu/search.jsp\" id=\"cse-search-box\">" +
-    "   <input type=\"hidden\" name=\"locationName\" value=\"NetCDF Documentation\"></input>" +
-    "   <input type=\"hidden\" name=\"hq\" value=\"site:www.unidata.ucar.edu/software/netcdf/docs\"></input>" +
-    "   <input type=\"hidden\" name=\"cx\" value=\"008424664622949020059:afj38jxaljc\"></input>" +
-                        "   <input type=\"hidden\" name=\"cof\" value=\"FORID:9\"></input>" +
-    "   <input type=\"hidden\" name=\"ie\" value=\"UTF-8\"></input>" +
-    "   <input type=\"text\" autocomplete=\"on\" name=\"q\" maxlength=\"255\" id=\"search\"></input>" +
-    "   <input type=\"submit\" name=\"sa\" value=\"search\" id=\"form_submit\"></input>" +
-    "</form>";
+  var $searchForm =  "";
 
   var $linkMenu = "<select id=\"versions\">" +
-    "   <option value=\"http://www.unidata.ucar.edu/software/netcdf/docs\">Current</option>" +
-    "   <option value=\"http://www.unidata.ucar.edu/software/netcdf/documentation/4.4.1.1\">4.4.1.1</option>" +
-    "   <option value=\"http://www.unidata.ucar.edu/software/netcdf/documentation/4.4.1\">4.4.1</option>" +
-    "   <option value=\"http://www.unidata.ucar.edu/software/netcdf/documentation/4.4.0\">4.4.0</option>" +
-    "   <option value=\"http://www.unidata.ucar.edu/software/netcdf/documentation/historic\">Historic Documentation</option>" +
+    "   <option value=\"https://docs.unidata.ucar.edu/netcdf-c\">Current</option>" +
+    "   <option value=\"https://docs.unidata.ucar.edu/netcdf-c/4.8.1">4.8.1</option>" +
     "</select>";
 
   $("#navrow1 ul.tablist").append('<li class=\"linkMenu\"><span class="tab">' + $linkMenu + '</span></li>');
@@ -73,18 +62,7 @@ $extrastylesheet
   <!--BEGIN DISABLE_INDEX-->
    <!--BEGIN SEARCHENGINE-->
    <td>
-    <form name="google" action="http://www.unidata.ucar.edu/search.jsp" id="cse-search-box">
-     <input type="hidden" name="locationName" value="NetCDF Documentation"></input>
-     <input type="hidden" name="hq" value="site:www.unidata.ucar.edu/software/netcdf/docs">
-     <input type="hidden" name="cx" value="008424664622949020059:afj38jxaljc" />
-     <input type="hidden" name="cof" value="FORID:9" />
-     <input type="hidden" name="ie" value="UTF-8" />
-     <input type="text" autocomplete="on" name="q" maxlength="255" id="search"/>
-     <input type="submit" name="sa" value="search" id="form_submit" />
-    </form>
-    <script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=cse-search-box&lang=en"></script>
-
-   </td>
+    </td>
    <!--END SEARCHENGINE-->
   <!--END DISABLE_INDEX-->
  </tr>

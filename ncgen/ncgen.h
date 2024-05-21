@@ -6,10 +6,10 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/ncgen.h,v 1.18 2010/06/01 15:34:53 ed Exp $
 *********************************************************************/
 
-#ifdef _WIN32
-#include <float.h>
-#include "isnan.h"
-#define strcasecmp _stricmp
+#include "config.h"
+
+#ifndef nulldup
+ #define nulldup(x) ((x)?strdup(x):(x))
 #endif
 
 #ifdef USE_NETCDF4
@@ -80,6 +80,9 @@ various C global variables
 #define _FORMAT_FLAG        0x800
 #define _FILTER_FLAG        0x1000
 #define _CODECS_FLAG        0x2000
+#define _QUANTIZEBG_FLAG    0x4000
+#define _QUANTIZEGBR_FLAG   0x8000
+#define _QUANTIZEBR_FLAG    0x10000
 
 extern struct Specialtoken {
     char* name;
@@ -116,12 +119,14 @@ typedef struct Specialdata {
     Datalist*      _Fillvalue; /* This is a per-type ; points to the _FillValue attribute node */
     int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS | NC_COMPACT*/
     size_t*       _ChunkSizes;     /* NULL => defaults*/
-        int nchunks;     /*  |_Chunksize| ; 0 => not specified*/
+    size_t nchunks;     /*  |_Chunksize| ; 0 => not specified*/
     int           _Fletcher32;     /* 1=>fletcher32*/
     int           _DeflateLevel; /* 0-9 => level*/
     int           _Shuffle;      /* 0 => false, 1 => true*/
     int           _Endianness;   /* 1 =>little, 2 => big*/
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
+    int           _Quantizer;    /* algorithm */
+    int           _NSD;          /* No. of significant digits */
     NC_H5_Filterspec** _Filters;
     size_t 	   nfilters; /* |filters| */
     char*          _Codecs; /* in JSON form */
@@ -168,7 +173,7 @@ typedef struct Typeinfo {
 	int             hasvlen;  /* 1 => this type contains a vlen*/
 	nc_type         typecode;
         unsigned long   offset;   /* fields in struct*/
-        unsigned long   alignment;/* fields in struct*/
+        size_t          alignment;/* fields in struct*/
         NCConstant*     econst;   /* for enum values*/
         Dimset          dimset;     /* for NC_VAR/NC_FIELD/NC_ATT*/
         size_t   size;     /* for opaque, compound, etc.*/

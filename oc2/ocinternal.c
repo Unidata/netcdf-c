@@ -2,6 +2,7 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdio.h>
 
 #ifdef HAVE_STDINT_H
@@ -25,7 +26,7 @@
 
 #include <errno.h>
 
-#include "ncrc.h"
+#include "nc4internal.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "occurlfunctions.h"
@@ -320,8 +321,8 @@ createtempfile(OCstate* state, OCtree* tree)
     int stat = OC_NOERR;
     char* path = NULL;
     char* tmppath = NULL;
-    int len;
-    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+    size_t len;
+    NCglobalstate* globalstate = NC_getglobalstate();
 
     len =
 	  strlen(globalstate->tempdir)
@@ -384,15 +385,13 @@ static OCerror
 ocextractddsinmemory(OCstate* state, OCtree* tree, OCflags flags)
 {
     OCerror stat = OC_NOERR;
-    size_t ddslen, bod, bodfound;
+    size_t ddslen, bod;
     /* Read until we find the separator (or EOF)*/
-    bodfound = ocfindbod(state->packet,&bod,&ddslen);
-    if(!bodfound) {/* No BOD; pretend */
-	bod = tree->data.bod;
-	ddslen = tree->data.datasize;
+    int bodfound = ocfindbod(state->packet,&bod,&ddslen);
+    if(bodfound) {
+        tree->data.bod = (off_t)bod;
+        tree->data.ddslen = (off_t)ddslen;
     }
-    tree->data.bod = bod;
-    tree->data.ddslen = ddslen;
     /* copy out the dds */
     if(ddslen > 0) {
         tree->text = (char*)ocmalloc(ddslen+1);
@@ -420,11 +419,18 @@ static OCerror
 ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
 {
     OCerror stat = OC_NOERR;
+
     size_t ddslen, bod, bodfound;
+    int retVal;
 
     /* Read until we find the separator (or EOF)*/
     ncbytesclear(state->packet);
-    rewind(tree->data.file);
+    retVal = fseek(tree->data.file, 0L, SEEK_SET);  
+    if (retVal != 0) {
+    	stat = OC_EDATADDS;
+        return OCTHROW(stat);
+    }
+
     bodfound = 0;
     do {
         char chunk[1024];
@@ -433,18 +439,13 @@ ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
         count = fread(chunk,1,sizeof(chunk),tree->data.file);
 	if(count <= 0) break; /* EOF;*/
         ncbytesappendn(state->packet,chunk,count);
+	ncbytesnull(state->packet);
 	bodfound = ocfindbod(state->packet,&bod,&ddslen);
     } while(!bodfound);
-    if(!bodfound) {/* No BOD; pretend */
-	bod = tree->data.bod;
-	ddslen = tree->data.datasize;
-#ifdef OCDEBUG
-fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
-(unsigned long)ddslen,(unsigned long)bod);
-#endif
+    if(bodfound) {
+        tree->data.bod = (off_t)bod;
+        tree->data.ddslen = (off_t)ddslen;
     }
-    tree->data.bod = bod;
-    tree->data.ddslen = ddslen;
     /* copy out the dds */
     if(ddslen > 0) {
         tree->text = (char*)ocmalloc(ddslen+1);
@@ -509,8 +510,8 @@ ocget_rcproperties(OCstate* state)
 	    unsigned long interval=0;
 	    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
 	        fprintf(stderr,"Illegal KEEPALIVE VALUE: %s\n",option);
-	    state->curlkeepalive.idle = idle;
-	    state->curlkeepalive.interval = interval;
+	    state->curlkeepalive.idle = (long)idle;
+	    state->curlkeepalive.interval = (long)interval;
 	    state->curlkeepalive.active = 1;
 	}
     }
@@ -526,7 +527,7 @@ static OCerror
 ocset_curlproperties(OCstate* state)
 {
     OCerror stat = OC_NOERR;
-    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+    NCglobalstate* globalstate = NC_getglobalstate();
 
     if(state->auth->curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
@@ -551,7 +552,7 @@ ocset_curlproperties(OCstate* state)
         int stat = NC_NOERR;
         char* path = NULL;
         char* tmppath = NULL;
-        int len;
+        size_t len;
         errno = 0;
         /* Create the unique cookie file name */
         len =

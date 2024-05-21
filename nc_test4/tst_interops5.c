@@ -23,10 +23,10 @@ main(int argc, char **argv)
 #define GRPA_NAME "grpa"
 #define VAR_NAME "vara"
 #define NDIMS 2
-      int nrowCur = 7;               /* current size */
-      int ncolCur = 3;
-      int nrowMax = nrowCur + 0;     /* maximum size */
-      int ncolMax = ncolCur + 0;
+      hsize_t nrowCur = 7;               /* current size */
+      hsize_t ncolCur = 3;
+      hsize_t nrowMax = nrowCur + 0;     /* maximum size */
+      hsize_t ncolMax = ncolCur + 0;
 
       hid_t xdimId;
       hid_t ydimId;
@@ -99,11 +99,11 @@ main(int argc, char **argv)
       if (H5Sclose(ydimSpaceId) < 0) ERR;
 
       /* Create xdim scale */
-      sprintf(dimNameBuf, "%s%10d", dimNameBase, nrowCur);
+      snprintf(dimNameBuf, sizeof(dimNameBuf), "%s%10llu", dimNameBase, nrowCur);
       if (H5DSset_scale(xdimId, dimNameBuf) < 0) ERR;
 
       /* Create ydim scale */
-      sprintf(dimNameBuf, "%s%10d", dimNameBase, ncolCur);
+      snprintf(dimNameBuf, sizeof(dimNameBuf), "%s%10llu", dimNameBase, ncolCur);
       if (H5DSset_scale(ydimId, dimNameBuf) < 0) ERR;
 
       /* Attach dimension scales to the dataset */
@@ -121,8 +121,8 @@ main(int argc, char **argv)
 
       /* Create some data */
       for (ii = 0; ii < nrowCur; ii++)
-	 for (jj = 0; jj < ncolCur; jj++)
-	    amat[ii][jj] = 100 * ii + jj;
+         for (jj = 0; jj < ncolCur; jj++)
+            amat[ii][jj] = (short)(100 * ii + jj);
 
       /* Re-open file */
       if ((fileId = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
@@ -180,7 +180,7 @@ main(int argc, char **argv)
       }
    }
    SUMMARIZE_ERR;
-#ifdef USE_SZIP
+#ifdef HAVE_H5Z_SZIP
    printf("*** testing HDF5 compatibility with szip...");
    {
 
@@ -254,7 +254,7 @@ main(int argc, char **argv)
 
    }
    SUMMARIZE_ERR;
-#endif /* USE_SZIP */
+#endif /* HAVE_H5Z_SZIP */
    /* This test suggested by user brentd42 to find a memory problem in
     * function rec_read_metadata(). This test demonstrates the bug on
     * address sanitizer runs. See

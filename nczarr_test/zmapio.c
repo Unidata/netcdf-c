@@ -3,6 +3,7 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#include <stddef.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -18,12 +19,15 @@
 #include "XGetopt.h"
 #endif
 
+#include <stddef.h>
+
+#include "ncconfigure.h"
 #include "zincludes.h"
 #include "ncpathmgr.h"
 #include "nclog.h"
 #include "ncuri.h"
 
-#define DEBUG
+#undef DEBUG
 
 #define DATANAME "data"
 
@@ -54,19 +58,22 @@ static struct Mops {
 static struct Type {
     const char* typename;
     nc_type nctype;
-    int typesize;
+    size_t typesize;
+    const char format[16];
 } types[] = {
-{"ubyte",NC_UBYTE,1},
-{"byte",NC_BYTE,1},
-{"ushort",NC_USHORT,2},
-{"short",NC_SHORT,2},
-{"uint",NC_UINT,4},
-{"int",NC_INT,4},
-{"uint64",NC_UINT64,8},
-{"int64",NC_INT64,8},
-{"float",NC_FLOAT,4},
-{"double",NC_DOUBLE,8},
-{NULL,NC_NAT,0}
+{"ubyte",NC_UBYTE,1,"%u"},
+{"byte",NC_BYTE,1,"%d"},
+{"ushort",NC_USHORT,2,"%u"},
+{"short",NC_SHORT,2,"%d"},
+{"uint",NC_UINT,4,"%u"},
+{"int",NC_INT,4,"%d"},
+{"uint64",NC_UINT64,8,"%llu"},
+{"int64",NC_INT64,8,"%lld"},
+{"float",NC_FLOAT,4,"%f"},
+{"double",NC_DOUBLE,8,"%lf"},
+{"char",NC_CHAR,1,"'%c'"},
+{"string",NC_STRING,sizeof(char*),"%*s"},
+{NULL,NC_NAT,0,""}
 };
 
 /* Command line options */
@@ -78,8 +85,10 @@ struct Dumpptions {
     NCZM_IMPL impl;    
     char* rootpath;
     const struct Type* nctype;
+    char format[16];
     int xflags;
 #	define XNOZMETADATA 1	
+    int strlen;
 } dumpoptions;
 
 /* Forward */
@@ -120,9 +129,15 @@ decodeop(const char* name)
 }
 
 static const struct Type*
-decodetype(const char* name)
+decodetype(const char* name,  int* strlenp)
 {
     struct Type* p = types;
+    
+    if(strncmp(name,"string/",strlen("string/"))==0) {
+        *strlenp = atoi(name+strlen("string/"));
+        name = "string";
+    }
+    
     for(;p->typename != NULL;p++) {
 	if(strcasecmp(p->typename,name)==0) return p;
     }
@@ -138,9 +153,10 @@ main(int argc, char** argv)
 
     nc_initialize();
 
+    /* Init options */
     memset((void*)&dumpoptions,0,sizeof(dumpoptions));
 
-    while ((c = getopt(argc, argv, "dhvx:t:T:X:")) != EOF) {
+    while ((c = getopt(argc, argv, "dhvx:t:F:T:X:")) != EOF) {
 	switch(c) {
 	case 'd': 
 	    dumpoptions.debug = 1;	    
@@ -148,16 +164,19 @@ main(int argc, char** argv)
 	case 'h': 
 	    dumpoptions.meta_only = 1;	    
 	    break;
-	case 'v': 
-	    zmapusage();
-	    goto done;
 	case 't': 
-	    dumpoptions.nctype = decodetype(optarg);
+	    dumpoptions.nctype = decodetype(optarg,&dumpoptions.strlen);
 	    if(dumpoptions.nctype == NULL) zmapusage();
 	    break;
 	case 'x': 
 	    dumpoptions.mop = decodeop(optarg);
 	    if(dumpoptions.mop == MOP_NONE) zmapusage();
+	    break;
+	case 'v': 
+	    zmapusage();
+	    goto done;
+	case 'F': 
+	    strcpy(dumpoptions.format,optarg);
 	    break;
 	case 'T':
 	    nctracelevel(atoi(optarg));
@@ -234,7 +253,7 @@ implfor(const char* path)
     NCURI* uri = NULL;
     const char* mode = NULL;
     NClist* segments = nclistnew();
-    int i;
+
     NCZM_IMPL impl = NCZM_UNDEF;
 
     ncuriparse(path,&uri);
@@ -243,7 +262,7 @@ implfor(const char* path)
     if(mode == NULL) goto done;
     /* split on commas */
     NCCHECK(nczm_split_delim(mode,',',segments));
-    for(i=0;i<nclistlength(segments);i++) {
+    for(size_t i=0;i<nclistlength(segments);i++) {
         const char* value = nclistget(segments,i);
 	if(strcmp(value,"file")==0) {impl = NCZM_FILE; goto done;}
 	if(strcmp(value,"zip")==0) {impl = NCZM_ZIP; goto done;}
@@ -262,7 +281,6 @@ rootpathfor(const char* path)
     NCURI* uri = NULL;
     char* rootpath = NULL;
     NClist* segments = nclistnew();
-    char* p = NULL;
 
     ncuriparse(path,&uri);
     if(uri == NULL) goto done;
@@ -271,7 +289,9 @@ rootpathfor(const char* path)
     case NCZM_ZIP:
 	rootpath = strdup("/"); /*constant*/
 	break;
-    case NCZM_S3:
+#ifdef NETCDF_ENABLE_S3  
+    case NCZM_S3: {
+	char* p = NULL;
         /* Split the path part */
         if((stat = nczm_split(uri->path,segments))) goto done;
 	/* remove the bucket name */
@@ -279,7 +299,8 @@ rootpathfor(const char* path)
 	nullfree(p); p = NULL;
         /* Put it back together */
         if((stat = nczm_join(segments,&rootpath))) goto done;
-	break;
+	} break;
+#endif
     default:
         stat = NC_EINVAL;
 	goto done;
@@ -301,7 +322,7 @@ objdump(void)
     NClist* stack = nclistnew();
     char* obj = NULL;
     char* content = NULL;
-    int depth;
+
 
     if((stat=nczmap_open(dumpoptions.impl, dumpoptions.infile, NC_NOCLOBBER, 0, NULL, &map)))
         goto done;
@@ -310,16 +331,18 @@ objdump(void)
     if((stat = breadthfirst(map,"/",stack))) goto done;
 
     if(dumpoptions.debug) {
-	int i;
+
         fprintf(stderr,"stack:\n");
-        for(i=0;i<nclistlength(stack);i++)
-            fprintf(stderr,"[%d] %s\n",i,(char*)nclistget(stack,i));
+        for(size_t i=0;i<nclistlength(stack);i++)
+
+            fprintf(stderr,"[%zu] %s\n",i,(char*)nclistget(stack,i));
     }    
-    for(depth=0;nclistlength(stack) > 0;depth++) {
+    for(size_t depth=0;depth < nclistlength(stack);depth++) {
         size64_t len = 0;
 	OBJKIND kind = 0;
 	int hascontent = 0;
-	obj = nclistremove(stack,0); /* zero pos is always top of stack */
+	nullfree(content); content = NULL;
+	obj = nclistget(stack,depth);
 	kind = keykind(obj);
 	/* Now print info for this obj key */
         switch (stat=nczmap_len(map,obj,&len)) {
@@ -328,14 +351,12 @@ objdump(void)
 	    case NC_EACCESS: hascontent = 0; len = 0; stat = NC_NOERR; break;
 	    default: goto done;
 	}
-	if(!hascontent) goto next; /* ignore it */
+	if(!hascontent) continue; /* ignore it */
 	if(len > 0) {
 	    size_t padlen = (len+dumpoptions.nctype->typesize);
 	    content = calloc(1,padlen+1);
   	    if((stat=nczmap_read(map,obj,0,len,content))) goto done;
 	    content[len] = '\0';
-        } else {
-	    content = NULL;
 	}
 	if(hascontent) {
 	    if(len > 0) {
@@ -343,8 +364,8 @@ objdump(void)
 		if(kind == OK_CHUNK) {
 		    len = ceildiv(len,dumpoptions.nctype->typesize);
 		}
-                printf("[%d] %s : (%llu)",depth,obj,len);
-		if(kind == OK_CHUNK)
+                printf("[%zu] %s : (%llu)",depth,obj,len);
+		if(kind == OK_CHUNK &&  dumpoptions.nctype->nctype != NC_STRING)
                     printf(" (%s)",dumpoptions.nctype->typename);
                 printf(" |");
                 switch(kind) {
@@ -353,26 +374,23 @@ objdump(void)
 	            printcontent(len,content,kind);
 		    break;
 		case OK_CHUNK:
-	    	    if(dumpoptions.meta_only)
+		    if(dumpoptions.meta_only) {
 			printf("...");
-		    else
+		    } else {
 	                printcontent(len,content,kind);
+		    }
 		    break;
 		default: break;
 		}
 	        printf("|\n");
 	    } else {
-	        printf("[%d] %s : (%llu) ||\n",depth,obj,len);
+	        printf("[%zu] %s : (%llu) ||\n",depth,obj,len);
 	    }
 	} else {
-	    printf("[%d] %s\n",depth,obj);
+	    printf("[%zu] %s\n",depth,obj);
 	}
-	nullfree(content); content = NULL;
-next:
-	nullfree(obj); obj = NULL;
     }
 done:
-    nullfree(obj);
     nullfree(content);
     nczmap_close(map,0);
     nclistfreeall(stack);
@@ -429,30 +447,42 @@ breadthfirst(NCZMAP* map, const char* key, NClist* stack)
     return stat;
 }
 
-static char hex[16] = "0123456789abcdef";
 
 static void
 printcontent(size64_t len, const char* content, OBJKIND kind)
 {
-    size64_t i;
-    unsigned int c0,c1;
+    size64_t i, count;
 
-    for(i=0;i<len;i++) {
+    const char* format = NULL;
+    size64_t strlen = (size64_t)dumpoptions.strlen;
+
+    format = dumpoptions.nctype->format;
+    if(dumpoptions.format[0] != '\0')
+        format = dumpoptions.format;
+    count = len;
+
+#ifdef DEBUG
+    printf("debug: len=%d strlen=%d count=%d\n",(int)len,(int)strlen,(int)count); fflush(stdout);
+#endif
+
+    for(i=0;i<count;i++) {
         /* If kind is chunk, then len is # of values, not # of bytes */
 	switch(kind) {
 	case OK_CHUNK:
 	    if(i > 0) printf(", ");
 	    switch(dumpoptions.nctype->nctype) {
-	    case NC_BYTE: printf("%d",((char*)content)[i]); break;
-	    case NC_SHORT: printf("%d",((short*)content)[i]); break;		
-	    case NC_INT: printf("%d",((int*)content)[i]); break;		
-	    case NC_INT64: printf("%lld",((long long*)content)[i]); break;		
-	    case NC_UBYTE: printf("%u",((unsigned char*)content)[i]); break;
-	    case NC_USHORT: printf("%u",((unsigned short*)content)[i]); break;		
-	    case NC_UINT: printf("%u",((unsigned int*)content)[i]); break;		
-	    case NC_UINT64: printf("%llu",((unsigned long long*)content)[i]); break;		
-	    case NC_FLOAT: printf("%f",((float*)content)[i]); break;		
-	    case NC_DOUBLE: printf("%lf",((double*)content)[i]); break;		
+	    case NC_BYTE: printf(format,((char*)content)[i]); break;
+	    case NC_SHORT: printf(format,((short*)content)[i]); break;		
+	    case NC_INT: printf(format,((int*)content)[i]); break;		
+	    case NC_INT64: printf(format,((long long*)content)[i]); break;		
+	    case NC_UBYTE: printf(format,((unsigned char*)content)[i]); break;
+	    case NC_USHORT: printf(format,((unsigned short*)content)[i]); break;		
+	    case NC_UINT: printf(format,((unsigned int*)content)[i]); break;		
+	    case NC_UINT64: printf(format,((unsigned long long*)content)[i]); break;		
+	    case NC_FLOAT: printf(format,((float*)content)[i]); break;		
+	    case NC_DOUBLE: printf(format,((double*)content)[i]); break;		
+	    case NC_CHAR: printf(format,((char*)content)[i]); break;
+	    case NC_STRING: printf(format,(int)strlen,((char*)(&content[i*strlen]))); break;
 	    default: abort();
 	    }
 	    break;
@@ -460,12 +490,7 @@ printcontent(size64_t len, const char* content, OBJKIND kind)
 	    printf("%c",content[i]);
 	    break;
 	default:
-	    c1 = (unsigned char)(content[i]);
-            c0 = c1 & 0xf;
-	    c1 = (c1 >> 4);
-            c0 = hex[c0];
-            c1 = hex[c1];
-	    printf("%c%c",(char)c1,(char)c0);
+	    printf("%.2hhx", content[i]);
         }
     }
 }

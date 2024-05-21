@@ -7,6 +7,8 @@
 #include "ncd2dispatch.h"
 #include "ncrc.h"
 #include "ncoffsets.h"
+#include "netcdf_dispatch.h"
+#include <stddef.h>
 #ifdef DEBUG2
 #include "dapdump.h"
 #endif
@@ -181,6 +183,7 @@ NC_NOOP_inq_var_filter_info,
 NC_NOTNC4_def_var_quantize,
 NC_NOTNC4_inq_var_quantize,
 
+NC_NOOP_inq_filter_avail,
 };
 
 const NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
@@ -417,8 +420,7 @@ fprintf(stderr,"ce=%s\n",dumpconstraint(dapcomm->oc.dapconstraint));
 
     /* Turn on logging; only do this after oc_open*/
     if((value = dapparamvalue(dapcomm,"log")) != NULL) {
-        ncsetlogging(1);
-        nclogopen(NULL);
+        ncsetloglevel(NCLOGNOTE);
     }
 
     /* fetch and build the unconstrained DDS for use as
@@ -727,7 +729,7 @@ done:
 static NCerror
 buildvars(NCDAPCOMMON* dapcomm)
 {
-    int i,j;
+    size_t i,j;
     NCerror ncstat = NC_NOERR;
     int varid;
     NClist* varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
@@ -737,7 +739,7 @@ buildvars(NCDAPCOMMON* dapcomm)
     for(i=0;i<nclistlength(varnodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(varnodes,i);
         int dimids[NC_MAX_VAR_DIMS];
-	unsigned int ncrank;
+	size_t ncrank;
         NClist* vardims = NULL;
 
 	if(var->invisible) continue;
@@ -772,7 +774,7 @@ fprintf(stderr,"\n");
         ncstat = nc_def_var(dapcomm->substrate.nc3id,
 		        definename,
                         var->externaltype,
-                        ncrank,
+                        (int)ncrank,
                         (ncrank==0?NULL:dimids),
                         &varid);
 	nullfree(definename);
@@ -848,7 +850,7 @@ done:
 static NCerror
 buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 {
-    int i;
+    size_t i;
     NCerror ncstat = NC_NOERR;
     const char* txt;
     char *nltxt, *p;
@@ -929,9 +931,9 @@ done:
 static NCerror
 buildattribute(NCDAPCOMMON* dapcomm, CDFnode* var, NCattribute* att)
 {
-    int i;
+    size_t i;
     NCerror ncstat = NC_NOERR;
-    unsigned int nvalues = nclistlength(att->values);
+    size_t nvalues = nclistlength(att->values);
     int varid = (var == NULL ? NC_GLOBAL : var->ncid);
     void* mem = NULL;
 
@@ -965,7 +967,7 @@ buildattribute(NCDAPCOMMON* dapcomm, CDFnode* var, NCattribute* att)
         if(ncstat) goto done;
     } else {
 	nc_type atype;
-	unsigned int typesize;
+	size_t typesize;
 	atype = nctypeconvert(dapcomm,att->etype);
 	typesize = nctypesizeof(atype);
 	if (nvalues > 0) {
@@ -1039,7 +1041,7 @@ NCD2_inq_format_extended(int ncid, int* formatp, int* modep)
 NCerror
 computecdfdimnames(NCDAPCOMMON* nccomm)
 {
-    int i,j;
+    size_t i,j;
     char tmp[NC_MAX_NAME*2];
     NClist* conflicts = nclistnew();
     NClist* varnodes = nccomm->cdf.ddsroot->tree->varnodes;
@@ -1115,7 +1117,7 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	/* Give  all the conflicting dimensions an index */
 	for(j=0;j<nclistlength(conflicts);j++) {
 	    CDFnode* dim = (CDFnode*)nclistget(conflicts,j);
-	    dim->dim.index1 = j+1;
+	    dim->dim.index1 = (int)j+1;
 	}
     }
     nclistfree(conflicts);
@@ -1239,7 +1241,8 @@ paramlookup(NCDAPCOMMON* state, const char* key)
 static NCerror
 applyclientparams(NCDAPCOMMON* nccomm)
 {
-    int i,len;
+    size_t i;
+    int len;
     int dfaltstrlen = DEFAULTSTRINGLENGTH;
     int dfaltseqlim = DEFAULTSEQLIMIT;
     const char* value;
@@ -1363,12 +1366,12 @@ applyclientparams(NCDAPCOMMON* nccomm)
 static void
 computedimindexanon(CDFnode* dim, CDFnode* var)
 {
-    int i;
+    size_t i;
     NClist* dimset = var->array.dimsetall;
     for(i=0;i<nclistlength(dimset);i++) {
 	CDFnode* candidate = (CDFnode*)nclistget(dimset,i);
         if(dim == candidate) {
-	   dim->dim.index1=i+1;
+           dim->dim.index1 = (int)i+1;
 	   return;
 	}
     }
@@ -1378,7 +1381,7 @@ computedimindexanon(CDFnode* dim, CDFnode* var)
 static void
 replacedims(NClist* dims)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(dims);i++) {
         CDFnode* dim = (CDFnode*)nclistget(dims,i);
 	CDFnode* basedim = dim->dim.basedim;
@@ -1406,7 +1409,7 @@ equivalentdim(CDFnode* basedim, CDFnode* dupdim)
 static void
 getalldimsa(NClist* dimset, NClist* alldims)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(dimset);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
 	if(!nclistcontains(alldims,(void*)dim)) {
@@ -1425,7 +1428,7 @@ fprintf(stderr,"getalldims: %s[%lu]\n",
 NClist*
 getalldims(NCDAPCOMMON* nccomm, int visibleonly)
 {
-    int i;
+    size_t i;
     NClist* alldims = nclistnew();
     NClist* varnodes = nccomm->cdf.ddsroot->tree->varnodes;
 
@@ -1449,7 +1452,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
        in DODS{...} attribute set or defaulting to the variable name.
        All such dimensions are global.
     */
-    int i;
+    size_t i;
     NClist* varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
     CDFnode* globalsdim = NULL;
     char dimname[4096];
@@ -1513,7 +1516,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
 static NCerror
 defrecorddim(NCDAPCOMMON* dapcomm)
 {
-    unsigned int i;
+    size_t i;
     NCerror ncstat = NC_NOERR;
     NClist* basedims;
 
@@ -1589,7 +1592,7 @@ fail:
 static NCerror
 showprojection(NCDAPCOMMON* dapcomm, CDFnode* var)
 {
-    int i,rank;
+    size_t i,rank;
     NCerror ncstat = NC_NOERR;
     NCbytes* projection = ncbytesnew();
     NClist* path = nclistnew();
@@ -1847,7 +1850,7 @@ make sure we always have a constraint.
 static NCerror
 computeseqcountconstraints(NCDAPCOMMON* dapcomm, CDFnode* seq, NCbytes* seqcountconstraints)
 {
-    int i,j;
+    size_t i,j;
     NClist* path = NULL;
     CDFnode* var = NULL;
 
@@ -1874,7 +1877,7 @@ computeseqcountconstraints(NCDAPCOMMON* dapcomm, CDFnode* seq, NCbytes* seqcount
 		ncbytescat(seqcountconstraints,tmp);
 	    }
 	} else if(nclistlength(node->array.dimset0) > 0) {
-	    int ndims = nclistlength(node->array.dimset0);
+	    size_t ndims = nclistlength(node->array.dimset0);
 	    for(j=0;j<ndims;j++) {
 		CDFnode* dim = (CDFnode*)nclistget(node->array.dimset0,j);
 		if(DIMFLAG(dim,CDFDIMSTRING)) {
@@ -1985,8 +1988,8 @@ cdftotalsize(NClist* dimensions)
 static void
 estimatevarsizes(NCDAPCOMMON* dapcomm)
 {
-    int ivar;
-    unsigned int rank;
+    size_t ivar;
+    size_t rank;
     size_t totalsize = 0;
 
     for(ivar=0;ivar<nclistlength(dapcomm->cdf.ddsroot->tree->varnodes);ivar++) {
@@ -2143,14 +2146,14 @@ fail:
 static NCerror
 suppressunusablevars(NCDAPCOMMON* dapcomm)
 {
-    int i,j;
+    size_t i,j;
     int found = 1;
     NClist* path = nclistnew();
 
     while(found) {
 	found = 0;
 	/* Walk backwards to aid removal semantics */
-	for(i=nclistlength(dapcomm->cdf.ddsroot->tree->varnodes)-1;i>=0;i--) {
+	for(i = nclistlength(dapcomm->cdf.ddsroot->tree->varnodes); i-->0;) {
 	    CDFnode* var = (CDFnode*)nclistget(dapcomm->cdf.ddsroot->tree->varnodes,i);
 	    /* See if this var is under an unusable sequence */
 	    nclistclear(path);
@@ -2182,7 +2185,7 @@ make them invisible.
 static NCerror
 fixzerodims(NCDAPCOMMON* dapcomm)
 {
-    int i,j;
+    size_t i,j;
     for(i=0;i<nclistlength(dapcomm->cdf.ddsroot->tree->varnodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(dapcomm->cdf.ddsroot->tree->varnodes,i);
         NClist* ncdims = var->array.dimsetplus;
@@ -2248,7 +2251,7 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
 	CLRFLAG(dapcomm->controls,NCF_FILLMISMATCH);
 
     if((value=dapparamvalue(dapcomm,"encode")) != NULL) {
-	int i;
+	size_t i;
 	NClist* encode = nclistnew();
 	if(dapparamparselist(value,',',encode)) 
             nclog(NCLOGERR,"Malformed encode parameter: %s",value);
@@ -2860,5 +2863,25 @@ NCD2_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
     ret = nc_get_var_chunk_cache(getnc3id(drno), p2, p3, p4, p5);
     return THROW(ret);
+}
+
+/* Get substrate NC* object.
+   This function breaks the abstraction, but is necessary for
+   code that accesses the underlying netcdf-4 metadata objects.
+   Used in: NC_reclaim_data[_all]
+            NC_copy_data[_all]
+*/
+
+NC*
+NCD2_get_substrate(NC* nc)
+{
+    NC* subnc = NULL;
+    /* Iff nc->dispatch is the DAP2 dispatcher, then do a level of indirection */
+    if(USED2INFO(nc)) {
+        NCDAPCOMMON* d2 = (NCDAPCOMMON*)nc->dispatchdata;
+        /* Find pointer to NC struct for this file. */
+        (void)NC_check_id(d2->substrate.nc3id,&subnc);
+    } else subnc = nc;
+    return subnc;
 }
 

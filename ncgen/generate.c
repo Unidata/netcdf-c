@@ -6,6 +6,7 @@
 #include "includes.h"
 #include "ncoffsets.h"
 #include "netcdf_aux.h"
+#include <stddef.h>
 
 /**************************************************/
 /* Code for generating data lists*/
@@ -96,7 +97,7 @@ void
 generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* filler, Generator* generator)
 {
     Datalist* data;
-    int offsetbase = 0;
+    size_t offsetbase = 0;
 
     switch (tsym->subclass) {
 
@@ -115,7 +116,8 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         break;
 
     case NC_COMPOUND: {
-        int i,uid, nfields, dllen;
+        size_t i, dllen;
+        int uid;
         if(con == NULL || isfillconst(con)) {
             Datalist* fill = (filler==NULL?getfiller(tsym):filler);
 	    ASSERT(fill->length == 1);
@@ -138,7 +140,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         }
 
         data = con->value.compoundv;
-        nfields = listlength(tsym->subnodes);
+        size_t nfields = listlength(tsym->subnodes);
         dllen = datalistlen(data);
         if(dllen > nfields) {
           semerror(con->lineno,"Datalist longer than the number of compound fields");
@@ -180,7 +182,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         } else {
             generator->listbegin(generator,tsym,NULL,LISTVLEN,data->length,codebuf,&uid);
             for(count=0;count<data->length;count++) {
-              NCConstant* con;
+                NCConstant* con;
                 generator->list(generator,tsym,NULL,LISTVLEN,uid,count,vlenbuf);
                 con = datalistith(data,count);
                 generate_basetype(tsym->typ.basetype,con,vlenbuf,NULL,generator);
@@ -211,7 +213,7 @@ static void
 generate_fieldarray(Symbol* basetype, NCConstant* con, Dimset* dimset,
                  Bytebuffer* codebuf, Datalist* filler, Generator* generator)
 {
-    int i;
+    size_t i;
     int chartype = (basetype->typ.typecode == NC_CHAR);
     Datalist* data;
     int rank = rankfor(dimset);
@@ -251,7 +253,7 @@ generate_fieldarray(Symbol* basetype, NCConstant* con, Dimset* dimset,
 static void
 normalizeopaquelength(NCConstant* prim, unsigned long nbytes)
 {
-    int nnibs = 2*nbytes;
+    size_t nnibs = 2*nbytes;
     ASSERT(prim->nctype==NC_OPAQUE);
     if(prim->value.opaquev.len == nnibs) {
         /* do nothing*/
@@ -262,7 +264,7 @@ normalizeopaquelength(NCConstant* prim, unsigned long nbytes)
         char* s;
         s = (char*)ecalloc(nnibs+1);
         memset(s,'0',nnibs);    /* Fill with '0' characters */
-        memcpy(s,prim->value.opaquev.stringv,prim->value.opaquev.len);
+        memcpy(s,prim->value.opaquev.stringv, prim->value.opaquev.len);
         s[nnibs] = '\0';
         efree(prim->value.opaquev.stringv);
         prim->value.opaquev.stringv=s;
@@ -352,7 +354,6 @@ generate_primdata(Symbol* basetype, NCConstant* prim, Bytebuffer* codebuf,
     generator->constant(generator,basetype,target,codebuf);
     reclaimconstant(target);
     target = NULL;
-    return;
 }
 
 /* Avoid long argument lists */
@@ -371,7 +372,7 @@ struct Args {
 };
 
 static void
-generate_arrayR(struct Args* args, int dimindex, size_t* index, Datalist* data)
+generate_arrayR(struct Args* args, size_t dimindex, size_t* index, Datalist* data)
 {
     size_t counter,stop;
     size_t count[NC_MAX_VAR_DIMS];
@@ -399,6 +400,7 @@ generate_arrayR(struct Args* args, int dimindex, size_t* index, Datalist* data)
         args->generator->listend(args->generator,args->vsym,NULL,LISTDATA,uid,counter,args->code);
         memcpy(count,onesvector,sizeof(size_t)*dimindex);
         count[dimindex] = stop;
+        /* Write the data; also reclaims written data */
         args->writer(args->generator,args->vsym,args->code,args->rank,index,count);
         bbClear(args->code);
     } else {
@@ -451,7 +453,7 @@ generate_array(Symbol* vsym, Bytebuffer* code, Datalist* filler, Generator* gene
 
     if(vsym->var.special._Storage == NC_CHUNKED) {
 	if(vsym->var.special._ChunkSizes)
-            memcpy(args.chunksizes,vsym->var.special._ChunkSizes,sizeof(size_t)*args.rank);
+          memcpy(args.chunksizes,vsym->var.special._ChunkSizes,sizeof(size_t)*(size_t)args.rank);
     }	
 
     memset(index,0,sizeof(index));
@@ -463,8 +465,8 @@ generate_array(Symbol* vsym, Bytebuffer* code, Datalist* filler, Generator* gene
         Bytebuffer* charbuf = bbNew();
         gen_chararray(args.dimset,0,args.vsym->data,charbuf,args.filler);
         args.generator->charconstant(args.generator,args.vsym,args.code,charbuf);
-        memset(start,0,sizeof(size_t)*args.rank);
-        memcpy(count,args.dimsizes,sizeof(size_t)*args.rank);
+        memset(start,0,sizeof(size_t)*(size_t)args.rank);
+        memcpy(count,args.dimsizes,sizeof(size_t)*(size_t)args.rank);
         args.writer(args.generator,args.vsym,args.code,args.rank,start,count);
         bbFree(charbuf);
         bbClear(args.code);

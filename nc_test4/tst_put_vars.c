@@ -42,7 +42,7 @@ main()
     int dimids[NDIMS];
 
     for (i = 0; i < (X_LEN * Y_LEN * Z_LEN); i++)
-        mydata[i] = i;
+        mydata[i] = (float)i;
 
     /* create the file in NetCDF-4 format */
     if ((retval = nc_create(FILE_NAME, NC_NETCDF4, &ncid)))

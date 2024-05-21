@@ -6,5 +6,4 @@ types:
   x_base_t(*) x_t ;
 variables:
 	x_t x ;
-
 }

@@ -205,7 +205,7 @@ Use NC_DISKLESS mode to create the file totally in memory
 before persisting it to disk.
 .IP "\fB-W\fP \fRmaxwholevarsize\fP"
 Set wholevarsizem where if total number of elements is less than maxwholevarsize
-then updata a variable using a single nc_put_var. Requires
+then update a variable using a single nc_put_var. Requires
 that the variable has no unlimited dimensions.
 .IP "\fB-x\fP"
 Don't initialize data with fill values.  This can speed up creation of
@@ -983,6 +983,19 @@ The CDL syntax makes it easy to assign what looks like an array of
 variable-length strings to a netCDF variable, but the strings may simply be
 concatenated into a single array of characters.
 Specific use of the \fIstring\fP type specifier may solve the problem
+
+.SH "Identifiers and Keywords"
+.LP
+Under certain conditions, some keywords can be used as identifiers.
+.IP "\fB1.\fP
+If a type keyword is not a type supported by the format of the .cdl file,
+then it can be used as an identifier. So, for example, when translating a .cdl
+file as a netCDF-3 file, then "string" or "uint64" can be
+used as identifiers.
+.IP "\fB2.\fP
+The keyword "data" can be used as an identifier because it can be tested
+in a context sensitive fashion to see if "data" is a keyword versus an
+identifier.
 
 .SH "CDL Grammar"
 .LP

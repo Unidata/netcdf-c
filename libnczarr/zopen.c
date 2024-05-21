@@ -64,7 +64,7 @@ check_for_classic_model(NC_GRP_INFO_T *root_grp, int *is_classic)
  * @author Dennis Heimbigner, Ed Hartnett
  */
 static int
-ncz_open_file(const char *path, int mode, const char** controls, int ncid)
+ncz_open_file(const char *path, int mode, NClist* controls, int ncid)
 {
     int stat = NC_NOERR;
     NC_FILE_INFO_T *h5 = NULL;
@@ -177,7 +177,8 @@ NCZ_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* LOGGING */
 
     /* Get the controls */
-    if(ncuriparse(path,&uri)) goto done;
+    ncuriparse(path,&uri);
+    if(uri == NULL) goto done;
 
     /* Open the file. */
     if((stat = ncz_open_file(path, mode, ncurifragmentparams(uri), ncid)))

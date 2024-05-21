@@ -6,25 +6,16 @@
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/dump.c,v 1.3 2010/05/24 19:59:57 dmh Exp $ */
 
 #include "includes.h"
+#include <stddef.h>
 #include "dump.h"
 
-#define DEBUGSRC
+#undef DEBUGSRC
 
 #define MAXELEM 8
 #define MAXDEPTH 4
 
 /* Forward */
 static void dumpdataprim(NCConstant*,Bytebuffer*);
-
-char*
-indentstr(int n)
-{
-    static char indentline[1024];
-    memset(indentline,' ',n+1);
-    indentline[n+1] = '\0';
-    return indentline;
-}
-
 
 void
 dumpconstant(NCConstant* con, char* tag)
@@ -51,14 +42,13 @@ bufdump(Datalist* list, Bytebuffer* buf)
 {
     int i;
     NCConstant** dpl;
-    unsigned int count;
 
     if(list == NULL) {
 	bbCat(buf,"NULL");
 	return;
     }
 
-    count = list->length;
+    size_t count = list->length;
     for(dpl=list->data,i=0;i<count;i++,dpl++) {
        NCConstant* dp = *dpl;
        switch (dp->nctype) {
@@ -83,7 +73,7 @@ bufdump(Datalist* list, Bytebuffer* buf)
                 dumpdataprim(dp,buf);
 	    } else {
   	        char tmp[64];
-	        sprintf(tmp,"?%d? ",dp->nctype);
+	        snprintf(tmp,sizeof(tmp),"?%d? ",dp->nctype);
    	        bbCat(buf,tmp);
             } break;
 	}
@@ -104,47 +94,47 @@ dumpdataprim(NCConstant* ci, Bytebuffer* buf)
 	bbCat(buf,"'");
 	} break;
     case NC_BYTE:
-	sprintf(tmp,"%hhd",ci->value.int8v);
+	snprintf(tmp,sizeof(tmp),"%hhd",ci->value.int8v);
 	bbCat(buf,tmp);
 	break;
     case NC_SHORT:
-	sprintf(tmp,"%hd",ci->value.int16v);
+	snprintf(tmp,sizeof(tmp),"%hd",ci->value.int16v);
 	bbCat(buf,tmp);
 	break;
     case NC_INT:
-	sprintf(tmp,"%d",ci->value.int32v);
+	snprintf(tmp,sizeof(tmp),"%d",ci->value.int32v);
 	bbCat(buf,tmp);
 	break;
     case NC_FLOAT:
-	sprintf(tmp,"%g",ci->value.floatv);
+	snprintf(tmp,sizeof(tmp),"%g",ci->value.floatv);
 	bbCat(buf,tmp);
 	break;
     case NC_DOUBLE:
-	sprintf(tmp,"%lg",ci->value.doublev);
+	snprintf(tmp,sizeof(tmp),"%lg",ci->value.doublev);
 	bbCat(buf,tmp);
 	break;
     case NC_UBYTE:
-	sprintf(tmp,"%hhu",ci->value.int8v);
+	snprintf(tmp,sizeof(tmp),"%hhu",ci->value.int8v);
 	bbCat(buf,tmp);
 	break;
     case NC_USHORT:
-	sprintf(tmp,"%hu",ci->value.uint16v);
+	snprintf(tmp,sizeof(tmp),"%hu",ci->value.uint16v);
 	bbCat(buf,tmp);
 	break;
     case NC_UINT:
-	sprintf(tmp,"%u",ci->value.uint32v);
+	snprintf(tmp,sizeof(tmp),"%u",ci->value.uint32v);
 	bbCat(buf,tmp);
 	break;
     case NC_INT64:
-	sprintf(tmp,"%lld",ci->value.int64v);
+	snprintf(tmp,sizeof(tmp),"%lld",ci->value.int64v);
 	bbCat(buf,tmp);
 	break;
     case NC_UINT64:
-	sprintf(tmp,"%llu",ci->value.uint64v);
+	snprintf(tmp,sizeof(tmp),"%llu",ci->value.uint64v);
 	bbCat(buf,tmp);
 	break;
     case NC_ECONST:
-	sprintf(tmp,"%s",ci->value.enumv->fqn);
+	snprintf(tmp,sizeof(tmp),"%s",ci->value.enumv->fqn);
 	bbCat(buf,tmp);
 	break;
     case NC_STRING:
@@ -169,8 +159,7 @@ dumpgroup(Symbol* g)
     if(debug <= 1) return; 
     fdebug("group %s {\n",(g==NULL?"null":g->name));
     if(g != NULL && g->subnodes != NULL) {    
-	int i;
-	for(i=0;i<listlength(g->subnodes);i++) {
+	for(size_t i=0;i<listlength(g->subnodes);i++) {
 	    Symbol* sym = (Symbol*)listget(g->subnodes,i);
 	    char* tname;
 	    if(sym->objectclass == NC_PRIM
@@ -178,7 +167,7 @@ dumpgroup(Symbol* g)
 		tname = nctypename(sym->subclass);
 	    } else
 		tname = nctypename(sym->objectclass);
-	    fdebug("    %3d:  %s\t%s\t%s\n",
+	    fdebug("    %3zu:  %s\t%s\t%s\n",
 		i,
 		sym->name,
 		tname,

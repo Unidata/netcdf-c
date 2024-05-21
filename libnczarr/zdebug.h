@@ -5,30 +5,30 @@
 #ifndef ZDEBUG_H
 #define ZDEBUG_H
 
+#undef ZCATCH /* Warning: significant performance impact */
+#undef ZTRACING /* Warning: significant performance impact */
+
 #undef ZDEBUG /* general debug */
 #undef ZDEBUG1 /* detailed debug */
-
-#define ZCATCH /* Warning: significant performance impact */
-#define ZTRACING /* Warning: significant performance impact */
 
 #include "ncexternl.h"
 #include "nclog.h"
 
-#ifdef LOGGING
 #define ZLOG(tag,...) nclog(tag,__VA_ARGS__)
-#else
-#define ZLOG(tag,...)
-#endif
 
 #ifdef ZCATCH
 /* Place breakpoint on zbreakpoint to catch errors close to where they occur*/
+/* WARNING: Do not evaluate e more than once */
 #define THROW(e) zthrow((e),__FILE__, __func__, __LINE__)
+#define REPORT(e,msg) zreport((e),(msg),__FILE__, __func__, __LINE__)
 #define ZCHECK(e) if((e)) {THROW(stat); goto done;} else {}
 EXTERNL int zbreakpoint(int err);
 EXTERNL int zthrow(int err, const char* fname, const char* fcn, int line);
+EXTERNL int zreport(int err, const char* msg, const char* fname, const char* fcn, int line);
 #else
 #define ZCHECK(e) {if((e)) {goto done;}}
 #define THROW(e) (e)
+#define REPORT(e,msg) (e)
 #endif
 
 #ifdef ZTRACING
@@ -78,4 +78,3 @@ struct ZUTEST {
 EXTERNL struct ZUTEST* zutest;
 
 #endif /*ZDEBUG_H*/
-

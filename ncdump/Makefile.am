@@ -7,7 +7,7 @@
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT += export SETX=1;
+#TESTS_ENVIRONMENT = export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -16,10 +16,6 @@ noinst_PROGRAMS=
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
 XFAIL_TESTS=""
-
-if ! ENABLE_UNFIXED_MEMORY_LEAKS
-AM_TESTS_ENVIRONMENT += export NC_VLEN_NOTEST=1;
-endif
 
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump
@@ -45,6 +41,10 @@ ncvalidator_SOURCES = ncvalidator.c
 noinst_PROGRAMS += ncpathcvt
 ncpathcvt_SOURCES = ncpathcvt.c
 
+# A non-installed utility program to test if a filter is available
+noinst_PROGRAMS += ncfilteravail
+ncfilteravail_SOURCES = ncfilteravail.c
+
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_HDF5
 bin_PROGRAMS += nc4print
@@ -57,10 +57,17 @@ nc4print_SOURCES = nc4print.c nc4printer.c
 noinst_PROGRAMS += printfqn
 printfqn_SOURCES = printfqn.c
 
+# A non-installed utility program to return
+# the HDF5 Version as an integer of the form XXXYYYZZZ with no newline.
+# Where XXX is the major version number, YYY is the minor version number
+# and ZZZ is the patch level.
+noinst_PROGRAMS += nchdf5version
+nchdf5version_SOURCES = nchdf5version.c
+
 endif
 
 # Conditionally build the ocprint program, but do not install
-if ENABLE_DAP
+if NETCDF_ENABLE_DAP
 bin_PROGRAMS += ocprint
 noinst_PROGRAMS += ocprint
 ocprint_SOURCES = ocprint.c
@@ -72,7 +79,7 @@ man_MANS = ncdump.1 nccopy.1
 if BUILD_TESTSETS
 # C programs needed by shell scripts for classic tests.
 check_PROGRAMS = rewrite-scalar ref_ctest ref_ctest64 ncdump tst_utf8   \
-bom tst_dimsizes nctrunc tst_rcmerge
+bom tst_dimsizes nctrunc tst_rcmerge tst_rcapi
 
 # Tests for classic and 64-bit offset files.
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest	\
@@ -85,7 +92,7 @@ test_radix.sh test_rcmerge.sh
 # The tst_nccopy3.sh test uses output from a bunch of other
 # tests. This records the dependency so parallel builds work.
 tst_nccopy3.log: tst_calendars.log run_utf8_tests.log tst_output.log	\
-tst_64bit.log run_tests.log tst_lengths.log
+                 tst_64bit.log run_tests.log tst_lengths.log
 
 TESTS += tst_null_byte_padding.sh
 if USE_STRICT_NULL_BYTE_HEADER_PADDING
@@ -104,22 +111,24 @@ if USE_HDF5
 check_PROGRAMS += tst_fileinfo tst_create_files tst_h_rdc0	\
 tst_group_data tst_enum_data tst_opaque_data tst_string_data	\
 tst_vlen_data tst_comp tst_comp2 tst_nans tst_special_atts	\
-tst_unicode tst_fillbug tst_compress tst_chunking tst_h_scalar
+tst_unicode tst_fillbug tst_compress tst_chunking tst_h_scalar  \
+tst_enum_undef
 
 check_PROGRAMS += tst_vlen_demo
 
 # Tests for netCDF-4 behavior.
 TESTS += tst_fileinfo.sh tst_hdf5_offset.sh tst_inttags4.sh		\
-tst_netcdf4.sh tst_fillbug.sh tst_nccopy4.sh		\
-tst_nccopy5.sh tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
+tst_netcdf4.sh tst_fillbug.sh \
+tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
 run_utf8_nc4_tests.sh run_ncgen_nc4_tests.sh	\
 tst_ncgen4.sh test_scope.sh
 
 # Record interscript dependencies so parallel builds work.
 tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
-tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log
+                 tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log tst_netcdf4.log
 tst_nccopy5.log: tst_nccopy4.log
-endif #!USE_HDF5
+
+endif #USE_HDF5
 
 TESTS += tst_inmemory_nc3.sh tst_nccopy_w3.sh
 if USE_HDF5
@@ -131,19 +140,25 @@ if USE_HDF5
 TESTS += tst_ctests.sh
 endif
 
-if ENABLE_CDF5
+if NETCDF_ENABLE_CDF5
 # Test for keywords as identifiers
 TESTS += test_keywords.sh
 endif
 
-if ! ISMINGW
-if ! ISCYGWIN
-TESTS += tst_output.sh tst_nccopy3.sh
-TESTS += test_unicode_directory.sh  test_unicode_path.sh
+if !ISMINGW
+if !ISCYGWIN
+TESTS += tst_output.sh
+TESTS += tst_nccopy3.sh
 if USE_HDF5
 TESTS += run_back_comp_tests.sh tst_netcdf4_4.sh
+TESTS += tst_nccopy4.sh tst_nccopy5.sh tst_calendars_nc4.sh
 endif
 endif
+endif
+
+# The unicode tests
+if !ISMINGW
+TESTS += test_unicode_directory.sh  test_unicode_path.sh
 endif
 
 endif BUILD_TESTSETS
@@ -162,7 +177,7 @@ ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl	\
 ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc	\
 ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl		\
 tst_bug321.cdl ref_tst_format_att.cdl ref_tst_format_att_64.cdl		\
-tst_nccopy3.sh tst_nccopy4.sh tst_nccopy5.sh				\
+tst_nccopy3.sh tst_nccopy4.sh tst_nccopy5.sh tst_calendars_nc4.sh	\
 ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh			\
 ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl		\
 ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh		\
@@ -189,14 +204,15 @@ ref_roman_szip_simple.cdl ref_roman_szip_unlim.cdl ref_tst_perdimspecs.cdl \
 test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl ref_keyword3.cdl ref_keyword4.cdl \
 ref_tst_nofilters.cdl test_scope.sh  \
 test_rcmerge.sh ref_rcmerge1.txt ref_rcmerge2.txt ref_rcmerge3.txt \
-scope_ancestor_only.cdl scope_ancestor_subgroup.cdl scope_group_only.cdl scope_preorder.cdl
+scope_ancestor_only.cdl scope_ancestor_subgroup.cdl scope_group_only.cdl scope_preorder.cdl \
+ref_rcapi.txt ref_tst_enum_undef.cdl tst_calendars_nc4.cdl ref_times_nc4.cdl ref_tst_comp2.cdl
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
 EXTRA_DIST += L512.bin
 
 EXTRA_DIST += tst_ctests.sh ref_ctest_small_3.c ref_ctest_small_4.c \
-	ref_ctest_special_atts_4.c
+	ref_ctest_special_atts_4.c test_ncdump.sh
 
 EXTRA_DIST += testpathcvt.sh ref_pathcvt.txt
 
@@ -231,9 +247,8 @@ tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.*                   \
 keyword1.nc keyword2.nc keyword3.nc keyword4.nc                         \
 tmp_keyword1.cdl tmp_keyword2.cdl tmp_keyword3.cdl tmp_keyword4.cdl     \
 type_*.nc copy_type_*.cdl                                               \
-scope_*.nc copy_scope_*.cdl
+scope_*.nc copy_scope_*.cdl keyword5.nc tst_enum_undef.cdl tst_times_nc4.cdl
 
 # Remove directories
 clean-local:
-	rm -fr rcmergedir rchome
-
+	rm -fr rcmergedir rchome testset_*

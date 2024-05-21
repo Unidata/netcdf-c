@@ -6,6 +6,7 @@
 
 #include "includes.h"
 #include <ctype.h>	/* for isprint() */
+#include <stddef.h>
 
 #ifdef ENABLE_C
 
@@ -37,22 +38,22 @@ static void genc_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 void
 genc_netcdf(void)
 {
-    int idim, ivar, iatt, maxdims;
-    int ndims, nvars, natts, ngatts;
+    size_t idim, ivar, iatt;
+    int maxdims;
     char* cmode_string;
     const char *filename = rootgroup->file.filename;
 
 #ifdef USE_NETCDF4
-    int igrp,ityp, ngrps, ntyps;
+    size_t igrp, ityp;
 #endif
 
-    ndims = listlength(dimdefs);
-    nvars = listlength(vardefs);
-    natts = listlength(attdefs);
-    ngatts = listlength(gattdefs);
+    size_t ndims = listlength(dimdefs);
+    size_t nvars = listlength(vardefs);
+    size_t natts = listlength(attdefs);
+    size_t ngatts = listlength(gattdefs);
 #ifdef USE_NETCDF4
-    ngrps = listlength(grpdefs);
-    ntyps = listlength(typdefs);
+    size_t ngrps = listlength(grpdefs);
+    size_t ntyps = listlength(typdefs);
 #endif /*USE_NETCDF4*/
 
     /* wrap in main program */
@@ -99,7 +100,10 @@ genc_netcdf(void)
             if(special->flags & _CHUNKSIZES_FLAG) {
                 int i;
                 size_t* chunks = special->_ChunkSizes;
-                if(special->nchunks == 0 || chunks == NULL) continue;
+                if(special->nchunks == 0 || chunks == NULL) {
+                    bbFree(tmp);
+                    continue;
+                }
                 bbClear(tmp);
                 for(i=0;i<special->nchunks;i++) {
                     bbprintf(tmp,"%s%ld",
@@ -539,6 +543,22 @@ genc_definespecialattributes(Symbol* vsym)
             codelined(1,"CHECK_ERR(stat);");
 	}
     }
+    if(special->flags & (_QUANTIZEBG_FLAG | _QUANTIZEGBR_FLAG)) {
+    	const char* alg = NULL;
+	switch(special->_Quantizer) {
+	case NC_QUANTIZE_BITGROOM: alg = "NC_QUANTIZE_BITGROOM";
+	case NC_QUANTIZE_GRANULARBR: alg = "NC_QUANTIZE_GRANULARBR";
+	default: alg = "NC_NOQUANTIZE";
+	}
+        bbprintf0(stmt,
+                "    stat = nc_def_var_quantize(%s, %s, %s, %d);\n",
+                groupncid(vsym->container),
+                varncid(vsym),
+		alg, special->_NSD
+                );
+        codedump(stmt);
+        codelined(1,"CHECK_ERR(stat);");
+    }
 }
 #endif /*USE_NETCDF4*/
 
@@ -745,7 +765,7 @@ ctypename(Symbol* tsym)
 static void
 definectype(Symbol* tsym)
 {
-    int i,j;
+    size_t i,j;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
@@ -825,7 +845,7 @@ Generate the C code for defining a given type
 static void
 genc_deftype(Symbol* tsym)
 {
-    int i;
+    size_t i;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
@@ -1013,8 +1033,7 @@ genc_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
     /* Dump any vlen decls first */
     generator_getstate(generator,(void**)&vlendecls);
     if(vlendecls != NULL && listlength(vlendecls) > 0) {
-	int i;
-	for(i=0;i<listlength(vlendecls);i++) {
+	for(size_t i=0;i<listlength(vlendecls);i++) {
 	   Bytebuffer* decl = (Bytebuffer*)listget(vlendecls,i);
 	   codelined(1,bbContents(decl));
 	   bbFree(decl);
@@ -1135,8 +1154,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
         List* vlendecls;
         generator_getstate(generator,(void**)&vlendecls);
         if(vlendecls != NULL && listlength(vlendecls) > 0) {
-            int i;
-            for(i=0;i<listlength(vlendecls);i++) {
+            for(size_t i=0;i<listlength(vlendecls);i++) {
                 Bytebuffer* decl = (Bytebuffer*)listget(vlendecls,i);
                 codelined(1,bbContents(decl));
                 bbFree(decl);

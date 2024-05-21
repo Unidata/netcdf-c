@@ -27,14 +27,10 @@ extern "C" {
 #endif
 
 #include "netcdf_filter_build.h"
+
+#ifdef HAVE_BLOSC
 #include "blosc.h"
-
-/* Filter revision number, starting at 1 */
-/* #define FILTER_BLOSC_VERSION 1 */
-#define FILTER_BLOSC_VERSION 2	/* multiple compressors since Blosc 1.3 */
-
-/* Filter ID registered with the HDF Group */
-#define FILTER_BLOSC 32001
+#endif
 
 #ifdef _MSC_VER
   #ifdef DLL_EXPORT /* define when building the library */
@@ -45,6 +41,15 @@ extern "C" {
 #else
   #define DECLSPEC extern
 #endif
+
+/* Filter revision number, starting at 1 */
+/* #define FILTER_BLOSC_VERSION 1 */
+#define FILTER_BLOSC_VERSION 2	/* multiple compressors since Blosc 1.3 */
+
+#define DEFAULT_LEVEL		9
+#define DEFAULT_BLOCKSIZE	1
+#define DEFAULT_TYPESIZE	1
+#define DEFAULT_COMPCODE	BLOSC_LZ4
 
 /* HDF5 Plugin API */
 DECLSPEC H5PL_type_t H5PLget_plugin_type(void);

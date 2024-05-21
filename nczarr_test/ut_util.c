@@ -4,6 +4,7 @@
  */
 
 #include "ut_includes.h"
+#include <stddef.h>
 
 #undef DEBUG
 
@@ -81,13 +82,14 @@ parsedimdef(const char* s0, Dimdef** defp)
     s = s0;
     if((p = strchr(s,'=')) == NULL) abort();
     if((count = (p - s)) == 0) return THROW(NC_EINVAL);
-    def->name = malloc(count+1);
-    memcpy(def->name,s,count);
+    def->name = malloc((size_t)count+1);
+    memcpy(def->name,s,(size_t)count);
     def->name[count] = '\0';
     s = p+1;
     sscanf(s,"%u%n",&l,&nchars);
     if(nchars == -1) return NC_EINVAL;
     def->size = (size_t)l;
+    if(def->size == 0) def->isunlimited = 1;
     s += nchars;
     if(*s != '\0') return NC_EINVAL;
     if(defp) *defp = def;
@@ -114,7 +116,7 @@ parsevardef(const char* s0, NClist* dimdefs, Vardef** varp)
     if(p == NULL) return THROW(NC_EINVAL);
     len = (p - s);  
     if(len == 0) return THROW(NC_EINVAL);
-    memcpy(name,s,len);
+    memcpy(name,s,(size_t)len);
     name[len] = '\0';
     vd->typeid = ut_typeforname(name);
     vd->typesize = ut_typesize(vd->typeid);
@@ -126,7 +128,7 @@ parsevardef(const char* s0, NClist* dimdefs, Vardef** varp)
     if(p == NULL) return THROW(NC_EINVAL);
     len = (p - s);  
     if(len == 0) return THROW(NC_EINVAL);
-    memcpy(name,s,len);
+    memcpy(name,s,(size_t)len);
     name[len] = '\0';
     vd->name = strdup(name);     
     /* parse a vector of dimnames and chunksizes and convert */
@@ -177,7 +179,7 @@ parsestringvector(const char* s0, int stopchar, char*** namesp)
     /* First, compute number of elements */
     for(s=s0,nelems=1;*s;s++) {if(*s == ',') nelems++; if(*s == stopchar) break;}
     if(nelems == 0) return THROW(NC_EINVAL);
-    names = calloc(nelems+1,sizeof(char*));
+    names = calloc((size_t)nelems+1,sizeof(char*));
     for(s=s0,i=0;i<nelems;i++) {
         ptrdiff_t len;
         const char* p = strchr(s,',');
@@ -186,8 +188,8 @@ parsestringvector(const char* s0, int stopchar, char*** namesp)
         if(names[i] == NULL) {
             char* q;
             len = (p - s);
-            q = malloc(1+len);
-            memcpy(q,s,len);
+            q = malloc(1+(size_t)len);
+            memcpy(q,s,(size_t)len);
             q[len] = '\0';
             names[i] = q;
         }
@@ -198,48 +200,10 @@ parsestringvector(const char* s0, int stopchar, char*** namesp)
     return nelems;
 }
 
-int
-parseintvector(const char* s0, int typelen, void** vectorp)
-{
-    int count,nchars,nelems,index;
-    const char* s = NULL;
-    void* vector = NULL;
-
-    /* First, compute number of elements */
-    for(s=s0,nelems=1;*s;s++) {
-        if(*s == ',') nelems++;
-    }
-
-    vector = calloc(nelems,typelen);
-
-    /* Extract the elements of the vector */
-    /* Skip any leading bracketchar */
-    s=s0;
-    if(strchr(OPEN,*s0) != NULL) s++;
-    for(index=0;*s;index++) {
-        long long elem;
-        nchars = -1;
-        count = sscanf(s,"%lld%n",&elem,&nchars);
-        if(nchars == -1 || count != 1) return THROW(NC_EINVAL);
-        s += nchars;
-        if(*s == ',') s++;
-        switch (typelen) {
-        case 1: ((char*)vector)[index] = (char)elem; break;
-        case 2: ((short*)vector)[index] = (short)elem; break;
-        case 4: ((int*)vector)[index] = (int)elem; break;
-        case 8: ((long long*)vector)[index] = (long long)elem; break;
-        default: abort();
-        }
-    }
-    assert(nelems == index);
-    if(vectorp) *vectorp = vector;
-    return nelems;
-}
-
 void
 freedimdefs(NClist* defs)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(defs);i++) {
 	Dimdef* dd = nclistget(defs,i);
 	nullfree(dd->name);
@@ -250,7 +214,7 @@ freedimdefs(NClist* defs)
 void
 freevardefs(NClist* defs)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(defs);i++) {
 	Vardef* vd = nclistget(defs,i);
 	nullfree(vd->name);
@@ -313,7 +277,7 @@ printvec(int len, size64_t* vec)
 #endif /*0*/
 
 /**************************************************/
-int
+size_t
 ut_typesize(nc_type t)
 {
     switch (t) {
@@ -348,7 +312,7 @@ ut_typeforname(const char* tname)
 static Dimdef*
 finddim(const char* name, NClist* defs)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(defs);i++) {
         Dimdef* dd = nclistget(defs,i);
         if(strcmp(dd->name,name) == 0)
@@ -421,7 +385,7 @@ void
 printoptions(struct UTOptions* opts)
 {
     char** p;
-    int i;
+    size_t i;
     printf("Options:");
 #if 0
     printf(" debug=%d",opts->debug);
@@ -455,7 +419,7 @@ printoptions(struct UTOptions* opts)
     }
 
     printf(" -s ");
-    for(i=0;i<opts->nslices;i++) {
+    for(i=0;i<(size_t)opts->nslices;i++) {
 	NCZSlice* sl = &opts->slices[i];
 	printf("%s",nczprint_slicex(*sl,1));
     }
@@ -477,7 +441,8 @@ hasdriveletter(const char* f)
 void
 ut_sortlist(NClist* l)
 {
-    int i, switched;
+    int switched;
+    size_t i;
 
     if(nclistlength(l) <= 1) return;
     do {
@@ -506,8 +471,8 @@ fillcommon(struct Common* common, Vardef* var)
     common->typesize = sizeof(int);
     if(var != NULL) {
         common->rank = var->rank;
-        common->dimlens = var->dimsizes;
-        common->chunklens = var->chunksizes;
-        common->memshape = common->dimlens; /* fake it */
+        memcpy(common->dimlens,var->dimsizes,sizeof(size64_t)*(size_t)common->rank);
+        memcpy(common->chunklens,var->chunksizes,sizeof(size64_t)*(size_t)common->rank);
+        memcpy(common->memshape,common->dimlens,sizeof(size64_t)*(size_t)common->rank); /* fake it */
     }
 }

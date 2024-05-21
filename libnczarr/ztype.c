@@ -14,6 +14,7 @@
  */
 
 #include "zincludes.h"
+#include <stddef.h>
 
 /**
  * @internal Determine if two types are equal.
@@ -69,11 +70,11 @@ NCZ_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
     /* Not atomic types - so find type1 and type2 information. */
     if ((retval = nc4_find_nc4_grp(ncid1, &grpone)))
         return retval;
-    if (!(type1 = nclistget(grpone->nc4_info->alltypes, typeid1)))
+    if (!(type1 = nclistget(grpone->nc4_info->alltypes, (size_t)typeid1)))
         return NC_EBADTYPE;
     if ((retval = nc4_find_nc4_grp(ncid2, &grptwo)))
         return retval;
-    if (!(type2 = nclistget(grptwo->nc4_info->alltypes, typeid2)))
+    if (!(type2 = nclistget(grptwo->nc4_info->alltypes, (size_t)typeid2)))
         return NC_EBADTYPE;
 
 #ifdef LOOK
@@ -133,8 +134,9 @@ NCZ_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 int
 NCZ_inq_typeids(int ncid, int *ntypes, int *typeids)
 {
+    ZTRACE(0,"ncid=%d",ncid);
     if(ntypes) *ntypes = 0;
-    return NC_NOERR;
+    return ZUNTRACEX(NC_NOERR,"ntypes=%d typeids=%p",(ntypes?-1:*ntypes),typeids);
 }
 
 #ifdef LOOK
@@ -146,7 +148,7 @@ NCZ_inq_typeids(int ncid, int *ntypes, int *typeids)
  * @param size Size in bytes of new type.
  * @param name Name of new type.
  * @param base_typeid Base type ID.
- * @param type_class NC_VLEN, NC_ENUM, or NC_STRING
+ * @param type_class NC_VLEN, NC_ENUM
  * @param typeidp Pointer that gets new type ID.
  *
  * @return ::NC_NOERR No error.
@@ -190,8 +192,12 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
         if ((retval = NCZ_redef(ncid)))
             return retval;
 
-    /* No size is provided for vlens or enums, get it from the base type. */
-    if (type_class == NC_VLEN || type_class == NC_ENUM)
+    /* No size is provided for vlens; use the size of nc_vlen_t */
+    if (type_class == NC_VLEN)
+	size = sizeof(nc_vlen_t);
+
+    /* No size is provided for enums, get it from the base type. */
+    else if(type_class == NC_ENUM)
     {
         if ((retval = ncz_get_typelen_mem(grp->ncz_info, base_typeid, &size)))
             return retval;
@@ -222,6 +228,8 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
         type->u.e.enum_member = nclistnew();
     } else if (type_class == NC_COMPOUND)
         type->u.c.field = nclistnew();
+
+    (void)NC4_set_varsize(type);
 
     /* Return the typeid to the user. */
     if (typeidp)
@@ -332,6 +340,8 @@ NCZ_insert_array_compound(int ncid, int typeid1, const char *name,
     if ((retval = ncz_field_list_add(type, norm_name, offset, field_typeid,
                                      ndims, dim_sizesp)))
         return retval;
+
+    NC4_recheck_varsize(type,field_typeid);
 
     return NC_NOERR;
 }

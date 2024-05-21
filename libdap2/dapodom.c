@@ -81,7 +81,7 @@ dapodom_print(Dapodometer* odom)
     if(odom->rank == 0) {
 	strlcat(line,"[]",sizeof(line));
     } else for(i=0;i<odom->rank;i++) {
-	sprintf(tmp,"[%lu/%lu:%lu:%lu]",
+	snprintf(tmp,sizeof(tmp),"[%lu/%lu:%lu:%lu]",
 		(size_t)odom->index[i],
 		(size_t)odom->start[i],
 		(size_t)odom->stride[i],
@@ -114,9 +114,8 @@ dapodom_count(Dapodometer* odom)
 int
 dapodom_next(Dapodometer* odom)
 {
-    int i; /* do not make unsigned */
     if(odom->rank == 0) return 0; 
-    for(i=odom->rank-1;i>=0;i--) {
+    for(size_t i = odom->rank; i-->0;) {
         odom->index[i] += odom->stride[i];
         if(odom->index[i] < odom->stop[i]) break;
 	if(i == 0) return 0; /* leave the 0th entry if it overflows*/

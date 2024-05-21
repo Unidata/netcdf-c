@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.6.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
@@ -46,10 +46,10 @@
    USER NAME SPACE" below.  */
 
 /* Identify Bison output, and Bison version.  */
-#define YYBISON 30706
+#define YYBISON 30802
 
 /* Bison version string.  */
-#define YYBISON_VERSION "3.7.6"
+#define YYBISON_VERSION "3.8.2"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -320,12 +320,18 @@ typedef int yy_state_fast_t;
 # define YY_USE(E) /* empty */
 #endif
 
-#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                            \
+#if defined __GNUC__ && ! defined __ICC && 406 <= __GNUC__ * 100 + __GNUC_MINOR__
+# if __GNUC__ * 100 + __GNUC_MINOR__ < 407
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
+    _Pragma ("GCC diagnostic push")                                     \
+    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")
+# else
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
     _Pragma ("GCC diagnostic push")                                     \
     _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")              \
     _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
+# endif
 # define YY_IGNORE_MAYBE_UNINITIALIZED_END      \
     _Pragma ("GCC diagnostic pop")
 #else
@@ -540,7 +546,7 @@ static const yytype_int8 yytranslate[] =
 };
 
 #if YYDEBUG
-  /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
+/* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
        0,    34,    34,    35,    36,    37,    40,    40,    43,    47,
@@ -582,17 +588,6 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#ifdef YYPRINT
-/* YYTOKNUM[NUM] -- (External) token number corresponding to the
-   (internal) symbol number NUM (which must be that of a token).  */
-static const yytype_int16 yytoknum[] =
-{
-       0,   256,   257,   258,   259,   260,    63,    44,    40,    41,
-      46,    91,    93,    58,    38,   123,   125,    61,    62,    60,
-      33,   126
-};
-#endif
-
 #define YYPACT_NINF (-36)
 
 #define yypact_value_is_default(Yyn) \
@@ -603,8 +598,8 @@ static const yytype_int16 yytoknum[] =
 #define yytable_value_is_error(Yyn) \
   0
 
-  /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
-     STATE-NUM.  */
+/* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
+   STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
       10,   -36,     8,     4,   -36,   -36,    46,    12,   -36,    23,
@@ -618,9 +613,9 @@ static const yytype_int8 yypact[] =
       46,   -36,   -36,    53,   -36,    63,   -36
 };
 
-  /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
-     Performed when YYTABLE does not specify something else to do.  Zero
-     means the default is an error.  */
+/* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
+   Performed when YYTABLE does not specify something else to do.  Zero
+   means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
        7,     6,     0,     0,     1,    57,     0,     2,     3,     8,
@@ -634,7 +629,7 @@ static const yytype_int8 yydefact[] =
        0,    28,    23,     0,    32,     0,    24
 };
 
-  /* YYPGOTO[NTERM-NUM].  */
+/* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
      -36,   -36,   -36,   -36,    56,   -36,    47,     1,   -36,    28,
@@ -642,7 +637,7 @@ static const yytype_int8 yypgoto[] =
       33,   -36,   -36,    37,   -36,    77,    -1,   -35,   -36
 };
 
-  /* YYDEFGOTO[NTERM-NUM].  */
+/* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
        0,     2,     3,     7,     8,     9,    10,    20,    12,    13,
@@ -650,9 +645,9 @@ static const yytype_int8 yydefgoto[] =
       25,    48,    26,    55,    43,    16,    28,    29,    30
 };
 
-  /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
-     positive, shift that token.  If negative, reduce the rule whose
-     number is the opposite.  If YYTABLE_NINF, syntax error.  */
+/* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
+   positive, shift that token.  If negative, reduce the rule whose
+   number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
       21,    56,    17,   -45,    11,   -46,   -56,     5,     4,    36,
@@ -679,8 +674,8 @@ static const yytype_int8 yycheck[] =
       48,    14,    45,     6
 };
 
-  /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
-     symbol of state STATE-NUM.  */
+/* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
+   state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
        0,     6,    23,    24,     0,     3,    14,    25,    26,    27,
@@ -694,7 +689,7 @@ static const yytype_int8 yystos[] =
        7,    16,    12,    13,    38,    49,    12
 };
 
-  /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
+/* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
        0,    22,    23,    23,    23,    23,    24,    24,    25,    26,
@@ -705,7 +700,7 @@ static const yytype_int8 yyr1[] =
       46,    46,    46,    46,    46,    46,    47,    48,    49,    50
 };
 
-  /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
+/* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     2,     2,     3,     0,     1,     0,     1,     1,
@@ -725,6 +720,7 @@ enum { YYENOMEM = -2 };
 #define YYACCEPT        goto yyacceptlab
 #define YYABORT         goto yyabortlab
 #define YYERROR         goto yyerrorlab
+#define YYNOMEM         goto yyexhaustedlab
 
 
 #define YYRECOVERING()  (!!yyerrstatus)
@@ -765,10 +761,7 @@ do {                                            \
     YYFPRINTF Args;                             \
 } while (0)
 
-/* This macro is provided for backward compatibility. */
-# ifndef YY_LOCATION_PRINT
-#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
-# endif
+
 
 
 # define YY_SYMBOL_PRINT(Title, Kind, Value, Location)                    \
@@ -796,10 +789,6 @@ yy_symbol_value_print (FILE *yyo,
   YY_USE (parsestate);
   if (!yyvaluep)
     return;
-# ifdef YYPRINT
-  if (yykind < YYNTOKENS)
-    YYPRINT (yyo, yytoknum[yykind], *yyvaluep);
-# endif
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   YY_USE (yykind);
   YY_IGNORE_MAYBE_UNINITIALIZED_END
@@ -991,6 +980,7 @@ YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yychar = YYEMPTY; /* Cause a token to be read.  */
+
   goto yysetstate;
 
 
@@ -1016,7 +1006,7 @@ yysetstate:
 
   if (yyss + yystacksize - 1 <= yyssp)
 #if !defined yyoverflow && !defined YYSTACK_RELOCATE
-    goto yyexhaustedlab;
+    YYNOMEM;
 #else
     {
       /* Get the current used size of the three stacks, in elements.  */
@@ -1044,7 +1034,7 @@ yysetstate:
 # else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
-        goto yyexhaustedlab;
+        YYNOMEM;
       yystacksize *= 2;
       if (YYMAXDEPTH < yystacksize)
         yystacksize = YYMAXDEPTH;
@@ -1055,7 +1045,7 @@ yysetstate:
           YY_CAST (union yyalloc *,
                    YYSTACK_ALLOC (YY_CAST (YYSIZE_T, YYSTACK_BYTES (yystacksize))));
         if (! yyptr)
-          goto yyexhaustedlab;
+          YYNOMEM;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);
 #  undef YYSTACK_RELOCATE
@@ -1076,6 +1066,7 @@ yysetstate:
         YYABORT;
     }
 #endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
+
 
   if (yystate == YYFINAL)
     YYACCEPT;
@@ -1191,317 +1182,317 @@ yyreduce:
   case 8: /* projections: projectionlist  */
 #line 43 "dce.y"
                        {projections(parsestate,yyvsp[0]);}
-#line 1195 "dcetab.c"
+#line 1186 "dcetab.c"
     break;
 
   case 9: /* selections: clauselist  */
 #line 47 "dce.y"
                    {selections(parsestate,yyvsp[0]);}
-#line 1201 "dcetab.c"
+#line 1192 "dcetab.c"
     break;
 
   case 10: /* projectionlist: projection  */
 #line 52 "dce.y"
             {yyval=projectionlist(parsestate,(Object)null,yyvsp[0]);}
-#line 1207 "dcetab.c"
+#line 1198 "dcetab.c"
     break;
 
   case 11: /* projectionlist: projectionlist ',' projection  */
 #line 54 "dce.y"
             {yyval=projectionlist(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1213 "dcetab.c"
+#line 1204 "dcetab.c"
     break;
 
   case 12: /* projection: segmentlist  */
 #line 59 "dce.y"
             {yyval=projection(parsestate,yyvsp[0]);}
-#line 1219 "dcetab.c"
+#line 1210 "dcetab.c"
     break;
 
   case 13: /* projection: function  */
 #line 61 "dce.y"
             {yyval=projection(parsestate,yyvsp[0]);}
-#line 1225 "dcetab.c"
+#line 1216 "dcetab.c"
     break;
 
   case 14: /* function: ident '(' ')'  */
 #line 66 "dce.y"
             {yyval=function(parsestate,yyvsp[-2],null);}
-#line 1231 "dcetab.c"
+#line 1222 "dcetab.c"
     break;
 
   case 15: /* function: ident '(' arg_list ')'  */
 #line 68 "dce.y"
             {yyval=function(parsestate,yyvsp[-3],yyvsp[-1]);}
-#line 1237 "dcetab.c"
+#line 1228 "dcetab.c"
     break;
 
   case 16: /* segmentlist: segment  */
 #line 73 "dce.y"
             {yyval=segmentlist(parsestate,null,yyvsp[0]);}
-#line 1243 "dcetab.c"
+#line 1234 "dcetab.c"
     break;
 
   case 17: /* segmentlist: segmentlist '.' segment  */
 #line 75 "dce.y"
             {yyval=segmentlist(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1249 "dcetab.c"
+#line 1240 "dcetab.c"
     break;
 
   case 18: /* segment: word  */
 #line 80 "dce.y"
             {yyval=segment(parsestate,yyvsp[0],null);}
-#line 1255 "dcetab.c"
+#line 1246 "dcetab.c"
     break;
 
   case 19: /* segment: word rangelist  */
 #line 82 "dce.y"
             {yyval=segment(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1261 "dcetab.c"
+#line 1252 "dcetab.c"
     break;
 
   case 20: /* rangelist: range  */
 #line 87 "dce.y"
             {yyval=rangelist(parsestate,null,yyvsp[0]);}
-#line 1267 "dcetab.c"
+#line 1258 "dcetab.c"
     break;
 
   case 21: /* rangelist: rangelist range  */
 #line 89 "dce.y"
             {yyval=rangelist(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1273 "dcetab.c"
+#line 1264 "dcetab.c"
     break;
 
   case 22: /* range: '[' number ']'  */
 #line 94 "dce.y"
             {yyval=range(parsestate,yyvsp[-1],null,null);}
-#line 1279 "dcetab.c"
+#line 1270 "dcetab.c"
     break;
 
   case 23: /* range: '[' number ':' number ']'  */
 #line 96 "dce.y"
             {yyval=range(parsestate,yyvsp[-3],null,yyvsp[-1]);}
-#line 1285 "dcetab.c"
+#line 1276 "dcetab.c"
     break;
 
   case 24: /* range: '[' number ':' number ':' number ']'  */
 #line 98 "dce.y"
             {yyval=range(parsestate,yyvsp[-5],yyvsp[-3],yyvsp[-1]);}
-#line 1291 "dcetab.c"
+#line 1282 "dcetab.c"
     break;
 
   case 25: /* range1: '[' number ']'  */
 #line 102 "dce.y"
             {yyval = range1(parsestate,yyvsp[-1]);}
-#line 1297 "dcetab.c"
+#line 1288 "dcetab.c"
     break;
 
   case 26: /* clauselist: sel_clause  */
 #line 108 "dce.y"
             {yyval=clauselist(parsestate,null,yyvsp[0]);}
-#line 1303 "dcetab.c"
+#line 1294 "dcetab.c"
     break;
 
   case 27: /* clauselist: clauselist sel_clause  */
 #line 110 "dce.y"
             {yyval=clauselist(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1309 "dcetab.c"
+#line 1300 "dcetab.c"
     break;
 
   case 28: /* sel_clause: '&' value rel_op '{' value_list '}'  */
 #line 115 "dce.y"
             {yyval=sel_clause(parsestate,1,yyvsp[-4],yyvsp[-3],yyvsp[-1]);}
-#line 1315 "dcetab.c"
+#line 1306 "dcetab.c"
     break;
 
   case 29: /* sel_clause: '&' value rel_op value  */
 #line 117 "dce.y"
             {yyval=sel_clause(parsestate,2,yyvsp[-2],yyvsp[-1],yyvsp[0]);}
-#line 1321 "dcetab.c"
+#line 1312 "dcetab.c"
     break;
 
   case 30: /* sel_clause: '&' boolfunction  */
 #line 119 "dce.y"
             {yyval=yyvsp[-1];}
-#line 1327 "dcetab.c"
+#line 1318 "dcetab.c"
     break;
 
   case 31: /* value_list: value  */
 #line 124 "dce.y"
             {yyval=value_list(parsestate,null,yyvsp[0]);}
-#line 1333 "dcetab.c"
+#line 1324 "dcetab.c"
     break;
 
   case 32: /* value_list: value_list ',' value  */
 #line 126 "dce.y"
             {yyval=value_list(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1339 "dcetab.c"
+#line 1330 "dcetab.c"
     break;
 
   case 33: /* value: var  */
 #line 131 "dce.y"
             {yyval=value(parsestate,yyvsp[0]);}
-#line 1345 "dcetab.c"
+#line 1336 "dcetab.c"
     break;
 
   case 34: /* value: function  */
 #line 133 "dce.y"
             {yyval=value(parsestate,yyvsp[0]);}
-#line 1351 "dcetab.c"
+#line 1342 "dcetab.c"
     break;
 
   case 35: /* value: constant  */
 #line 135 "dce.y"
             {yyval=value(parsestate,yyvsp[0]);}
-#line 1357 "dcetab.c"
+#line 1348 "dcetab.c"
     break;
 
   case 36: /* constant: number  */
 #line 140 "dce.y"
             {yyval=constant(parsestate,yyvsp[0],SCAN_NUMBERCONST);}
-#line 1363 "dcetab.c"
+#line 1354 "dcetab.c"
     break;
 
   case 37: /* constant: string  */
 #line 142 "dce.y"
             {yyval=constant(parsestate,yyvsp[0],SCAN_STRINGCONST);}
-#line 1369 "dcetab.c"
+#line 1360 "dcetab.c"
     break;
 
   case 38: /* var: indexpath  */
 #line 147 "dce.y"
             {yyval=var(parsestate,yyvsp[0]);}
-#line 1375 "dcetab.c"
+#line 1366 "dcetab.c"
     break;
 
   case 39: /* indexpath: index  */
 #line 152 "dce.y"
             {yyval=indexpath(parsestate,null,yyvsp[0]);}
-#line 1381 "dcetab.c"
+#line 1372 "dcetab.c"
     break;
 
   case 40: /* indexpath: indexpath '.' index  */
 #line 154 "dce.y"
             {yyval=indexpath(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1387 "dcetab.c"
+#line 1378 "dcetab.c"
     break;
 
   case 41: /* index: word  */
 #line 159 "dce.y"
             {yyval=indexer(parsestate,yyvsp[0],null);}
-#line 1393 "dcetab.c"
+#line 1384 "dcetab.c"
     break;
 
   case 42: /* index: word array_indices  */
 #line 161 "dce.y"
             {yyval=indexer(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1399 "dcetab.c"
+#line 1390 "dcetab.c"
     break;
 
   case 43: /* array_indices: range1  */
 #line 166 "dce.y"
             {yyval=array_indices(parsestate,null,yyvsp[0]);}
-#line 1405 "dcetab.c"
+#line 1396 "dcetab.c"
     break;
 
   case 44: /* array_indices: array_indices range1  */
 #line 168 "dce.y"
             {yyval=array_indices(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1411 "dcetab.c"
+#line 1402 "dcetab.c"
     break;
 
   case 45: /* boolfunction: ident '(' ')'  */
 #line 173 "dce.y"
             {yyval=function(parsestate,yyvsp[-2],null);}
-#line 1417 "dcetab.c"
+#line 1408 "dcetab.c"
     break;
 
   case 46: /* boolfunction: ident '(' arg_list ')'  */
 #line 175 "dce.y"
             {yyval=function(parsestate,yyvsp[-3],yyvsp[-1]);}
-#line 1423 "dcetab.c"
+#line 1414 "dcetab.c"
     break;
 
   case 47: /* arg_list: value  */
 #line 180 "dce.y"
             {yyval=arg_list(parsestate,null,yyvsp[0]);}
-#line 1429 "dcetab.c"
+#line 1420 "dcetab.c"
     break;
 
   case 48: /* arg_list: value_list ',' value  */
 #line 182 "dce.y"
             {yyval=arg_list(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1435 "dcetab.c"
+#line 1426 "dcetab.c"
     break;
 
   case 49: /* rel_op: '='  */
 #line 186 "dce.y"
                   {yyval=makeselectiontag(CEO_EQ);}
-#line 1441 "dcetab.c"
+#line 1432 "dcetab.c"
     break;
 
   case 50: /* rel_op: '>'  */
 #line 187 "dce.y"
                   {yyval=makeselectiontag(CEO_GT);}
-#line 1447 "dcetab.c"
+#line 1438 "dcetab.c"
     break;
 
   case 51: /* rel_op: '<'  */
 #line 188 "dce.y"
                   {yyval=makeselectiontag(CEO_LT);}
-#line 1453 "dcetab.c"
+#line 1444 "dcetab.c"
     break;
 
   case 52: /* rel_op: '!' '='  */
 #line 189 "dce.y"
                   {yyval=makeselectiontag(CEO_NEQ);}
-#line 1459 "dcetab.c"
+#line 1450 "dcetab.c"
     break;
 
   case 53: /* rel_op: '>' '='  */
 #line 190 "dce.y"
                   {yyval=makeselectiontag(CEO_GE);}
-#line 1465 "dcetab.c"
+#line 1456 "dcetab.c"
     break;
 
   case 54: /* rel_op: '<' '='  */
 #line 191 "dce.y"
                   {yyval=makeselectiontag(CEO_LE);}
-#line 1471 "dcetab.c"
+#line 1462 "dcetab.c"
     break;
 
   case 55: /* rel_op: '=' '~'  */
 #line 192 "dce.y"
                   {yyval=makeselectiontag(CEO_RE);}
-#line 1477 "dcetab.c"
+#line 1468 "dcetab.c"
     break;
 
   case 56: /* ident: word  */
 #line 196 "dce.y"
             {yyval = yyvsp[0];}
-#line 1483 "dcetab.c"
+#line 1474 "dcetab.c"
     break;
 
   case 57: /* word: SCAN_WORD  */
 #line 200 "dce.y"
             {yyval = checkobject(yyvsp[0]);}
-#line 1489 "dcetab.c"
+#line 1480 "dcetab.c"
     break;
 
   case 58: /* number: SCAN_NUMBERCONST  */
 #line 204 "dce.y"
             {yyval = checkobject(yyvsp[0]);}
-#line 1495 "dcetab.c"
+#line 1486 "dcetab.c"
     break;
 
   case 59: /* string: SCAN_STRINGCONST  */
 #line 208 "dce.y"
             {yyval = checkobject(yyvsp[0]);}
-#line 1501 "dcetab.c"
+#line 1492 "dcetab.c"
     break;
 
 
-#line 1505 "dcetab.c"
+#line 1496 "dcetab.c"
 
       default: break;
     }
@@ -1583,6 +1574,7 @@ yyerrorlab:
      label yyerrorlab therefore never appears in user code.  */
   if (0)
     YYERROR;
+  ++yynerrs;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYERROR.  */
@@ -1643,7 +1635,7 @@ yyerrlab1:
 `-------------------------------------*/
 yyacceptlab:
   yyresult = 0;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
 /*-----------------------------------.
@@ -1651,24 +1643,22 @@ yyacceptlab:
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
-#if !defined yyoverflow
-/*-------------------------------------------------.
-| yyexhaustedlab -- memory exhaustion comes here.  |
-`-------------------------------------------------*/
+/*-----------------------------------------------------------.
+| yyexhaustedlab -- YYNOMEM (memory exhaustion) comes here.  |
+`-----------------------------------------------------------*/
 yyexhaustedlab:
   yyerror (parsestate, YY_("memory exhausted"));
   yyresult = 2;
-  goto yyreturn;
-#endif
+  goto yyreturnlab;
 
 
-/*-------------------------------------------------------.
-| yyreturn -- parsing is finished, clean up and return.  |
-`-------------------------------------------------------*/
-yyreturn:
+/*----------------------------------------------------------.
+| yyreturnlab -- parsing is finished, clean up and return.  |
+`----------------------------------------------------------*/
+yyreturnlab:
   if (yychar != YYEMPTY)
     {
       /* Make sure we have latest lookahead translation.  See comments at

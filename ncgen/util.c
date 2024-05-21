@@ -5,6 +5,7 @@
  *********************************************************************/
 
 #include "includes.h"
+#include <stddef.h>
 
 /* Track primitive symbol instances (initialized in ncgen.y) */
 Symbol* primsymbols[PRIMNO];
@@ -12,7 +13,7 @@ Symbol* primsymbols[PRIMNO];
 char*
 append(const char* s1, const char* s2)
 {
-    int len = (s1?strlen(s1):0)+(s2?strlen(s2):0);
+    size_t len = (s1?strlen(s1):0)+(s2?strlen(s2):0);
     char* result = (char*)ecalloc(len+1);
     result[0] = '\0';
     if(s1) strcat(result,s1);
@@ -27,13 +28,13 @@ chartohex(char c)
     switch (c) {
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
-            return (c - '0');
+            return (unsigned int)(c - '0');
         case 'A': case 'B': case 'C':
         case 'D': case 'E': case 'F':
-            return (c - 'A') + 0x0a;
+            return (unsigned int)(c - 'A') + 0x0a;
         case 'a': case 'b': case 'c':
         case 'd': case 'e': case 'f':
-            return (c - 'a') + 0x0a;
+            return (unsigned int)(c - 'a') + 0x0a;
     }
     return 0;
 }
@@ -96,7 +97,6 @@ tztrim(
     while (*ep)
       *cp++ = *ep++;
     *cp = '\0';
-    return;
 }
 
 static void
@@ -174,8 +174,9 @@ nctypename(nc_type nctype)
 	return nctypenamesextend[(nctype - NC_GRP)];
     if(nctype == NC_FILLVALUE) return "NC_FILL";
     if(nctype == NC_NIL) return "NC_NIL";
-    s = poolalloc(128);
-    sprintf(s,"NC_<%d>",nctype);
+    const size_t s_size = 128;
+    s = poolalloc(s_size);
+    snprintf(s,s_size,"NC_<%d>",nctype);
     return s;
 }
 
@@ -195,12 +196,13 @@ ncclassname(nc_class ncc)
     if(ncc == NC_FILLVALUE) return "NC_FILL";
     if(ncc >= NC_GRP && ncc <= NC_PRIM)
 	return ncclassnames[ncc - NC_GRP];
-    s = poolalloc(128);
-    sprintf(s,"NC_<%d>",ncc);
+    const size_t s_size = 128;
+    s = poolalloc(s_size);
+    snprintf(s,s_size,"NC_<%d>",ncc);
     return s;
 }
 
-int ncsizes[17] = {
+size_t ncsizes[17] = {
 0,
 1,1,2,4,
 4,8,
@@ -211,7 +213,7 @@ sizeof(nc_vlen_t),
 0,0,0
 };
 
-int
+size_t
 ncsize(nc_type nctype)
 {
     if(nctype >= NC_NAT && nctype <= NC_COMPOUND)
@@ -369,12 +371,11 @@ collectpath(Symbol* grp, List* grpstack)
 char*
 prefixtostring(List* prefix, char* separator)
 {
-    int slen=0;
-    int plen;
-    int i;
+    size_t slen=0;
+    size_t i;
     char* result;
     if(prefix == NULL) return pooldup("");
-    plen = prefixlen(prefix);
+    size_t plen = prefixlen(prefix);
     if(plen == 0) { /* root prefix*/
 	slen=0;
         /* slen += strlen(separator);*/
@@ -422,7 +423,7 @@ prefixeq(List* x1, List* x2)
 {
     Symbol** l1;
     Symbol** l2;
-    int len,i;
+    size_t len,i;
     if((len=listlength(x1)) != listlength(x2)) return 0;
     l1=(Symbol**)listcontents(x1);
     l2=(Symbol**)listcontents(x2);
@@ -436,11 +437,10 @@ List*
 prefixdup(List* prefix)
 {
     List* dupseq;
-    int i;
     if(prefix == NULL) return listnew();
     dupseq = listnew();
-    listsetalloc(dupseq,listlength(prefix));
-    for(i=0;i<listlength(prefix);i++) listpush(dupseq,listget(prefix,i));
+    listsetalloc(dupseq, (size_t)listlength(prefix));
+    for(size_t i=0;i<listlength(prefix);i++) listpush(dupseq,listget(prefix,i));
     return dupseq;
 }
 
@@ -486,7 +486,7 @@ pooldup(const char* s)
 char*
 poolcat(const char* s1, const char* s2)
 {
-    int len1, len2;
+    size_t len1, len2;
     char* cat;
     if(s1 == NULL && s2 == NULL) return NULL;
     len1 = (s1?strlen(s1):0);
@@ -516,25 +516,23 @@ makebytestring(char* s, size_t* lenp)
 	unsigned int digit1 = chartohex(*s++);
 	unsigned int digit2 = chartohex(*s++);
 	unsigned int byte = (digit1 << 4) | digit2;
-	*b++ = byte;
+	*b++ = (unsigned char)byte;
     }
     if(lenp) *lenp = blen;
     return bytes;
 }
 
-int
-getpadding(int offset, int alignment)
+size_t
+getpadding(size_t offset, size_t alignment)
 {
-    int rem = (alignment==0?0:(offset % alignment));
-    int pad = (rem==0?0:(alignment - rem));
-    return pad;
+    size_t rem = (alignment==0 ? 0 : (offset % alignment));
+    return rem == 0 ? 0 : (alignment - rem);
 }
 
 static void
 reclaimSymbols(void)
 {
-    int i;
-    for(i=0;i<listlength(symlist);i++) {
+    for(size_t i=0;i<listlength(symlist);i++) {
         Symbol* sym = listget(symlist,i);
         freeSymbol(sym);
     }

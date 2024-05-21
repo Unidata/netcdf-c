@@ -14,9 +14,10 @@
 
 #include "zincludes.h"
 #include "zfilter.h"
+#include <stddef.h>
 
 /* Forward */
-static int NCZ_enddef(int ncid);
+static int NCZ_enddef(NC_FILE_INFO_T* h5);
 static int ncz_sync_netcdf4_file(NC_FILE_INFO_T* file, int isclose);
 
 /**
@@ -34,20 +35,20 @@ NCZ_redef(int ncid)
     NC_FILE_INFO_T* zinfo = NULL;
     int stat = NC_NOERR;
 
-    LOG((1, "%s: ncid 0x%x", __func__, ncid));
+    ZTRACE(0,"NCZ_redef(ncid)");
 
     /* Find this file's metadata. */
     if ((stat = nc4_find_grp_h5(ncid, NULL, &zinfo)))
-        return stat;
+        goto done;
     assert(zinfo);
 
     /* If we're already in define mode, return an error. */
     if (zinfo->flags & NC_INDEF)
-        return NC_EINDEFINE;
+        {stat = NC_EINDEFINE; goto done;}
 
     /* If the file is read-only, return an error. */
     if (zinfo->no_write)
-        return NC_EPERM;
+        {stat = NC_EPERM; goto done;}
 
     /* Set define mode. */
     zinfo->flags |= NC_INDEF;
@@ -56,7 +57,8 @@ NCZ_redef(int ncid)
        redef. */
     zinfo->redef = NC_TRUE;
 
-    return NC_NOERR;
+done:
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -77,8 +79,13 @@ NCZ__enddef(int ncid, size_t h_minfree, size_t v_align,
             size_t v_minfree, size_t r_align)
 {
     int stat = NC_NOERR;
+    NC_FILE_INFO_T* h5 = NULL;
+    NC_GRP_INFO_T* grp = NULL;
     ZTRACE(0,"ncid=%d",ncid);
-    stat = NCZ_enddef(ncid);
+    if ((stat = nc4_find_grp_h5(ncid, &grp, &h5)))
+        goto done;
+    stat = NCZ_enddef(h5);
+done:
     return ZUNTRACE(stat);
 }
 
@@ -86,7 +93,7 @@ NCZ__enddef(int ncid, size_t h_minfree, size_t v_align,
  * @internal Take the file out of define mode. This is called
  * automatically for netcdf-4 files, if the user forgets.
  *
- * @param ncid File and group ID.
+ * @param h5 File object
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
@@ -94,19 +101,13 @@ NCZ__enddef(int ncid, size_t h_minfree, size_t v_align,
  * @author Dennis Heimbigner, Ed Hartnett
  */
 static int
-NCZ_enddef(int ncid)
+NCZ_enddef(NC_FILE_INFO_T* h5)
 {
-    NC_FILE_INFO_T* h5 = NULL;
-    NC_GRP_INFO_T *grp;
     NC_VAR_INFO_T *var;
-    int i,j;
+    size_t i,j;
     int stat = NC_NOERR;
 
-    ZTRACE(1,"ncid=%d",ncid);
-
-    /* Find pointer to group and zinfo. */
-    if ((stat = nc4_find_grp_h5(ncid, &grp, &h5)))
-        goto done;
+    ZTRACE(1,"h5=%s",h5->hdr.name);
 
     /* When exiting define mode, process all variables */
     for (i = 0; i < nclistlength(h5->allgroups); i++) {	
@@ -114,17 +115,11 @@ NCZ_enddef(int ncid)
         for (j = 0; j < ncindexsize(g->vars); j++) {
             var = (NC_VAR_INFO_T *)ncindexith(g->vars, j);
             assert(var);
-	    /* set the fill value and _FillValue attribute */
-	    if((stat = ncz_get_fill_value(h5,var,NULL))) goto done; /* ensure var->fill_value is set */
-            assert(var->fill_value != NULL);
             var->written_to = NC_TRUE; /* mark it written */
-	    /* rebuild the fill chunk */
-	    if((stat = NCZ_adjust_var_cache(var))) goto done;
-	    /* Build the filter working parameters for any filters */
-	    if((stat = NCZ_filter_setup(var))) goto done;
+	    var->created = 1;
         }
     }
-    stat = ncz_enddef_netcdf4_file(h5);
+    if((stat = ncz_enddef_netcdf4_file(h5))) goto done;
 done:
     return ZUNTRACE(stat);
 }
@@ -159,7 +154,7 @@ NCZ_sync(int ncid)
     {
         if (file->cmode & NC_CLASSIC_MODEL)
             return NC_EINDEFINE;
-        if ((stat = NCZ_enddef(ncid)))
+        if ((stat = NCZ_enddef(file)))
             return stat;
     }
 
@@ -248,7 +243,7 @@ ncz_closeorabort(NC_FILE_INFO_T* h5, void* params, int abort)
 
     /* If we're in define mode, but not redefing the file, delete it. */
     if(!abort) {
-	/* Invoke enddef if needed, which mean sync first */
+	/* Invoke enddef if needed, which includes sync first */
 	if(h5->flags & NC_INDEF) h5->flags ^= NC_INDEF;
 	/* Sync the file unless this is a read-only file. */
 	if(!h5->no_write) {
@@ -372,13 +367,10 @@ ncz_sync_netcdf4_file(NC_FILE_INFO_T* file, int isclose)
     LOG((3, "%s", __func__));
     ZTRACE(2,"file=%s",file->hdr.name);
 
-    /* If we're in define mode, that's an error, for strict nc3 rules,
-     * otherwise, end define mode. */
+    /* End depend mode if needed. (Error checking for classic mode has
+     * already happened). */
     if (file->flags & NC_INDEF)
     {
-        if (file->cmode & NC_CLASSIC_MODEL)
-            return NC_EINDEFINE;
-
         /* Turn define mode off. */
         file->flags ^= NC_INDEF;
 
@@ -408,7 +400,7 @@ done:
 }
 
 /**
- * @internal This function will do the enddef stuff for a netcdf-4 file.
+ * @internal This function will do the enddef stuff for an nczarr file.
  *
  * @param file Pointer to ZARR file info struct.
  *
@@ -452,20 +444,20 @@ NCZ_set_fill(int ncid, int fillmode, int *old_modep)
     NC_FILE_INFO_T* h5 = NULL;
     int stat = NC_NOERR;
 
-    LOG((2, "%s: ncid 0x%x fillmode %d", __func__, ncid, fillmode));
+    ZTRACE(0,"NCZ_set_fill(ncid,fillmode,old)");
 
     /* Get pointer to file info. */
     if ((stat = nc4_find_grp_h5(ncid, NULL, &h5)))
-        return stat;
+        goto done;
     assert(h5);
 
     /* Trying to set fill on a read-only file? You sicken me! */
     if (h5->no_write)
-        return NC_EPERM;
+        {stat = NC_EPERM; goto done;}
 
     /* Did you pass me some weird fillmode? */
     if (fillmode != NC_FILL && fillmode != NC_NOFILL)
-        return NC_EINVAL;
+        {stat = NC_EINVAL; goto done;}
 
     /* If the user wants to know, tell him what the old mode was. */
     if (old_modep)
@@ -473,5 +465,6 @@ NCZ_set_fill(int ncid, int fillmode, int *old_modep)
 
     h5->fill_mode = fillmode;
 
-    return NC_NOERR;
+done:
+    return ZUNTRACE(stat);
 }

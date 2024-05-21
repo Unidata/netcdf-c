@@ -71,7 +71,7 @@ extern nchashkey_t hash_fast(const char*, size_t length);
 /* Forward */
 static const unsigned int NC_nprimes;
 static const unsigned int NC_primes[16386];
-static unsigned int findPrimeGreaterThan(size_t val);
+static size_t findPrimeGreaterThan(size_t val);
 
 extern void printhashmapstats(NC_hashmap* hm);
 extern void printhashmap(NC_hashmap* hm);
@@ -160,7 +160,7 @@ locate(NC_hashmap* hash, nchashkey_t hashkey, const char* key, size_t keysize, s
 nchashkey_t
 NC_hashmapkey(const char* key, size_t size)
 {
-    return NC_crc64(0,(void*)key,(unsigned int)size);
+    return (nchashkey_t)NC_crc64(0,(void*)key,(unsigned int)size);
 }
 
 NC_hashmap*
@@ -381,10 +381,12 @@ NC_hashmapdeactivate(NC_hashmap* map, uintptr_t data)
 /* This will currently fail if `n > 180503 * 180503` */
 static int isPrime(size_t n)
 {
+    size_t i;
+    
     if (n <= 1)  return 0;
     if (n <= 3)  return 1;
     
-    for (size_t i=1; i < NC_nprimes - 1; i++) {
+    for (i=1; i < NC_nprimes - 1; i++) {
       size_t prime = NC_primes[i];
       if (n % prime == 0) {
 	return 0;
@@ -397,7 +399,7 @@ static int isPrime(size_t n)
 }
 
 /* Function to return the smallest prime number greater than N */
-static int nextPrime(size_t val)
+static size_t nextPrime(size_t val)
 {
     if (val <= 1)
         return 2;
@@ -422,18 +424,18 @@ Binary search prime table for first prime just greater than or
 equal to val
 */
 
-static unsigned int
+static size_t
 findPrimeGreaterThan(size_t val)
 {
-      int n = NC_nprimes;
-      int L = 1; /* skip leading flag number */
-      int R = (n - 2); /* skip trailing flag */
-      unsigned int v = 0;
-      int m;
+      size_t n = NC_nprimes;
+      size_t L = 1; /* skip leading flag number */
+      size_t R = (n - 2); /* skip trailing flag */
+      size_t v = 0;
+      size_t m;
 
       if(val >= 0xFFFFFFFF)
         return 0; /* Too big */
-      v = (unsigned int)val;
+      v = val;
 
       if (v > NC_primes[n - 2]) {
         /*

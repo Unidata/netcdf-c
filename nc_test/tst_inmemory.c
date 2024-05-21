@@ -17,6 +17,7 @@ redistribution conditions.
 #include "netcdf.h"
 #include "netcdf_mem.h"
 #include "ncbytes.h"
+#include "ncpathmgr.h"
 #include "nc_tests.h"
 #include "err_macros.h"
 
@@ -161,83 +162,26 @@ static int
 readfile(const char* path, NC_memio* memio)
 {
     int status = NC_NOERR;
-    FILE* f = NULL;
-    size_t filesize = 0;
-    size_t count = 0;
-    char* memory = NULL;
-    char* p = NULL;
-
-    /* Open the file for reading */
-#ifdef _MSC_VER
-    f = fopen(path,"rb");
-#else
-    f = fopen(path,"r");
-#endif
-    if(f == NULL)
-	{status = errno; goto done;}
-    /* get current filesize */
-    if(fseek(f,0,SEEK_END) < 0)
-	{status = errno; goto done;}
-    filesize = (size_t)ftell(f);
-    /* allocate memory */
-    memory = malloc((size_t)filesize);
-    if(memory == NULL)
-	{status = NC_ENOMEM; goto done;}
-    /* move pointer back to beginning of file */
-    rewind(f);
-    count = filesize;
-    p = memory;
-    while(count > 0) {
-        size_t actual;
-        actual = fread(p,1,count,f);
-	if(actual == 0 || ferror(f))
-	    {status = NC_EIO; goto done;}
-	count -= actual;
-	p += actual;
-    }
+    NCbytes* buf = ncbytesnew();
+    if((status = NC_readfile(path,buf))) goto done;
     if(memio) {
-	memio->size = (size_t)filesize;
-	memio->memory = memory;
+	memio->size = (size_t)ncbyteslength(buf);
+	memio->memory = ncbytesextract(buf);
     }
 done:
-    if(status != NC_NOERR && memory != NULL)
-	free(memory);
-    if(f != NULL) fclose(f);
+    ncbytesfree(buf);
     return status;
 }
-
 
 static int
 writefile(const char* path, NC_memio* memio)
 {
     int status = NC_NOERR;
-    FILE* f = NULL;
-    size_t count = 0;
-    char* p = NULL;
 
-    /* Open the file for writing */
-#ifdef _MSC_VER
-    f = fopen(path,"wb");
-#else
-    f = fopen(path,"w");
-#endif
-    if(f == NULL)
-	{status = errno; goto done;}
-    count = memio->size;
-    p = memio->memory;
-    while(count > 0) {
-        size_t actual;
-        actual = fwrite(p,1,count,f);
-	if(actual == 0 || ferror(f))
-	    {status = NC_EIO; goto done;}
-	count -= actual;
-	p += actual;
-    }
+    if((status = NC_writefile(path,memio->size,memio->memory))) goto done;
 done:
-    if(f != NULL) fclose(f);
     return status;
 }
-
 
 /* Duplicate an NC_memio instance; needed to avoid
    attempting to use memory that might have been realloc'd
@@ -281,7 +225,7 @@ define_metadata(int ncid)
     /* Create data to write */
     float_data = FLOATVAL;
 
-    for (i = 0; i < DIM1_LEN; i++)
+    for (short i = 0; i < DIM1_LEN; i++)
         taxi_distance[i] = i;
 
     for (i = 0; i < dimprod; i++)
@@ -357,7 +301,7 @@ modify_file(int ncid)
     if((stat=nc_enddef(ncid))) goto done;
     /* Write data to new variable */
     for(i=0;i<len;i++)
-	data[i] = i;
+       data[i] = (int)i;
     if((stat=nc_put_var_int(ncid,varid3,data))) goto done;
 done:
     return stat;
@@ -383,7 +327,7 @@ modify_file_extra(int ncid)
     if((stat=nc_enddef(ncid))) goto done;
     /* Write data to new variable */
     for(i=0;i<DIMX_LEN;i++)
-	data[i] = i;
+       data[i] = (int)i;
     if((stat=nc_put_var_int(ncid,varidx,data))) goto done;
 done:
     return stat;
@@ -439,27 +383,27 @@ verify_file(int ncid, int modified, int extra)
 
     CHECK(nc_get_att_text(ncid, NC_GLOBAL, ATT0_NAME, att0_in));
     att0_in[sizeof(ATT0_TEXT)] = '\0';
-    if (strcmp(att0_in, ATT0_TEXT)) CHECK(NC_EINVAL);
+    if (strcmp(att0_in, ATT0_TEXT) != 0) CHECK(NC_EINVAL);
 
     /* CHECK dimensions. */
     CHECK(nc_inq_dim(ncid, dimid[0], name_in, &len_in));
-    if (strcmp(name_in, DIM0_NAME)) CHECK(NC_EINVAL);
+    if (strcmp(name_in, DIM0_NAME) != 0) CHECK(NC_EINVAL);
     CHECK(nc_inq_dim(ncid, dimid[1], name_in, &len_in));
-    if (strcmp(name_in, DIM1_NAME) || len_in != DIM1_LEN) CHECK(NC_EINVAL);
+    if (strcmp(name_in, DIM1_NAME) != 0 || len_in != DIM1_LEN) CHECK(NC_EINVAL);
     if(extra) {
         CHECK(nc_inq_dim(ncid, dimid[2], name_in, &len_in));
-        if (strcmp(name_in, DIMX_NAME) || len_in != DIMX_LEN) CHECK(NC_EINVAL);
+        if (strcmp(name_in, DIMX_NAME) != 0 || len_in != DIMX_LEN) CHECK(NC_EINVAL);
     }
 
     /* CHECK variables. */
     CHECK(nc_inq_var(ncid, varid[0], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-    if (strcmp(name_in, VAR0_NAME) || type_in != NC_INT || ndims_in != NDIMS0 ||
+    if (strcmp(name_in, VAR0_NAME) != 0 || type_in != NC_INT || ndims_in != NDIMS0 ||
     dimid_in[0] != 0 || dimid_in[1] != 1 || natts_in != 0) CHECK(NC_EINVAL);
     CHECK(nc_inq_var(ncid, varid[1], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-    if (strcmp(name_in, VAR1_NAME) || type_in != NC_SHORT || ndims_in != 1 || dimid_in[0] != 1 || natts_in != 0)
+    if (strcmp(name_in, VAR1_NAME) != 0 || type_in != NC_SHORT || ndims_in != 1 || dimid_in[0] != 1 || natts_in != 0)
     	CHECK(NC_EINVAL);
     CHECK(nc_inq_var(ncid, varid[2], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-    if (strcmp(name_in, VAR2_NAME) || type_in != NC_FLOAT || ndims_in != 0 || natts_in != 0)
+    if (strcmp(name_in, VAR2_NAME) != 0 || type_in != NC_FLOAT || ndims_in != 0 || natts_in != 0)
     	CHECK(NC_EINVAL);
 
     CHECK(nc_get_var_int(ncid, varid[0], nightdata_in));
@@ -478,7 +422,7 @@ verify_file(int ncid, int modified, int extra)
     if(modified) {
 	size_t unlimlen;
 	CHECK(nc_inq_var(ncid, varid[3], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-        if (strcmp(name_in, VAR3_NAME) || type_in != NC_INT || ndims_in != 1 ||
+        if (strcmp(name_in, VAR3_NAME) != 0 || type_in != NC_INT || ndims_in != 1 ||
 	    dimid_in[0] != 0 || natts_in != 0) CHECK(NC_EINVAL);
         CHECK(nc_inq_dimlen(ncid, dimid_in[0], &unlimlen));
         CHECK(nc_get_var_int(ncid, varid[3], milesdata_in));
@@ -490,7 +434,7 @@ verify_file(int ncid, int modified, int extra)
     if(extra) {
 	size_t xlen;
 	CHECK(nc_inq_var(ncid, varid[4], name_in, &type_in, &ndims_in, dimid_in, &natts_in));
-        if (strcmp(name_in, VARX_NAME) || type_in != NC_INT || ndims_in != 1 ||
+        if (strcmp(name_in, VARX_NAME) != 0 || type_in != NC_INT || ndims_in != 1 ||
 	    dimid_in[0] != dimid[2] || natts_in != 0) CHECK(NC_EINVAL);
         CHECK(nc_inq_dimlen(ncid, dimid_in[0], &xlen));
         CHECK(nc_get_var_int(ncid, varid[4], expenses_in));

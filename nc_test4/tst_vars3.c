@@ -13,8 +13,6 @@
 
 #define NC_SZIP_EC_BPP_IN 32  /**< @internal bits per pixel input. */
 #define NC_SZIP_EC_BPP_OUT 64  /**< @internal bits per pixel output. */
-#define NC_SZIP_NN 32 /**< @internal SZIP NN option mask. */
-#define NC_SZIP_EC 4  /**< @internal SZIP EC option mask. */
 
 #define FILE_NAME "tst_vars3.nc"
 #define NDIMS1 1
@@ -316,7 +314,7 @@ main(int argc, char **argv)
         if (nc_def_dim(ncid, D0_NAME3, NC_UNLIMITED, &dimid)) ERR;
         for (v = 0; v < NUM_VARS; v++)
         {
-            sprintf(var_name, "var_%d", v);
+            snprintf(var_name, sizeof(var_name), "var_%d", v);
             if (nc_def_var(ncid, var_name, NC_INT, 1, &dimid, &varid)) ERR_RET;
             if (nc_set_var_chunk_cache(ncid, varid, 0, 0, 0.75)) ERR_RET;
         }
@@ -420,7 +418,7 @@ main(int argc, char **argv)
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-#ifdef USE_SZIP
+#ifdef HAVE_H5Z_SZIP 
     printf("**** testing simple szip filter setup...");
     {
         int ncid;
@@ -729,15 +727,18 @@ main(int argc, char **argv)
         } /* next mask */
     }
     SUMMARIZE_ERR;
-#else
+#else /*!HAVE_H5Z_SZIP*/
     /* This code is run if szip is not present in HDF5. It checks that
-     * nc_def_var_szip() returns NC_EFILTER in that case. */
+     * nc_def_var_szip() returns NC_ENOFILTER in that case. */
+    /* WARNING: This code no longer works if plugins is enabled.  This is
+       because the plugin szip wrapper will be found, thus confusing HDF5.
+    */
+#ifdef HAVE_SZIP
     printf("**** testing szip handling when szip not built...");
     {
         int ncid;
         int dimid;
         int varid;
-        unsigned int params[NUM_PARAMS_IN];
 
         /* Create a netcdf-4 file with one dimensions. */
         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -746,18 +747,14 @@ main(int argc, char **argv)
         /* Add a var. Try to turn on szip filter, but it will return
          * error. */
         if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
-        params[0] = NC_SZIP_NN; /* options_mask */
-        params[1] = NC_SZIP_EC_BPP_IN; /* pixels_per_block */
         if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
-        { int stat;  if ((stat = nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN,
-            params)) != NC_EFILTER)
-            ERR;
-        }
-        if (nc_def_var_szip(ncid, varid, NC_SZIP_NN,
-                            NC_SZIP_EC_BPP_IN) != NC_EFILTER) ERR;
+	int stat;
+        if ((stat=nc_def_var_szip(ncid, varid, NC_SZIP_NN, NC_SZIP_EC_BPP_IN)) != NC_ENOFILTER)
+	    ERR;
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-#endif /* USE_SZIP */
+#endif /*HAVE_SZIP*/
+#endif /*!HAVE_H5Z_SZIP*/
     FINAL_RESULTS;
 }

@@ -5,6 +5,7 @@
 #include "config.h"
 #include "dapparselex.h"
 #include "dapy.h"
+#include <stddef.h>
 
 /* Forward */
 
@@ -104,7 +105,7 @@ dap_unrecognizedresponse(DAPparsestate* state)
     int i;
     char iv[32];
     (void)sscanf(state->lexstate->input,"%u ",&httperr);
-    sprintf(iv,"%u",httperr);
+    snprintf(iv,sizeof(iv),"%u",httperr);
     state->lexstate->next = state->lexstate->input;
     /* Limit the amount of input to prevent runaway */
     for(i=0;i<4096;i++) {if(state->lexstate->input[i] == '\0') break;}
@@ -147,7 +148,7 @@ dap_arraydecl(DAPparsestate* state, Object name, Object size)
 	dim = newocnode((char*)name,OC_Dimension,state);
     else
 	dim = newocnode(NULL,OC_Dimension,state);
-    dim->dim.declsize = value;
+    dim->dim.declsize = (size_t)value;
     return dim;
 }
 
@@ -202,8 +203,8 @@ dap_attrset(DAPparsestate* state, Object name, Object attributes)
 static int
 isglobalname(const char* name)
 {
-    int len = strlen(name);
-    int glen = strlen("global");
+    size_t len = strlen(name);
+    size_t glen = strlen("global");
     const char* p;
     if(len < glen) return 0;
     p = name + (len - glen);
@@ -235,8 +236,8 @@ isnumber(const char* text)
 static void
 dimension(OCnode* node, NClist* dimensions)
 {
-    unsigned int i;
-    unsigned int rank = nclistlength(dimensions);
+    size_t i;
+    size_t rank = nclistlength(dimensions);
     node->array.dimensions = (NClist*)dimensions;
     node->array.rank = rank;
     for(i=0;i<rank;i++) {
@@ -256,7 +257,7 @@ char*
 dimnameanon(char* basename, unsigned int index)
 {
     char name[64];
-    sprintf(name,"%s_%d",basename,index);
+    snprintf(name,sizeof(name),"%s_%d",basename,index);
     return strdup(name);
 }
 
@@ -361,7 +362,7 @@ dapsemanticerror(DAPparsestate* state, OCerror err, const char* msg)
 static char*
 flatten(char* s, char* tmp, size_t tlen)
 {
-    int c;
+    char c;
     char* p,*q;
     strncpy(tmp,s,tlen);
     tmp[tlen] = '\0';
@@ -403,7 +404,7 @@ static NClist*
 scopeduplicates(NClist* list)
 {
     unsigned int i,j;
-    unsigned int len = nclistlength(list);
+    size_t len = nclistlength(list);
     NClist* dups = NULL;
     for(i=0;i<len;i++) {
 	OCnode* io = (OCnode*)nclistget(list,i);
@@ -425,7 +426,7 @@ retry:
 static OCtype
 octypefor(Object etype)
 {
-    switch ((long)etype) {
+    switch ((uintptr_t)etype) {
     case SCAN_BYTE: return OC_Byte;
     case SCAN_INT16: return OC_Int16;
     case SCAN_UINT16: return OC_UInt16;

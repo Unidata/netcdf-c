@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
 
     for (i=0; i<3; i++) {
         char varname[32];
-        sprintf(varname, "fixed_var_%d",2*i+1);
+        snprintf(varname, sizeof(varname), "fixed_var_%d",2*i+1);
         for (j=0; j<5; j++) {
             if (get_buf[i][j] != old_buf[i][j]) {
                 printf("Error in %s line %d: expecting %s[%d]=%d but got %d\n",

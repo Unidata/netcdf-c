@@ -1,9 +1,8 @@
 #!/bin/sh
 
-if test "x$SETX" = x1 ; then set -x ; fi
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
+
 set -e
 
 . ${srcdir}/tst_utils.sh
@@ -19,7 +18,7 @@ for x in ${FILETESTS} ; do
   # determine if this is an xfailtest
   isxfail=0
   if test "x${XFAILTESTS}" != x ; then
-    if IGNORE=`echo -n " ${XFAILTESTS} " | fgrep " ${x} "`; then isxfail=1; fi
+    if IGNORE=`echon " ${XFAILTESTS} " | fgrep " ${x} "`; then isxfail=1; fi
   fi
   ok=1
   if ${NCDUMP} ${DUMPFLAGS} "${url}" | sed 's/\\r//g' > ${x}.dmp ; then ok=$ok; else ok=0; fi

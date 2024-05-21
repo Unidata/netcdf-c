@@ -148,7 +148,9 @@
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
    @param name Variable @ref object_name.
-   @param xtype @ref data_type of the variable.
+   @param xtype (Data
+   type)[https://docs.unidata.ucar.edu/nug/current/md_types.html#data_type]
+   of the variable.
    @param ndims Number of dimensions for the variable. For example, 2
    specifies a matrix, 1 specifies a vector, and 0 means the variable is
    a scalar with no dimensions. Must not be negative or greater than the
@@ -259,6 +261,9 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
    @return ::NC_ELATEDEF (NetCDF-4 only). Returned when user attempts
    to set fill value after data are written.
    @return ::NC_EGLOBAL Attempt to set fill value on NC_GLOBAL.
+
+   Warning: Using a vlen type as the fill value may lead to a memory
+   leak.
 
    @section nc_def_var_fill_example Example
 
@@ -464,29 +469,29 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
 /**
    Turn on quantization for a variable.
   
-   The data data are quantized by setting unneeded bits alternately to
-   1/0, so that they may compress well. Quantization is lossy (data
-   are irretrievably altered), and it improves the compression ratio
-   provided by a subsequent lossless compression filter. Quantization
-   alone will not reduce the size of the data - lossless compression
-   like zlib must also be used (see nc_def_var_deflate()).
+   The data are quantized by setting unneeded bits to zeros or ones
+   so that they may compress well. BitGroom sets bits alternately to 1/0, 
+   while BitRound and Granular BitRound (GBR) round (more) bits to zeros
+   Quantization is lossy (data are irretrievably altered), and it 
+   improves the compression ratio provided by a subsequent lossless 
+   compression filter. Quantization alone will not reduce the data size.
+   Lossless compression like zlib must also be used (see nc_def_var_deflate()).
 
    Producers of large datasets may find that using quantize with
    compression will result in significant improvent in the final data
    size.
 
-   This data quantization used the bitgroom algorithm. A notable
-   feature of BitGroom is that the data it processes remain in IEEE754
-   format after quantization. Therefore the BitGroom algorithm does
+   A notable feature of all the quantization algorithms is data remain 
+   in IEEE754 format afterwards. Therefore quantization algorithms do
    nothing when data are read.
   
    Quantization is only available for variables of type NC_FLOAT or
    NC_DOUBLE. Attempts to set quantization for other variable
    types return an error (NC_EINVAL). 
 
-   Variables which use quantize will have added an attribute with name
-   ::NC_QUANTIZE_ATT_NAME, which will contain the number of
-   significant digits. Users should not delete or change this
+   Variables that use quantize will have added an attribute with name
+   NC_QUANTIZE_[ALGORITHM_NAME]_ATT_NAME, which will contain the 
+   number of significant digits. Users should not delete or change this
    attribute. This is the only record that quantize has been applied
    to the data.
 
@@ -497,10 +502,10 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
 
    Quantization may be applied to scalar variables.
 
-   When type conversion takes place during a write, the it occurs
+   When type conversion takes place during a write, then it occurs
    before quantization is applied. For example, if nc_put_var_double()
-   is called on a variable of type NC_FLOAT, which has quantizze
-   turned on, then the data are first converted from dounle to float,
+   is called on a variable of type NC_FLOAT, which has quantize
+   turned on, then the data are first converted from double to float,
    then quantization is applied to the float values.
 
    As with the deflate settings, quantize settings may only be
@@ -513,23 +518,31 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    variable which has been quantized is readable to older versions of
    the netCDF libraries, and to netCDF-Java.
  
-   For more information about quantization and the bitgroom filter, see 
+   For more information about quantization and the BitGroom filter,
+   see @ref quantize.
 
-   Zender, C. S. (2016), Bit Grooming: Statistically accurate
-   precision-preserving quantization with compression, evaluated in
-   the netCDF Operators (NCO, v4.4.8+), Geosci. Model Dev., 9,
-   3199-3211, doi:10.5194/gmd-9-3199-2016 Retrieved on Sep 21, 2020
-   from
-   https://www.researchgate.net/publication/301575383_Bit_Grooming_Statistically_accurate_precision-preserving_quantization_with_compression_evaluated_in_the_netCDF_Operators_NCO_v448.
-  
+   @note Users new to quantization should start with Granular Bit
+   Round, which results in the best compression. The Bit Groom
+   algorithm is not as effective when compressing, but is faster than
+   Granular Bit Round. The Bit Round algorithm accepts a number of
+   bits to maintain, rather than a number of decimal digits, and is
+   provided for users who are already performing some bit-based
+   quantization, and wish to turn this task over to the netCDF
+   library.
+
    @param ncid File ID.
    @param varid Variable ID. ::NC_GLOBAL may not be used.
    @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
-   ::NC_QUANTIZE_BITGROOM.
-   @param nsd Number of significant digits. May be any integer from 1
-   to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT)
-   or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type
-   ::NC_DOUBLE). Ignored if quantize_mode = NC_NOQUANTIZE.
+   ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR or
+   ::NC_QUANTIZE_BITROUND.
+   @param nsd Number of significant digits (either decimal or binary). 
+   May be any integer from 1 to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables 
+   of type ::NC_FLOAT) or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables 
+   of type ::NC_DOUBLE) for mode ::NC_QUANTIZE_BITGROOM and mode
+   ::NC_QUANTIZE_GRANULARBR. May be any integer from 1 to 
+   ::NC_QUANTIZE_MAX_FLOAT_NSB (for variables of type ::NC_FLOAT) or 
+   ::NC_QUANTIZE_MAX_DOUBLE_NSB (for variables of type ::NC_DOUBLE) 
+   for mode ::NC_QUANTIZE_BITROUND. Ignored if quantize_mode = NC_NOQUANTIZE.
    
    @return ::NC_NOERR No error.
    @return ::NC_EGLOBAL Can't use ::NC_GLOBAL with this function.
@@ -632,7 +645,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 
    @note Scalar variables may have a storage of NC_CONTIGUOUS or
    NC_COMPACT. Attempts to set chunking on a scalare variable will
-   cause ::NC_EINVEL to be returned. Only non-scalar variables can
+   cause ::NC_EINVAL to be returned. Only non-scalar variables can
    have chunking.
 
    @param ncid NetCDF ID, from a previous call to nc_open() or
@@ -813,8 +826,8 @@ nc_def_var_endian(int ncid, int varid, int endian)
  *
  * To learn the szip settings for a variable, use nc_inq_var_szip().
  *
- * @note The options_mask parameter may be either NC_SZIP_EC (entropy
- * coding) or NC_SZIP_NN (nearest neighbor):
+ * @note The options_mask parameter may be either ::NC_SZIP_EC (entropy
+ * coding) or ::NC_SZIP_NN (nearest neighbor):
  * * The entropy coding method is best suited for data that has been
  * processed. The EC method works best for small numbers.
  * * The nearest neighbor coding method preprocesses the data then the
@@ -827,8 +840,8 @@ nc_def_var_endian(int ncid, int varid, int endian)
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param options_mask The options mask. Can be NC_SZIP_EC or
- * NC_SZIP_NN.
+ * @param options_mask The options mask. Can be ::NC_SZIP_EC or
+ * ::NC_SZIP_NN.
  * @param pixels_per_block Pixels per block. Must be even and not
  * greater than 32, with typical values being 8, 10, 16, or 32. This
  * parameter affects compression ratio; the more pixel values vary,
@@ -854,10 +867,8 @@ nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
 
     /* This will cause H5Pset_szip to be called when the var is
      * created. */
-    unsigned int params[2];
-    params[0] = options_mask;
-    params[1] = pixels_per_block;
-    if ((ret = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, params)))
+    unsigned int params[2] = {(unsigned int)options_mask, (unsigned int)pixels_per_block};
+    if ((ret = nc_def_var_filter(ncid, varid, H5Z_FILTER_SZIP, 2, params)))
         return ret;
 
     return NC_NOERR;
@@ -1021,7 +1032,7 @@ NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
         if(status != NC_NOERR) return status;
         if(nunlimdims == 0) return status;
 
-        if (!(unlimids = malloc(nunlimdims * sizeof(int))))
+        if (!(unlimids = malloc((size_t)nunlimdims * sizeof(int))))
             return NC_ENOMEM;
         status = nc_inq_unlimdims(ncid, &nunlimdims, unlimids); /* for group or file, not variable */
         if(status != NC_NOERR) {
@@ -1250,7 +1261,7 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
     /* If count is NULL, assume full extent of var. */
     if (!*count)
     {
-        if (!(*count = malloc(varndims * sizeof(size_t))))
+        if (!(*count = malloc((size_t)varndims * sizeof(size_t))))
             return NC_ENOMEM;
         if ((stat = NC_getshape(ncid, varid, varndims, *count)))
         {
@@ -1266,7 +1277,7 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
     {
         int i;
 
-        if (!(*stride = malloc(varndims * sizeof(ptrdiff_t))))
+        if (!(*stride = malloc((size_t)varndims * sizeof(ptrdiff_t))))
             return NC_ENOMEM;
         for (i = 0; i < varndims; i++)
             (*stride)[i] = 1;
@@ -1278,17 +1289,19 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
 /**
    @name Free String Resources
 
-   Use this functions to free resources associated with ::NC_STRING
-   data.
+   Use these functions to free resources associated with ::NC_STRING data.
 */
 /*! @{ */
 /**
    Free string space allocated by the library.
 
-   When you read string type the library will allocate the storage
-   space for the data. This storage space must be freed, so pass the
-   pointer back to this function, when you're done with the data, and
-   it will free the string memory.
+   When you read an array string typed data the library will allocate the storage
+   space for the data. The allocated strings must be freed, so pass the
+   pointer to the array plus a count of the number of elements in the array to this function,
+   when you're done with the data, and it will free the allocated string memory.
+
+   WARNING: This does not free the top-level array itself, only
+   the strings to which it points.
 
    @param len The number of character arrays in the array.
    @param data The pointer to the data array.
@@ -1299,7 +1312,7 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
 int
 nc_free_string(size_t len, char **data)
 {
-    int i;
+    size_t i;
     for (i = 0; i < len; i++)
         free(data[i]);
     return NC_NOERR;

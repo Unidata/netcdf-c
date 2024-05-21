@@ -46,7 +46,6 @@ HDF5_def_dim(int ncid, const char *name, size_t len, int *idp)
     NC_DIM_INFO_T *dim;
     char norm_name[NC_MAX_NAME + 1];
     int retval = NC_NOERR;
-    int i;
 
     LOG((2, "%s: ncid 0x%x name %s len %d", __func__, ncid, name,
          (int)len));
@@ -65,7 +64,7 @@ HDF5_def_dim(int ncid, const char *name, size_t len, int *idp)
     {
         /* Only one limited dimenson for strict nc3. */
         if (len == NC_UNLIMITED) {
-            for(i=0;i<ncindexsize(grp->dim);i++) {
+            for(size_t i=0;i<ncindexsize(grp->dim);i++) {
                 dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
                 if(dim == NULL) continue;
                 if (dim->unlimited)
@@ -161,20 +160,17 @@ HDF5_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
     {
         if (dim->unlimited)
         {
+            *lenp = 0;
+
             /* Since this is an unlimited dimension, go to the file
                and see how many records there are. Take the max number
                of records from all the vars that share this
                dimension. */
-            *lenp = 0;
-            if (dim->len == 0) {
+            if (*lenp == 0)
+	    {
               if ((ret = nc4_find_dim_len(dim_grp, dimid, &lenp)))
                  return ret;
-              if (h5->no_write == NC_TRUE) {
                 dim->len = *lenp;
-              }
-            }
-            else {
-              *lenp = dim->len;
             }
         }
         else

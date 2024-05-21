@@ -20,15 +20,15 @@
 #include <math.h>
 #include "netcdf_filter_build.h"
 
-#ifdef USE_SZIP
+#ifdef HAVE_SZ
 
 #include <szlib.h>
 #include "H5Zszip.h"
 
 /* Local function prototypes */
-static htri_t H5Z__can_apply_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id);
-static herr_t H5Z__set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id);
-static size_t H5Z__filter_szip(unsigned flags, size_t cd_nelmts,
+static htri_t H5Z___can_apply_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id);
+static herr_t H5Z___set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id);
+static size_t H5Z___filter_szip(unsigned flags, size_t cd_nelmts,
     const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf);
 
 /* This message derives from H5Z */
@@ -38,15 +38,15 @@ H5Z_class2_t H5Z_SZIP[1] = {{
     1,                          /* Assume encoder present: check before registering */
     1,                          /* decoder_present flag (set to true) */
     "szip",			/* Filter name for debugging	*/
-    H5Z__can_apply_szip,	/* The "can apply" callback     */
-    H5Z__set_local_szip,        /* The "set local" callback     */
-    H5Z__filter_szip,		/* The actual filter function	*/
+    H5Z___can_apply_szip,	/* The "can apply" callback     */
+    H5Z___set_local_szip,        /* The "set local" callback     */
+    H5Z___filter_szip,		/* The actual filter function	*/
 }};
 
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5Z__can_apply_szip
+ * Function:	H5Z___can_apply_szip
  *
  * Purpose:	Check the parameters for szip compression for validity and
  *              whether they fit a particular dataset.
@@ -67,12 +67,12 @@ H5Z_class2_t H5Z_SZIP[1] = {{
  *-------------------------------------------------------------------------
  */
 static htri_t
-H5Z__can_apply_szip(hid_t H5_ATTR_UNUSED dcpl_id, hid_t type_id, hid_t H5_ATTR_UNUSED space_id)
+H5Z___can_apply_szip(hid_t H5_ATTR_UNUSED dcpl_id, hid_t type_id, hid_t H5_ATTR_UNUSED space_id)
 {
+    htri_t ret_value = TRUE;            /* Return value */
 #ifdef USE_HDF5
     unsigned dtype_size;                /* Datatype's size (in bits) */
     H5T_order_t dtype_order;            /* Datatype's endianness order */
-    htri_t ret_value = TRUE;            /* Return value */
 
     FUNC_ENTER_STATIC
 
@@ -95,14 +95,14 @@ H5Z__can_apply_szip(hid_t H5_ATTR_UNUSED dcpl_id, hid_t type_id, hid_t H5_ATTR_U
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-#else
-    return SUCCEED;
-#endif
-} /* end H5Z__can_apply_szip() */
+#else /*!USE_HDF5*/
+    return ret_value;
+#endif /*USE_HDF5*/
+} /* end H5Z___can_apply_szip() */
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5Z__set_local_szip
+ * Function:	H5Z___set_local_szip
  *
  * Purpose:	Set the "local" dataset parameters for szip compression.
  *
@@ -115,11 +115,11 @@ done:
  *-------------------------------------------------------------------------
  */
 
-#ifdef USE_HDF5
-
 static herr_t
-H5Z__set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id)
+H5Z___set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id)
 {
+    herr_t ret_value = SUCCEED; /* Return value */
+
 #ifdef USE_HDF5
     unsigned flags;             /* Filter flags */
     size_t cd_nelmts = H5Z_SZIP_USER_NPARMS;     /* Number of filter parameters */
@@ -131,7 +131,6 @@ H5Z__set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id)
     size_t dtype_precision;     /* Datatype's precision (in bits) */
     size_t dtype_offset;        /* Datatype's offset (in bits) */
     hsize_t scanline;           /* Size of dataspace's fastest changing dimension */
-    herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_STATIC
 
@@ -203,14 +202,14 @@ H5Z__set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id)
 
     /* Set the correct endianness flag for szip */
     /* (Note: this may not handle non-atomic datatypes well) */
-    cd_values[H5Z_SZIP_PARM_MASK] &= ~(SZ_LSB_OPTION_MASK|SZ_MSB_OPTION_MASK);
+    cd_values[H5Z_SZIP_PARM_MASK] &= ~(H5_SZIP_LSB_OPTION_MASK|H5_SZIP_MSB_OPTION_MASK);
     switch(dtype_order) {
         case H5T_ORDER_LE:      /* Little-endian byte order */
-            cd_values[H5Z_SZIP_PARM_MASK] |= SZ_LSB_OPTION_MASK;
+            cd_values[H5Z_SZIP_PARM_MASK] |= H5_SZIP_LSB_OPTION_MASK;
             break;
 
         case H5T_ORDER_BE:      /* Big-endian byte order */
-            cd_values[H5Z_SZIP_PARM_MASK] |= SZ_MSB_OPTION_MASK;
+            cd_values[H5Z_SZIP_PARM_MASK] |= H5_SZIP_MSB_OPTION_MASK;
             break;
 
         case H5T_ORDER_ERROR:
@@ -227,16 +226,14 @@ H5Z__set_local_szip(hid_t dcpl_id, hid_t type_id, hid_t space_id)
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-#else
-    return SUCCEED;
-#endif
-} /* end H5Z__set_local_szip() */
-
+#else /*!USE_HDF5*/
+    return ret_value;
 #endif /*USE_HDF5*/
+} /* end H5Z___set_local_szip() */
 
 
 /*-------------------------------------------------------------------------
- * Function:	H5Z__filter_szip
+ * Function:	H5Z___filter_szip
  *
  * Purpose:	Implement an I/O filter around the 'rice' algorithm in
  *              libsz
@@ -250,7 +247,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static size_t
-H5Z__filter_szip(unsigned flags, size_t cd_nelmts, const unsigned cd_values[],
+H5Z___filter_szip(unsigned flags, size_t cd_nelmts, const unsigned cd_values[],
     size_t nbytes, size_t *buf_size, void **buf)
 {
     size_t ret_value = 0;       /* Return value */
@@ -344,4 +341,19 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 }
 
-#endif /* USE_SZIP */
+/* External Discovery Functions */
+DLLEXPORT
+H5PL_type_t
+H5PLget_plugin_type(void)
+{
+    return H5PL_TYPE_FILTER;
+}
+
+DLLEXPORT
+const void*
+H5PLget_plugin_info(void)
+{
+    return H5Z_SZIP;
+}
+
+#endif /* HAVE_SZ */

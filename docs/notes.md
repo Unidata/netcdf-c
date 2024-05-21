@@ -4,8 +4,6 @@
 
 <H2>See Also:</H2>
 
-* \subpage nc-error-codes
-
 # Ignored if NULL {#ignored_if_null}
 
 Many of the argurments of netCDF functions are pointers. For example,
@@ -107,3 +105,44 @@ that is returned by nc_open() and nc_create().)
 For netCDF-4/HDF5 files, netCDF IDs can come not just from nc_open()
 and nc_create(), but also from nc_def_grp(), nc_inq_grps(),
 nc_inq_ncid(), nc_inq_grp_parent(), and nc_inq_grp_full_ncid().
+
+# NetCDF Names {#object_name}
+
+## Permitted Characters in NetCDF Names
+
+The names of dimensions, variables and attributes (and, in netCDF-4
+files, groups, user-defined types, compound member names, and
+enumeration symbols) consist of arbitrary sequences of alphanumeric
+characters, underscore '_', period '.', plus '+', hyphen '-', or at
+sign '@', but beginning with an alphanumeric character or
+underscore. However names commencing with underscore are reserved for
+system use.
+
+Beginning with versions 3.6.3 and 4.0, names may also include UTF-8
+encoded Unicode characters as well as other special characters, except
+for the character '/', which may not appear in a name.
+
+Names that have trailing space characters are also not permitted.
+
+Case is significant in netCDF names.
+
+## Name Length
+
+A zero-length name is not allowed.
+
+Names longer than ::NC_MAX_NAME will not be accepted any netCDF define
+function. An error of ::NC_EMAXNAME will be returned.
+
+All netCDF inquiry functions will return names of maximum size
+::NC_MAX_NAME for netCDF files. Since this does not include the
+terminating NULL, space should be reserved for ::NC_MAX_NAME + 1
+characters.
+
+## NetCDF Conventions
+
+Some widely used conventions restrict names to only alphanumeric
+characters or underscores.
+
+Note that, when using the DAP2 protocol to access netCDF data, there
+are reserved keywords, the use of which may result in undefined
+behavior. See DAP2 Reserved Keywords for more information.

@@ -5,11 +5,12 @@
 
 #include "includes.h"
 #include "nclog.h"
+#include <stddef.h>
 
 #ifdef ENABLE_BINARY
 
 /* Forward */
-static void alignto(int alignment, Bytebuffer* buf, ptrdiff_t base);
+static void alignto(size_t alignment, Bytebuffer* buf, size_t base);
 
 static int bin_uid = 0;
 
@@ -81,7 +82,7 @@ bin_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf
         } break;
     case NC_NIL:
     case NC_STRING: {
-        int len = (size_t)con->value.stringv.len;
+        size_t len = (size_t)con->value.stringv.len;
 	if(len == 0 && con->value.stringv.stringv == NULL) {
 	    char* nil = NULL;
             bbAppendn(buf,(void*)&nil,sizeof(nil));
@@ -104,7 +105,7 @@ bin_listbegin(Generator* generator, Symbol* tsym, void* liststate, ListClass lc,
 {
     if(uidp) *uidp = ++bin_uid;
     if(lc == LISTCOMPOUND)
-        *((int*)liststate) = bbLength(buf);
+        *((size_t*)liststate) = bbLength(buf);
     return 1;
 }
 
@@ -112,9 +113,9 @@ static int
 bin_list(Generator* generator, Symbol* tsym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
 {
     if(lc == LISTCOMPOUND) {
-        int offsetbase = *((int*)liststate);
+        size_t offsetbase = *((size_t*)liststate);
         /* Pad for the alignment */
-	alignto(tsym->typ.alignment,buf,offsetbase);		
+	alignto(tsym->typ.alignment,buf,offsetbase);
     }
     return 1;
 }
@@ -123,7 +124,7 @@ static int
 bin_listend(Generator* generator, Symbol* tsym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
 {
     if(lc == LISTCOMPOUND) {
-        int offsetbase = *((int*)liststate);
+        size_t offsetbase = *((size_t*)liststate);
         /* Pad out the whole instance */
 	alignto(tsym->typ.cmpdalign,buf,offsetbase);		
     }
@@ -166,12 +167,11 @@ static const char zeros[] =
     "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 
 static void
-alignto(int alignment, Bytebuffer* buf, ptrdiff_t base)
+alignto(size_t alignment, Bytebuffer* buf, size_t base)
 {
-    int pad = 0;
-    ptrdiff_t offset = bbLength(buf);
-    offset -= base; /* Need to actually align wrt to the base */
-    pad = getpadding(offset,alignment);
+    /* Need to actually align wrt to the base */
+    size_t offset = bbLength(buf) - base;
+    size_t pad = getpadding(offset,alignment);
     if(pad > 0) {
 	bbAppendn(buf,(void*)zeros,pad);
     }
@@ -195,11 +195,10 @@ Generator* bin_generator = &bin_generator_singleton;
 static int bin_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Bytebuffer* databuf);
 
 static void
-write_alignment(int alignment, Bytebuffer* buf)
+write_alignment(size_t alignment, Bytebuffer* buf)
 {
-    int pad = 0;
-    ptrdiff_t offset = bbLength(buf);
-    pad = getpadding(offset,alignment);
+    unsigned int offset = bbLength(buf);
+    size_t pad = getpadding(offset,alignment);
     if(pad > 0) {
 	bbAppendn(buf,(void*)zeros,pad);
     }
@@ -351,8 +350,8 @@ bin_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Byt
             NCConstant* tmp = nullconst();
             tmp->nctype = NC_STRING;
             convert1(instance,tmp);
-            p = emalloc(tmp->value.stringv.len+1);
-	    memcpy(p,tmp->value.stringv.stringv,tmp->value.stringv.len);
+            p = emalloc((size_t)tmp->value.stringv.len+1);
+	    memcpy(p,tmp->value.stringv.stringv, (size_t)tmp->value.stringv.len);
 	    p[tmp->value.stringv.len] = '\0';
             bbAppendn(databuf,&p,sizeof(char*));
             reclaimconstant(tmp);
@@ -402,12 +401,11 @@ bin_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Byt
 	    Symbol* field = listget(tsym->subnodes,fid);
 	    NCConstant* fieldinstance = datalistith(cmpd,fid);
 	    int ndims = field->typ.dimset.ndims;
-	    size_t arraycount;
+	    size_t arraycount = 1;
 	    if(ndims == 0) {
 	        ndims=1; /* fake the scalar case */
 	    }
   	    /* compute the total number of elements in the field array */
-	    arraycount = 1;
 	    for(i=0;i<ndims;i++) arraycount *= field->typ.dimset.dimsyms[i]->dim.declsize;
 	    write_alignment(field->typ.alignment,databuf);
 	    /* Write the instances */
@@ -423,6 +421,7 @@ done:
     return stat;
 }
 
+#if 0
 /**
 Internal equivalent of ncaux_reclaim_data.
 */
@@ -566,7 +565,8 @@ bin_reclaim_compound(Symbol* tsym, Reclaim* reclaimer)
 {
     int stat = NC_NOERR;
     int nfields;
-    size_t fid, i, arraycount;
+    size_t fid, i;
+    size_t arraycount = 1;
     ptrdiff_t saveoffset;
 
     reclaimer->offset = read_alignment(reclaimer->offset,tsym->typ.cmpdalign);
@@ -590,6 +590,9 @@ done:
     return stat;
 }
 #endif /*USE_NETCDF4*/
+
+#endif /*0*/
+
 
 #endif /*ENABLE_BINARY*/
 

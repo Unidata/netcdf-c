@@ -13,6 +13,7 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
+#include <sys/types.h>
 #include "ncx.h"
 #include "rnd.h"
 #include "ncutf8.h"
@@ -133,9 +134,9 @@ new_NC_var(const char *uname, nc_type type,
 	int stat;
 	char* name;
 
-        stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name);
-        if(stat != NC_NOERR)
-	    return NULL;
+    stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name);
+    if(stat != NC_NOERR)
+      return NULL;
 	strp = new_NC_string(strlen(name), name);
 	free(name);
 	if(strp == NULL)
@@ -150,8 +151,8 @@ new_NC_var(const char *uname, nc_type type,
 
 	varp->type = type;
 
-	if( ndims != 0 && dimids != NULL)
-	  (void) memcpy(varp->dimids, dimids, ndims * sizeof(int));
+    if( ndims != 0 && dimids != NULL)
+      (void) memcpy(varp->dimids, dimids, ndims * sizeof(int));
     else
       varp->dimids=NULL;
 
@@ -175,10 +176,12 @@ dup_NC_var(const NC_var *rvarp)
 		return NULL;
 	}
 
-	(void) memcpy(varp->shape, rvarp->shape,
-			 rvarp->ndims * sizeof(size_t));
-	(void) memcpy(varp->dsizes, rvarp->dsizes,
-			 rvarp->ndims * sizeof(off_t));
+	if(rvarp->shape != NULL)
+		(void) memcpy(varp->shape, rvarp->shape,
+				 rvarp->ndims * sizeof(size_t));
+	if(rvarp->dsizes != NULL)
+		(void) memcpy(varp->dsizes, rvarp->dsizes,
+				 rvarp->ndims * sizeof(off_t));
 	varp->xsz = rvarp->xsz;
 	varp->len = rvarp->len;
 	varp->begin = rvarp->begin;
@@ -265,14 +268,17 @@ dup_NC_vararrayV(NC_vararray *ncap, const NC_vararray *ref)
 	{
 		NC_var **vpp = ncap->value;
 		const NC_var **drpp = (const NC_var **)ref->value;
-		NC_var *const *const end = &vpp[ref->nelems];
-		for( /*NADA*/; vpp < end; drpp++, vpp++, ncap->nelems++)
+		if (vpp)
 		{
-			*vpp = dup_NC_var(*drpp);
-			if(*vpp == NULL)
+			NC_var *const *const end = &vpp[ref->nelems];
+			for( /*NADA*/; vpp < end; drpp++, vpp++, ncap->nelems++)
 			{
-				status = NC_ENOMEM;
-				break;
+				*vpp = dup_NC_var(*drpp);
+				if(*vpp == NULL)
+				{
+					status = NC_ENOMEM;
+					break;
+				}
 			}
 		}
 	}
@@ -473,7 +479,7 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
 		{
           if( ((off_t)(*shp)) <= OFF_T_MAX / product )
 			{
-              product *= (*shp > 0 ? *shp : 1);
+              product *= (*shp > 0 ? (off_t)*shp : 1);
 			} else
 			{
               product = OFF_T_MAX ;
@@ -492,7 +498,7 @@ out :
      * offset of this variable is less than 2GiB.
      * This will be checked in NC_check_vlens() during NC_endef()
      */
-    varp->len = product * varp->xsz;
+    varp->len = product * (off_t)varp->xsz;
     if (varp->len % 4 > 0)
         varp->len += 4 - varp->len % 4; /* round up */
 
@@ -512,8 +518,8 @@ out :
  */
 int
 NC_check_vlen(NC_var *varp, long long vlen_max) {
-    int ii;
-    long long prod=varp->xsz;	/* product of xsz and dimensions so far */
+    size_t ii;
+    long long prod = (long long)varp->xsz;	/* product of xsz and dimensions so far */
 
     assert(varp != NULL);
     for(ii = IS_RECVAR(varp) ? 1 : 0; ii < varp->ndims; ii++) {
@@ -522,7 +528,7 @@ NC_check_vlen(NC_var *varp, long long vlen_max) {
       if ((long long)varp->shape[ii] > vlen_max / prod) {
         return 0;		/* size in bytes won't fit in a 32-bit int */
       }
-      prod *= varp->shape[ii];
+      prod *= (long long)varp->shape[ii];
     }
     return 1;			/* OK */
 }
@@ -605,7 +611,7 @@ NC3_def_var( int ncid, const char *name, nc_type type,
 		return NC_ENAMEINUSE;
 	}
 
-	varp = new_NC_var(name, type, ndims, dimids);
+	varp = new_NC_var(name, type, (size_t)ndims, dimids);
 	if(varp == NULL)
 		return NC_ENOMEM;
 
@@ -714,7 +720,7 @@ NC3_inq_var(int ncid,
 	if (no_fillp != NULL) *no_fillp = varp->no_fill;
 
 	if (fill_valuep != NULL) {
-		status = nc_get_att(ncid, varid, _FillValue, fill_valuep);
+		status = nc_get_att(ncid, varid, NC_FillValue, fill_valuep);
 		if (status != NC_NOERR && status != NC_ENOTATT)
 			return status;
 		if (status == NC_ENOTATT) {
@@ -848,12 +854,12 @@ NC3_def_var_fill(int ncid,
 	if (fill_value != NULL && !varp->no_fill) {
 
 		/* If there's a _FillValue attribute, delete it. */
-		status = NC3_del_att(ncid, varid, _FillValue);
+		status = NC3_del_att(ncid, varid, NC_FillValue);
 		if (status != NC_NOERR && status != NC_ENOTATT)
 			return status;
 
 		/* Create/overwrite attribute _FillValue */
-		status = NC3_put_att(ncid, varid, _FillValue, varp->type, 1, fill_value, varp->type);
+		status = NC3_put_att(ncid, varid, NC_FillValue, varp->type, 1, fill_value, varp->type);
 		if (status != NC_NOERR) return status;
 	}
 

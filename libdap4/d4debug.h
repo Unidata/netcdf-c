@@ -8,6 +8,8 @@
 #include <assert.h>
 #include <stdarg.h>
 
+#undef D4CATCH /* Warning: significant performance impact */
+
 #undef D4DEBUG /* general debug */
 #undef D4DEBUGPARSER
 #undef D4DEBUGMETA
@@ -26,8 +28,6 @@
 #define D4DUMPDAP
 #endif
 
-#undef D4CATCH /* Warning: significant performance impact */
-
 #define PANIC(msg) assert(d4panic(msg));
 #define PANIC1(msg,arg) assert(d4panic(msg,arg));
 #define PANIC2(msg,arg1,arg2) assert(d4panic(msg,arg1,arg2));
@@ -42,6 +42,7 @@ extern int d4panic(const char* fmt, ...);
 
 #ifdef D4CATCH
 /* Place breakpoint on dapbreakpoint to catch errors close to where they occur*/
+/* WARNING: do not evaluate e more than once */
 #define THROW(e) d4throw(e)
 #define THROWCHK(e) (void)d4throw(e)
 extern int d4breakpoint(int err);

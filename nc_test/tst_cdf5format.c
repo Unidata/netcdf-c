@@ -35,12 +35,12 @@ write2(int ncid, int parallel)
    {
       if (i % 2)
       {
-	 sprintf(str, "fixed_var_%d",i);
+	 snprintf(str, sizeof(str), "fixed_var_%d",i);
 	 if (nc_def_var(ncid, str, NC_INT, 1, &dimid[1], &varid[i])) ERR;
       }
       else
       {
-	 sprintf(str, "record_var_%d",i);
+	 snprintf(str, sizeof(str), "record_var_%d",i);
 	 if (nc_def_var(ncid, str, NC_INT, 2, dimid, &varid[i])) ERR;
       }
    }
@@ -86,7 +86,7 @@ extend(int ncid)
    /* add attributes to make header grow */
    for (i = 0; i < NVARS; i++)
    {
-      sprintf(str, "annotation_for_var_%d", i);
+      snprintf(str, sizeof(str), "annotation_for_var_%d", i);
       if (nc_put_att_text(ncid, i, "text_attr", strlen(str), str)) ERR;
    }
    if (nc_enddef(ncid)) ERR;

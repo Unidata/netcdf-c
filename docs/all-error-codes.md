@@ -1,4 +1,4 @@
-NetCDF Error Code Listing {#nc-error-codes}
+Appendix C. NetCDF Error Code Listing {#nc-error-codes}
 ==================
 
 \tableofcontents
@@ -77,7 +77,7 @@ may occur.
 # NetCDF-4 Error Codes {#nc4-error-codes}
 
 NetCDF-4 uses all error codes from NetCDF-3 (see section [NetCDF-3 Error
-Codes](#NetCDF_002d3-Error-Codes)). The following additional error codes
+Codes](#nc3-error-codes)). The following additional error codes
 were added for new errors unique to netCDF-4.
 
 ~~~~

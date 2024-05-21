@@ -7,6 +7,7 @@
 
 # Get AM_CPPFLAGS and AM_LDFLAGS
 include $(top_srcdir)/lib_flags.am
+
 AM_CPPFLAGS += -D_LARGEFILE_SOURCE
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libncpoco
 libnczarr_la_CPPFLAGS = ${AM_CPPFLAGS}
@@ -14,7 +15,7 @@ AM_CXXFLAGS =
 libnczarr_la_LIBADD =
 libnczarr_la_LDFLAGS =
 
-# Remember ENABLE_NCZARR implies USE_NETCDF4
+# Remember NETCDF_ENABLE_NCZARR implies USE_NETCDF4
 
 # We may have to add to these later.
 DISTCLEANFILES =
@@ -50,13 +51,11 @@ ztype.c \
 zutil.c \
 zvar.c \
 zwalk.c \
-zfilter.c \
 zdebug.c \
 zarr.h \
 zcache.h \
 zchunking.h \
 zdispatch.h \
-ztracedispatch.h \
 zincludes.h \
 zinternal.h \
 zmap.h \
@@ -65,14 +64,19 @@ zprovenance.h \
 zfilter.h \
 zdebug.h
 
-if ENABLE_NCZARR_ZIP
+if NETCDF_ENABLE_NCZARR_ZIP
 libnczarr_la_SOURCES += zmap_zip.c 
 endif
 
-if ENABLE_S3_SDK
+if NETCDF_ENABLE_NCZARR_FILTERS
+libnczarr_la_SOURCES += zfilter.c
+endif
+
+if NETCDF_ENABLE_S3
 libnczarr_la_SOURCES += zmap_s3sdk.c
-libnczarr_la_SOURCES += 
+if NETCDF_ENABLE_S3_AWS
 AM_CXXFLAGS += -std=c++11
+endif
 endif
 
 # For now, ignore these

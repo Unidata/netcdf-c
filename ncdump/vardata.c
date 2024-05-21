@@ -20,6 +20,12 @@
 #include "vardata.h"
 #include "netcdf_aux.h"
 
+/* If set, then print char variables as utf-8.
+   If not set, then print non-printable characters as octal.
+   The latter was the default before this change.
+*/
+#define UTF8CHARS
+
 /* maximum len of string needed for one value of a primitive type */
 #define MAX_OUTPUT_LEN 100
 
@@ -60,7 +66,7 @@ set_max_len(int len) {
  */
 void
 lput(const char *cp) {
-    size_t nn = strlen(cp);
+    int nn = (int)strlen(cp);
 
     if (nn+linep > max_line_len && nn > 2) {
 	(void) fputs("\n", stdout);
@@ -99,9 +105,9 @@ lput2(
     				 * false=stay on same line  */
     )
 {
-    static int linep;			/* current line position (number of */
+    static size_t linep;			/* current line position (number of */
     					/*   chars); saved between calls    */
-    int len_prefix = strlen (CDL_COMMENT_PREFIX);
+    size_t len_prefix = strlen (CDL_COMMENT_PREFIX);
     bool_t make_newline;
 
     size_t len1 = strlen(cp);		/* length of input string */
@@ -306,11 +312,11 @@ annotate(
 	/* C variable indices */
 	for (id = 0; id < vrank-1; id++)
 	  printf("%lu,", (unsigned long) cor[id]);
-	printf("%lu", (unsigned long) cor[id] + iel);
+	printf("%lu", (unsigned long) cor[id] + (unsigned long) iel);
 	break;
       case LANG_F:
 	/* Fortran variable indices */
-	printf("%lu", (unsigned long) cor[vrank-1] + iel + 1);
+	printf("%lu", (unsigned long) cor[vrank-1] + (unsigned long) iel + 1);
 	for (id = vrank-2; id >=0 ; id--) {
 	    printf(",%lu", 1 + (unsigned long) cor[id]);
 	}
@@ -340,9 +346,10 @@ pr_tvals(
     sp = vals + len;
     while (len != 0 && *--sp == '\0')
 	len--;
+    /* Walk the sequence of characters and write control characters in escape form. */
     for (iel = 0; iel < len; iel++) {
 	unsigned char uc;
-	switch (uc = *vals++ & 0377) {
+	switch (uc = (unsigned char)(*vals++ & 0377)) {
 	case '\b':
 	    printf("\\b");
 	    break;
@@ -371,10 +378,12 @@ pr_tvals(
 	    printf("\\\"");
 	    break;
 	default:
-	    if (isprint(uc))
-		printf("%c",uc);
-	    else
+#ifdef UTF8CHARS
+	    if (!isprint(uc))
 		printf("\\%.3o",uc);
+	    else
+#endif /*UTF8CHARS*/
+		printf("%c",uc);
 	    break;
 	}
     }
@@ -437,22 +446,18 @@ print_rows(
     int rank = vp->ndims;
     size_t ncols = rank > 0 ? vdims[rank - 1] : 1; /* number of values in a row */
     int d0 = 0;
-    size_t inc = 1;
     int i;
     bool_t mark_record = (level > 0 && is_unlim_dim(ncid, vp->dims[level]));
     safebuf_t *sb = sbuf_new();
     if (rank > 0)
-	d0 = vdims[level];
-    for(i = level + 1; i < rank; i++) {
-	inc *= vdims[i];
-    }
+	d0 = (int)vdims[level];
     if(mark_record) { /* the whole point of this recursion is printing these "{}" */
 	lput(LBRACE);
 	marks_pending++;	/* matching "}"s to emit after last "row" */
     }
     if(rank - level > 1) {     	/* this level is just d0 next levels */
-	size_t *local_cor = emalloc((rank + 1) * sizeof(size_t));
-	size_t *local_edg = emalloc((rank + 1) * sizeof(size_t));
+	size_t *local_cor = emalloc((size_t)(rank + 1) * sizeof(size_t));
+	size_t *local_edg = emalloc((size_t)(rank + 1) * sizeof(size_t));
 	for(i = 0; i < rank; i++) {
 	    local_cor[i] = cor[i];
 	    local_edg[i] = edg[i];
@@ -495,7 +500,7 @@ print_rows(
 	    print_any_val(sb, vp, (void *)valp);
 	}
         /* In case vals has memory hanging off e.g. vlen or string, make sure to reclaim it */
-        (void)ncaux_reclaim_data(ncid,vp->type,vals,ncols);
+        NC_CHECK(nc_reclaim_data(ncid,vp->type,vals,ncols));
 
 	/* determine if this is the last row */
 	lastrow = true;
@@ -546,9 +551,9 @@ vardata(
     int level = 0;
     int marks_pending = 0;
 
-    cor = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
-    edg = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
-    add = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
+    cor = (size_t *) emalloc((size_t)(1 + vrank) * sizeof(size_t));
+    edg = (size_t *) emalloc((size_t)(1 + vrank) * sizeof(size_t));
+    add = (size_t *) emalloc((size_t)(1 + vrank) * sizeof(size_t));
 
     nels = 1;
     if(vrank == 0) { /*scalar*/
@@ -638,7 +643,7 @@ pr_tvalsx(
 	len--;
     for (iel = 0; iel < len; iel++) {
 	unsigned char uc;
-	switch (uc = *vals++ & 0377) {
+	switch (uc = (unsigned char)(*vals++ & 0377)) {
 	case '\b':
 	    printf("\\b");
 	    break;
@@ -733,9 +738,9 @@ vardatax(
     size_t nrows;
     int vrank = vp->ndims;
 
-    cor = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
-    edg = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
-    add = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
+    cor = (size_t *) emalloc((size_t)(vrank + 1) * sizeof(size_t));
+    edg = (size_t *) emalloc((size_t)(vrank + 1) * sizeof(size_t));
+    add = (size_t *) emalloc((size_t)(vrank + 1) * sizeof(size_t));
 
     nels = 1;
     for (id = 0; id < vrank; id++) {

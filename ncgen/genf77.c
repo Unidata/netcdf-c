@@ -5,6 +5,7 @@
  *********************************************************************/
 
 #include "includes.h"
+#include <stddef.h>
 
 #ifdef ENABLE_F77
 
@@ -18,7 +19,6 @@ static List* f77procs = NULL; /* bodies of generated procedures */
 /* Forward */
 static void genf77_definevardata(Symbol* vsym);
 static void genf77_defineattr(Symbol* asym);
-static void genf77_definevardata(Symbol*);
 
 static void f77attrify(Symbol* asym, Bytebuffer* buf);
 static const char* f77varncid(Symbol* vsym);
@@ -26,7 +26,6 @@ static const char* f77dimncid(Symbol* vsym);
 
 static const char* nfstype(nc_type nctype);
 static const char* nftype(nc_type type);
-static const char* nfstype(nc_type nctype);
 static const char* ncftype(nc_type type);
 static const char* nfdtype(nc_type type);
 
@@ -46,15 +45,14 @@ static void genf77_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*)
 void
 genf77_netcdf(void)
 {
-    int idim, ivar, iatt;
-    int ndims, nvars, natts, ngatts;
+    size_t idim, ivar, iatt;
     char* cmode_string;
     const char *filename = rootgroup->file.filename;
 
-    ndims = listlength(dimdefs);
-    nvars = listlength(vardefs);
-    natts = listlength(attdefs);
-    ngatts = listlength(gattdefs);
+    size_t ndims = listlength(dimdefs);
+    size_t nvars = listlength(vardefs);
+    size_t natts = listlength(attdefs);
+    size_t ngatts = listlength(gattdefs);
 
     /* Construct the main program */
 
@@ -170,12 +168,12 @@ genf77_netcdf(void)
     /* F77 (as defined for ncgen3) requires per-type vectors for attributes */
     if(ngatts > 0 || natts > 0) {
 	nc_type nctype;
-	int pertypesizes[NC_DOUBLE+1];
+	size_t pertypesizes[NC_DOUBLE+1];
 	for(nctype=0;nctype<=NC_DOUBLE;nctype++) {pertypesizes[nctype] = 0;}
 	if(ngatts > 0) {
     	    for(iatt = 0; iatt < ngatts; iatt++) {
 	        Symbol* gasym = (Symbol*)listget(gattdefs,iatt);
-		int count = gasym->data->length;
+		size_t count = gasym->data->length;
 		int typecode = gasym->typ.basetype->typ.typecode;
 	        if(count == 0) continue;
 		if(pertypesizes[typecode] < count)
@@ -185,7 +183,7 @@ genf77_netcdf(void)
 	if(natts > 0) {
     	    for(iatt = 0; iatt < natts; iatt++) {
 	        Symbol* asym = (Symbol*)listget(attdefs,iatt);
-		int count = asym->data->length;
+		size_t count = asym->data->length;
 		int typecode = asym->typ.basetype->typ.typecode;
 	        if(count == 0) continue;
 		if(pertypesizes[typecode] < count)
@@ -254,7 +252,7 @@ genf77_netcdf(void)
 	    if(dimset->ndims > 0) {
 		/* Remember; FORTRAN dimension order is reversed */
 	        for(idim = 0; idim < dimset->ndims; idim++) {
-		    int reverse = (dimset->ndims - idim) - 1;
+                    int reverse = (dimset->ndims - (int)idim) - 1;
 		    Symbol* dsym = dimset->dimsyms[reverse];
 		    bbprintf0(stmt,
 			    "%s_dims(%d) = %s\n",
@@ -336,7 +334,6 @@ genf77_netcdf(void)
             f77skip();
             f77comment("perform variable data writes");
             for(ivar = 0; ivar < nvars; ivar++) {
-                int i;
                 Symbol* vsym = (Symbol*)listget(vardefs,ivar);
                 /* Call the procedures for writing unlimited variables */
                 if(vsym->data != NULL
@@ -346,7 +343,7 @@ genf77_netcdf(void)
                 /* dump any calls */
                 generator_getstate(f77_generator,(void*)&calllist);
                 ASSERT(calllist != NULL);
-                for(i=0;i<listlength(calllist);i++) {
+                for(size_t i=0;i<listlength(calllist);i++) {
                     char* callstmt = (char*)listget(calllist,i);
                     codeline(callstmt);
                 }       
@@ -361,9 +358,8 @@ genf77_netcdf(void)
 
         /* Generate the write procedures */
         if(listlength(f77procs) > 0) {
-	    int i;
     	    f77skip();
-            for(i=0;i<listlength(f77procs);i++) {
+            for(size_t i=0;i<listlength(f77procs);i++) {
     	        Bytebuffer* proctext = (Bytebuffer*)listget(f77procs,i);
     	        codedump(proctext);
     	        bbFree(proctext);
@@ -491,7 +487,7 @@ f77fold(Bytebuffer* lines)
 	while(*linen != '\n' && *linen != '\0') linen++;
 	if(*linen == '\0') break;
 	linen++; /* include trailing newline */
-	linelen = (linen - line0);
+	linelen = (size_t)(linen - line0);
 	/* handle comments and empty lines */
 	if(*line0 == '*' || linelen == 1) {
 	    bbAppendn(lines,line0,linelen);
@@ -512,10 +508,10 @@ f77fold(Bytebuffer* lines)
 	    int incr = F77_MAX_STMT;
 	    /* Check to ensure we are folding at a legal point */
 	    if(*(line0+(incr-1)) == '\\') incr--;
-	    bbAppendn(lines,line0,incr);
+	    bbAppendn(lines,line0,(size_t)incr);
 	    bbCat(lines,"\n     1"); /* comment extender */
 	    line0 += incr;
-	    linelen -= incr;
+	    linelen -= (size_t)incr;
 	}
 	/* Do last part of the line */
 	bbAppendn(lines,line0,linelen);
@@ -709,7 +705,7 @@ genf77_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
 	f77skip();
     } else { /* rank > 0 && typecode != NC_CHAR*/
         char* dimstring;
-	int index = listlength(f77procs);
+	size_t index = listlength(f77procs);
 	Bytebuffer* proctext;
 	Bytebuffer* save;
 	List* calllist;

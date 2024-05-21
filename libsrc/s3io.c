@@ -36,6 +36,7 @@
 #include "fbits.h"
 #include "rnd.h"
 #include "ncs3sdk.h"
+#include "ncuri.h"
 
 #define DEFAULTPAGESIZE 16384
 
@@ -175,13 +176,13 @@ s3io_open(const char* path,
         {status = NC_EURL; goto done;}
 
     /* Convert to canonical path-style */
-    if((status = NC_s3urlprocess(url,&s3io->s3))) goto done;
+    if((status = NC_s3urlprocess(url,&s3io->s3,NULL))) goto done;
     /* Verify root path */
     if(s3io->s3.rootkey == NULL)
         {status = NC_EURL; goto done;}
     s3io->s3client = NC_s3sdkcreateclient(&s3io->s3);
     /* Get the size */
-    switch (status = NC_s3sdkinfo(s3io->s3client,s3io->s3.bucket,s3io->s3.rootkey,&s3io->size,&s3io->errmsg)) {
+    switch (status = NC_s3sdkinfo(s3io->s3client,s3io->s3.bucket,s3io->s3.rootkey,(long long unsigned*)&s3io->size,&s3io->errmsg)) {
     case NC_NOERR: break;
     case NC_EEMPTY:
         s3io->size = 0;

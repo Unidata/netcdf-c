@@ -3,24 +3,19 @@
 #include <string.h>
 #include "netcdf.h"
 #include "ncrc.h"
+#include "nc4internal.h"
 
-int
-main(int argc, char** argv)
+static void
+printrc(NCglobalstate* ngs)
 {
     size_t i,nentries = 0;
-    NCRCglobalstate* ngs = ncrc_getglobalstate();
     NCRCinfo* info = NULL;
     NCRCentry* entry = NULL;
 
-    /* Cause the .rc files to be read and merged */
-    nc_initialize();
-
-    if((ngs = ncrc_getglobalstate())==NULL) abort();
-    info = &ngs->rcinfo;
-
+    info = ngs->rcinfo;
     if(info->ignore) {
 	fprintf(stderr,".rc ignored\n");
-	exit(0);
+	return;
     }
 
     /* Print out the .rc entries */
@@ -33,11 +28,24 @@ main(int argc, char** argv)
 	if(entry == NULL) abort();
         if(entry->host != NULL) {
 	    printf("[%s ",entry->host);
-            if(entry->path != NULL)
-	        printf("/%s] ",entry->path);
+            if(entry->urlpath != NULL)
+	        printf("/%s] ",entry->urlpath);
 	    printf("]");					
         }
 	printf("|%s|->|%s|\n",entry->key,entry->value);
     }
+}
+
+int
+main(int argc, char** argv)
+{
+    NCglobalstate* ngs = NC_getglobalstate();
+
+    /* Cause the .rc files to be read and merged */
+    nc_initialize();
+
+    if((ngs = NC_getglobalstate())==NULL) abort();
+    printrc(ngs);
+
     return 0;
 }

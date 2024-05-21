@@ -136,7 +136,7 @@ main(int argc, char **argv)
 
       for (i = 0; i < ATT_LEN; i++)
       {
-	 a1_att[i].s1.x = 13.3;
+	 a1_att[i].s1.x = 13.3f;
 	 a1_att[i].s1.y = 13.3;
       }
       /* Create a file with two groups, define a type in each group,
@@ -173,11 +173,11 @@ main(int argc, char **argv)
       if (strcmp(name_in, TYPE2_NAME) || size_in != sizeof(g2_d_t)) ERR;
 
       /* This fails because it's not a fully-qualified name. */
-      sprintf(full_name, "%s/%s", GROUP2_NAME, TYPE2_NAME);
+      snprintf(full_name, sizeof(full_name), "%s/%s", GROUP2_NAME, TYPE2_NAME);
       if (nc_inq_typeid(root_grp, full_name, &type2id) != NC_EINVAL) ERR;
 
       /* Check the type using it's full name. */
-      sprintf(full_name, "/%s/%s", GROUP2_NAME, TYPE2_NAME);
+      snprintf(full_name, sizeof(full_name), "/%s/%s", GROUP2_NAME, TYPE2_NAME);
 /*      if (nc_inq_typeid(root_grp, full_name, &type2id)) ERR;       */
 /*       if (nc_inq_type(g2_grp, type2id, name_in, &size_in)) ERR; */
 /*       if (strcmp(name_in, TYPE2_NAME) || size_in != sizeof(g2_d_t)) ERR; */

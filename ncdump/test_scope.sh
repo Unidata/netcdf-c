@@ -31,6 +31,7 @@ diff -wB ${srcdir}/$1.cdl ${execdir}/copy_$1.cdl
 }
 
 typescope() {
+ls -l ${execdir}/printfqn* ${execdir}/$1.nc ${execdir}/$1_copy.nc
 REFT=`${execdir}/printfqn -f ${execdir}/$1.nc -v test_variable -t`
 COPYT=`${execdir}/printfqn -f ${execdir}/$1_copy.nc -v test_variable -t`
 if test "x$REFT" != "x$COPYT" ; then
