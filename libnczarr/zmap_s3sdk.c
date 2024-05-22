@@ -499,20 +499,21 @@ s3clear(void* s3client, const char* bucket, const char* rootkey)
 {
     int stat = NC_NOERR;
     char** list = NULL;
-    char** p;
     size_t nkeys = 0;
 
     if(s3client && bucket && rootkey) {
         if((stat = NC_s3sdksearch(s3client, bucket, rootkey, &nkeys, &list, NULL)))
             goto done;
         if(list != NULL) {
-            for(p=list;*p;p++) {
+	    size_t i;
+	    for(i=0;i<nkeys;i++) {
+                char* p = list[i];
 	        /* If the key is the rootkey, skip it */
-	        if(strcmp(rootkey,*p)==0) continue;
+	        if(strcmp(rootkey,p)==0) continue;
 #ifdef S3DEBUG
-fprintf(stderr,"s3clear: %s\n",*p);
+fprintf(stderr,"s3clear: %s\n",p);
 #endif
-                if((stat = NC_s3sdkdeletekey(s3client, bucket, *p, NULL)))	
+                if((stat = NC_s3sdkdeletekey(s3client, bucket, p, NULL)))	
 	            goto done;
 	    }
         }
