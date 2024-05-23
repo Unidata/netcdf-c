@@ -43,9 +43,6 @@ enum URLFORMAT {UF_NONE=0, UF_VIRTUAL=1, UF_PATH=2, UF_S3=3, UF_OTHER=4};
 static const char* awsconfigfiles[] = {".aws/config",".aws/credentials",NULL};
 #define NCONFIGFILES (sizeof(awsconfigfiles)/sizeof(char*))
 
-static int ncs3_initialized = 0;
-static int ncs3_finalized = 0;
-
 /**************************************************/
 /* Forward */
 
@@ -56,39 +53,21 @@ static int awsparse(const char* text, NClist* profiles);
 /**************************************************/
 /* Capture environmental Info */
 
-EXTERNL int
-NC_s3sdkinitialize(void)
+EXTERNL void
+NC_s3sdkenvironment(void)
 {
-    if(!ncs3_initialized) {
-	ncs3_initialized = 1;
-	ncs3_finalized = 0;
-    }
-    {
-        /* Get various environment variables as defined by the AWS sdk */
-	NCglobalstate* gs = NC_getglobalstate();
-	if(getenv("AWS_REGION")!=NULL)
-	    gs->aws.default_region = nulldup(getenv("AWS_REGION"));
-	else if(getenv("AWS_DEFAULT_REGION")!=NULL)
-	    gs->aws.default_region = nulldup(getenv("AWS_DEFAULT_REGION"));
-	else if(gs->aws.default_region == NULL)
-	    gs->aws.default_region = nulldup(AWS_GLOBAL_DEFAULT_REGION);
-	gs->aws.access_key_id = nulldup(getenv("AWS_ACCESS_KEY_ID"));
-	gs->aws.config_file = nulldup(getenv("AWS_CONFIG_FILE"));
-	gs->aws.profile = nulldup(getenv("AWS_PROFILE"));
-	gs->aws.secret_access_key = nulldup(getenv("AWS_SECRET_ACCESS_KEY"));
-    gs->aws.session_token = nulldup(getenv("AWS_SESSION_TOKEN"));
-    }
-    return NC_NOERR;
-}
-
-EXTERNL int
-NC_s3sdkfinalize(void)
-{
-    if(!ncs3_finalized) {
-	ncs3_initialized = 0;
-	ncs3_finalized = 1;
-    }
-    return NC_NOERR;
+    /* Get various environment variables as defined by the AWS sdk */
+    NCglobalstate* gs = NC_getglobalstate();
+    if(getenv("AWS_REGION")!=NULL)
+        gs->aws.default_region = nulldup(getenv("AWS_REGION"));
+    else if(getenv("AWS_DEFAULT_REGION")!=NULL)
+        gs->aws.default_region = nulldup(getenv("AWS_DEFAULT_REGION"));
+    else if(gs->aws.default_region == NULL)
+        gs->aws.default_region = nulldup(AWS_GLOBAL_DEFAULT_REGION);
+    gs->aws.access_key_id = nulldup(getenv("AWS_ACCESS_KEY_ID"));
+    gs->aws.config_file = nulldup(getenv("AWS_CONFIG_FILE"));
+    gs->aws.profile = nulldup(getenv("AWS_PROFILE"));
+    gs->aws.secret_access_key = nulldup(getenv("AWS_SECRET_ACCESS_KEY"));
 }
 
 /**************************************************/
@@ -504,10 +483,6 @@ NC_aws_load_credentials(NCglobalstate* gstate)
 	    entry->key = strdup("aws_secret_access_key");
 	    entry->value = strdup(gs->aws.secret_access_key);
 	    nclistpush(dfalt->entries,entry); entry = NULL;
-        if((entry = (struct AWSentry*)calloc(1,sizeof(struct AWSentry)))==NULL) {stat = NC_ENOMEM; goto done;}
-        entry->key = strdup("aws_session_token");
-        entry->value = strdup(gs->aws.session_token);
-        nclistpush(dfalt->entries,entry); entry = NULL;
 	}
     }
 

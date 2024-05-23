@@ -2,13 +2,13 @@ netcdf test_atomic_array {
 types:
   opaque(16) opaque16_t ;
 dimensions:
-	_AnonymousDim1 = 1 ;
-	_AnonymousDim2 = 2 ;
+	_Anonymous_Dim_1 = 1 ;
+	_Anonymous_Dim_2 = 2 ;
 variables:
-	ubyte vu8(_AnonymousDim1, _AnonymousDim2) ;
-	double vd(_AnonymousDim1) ;
-	string vs(_AnonymousDim1, _AnonymousDim1) ;
-	opaque16_t vo(_AnonymousDim1, _AnonymousDim1) ;
+	ubyte vu8(_Anonymous_Dim_1, _Anonymous_Dim_2) ;
+	double vd(_Anonymous_Dim_1) ;
+	string vs(_Anonymous_Dim_1, _Anonymous_Dim_1) ;
+	opaque16_t vo(_Anonymous_Dim_1, _Anonymous_Dim_1) ;
 
 // global attributes:
 		string :_dap4.ce = "/vu8[1][0:2:2];/vd[1];/vs[1][0];/vo[0][1]" ;

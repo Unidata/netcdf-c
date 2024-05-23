@@ -5,9 +5,9 @@ types:
     int y ;
   }; // s_t
 dimensions:
-	_AnonymousDim2 = 2 ;
+	_Anonymous_Dim_2 = 2 ;
 variables:
-	s_t s(_AnonymousDim2, _AnonymousDim2) ;
+	s_t s(_Anonymous_Dim_2, _Anonymous_Dim_2) ;
 
 // global attributes:
 		string :_dap4.ce = "/s[0:2:3][0:1]" ;

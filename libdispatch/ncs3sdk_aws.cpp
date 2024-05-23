@@ -133,16 +133,18 @@ NC_s3sdkinitialize(void)
     if(!ncs3_initialized) {
     	ncs3_initialized = 1;
 	    ncs3_finalized = 0;
-
 	
 #ifdef DEBUG
-	    //ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
+        //ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
         ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Trace;
         ncs3options.httpOptions.installSigPipeHandler = true; 
         ncs3options.loggingOptions.logger_create_fn = [] { return std::make_shared<Aws::Utils::Logging::ConsoleLogSystem>(Aws::Utils::Logging::LogLevel::Trace); };
 
 #endif
         Aws::InitAPI(ncs3options);
+
+	/* Get environment information */
+        NC_s3sdkenvironment();
 
     }
     return NCUNTRACE(NC_NOERR);
@@ -500,7 +502,6 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
     int stat = NC_NOERR;
     const char* key = NULL;
     
-    const char* mcontent = (char*)content;
     NCTRACE(11,"bucket=%s pathkey=%s count=%lld content=%p",bucket,pathkey,count,content);
     
     AWSS3CLIENT s3client = (AWSS3CLIENT)s3client0;
@@ -535,7 +536,7 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
     put_request.SetContentLength((long long)count);
    
     std::shared_ptr<Aws::IOStream> data = std::shared_ptr<Aws::IOStream>(new Aws::StringStream());
-    data->rdbuf()->pubsetbuf((char*)content,count);
+    data->rdbuf()->pubsetbuf((char*)content,(std::streamsize)count);
     put_request.SetBody(data);
     auto put_result = AWSS3GET(s3client)->PutObject(put_request);
     if(!put_result.IsSuccess()) {

@@ -220,4 +220,9 @@ EXTERNL hid_t nc4_H5Fcreate(const char *filename, unsigned flags, hid_t fcpl_id,
 
 int hdf5set_format_compatibility(hid_t fapl_id);
 
+/* HDF5 initialization/finalization */
+extern int nc4_hdf5_initialized;
+extern void nc4_hdf5_initialize(void);
+extern void nc4_hdf5_finalize(void);
+
 #endif /* _HDF5INTERNAL_ */

@@ -1965,11 +1965,9 @@ exit:
 static void
 hdf5free(void* memory)
 {
-#ifndef JNA
     /* On Windows using the microsoft runtime, it is an error
        for one library to free memory allocated by a different library.*/
     if(memory != NULL) H5free_memory(memory);
-#endif
 }
 
 /**
@@ -2073,9 +2071,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
         int nmembers;
         unsigned int m;
         char* member_name = NULL;
-#ifdef JNA
-        char jna[1001];
-#endif
 
         type->nc_type_class = NC_COMPOUND;
         if((retval = NC4_set_varsize(type))) return retval;
@@ -2108,12 +2103,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                 retval = NC_EBADNAME;
                 break;
             }
-#ifdef JNA
-            else {
-                strncpy(jna,member_name,1000);
-                member_name = jna;
-            }
-#endif
 
             /* Offset in bytes on *this* platform. */
             member_offset = H5Tget_member_offset(native_typeid, m);
@@ -2220,9 +2209,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
         nc_type base_nc_type = NC_NAT;
         void *value;
         char *member_name = NULL;
-#ifdef JNA
-        char jna[1001];
-#endif
 
         type->nc_type_class = NC_ENUM;
         if((retval = NC4_set_varsize(type))) return retval;
@@ -2260,11 +2246,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             /* Get the name and value from HDF5. */
             if (!(member_name = H5Tget_member_name(hdf_typeid, i)))
                 return NC_EHDFERR;
-
-#ifdef JNA
-            strncpy(jna,member_name,1000);
-            member_name = jna;
-#endif
 
             if (strlen(member_name) > NC_MAX_NAME)
                 return NC_EBADNAME;
