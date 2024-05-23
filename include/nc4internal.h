@@ -476,6 +476,7 @@ typedef struct NCglobalstate {
 	char* profile;
 	char* access_key_id;
 	char* secret_access_key;
+    char *session_token;
     } aws;
     struct Alignment { /* H5Pset_alignment parameters */
         int defined; /* 1 => threshold and alignment explicitly set */
