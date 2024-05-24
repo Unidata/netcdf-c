@@ -121,13 +121,10 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=/tmp \
           -DBUILD_SHARED_LIBS=ON \
           -DNETCDF_ENABLE_NETCDF_4=ON \
-          -DNETCDF_ENABLE_DAP=ON \
           -DNETCDF_BUILD_UTILITIES=ON \
           -DNETCDF_ENABLE_TESTS=ON \
           -DNETCDF_ENABLE_HDF5=ON \
-          -DNETCDF_ENABLE_DAP=TRUE \
           -DNETCDF_ENABLE_NCZARR=TRUE \
-          -DNETCDF_ENABLE_DAP_LONG_TESTS=TRUE \
           -DNETCDF_ENABLE_PLUGINS=ON
         if: ${{ success() }}
 
