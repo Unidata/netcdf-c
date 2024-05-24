@@ -114,8 +114,6 @@ jobs:
           MAKE: "/usr/bin/make"
           CXX: "/usr/bin/g++"
         run: |
-          LDFLAGS="-Wl,--export-all-symbols" \
-          MAKE=/usr/bin/make \
           /usr/bin/cmake \
           -G"Unix Makefiles" \
           -B build \
