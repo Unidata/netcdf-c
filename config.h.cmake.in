@@ -475,10 +475,7 @@ with zip */
 #cmakedefine LOGGING 1
 
 /* If true, define nc_set_log_level. */
-#cmakedefine ENABLE_SET_LOG_LEVEL 1
-
-/* If true, define nc_set_log_level_func */
-#cmakedefine NETCDF_ENABLE_SET_LOG_LEVEL_FUNC 1
+#cmakedefine NETCDF_ENABLE_SET_LOG_LEVEL 1
 
 /* min blocksize for posixio. */
 #cmakedefine NCIO_MINBLOCKSIZE ${NCIO_MINBLOCKSIZE}
