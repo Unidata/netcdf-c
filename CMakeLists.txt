@@ -532,20 +532,20 @@ else()
   set(NETCDF_ENABLE_HDF4 OFF)
 endif()
 
-# Option Logging, only valid for netcdf4.
+# Option Logging, only valid for netcdf4 dispatchers.
 option(NETCDF_ENABLE_LOGGING "Enable Logging." OFF)
 if(NOT NETCDF_ENABLE_NETCDF4)
 set(NETCDF_ENABLE_LOGGING OFF)
 endif()
 if(NETCDF_ENABLE_LOGGING)
-  target_compile_definitions(netcdf PRIVATE LOGGING NETCDF_ENABLE_SET_LOG_LEVEL)
-  set(LOGGING ON)
-  set(NETCDF_ENABLE_SET_LOG_LEVEL ON)
+  set(LOGGING ON CACHE BOOL "") # Alias
 endif()
+
 option(NETCDF_ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
-if(NETCDF_ENABLE_NETCDF4 AND NOT NETCDF_ENABLE_LOGGING AND NETCDF_ENABLE_SET_LOG_LEVEL_FUNC)
-  target_compile_definitions(netcdf PRIVATE -DNETCDF_ENABLE_SET_LOG_LEVEL)
-  set(NETCDF_ENABLE_SET_LOG_LEVEL ON)
+if(LOGGING AND NETCDF_ENABLE_SET_LOG_LEVEL_FUNC)
+  set(NETCDF_ENABLE_SET_LOG_LEVEL ON CACHE BOOL "")
+else()
+  set(NETCDF_ENABLE_SET_LOG_LEVEL OFF CACHE BOOL "")
 endif()
 
 # Option to allow for strict null file padding.
