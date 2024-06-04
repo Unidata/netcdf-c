@@ -148,6 +148,7 @@ macro(build_bin_test F)
     add_executable(${F} "${CMAKE_CURRENT_BINARY_DIR}/${F}.c" ${ARGN})
   endif()
   target_link_libraries(${F} netcdf ${ALL_TLL_LIBS})
+
   if(MSVC)
     set_target_properties(${F}
       PROPERTIES 
@@ -176,6 +177,8 @@ endmacro()
 # Binary tests which are used by a script looking for a specific name.
 macro(build_bin_test_no_prefix F)
   build_bin_test(${F})
+
+
   if(WIN32)
     #SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
     set_target_properties(${F} PROPERTIES
