@@ -535,18 +535,11 @@ endif()
 # Option Logging, only valid for netcdf4 dispatchers.
 option(NETCDF_ENABLE_LOGGING "Enable Logging." OFF)
 if(NOT NETCDF_ENABLE_NETCDF4)
-set(NETCDF_ENABLE_LOGGING OFF)
-endif()
-if(NETCDF_ENABLE_LOGGING)
-  set(LOGGING ON CACHE BOOL "") # Alias
+  set(NETCDF_ENABLE_LOGGING OFF)
 endif()
 
-option(NETCDF_ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
-if(LOGGING AND NETCDF_ENABLE_SET_LOG_LEVEL_FUNC)
-  set(NETCDF_ENABLE_SET_LOG_LEVEL ON CACHE BOOL "")
-else()
-  set(NETCDF_ENABLE_SET_LOG_LEVEL OFF CACHE BOOL "")
-endif()
+set(LOGGING ${NETCDF_ENABLE_LOGGING})
+set(NETCDF_ENABLE_SET_LOG_LEVEL ${NETCDF_ENABLE_LOGGING})
 
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
