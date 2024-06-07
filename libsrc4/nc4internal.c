@@ -1711,7 +1711,7 @@ nc4_normalize_name(const char *name, char *norm_name)
     return NC_NOERR;
 }
 
-#ifdef ENABLE_SET_LOG_LEVEL
+#ifdef NETCDF_ENABLE_SET_LOG_LEVEL
 
 /**
  * Initialize parallel I/O logging. For parallel I/O builds, open log
@@ -1812,7 +1812,7 @@ nc_set_log_level(int new_level)
     
     return NC_NOERR;
 }
-#endif /* ENABLE_SET_LOG_LEVEL */
+#endif /* NETCDF_ENABLE_SET_LOG_LEVEL */
 
 #if LOGGING
 #define MAX_NESTS 10
