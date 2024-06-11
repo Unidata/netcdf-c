@@ -71,8 +71,8 @@ set(NC_VERSION ${netCDF_VERSION})
 set(PACKAGE_VERSION ${VERSION})
 
 # These values should match those in configure.ac
-set(netCDF_LIB_VERSION 19)
-set(netCDF_SO_VERSION 19)
+set(netCDF_LIB_VERSION 22)
+set(netCDF_SO_VERSION 22)
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
