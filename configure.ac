@@ -450,17 +450,15 @@ AC_ARG_ENABLE([logging],
 			      Ignored if netCDF-4 is not enabled.])])
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
-
-# Does the user want to turn off nc_set_log_level() function? (It will
-# always be defined if --enable-logging is used.)
-AC_MSG_CHECKING([whether nc_set_log_level() function is included (will do nothing unless enable-logging is also used)])
-AC_ARG_ENABLE([set_log_level_func], [AS_HELP_STRING([--disable-set-log-level-func],
-              [disable the nc_set_log_level function])])
-test "x$enable_set_log_level_func" = xno -a "x$enable_logging" = xno || enable_set_log_level_func=yes
-if test "x$enable_set_log_level_func" = xyes -a "x$enable_hdf5" = xyes; then
-   AC_DEFINE([ENABLE_SET_LOG_LEVEL], 1, [If true, define nc_set_log_level.])
+if test "x$enable_logging" = xyes; then
+   enable_set_log_level_func=yes
+   enable_set_log_level=yes
+   AC_DEFINE([NETCDF_ENABLE_SET_LOG_LEVEL], 1, [If true, enable nc_set_log_level function.])
+else
+   enable_set_log_level_func=no
+   enable_set_log_level=no
 fi
-AC_MSG_RESULT($enable_set_log_level_func)
+
 
 # CURLOPT_USERNAME is not defined until curl version 7.19.1
 # CURLOPT_PASSWORD is not defined until curl version 7.19.1
