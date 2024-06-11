@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
+### Release Candidate 1 - June 2024
+
 * Cleanup various obsolete options and do some code refactoring. See [Github #2926](https://github.com/Unidata/netcdf-c/issues/2926) for more information.
 * Convert the Zarr-related ENABLE_XXX options to NETCDF_ENABLE_XXX options (part of the cmake overhaul). See [Github #2923](https://github.com/Unidata/netcdf-c/issues/2923) for more information.
 * Refactor macro `_FillValue` to `NC_FillValue` to avoid conflict with libc++ headers. See [Github #2858](https://github.com/Unidata/netcdf-c/issues/2858) for more information.
