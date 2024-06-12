@@ -226,6 +226,12 @@ include(GenerateExportHeader)
 # Compiler and Linker Configuration
 ################################
 
+# Set in support of https://github.com/Unidata/netcdf-c/issues/2700
+if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fhonor-infinities")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fhonor-infinities")
+endif()
+
 option(NETCDF_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
 
 ##
