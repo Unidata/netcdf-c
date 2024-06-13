@@ -681,7 +681,7 @@ else() # No option specified
 endif()
 
 # Try to enable NCZarr zip support
-option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
+option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ON)
 
 include(CMakeDependentOption)
 
