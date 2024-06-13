@@ -2,7 +2,7 @@
 # Macros
 ################################
 
-macro(set_std_filter filter)
+function(set_std_filter filter)
   # Upper case the filter name
   string(TOUPPER "${filter}" upfilter)
   string(TOLOWER "${filter}" downfilter)
@@ -10,18 +10,18 @@ macro(set_std_filter filter)
   # Define a test flag for filter
     if(${filter}_FOUND)
       include_directories(${${filter}_INCLUDE_DIRS})
-      set(ENABLE_${upfilter} TRUE)
-      set(HAVE_${upfilter} ON)
-      set(STD_FILTERS "${STD_FILTERS} ${downfilter}")
+      set(ENABLE_${upfilter} TRUE PARENT_SCOPE)
+      set(HAVE_${upfilter} ON PARENT_SCOPE)
+      set(STD_FILTERS "${STD_FILTERS} ${downfilter}" PARENT_SCOPE)
       message(">>> Standard Filter: ${downfilter}")
     else()
-      set(ENABLE_${upfilter} FALSE)
-      set(HAVE_${upfilter} OFF)
+      set(ENABLE_${upfilter} FALSE PARENT_SCOPE)
+      set(HAVE_${upfilter} OFF PARENT_SCOPE)
     endif()
   else()
-    set(HAVE_${upfilter} OFF)
+    set(HAVE_${upfilter} OFF PARENT_SCOPE)
   endif()
-endmacro(set_std_filter)
+endfunction(set_std_filter)
 
 macro(getuname name flag)
   execute_process(COMMAND "${UNAME}" "${flag}" OUTPUT_VARIABLE "${name}" OUTPUT_STRIP_TRAILING_WHITESPACE)
