@@ -13,8 +13,29 @@ project(netCDF
   LANGUAGES C CXX
   HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
   DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
-  VERSION 4.9.3
+  VERSION 4.9.4
 )
+
+#####
+# Version Info:
+#
+# Release Version
+# Library Version
+# SO Version
+#
+# SO Version is computed from library version. See:
+# http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
+#####
+
+set(NC_VERSION_NOTE "-development")
+set(netCDF_VERSION ${PROJECT_VERSION}${NC_VERSION_NOTE})
+set(VERSION ${netCDF_VERSION})
+set(NC_VERSION ${netCDF_VERSION})
+set(PACKAGE_VERSION ${VERSION})
+
+# These values should match those in configure.ac
+set(netCDF_LIB_VERSION 22)
+set(netCDF_SO_VERSION 22)
 
 #Add custom CMake Module
 
@@ -53,26 +74,7 @@ endif()
 add_library(netcdf)
 add_library(netCDF::netcdf ALIAS netcdf)
 
-#####
-# Version Info:
-#
-# Release Version
-# Library Version
-# SO Version
-#
-# SO Version is computed from library version. See:
-# http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
-#####
 
-set(NC_VERSION_NOTE "-development")
-set(netCDF_VERSION ${PROJECT_VERSION}${NC_VERSION_NOTE})
-set(VERSION ${netCDF_VERSION})
-set(NC_VERSION ${netCDF_VERSION})
-set(PACKAGE_VERSION ${VERSION})
-
-# These values should match those in configure.ac
-set(netCDF_LIB_VERSION 22)
-set(netCDF_SO_VERSION 22)
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
