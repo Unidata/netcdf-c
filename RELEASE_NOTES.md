@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
-* Convert NCZarr V2 to store all netcdf-4 specific info as attributes. This improves interoperability with other Zarr implementations by no longer using non-standard keys. See [Github #????](https://github.com/Unidata/netcdf-c/issues/????) for more information.
+* Convert NCZarr V2 to store all netcdf-4 specific info as attributes. This improves interoperability with other Zarr implementations by no longer using non-standard keys. The price to be paid is that lazy attribute reading cannot be supported. See [Github #2836](https://github.com/Unidata/netcdf-c/issues/2936) for more information.
 * Cleanup the option code for NETCDF_ENABLE_SET_LOG_LEVEL\[_FUNC\] See [Github #2931](https://github.com/Unidata/netcdf-c/issues/2931) for more information.
 * Fix duplicate definition when using aws-sdk-cpp. See [Github #2928](https://github.com/Unidata/netcdf-c/issues/2928) for more information.
 * Cleanup various obsolete options and do some code refactoring. See [Github #2926](https://github.com/Unidata/netcdf-c/issues/2926) for more information.
