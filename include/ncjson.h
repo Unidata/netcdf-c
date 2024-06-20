@@ -57,7 +57,7 @@ typedef struct NCjson {
     int sort;     /* of this object */
     char* string; /* sort != DICT|ARRAY */
     struct NCjlist {
-	    int len;
+	    size_t len;
 	    struct NCjson** contents;
     } list; /* sort == DICT|ARRAY */
 } NCjson;
@@ -108,7 +108,14 @@ OPTEXPORT int NCJaddstring(NCjson* json, int sort, const char* s);
 OPTEXPORT int NCJappend(NCjson* object, NCjson* value);
 
 /* Insert key-value pair into a dict object. key will be copied */
-OPTEXPORT int NCJinsert(NCjson* object, char* key, NCjson* value);
+OPTEXPORT int NCJinsert(NCjson* object, const char* key, NCjson* value);
+
+/* Insert key-value pair as strings into a dict object.
+   key and value will be copied */
+OPTEXPORT int NCJinsertstring(NCjson* object, const char* key, const char* value);
+
+/* Insert key-value pair where value is an int */
+OPTEXPORT int NCJinsertint(NCjson* object, const char* key, long long ivalue);
 
 /* Unparser to convert NCjson object to text in buffer */
 OPTEXPORT int NCJunparse(const NCjson* json, unsigned flags, char** textp);
@@ -131,8 +138,10 @@ OPTEXPORT const char* NCJtotext(const NCjson* json);
 #define NCJsort(x) ((x)->sort)
 #define NCJstring(x) ((x)->string)
 #define NCJlength(x) ((x)==NULL ? 0 : (x)->list.len)
+#define NCJdictlength(x) ((x)==NULL ? 0 : (x)->list.len/2)
 #define NCJcontents(x) ((x)->list.contents)
 #define NCJith(x,i) ((x)->list.contents[i])
+#define NCJdictith(x,i) ((x)->list.contents[2*i])
 
 /* Setters */
 #define NCJsetsort(x,s) (x)->sort=(s)

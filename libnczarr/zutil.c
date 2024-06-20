@@ -226,8 +226,9 @@ ncz_splitkey(const char* key, NClist* segments)
 @internal Down load a .z... structure into memory
 @param zmap - [in] controlling zarr map
 @param key - [in] .z... object to load
-@param jsonp - [out] root of the loaded json
+@param jsonp - [out] root of the loaded json (NULL if key does not exist)
 @return NC_NOERR
+@return NC_EXXX
 @author Dennis Heimbigner
 */
 int
@@ -238,17 +239,22 @@ NCZ_downloadjson(NCZMAP* zmap, const char* key, NCjson** jsonp)
     char* content = NULL;
     NCjson* json = NULL;
 
-    if((stat = nczmap_len(zmap, key, &len)))
-	goto done;
+    switch(stat = nczmap_len(zmap, key, &len)) {
+    case NC_NOERR: break;
+    case NC_ENOOBJECT: case NC_EEMPTY:
+        stat = NC_NOERR;
+        goto exit;
+    default: goto done;
+    }
     if((content = malloc(len+1)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     if((stat = nczmap_read(zmap, key, 0, len, (void*)content)))
 	goto done;
     content[len] = '\0';
-
     if((stat = NCJparse(content,0,&json)) < 0)
 	{stat = NC_ENCZARR; goto done;}
 
+exit:
     if(jsonp) {*jsonp = json; json = NULL;}
 
 done:
@@ -310,13 +316,9 @@ NCZ_createdict(NCZMAP* zmap, const char* key, NCjson** jsonp)
     NCjson* json = NULL;
 
     /* See if it already exists */
-    stat = NCZ_downloadjson(zmap,key,&json);
-    if(stat != NC_NOERR) {
-	if(stat == NC_EEMPTY) {/* create it */
-	    if((stat = nczmap_def(zmap,key,NCZ_ISMETA)))
-		goto done;	    
-        } else
-	    goto done;
+    if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
+    ifjson == NULL) {
+	if((stat = nczmap_def(zmap,key,NCZ_ISMETA))) goto done;	    
     } else {
 	/* Already exists, fail */
 	stat = NC_EINVAL;
@@ -346,18 +348,14 @@ NCZ_createarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
     int stat = NC_NOERR;
     NCjson* json = NULL;
 
-    stat = NCZ_downloadjson(zmap,key,&json);
-    if(stat != NC_NOERR) {
-	if(stat == NC_EEMPTY) {/* create it */
-	    if((stat = nczmap_def(zmap,key,NCZ_ISMETA)))
-		goto done;	    
-	    /* Create the initial array */
-	    if((stat = NCJnew(NCJ_ARRAY,&json)))
-		goto done;
-        } else {
-	    stat = NC_EINVAL;
-	    goto done;
-	}
+    if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
+    if(json == NULL) { /* create it */
+	if((stat = nczmap_def(zmap,key,NCZ_ISMETA))) goto done;	    
+        /* Create the initial array */
+	if((stat = NCJnew(NCJ_ARRAY,&json))) goto done;
+    } else {
+	 stat = NC_EINVAL;
+	goto done;
     }
     if(json->sort != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
     if(jsonp) {*jsonp = json; json = NULL;}
@@ -366,54 +364,6 @@ done:
     return stat;
 }
 #endif /*0*/
-
-/**
-@internal Get contents of a meta object; fail it it does not exist
-@param zmap - [in] map
-@param key - [in] key of the object
-@param jsonp - [out] return parsed json
-@return NC_NOERR
-@return NC_EEMPTY [object did not exist]
-@author Dennis Heimbigner
-*/
-int
-NCZ_readdict(NCZMAP* zmap, const char* key, NCjson** jsonp)
-{
-    int stat = NC_NOERR;
-    NCjson* json = NULL;
-
-    if((stat = NCZ_downloadjson(zmap,key,&json)))
-	goto done;
-    if(NCJsort(json) != NCJ_DICT) {stat = NC_ENCZARR; goto done;}
-    if(jsonp) {*jsonp = json; json = NULL;}
-done:
-    NCJreclaim(json);
-    return stat;
-}
-
-/**
-@internal Get contents of a meta object; fail it it does not exist
-@param zmap - [in] map
-@param key - [in] key of the object
-@param jsonp - [out] return parsed json
-@return NC_NOERR
-@return NC_EEMPTY [object did not exist]
-@author Dennis Heimbigner
-*/
-int
-NCZ_readarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
-{
-    int stat = NC_NOERR;
-    NCjson* json = NULL;
-
-    if((stat = NCZ_downloadjson(zmap,key,&json)))
-	goto done;
-    if(NCJsort(json) != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
-    if(jsonp) {*jsonp = json; json = NULL;}
-done:
-    NCJreclaim(json);
-    return stat;
-}
 
 #if 0
 /**

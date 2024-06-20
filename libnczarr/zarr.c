@@ -269,8 +269,8 @@ ncz_open_rootgroup(NC_FILE_INFO_T* dataset)
 
     if((stat=nczm_concat(NULL,ZGROUP,&rootpath)))
 	goto done;
-    if((stat = NCZ_downloadjson(zfile->map, rootpath, &json)))
-	goto  done;
+    if((stat = NCZ_downloadjson(zfile->map, rootpath, &json))) goto  done;
+    if(json == NULL) goto done;
     /* Process the json */ 
     for(i=0;i<nclistlength(json->contents);i+=2) {
 	const NCjson* key = nclistget(json->contents,i);
@@ -315,7 +315,7 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     int stat = NC_NOERR;
     const char* value = NULL;
     NClist* modelist = nclistnew();
-    int noflags = 0; /* track non-default negative flags */
+    size64_t noflags = 0; /* track non-default negative flags */
 
     if((value = controllookup(zinfo->controllist,"mode")) != NULL) {
 	if((stat = NCZ_comma_parse(value,modelist))) goto done;

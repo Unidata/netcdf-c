@@ -57,7 +57,7 @@ typedef struct NCjson {
     int sort;     /* of this object */
     char* string; /* sort != DICT|ARRAY */
     struct NCjlist {
-	    int len;
+	    size_t len;
 	    struct NCjson** contents;
     } list; /* sort == DICT|ARRAY */
 } NCjson;
@@ -108,7 +108,14 @@ OPTEXPORT int NCJaddstring(NCjson* json, int sort, const char* s);
 OPTEXPORT int NCJappend(NCjson* object, NCjson* value);
 
 /* Insert key-value pair into a dict object. key will be copied */
-OPTEXPORT int NCJinsert(NCjson* object, char* key, NCjson* value);
+OPTEXPORT int NCJinsert(NCjson* object, const char* key, NCjson* value);
+
+/* Insert key-value pair as strings into a dict object.
+   key and value will be copied */
+OPTEXPORT int NCJinsertstring(NCjson* object, const char* key, const char* value);
+
+/* Insert key-value pair where value is an int */
+OPTEXPORT int NCJinsertint(NCjson* object, const char* key, long long ivalue);
 
 /* Unparser to convert NCjson object to text in buffer */
 OPTEXPORT int NCJunparse(const NCjson* json, unsigned flags, char** textp);
@@ -131,8 +138,10 @@ OPTEXPORT const char* NCJtotext(const NCjson* json);
 #define NCJsort(x) ((x)->sort)
 #define NCJstring(x) ((x)->string)
 #define NCJlength(x) ((x)==NULL ? 0 : (x)->list.len)
+#define NCJdictlength(x) ((x)==NULL ? 0 : (x)->list.len/2)
 #define NCJcontents(x) ((x)->list.contents)
 #define NCJith(x,i) ((x)->list.contents[i])
+#define NCJdictith(x,i) ((x)->list.contents[2*i])
 
 /* Setters */
 #define NCJsetsort(x,s) (x)->sort=(s)
@@ -278,7 +287,9 @@ static int NCJnewstring(int sort, const char* value, NCjson** jsonp);
 static int NCJnewstringn(int sort, size_t len, const char* value, NCjson** jsonp);
 static int NCJclone(const NCjson* json, NCjson** clonep);
 static int NCJaddstring(NCjson* json, int sort, const char* s);
-static int NCJinsert(NCjson* object, char* key, NCjson* jvalue);
+static int NCJinsert(NCjson* object, const char* key, NCjson* jvalue);
+static int NCJinsertstring(NCjson* object, const char* key, const char* value);
+static int NCJinsertint(NCjson* object, const char* key, long long ivalue);
 static int NCJappend(NCjson* object, NCjson* value);
 static int NCJunparse(const NCjson* json, unsigned flags, char** textp);
 #else /*!NETCDF_JSON_H*/
@@ -1050,7 +1061,7 @@ done:
 
 /* Insert key-value pair into a dict object. key will be strdup'd */
 OPTSTATIC int
-NCJinsert(NCjson* object, char* key, NCjson* jvalue)
+NCJinsert(NCjson* object, const char* key, NCjson* jvalue)
 {
     int stat = NCJ_OK;
     NCjson* jkey = NULL;
@@ -1059,6 +1070,36 @@ NCJinsert(NCjson* object, char* key, NCjson* jvalue)
     if((stat = NCJnewstring(NCJ_STRING,key,&jkey))==NCJ_ERR) goto done;
     if((stat = NCJappend(object,jkey))==NCJ_ERR) goto done;
     if((stat = NCJappend(object,jvalue))==NCJ_ERR) goto done;
+done:
+    return NCJTHROW(stat);
+}
+
+/* Insert key-value pair as strings into a dict object.
+   key and value will be strdup'd */
+OPTSTATIC int
+NCJinsertstring(NCjson* object, const char* key, const char* value)
+{
+    int stat = NCJ_OK;
+    NCjson* jvalue = NULL;
+    if(value == NULL)
+        NCJnew(NCJ_NULL,&jvalue);
+    else
+        NCJnewstring(NCJ_STRING,value,&jvalue);
+    NCJinsert(object,key,jvalue);
+done:
+    return NCJTHROW(stat);
+}
+
+/* Insert key-value pair with value being an integer */
+OPTSTATIC int
+NCJinsertint(NCjson* object, const char* key, long long ivalue)
+{
+    int stat = NCJ_OK;
+    NCjson* jvalue = NULL;
+    char digits[128];
+    snprintf(digits,sizeof(digits),"%lld",ivalue);
+    NCJnewstring(NCJ_STRING,digits,&jvalue);
+    NCJinsert(object,key,jvalue);
 done:
     return NCJTHROW(stat);
 }
