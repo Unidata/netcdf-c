@@ -42,12 +42,12 @@ iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
         found = 0;
         for(size_t i=0;i<nclistlength(cachenode->vars);i++) {
             CDFnode* var = (CDFnode*)nclistget(cachenode->vars,i);
-	    if(var == target) {
+            if(var == target) {
                 if(cachenodep) *cachenodep = cachenode;
-		found=1;
-		goto done;
-	    }
-	}
+                found=1;
+                goto done;
+            }
+        }
     }
 
     /*search other cache nodes starting at latest first */

@@ -21,7 +21,7 @@ extern int oc_dumpnode(OClink, OCddsnode);
 
 
 static char* repairname(const char* name, const char* badchars);
-static int nccpadding(unsigned long offset, int alignment);
+static size_t nccpadding(unsigned long offset, size_t alignment);
 
 /**************************************************/
 
@@ -180,11 +180,10 @@ nctypetostring(nc_type nctype)
 int
 dapalignbuffer(NCbytes* buf, int alignment)
 {
-    int pad;
     unsigned long len;
     if(buf == NULL) return 0;
     len = ncbyteslength(buf);
-    pad = nccpadding(len,alignment);
+    size_t pad = nccpadding(len, (size_t)alignment);
 
 #ifdef TEST
     for(;pad > 0;pad--)
@@ -760,7 +759,7 @@ repairname(const char* name, const char* badchars)
     char* newname;
     const char *p;
     char *q;
-    int c;
+    char c;
     size_t nnlen = 0;
 
     if(name == NULL) return NULL;
@@ -800,12 +799,11 @@ dap_getselection(NCURI* uri)
 }
 
 /* Compute padding */
-static int
-nccpadding(unsigned long offset, int alignment)
+static size_t
+nccpadding(unsigned long offset, size_t alignment)
 {
-    int pad,rem;
-    rem = (alignment==0?0:(offset % alignment));
-    pad = (rem==0?0:(alignment - rem));
+    size_t rem = (alignment==0?0:(offset % alignment));
+    size_t pad = (rem==0?0:(alignment - rem));
     return pad;
 }
 

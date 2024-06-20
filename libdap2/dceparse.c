@@ -211,10 +211,10 @@ array_indices(DCEparsestate* state, Object list0, Object indexno)
 	start = 1;
     }
     slice = (DCEslice*)dcecreate(CES_SLICE);
-    slice->first = start;
+    slice->first = (size_t)start;
     slice->stride = 1;
     slice->length = 1;
-    slice->last = start;
+    slice->last = (size_t)start;
     slice->count = 1;
     nclistpush(list,(void*)slice);
     return list;
