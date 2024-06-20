@@ -15,7 +15,7 @@ group: _zgroup {
 group: _nczgroup {
 
   // group attributes:
-  		:data = "{\"dims\": {\"dim1\": 1},\"vars\": [],\"groups\": []}" ;
+  		:data = "{\"dimensions\": {\"dim1\": 1},\"arrays\": [],\"groups\": []}" ;
   } // group _nczgroup
 
 group: _nczattr {

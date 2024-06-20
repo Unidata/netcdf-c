@@ -228,7 +228,7 @@ ref_any.cdl ref_oldformat.cdl ref_oldformat.zip ref_newformatpure.cdl \
 ref_groups.h5 ref_byte.zarr.zip ref_byte_fill_value_null.zarr.zip \
 ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl \
 ref_jsonconvention.cdl ref_jsonconvention.zmap \
-ref_string.cdl ref_string_nczarr.baseline ref_string_zarr.baseline ref_scalar.cdl \
+ref_string.cdl ref_string_nczarr.baseline ref_string_zarr.baseline ref_scalar.cdl ref_scalar_nczarr.cdl \
 ref_nulls_nczarr.baseline ref_nulls_zarr.baseline ref_nulls.cdl ref_notzarr.tar.gz
 
 # Interoperability files
