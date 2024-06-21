@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+#include "ncconfigure.h"
 #include "zincludes.h"
 #include "zfilter.h"
 #include <stddef.h>
@@ -22,7 +23,7 @@ static int ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** j
 static int ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose);
 
 static int load_jatts(NCZMAP* map, NC_OBJ* container, int nczarrv1, NCjson** jattrsp, NClist** atypes);
-static int zconvert(NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes* dst);
+static int zconvert(NCjson* src, nc_type typeid, size_t typelen, size_t* countp, NCbytes* dst);
 static int computeattrinfo(const char* name, NClist* atypes, nc_type typehint, int purezarr, NCjson* values,
 		nc_type* typeidp, size_t* typelenp, size_t* lenp, void** datap);
 static int parse_group_content(NCjson* jcontent, NClist* dimdefs, NClist* varnames, NClist* subgrps);
@@ -93,7 +94,7 @@ done:
 static int
 ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** jdimsp)
 {
-    int i, stat=NC_NOERR;
+    int stat=NC_NOERR;
     NCjson* jdims = NULL;
     NCjson* jdimsize = NULL;
     NCjson* jdimargs = NULL;
@@ -102,7 +103,7 @@ ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** jdimsp)
     ZTRACE(3,"file=%s grp=%s",file->controller->path,grp->hdr.name);
 
     NCJnew(NCJ_DICT,&jdims);
-    for(i=0; i<ncindexsize(grp->dim); i++) {
+    for(size_t i=0; i<ncindexsize(grp->dim); i++) {
 	NC_DIM_INFO_T* dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
 	char slen[128];
 
@@ -144,7 +145,8 @@ done:
 int
 ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
 {
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
+    size_t i;
     NCZ_FILE_INFO_T* zinfo = NULL;
     char version[1024];
     int purezarr = 0;
@@ -709,7 +711,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
         if((stat = NCJnew(NCJ_DICT,&jtypes)))
 	    goto done;
         /* Walk all the attributes convert to json and collect the dtype */
-        for(i=0;i<ncindexsize(attlist);i++) {
+        for(size_t i=0;i<ncindexsize(attlist);i++) {
 	    NC_ATT_INFO_T* a = (NC_ATT_INFO_T*)ncindexith(attlist,i);
 	    size_t typesize = 0;
 #if 0
@@ -720,7 +722,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
 	    if(a->nc_typeid > NC_MAX_ATOMIC_TYPE)
 	        {stat = (THROW(NC_ENCZARR)); goto done;}
 	    if(a->nc_typeid == NC_STRING)
-	        typesize = NCZ_get_maxstrlen(container);
+	        typesize = (size_t)NCZ_get_maxstrlen(container);
 	    else
 	        {if((stat = NC4_inq_atomic_type(a->nc_typeid,NULL,&typesize))) goto done;}
 	    /* Convert to storable json */
@@ -730,7 +732,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
 
 	    /* Collect the corresponding dtype */
 	    {
-	        if((stat = ncz_nctype2dtype(a->nc_typeid,endianness,purezarr,typesize,&tname))) goto done;
+  	        if((stat = ncz_nctype2dtype(a->nc_typeid,endianness,purezarr,(int)typesize,&tname))) goto done;
   	        if((stat = NCJnewstring(NCJ_STRING,tname,&jtype))) goto done;
 	        nullfree(tname); tname = NULL;
 	        if((stat = NCJinsert(jtypes,a->hdr.name,jtype))) goto done; /* add {name: type} */
@@ -969,11 +971,11 @@ done:
 
 /* Convert a json value to actual data values of an attribute. */
 static int
-zconvert(NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes* dst)
+zconvert(NCjson* src, nc_type typeid, size_t typelen, size_t* countp, NCbytes* dst)
 {
     int stat = NC_NOERR;
     int i;
-    int count = 0;
+    size_t count = 0;
     
     ZTRACE(3,"src=%s typeid=%d typelen=%u",NCJtotext(src),typeid,typelen);
 	    
@@ -994,7 +996,7 @@ zconvert(NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes* dst)
 	    if((stat = zcharify(src,dst))) goto done;
 	    count = ncbyteslength(dst);
         } else {
-	    count = NCJlength(src);
+	    count = (size_t)NCJlength(src);
 	    for(i=0;i<count;i++) {
 	        NCjson* value = NCJith(src,i);
                 if((stat = NCZ_convert1(value, typeid, dst))) goto done;
@@ -1080,7 +1082,7 @@ computeattrdata(nc_type typehint, nc_type* typeidp, NCjson* values, size_t* type
     NCjson* jtext = NULL;
     int reclaimvalues = 0;
     int isjson = 0; /* 1 => attribute value is neither scalar nor array of scalars */
-    int count = 0; /* no. of attribute values */
+    size_t count = 0; /* no. of attribute values */
 
     ZTRACE(3,"typehint=%d typeid=%d values=|%s|",typehint,*typeidp,NCJtotext(values));
 
@@ -1917,7 +1919,7 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
         if((stat = ncz_validate(file))) goto done;
 	/* ok, assume pure zarr with no groups */
 	zinfo->controls.flags |= FLAG_PUREZARR;	
-	zinfo->controls.flags &= ~(FLAG_NCZARR_V1);
+	zinfo->controls.flags &= ~((size64_t)FLAG_NCZARR_V1);
 	if(zarr_format == NULL) zarr_format = strdup("2");
     } else if(jnczgroup != NULL) {
 	zinfo->controls.flags |= FLAG_NCZARR_V1;

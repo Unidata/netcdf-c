@@ -15,7 +15,7 @@
 Code taken directly from libdap4/d4cvt.c
 */
 
-static const int ncz_type_size[NC_MAX_ATOMIC_TYPE+1] = {
+static const size_t ncz_type_size[NC_MAX_ATOMIC_TYPE+1] = {
 0, /*NC_NAT*/
 sizeof(char), /*NC_BYTE*/
 sizeof(char), /*NC_CHAR*/

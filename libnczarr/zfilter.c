@@ -772,7 +772,7 @@ int
 NCZ_filter_finalize(void)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     ZTRACE(6,"");
     if(!NCZ_filter_initialized) goto done;
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
@@ -780,7 +780,7 @@ NCZ_filter_finalize(void)
 #ifdef DEBUGL
     fprintf(stderr,">>>  DEBUGL: finalize reclaim:\n");
 #endif
-    for(i=0;i<=loaded_plugins_max;i++) {
+    for(i=0; i < (loaded_plugins_max + 1); i++) {
 	if(loaded_plugins[i]) {
             NCZ_unload_plugin(loaded_plugins[i]);
 	    loaded_plugins[i] = NULL;
@@ -1231,9 +1231,9 @@ NCZ_load_all_plugins(void)
             struct CodecAPI* dfalt = (struct CodecAPI*)nclistget(codec_defaults,j);
 	    if(dfalt->codec != NULL) {
 	        const NCZ_codec_t* codec = dfalt->codec;
-	        int hdf5id = codec->hdf5id;
+	        unsigned int hdf5id = codec->hdf5id;
 		NCZ_Plugin* p = NULL;
-		if(hdf5id < 0 || hdf5id > loaded_plugins_max) {ret = NC_EFILTER; goto done;}
+		if(hdf5id > loaded_plugins_max) {ret = NC_EFILTER; goto done;}
 	        p = loaded_plugins[hdf5id]; /* get candidate */
 	        if(p != NULL && p->hdf5.filter != NULL
                    && p->codec.codec == NULL) {
@@ -1518,8 +1518,8 @@ fprintf(stderr,">>> \n");
 	h5id = h5class->id;
 	if((stat = NCZ_plugin_loaded(h5class->id,&plugin))) goto done;
     } else if(codec != NULL) {
-	h5id = codec->hdf5id;
-	if((stat = NCZ_plugin_loaded(codec->hdf5id,&plugin))) goto done;
+	h5id = (int)codec->hdf5id;
+	if((stat = NCZ_plugin_loaded((int)codec->hdf5id,&plugin))) goto done;
     }
 
     if(plugin == NULL) {

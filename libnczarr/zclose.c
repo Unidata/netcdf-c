@@ -72,14 +72,13 @@ zclose_group(NC_GRP_INFO_T *grp)
 {
     int stat = NC_NOERR;
     NCZ_GRP_INFO_T* zgrp;
-    int i;
 
     assert(grp && grp->format_grp_info != NULL);
     LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
 
     /* Recursively call this function for each child, if any, stopping
      * if there is an error. */
-    for(i=0; i<ncindexsize(grp->children); i++) {
+    for(size_t i=0; i<ncindexsize(grp->children); i++) {
         if ((stat = zclose_group((NC_GRP_INFO_T*)ncindexith(grp->children,i))))
             goto done;
     }
@@ -123,8 +122,7 @@ zclose_gatts(NC_GRP_INFO_T* grp)
 {
     int stat = NC_NOERR;
     NC_ATT_INFO_T *att;
-    int a;
-    for(a = 0; a < ncindexsize(grp->att); a++) {
+    for(size_t a = 0; a < ncindexsize(grp->att); a++) {
         NCZ_ATT_INFO_T* zatt = NULL;
         att = (NC_ATT_INFO_T* )ncindexith(grp->att, a);
         assert(att && att->format_att_info != NULL);
@@ -149,11 +147,10 @@ NCZ_zclose_var1(NC_VAR_INFO_T* var)
     int stat = NC_NOERR;
     NCZ_VAR_INFO_T* zvar;
     NC_ATT_INFO_T* att;
-    int a;
 
     assert(var && var->format_var_info);
     zvar = var->format_var_info;;
-    for(a = 0; a < ncindexsize(var->att); a++) {
+    for(size_t a = 0; a < ncindexsize(var->att); a++) {
 	NCZ_ATT_INFO_T* zatt;
 	att = (NC_ATT_INFO_T*)ncindexith(var->att, a);
 	assert(att && att->format_att_info);
@@ -191,9 +188,8 @@ zclose_vars(NC_GRP_INFO_T* grp)
 {
     int stat = NC_NOERR;
     NC_VAR_INFO_T* var;
-    int i;
 
-    for(i = 0; i < ncindexsize(grp->vars); i++) {
+    for(size_t i = 0; i < ncindexsize(grp->vars); i++) {
         var = (NC_VAR_INFO_T*)ncindexith(grp->vars, i);
         assert(var && var->format_var_info);
 	if((stat = NCZ_zclose_var1(var))) goto done;
@@ -215,9 +211,8 @@ zclose_dims(NC_GRP_INFO_T* grp)
 {
     int stat = NC_NOERR;
     NC_DIM_INFO_T* dim;
-    int i;
 
-    for(i = 0; i < ncindexsize(grp->dim); i++) {
+    for(size_t i = 0; i < ncindexsize(grp->dim); i++) {
         NCZ_DIM_INFO_T* zdim;
         dim = (NC_DIM_INFO_T*)ncindexith(grp->dim, i);
         assert(dim && dim->format_dim_info);
@@ -265,10 +260,9 @@ static int
 zclose_types(NC_GRP_INFO_T* grp)
 {
     int stat = NC_NOERR;
-    int i;
     NC_TYPE_INFO_T* type;
 
-    for(i = 0; i < ncindexsize(grp->type); i++)
+    for(size_t i = 0; i < ncindexsize(grp->type); i++)
     {
         type = (NC_TYPE_INFO_T*)ncindexith(grp->type, i);
 	if((stat = zclose_type(type))) goto done;
@@ -289,7 +283,7 @@ static int
 zwrite_vars(NC_GRP_INFO_T *grp)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
 
     assert(grp && grp->format_grp_info != NULL);
     LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));

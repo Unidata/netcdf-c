@@ -56,7 +56,7 @@ ncz_chunking_init(void)
     optimize = 0;
 #endif
     val = getenv("NCZ_WDEBUG");
-    wdebug = (val == NULL ? 0 : atoi(val));
+    wdebug = (val == NULL ? 0 : (unsigned int)atoi(val));
 #ifdef WDEBUG
     if(wdebug > 0) fprintf(stderr,"wdebug=%u\n",wdebug);
 #endif
@@ -156,7 +156,7 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
     }
 
     if(wdebug >= 1) {
-        fprintf(stderr,"\trank=%d",common.rank);
+        fprintf(stderr,"\trank=%zu",common.rank);
         if(!common.scalar) {
   	    fprintf(stderr," dimlens=%s",nczprint_vector(common.rank,dimlens));
             fprintf(stderr," chunklens=%s",nczprint_vector(common.rank,chunklens));
@@ -359,8 +359,8 @@ wdebug2(const struct Common* common, unsigned char* slpptr, unsigned char* mempt
     unsigned char* membase = common->memory;
     unsigned slpoff = (unsigned)(slpptr - slpbase);
     unsigned memoff = (unsigned)(memptr - membase);
-    unsigned slpidx = slpoff / common->typesize;
-    unsigned memidx = memoff / common->typesize;
+    unsigned slpidx = slpoff / (unsigned)common->typesize;
+    unsigned memidx = memoff / (unsigned)common->typesize;
     unsigned value;
 
     fprintf(stderr,"wdebug2: %s: [%u/%d] %u->%u",
@@ -644,7 +644,7 @@ done:
 static int
 rangecount(NCZChunkRange range)
 {
-    return (range.stop - range.start);
+    return (int)(range.stop - range.start);
 }
 
 /* Goal: Given a set of per-dimension indices,
@@ -684,7 +684,7 @@ NCZ_offset2indices(size_t R, size64_t offset, const size64_t* dimlens, size64_t*
 /* Unit test entry points */
 
 int
-NCZ_chunkindexodom(int rank, const NCZChunkRange* ranges, size64_t* chunkcounts, NCZOdometer** odomp)
+NCZ_chunkindexodom(size_t rank, const NCZChunkRange* ranges, size64_t* chunkcounts, NCZOdometer** odomp)
 {
     int stat = NC_NOERR;
     int r;
