@@ -69,7 +69,7 @@ NCD4_get_vars(int gid, int varid,
     /* build size vector */
     for(i=0;i<rank;i++)  {
 	NCD4node* dim = nclistget(ncvar->dims,i);
-	dimsizes[i] = (size_t)dim->dim.size;
+	dimsizes[i] = dim->dim.size;
     }
 	
     /* Extract and desired subset of data */
@@ -195,7 +195,7 @@ getvarx(int gid, int varid, NCD4INFO** infop, NCD4node** varp,
     if((ret=NCD4_newResponse(info,&dapresp))) goto done;
     dapresp->mode = NCD4_DAP;
     nclistpush(info->responses,dapresp);
-    if((ret=NCD4_readDAP(info, info->controls.flags.flags, ceuri, dapresp))) goto done;
+    if((ret=NCD4_readDAP(info, ceuri, dapresp))) goto done;
 
     /* Extract DMR and dechunk the data part */
     if((ret=NCD4_dechunk(dapresp))) goto done;

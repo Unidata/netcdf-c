@@ -52,8 +52,8 @@ DAPSUBSTRATE(NC* nc)
 typedef struct Position{char* memory; ptrdiff_t offset;} Position;
 
 /* Forward */
-#ifdef USE_NETCDF4
 static int dump_datar(int ncid, nc_type xtype, Position*, NCbytes* buf);
+#ifdef USE_NETCDF4
 static int dump_compound(int ncid, nc_type xtype, size_t size, size_t nfields, Position* offset, NCbytes* buf);
 static int dump_vlen(int ncid, nc_type xtype, nc_type basetype, Position* offset, NCbytes* buf);
 static int dump_enum(int ncid, nc_type xtype, nc_type basetype, Position* offset, NCbytes* buf);

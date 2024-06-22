@@ -115,7 +115,7 @@ It is strongly recommended that applicable conventions be followed unless there 
 
 `Conventions`
 
-> If present, 'Conventions' is a global attribute that is a character array for the name of the conventions followed by the dataset. Originally, these conventions were named by a string that was interpreted as a directory name relative to the directory /pub/netcdf/Conventions/ on the now defunct host ftp.unidata.ucar.edu. The web page https://www.unidata.ucar.edu/netcdf/conventions.html is now the preferred and authoritative location for registering a URI reference to a set of conventions maintained elsewhere. Authors of new conventions should submit a request to support-netcdf@unidata.ucar.edu for listing on the Unidata conventions web page.
+> If present, 'Conventions' is a global attribute that is a character array for the name of the conventions followed by the dataset. Originally, these conventions were named by a string that was interpreted as a directory name relative to the directory /pub/netcdf/Conventions/ on the now defunct ftp host. The web page https://www.unidata.ucar.edu/netcdf/conventions.html is now the preferred and authoritative location for registering a URI reference to a set of conventions maintained elsewhere. Authors of new conventions should submit a request to support-netcdf@unidata.ucar.edu for listing on the Unidata conventions web page.
 
 <p>
 

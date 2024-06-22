@@ -84,8 +84,8 @@ EXTERNL int NCD4_fetchlastmodified(CURL* curl, char* url, long* filetime);
 EXTERNL int NCD4_ping(const char* url);
 
 /* From d4read.c */
-EXTERNL int NCD4_readDMR(NCD4INFO* state, int flags, NCURI* url, NCD4response*);
-EXTERNL int NCD4_readDAP(NCD4INFO* state, int flags, NCURI* ceuri, NCD4response*);
+EXTERNL int NCD4_readDMR(NCD4INFO* state, NCURI* url, NCD4response*);
+EXTERNL int NCD4_readDAP(NCD4INFO* state, NCURI* ceuri, NCD4response*);
 EXTERNL int NCD4_seterrormessage(NCD4response*, size_t len, char* msg);
 
 /* From d4parser.c */

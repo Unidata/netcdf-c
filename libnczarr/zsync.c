@@ -907,7 +907,7 @@ load_jatts(NCZMAP* map, NC_OBJ* container, int nczarrv1, NCjson** jattrsp, NClis
 	        if((stat = nczm_concat(fullpath,NCZATTRDEP,&key))) goto done;
 	        stat=NCZ_downloadjson(map,key,&jncattr);
 	    }
-	} else {/* Get _nczarr_attrs from .zattrs */
+	} else {/* Get _nczarr_attr from .zattrs */
             stat = NCJdictget(jattrs,NCZ_V2_ATTR,&jncattr);
 	    if(!stat && jncattr == NULL)
 	        {stat = NCJdictget(jattrs,NCZ_V2_ATTR_UC,&jncattr);}

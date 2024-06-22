@@ -72,11 +72,11 @@ Inserted into any .zarray
 \"storage\": \"scalar\"|\"contiguous\"|\"compact\"|\"chunked\"
 }"
 Inserted into any .zattrs ? or should it go into the container?
-"_nczarr_attrs": "{
+"_nczarr_attr": "{
 \"types\": {\"attr1\": \"<i4\", \"attr2\": \"<i1\",...}
 }
 +
-+Note: _nczarr_attrs type include non-standard use of a zarr type "|U1" => NC_CHAR.
++Note: _nczarr_attr type include non-standard use of a zarr type "|U1" => NC_CHAR.
 +
 */
 
@@ -95,6 +95,9 @@ Inserted into any .zattrs ? or should it go into the container?
 #define XARRAYCONTROL "xarray"
 #define NOXARRAYCONTROL "noxarray"
 #define XARRAYSCALAR "_scalar_"
+
+#define NC_NCZARR_MAXSTRLEN_ATTR "_nczarr_maxstrlen"
+#define NC_NCZARR_DEFAULT_MAXSTRLEN_ATTR "_nczarr_default_maxstrlen"
 
 #define LEGAL_DIM_SEPARATORS "./"
 #define DFALT_DIM_SEPARATOR '.'
