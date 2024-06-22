@@ -75,7 +75,7 @@ INSTALL(TARGETS ncgen3 DESTINATION bin COMPONENT utilities)
 
 SET(MAN_FILES ncgen3.1)
 IF(NOT MSVC)
-  INSTALL(FILES ${MAN_FILES} DESTINATION "share/man/man1" COMPONENT documentation)
+  INSTALL(FILES ${MAN_FILES} DESTINATION "${CMAKE_INSTALL_MANDIR}/man1" COMPONENT documentation)
 ENDIF()
 
 ## Specify files to be distributed by 'make dist'

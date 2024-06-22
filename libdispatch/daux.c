@@ -56,6 +56,8 @@ static int computefieldinfo(struct NCAUX_CMPD* cmpd);
 
 static int filterspec_cvt(const char* txt, size_t* nparamsp, unsigned int* params);
 
+EXTERNL int nc_dump_data(int ncid, nc_type xtype, void* memory, size_t count, char** bufp);
+
 /**************************************************/
 /*
 This code is a variant of the H5detect.c code from HDF5.
@@ -922,6 +924,7 @@ ncaux_inq_any_type(int ncid, nc_type typeid, char *name, size_t *sizep, nc_type 
     return NC_inq_any_type(ncid, typeid, name, sizep, basetypep, nfieldsp, classp);
 }
 
+#ifdef USE_NETCDF4
 /**
  @param ncid - only needed for a compound type
  @param xtype - type for which alignment is requested
@@ -932,6 +935,7 @@ ncaux_type_alignment(int xtype, int ncid, size_t* alignp)
     /* Defer to the internal version */
     return NC_type_alignment(ncid, xtype, alignp);
 }
+#endif
 
 /**
 Dump the output tree of data from a call
@@ -948,6 +952,6 @@ This function is just a wrapper around nc_dump__data.
 EXTERNL int
 ncaux_dump_data(int ncid, int xtype, void* memory, size_t count, char** bufp)
 {
-EXTERNL int nc_dump_data(int ncid, nc_type xtype, void* memory, size_t count, char** bufp);
     return nc_dump_data(ncid, xtype, memory, count, bufp);
 }
+

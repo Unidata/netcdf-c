@@ -31,7 +31,7 @@ and do the command:
 /* Override for plugins */
 #ifdef NETCDF_JSON_H
 #define OPTEXPORT static
-#else
+#else /*NETCDF_JSON_H*/
 #define OPTEXPORT MSC_EXTRA
 #endif /*NETCDF_JSON_H*/
 
@@ -121,7 +121,7 @@ OPTEXPORT int NCJclone(const NCjson* json, NCjson** clonep);
 OPTEXPORT void NCJdump(const NCjson* json, unsigned flags, FILE*);
 /* convert NCjson* object to output string */
 OPTEXPORT const char* NCJtotext(const NCjson* json);
-#endif
+#endif /*NETCDF_JSON_H*/
 
 #if defined(__cplusplus)
 }
@@ -146,4 +146,5 @@ OPTEXPORT const char* NCJtotext(const NCjson* json);
 /**************************************************/
 
 #endif /*NCJSON_H*/
+
 

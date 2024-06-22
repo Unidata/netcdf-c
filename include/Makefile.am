@@ -7,7 +7,10 @@
 # Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
 include_HEADERS = netcdf.h netcdf_meta.h netcdf_mem.h netcdf_aux.h	\
-netcdf_filter.h netcdf_filter_build.h netcdf_filter_hdf5_build.h netcdf_dispatch.h netcdf_json.h
+netcdf_filter.h netcdf_filter_build.h netcdf_filter_hdf5_build.h netcdf_dispatch.h
+
+# Built source
+include_HEADERS += netcdf_json.h
 
 if BUILD_PARALLEL
 include_HEADERS += netcdf_par.h
@@ -32,6 +35,8 @@ endif
 
 EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in netcdf_dispatch.h.in
 
+BUILT_SOURCES = netcdf_json.h
+
 # netcdf_json.h is constructed as a header-only file for use by
 # nczarr code wrappers in the plugin directory. It is
 # constructed by joining libdispatch/ncjson.c with
@@ -40,7 +45,9 @@ EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in netcdf_dispatch.h.in
 # static inside netcdf_json.h.  This is an ugly hack to avoid
 # having to reference libnetcdf in the nczarr code wrappers.
 
-# Give the recipe for rebuilding netcdf_json.h
-makepluginjson::
-	sed -e 's/NCJSON_H/NETCDF_JSON_H/' -e '/ncjson.h/d' <${srcdir}/ncjson.h > netcdf_json.h
+# Give the recipe for building netcdf_json.h
+netcdf_json.h: ${top_srcdir}/libdispatch/ncjson.c ${top_srcdir}/include/ncjson.h
+	sed -e 's/NCJSON_H/NETCDF_JSON_H/' -e '/ncjson.h/d' -e '/#endif[^!]*!NETCDF_JSON_H!/d' <${srcdir}/ncjson.h > netcdf_json.h
+	echo '#ifdef NETCDF_JSON_H' >> netcdf_json.h
 	sed -e '/ncjson.h/d' < ${srcdir}/../libdispatch/ncjson.c >> netcdf_json.h
+	echo '#endif /*NETCDF_JSON_H*/' >> netcdf_json.h

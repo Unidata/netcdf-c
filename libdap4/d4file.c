@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+#include "config.h"
 #include "ncdispatch.h"
 #include "ncd4dispatch.h"
 #include "d4includes.h"
@@ -160,7 +161,7 @@ NCD4_open(const char * path, int mode,
         {ret = NC_ENOMEM; goto done;}
     dmrresp->controller = d4info;
 
-    if((ret=NCD4_readDMR(d4info, d4info->controls.flags.flags, d4info->dmruri, dmrresp))) goto done;
+    if((ret=NCD4_readDMR(d4info, d4info->dmruri, dmrresp))) goto done;
 
     /* set serial.rawdata */
     len = ncbyteslength(d4info->curl->packet);

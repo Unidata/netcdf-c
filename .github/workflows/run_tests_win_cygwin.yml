@@ -10,6 +10,7 @@ env:
   SHELLOPTS: igncr
   CHERE_INVOKING: 1
   CYGWIN_NOWINPATH: 1
+  REMOTETESTDOWN: ${{ vars.REMOTETESTDOWN }}
 
 jobs:
   build-and-test-autotools:

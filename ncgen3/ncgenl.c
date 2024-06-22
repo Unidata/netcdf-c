@@ -20,7 +20,7 @@
 #define yy_flex_debug ncg_flex_debug
 #define yyin ncgin
 #define yyleng ncgleng
-#define yyncgenllex
+#define yylex ncglex
 #define yylineno ncglineno
 #define yyout ncgout
 #define yyrestart ncgrestart
@@ -113,7 +113,7 @@
 #ifdef yylex
 #define ncglex_ALREADY_DEFINED
 #else
-#define yyncgenllex
+#define yylex ncglex
 #endif
 
 #ifdef yyrestart
@@ -1053,8 +1053,8 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "ncgen3/ncgen.l"
-#line 2 "ncgen3/ncgen.l"
+#line 1 "ncgen.l"
+#line 2 "ncgen.l"
 /*********************************************************************
  *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
@@ -1359,7 +1359,7 @@ YY_DECL
 		}
 
 	{
-#line 107 "ncgen3/ncgen.l"
+#line 107 "ncgen.l"
 
 #line 1364 "ncgenl.c"
 
@@ -1420,7 +1420,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 108 "ncgen3/ncgen.l"
+#line 108 "ncgen.l"
 { /* comment */
                           break;
                         }
@@ -1428,7 +1428,7 @@ YY_RULE_SETUP
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 112 "ncgen3/ncgen.l"
+#line 112 "ncgen.l"
 {
 			 if(yyleng > MAXTRST) {
 				yyerror("string too long, truncated\n");
@@ -1440,59 +1440,59 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 121 "ncgen3/ncgen.l"
+#line 121 "ncgen.l"
 {return (FLOAT_K);}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 122 "ncgen3/ncgen.l"
+#line 122 "ncgen.l"
 {return (CHAR_K);}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 123 "ncgen3/ncgen.l"
+#line 123 "ncgen.l"
 {return (BYTE_K);}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 124 "ncgen3/ncgen.l"
+#line 124 "ncgen.l"
 {return (SHORT_K);}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 125 "ncgen3/ncgen.l"
+#line 125 "ncgen.l"
 {return (INT_K);}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 126 "ncgen3/ncgen.l"
+#line 126 "ncgen.l"
 {return (DOUBLE_K);}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 127 "ncgen3/ncgen.l"
+#line 127 "ncgen.l"
 {int_val = -1;
 			 return (NC_UNLIMITED_K);}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 130 "ncgen3/ncgen.l"
+#line 130 "ncgen.l"
 {return (DIMENSIONS);}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 131 "ncgen3/ncgen.l"
+#line 131 "ncgen.l"
 {return (VARIABLES);}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 132 "ncgen3/ncgen.l"
+#line 132 "ncgen.l"
 {return (DATA);}
 	YY_BREAK
 case 13:
 /* rule 13 can match eol */
 YY_RULE_SETUP
-#line 133 "ncgen3/ncgen.l"
+#line 133 "ncgen.l"
 {
 		char *s = (char*)yytext+strlen("netcdf");
 		char *t = (char*)yytext+yyleng-1;
@@ -1514,7 +1514,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 151 "ncgen3/ncgen.l"
+#line 151 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
                 if (yytext[0] == '-') {
 		    double_val = -NC_FILL_DOUBLE;
@@ -1526,7 +1526,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 159 "ncgen3/ncgen.l"
+#line 159 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
                 if (yytext[0] == '-') {
 		    float_val = -NC_FILL_FLOAT;
@@ -1538,7 +1538,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 167 "ncgen3/ncgen.l"
+#line 167 "ncgen.l"
 {
                 if (STREQ((char *)yytext, FILL_STRING))
 		        return (FILLVALUE);
@@ -1551,7 +1551,7 @@ YY_RULE_SETUP
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 176 "ncgen3/ncgen.l"
+#line 176 "ncgen.l"
 {
 		lineno++ ;
                 break;
@@ -1559,7 +1559,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 181 "ncgen3/ncgen.l"
+#line 181 "ncgen.l"
 {
                 int ii;
 		if (sscanf((char*)yytext, "%d", &ii) != 1) {
@@ -1576,7 +1576,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 195 "ncgen3/ncgen.l"
+#line 195 "ncgen.l"
 {
 		if (sscanf((char*)yytext, "%le", &double_val) != 1) {
 		    snprintf(errstr, sizeof(errstr),"bad long or double constant: %s",(char*)yytext);
@@ -1587,7 +1587,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 202 "ncgen3/ncgen.l"
+#line 202 "ncgen.l"
 {
 		if (sscanf((char*)yytext, "%e", &float_val) != 1) {
 		    snprintf(errstr, sizeof(errstr),"bad float constant: %s",(char*)yytext);
@@ -1598,7 +1598,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 209 "ncgen3/ncgen.l"
+#line 209 "ncgen.l"
 {
 		int tmp = 0;
 		if (sscanf((char*)yytext, "%d", &tmp) != 1) {
@@ -1611,7 +1611,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 218 "ncgen3/ncgen.l"
+#line 218 "ncgen.l"
 {
     		char *ptr;
                 errno = 0;
@@ -1630,7 +1630,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 233 "ncgen3/ncgen.l"
+#line 233 "ncgen.l"
 {
     		char *ptr;
                 long long_val;
@@ -1652,7 +1652,7 @@ YY_RULE_SETUP
 case 24:
 /* rule 24 can match eol */
 YY_RULE_SETUP
-#line 250 "ncgen3/ncgen.l"
+#line 250 "ncgen.l"
 {
 	        (void) sscanf((char*)&yytext[1],"%c",&byte_val);
 		return (BYTE_CONST);
@@ -1660,7 +1660,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 254 "ncgen3/ncgen.l"
+#line 254 "ncgen.l"
 {
 		byte_val = (char) strtol((char*)&yytext[2], (char **) 0, 8);
 		return (BYTE_CONST);
@@ -1668,7 +1668,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 258 "ncgen3/ncgen.l"
+#line 258 "ncgen.l"
 {
 		byte_val = (char) strtol((char*)&yytext[3], (char **) 0, 16);
 		return (BYTE_CONST);
@@ -1676,7 +1676,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 262 "ncgen3/ncgen.l"
+#line 262 "ncgen.l"
 {
 	       switch ((char)yytext[2]) {
 	          case 'a': byte_val = '\007'; break; /* not everyone under-
@@ -1697,21 +1697,21 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 280 "ncgen3/ncgen.l"
+#line 280 "ncgen.l"
 { /* whitespace */
 		  break;
 		}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 283 "ncgen3/ncgen.l"
+#line 283 "ncgen.l"
 {/* Note: this next rule will not work for UTF8 characters */
 		return (yytext[0]) ;
 		}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 287 "ncgen3/ncgen.l"
+#line 287 "ncgen.l"
 ECHO;
 	YY_BREAK
 #line 1717 "ncgenl.c"
@@ -2719,7 +2719,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 287 "ncgen3/ncgen.l"
+#line 287 "ncgen.l"
 
 
 /* Hack to keep compile quiet */

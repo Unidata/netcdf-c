@@ -17,9 +17,9 @@ affect the operation of the system.
 */
 
 typedef unsigned int NCFLAGS;
-#  define SETFLAG(controls,flag) (((controls).flags) |= (flag))
-#  define CLRFLAG(controls,flag) (((controls).flags) &= ~(flag))
-#  define FLAGSET(controls,flag) (((controls.flags) & (flag)) != 0)
+#define SETFLAG(controls,flag) (((controls).flags) |= (NCFLAGS)(flag))
+#define CLRFLAG(controls,flag) (((controls).flags) &= ~(NCFLAGS)(flag))
+#define FLAGSET(controls,flag) ((((controls).flags) & (NCFLAGS)(flag)) != 0)
 
 /* Defined flags */
 #define NCF_NC3             (0x0001) /* DAP->netcdf-3 */

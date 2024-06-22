@@ -15,7 +15,6 @@
 #else
 #  include <stdint.h>
 #endif /* HAVE_STDINT_H */
-#include <sys/types.h>  /* off_t */
 #include "netcdf.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"

@@ -39,7 +39,7 @@ LDADD = $(top_builddir)/liblib/libnetcdf.la
 LIBADD = $(top_builddir)/liblib/libnetcdf.la
 endif
 
-EXTRA_DIST = CMakeLists.txt
+EXTRA_DIST = CMakeLists.txt findplugin.in
 
 # The HDF5 filter wrappers
 EXTRA_DIST += \
@@ -125,8 +125,9 @@ else
 check_LTLIBRARIES += $(plugins_to_install)
 endif
 
+DISTCLEANFILES = H5Znoop1.c H5Znoop2.c ncjson.h findplugin.sh
+
 BUILT_SOURCES = H5Znoop1.c
-DISTCLEANFILES = H5Znoop1.c H5Znoop2.c ncjson.h
 H5Znoop1.c: Makefile H5Znoop.c
 	echo '#define NOOP_INSTANCE 1' > $@
 	cat ${srcdir}/H5Znoop.c >> $@
