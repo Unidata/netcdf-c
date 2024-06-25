@@ -108,6 +108,37 @@ static int queryinsert(NClist* list, char* ekey, char* evalue);
 
 #define NT(x) ((x)==NULL?"null":x)
 
+/**************************************************/
+
+static int ncs3_initialized = 0;
+static int ncs3_finalized = 0;
+
+EXTERNL int
+NC_s3sdkinitialize(void)
+{
+    if(!ncs3_initialized) {
+	ncs3_initialized = 1;
+	ncs3_finalized = 0;
+    }
+
+    /* Get environment information */
+    NC_s3sdkenvironment(void);
+
+    return NC_NOERR;
+}
+
+EXTERNL int
+NC_s3sdkfinalize(void)
+{
+    if(!ncs3_finalized) {
+	ncs3_initialized = 0;
+	ncs3_finalized = 1;
+    }
+    return NC_NOERR;
+}
+
+/**************************************************/
+
 #if 0
 static void
 dumps3info(NCS3INFO* s3info, const char* tag)
