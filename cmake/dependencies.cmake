@@ -14,8 +14,8 @@ find_package(MakeDist)
 ################################
 # HDF4
 ################################
-if(NETCDF_ENABLE_HDF4)
-  set(USE_HDF4 ON )
+if(USE_HDF4)
+  set(NETCDF_USE_HDF4 ON )
   # Check for include files, libraries.
 
   find_path(MFHDF_H_INCLUDE_DIR mfhdf.h)
@@ -65,11 +65,17 @@ if(NETCDF_ENABLE_HDF4)
   if(NOT JPEG_LIB)
     message(FATAL_ERROR "HDF4 Support enabled but cannot find libjpeg")
   endif()
-  set(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES} )
+  set(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES} CACHE STRING "")
   message(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
+  target_link_libraries(netcdf
+  PRIVATE
+  ${HDF4_LIBRARIES}
+  )
+  
   # Option to enable HDF4 file tests.
-  option(NETCDF_ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata resources site to test with (requires curl)." ON)
+  #option(NETCDF_ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata resources site to test with (requires curl)." ON)
+
   if(NETCDF_ENABLE_HDF4_FILE_TESTS)
     find_program(PROG_CURL NAMES curl)
     if(PROG_CURL)
@@ -77,10 +83,11 @@ if(NETCDF_ENABLE_HDF4)
     else()
       message(STATUS "Unable to locate 'curl'.  Disabling hdf4 file tests.")
       set(USE_HDF4_FILE_TESTS OFF )
+      set(NETCDF_ENABLE_HDF4_FILE_TESTS OFF)
     endif()
     set(USE_HDF4_FILE_TESTS ${USE_HDF4_FILE_TESTS} )
   endif()
-endif()
+endif(USE_HDF4)
 
 ################################
 # HDF5
