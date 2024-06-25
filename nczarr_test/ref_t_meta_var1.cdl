@@ -41,7 +41,7 @@ group: var1 {
   group: _nczvar {
 
     // group attributes:
-    		:data = "{\"dimrefs\": [],\"contiguous\": true}" ;
+    		:data = "{\"dimension_references\": [],\"contiguous\": true}" ;
     } // group _nczvar
   } // group var1
 }

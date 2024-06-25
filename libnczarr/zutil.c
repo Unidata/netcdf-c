@@ -614,7 +614,7 @@ primarily on the first atomic value encountered
 recursively.
 */
 int
-NCZ_inferattrtype(NCjson* value, nc_type typehint, nc_type* typeidp)
+NCZ_inferattrtype(const NCjson* value, nc_type typehint, nc_type* typeidp)
 {
     int i,stat = NC_NOERR;
     nc_type typeid;
@@ -1043,7 +1043,7 @@ checksimplejson(NCjson* json, int depth)
 
 /* Return 1 if the attribute will be stored as a complex JSON valued attribute; return 0 otherwise */
 int
-NCZ_iscomplexjson(NCjson* json, nc_type typehint)
+NCZ_iscomplexjson(const NCjson* json, nc_type typehint)
 {
     int i, stat = 0;
 
