@@ -103,6 +103,9 @@ zclose_group(NC_GRP_INFO_T *grp)
     /* Close the zgroup. */
     zgrp = grp->format_grp_info;
     LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
+    nullfree(zgrp->zgroup.prefix);
+    NCJreclaim(zgrp->zgroup.obj);
+    NCJreclaim(zgrp->zgroup.atts);
     nullfree(zgrp);
     grp->format_grp_info = NULL; /* avoid memory errors */
 
@@ -152,7 +155,6 @@ NCZ_zclose_var1(NC_VAR_INFO_T* var)
     size_t a;
 
     assert(var && var->format_var_info);
-    zvar = var->format_var_info;;
     for(a = 0; a < ncindexsize(var->att); a++) {
 	NCZ_ATT_INFO_T* zatt;
 	att = (NC_ATT_INFO_T*)ncindexith(var->att, a);
@@ -170,9 +172,14 @@ NCZ_zclose_var1(NC_VAR_INFO_T* var)
 #endif
     /* Reclaim the type */
     if(var->type_info) (void)zclose_type(var->type_info);
+    /* reclaim dispatch info */
+    zvar = var->format_var_info;;
     if(zvar->cache) NCZ_free_chunk_cache(zvar->cache);
     /* reclaim xarray */
     if(zvar->xarray) nclistfreeall(zvar->xarray);
+    nullfree(zvar->zarray.prefix);
+    NCJreclaim(zvar->zarray.obj);
+    NCJreclaim(zvar->zarray.atts);
     nullfree(zvar);
     var->format_var_info = NULL; /* avoid memory errors */
     return stat;

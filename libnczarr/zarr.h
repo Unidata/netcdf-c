@@ -41,8 +41,8 @@ EXTERNL int ncz_unload_jatts(NCZ_FILE_INFO_T*, NC_OBJ* container, NCjson* jattrs
 EXTERNL int ncz_close_file(NC_FILE_INFO_T* file, int abort);
 
 /* zcvt.c */
-EXTERNL int NCZ_json2cvt(NCjson* jsrc, struct ZCVT* zcvt, nc_type* typeidp);
-EXTERNL int NCZ_convert1(NCjson* jsrc, nc_type, NCbytes*);
+EXTERNL int NCZ_json2cvt(const NCjson* jsrc, struct ZCVT* zcvt, nc_type* typeidp);
+EXTERNL int NCZ_convert1(const NCjson* jsrc, nc_type, NCbytes*);
 EXTERNL int NCZ_stringconvert1(nc_type typid, char* src, NCjson* jvalue);
 EXTERNL int NCZ_stringconvert(nc_type typid, size_t len, void* data0, NCjson** jdatap);
 
@@ -65,7 +65,7 @@ EXTERNL int ncz_splitkey(const char* path, NClist* segments);
 EXTERNL int ncz_nctypedecode(const char* snctype, nc_type* nctypep);
 EXTERNL int ncz_nctype2dtype(nc_type nctype, int endianness, int purezarr,int len, char** dnamep);
 EXTERNL int ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nctypep, int* endianp, int* typelenp);
-EXTERNL int NCZ_inferattrtype(NCjson* value, nc_type typehint, nc_type* typeidp);
+EXTERNL int NCZ_inferattrtype(const NCjson* value, nc_type typehint, nc_type* typeidp);
 EXTERNL int NCZ_inferinttype(unsigned long long u64, int negative);
 EXTERNL int ncz_fill_value_sort(nc_type nctype, int*);
 EXTERNL int NCZ_createobject(NCZMAP* zmap, const char* key, size64_t size);
@@ -87,7 +87,7 @@ EXTERNL int NCZ_get_maxstrlen(NC_OBJ* obj);
 EXTERNL int NCZ_fixed2char(const void* fixed, char** charp, size_t count, int maxstrlen);
 EXTERNL int NCZ_char2fixed(const char** charp, void* fixed, size_t count, int maxstrlen);
 EXTERNL int NCZ_copy_data(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const void* memory, size_t count, int reading, void* copy);
-EXTERNL int NCZ_iscomplexjson(NCjson* value, nc_type typehint);
+EXTERNL int NCZ_iscomplexjson(const NCjson* value, nc_type typehint);
 
 /* zwalk.c */
 EXTERNL int NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata);

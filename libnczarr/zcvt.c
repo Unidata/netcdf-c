@@ -15,7 +15,7 @@
 Code taken directly from libdap4/d4cvt.c
 */
 
-static const int ncz_type_size[NC_MAX_ATOMIC_TYPE+1] = {
+static const size_t ncz_type_size[NC_MAX_ATOMIC_TYPE+1] = {
 0, /*NC_NAT*/
 sizeof(char), /*NC_BYTE*/
 sizeof(char), /*NC_CHAR*/
@@ -101,7 +101,7 @@ done:
 
 /* Warning: not free returned zcvt.strv; it may point into a string in jsrc */
 int
-NCZ_json2cvt(NCjson* jsrc, struct ZCVT* zcvt, nc_type* typeidp)
+NCZ_json2cvt(const NCjson* jsrc, struct ZCVT* zcvt, nc_type* typeidp)
 {
     int stat = NC_NOERR;
     nc_type srctype = NC_NAT;
@@ -154,7 +154,7 @@ done:
 
 /* Convert a singleton NCjson value to a memory equivalent value of specified dsttype; */
 int
-NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
+NCZ_convert1(const NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 {
     int stat = NC_NOERR;
     nc_type srctype;
@@ -536,7 +536,7 @@ int
 NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** jdatap)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     char* src = data0; /* so we can do arithmetic on it */
     size_t typelen;
     char* str = NULL;
