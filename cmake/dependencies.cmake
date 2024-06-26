@@ -134,8 +134,13 @@ if(USE_HDF5)
   #####
   # First, find the C and HL libraries.
   #####
-  find_package(HDF5 ${HDF5_VERSION_REQUIRED} COMPONENTS C HL REQUIRED)
+  find_package(HDF5 COMPONENTS C HL REQUIRED)
 
+  message(STATUS "Found HDF5 version: ${HDF5_VERSION}")
+  if(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
+     message(FATAL_ERROR "NetCDF requires HDF5 version ${HDF5_VERSION_REQUIRED} or later; found version ${HDF5_VERSION}.")
+  endif()  
+  
   message(STATUS "Using HDF5 include dir: ${HDF5_INCLUDE_DIRS}")
   target_link_libraries(netcdf
     PRIVATE
