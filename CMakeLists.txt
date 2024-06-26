@@ -1617,23 +1617,12 @@ if(NOT IS_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
   file(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
 endif()
 
-configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
-  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
-  NEWLINE_STYLE LF)
-file(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
-  DESTINATION ${netCDF_BINARY_DIR}/
-  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-
 install(FILES ${netCDF_BINARY_DIR}/netcdf.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   COMPONENT utilities)
 
-install(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
-  DESTINATION ${CMAKE_INSTALL_BINDIR}
-  COMPONENT utilities)
-
 ###
-# End pkgconfig, nc-config file creation.
+# End pkgconfig file creation.
 ###
 
 ##
@@ -1771,6 +1760,20 @@ install(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 #####
 # End libnetcdf.settings section.
 #####
+
+#####
+# Create 'nc-config' file.
+#####
+configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
+  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
+  NEWLINE_STYLE LF)
+file(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
+  DESTINATION ${netCDF_BINARY_DIR}/
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+install(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
+  COMPONENT utilities)
 
 #####
 # Create 'netcdf_meta.h' include file.
