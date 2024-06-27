@@ -418,7 +418,7 @@ IF (NETCDF_ENABLE_NCZARR_ZIP)
     )
   else()
     message(STATUS "libzip development package not found, disabling NETCDF_ENABLE_NCZARR_ZIP")
-    set(NETCDF_ENABLE_NCZARR_ZIP OFF CACHE BOOL "Enable NCZARR_ZIP functionality.")
+    set(NETCDF_ENABLE_NCZARR_ZIP OFF CACHE BOOL "Enable NCZARR_ZIP functionality." FORCE)
   endif()
 endif ()
 
