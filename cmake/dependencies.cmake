@@ -369,6 +369,7 @@ endif()
 ################################
 # Zips
 ################################
+MESSAGE(STATUS "Checking for filter libraries")
 IF (NETCDF_ENABLE_FILTER_SZIP)
   find_package(Szip)
 elseif(NETCDF_ENABLE_NCZARR)
@@ -385,9 +386,10 @@ IF (NETCDF_ENABLE_FILTER_ZSTD)
 endif()
 
 # Accumulate standard filters
-set(STD_FILTERS "bz2")
+#set(STD_FILTERS "bz2")
+set(FOUND_STD_FILTERS "")
 if(ENABLE_ZLIB)
-  set(STD_FILTERS "${STD_FILTERS} deflate")
+  set(STD_FILTERS "deflate")
 endif()
 set_std_filter(Szip)
 set(HAVE_SZ ${Szip_FOUND})
@@ -406,7 +408,7 @@ else()
   set(HAVE_BZ2 ON CACHE BOOL "")
   set(STD_FILTERS "${STD_FILTERS} bz2")
 endif()
-
+set(STD_FILTERS ${STD_FILTERS} ${FOUND_STD_FILTERS})
 IF (NETCDF_ENABLE_NCZARR_ZIP)
   find_package(Zip REQUIRED)
   target_include_directories(netcdf
