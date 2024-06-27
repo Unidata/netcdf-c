@@ -368,30 +368,30 @@ The details for writing such a filter are defined in the HDF5 documentation[1,2]
 
 The HDF5 loader searches for plugins in a number of directories.
 This search is contingent on the presence or absence of the environment
-variable named ***HDF5_PLUGIN_PATH***.
+variable named ***HDF5\_PLUGIN\_PATH***.
 
 As with all other "...PATH" variables, it is a sequence of absolute
 directories separated by a separator character. For *nix* operating systems,
 this separator is the colon (':') character. For Windows and Mingw, the
 separator is the semi-colon (';') character. So for example:
 
-* Linux:   export HDF5_PLUGIN_PATH=/usr/lib:/usr/local/lib
-* Windows: export HDF5_PLUGIN_PATH=c:\\ProgramData\\hdf5\\plugin;c:\\tools\\lib
+* Linux:   `export HDF5_PLUGIN_PATH=/usr/lib:/usr/local/lib`
+* Windows: `export HDF5_PLUGIN_PATH=c:\\ProgramData\\hdf5\\plugin;c:\\tools\\lib`
 
-If HDF5_PLUGIN_PATH is defined, then the loader will search each directory
+If HDF5\_PLUGIN\_PATH is defined, then the loader will search each directory
 in the path from left to right looking for shared libraries with specific
 exported symbols representing the entry points into the library.
 
-If HDF5_PLUGIN_PATH is not defined, the loader defaults to using
+If HDF5\_PLUGIN\_PATH is not defined, the loader defaults to using
 these default directories:
 
-* Linux:  /usr/local/hdf5/lib/plugin
-* Windows: %ALLUSERSPROFILE%\\hdf5\\lib\\plugin
+* Linux:  `/usr/local/hdf5/lib/plugin`
+* Windows: `%ALLUSERSPROFILE%\\hdf5\\lib\\plugin`
 
 It should be noted that there is a difference between the search order
 for HDF5 versus NCZarr. The HDF5 loader will search only the directories
-specificed in HDF5_PLUGIN_PATH. In NCZarr, the loader
-searches HDF5_PLUGIN_PATH and as a last resort,
+specificed in HDF5\_PLUGIN\_PATH. In NCZarr, the loader
+searches HDF5\_PLUGIN\_PATH and as a last resort,
 it also searches the default directory.
 
 ### Plugin Library Naming {#filters_Pluginlib}
@@ -637,17 +637,17 @@ to point to that directory or you may be able to copy the shared libraries out o
 
 As of NetCDF version 4.8.2, the netcdf-c library supports 
 bit-grooming filters.
-````
-Bit-grooming is a lossy compression algorithm that removes the
-bloat due to false-precision, those bits and bytes beyond the
-meaningful precision of the data. Bit Grooming is statistically
-unbiased, applies to all floating point numbers, and is easy to
-use. Bit-Grooming reduces data storage requirements by
-25-80%. Unlike its best-known competitor Linear Packing, Bit
-Grooming imposes no software overhead on users, and guarantees
-its precision throughout the whole floating point range 
-[https://doi.org/10.5194/gmd-9-3199-2016].
-````
+
+	Bit-grooming is a lossy compression algorithm that removes the
+	bloat due to false-precision, those bits and bytes beyond the
+	meaningful precision of the data. Bit Grooming is statistically
+	unbiased, applies to all floating point numbers, and is easy to
+	use. Bit-Grooming reduces data storage requirements by
+	25-80%. Unlike its best-known competitor Linear Packing, Bit
+	Grooming imposes no software overhead on users, and guarantees
+	its precision throughout the whole floating point range 
+	[https://doi.org/10.5194/gmd-9-3199-2016].
+
 The generic term "quantize" is used to refer collectively to the various
 precision-trimming algorithms. The key thing to note about quantization is that
 it occurs at the point of writing of data only. Since its output is
@@ -656,18 +656,20 @@ Because of this, quantization is not part of the standard filter
 mechanism and has a separate API.
 
 The API for bit-groom is currently as follows.
-````
+
+```
 int nc_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd);
 int nc_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp);
-````
+```
 The *quantize_mode* argument specifies the particular algorithm.
-Currently, three are supported: NC_QUANTIZE_BITGROOM, NC_QUANTIZE_GRANULARBR,
-and NC_QUANTIZE_BITROUND. In addition quantization can be disabled using
-the value NC_NOQUANTIZE.
+Currently, three are supported: NC\_QUANTIZE\_BITGROOM, NC\_QUANTIZE\_GRANULARBR,
+and NC\_QUANTIZE\_BITROUND. In addition quantization can be disabled using
+the value NC\_NOQUANTIZE.
 
 The input to ncgen or the output from ncdump supports special attributes
 to indicate if quantization was applied to a given variable.
 These attributes have the following form.
+
 ````
 _QuantizeBitGroomNumberOfSignificantDigits = <NSD>
 or
@@ -830,15 +832,16 @@ If you do not want to use Automake or Cmake, the following has been known to wor
 
 ## References {#filters_References}
 
-1. https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf
-2. https://support.hdfgroup.org/HDF5/doc/TechNotes/TechNote-HDF5-CompressionTroubleshooting.pdf
-3. https://portal.hdfgroup.org/display/support/Registered+Filter+Plugins
-4. https://support.hdfgroup.org/services/contributions.html#filters
-5. https://support.hdfgroup.org/HDF5/doc/RM/RM\_H5.html
-6. https://confluence.hdfgroup.org/display/HDF5/Filters
-7. https://numcodecs.readthedocs.io/en/stable/
-8. https://github.com/ccr/ccr
-9. https://escholarship.org/uc/item/7xd1739k
+1. [https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf]()
+2. [https://support.hdfgroup.org/HDF5/doc/TechNotes/TechNote-HDF5-CompressionTroubleshooting.pdf]()
+3.[ https://portal.hdfgroup.org/display/support/Registered+Filter+Plugins]()
+4. [https://support.hdfgroup.org/services/contributions.html#filters]()
+5. [https://support.hdfgroup.org/HDF5/doc/RM/RM\_H5.html]()
+6. [https://confluence.hdfgroup.org/display/HDF5/Filters
+]()
+7. [https://numcodecs.readthedocs.io/en/stable/]()
+8. [https://github.com/ccr/ccr]()
+9. [https://escholarship.org/uc/item/7xd1739k]()
 
 ## Appendix A. HDF5 Parameter Encode/Decode {#filters_appendixa}
 
@@ -945,6 +948,7 @@ Examples of the use of these functions can be seen in the test program *nc\_test
 
 Some of the above functions use a C struct defined in *netcdf\_filter.h\_.
 The definition of that struct is as follows.
+
 ````
 typedef struct NC_H5_Filterspec {
     unsigned int filterid; /* ID for arbitrary filter. */
@@ -1189,12 +1193,14 @@ WARNING: the installer still needs to make sure that the actual filter/compressi
 
 The target location into which libraries in the "plugins" directory are installed is specified
 using a special *./configure* option
+
 ````
 --with-plugin-dir=<directorypath>
 or
 --with-plugin-dir
 ````
 or its corresponding *cmake* option.
+
 ````
 -DPLUGIN_INSTALL_DIR=<directorypath>
 or
@@ -1202,6 +1208,7 @@ or
 ````
 This option defaults to the value "yes", which means that filters are
 installed by default. This can be disabled by one of the following options.
+
 ````
 --without-plugin-dir (automake)
 or
@@ -1212,13 +1219,15 @@ or
 
 If the option is specified with no argument (automake) or with the value "YES" (CMake),
 then it defaults (in order) to the following directories:
-1. If the HDF5_PLUGIN_PATH environment variable is defined, then last directory in the list of directories in the path is used.
-2.  (a) "/usr/local/hdf5/lib/plugin” for linux/unix operating systems (including Cygwin)<br>
-    (b) “%ALLUSERSPROFILE%\\hdf5\\lib\\plugin” for Windows and MinGW
+
+1. If the HDF5\_PLUGIN\_PATH environment variable is defined, then last directory in the list of directories in the path is used.
+2.  (a) `/usr/local/hdf5/lib/plugin` for linux/unix operating systems (including Cygwin)<br>
+    (b) `%ALLUSERSPROFILE%\\hdf5\\lib\\plugin` for Windows and MinGW
 
 If NCZarr is enabled, then in addition to wrappers for the standard filters,
 additional libraries will be installed to support NCZarr access to filters.
 Currently, this list includes the following:
+
 * shuffle &mdash; shuffle filter
 * fletcher32 &mdash; fletcher32 checksum
 * deflate &mdash; deflate compression
@@ -1234,7 +1243,7 @@ provided by the *lib__nczh5filters.so* shared library.  Note also that
 if you disable HDF5 support, but leave NCZarr support enabled,
 then all of the above filters should continue to work.
 
-### HDF5_PLUGIN_PATH
+### HDF5\_PLUGIN\_PATH
 
 At the moment, NetCDF uses the existing HDF5 environment variable
 *HDF5\_PLUGIN\_PATH* to locate the directories in which filter wrapper
@@ -1247,17 +1256,17 @@ separated by a specific separator character. For Windows, the
 separator character is a semicolon (';') and for Unix, it is a a
 colon (':').
 
-So, if HDF5_PLUGIN_PATH is defined at build time, and
+So, if HDF5\_PLUGIN\_PATH is defined at build time, and
 *--with-plugin-dir* is specified with no argument then the last
 directory in the path will be the one into which filter wrappers are
 installed. Otherwise the default directories are used.
 
 The important thing to note is that at run-time, there are several cases to consider:
 
-1. HDF5_PLUGIN_PATH is defined and is the same value as it was at build time -- no action needed
-2. HDF5_PLUGIN_PATH is defined and is has a different value from build time -- the user is responsible for ensuring that the run-time path includes the same directory used at build time, otherwise this case will fail.
-3. HDF5_PLUGIN_DIR is not defined at either run-time or build-time -- no action needed
-4. HDF5_PLUGIN_DIR is not defined at run-time but was defined at build-time -- this will probably fail
+1. HDF5\_PLUGIN\_PATH is defined and is the same value as it was at build time -- no action needed
+2. HDF5\_PLUGIN\_PATH is defined and is has a different value from build time -- the user is responsible for ensuring that the run-time path includes the same directory used at build time, otherwise this case will fail.
+3. HDF5\_PLUGIN\_PATH is not defined at either run-time or build-time -- no action needed
+4. HDF5\_PLUGIN\_PATH is not defined at run-time but was defined at build-time -- this will probably fail
 
 ## Appendix I. A Warning on Backward Compatibility {#filters_appendixi}
 
@@ -1273,7 +1282,7 @@ inconvenience.
 
 A user may encounter an incompatibility if any of the following appears in user code.
 
-* The function *\_nc\_inq\_var\_filter* was returning the error value NC\_ENOFILTER  if a variable had no associated filters.
+* The function *nc\_inq\_var\_filter* was returning the error value NC\_ENOFILTER  if a variable had no associated filters.
   It has been reverted to the previous case where it returns NC\_NOERR and the returned filter id was set to zero if the variable had no filters.
 * The function *nc\_inq\_var\_filterids* was renamed to *nc\_inq\_var\_filter\_ids*.
 * Some auxilliary functions for parsing textual filter specifications have been moved to the file *netcdf\_aux.h*. See [Appendix A](#filters_appendixa).
