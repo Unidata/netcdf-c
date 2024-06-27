@@ -410,11 +410,16 @@ else()
 endif()
 set(STD_FILTERS ${STD_FILTERS} ${FOUND_STD_FILTERS})
 IF (NETCDF_ENABLE_NCZARR_ZIP)
-  find_package(Zip REQUIRED)
-  target_include_directories(netcdf
-    PRIVATE
+  find_package(Zip)
+  if(Zip_FOUND)
+    target_include_directories(netcdf
+      PRIVATE
       ${Zip_INCLUDE_DIRS}
-  )
+    )
+  else()
+    message(status "libzip development package not found, disabling NETCDF_ENABLE_NCZARR_ZIP")
+    set(NETCDF_ENABLE_NCZARR_ZIP OFF CACHE BOOL "Enable NCZARR_ZIP functionality.")
+  endif()
 endif ()
 
 ################################
