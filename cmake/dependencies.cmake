@@ -369,6 +369,7 @@ endif()
 ################################
 # Zips
 ################################
+MESSAGE(STATUS "Checking for filter libraries")
 IF (NETCDF_ENABLE_FILTER_SZIP)
   find_package(Szip)
 elseif(NETCDF_ENABLE_NCZARR)
@@ -385,31 +386,40 @@ IF (NETCDF_ENABLE_FILTER_ZSTD)
 endif()
 
 # Accumulate standard filters
-set(STD_FILTERS "deflate") # Always have deflate*/
+#set(STD_FILTERS "bz2")
+set(FOUND_STD_FILTERS "")
+if(ENABLE_ZLIB)
+  set(STD_FILTERS "deflate")
+endif()
 set_std_filter(Szip)
 set(HAVE_SZ ${Szip_FOUND})
 set(USE_SZIP ${HAVE_SZ})
 set_std_filter(Blosc)
 if(Zstd_FOUND)
   set_std_filter(Zstd)
-  set(HAVE_ZSTD ON)
 endif()
 if(Bz2_FOUND)
   set_std_filter(Bz2)
 else()
   # The reason we use a local version is to support a more comples test case
-  message("libbz2 not found using built-in version")
+  message("libbz2 not found using built-in version") 
   set(HAVE_LOCAL_BZ2 ON)
   set(HAVE_BZ2 ON CACHE BOOL "")
   set(STD_FILTERS "${STD_FILTERS} bz2")
 endif()
 
+set(STD_FILTERS "${STD_FILTERS}${FOUND_STD_FILTERS}")
 IF (NETCDF_ENABLE_NCZARR_ZIP)
-  find_package(Zip REQUIRED)
-  target_include_directories(netcdf
-    PRIVATE
+  find_package(Zip)
+  if(Zip_FOUND)
+    target_include_directories(netcdf
+      PRIVATE
       ${Zip_INCLUDE_DIRS}
-  )
+    )
+  else()
+    message(STATUS "libzip development package not found, disabling NETCDF_ENABLE_NCZARR_ZIP")
+    set(NETCDF_ENABLE_NCZARR_ZIP OFF CACHE BOOL "Enable NCZARR_ZIP functionality." FORCE)
+  endif()
 endif ()
 
 ################################
