@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
+* Checking Github Actions
 * Cleanup the option code for NETCDF_ENABLE_SET_LOG_LEVEL\[_FUNC\] See [Github #2931](https://github.com/Unidata/netcdf-c/issues/2931) for more information.
 * Fix duplicate definition when using aws-sdk-cpp. See [Github #2928](https://github.com/Unidata/netcdf-c/issues/2928) for more information.
 * Cleanup various obsolete options and do some code refactoring. See [Github #2926](https://github.com/Unidata/netcdf-c/issues/2926) for more information.
