@@ -681,7 +681,7 @@ else() # No option specified
 endif()
 
 # Try to enable NCZarr zip support
-option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
+option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ${NETCDF_ENABLE_NCZARR})
 
 include(CMakeDependentOption)
 
@@ -1729,6 +1729,8 @@ endif()
 
 # Copy the CTest customization file into binary directory, as required.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake")
+
+message(STATUS "STD_FILTERS: ${STD_FILTERS}")
 
 # Generate file from template.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
