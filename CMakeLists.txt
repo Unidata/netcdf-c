@@ -17,9 +17,7 @@ project(netCDF
 )
 
 #Add custom CMake Module
-
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/;${PROJECT_SOURCE_DIR}/cmake"
-  CACHE INTERNAL "Location of our custom CMake modules.")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" "${PROJECT_SOURCE_DIR}/cmake")
 
 set(PACKAGE "netCDF" CACHE STRING "")
 
