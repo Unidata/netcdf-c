@@ -52,7 +52,7 @@ NCZ_szip_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
     unsigned* params = NULL;
     size_t nparams = 2; /* No. of visible parameters */
     NCjson* json = NULL;
-    NCjson* jtmp = NULL;
+    const NCjson* jtmp = NULL;
     struct NCJconst jc = {0,0,0,NULL};
     
     if(nparamsp == NULL || paramsp == NULL)

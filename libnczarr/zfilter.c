@@ -979,7 +979,7 @@ NCZ_filter_build(const NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const NCjson* j
 {
     int i,stat = NC_NOERR;
     NCZ_Filter* filter = NULL;
-    NCjson* jvalue = NULL;
+    const NCjson* jvalue = NULL;
     NCZ_Plugin* plugin = NULL;
     NCZ_Codec codec = codec_empty;
     NCZ_HDF5 hdf5 = hdf5_empty;

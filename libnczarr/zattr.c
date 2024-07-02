@@ -51,7 +51,7 @@ ncz_getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp, NCindex **at
     {
         NC_VAR_INFO_T *var;
 
-        if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+        if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
             return NC_ENOTVAR;
         assert(var->hdr.id == varid);
 
@@ -120,7 +120,7 @@ ncz_get_att_special(NC_FILE_INFO_T* h5, NC_VAR_INFO_T* var, const char* name,
 
     /* The global reserved attributes */
     if(strcmp(name,NCPROPS)==0) {
-        int len;
+        size_t len;
         if(h5->provenance.ncproperties == NULL)
             {stat = NC_ENOTATT; goto done;}
         if(mem_type == NC_NAT) mem_type = NC_CHAR;
@@ -138,7 +138,7 @@ ncz_get_att_special(NC_FILE_INFO_T* h5, NC_VAR_INFO_T* var, const char* name,
         if(strcmp(name,SUPERBLOCKATT)==0)
             iv = (unsigned long long)h5->provenance.superblockversion;
         else /* strcmp(name,ISNETCDF4ATT)==0 */
-            iv = NCZ_isnetcdf4(h5);
+            iv = (unsigned long long)NCZ_isnetcdf4(h5);
         if(mem_type == NC_NAT) mem_type = NC_INT;
         if(data)
             switch (mem_type) {
@@ -279,8 +279,8 @@ NCZ_del_att(int ncid, int varid, const char *name)
     NC_FILE_INFO_T *h5;
     NC_ATT_INFO_T *att;
     NCindex* attlist = NULL;
-    int i;
-    size_t deletedid;
+    size_t i;
+    int deletedid;
     int retval;
 
     /* Name must be provided. */
@@ -516,7 +516,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
         /* For an existing att, if we're not in define mode, the len
            must not be greater than the existing len for classic model. */
         if (!(h5->flags & NC_INDEF) &&
-            len * nc4typelen(file_type) > (size_t)att->len * nc4typelen(att->nc_typeid))
+            len * (size_t)nc4typelen(file_type) > (size_t)att->len * (size_t)nc4typelen(att->nc_typeid))
         {
             if (h5->cmode & NC_CLASSIC_MODEL)
                 return NC_ENOTINDEFINE;
@@ -980,7 +980,7 @@ int
 ncz_create_fillvalue(NC_VAR_INFO_T* var)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     NC_ATT_INFO_T* fv = NULL;
 
     /* Have the var's attributes been read? */

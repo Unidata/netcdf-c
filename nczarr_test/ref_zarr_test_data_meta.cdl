@@ -1,0 +1,27 @@
+netcdf zarr_test_data {
+dimensions:
+	_Anonymous_Dim_20 = 20 ;
+
+group: group_with_attrs {
+  variables:
+  	int F_order_array(_Anonymous_Dim_20, _Anonymous_Dim_20) ;
+  		F_order_array:bar = "apples" ;
+  		F_order_array:baz = 1, 2, 3, 4 ;
+  		F_order_array:foo = 42 ;
+  	short nested(_Anonymous_Dim_20, _Anonymous_Dim_20) ;
+  	float partial_fill1(_Anonymous_Dim_20, _Anonymous_Dim_20) ;
+  	float partial_fill2(_Anonymous_Dim_20, _Anonymous_Dim_20) ;
+  	float uninitialized(_Anonymous_Dim_20, _Anonymous_Dim_20) ;
+
+  // group attributes:
+  		:group_attr = "foo" ;
+  } // group group_with_attrs
+
+group: group_with_dims {
+  variables:
+  	int var1D(_Anonymous_Dim_20) ;
+  	int var2D(_Anonymous_Dim_20, _Anonymous_Dim_20) ;
+  	int var3D(_Anonymous_Dim_20, _Anonymous_Dim_20, _Anonymous_Dim_20) ;
+  	int var4D(_Anonymous_Dim_20, _Anonymous_Dim_20, _Anonymous_Dim_20, _Anonymous_Dim_20) ;
+  } // group group_with_dims
+}

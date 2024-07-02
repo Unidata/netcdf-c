@@ -78,7 +78,7 @@ NCZ_set_var_chunk_cache(int ncid, int varid, size_t cachesize, size_t nelems, fl
     assert(grp && h5);
 
     /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, (size_t)varid)))
         {retval = NC_ENOTVAR; goto done;}
     assert(var && var->hdr.id == varid);
 
@@ -140,7 +140,7 @@ fprintf(stderr,"xxx: adjusting cache for: %s\n",var->hdr.name);
     zcache->chunksize = zvar->chunksize;
     zcache->chunkcount = 1;
     if(var->ndims > 0) {
-	int i;
+	size_t i;
 	for(i=0;i<var->ndims;i++) {
 	    zcache->chunkcount *= var->chunksizes[i];
         }
@@ -184,7 +184,7 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
 
     cache->chunkcount = 1;
     if(var->ndims > 0) {
-	int i;
+	size_t i;
 	for(i=0;i<var->ndims;i++) {
 	    cache->chunkcount *= var->chunksizes[i];
         }
@@ -297,7 +297,7 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
 	/* Create a new entry */
 	if((entry = calloc(1,sizeof(NCZCacheEntry)))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
-	memcpy(entry->indices,indices,rank*sizeof(size64_t));
+	memcpy(entry->indices,indices,(size_t)rank*sizeof(size64_t));
         /* Create the key for this cache */
         if((stat = NCZ_buildchunkpath(cache,indices,&entry->key))) goto done;
         entry->hashkey = hkey;
@@ -496,7 +496,8 @@ done:
 int
 NCZ_ensure_fill_chunk(NCZChunkCache* cache)
 {
-    int i, stat = NC_NOERR;
+    int stat = NC_NOERR;
+    size_t i;
     NC_VAR_INFO_T* var = cache->var;
     nc_type typeid = var->type_info->hdr.id;
     size_t typesize = var->type_info->size;
@@ -605,7 +606,7 @@ int
 NCZ_buildchunkkey(size_t R, const size64_t* chunkindices, char dimsep, char** keyp)
 {
     int stat = NC_NOERR;
-    int r;
+    size_t r;
     NCbytes* key = ncbytesnew();
 
     if(keyp) *keyp = NULL;
@@ -670,7 +671,7 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
         if((stat = NC_reclaim_data_all(file->controller,tid,entry->data,cache->chunkcount))) goto done;
         entry->data = NULL;
         entry->data = strchunk; strchunk = NULL;
-        entry->size = cache->chunkcount * maxstrlen;
+        entry->size = (cache->chunkcount * (size64_t)maxstrlen);
         entry->isfixedstring = 1;
     }
 
@@ -865,7 +866,7 @@ NCZ_dumpxcacheentry(NCZChunkCache* cache, NCZCacheEntry* e, NCbytes* buf)
 {
     char s[8192];
     char idx[64];
-    int i;
+    size_t i;
 
     ncbytescat(buf,"{");
     snprintf(s,sizeof(s),"modified=%u isfiltered=%u indices=",

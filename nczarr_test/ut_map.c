@@ -95,7 +95,7 @@ simplecreate(void)
     if((stat = nczmap_create(impl,url,0,0,NULL,&map)))
 	goto done;
 
-    if((stat=nczm_concat(NULL,NCZMETAROOT,&path)))
+    if((stat=nczm_concat(NULL,ZMETAROOT,&path)))
 	goto done;
 
     /* Write empty metadata content */
@@ -158,7 +158,7 @@ writemeta2(void)
     if((stat = nczmap_open(impl,url,NC_WRITE,0,NULL,&map)))
 	goto done;
 
-    if((stat=nczm_concat(META2,NCZARRAY,&path)))
+    if((stat=nczm_concat(META2,ZARRAY,&path)))
 	goto done;
     if((stat = nczmap_write(map, path, strlen(metadata2), metadata2)))
 	goto done;
@@ -228,7 +228,7 @@ readmeta2(void)
     if((stat = nczmap_open(impl,url,0,0,NULL,&map)))
 	goto done;
 
-    if((stat = readkey(map,META2,NCZARRAY)))
+    if((stat = readkey(map,META2,ZARRAY)))
         goto done;
 
 done:
@@ -309,7 +309,7 @@ readdata(void)
 
     /* Validate */
     for(i=0;i<DATA1LEN;i++) {
-	if(data1[i] != i) {
+	if(i != (size_t)data1[i]) {
 	    fprintf(stderr,"data mismatch: is: %d should be: %llu\n",data1[i],i);
 	    stat = NC_EINVAL;
 	    goto done;

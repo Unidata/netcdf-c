@@ -58,7 +58,7 @@ sortname(int thesort)
 static void
 jsontrace(NCjson* json, int depth)
 {
-    int i;
+    size_t i;
     if(json == NULL) goto done;
     printf("[%d] sort=%s",depth,sortname(NCJsort(json)));
     switch(NCJsort(json)) {

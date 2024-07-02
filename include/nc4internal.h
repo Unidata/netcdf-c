@@ -512,6 +512,5 @@ extern void NC_initialize_reserved(void);
 #define NC_NCZARR_GROUP "_nczarr_group"
 #define NC_NCZARR_ARRAY "_nczarr_array"
 #define NC_NCZARR_ATTR "_nczarr_attr"
-#define NC_NCZARR_ATTR_UC "_NCZARR_ATTR" /* deprecated */
 
 #endif /* _NC4INTERNAL_ */

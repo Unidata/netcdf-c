@@ -23,7 +23,7 @@ UH="${NCZARR_S3_TEST_HOST}"
 UB="${NCZARR_S3_TEST_BUCKET}"
 
 testcasefile() {
-  echo -e "\to Running File Testcase:\t$1\t$2\t$3"
+  echo "	to Running File Testcase:	$1	$2	$3"
   zext=file
   base=$1
   mode=$2
@@ -34,7 +34,7 @@ testcasefile() {
 }
 
 testcasezip() {
-  echo -e "\to Running Zip Testcase:\t$1\t$2"
+  echo "	o Running Zip Testcase:	$1	$2"
   zext=zip
   base=$1
   mode=$2
@@ -46,18 +46,17 @@ testcasezip() {
 
 testcases3() {
   set -x
-  echo -e "\to Running S3 Testcase:\t$1\t$2"
+  echo "	o Running S3 Testcase:	$1	$2"
   zext=s3
   base=$1
   mode=$2
   rm -f tmp_${base}_${zext}.cdl
   url="https://${UH}/${UB}/${base}.zarr#mode=${mode},s3"
   echo "flags: $flags"
-  # Dumping everything causes timeout so dump a single var
-  ${NCDUMP} -v "group_with_dims/var2D" $flags $url > tmp_${base}_${zext}.cdl
+  # Dumping everything causes timeout so dump metadata only
+  ${NCDUMP} $metaonly $flags $url > tmp_${base}_${zext}.cdl
   # Find the proper ref file
-  diff -b ${ISOPATH}/ref_${base}_2d.cdl tmp_${base}_${zext}.cdl
-  set +x
+  diff -b ${srcdir}/ref_${base}_meta.cdl tmp_${base}_${zext}.cdl
 }
 
 testallcases() {
