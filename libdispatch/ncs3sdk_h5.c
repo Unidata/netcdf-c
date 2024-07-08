@@ -122,7 +122,7 @@ NC_s3sdkinitialize(void)
     }
 
     /* Get environment information */
-    NC_s3sdkenvironment(void);
+    NC_s3sdkenvironment();
 
     return NC_NOERR;
 }

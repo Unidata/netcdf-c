@@ -81,7 +81,7 @@ NCZ_bzip2_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** par
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
-    NCjson* jtmp = NULL;
+    const NCjson* jtmp = NULL;
     unsigned* params = NULL;
     struct NCJconst jc;
   
@@ -159,7 +159,7 @@ NCZ_zstd_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
-    NCjson* jtmp = NULL;
+    const NCjson* jtmp = NULL;
     unsigned* params = NULL;
     struct NCJconst jc;
   
@@ -339,7 +339,7 @@ NCZ_blosc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** par
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
-    NCjson* jtmp = NULL;
+    const NCjson* jtmp = NULL;
     unsigned* params = NULL;
     struct NCJconst jc = {0,0,0,NULL};
     int compcode;
