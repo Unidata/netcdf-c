@@ -191,6 +191,9 @@ IF(NETCDF_ENABLE_TESTS)
     add_sh_test(nczarr_test run_quantize)
     add_sh_test(nczarr_test run_notzarr)
 
+    # Test back compatibility of old key format
+    add_sh_test(nczarr_test run_oldkeys)
+
     # This has timeout under CMake
 #    if(NOT ISCMAKE)
       add_sh_test(nczarr_test run_interop)
@@ -226,7 +229,7 @@ IF(NETCDF_ENABLE_TESTS)
   if(NETCDF_ENABLE_NCZARR_ZIP)
       add_sh_test(nczarr_test run_newformat)
       # Test various corrupted files
-      ADD_SH_TEST(nczarr_test run_corrupt.sh)
+      ADD_SH_TEST(nczarr_test run_corrupt)
   endif()
 
   IF(FALSE) # Obsolete tests
