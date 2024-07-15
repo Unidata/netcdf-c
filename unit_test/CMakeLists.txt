@@ -14,6 +14,7 @@
 # run on Windows.
 
 SET(UNIT_TESTS test_ncuri)
+add_bin_test(unit_test test_ncuri)
 
 IF(USE_X_GETOPT)
   SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
