@@ -50,7 +50,7 @@ typedef struct Format {
     int debug;
     int linear;
     int holevalue;
-    int rank;
+    size_t rank;
     size_t dimlens[NC_MAX_VAR_DIMS];
     size_t chunklens[NC_MAX_VAR_DIMS];
     size_t chunkcounts[NC_MAX_VAR_DIMS];
@@ -60,7 +60,7 @@ typedef struct Format {
 } Format;
 
 typedef struct Odometer {
-  int rank; /*rank */
+  size_t rank; /*rank */
   size_t start[NC_MAX_VAR_DIMS];
   size_t stop[NC_MAX_VAR_DIMS];
   size_t max[NC_MAX_VAR_DIMS]; /* max size of ith index */
@@ -71,11 +71,11 @@ typedef struct Odometer {
 #define ceildiv(x,y) (((x) % (y)) == 0 ? ((x) / (y)) : (((x) / (y)) + 1))
 
 static char* captured[4096];
-static int ncap = 0;
+static size_t ncap = 0;
 
 extern int nc__testurl(const char*,char**);
 
-Odometer* odom_new(int rank, const size_t* stop, const size_t* max);
+Odometer* odom_new(size_t rank, const size_t* stop, const size_t* max);
 void odom_free(Odometer* odom);
 int odom_more(Odometer* odom);
 int odom_next(Odometer* odom);
@@ -120,9 +120,9 @@ cleanup(void)
 }
 
 Odometer*
-odom_new(int rank, const size_t* stop, const size_t* max)
+odom_new(size_t rank, const size_t* stop, const size_t* max)
 {
-     int i;
+     size_t i;
      Odometer* odom = NULL;
      if((odom = calloc(1,sizeof(Odometer))) == NULL)
 	 return NULL;
@@ -339,12 +339,12 @@ dump(Format* format)
 {
     void* chunkdata = NULL; /*[CHUNKPROD];*/
     Odometer* odom = NULL;
-    int r;
+    size_t r;
     size_t offset[NC_MAX_VAR_DIMS];
     int holechunk = 0;
     char sindices[64];
 #ifdef H5
-    int i;
+    size_t i;
     hid_t fileid, grpid, datasetid;
     hid_t dxpl_id = H5P_DEFAULT; /*data transfer property list */
     unsigned int filter_mask = 0;
@@ -388,7 +388,7 @@ dump(Format* format)
 
      if((chunkdata = calloc(sizeof(int),format->chunkprod))==NULL) usage(NC_ENOMEM);
 
-     printf("rank=%d dims=(%s) chunks=(%s)\n",format->rank,printvector(format->rank,format->dimlens),
+     printf("rank=%zu dims=(%s) chunks=(%s)\n",format->rank,printvector(format->rank,format->dimlens),
                                                            printvector(format->rank,format->chunklens));
 
      while(odom_more(odom)) {
@@ -506,12 +506,14 @@ done:
 int
 main(int argc, char** argv)
 {
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
+    size_t i;
     Format format;
     int ncid, varid, dimids[NC_MAX_VAR_DIMS];
     int vtype, storage;
     int mode;
     int c;
+    int r;
 
     memset(&format,0,sizeof(format));
 
@@ -577,7 +579,8 @@ main(int argc, char** argv)
 
     /* Get the info about the var */
     if((stat=nc_inq_varid(ncid,format.var_name,&varid))) usage(stat);
-    if((stat=nc_inq_var(ncid,varid,NULL,&vtype,&format.rank,dimids,NULL))) usage(stat);
+    if((stat=nc_inq_var(ncid,varid,NULL,&vtype,&r,dimids,NULL))) usage(stat);
+    format.rank = (size_t)r;
     if(format.rank == 0) usage(NC_EDIMSIZE);
     if((stat=nc_inq_var_chunking(ncid,varid,&storage,format.chunklens))) usage(stat);
     if(storage != NC_CHUNKED) usage(NC_EBADCHUNK);

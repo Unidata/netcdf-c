@@ -17,9 +17,7 @@ project(netCDF
 )
 
 #Add custom CMake Module
-
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/;${PROJECT_SOURCE_DIR}/cmake"
-  CACHE INTERNAL "Location of our custom CMake modules.")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" "${PROJECT_SOURCE_DIR}/cmake")
 
 set(PACKAGE "netCDF" CACHE STRING "")
 
@@ -513,7 +511,7 @@ endif()
 
 # enable|disable all forms of network access
 option(NETCDF_ENABLE_REMOTE_FUNCTIONALITY "Enable|disable all forms remote data access (DAP, S3, etc)" ON)
-if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
+if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY AND NETCDF_ENABLE_DAP)
 message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP[4]=NO")
 set(NETCDF_ENABLE_DAP OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP=NO" FORCE)
 set(NETCDF_ENABLE_DAP2 OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP2=NO" FORCE)
@@ -587,7 +585,7 @@ endif()
 
 # Option to support byte-range reading of remote datasets
 option(NETCDF_ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ${NETCDF_ENABLE_DAP})
-if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
+if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY AND NETCDF_ENABLE_BYTERANGE)
 message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_BYTERANGE=NO")
 set(NETCDF_ENABLE_BYTERANGE OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_BYTERANGE=NO" FORCE)
 endif()
@@ -604,7 +602,7 @@ set(NETCDF_ENABLE_DAP_LONG_TESTS OFF CACHE BOOL "" FORCE)
 endif()
 
 # Provide a global control for remotetest.
-if ("$ENV{REMOTETESTDOWN}" STREQUAL "yes")
+if ("$ENV{REMOTETESTDOWN}" STREQUAL "yes" AND NETCDF_ENABLE_DAP_REMOTE_TESTS)
 message(WARNING "ENV(REMOTETESTDOWN) => NETCDF_ENABLE_DAP_REMOTE_TESTS == OFF")
 set(NETCDF_ENABLE_DAP_REMOTE_TESTS OFF CACHE BOOL "" FORCE)
 endif()
@@ -681,7 +679,7 @@ else() # No option specified
 endif()
 
 # Try to enable NCZarr zip support
-option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
+option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ${NETCDF_ENABLE_NCZARR})
 
 include(CMakeDependentOption)
 
@@ -1035,8 +1033,8 @@ if (NOT NETCDF_ENABLE_PLUGINS AND NETCDF_ENABLE_NCZARR_FILTERS)
   set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 endif()
 
-IF (NOT NETCDF_ENABLE_NCZARR)
-  message(WARNING "NETCDF_ENABLE_NCZARR==NO => NETCDF_ENABLE_NCZARR_FILTERS==NO")
+IF (NOT NETCDF_ENABLE_NCZARR AND NETCDF_ENABLE_NCZARR_FILTERS) 
+    message(WARNING "NETCDF_ENABLE_NCZARR==NO => NETCDF_ENABLE_NCZARR_FILTERS==NO")
   set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Disable NCZARR_FILTERS" FORCE)
 endif()
 
@@ -1617,23 +1615,12 @@ if(NOT IS_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
   file(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
 endif()
 
-configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
-  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
-  NEWLINE_STYLE LF)
-file(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
-  DESTINATION ${netCDF_BINARY_DIR}/
-  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-
 install(FILES ${netCDF_BINARY_DIR}/netcdf.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   COMPONENT utilities)
 
-install(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
-  DESTINATION ${CMAKE_INSTALL_BINDIR}
-  COMPONENT utilities)
-
 ###
-# End pkgconfig, nc-config file creation.
+# End pkgconfig file creation.
 ###
 
 ##
@@ -1741,6 +1728,8 @@ endif()
 # Copy the CTest customization file into binary directory, as required.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake")
 
+message(STATUS "STD_FILTERS: ${STD_FILTERS}")
+
 # Generate file from template.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
   "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
@@ -1771,6 +1760,20 @@ install(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 #####
 # End libnetcdf.settings section.
 #####
+
+#####
+# Create 'nc-config' file.
+#####
+configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
+  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
+  NEWLINE_STYLE LF)
+file(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
+  DESTINATION ${netCDF_BINARY_DIR}/
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+install(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
+  COMPONENT utilities)
 
 #####
 # Create 'netcdf_meta.h' include file.

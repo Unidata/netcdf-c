@@ -41,7 +41,6 @@ dcelex(YYSTYPE* lvalp, DCEparsestate* state)
     DCElexstate* lexstate = state->lexstate;
     int token;
     int c;
-    int len;
     char* p=NULL;
     token = 0;
     ncbytesclear(lexstate->yytext);
@@ -75,7 +74,7 @@ dcelex(YYSTYPE* lvalp, DCEparsestate* state)
 			    if(d2 < 0) {
 			        dceerror(state,"Illegal \\xDD in SCAN_STRING");
 			    } else {
-				c=(((unsigned int)d1)<<4) | (unsigned int)d2;
+			        c=(int)((((unsigned int)d1)<<4) | (unsigned int)d2);
 			    }
 			}
 		    } break;
@@ -138,7 +137,7 @@ dcelex(YYSTYPE* lvalp, DCEparsestate* state)
 	}
     }
     lexstate->next = p;
-    len = ncbyteslength(lexstate->yytext);
+    size_t len = ncbyteslength(lexstate->yytext);
     if(len > MAX_TOKEN_LENGTH) len = MAX_TOKEN_LENGTH;
     strncpy(lexstate->lasttokentext,ncbytescontents(lexstate->yytext),len);
     lexstate->lasttokentext[len] = '\0';
