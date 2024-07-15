@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -30,6 +31,10 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
+
 #ifndef YY_DCE_DCE_TAB_H_INCLUDED
 # define YY_DCE_DCE_TAB_H_INCLUDED
 /* Debug traces.  */
@@ -40,15 +45,20 @@
 extern int dcedebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    SCAN_WORD = 258,
-    SCAN_STRINGCONST = 259,
-    SCAN_NUMBERCONST = 260
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    SCAN_WORD = 258,               /* SCAN_WORD  */
+    SCAN_STRINGCONST = 259,        /* SCAN_STRINGCONST  */
+    SCAN_NUMBERCONST = 260         /* SCAN_NUMBERCONST  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
@@ -60,6 +70,8 @@ typedef int YYSTYPE;
 
 
 
+
 int dceparse (DCEparsestate* parsestate);
+
 
 #endif /* !YY_DCE_DCE_TAB_H_INCLUDED  */

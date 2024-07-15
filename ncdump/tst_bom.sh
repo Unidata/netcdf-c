@@ -6,7 +6,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 # This shell script tests BOM support in ncgen
 
 set -e
-set -x
+
 # add hack for sunos
 export srcdir;
 

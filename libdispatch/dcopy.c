@@ -12,11 +12,17 @@
 #include "nc_logging.h"
 #include "nclist.h"
 
+static int NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2);
+
 #ifdef USE_NETCDF4
 
 static int searchgroup(int ncid1, int tid1, int grp, int* tid2);
 static int searchgrouptree(int ncid1, int tid1, int grp, int* tid2);
 
+#endif /*USE_NETCDF4*/
+
+
+#ifdef USE_NETCDF4
 /**
  * @internal Compare two netcdf types for equality. Must have the
  * ncids as well, to find user-defined types.
@@ -203,6 +209,8 @@ done:
     return ret;
 }
 
+#endif /* USE_NETCDF4 */
+
 /**
  * @internal Given a type in one file, find its equal (if any) in
  * another file. It sounds so simple, but it's a real pain!
@@ -232,14 +240,14 @@ NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2)
       return NC_NOERR;
    }
 
+#ifdef USE_NETCDF4
    /* Recursively search group ncid2 and its children
       to find a type that is equal (using compare_type)
       to xtype1. */
    ret = NC_rec_find_nc_type(ncid1, xtype1 , ncid2, xtype2);
+#endif /* USE_NETCDF4 */
    return ret;
 }
-
-#endif /* USE_NETCDF4 */
 
 /**
  * This will copy a variable that is an array of primitive type and
@@ -726,4 +734,5 @@ done:
     return ret;
 }
 
-#endif
+#endif /* USE_NETCDF4 */
+

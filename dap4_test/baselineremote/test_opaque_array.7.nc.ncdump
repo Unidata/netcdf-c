@@ -2,10 +2,10 @@ netcdf test_opaque_array {
 types:
   opaque(16) opaque16_t ;
 dimensions:
-	_AnonymousDim1 = 1 ;
-	_AnonymousDim2 = 2 ;
+	_Anonymous_Dim_1 = 1 ;
+	_Anonymous_Dim_2 = 2 ;
 variables:
-	opaque16_t vo2(_AnonymousDim1, _AnonymousDim2) ;
+	opaque16_t vo2(_Anonymous_Dim_1, _Anonymous_Dim_2) ;
 
 // global attributes:
 		string :_dap4.ce = "/vo2[1][0:1]" ;

@@ -12,8 +12,10 @@ export TEST_COMMON_SH=1
 # Define various global constants
 
 # Define location of execution
-TOPSRCDIR='@abs_top_srcdir@'
-TOPBUILDDIR='@abs_top_builddir@'
+abs_top_srcdir=@abs_top_srcdir@
+abs_top_builddir=@abs_top_builddir@
+TOPSRCDIR="${abs_top_srcdir}"
+TOPBUILDDIR="${abs_top_builddir}"
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@ISMSVC@
   FP_WINVERMAJOR=@WINVERMAJOR@
@@ -41,7 +43,7 @@ FEATURE_S3_INTERNAL=@HAS_S3_INTERNAL@
 FEATURE_S3=@HAS_S3@
 FEATURE_NCZARR=@HAS_NCZARR@
 FEATURE_S3TESTS=@NETCDF_ENABLE_S3_TESTING@
-FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
+FEATURE_NCZARR_ZIP=@HAS_NCZARR_ZIP@
 FEATURE_LARGE_TESTS=@DO_LARGE_TESTS@
 
 # Thredds-test server is currently disabled
@@ -146,7 +148,7 @@ fi
 # We also assume we are executing in builddir
 builddir=`pwd`
 
-# execdir is an alias for builddir
+# execdir is usually an alias for builddir
 execdir="${builddir}"
 
 # pick off the last component as the relative name of this directory
@@ -172,17 +174,17 @@ fi
 
 # We need to locate certain executables (and other things),
 # capture absolute paths, and make visible
-export NCDUMP="${top_builddir}/ncdump${VS}/${DL}ncdump${ext}"
-export NCCOPY="${top_builddir}/ncdump${VS}/${DL}nccopy${ext}"
-export NCGEN="${top_builddir}/ncgen${VS}/${DL}ncgen${ext}"
-export NCGEN3="${top_builddir}/ncgen3${VS}/${DL}ncgen3${ext}"
-export NCPATHCVT="${top_builddir}/ncdump${VS}/${DL}ncpathcvt${ext}"
+export NCDUMP="${abs_top_builddir}/ncdump${VS}/${DL}ncdump${ext}"
+export NCCOPY="${abs_top_builddir}/ncdump${VS}/${DL}nccopy${ext}"
+export NCGEN="${abs_top_builddir}/ncgen${VS}/${DL}ncgen${ext}"
+export NCGEN3="${abs_top_builddir}/ncgen3${VS}/${DL}ncgen3${ext}"
+export NCPATHCVT="${abs_top_builddir}/ncdump${VS}/${DL}ncpathcvt${ext}"
 
 # Temporary hacks (until we have a test_utils directory)
 # to locate certain specific test files
-ncgen3c0="${top_srcdir}/ncgen3/c0.cdl"
-ncgenc0="${top_srcdir}/ncgen/c0.cdl"
-ncgenc04="${top_srcdir}/ncgen/c0_4.cdl"
+ncgen3c0="${abs_top_srcdir}/ncgen3/c0.cdl"
+ncgenc0="${abs_top_srcdir}/ncgen/c0.cdl"
+ncgenc04="${abs_top_srcdir}/ncgen/c0_4.cdl"
 
 # Set LC_ALL
 if test "x$FP_ISMSVC" = xyes || test "x$FP_ISCYGWIN" = xyes; then export LC_ALL="en_US.utf8"; fi

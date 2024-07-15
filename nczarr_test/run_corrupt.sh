@@ -32,4 +32,7 @@ testnoshape2() {
 }
  
 testnoshape1
-if test "x$FEATURE_S3TESTS" = xyes ; then testnoshape2; fi
+if test "x$FEATURE_S3TESTS" = xyes && test "x$FEATURE_S3_INTERNAL" = xyes ; then
+    # The aws-sdk-cpp driver does not support google storage
+    testnoshape2
+fi
