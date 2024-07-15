@@ -159,7 +159,8 @@ done:
 static int
 cloneArray(NCjson* array, NCjson** clonep)
 {
-    int i, stat=NC_NOERR;
+    int stat=NC_NOERR;
+    size_t i;
     NCjson* clone = NULL;
     if((stat=NCJnew(NCJ_ARRAY,&clone))) goto done;
     for(i=0;i<NCJlength(array);i++) {
@@ -276,7 +277,8 @@ dump(NCjson* json)
 static void
 dumpR(NCjson* json, int depth)
 {
-    int ok, count, i;
+    int ok, count;
+    size_t i;
     long long int64v;
     double float64v;
 
@@ -285,12 +287,12 @@ dumpR(NCjson* json, int depth)
     case NCJ_STRING: printf("\"%s\"",NCJstring(json)); break;
     case NCJ_INT:
 	ok = sscanf(NCJstring(json),"%lld%n",&int64v,&count);
-	if(ok != 1 || count != strlen(NCJstring(json))) goto fail;
+	if(ok != 1 || count != (int)strlen(NCJstring(json))) goto fail;
 	printf("%lld",int64v);
 	break;
     case NCJ_DOUBLE: 
 	ok = sscanf(NCJstring(json),"%lg%n",&float64v,&count);
-	if(ok != 1 || count != strlen(NCJstring(json))) goto fail;
+	if(ok != 1 || count != (int)strlen(NCJstring(json))) goto fail;
 	printf("%lg",float64v);
 	break;
     case NCJ_BOOLEAN: 

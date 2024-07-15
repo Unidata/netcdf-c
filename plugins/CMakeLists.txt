@@ -8,7 +8,10 @@ set(CMAKE_BUILD_TYPE "")
 
 if(WIN32)
   set(PLUGINEXT "dll")
-  set(PLUGINPRE "__nc") 
+  set(PLUGINPRE "__nc")
+elseif(CYGWIN)
+  set(PLUGINEXT "dll")
+  set(PLUGINPRE "lib__nc")
 else()
    set(PLUGINPRE "lib__nc")
    if(APPLE)
@@ -87,16 +90,18 @@ buildplugin(h5deflate "h5deflate")
 
 buildplugin(nczmisc "zmisc")
 buildplugin(nczhdf5filters "zhdf5filters" netcdf)
-buildplugin(nczstdfilters "zstdfilters" netcdf)
 
 if(NETCDF_ENABLE_BLOSC)
   set(h5blosc_SOURCES H5Zblosc.c)
-  buildplugin(h5blosc "h5blosc" netcdf;${Blosc_LIBRARIES})
+  buildplugin(h5blosc "h5blosc" ${Blosc_LIBRARIES})
+  buildplugin(nczstdfilters "zstdfilters" netcdf;${Blosc_LIBRARIES})
+else()
+  buildplugin(nczstdfilters "zstdfilters" netcdf)
 endif()
 
 if(NETCDF_ENABLE_ZSTD)
   set(h5zstd_SOURCES H5Zzstd.c H5Zzstd.h)
-  buildplugin(h5zstd "h5zstd" netcdf;${Zstd_LIBRARIES})
+  buildplugin(h5zstd "h5zstd" ${Zstd_LIBRARIES})
 endif()
 
 # Need our version of szip if libsz available and we are not using HDF5

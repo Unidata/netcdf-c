@@ -43,9 +43,6 @@ enum URLFORMAT {UF_NONE=0, UF_VIRTUAL=1, UF_PATH=2, UF_S3=3, UF_OTHER=4};
 static const char* awsconfigfiles[] = {".aws/config",".aws/credentials",NULL};
 #define NCONFIGFILES (sizeof(awsconfigfiles)/sizeof(char*))
 
-static int ncs3_initialized = 0;
-static int ncs3_finalized = 0;
-
 /**************************************************/
 /* Forward */
 
@@ -56,38 +53,21 @@ static int awsparse(const char* text, NClist* profiles);
 /**************************************************/
 /* Capture environmental Info */
 
-EXTERNL int
-NC_s3sdkinitialize(void)
+EXTERNL void
+NC_s3sdkenvironment(void)
 {
-    if(!ncs3_initialized) {
-	ncs3_initialized = 1;
-	ncs3_finalized = 0;
-    }
-    {
-        /* Get various environment variables as defined by the AWS sdk */
-	NCglobalstate* gs = NC_getglobalstate();
-	if(getenv("AWS_REGION")!=NULL)
-	    gs->aws.default_region = nulldup(getenv("AWS_REGION"));
-	else if(getenv("AWS_DEFAULT_REGION")!=NULL)
-	    gs->aws.default_region = nulldup(getenv("AWS_DEFAULT_REGION"));
-	else if(gs->aws.default_region == NULL)
-	    gs->aws.default_region = nulldup(AWS_GLOBAL_DEFAULT_REGION);
-	gs->aws.access_key_id = nulldup(getenv("AWS_ACCESS_KEY_ID"));
-	gs->aws.config_file = nulldup(getenv("AWS_CONFIG_FILE"));
-	gs->aws.profile = nulldup(getenv("AWS_PROFILE"));
-	gs->aws.secret_access_key = nulldup(getenv("AWS_SECRET_ACCESS_KEY"));
-    }
-    return NC_NOERR;
-}
-
-EXTERNL int
-NC_s3sdkfinalize(void)
-{
-    if(!ncs3_finalized) {
-	ncs3_initialized = 0;
-	ncs3_finalized = 1;
-    }
-    return NC_NOERR;
+    /* Get various environment variables as defined by the AWS sdk */
+    NCglobalstate* gs = NC_getglobalstate();
+    if(getenv("AWS_REGION")!=NULL)
+        gs->aws.default_region = nulldup(getenv("AWS_REGION"));
+    else if(getenv("AWS_DEFAULT_REGION")!=NULL)
+        gs->aws.default_region = nulldup(getenv("AWS_DEFAULT_REGION"));
+    else if(gs->aws.default_region == NULL)
+        gs->aws.default_region = nulldup(AWS_GLOBAL_DEFAULT_REGION);
+    gs->aws.access_key_id = nulldup(getenv("AWS_ACCESS_KEY_ID"));
+    gs->aws.config_file = nulldup(getenv("AWS_CONFIG_FILE"));
+    gs->aws.profile = nulldup(getenv("AWS_PROFILE"));
+    gs->aws.secret_access_key = nulldup(getenv("AWS_SECRET_ACCESS_KEY"));
 }
 
 /**************************************************/
@@ -130,17 +110,24 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
     /* split the path by "/" */
     if((stat = NC_split_delim(url->path,'/',pathsegments))) goto done;
 
-    /* Distinguish path-style from virtual-host style from s3: and from other.
-       Virtual: https://<bucket-name>.s3.<region>.amazonaws.com/<path>				(1)
-            or: https://<bucket-name>.s3.amazonaws.com/<path> -- region defaults (to us-east-1)	(2)
-       Path: https://s3.<region>.amazonaws.com/<bucket-name>/<path>				(3)
-         or: https://s3.amazonaws.com/<bucket-name>/<path> -- region defaults to us-east-1      (4)
-       S3: s3://<bucket-name>/<path>								(5)
-       Google: https://storage.googleapis.com/<bucket-name>/<path>				(6)
-           or: gs3://<bucket-name>/<path>							(7)
-       Other: https://<host>/<bucket-name>/<path>						(8)
-    */
-    if(url->host == NULL || strlen(url->host) == 0)
+	/* Distinguish path-style from virtual-host style from s3: and from other.
+	Virtual:
+		(1) https://<bucket-name>.s3.<region>.amazonaws.com/<path>
+		(2) https://<bucket-name>.s3.amazonaws.com/<path> -- region defaults (to us-east-1)
+	Path:
+		(3) https://s3.<region>.amazonaws.com/<bucket-name>/<path>
+		(4) https://s3.amazonaws.com/<bucket-name>/<path> -- region defaults to us-east-1
+	S3:
+		(5) s3://<bucket-name>/<path>
+	Google:
+		(6) https://storage.googleapis.com/<bucket-name>/<path>
+		(7) gs3://<bucket-name>/<path>
+	Other:
+		(8) https://<host>/<bucket-name>/<path>
+		(9) https://<bucket-name>.s3.<region>.domain.example.com/<path>
+		(10)https://s3.<region>.example.com/<bucket>/<path>
+	*/
+	if(url->host == NULL || strlen(url->host) == 0)
         {stat = NC_EURL; goto done;}
 
     /* Reduce the host to standard form such as s3.amazonaws.com by pulling out the
@@ -188,12 +175,21 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
         /* region is unknown */
 	/* bucket is unknown at this point */
 	svc = NCS3GS;
-    } else { /* Presume Format (8) */
-        if((host = strdup(url->host))==NULL)
-	    {stat = NC_ENOMEM; goto done;}
-        /* region is unknown */
-	/* bucket is unknown */
-    }
+    } else { /* Presume Formats (8),(9),(10) */
+		if (nclistlength(hostsegments) > 3 && strcasecmp(nclistget(hostsegments, 1), "s3") == 0){
+			bucket = nclistremove(hostsegments, 0);
+			region = nclistremove(hostsegments, 2);
+			host = strdup(url->host + sizeof(bucket) + 1);
+		}else{
+			if (nclistlength(hostsegments) > 2 && strcasecmp(nclistget(hostsegments, 0), "s3") == 0){
+				region = nclistremove(hostsegments, 1);
+			}
+			if ((host = strdup(url->host)) == NULL){
+				stat = NC_ENOMEM;
+				goto done;
+			}
+		}
+	}
 
     /* region = (1) from url, (2) s3->region, (3) default */
     if(region == NULL && s3 != NULL)

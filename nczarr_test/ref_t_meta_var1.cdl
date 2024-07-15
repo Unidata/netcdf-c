@@ -15,7 +15,7 @@ group: _zgroup {
 group: _nczgroup {
 
   // group attributes:
-  		:data = "{\"dims\": {},\"vars\": [\"var1\"],\"groups\": []}" ;
+  		:data = "{\"dimensions\": {},\"arrays\": [\"var1\"],\"groups\": []}" ;
   } // group _nczgroup
 
 group: _nczattr {
@@ -41,7 +41,7 @@ group: var1 {
   group: _nczvar {
 
     // group attributes:
-    		:data = "{\"dimrefs\": [],\"contiguous\": true}" ;
+    		:data = "{\"dimension_references\": [],\"contiguous\": true}" ;
     } // group _nczvar
   } // group var1
 }

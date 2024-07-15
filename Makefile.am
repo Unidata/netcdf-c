@@ -110,7 +110,7 @@ endif
 
 # Build Cloud Storage if desired.
 if NETCDF_ENABLE_NCZARR
-ZARR_TEST_DIR = nczarr_test
+ZARR_TEST_DIRS = nczarr_test
 ZARR = libnczarr
 endif
 
@@ -129,7 +129,7 @@ if BUILD_TESTSETS
 TESTDIRS = $(H5_TEST_DIR)
 TESTDIRS += $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)
 TESTDIRS += $(BENCHMARKS_DIR) $(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
-TESTDIRS += ${ZARR_TEST_DIR}
+TESTDIRS += ${ZARR_TEST_DIRS}
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed

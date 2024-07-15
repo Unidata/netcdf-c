@@ -2,26 +2,25 @@
 # Macros
 ################################
 
-macro(set_std_filter filter)
+function(set_std_filter filter)
   # Upper case the filter name
   string(TOUPPER "${filter}" upfilter)
   string(TOLOWER "${filter}" downfilter)
-  if(ENABLE_FILTER_${upfilter})
+  if(NETCDF_ENABLE_FILTER_${upfilter})
   # Define a test flag for filter
     if(${filter}_FOUND)
       include_directories(${${filter}_INCLUDE_DIRS})
-      set(ENABLE_${upfilter} TRUE)
-      set(HAVE_${upfilter} ON)
-      set(STD_FILTERS "${STD_FILTERS} ${downfilter}")
-      message(">>> Standard Filter: ${downfilter}")
+      set(NETCDF_ENABLE_${upfilter} TRUE CACHE BOOL "Enable ${upfilter}")
+      set(HAVE_${upfilter} ON CACHE BOOL "Have ${upfilter}")
+      set(FOUND_STD_FILTERS "${FOUND_STD_FILTERS} ${downfilter}" PARENT_SCOPE)
     else()
-      set(ENABLE_${upfilter} FALSE)
-      set(HAVE_${upfilter} OFF)
+      set(NETCDF_ENABLE_${upfilter} FALSE CACHE BOOL "Enable ${upfilter}" FORCE)
+      set(HAVE_${upfilter} OFF CACHE BOOL "Have ${upfilter}" FORCE)
     endif()
   else()
-    set(HAVE_${upfilter} OFF)
+    set(HAVE_${upfilter} OFF CACHE BOOL "Have ${upfilter}" FORCE)
   endif()
-endmacro(set_std_filter)
+endfunction(set_std_filter)
 
 macro(getuname name flag)
   execute_process(COMMAND "${UNAME}" "${flag}" OUTPUT_VARIABLE "${name}" OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -148,6 +147,7 @@ macro(build_bin_test F)
     add_executable(${F} "${CMAKE_CURRENT_BINARY_DIR}/${F}.c" ${ARGN})
   endif()
   target_link_libraries(${F} netcdf ${ALL_TLL_LIBS})
+
   if(MSVC)
     set_target_properties(${F}
       PROPERTIES 
@@ -176,6 +176,8 @@ endmacro()
 # Binary tests which are used by a script looking for a specific name.
 macro(build_bin_test_no_prefix F)
   build_bin_test(${F})
+
+
   if(WIN32)
     #SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
     set_target_properties(${F} PROPERTIES

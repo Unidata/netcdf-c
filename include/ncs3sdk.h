@@ -15,7 +15,7 @@
 /* Track the server type, if known */
 typedef enum NCS3SVC {NCS3UNK=0, /* unknown */
                  NCS3=1,    /* s3.amazon.aws */
-		 NCS3GS=0   /* storage.googleapis.com */
+		 NCS3GS=2   /* storage.googleapis.com */
 } NCS3SVC;
 
 typedef struct NCS3INFO {
@@ -45,6 +45,7 @@ struct NCglobalstate;
 extern "C" {
 #endif
 
+/* API for ncs3sdk_XXX.[c|cpp] */
 EXTERNL int NC_s3sdkinitialize(void);
 EXTERNL int NC_s3sdkfinalize(void);
 EXTERNL void* NC_s3sdkcreateclient(NCS3INFO* context);
@@ -60,8 +61,7 @@ EXTERNL int NC_s3sdksearch(void* s3client0, const char* bucket, const char* pref
 EXTERNL int NC_s3sdkdeletekey(void* client0, const char* bucket, const char* pathkey, char** errmsgp);
 
 /* From ds3util.c */
-EXTERNL int NC_s3sdkinitialize(void);
-EXTERNL int NC_s3sdkfinalize(void);
+EXTERNL void NC_s3sdkenvironment(void);
 
 EXTERNL int NC_getdefaults3region(NCURI* uri, const char** regionp);
 EXTERNL int NC_s3urlprocess(NCURI* url, NCS3INFO* s3, NCURI** newurlp);

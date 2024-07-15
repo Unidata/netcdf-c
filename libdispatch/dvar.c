@@ -868,7 +868,7 @@ nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
     /* This will cause H5Pset_szip to be called when the var is
      * created. */
     unsigned int params[2] = {(unsigned int)options_mask, (unsigned int)pixels_per_block};
-    if ((ret = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, params)))
+    if ((ret = nc_def_var_filter(ncid, varid, H5Z_FILTER_SZIP, 2, params)))
         return ret;
 
     return NC_NOERR;
@@ -1312,7 +1312,7 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
 int
 nc_free_string(size_t len, char **data)
 {
-    int i;
+    size_t i;
     for (i = 0; i < len; i++)
         free(data[i]);
     return NC_NOERR;
