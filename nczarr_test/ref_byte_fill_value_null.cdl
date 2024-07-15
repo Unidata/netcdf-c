@@ -1,8 +1,8 @@
 netcdf ref_byte_fill_value_null {
 dimensions:
-	_zdim_20 = 20 ;
+	_Anonymous_Dim_20 = 20 ;
 variables:
-	ubyte byt(_zdim_20, _zdim_20) ;
+	ubyte byt(_Anonymous_Dim_20, _Anonymous_Dim_20) ;
 		byt:_Storage = "chunked" ;
 		byt:_ChunkSizes = 20, 20 ;
 		byt:_NoFill = "true" ;
