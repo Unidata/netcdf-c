@@ -78,10 +78,15 @@ jobs:
               if [ $(find /tmp/pretend-root/$(pwd) -type f | wc -l) -gt 0 ]; then exit 1; fi
           fi
 
-      - name: (Autotools) Build and run tests
+      - name: (Autotools) Build tests
         timeout-minutes: 30
         run: |
-          make check -j8 SHELL=/bin/dash
+          make check -j 8 TESTS="" SHELL=/bin/dash
+
+      - name: (Autotools) Run tests
+        timeout-minutes: 30
+        run: |
+          make check -j 8 SHELL=/bin/dash
   
   build-and-test-cmake:
     name: Cygwin-based CMake tests
