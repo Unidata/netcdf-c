@@ -87,6 +87,11 @@ if(UNAME)
   set(TMP_BUILDNAME "${osname}-${osrel}-${cpu}")
 endif()
 
+find_program(GETFATTR NAMES getfattr)
+if(GETFATTR)
+  set(HAVE_GETFATTR TRUE)
+endif()
+
 # Define some Platforms
 if(osname MATCHES "CYGWIN.*")
   set(ISCYGWIN yes)

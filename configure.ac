@@ -82,6 +82,12 @@ AC_LANG_POP([C])
 if test $have_no_strict_aliasing = no; then
    CFLAGS=$SAVE_CFLAGS
 fi
+
+## 
+# Check to see if we have getfattr
+##
+AC_CHECK_PROGS([HAVE_GETFATTR], [getfattr])
+
 ##
 # Some files need to exist in build directories
 # that do not correspond to their source directory, or

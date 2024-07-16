@@ -1648,16 +1648,22 @@ fprintf(stderr,"@@@ %s=|%s|\n",p,xvalue);
 	    }
         }
 #else /*!HAVE_SYS_XATTR_H*/
+
+#ifdef HAVE_GETFATTR
 	{
 	    FILE *fp;
 	    char cmd[4096];
 	    memset(cmd,0,sizeof(cmd));
-            snprintf(cmd,sizeof(cmd),"getfattr %s | grep -c '.daos'",path);
-            if((fp = popen(cmd, "r")) != NULL) {
-                fscanf(fp, "%d", &rc);
-                pclose(fp);
+        snprintf(cmd,sizeof(cmd),"getfattr %s | grep -c '.daos'",path);
+        if((fp = popen(cmd, "r")) != NULL) {
+               fscanf(fp, "%d", &rc);
+               pclose(fp);
 	    }
-        }
+    }
+#else /*!HAVE_GETFATTR*/
+    /* We just can't test for DAOS container.*/
+    stat = 0;
+#endif /*HAVE_GETFATTR*/
 #endif /*HAVE_SYS_XATTR_H*/
     }
     /* Test for DAOS container */
