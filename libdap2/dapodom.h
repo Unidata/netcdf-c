@@ -6,8 +6,10 @@
 #ifndef DAPODOM_H
 #define DAPODOM_H 1
 
+#include <stddef.h>
+
 typedef struct Dapodometer {
-    int            rank;
+    size_t         rank;
     size_t         index[NC_MAX_VAR_DIMS];
     size_t         start[NC_MAX_VAR_DIMS];
 #if 0
@@ -31,7 +33,7 @@ extern void dapodom_free(Dapodometer*);
 extern int dapodom_more(Dapodometer* odom);
 extern int dapodom_next(Dapodometer* odo);
 
-extern off_t dapodom_count(Dapodometer* odo);
+extern size_t dapodom_count(Dapodometer* odo);
 
 extern size_t dapodom_varmcount(Dapodometer*, const ptrdiff_t*, const size_t*);
 
