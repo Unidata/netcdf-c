@@ -41,7 +41,7 @@ jobs:
             libhdf4-devel zipinfo libxml2-devel perl zlib-devel
             libzstd-devel libbz2-devel libaec-devel libzip-devel
             libdeflate-devel gcc-core gcc-g++ libcurl-devel libiconv-devel
-            libssl-devel libcrypt-devel
+            libssl-devel libcrypt-devel attr libattr-devel
 
       - name: (Autotools) Run autoconf and friends
         run: |
@@ -78,10 +78,15 @@ jobs:
               if [ $(find /tmp/pretend-root/$(pwd) -type f | wc -l) -gt 0 ]; then exit 1; fi
           fi
 
-      - name: (Autotools) Build and run tests
+      - name: (Autotools) Build tests
         timeout-minutes: 30
         run: |
-          make check -j8 SHELL=/bin/dash
+          make check -j$(nproc) TESTS="" SHELL=/bin/dash
+
+      - name: (Autotools) Run tests
+        timeout-minutes: 30
+        run: |
+          make check -j$(nproc) SHELL=/bin/dash
   
   build-and-test-cmake:
     name: Cygwin-based CMake tests
