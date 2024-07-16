@@ -87,7 +87,7 @@ fi
 # Check to see if we have getfattr
 ##
 AC_CHECK_PROGS([HAVE_GETFATTR], [getfattr])
-if test -n $HAVE_GETFATTR; then
+if test -n "$HAVE_GETFATTR"; then
    AC_DEFINE_UNQUOTED([HAVE_GETFATTR],[1],[getfattr is available])
 fi
 ##
