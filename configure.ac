@@ -82,6 +82,14 @@ AC_LANG_POP([C])
 if test $have_no_strict_aliasing = no; then
    CFLAGS=$SAVE_CFLAGS
 fi
+
+## 
+# Check to see if we have getfattr
+##
+AC_CHECK_PROGS([HAVE_GETFATTR], [getfattr])
+if test -n "$HAVE_GETFATTR"; then
+   AC_DEFINE_UNQUOTED([HAVE_GETFATTR],[1],[getfattr is available])
+fi
 ##
 # Some files need to exist in build directories
 # that do not correspond to their source directory, or
@@ -1292,7 +1300,7 @@ AC_CHECK_HEADERS([sys/param.h])
 AC_CHECK_HEADERS([libgen.h])
 #AC_CHECK_HEADERS([locale.h])
 AC_HEADER_STDC
-AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h time.h dirent.h stdint.h ctype.h])
+AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h time.h dirent.h stdint.h ctype.h sys/xattr_h])
 
 # Do sys/resource.h separately
 #AC_CHECK_HEADERS([sys/resource.h],[havesysresource=1],[havesysresource=0])
