@@ -945,6 +945,7 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
                          @abs_top_srcdir@/docs/windows-binaries.md \
                          @abs_top_srcdir@/docs/inmemory.md \
                          @abs_top_srcdir@/docs/byterange.md \
+                         @abs_top_srcdir@/docs/auth.md \
                          @abs_top_srcdir@/docs/nczarr.md \
                          @abs_top_srcdir@/docs/cloud.md \
                          @abs_top_srcdir@/docs/notes.md \
