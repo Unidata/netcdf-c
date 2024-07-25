@@ -320,17 +320,18 @@ Note that this is different from zlib.
 
 ## Addressing Style
 
-The notion of "addressing style" may need some expansion.
-Amazon S3 accepts two forms for specifying the endpoint for accessing the data
-(see the document "quickstart_path).
+The notion of "addressing style" may need some expansion. Amazon S3 accepts two forms for specifying the endpoint for accessing the data (see the document "quickstart_path").
 
 1. Virtual -- the virtual addressing style places the bucket in the host part of a URL.
 For example:
+
 ```
 https://<bucketname>.s2.&lt;region&gt.amazonaws.com/
 ```
+
 2. Path -- the path addressing style places the bucket in at the front of the path part of a URL.
 For example:
+
 ```
 https://s3.&lt;region&gt.amazonaws.com/<bucketname>/
 ```
@@ -537,6 +538,7 @@ Then the following options must be specified for cmake.
 -DAWSSDK_ROOT_DIR=${AWSSDK_ROOT_DIR}
 -DAWSSDK_DIR=${AWSSDK_ROOT_DIR}/lib/cmake/AWSSDK
 ````
+
 # Appendix B. Amazon S3 Imposed Limits {#nczarr_s3limits}
 
 The Amazon S3 cloud storage imposes some significant limits that are inherited by NCZarr (and Zarr also, for that matter).
