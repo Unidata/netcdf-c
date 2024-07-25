@@ -1,14 +1,11 @@
 NetCDF Authorization Support
-======================================
+====================================
 
 <!-- double header is needed to workaround doxygen bug -->
 
-NetCDF Authorization Support {#auth}
-====================================
-
 [TOC]
 
-## Introduction {#auth_intro}
+## Introduction {#auth}
 
 netCDF can support user authorization using the facilities provided by the curl
 library. This includes basic password authentication as well as
@@ -306,7 +303,7 @@ Note that the first two are there to support re-direction based authentication.
 1. https://curl.haxx.se/libcurl/c/curl_easy_setopt.html
 2. https://curl.haxx.se/docs/ssl-compared.html
 
-## Appendix A. All RC-File Keys {#auth_allkeys}
+## Authorization Appendix A. All RC-File Keys {#auth_allkeys}
 
 For completeness, this is the list of all rc-file keys.
 If this documentation is out of date with respect to the actual code,
@@ -333,7 +330,7 @@ the code is definitive.
 <tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC,CURLOPT_NETRC_FILE</td>
 </table>
 
-## Appendix B. URS Access in Detail {#auth_ursdetail}
+## Authorization Appendix B. URS Access in Detail {#auth_ursdetail}
 
 It is possible to use the NASA Earthdata Login System (URS)
 with netcdf by using using the process specified in the
@@ -343,7 +340,7 @@ register as a user with NASA at this website (subject to change):
 
     https://uat.urs.earthdata.nasa.gov/
 
-## Appendix C. ESG Access in Detail {#auth_esgdetail}
+## Authorization Appendix C. ESG Access in Detail {#auth_esgdetail}
 
 It is possible to access Earth Systems Grid (ESG) datasets
 from ESG servers through the netCDF API using the techniques
