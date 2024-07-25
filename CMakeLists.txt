@@ -27,7 +27,7 @@ project(netCDF
 # http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 #####
 
-set(NC_VERSION_NOTE "-development")
+set(NC_VERSION_NOTE "-rc1")
 set(netCDF_VERSION ${PROJECT_VERSION}${NC_VERSION_NOTE})
 set(VERSION ${netCDF_VERSION})
 set(NC_VERSION ${netCDF_VERSION})
