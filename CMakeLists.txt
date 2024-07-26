@@ -1538,10 +1538,7 @@ endif()
 # STATIC_DEFINE netcdf_BUILT_AS_STATIC
 #)
 
-#####
-# Build doxygen documentation, if need be.
-#####
-add_subdirectory(docs)
+
 
 ##
 # Brute force, grab all of the dlls from the dependency directory,
@@ -1811,6 +1808,12 @@ set(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
 set(abs_top_builddir "${CMAKE_CURRENT_BINARY_DIR}")
 set(abs_top_srcdir "${CMAKE_CURRENT_SOURCE_DIR}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
+
+#####
+# Build doxygen documentation, if need be.
+# This must come after setting top_builddir, etc.
+#####
+add_subdirectory(docs)
 
 ####
 # Build s3cleanup.sh and s3gc.sh
