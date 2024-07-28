@@ -221,7 +221,6 @@ printf("*** testing diskless file with scalar vars...");
     size_t start[1] = {0};
     size_t count[1] = {DIM1_LEN};
 
-    int i;
     float float_data = 42.22F, float_data_in;
 
 
