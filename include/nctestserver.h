@@ -42,7 +42,7 @@ static int timedping(const char* url, long timeout);
 static char**
 parseServers(const char* remotetestservers)
 {
-    char* rts;
+    char* rts = NULL;
     char** servers = NULL;
     char** list = NULL;
     char* p;
