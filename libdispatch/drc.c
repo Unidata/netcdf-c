@@ -71,6 +71,7 @@ where the .rc entry has the simple form "key=value".
 If that entry is not found, then return NULL.
 
 @param key table entry key field
+@param  table entry key field
 @return value matching the key -- caller frees
 @return NULL if no entry of the form key=value exists
 */
@@ -269,8 +270,12 @@ done:
 }
 
 /**
- * Locate a entry by property key and host+port (may be null)
+ * Locate a entry by property key.
  * If duplicate keys, first takes precedence.
+ * @param key to lookup
+ * @param hostport to use for lookup
+ * @param urlpath to use for lookup
+ * @return the value of the key or NULL if not found.
  */
 char*
 NC_rclookup(const char* key, const char* hostport, const char* urlpath)
@@ -468,7 +473,7 @@ rccompile(const char* filepath)
             }
             line = rtag + 1;
             *rtag = '\0';
-            /* compile the url and pull out the host and protocol */
+            /* compile the url and pull out the host, port, and path */
             if(uri) ncurifree(uri);
             if(ncuriparse(url,&uri)) {
                 nclog(NCLOGERR, "Malformed [url] in %s entry: %s",filepath,line);
