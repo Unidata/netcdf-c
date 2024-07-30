@@ -96,6 +96,6 @@ inmemory.md DAP2.dox FAQ.md
 known_problems.md
 COPYRIGHT.dox user_defined_formats.md DAP4.md DAP4.dox
 testserver.dox byterange.md filters.md nczarr.md auth.md quantize.md
-quickstart_paths.md cloud.md)
+quickstart_paths.md quickstart_filters.md quickstart_env.md cloud.md)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
