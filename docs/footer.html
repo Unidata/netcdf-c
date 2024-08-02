@@ -1,21 +1,17 @@
-<!-- HTML footer for doxygen 1.8.17-->
+<!-- HTML footer for doxygen 1.9.1-->
 <!-- start footer part -->
 <!--BEGIN GENERATE_TREEVIEW-->
-<div id="nav-path" class="navpath"> <!-- id is needed for treeview function! -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    $navpath
+    <li class="footer">$generatedby <a href="https://www.doxygen.org/index.html"><img class="footer" src="$relpath^doxygen.svg" width="104" height="31" alt="doxygen"/></a> $doxygenversion </li>
+  </ul>
+</div>
 <!--END GENERATE_TREEVIEW-->
 <!--BEGIN !GENERATE_TREEVIEW-->
-<div> <!-- id unnecessary if treeview is not used -->
+<hr class="footer"/><address class="footer"><small>
+$generatedby&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="$relpath^doxygen.svg" width="104" height="31" alt="doxygen"/></a> $doxygenversion
+</small></address>
 <!--END !GENERATE_TREEVIEW-->
-  <hr size="2" />
-  <address style="text-align: center;">
-    <a href="https://www.unidata.ucar.edu/software/netcdf/">Return to the Main Unidata NetCDF page.</a><br>
-    <img src="./$relpath^/uniLogo.png">
-  </address>
-
-  <address style="text-align: right;"><small>
-    Generated on $datetime for $projectname. NetCDF is
-    a <a href="https://www.unidata.ucar.edu/">Unidata</a> library.</small>
-  </address>
-</div>
 </body>
 </html>
