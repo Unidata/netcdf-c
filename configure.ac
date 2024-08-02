@@ -290,7 +290,6 @@ AM_CONDITIONAL([DOXYGEN_BUILD_RELEASE_DOCS], [test "x$enable_doxygen_build_relea
 
 if test $enable_doxygen_build_release_docs = yes; then
    AC_SUBST([DOXYGEN_CSS_FILE], ["release.css"])
-   AC_SUBST([DOXYGEN_HEADER_FILE], ["release_header.html"])
    AC_SUBST([DOXYGEN_SEARCHENGINE], ["NO"])
 else
    AC_SUBST([DOXYGEN_CSS_FILE], [])

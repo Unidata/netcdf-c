@@ -1069,12 +1069,10 @@ if(NETCDF_ENABLE_DOXYGEN)
   option(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS "Build release documentation.  This is of interest only to the netCDF developers." OFF)
   if(NETCDF_ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
     set(DOXYGEN_CSS_FILE "${CMAKE_SOURCE_DIR}/docs/release.css" CACHE STRING "")
-    set(DOXYGEN_HEADER_FILE "${CMAKE_SOURCE_DIR}/docs/release_header.html" CACHE STRING "")
     set(DOXYGEN_SEARCHENGINE "NO" CACHE STRING "")
     set(NETCDF_ENABLE_DOXYGEN_SERVER_BASED_SEARCH NO CACHE STRING "")
   else()
     set(DOXYGEN_CSS_FILE "" CACHE STRING "")
-    set(DOXYGEN_HEADER_FILE "" CACHE STRING "")
     set(DOXYGEN_SEARCHENGINE "YES" CACHE STRING "")
 
     # If not using release document configuration,
@@ -1095,14 +1093,6 @@ if(NETCDF_ENABLE_DOXYGEN)
   else(NETCDF_DOXYGEN_ENABLE_TASKS)
     set(SHOW_DOXYGEN_TODO_LIST NO CACHE STRING "")
   endif(NETCDF_DOXYGEN_ENABLE_TASKS)
-
-  option(NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT "[EXPERIMENTAL] Turn on PDF output for Doxygen-generated documentation." OFF)
-
-  if(NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT)
-    set(NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT "YES" CACHE STRING "")
-  else()
-    set(NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT "NO" CACHE STRING "")
-  endif()
 
   find_program(NC_DOT NAMES dot)
   # Specify whether or not 'dot' was found on the system path.
