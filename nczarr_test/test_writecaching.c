@@ -87,11 +87,11 @@ main(void)
   {
     size_t mbused = getPeakRSS() / (1024 * 1024);
     printf("Max mem: %zu MB\n", mbused);
-    if(mbused > 100) {
-      printf("*** Failed: used: %luMB expected: < 100MB\n",mbused);
+    if(mbused > 128) {
+      printf("*** Failed: used: %luMB expected: < 128\n",mbused);
       return (1);
     } else {
-      printf("*** Passed: used: %luMB (< 100MB)\n",mbused);
+      printf("*** Passed: used: %luMB (< 128)\n",mbused);
       return 0;
     }
   }

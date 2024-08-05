@@ -56,7 +56,11 @@ endif
 # includes them in the documentation.
 
 doxyfile.stamp:
-	$(DOXYGEN) Doxyfile && cp $(top_srcdir)/docs/auth.md $(top_srcdir)/docs/obsolete/fan_utils.html html
+	$(DOXYGEN) -u $(top_builddir)/docs/Doxyfile && \
+	$(DOXYGEN) -w html $(top_builddir)/docs/header.html \
+		$(top_builddir)/docs/footer.html $(top_builddir)/docs/custom_style.css $(top_builddir)/docs/Doxyfile && \
+	$(DOXYGEN) $(top_builddir)/docs/Doxyfile && \
+	cp $(top_srcdir)/docs/auth.md $(top_srcdir)/docs/obsolete/fan_utils.html html
 
 CLEANFILES = doxyfile.stamp
 
