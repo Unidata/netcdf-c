@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF],[4.9.3-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
+AC_INIT([netCDF],[4.9.4-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -21,7 +21,7 @@ AC_INIT([netCDF],[4.9.3-development],[support-netcdf@unidata.ucar.edu],[netcdf-c
 
 AC_SUBST([netCDF_VERSION_MAJOR]) netCDF_VERSION_MAJOR=4
 AC_SUBST([netCDF_VERSION_MINOR]) netCDF_VERSION_MINOR=9
-AC_SUBST([netCDF_VERSION_PATCH]) netCDF_VERSION_PATCH=3
+AC_SUBST([netCDF_VERSION_PATCH]) netCDF_VERSION_PATCH=4
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 ##
@@ -29,7 +29,7 @@ AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 # See http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 # for information regarding incrementing `-version-info`.
 # These values should match those in CMakeLists.txt
-AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=21:2:2
+AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=22:0:0
 
 #####
 # Set some variables used to generate a libnetcdf.settings file,

@@ -16,6 +16,27 @@ project(netCDF
   VERSION 4.9.3
 )
 
+#####
+# Version Info:
+#
+# Release Version
+# Library Version
+# SO Version
+#
+# SO Version is computed from library version. See:
+# http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
+#####
+
+set(NC_VERSION_NOTE "-rc1")
+set(netCDF_VERSION ${PROJECT_VERSION}${NC_VERSION_NOTE})
+set(VERSION ${netCDF_VERSION})
+set(NC_VERSION ${netCDF_VERSION})
+set(PACKAGE_VERSION ${VERSION})
+
+# These values should match those in configure.ac
+set(netCDF_LIB_VERSION 22)
+set(netCDF_SO_VERSION 22)
+
 #Add custom CMake Module
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -51,26 +72,7 @@ endif()
 add_library(netcdf)
 add_library(netCDF::netcdf ALIAS netcdf)
 
-#####
-# Version Info:
-#
-# Release Version
-# Library Version
-# SO Version
-#
-# SO Version is computed from library version. See:
-# http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
-#####
 
-set(NC_VERSION_NOTE "-development")
-set(netCDF_VERSION ${PROJECT_VERSION}${NC_VERSION_NOTE})
-set(VERSION ${netCDF_VERSION})
-set(NC_VERSION ${netCDF_VERSION})
-set(PACKAGE_VERSION ${VERSION})
-
-# These values should match those in configure.ac
-set(netCDF_LIB_VERSION 19)
-set(netCDF_SO_VERSION 19)
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
@@ -736,13 +738,18 @@ if(NOT WIN32)
 endif()
 
 # Options for S3 Support
-option(NETCDF_ENABLE_S3 "Enable S3 support." OFF)
+#option(NETCDF_ENABLE_S3 "Enable S3 support." OFF)
+option(NETCDF_ENABLE_S3_AWS "Enable S3 support via AWS-CPP-SDK" OFF)
 option(NETCDF_ENABLE_S3_INTERNAL "Enable S3 Internal support." OFF)
-option(NETCDF_ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of NETCDF_ENABLE_S3" OFF)
+
+cmake_dependent_option(NETCDF_ENABLE_S3 "Enable S3 Support" ON "NETCDF_ENABLE_S3_AWS OR NETCDF_ENABLE_S3_INTERNAL" OFF)
+
+option(NETCDF_ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of NETCDF_ENABLE_S3" ${NETCDF_ENABLE_S3})
 
 if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
   set(NETCDF_ENABLE_S3 OFF CACHE BOOL "" FORCE)
   set(NETCDF_ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
+  set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "" FORCE)
   set(NETCDF_ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
 endif()
 
@@ -1531,10 +1538,7 @@ endif()
 # STATIC_DEFINE netcdf_BUILT_AS_STATIC
 #)
 
-#####
-# Build doxygen documentation, if need be.
-#####
-add_subdirectory(docs)
+
 
 ##
 # Brute force, grab all of the dlls from the dependency directory,
@@ -1804,6 +1808,12 @@ set(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
 set(abs_top_builddir "${CMAKE_CURRENT_BINARY_DIR}")
 set(abs_top_srcdir "${CMAKE_CURRENT_SOURCE_DIR}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
+
+#####
+# Build doxygen documentation, if need be.
+# This must come after setting top_builddir, etc.
+#####
+add_subdirectory(docs)
 
 ####
 # Build s3cleanup.sh and s3gc.sh
