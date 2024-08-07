@@ -15,6 +15,9 @@
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 #include "nc.h"
+#ifdef HAVE_H5PLAPPEND
+#include "hdf5.h"
+#endif
 
 /* If user-defined formats are in use, we need to declare their
  * dispatch tables. */
