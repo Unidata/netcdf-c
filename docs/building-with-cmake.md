@@ -67,6 +67,24 @@ If you have libraries installed in a custom directory, you may need to specify t
 
 > $ cmake [Source Directory] -DCMAKE\_PREFIX\_PATH=/usr/custom_libraries/
 
+#### Building with Parallel I/O. {#cmake_parallel_io}
+
+NetCDF will build with parallel I/O if the C compiler is an MPI
+compiler, and HDF5 was built for parallel I/O. To build netcdf-c for
+parallel I/O, first build HDF5 for parallel I/O, then build netcdf-c
+like this:
+
+> $ CC=mpicc cmake [Source Directory] -DNETCDF\_ENABLE\_PARALLEL_TESTS=ON
+
+The parallel I/O tests will only run if the additional configure
+option is used: NETCDF_ENABLE_PARALLEL_TESTS. Those tests run (by default)
+with mpiexec, on 4, 16, or 32 processors. If mpiexec cannot be used on
+your login-nodes, a different command can be used to launch the
+parallel I/O tests. Used the NETCDF_MPIEXEC option to set a
+different parallel I/O job launcher:
+
+> $ CC=mpicc cmake [Source Directory] -DNETCDF\_ENABLE\_PARALLEL_TESTS=ON -DNETCDF\_MPIEXEC='srun -A account'
+
 ## Building {#cmake_building}
 
 The compiler can be executed directly with 'make' or the appropriate command for the configurator which was used.  
