@@ -41,6 +41,8 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimids[1])) ERR;
       if (nc_def_var(ncid, VAR_FLOAT_NAME, NC_FLOAT, 2, dimids, &float_varid)) ERR;
       if (nc_def_var(ncid, VAR_DOUBLE_NAME, NC_DOUBLE, 2, dimids, &double_varid)) ERR;
+      if (nc_def_var_zstandard(ncid, float_varid, 4)) ERR;
+      if (nc_def_var_zstandard(ncid, double_varid, 4)) ERR;
       if (nc_put_var_float(ncid, float_varid, (float *)float_out)) ERR;
       if (nc_put_var_double(ncid, double_varid, (double *)double_out)) ERR;
       if (nc_close(ncid)) ERR;
