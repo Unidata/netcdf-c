@@ -37,6 +37,9 @@ IF(NETCDF_BUILD_UTILITIES)
   # SDK Test
     build_bin_test(test_s3sdk ${XGETOPTSRC})
     add_sh_test(unit_test run_s3sdk)
+  #AWS Configuration test
+    build_bin_test(aws_config)
+    add_sh_test(unit_test run_aws_config)
   ENDIF()
 ENDIF()
 
@@ -44,5 +47,5 @@ ENDIF()
 add_bin_test(unit_test tst_exhash timer_utils.c)
 add_bin_test(unit_test tst_xcache timer_utils.c)
 
-FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/\.aws)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
