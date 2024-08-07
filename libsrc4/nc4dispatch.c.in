@@ -52,6 +52,13 @@ NC4_initialize(void)
         return ret;
 #endif /* USE_UDF0 */
 
+#ifdef HAVE_H5PLAPPEND
+    /* Add the place where plugins were installed to the plugin
+     * path. */
+    if ((ret = H5PLappend("@PLUGIN_INSTALL_DIR@")))
+        return ret;
+#endif
+
 #ifdef LOGGING
     if(getenv(NCLOGLEVELENV) != NULL) {
         char* slevel = getenv(NCLOGLEVELENV);
