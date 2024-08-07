@@ -35,7 +35,7 @@ tst_h_scalar tst_rename tst_rename2 tst_rename3 tst_h5_endians		\
 tst_atts_string_rewrite tst_hdf5_file_compat tst_fill_attr_vanish	\
 tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
 tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
-tst_bug1442 tst_quantize tst_h_transient_types tst_zstd
+tst_bug1442 tst_quantize tst_h_transient_types
 
 if HAS_PAR_FILTERS
 NC4_TESTS += tst_alignment
@@ -112,6 +112,12 @@ endif # NETCDF_ENABLE_FILTER_TESTING
 endif # NETCDF_ENABLE_PLUGINS
 endif # USE_HDF5
 endif # NETCDF_BUILD_UTILITIES
+
+# Zstandard tests.
+if HAVE_ZSTD
+check_PROGRAMS += tst_zstd
+TESTS += tst_zstd
+endif # HAVE_ZSTD
 
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.

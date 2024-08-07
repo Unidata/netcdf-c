@@ -24,21 +24,10 @@ main(int argc, char **argv)
 {
    int ncid, dimids[NDIM2];
    int float_varid, double_varid;
-   /* int ushort_varid, uint_varid, int64_varid, uint64_varid; */
-   /* int i, j; */
+   float float_in[DIM1_LEN][DIM2_LEN], float_out[DIM1_LEN][DIM2_LEN] = {{-.1f, 9999.99f, 100.001f},{-.1f, 9999.99f, 100.001f}};
+   double double_in[DIM1_LEN][DIM2_LEN], double_out[DIM1_LEN][DIM2_LEN] = {{0.02, .1128, 1090.1},{0.02, .1128, 1090.1}};
+   int i, j;
 
-   /* unsigned char ubyte_out[DIM1_LEN][DIM2_LEN] = {{1, 128, 255},{1, 128, 255}}; */
-   /* signed char byte_in[DIM1_LEN][DIM2_LEN], byte_out[DIM1_LEN][DIM2_LEN] = {{-127, 1, 127},{-127, 1, 127}}; */
-   /* unsigned short ushort_out[DIM1_LEN][DIM2_LEN] = {{110, 128, 255},{110, 128, 255}}; */
-   /* short short_in[DIM1_LEN][DIM2_LEN], short_out[DIM1_LEN][DIM2_LEN] = {{-110, -128, 255},{-110, -128, 255}}; */
-   /* int int_in[DIM1_LEN][DIM2_LEN], int_out[DIM1_LEN][DIM2_LEN] = {{0, 128, 255},{0, 128, 255}}; */
-   /* float float_in[DIM1_LEN][DIM2_LEN], float_out[DIM1_LEN][DIM2_LEN] = {{-.1f, 9999.99f, 100.001f},{-.1f, 9999.99f, 100.001f}}; */
-   /* double double_in[DIM1_LEN][DIM2_LEN], double_out[DIM1_LEN][DIM2_LEN] = {{0.02, .1128, 1090.1},{0.02, .1128, 1090.1}}; */
-   /* unsigned int uint_in[DIM1_LEN][DIM2_LEN], uint_out[DIM1_LEN][DIM2_LEN] = {{0, 128, 255},{0, 128, 255}}; */
-   /* long long int64_in[DIM1_LEN][DIM2_LEN], int64_out[DIM1_LEN][DIM2_LEN] = {{-111, 777, 100},{-111, 777, 100}}; */
-   /* unsigned long long uint64_in[DIM1_LEN][DIM2_LEN]; */
-   /* unsigned long long uint64_out[DIM1_LEN][DIM2_LEN] = {{0, 10101, 9999999},{0, 10101, 9999999}}; */
-   /* char char_out[DIM1_LEN][DIM2_LEN][DIM3_LEN] = {{"lalala", "lololo", "lelele"}, {"lalala", "lololo", "lelele"}}; */
 
    printf("\n*** Testing netcdf-4 zstd compression.\n");
 
@@ -46,12 +35,14 @@ main(int argc, char **argv)
    {
       int nvars_in, varids_in[2];
 
-      /* Create a netcdf-3 file with one dim and two vars. */
-      if (nc_create(FILE_NAME, 0, &ncid)) ERR;
+      /* Create a netcdf file with one dim and two vars. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimids[0])) ERR;
       if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimids[1])) ERR;
       if (nc_def_var(ncid, VAR_FLOAT_NAME, NC_FLOAT, 2, dimids, &float_varid)) ERR;
       if (nc_def_var(ncid, VAR_DOUBLE_NAME, NC_DOUBLE, 2, dimids, &double_varid)) ERR;
+      if (nc_put_var_float(ncid, float_varid, (float *)float_out)) ERR;
+      if (nc_put_var_double(ncid, double_varid, (double *)double_out)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Open the file and make sure nc_inq_varids yields correct
@@ -59,6 +50,18 @@ main(int argc, char **argv)
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
       if (nvars_in != 2 || varids_in[0] != 0 || varids_in[1] != 1) ERR;
+      if (nc_get_var_float(ncid, float_varid, (float *)float_in)) ERR;
+      if (nc_get_var_double(ncid, double_varid, (double *)double_in)) ERR;
+      for (i = 0; i < DIM1_LEN; i++)
+      {
+          for (j = 0; j < DIM2_LEN; j++)
+          {
+              if (float_in[i][j] != float_out[i][j]) ERR;
+              if (double_in[i][j] != double_out[i][j]) ERR;
+          }
+      }
+          
+      
       if (nc_close(ncid)) ERR;
    }
 
