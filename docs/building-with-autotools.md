@@ -41,14 +41,14 @@ The output of the configuration step are the makefiles which build the library, 
 
 | **Option** | **Autotools** | **CMake** |
 | :------- | :---- | :----- |
-Specify Install Location | --prefix=PREFIX | -D"CMAKE\_INSTALL\_PREFIX=PREFIX"
-Enable/Disable netCDF-4 | --enable-netcdf-4<br>--disable-netcdf-4 | -D"ENABLE\_NETCDF\_4=ON" <br> -D"ENABLE\_NETCDF\_4=OFF"
-Enable/Disable DAP | --enable-dap <br> --disable-dap | -D"ENABLE\_DAP=ON" <br> -D"ENABLE\_DAP=OFF"
-Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -D"BUILD\_UTILITIES=ON" <br> -D"BUILD\_UTILITIES=OFF"
-Specify shared/Static Libraries | --enable-shared <br> --enable-static | -D"BUILD\_SHARED\_LIBS=ON" <br> -D"BUILD\_SHARED\_LIBS=OFF"
-Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -D"ENABLE\_TESTS=ON" <br> -D"ENABLE\_TESTS=OFF"
-Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -D"CMAKE\_PREFIX\_PATH=/usr/custom_libs/"
-Enable parallel I/O tests | --enable-parallel-tests | -D"NETCDF\_ENABLE_PARALLEL\_TESTS=ON"
+Specify Install Location | --prefix=PREFIX | -DCMAKE\_INSTALL\_PREFIX=PREFIX
+Enable/Disable netCDF-4 | --enable-netcdf-4<br>--disable-netcdf-4 | -DENABLE\_NETCDF\_4=ON <br> -DENABLE\_NETCDF\_4=OFF
+Enable/Disable DAP | --enable-dap <br> --disable-dap | -DENABLE\_DAP=ON <br> -DENABLE\_DAP=OFF
+Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -DBUILD\_UTILITIES=ON <br> -DBUILD\_UTILITIES=OFF
+Specify shared/Static Libraries | --enable-shared <br> --enable-static | -DBUILD\_SHARED\_LIBS=ON <br> -DBUILD\_SHARED\_LIBS=OFF
+Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -DENABLE\_TESTS=ON <br> -DENABLE\_TESTS=OFF
+Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -DCMAKE\_PREFIX\_PATH=/usr/custom_libs/
+Enable parallel I/O tests | --enable-parallel-tests | -DNETCDF\_ENABLE_PARALLEL\_TESTS=ON
 
 A full list of options can be found by invoking `configure --help`. 
 
