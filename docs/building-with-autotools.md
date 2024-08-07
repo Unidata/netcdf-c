@@ -48,6 +48,7 @@ Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -D"BUIL
 Specify shared/Static Libraries | --enable-shared <br> --enable-static | -D"BUILD\_SHARED\_LIBS=ON" <br> -D"BUILD\_SHARED\_LIBS=OFF"
 Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -D"ENABLE\_TESTS=ON" <br> -D"ENABLE\_TESTS=OFF"
 Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -D"CMAKE\_PREFIX\_PATH=/usr/custom_libs/"
+Enable parallel I/O tests | --enable-parallel-tests | -D"NETCDF\_ENABLE_PARALLEL\_TESTS=ON"
 
 A full list of options can be found by invoking `configure --help`. 
 
@@ -65,6 +66,99 @@ set the CPPFLAGS and LDFLAGS environment variables to tell the compiler where th
 libraries are installed. For example:
 
 > $ CPPFLAGS=-I/usr/local/hdf5-1.14.3/include LDFLAGS=-L/usr/local/hdf5-1.14.3/lib ./configure --prefix=/usr/local/netcdf-c-4.9.3
+
+#### Building with Parallel I/O. {#autotools_parallel_io}
+
+NetCDF will build with parallel I/O if the C compiler is an MPI
+compiler, and HDF5 was built for parallel I/O. To build netcdf-c for
+parallel I/O, first build HDF5 for parallel I/O, then build netcdf-c
+like this:
+
+> $ CC=mpicc CPPFLAGS=-I/usr/local/hdf5-1.14.3_mpich/include LDFLAGS=-L/usr/local/hdf5-1.14.3_mpicj/lib ./configure --prefix=/usr/local/netcdf-c-4.9.3_mpich --enable-parallel-tests
+
+The parallel I/O tests will only run if the additional configure
+option is used: --enable-parallel-tests. Those tests run (by default)
+with mpiexec, on 4, 16, or 32 processors. If mpiexec cannot be used on
+your login-nodes, a different command can be used to launch the
+parallel I/O tests. Used the --with-mpiexec configure option to set a
+different parallel I/O job launcher:
+
+> $ CC=mpicc CPPFLAGS=-I/usr/local/hdf5-1.14.3_mpich/include LDFLAGS=-L/usr/local/hdf5-1.14.3_mpicj/lib ./configure --prefix=/usr/local/netcdf-c-4.9.3_mpich --enable-parallel-tests --with-mpiexec='srun -A acct_name -q queue_name'
+
+## Checking the Configure Summary
+
+At the end of the configure, a summary of the build will be
+output. It's important to check this to ensure that the desired build
+features are accurately set. For example:
+
+<pre>
+# NetCDF C Configuration Summary
+==============================
+
+# General
+-------
+NetCDF Version:		4.9.4-development
+Dispatch Version:       5
+Configured On:		Wed Aug  7 06:53:22 MDT 2024
+Host System:		x86_64-pc-linux-gnu
+Build Directory: 	/home/ed/netcdf-c
+Install Prefix:         /usr/local/netcdf-c-4.9.3
+Plugin Install Prefix:  N.A.
+
+# Compiling Options
+-----------------
+C Compiler:		/usr/bin/gcc
+CFLAGS:			 -fno-strict-aliasing
+CPPFLAGS:		-I/usr/local/hdf5-1.14.3/include
+LDFLAGS:		-L/usr/local/hdf5-1.14.3/lib
+AM_CFLAGS:		
+AM_CPPFLAGS:		
+AM_LDFLAGS:		
+Shared Library:		yes
+Static Library:		yes
+Extra libraries:	-lhdf5_hl -lhdf5 -lm -lz -lsz -lzstd -lxml2 -lcurl 
+XML Parser:             libxml2
+
+# Features
+--------
+Benchmarks:		no
+NetCDF-2 API:		yes
+HDF4 Support:		no
+HDF5 Support:		yes
+CDF5 Support:		yes
+NC-4 Parallel Support:	no
+PnetCDF Support:	no
+
+DAP2 Support:		yes
+DAP4 Support:		yes
+Byte-Range Support:	yes
+
+S3 Support:	        no
+S3 SDK:  	        none
+
+NCZarr Support:		yes
+NCZarr Zip Support:     no
+
+Diskless Support:	yes
+MMap Support:		no
+ERANGE Fill Support:	no
+Relaxed Boundary Check:	yes
+
+Quantization:		yes
+Logging:     		no
+SZIP Write Support:     yes
+Standard Filters:       bz2 deflate szip zstd
+ZSTD Support:           yes
+Parallel Filters:       yes
+</pre>
+
+Important settings include:
+* Install Prefix - this is where netCDF will be installed.
+* HDF5 Support - must be 'yes' to use netcdf-4/HDF5 files.
+* NC-4 Parallel Support - Must be 'yes' to use HDF5 parallel I/O.
+* PnetCDF Support - Must be 'yes' to use pnetcdf library for parallel I/O with classic netCDF files.
+* Standard Filters - Must include 'zstd' if zstandard compression is to be used.
+* DAP2/DAP4 Support - Must be 'yes' if OPeNDAP is to be used.
 
 ## Building {#autotools_building}
 
