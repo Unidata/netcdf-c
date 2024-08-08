@@ -603,13 +603,18 @@ NC_getactives3profile(NCURI* uri, const char** profilep)
     int stat = NC_NOERR;
     const char* profile = NULL;
     struct AWSprofile* ap = NULL;
+    struct NCglobalstate* gs = NC_getglobalstate();
 
-    profile = ncurifragmentlookup(uri,"aws.profile");
-    if(profile == NULL)
-        profile = NC_rclookupx(uri,"AWS.PROFILE");
+    if (uri != NULL) {
+	profile = ncurifragmentlookup(uri,"aws.profile");
+	if(profile == NULL)
+		profile = NC_rclookupx(uri,"AWS.PROFILE");
+    }
 
-    if(profile == NULL)
-        profile = NC_getglobalstate()->aws.profile;
+    if(profile == NULL && gs->aws.profile != NULL) {
+        if((stat=NC_authgets3profile(gs->aws.profile,&ap))) goto done;
+	if(ap) profile = nulldup(gs->aws.profile);
+    }
 
     if(profile == NULL) {
         if((stat=NC_authgets3profile("default",&ap))) goto done;
@@ -837,13 +842,19 @@ awsparse(const char* text, NClist* profiles)
 	if(token ==  AWS_EOF) break; /* finished */
 	if(token ==  AWS_EOL) {continue;} /* blank line */
 	if(token != LBR) {stat = NCTHROW(NC_EINVAL); goto done;}
-	/* parse [profile name] */
+	/* parse [profile name] or [name] */
         token = awslex(parser);
 	if(token != AWS_WORD) {stat = NCTHROW(NC_EINVAL); goto done;}
 	assert(profile == NULL);
 	if((profile = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile)))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	profile->name = ncbytesextract(parser->yytext);
+	if(strncmp("profile", profile->name, sizeof("profile")) == 0 ) {
+		token =  awslex(parser);
+		if(token != AWS_WORD) {stat = NCTHROW(NC_EINVAL); goto done;}
+		nullfree(profile->name);
+		profile->name = ncbytesextract(parser->yytext);
+	}
 	profile->entries = nclistnew();
         token = awslex(parser);
 	if(token != RBR) {stat = NCTHROW(NC_EINVAL); goto done;}
@@ -881,10 +892,22 @@ fprintf(stderr,">>> parse: entry=(%s,%s)\n",entry->key,entry->value);
 	        {stat = NCTHROW(NC_EINVAL); goto done;}
 	}
 
-	/* If this profile already exists, then replace old one */
+	/* If this profile already exists, then overwrite old one */
 	for(size_t i=0;i<nclistlength(profiles);i++) {
 	    struct AWSprofile* p = (struct AWSprofile*)nclistget(profiles,i);
 	    if(strcasecmp(p->name,profile->name)==0) {
+		// Keep unique parameters from previous (incomplete!?) profile
+		for (size_t j=0;j<nclistlength(p->entries);j++){
+			struct AWSentry* old = (struct AWSentry*)nclistget(p->entries,j);
+			int add = 1;
+			for (size_t z=0;z<nclistlength(profile->entries);z++){
+				struct AWSentry* new = (struct AWSentry*)nclistget(profile->entries,z);
+				add &= (strcasecmp(old->key,new->key)!=0);
+			}
+			if(add){
+			    nclistpush(profile->entries, nclistremove(p->entries,j--));
+			}
+		}
 		nclistset(profiles,i,profile);
                 profile = NULL;
 		/* reclaim old one */
