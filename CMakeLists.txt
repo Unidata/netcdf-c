@@ -540,6 +540,12 @@ set(NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic
 if(NETCDF_ENABLE_NETCDF4)
   set(USE_NETCDF4 ON CACHE BOOL "")
   set(NETCDF_ENABLE_NETCDF4 ON CACHE BOOL "")
+
+  # Configure the nc4dispatch.c file to H5Linclude plugin path at
+  # library initialization.
+  configure_file("${CMAKE_SOURCE_DIR}/libsrc4/nc4dispatch.c.in"
+    "${CMAKE_BINARY_DIR}/libsrc4/nc4dispatch.c" @ONLY NEWLINE_STYLE LF)
+  
 else()
   set(USE_HDF4_FILE_TESTS OFF)
   set(USE_HDF4 OFF)
