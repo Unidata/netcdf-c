@@ -140,6 +140,7 @@ jobs:
 
       - name: Run Tests
         shell: bash -l {0}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cd nc_test4;make tst_zstd; ./tst_zstd; cd ..
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
