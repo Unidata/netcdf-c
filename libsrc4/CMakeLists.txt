@@ -6,7 +6,7 @@
 # See netcdf-c/COPYRIGHT file for more info.
 # Process these files with m4.
 
-set(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4grp.c
+set(libsrc4_SOURCES ${netCDF_BINARY_DIR}/libsrc4/nc4dispatch.c nc4attr.c nc4dim.c nc4grp.c
 nc4internal.c nc4type.c nc4var.c ncfunc.c ncindex.c nc4cache.c)
 
 add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
