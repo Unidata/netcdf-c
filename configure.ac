@@ -2097,8 +2097,10 @@ AC_MSG_CHECKING([whether and where we should install plugins])
 AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>|yes|no|--without-plugin-dir],
               [Install selected standard filters in specified or default directory])],
 	      [],[with_plugin_dir=no])
-if test "x$have_zstd" = xyes -a test "x$with_plugin_dir" = xno; then
-   with_plugin_dir=yes
+if test "x$have_zstd" = xyes; then
+   if test "x$with_plugin_dir" = xno; then
+      with_plugin_dir=yes
+   fi
 fi
 AC_MSG_RESULT([$with_plugin_dir])
 if test "x$with_plugin_dir" = xno ; then # option missing|disabled
