@@ -116,7 +116,7 @@ endif # NETCDF_BUILD_UTILITIES
 # Zstandard tests.
 if HAVE_ZSTD
 check_PROGRAMS += tst_zstd
-TESTS += tst_zstd
+TESTS += run_zstd_test.sh
 endif # HAVE_ZSTD
 
 # This are extra tests that will only be run if netcdf-4 is configured
