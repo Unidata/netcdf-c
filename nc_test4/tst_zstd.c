@@ -26,7 +26,7 @@ main(int argc, char **argv)
    int float_varid, double_varid;
    float float_in[DIM1_LEN][DIM2_LEN], float_out[DIM1_LEN][DIM2_LEN] = {{-.1f, 9999.99f, 100.001f},{-.1f, 9999.99f, 100.001f}};
    double double_in[DIM1_LEN][DIM2_LEN], double_out[DIM1_LEN][DIM2_LEN] = {{0.02, .1128, 1090.1},{0.02, .1128, 1090.1}};
-   int i, j;
+   int i, j, ret;
 
 
    printf("\n*** Testing netcdf-4 zstd compression.\n");
@@ -41,7 +41,11 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimids[1])) ERR;
       if (nc_def_var(ncid, VAR_FLOAT_NAME, NC_FLOAT, 2, dimids, &float_varid)) ERR;
       if (nc_def_var(ncid, VAR_DOUBLE_NAME, NC_DOUBLE, 2, dimids, &double_varid)) ERR;
-      if (nc_def_var_zstandard(ncid, float_varid, 4)) ERR;
+      if ((ret = nc_def_var_zstandard(ncid, float_varid, 4)))
+      {
+	  printf("error: %s\n", nc_strerror(ret));
+	  ERR;
+      }
       if (nc_def_var_zstandard(ncid, double_varid, 4)) ERR;
       if (nc_put_var_float(ncid, float_varid, (float *)float_out)) ERR;
       if (nc_put_var_double(ncid, double_varid, (double *)double_out)) ERR;
