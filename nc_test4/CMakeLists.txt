@@ -104,6 +104,7 @@ ENDIF()
 
 IF(HAVE_ZSTD)
   BUILD_BIN_TEST(tst_zstd)
+  add_sh_test(nc_test4 run_zstd_test)
 ENDIF()
 
 
