@@ -13,6 +13,12 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
+echo "${HDF5_PLUGIN_DIR}"
+
+findplugin h5zstd
+echo "HDF5_PLUGIN_DIR=$HDF5_PLUGIN_DIR"
+./tst_zstd
+
 
 echo
 echo "Testing Zstandard compression..."
