@@ -25,7 +25,7 @@ TEST_EXTENSIONS = .sh
 # comment thread at https://github.com/Unidata/netcdf-c/pull/2348
 # for more information.
 ##
-AM_DISTCHECK_CONFIGURE_FLAGS = --without-plugin-dir
+#AM_DISTCHECK_CONFIGURE_FLAGS = --without-plugin-dir
 
 # These files get added to the distribution.
 EXTRA_DIST = README.md COPYRIGHT INSTALL.md test_prog.c lib_flags.am	\
