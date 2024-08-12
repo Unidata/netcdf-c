@@ -23,7 +23,7 @@ echo "HDF5_PLUGIN_DIR=$HDF5_PLUGIN_DIR"
 echo
 echo "Testing Zstandard compression..."
 
-HDF5_PLUGIN_PATH="${HDF5_PLUGIN_DIR}"
+export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_DIR}"
 echo "set HDF5_PLUGIN_PATH: ${HDF5_PLUGIN_PATH}"
 
 echo "SUCCESS!"
