@@ -3,12 +3,18 @@ Build Instructions for NetCDF-C using autoconf/automake/libtool {#netCDF-autotoo
 
 [TOC]
 
-# Overview {#cmake_overview}
+# Overview {#autotools_overview}
 
-Starting with netCDF-C 4.3.0, we are happy to announce the inclusion of CMake support.  CMake will allow for building netCDF on a wider range of platforms, include Microsoft Windows with Visual Studio.  CMake support also provides robust unit and regression testing tools.  We will also maintain the standard autotools-based build system in parallel.
+Starting with netCDF-C 4.3.0, we are happy to announce the inclusion
+of CMake support.  CMake will allow for building netCDF on a wider
+range of platforms, include Microsoft Windows with Visual Studio.
+CMake support also provides robust unit and regression testing tools.
+We will also maintain the standard autotools-based build system in
+parallel.
 
-In addition to providing new build options for netCDF-C, we will also provide pre-built binary downloads for the shared versions of netCDF for use with Visual Studio.  
-
+In addition to providing new build options for netCDF-C, we will also
+provide pre-built binary downloads for the shared versions of netCDF
+for use with Visual Studio.
 		
 # Requirements {#autotools_requirements}
 The following packages are required to build netCDF-C.
@@ -84,6 +90,20 @@ parallel I/O tests. Used the --with-mpiexec configure option to set a
 different parallel I/O job launcher:
 
 > $ CC=mpicc CPPFLAGS=-I/usr/local/hdf5-1.14.3_mpich/include LDFLAGS=-L/usr/local/hdf5-1.14.3_mpicj/lib ./configure --prefix=/usr/local/netcdf-c-4.9.3_mpich --enable-parallel-tests --with-mpiexec='srun -A acct_name -q queue_name'
+
+## Setting the HDF5 Plugin Path
+
+Use the --with-plugin-dir= option to set the HDF5 plugin path. This
+path must contain the directory where HDF5 filters have been
+installed. --with-plugin-dir accepts three values:
+
+* yes - use the first directory in environment variable
+HDF5_PLUGIN_PATH (if it is set), or /usr/local/hdf5/lib/plugin (Unix)
+or ${ALLUSERSPROFILE}\\hdfd5\\lib\\plugin (Windows).
+
+* a path - path to be used for plugins.
+
+* no - do not install or use plugins.
 
 ## Checking the Configure Summary
 
