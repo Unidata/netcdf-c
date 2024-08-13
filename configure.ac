@@ -2092,11 +2092,20 @@ fi
 
 AC_SUBST(STD_FILTERS,[$std_filters])
 
-# If user wants, then install selected standard filters
+# The --with-plugin-dir gives the user control of the plugin
+# directory. If set to 'yes' (the default), then first directory in
+# the HDF5_PLUGIN_PATH, or /usr/local/hdf5/lib/plugin (the default
+# HDF5 plugin dir) will be used. If another directory is provided, it
+# will be used. If 'no', then plugins will not be installed.
 AC_MSG_CHECKING([whether and where we should install plugins])
-AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>|no|--without-plugin-dir],
+AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>|yes|no|--without-plugin-dir],
               [Install selected standard filters in specified or default directory])],
 	      [],[with_plugin_dir=no])
+if test "x$have_zstd" = xyes; then
+   if test "x$with_plugin_dir" = xno; then
+      with_plugin_dir=yes
+   fi
+fi
 AC_MSG_RESULT([$with_plugin_dir])
 if test "x$with_plugin_dir" = xno ; then # option missing|disabled
     with_plugin_dir=no
