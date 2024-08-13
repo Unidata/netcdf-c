@@ -2675,7 +2675,7 @@ oinfo_list_add(user_data_t *udata, const hdf5_obj_info_t *oinfo)
  */
 static int
 read_hdf5_obj(hid_t grpid, const char *name,
-#if defined(H5Lget_info_vers) && H5Lget_info_vers == 2
+#if (defined(H5Lget_info_vers) && H5Lget_info_vers == 2) || defined(HAVE_H5LITERATE2)
 	      const H5L_info2_t *info,
 #else
 	      const H5L_info_t *info,
