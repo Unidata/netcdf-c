@@ -173,7 +173,10 @@ ncuriparse(const char* uri0, NCURI** durip)
 	2. convert all '\\' -> '\' (Temp hack to remove escape characters
                                     inserted by Windows or MinGW)
     */
-    for(q=uri,p=uri;*p;p++) {if((*p == '\\' && p[1] == '\\') || *p < ' ') {continue;} else {*q++ = *p;}}
+    p = uri;
+    while(*p == ' ') p++;
+    for(q=uri;*p;p++) {if((*p == '\\' && p[1] == '\\')) {continue;} else {*q++ = *p;}}
+    while((q - 1) >= uri && *(q - 1) == ' ') q--;
     *q = '\0';
 
     p = uri;
