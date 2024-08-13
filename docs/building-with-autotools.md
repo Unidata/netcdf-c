@@ -5,16 +5,14 @@ Build Instructions for NetCDF-C using autoconf/automake/libtool {#netCDF-autotoo
 
 # Overview {#autotools_overview}
 
-Starting with netCDF-C 4.3.0, we are happy to announce the inclusion
-of CMake support.  CMake will allow for building netCDF on a wider
-range of platforms, include Microsoft Windows with Visual Studio.
-CMake support also provides robust unit and regression testing tools.
-We will also maintain the standard autotools-based build system in
-parallel.
+A CMake build of netCDF is also supported. Users should consider using
+the CMake build, which builds netCDF on a wider range of platforms,
+include Microsoft Windows with Visual Studio. The autotools based
+build may eventually be retired; users may considering transitioning
+to the CMake build. See \ref netCDF-CMake.
 
-In addition to providing new build options for netCDF-C, we will also
-provide pre-built binary downloads for the shared versions of netCDF
-for use with Visual Studio.
+We also provide pre-built binary downloads for the shared versions of
+netCDF for use with Visual Studio.
 		
 # Requirements {#autotools_requirements}
 The following packages are required to build netCDF-C.
