@@ -262,6 +262,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `fileno' function. */
 #cmakedefine HAVE_FILENO 1
 
+/* Define to 1 if you have the `H5Literate2' function. */
+#cmakedefine HAVE_H5LITERATE2
+
 /* Define to 1 if you have the `fsync' function. */
 #cmakedefine HAVE_FSYNC 1
 
