@@ -5,9 +5,16 @@ Build Instructions for NetCDF-C using CMake {#netCDF-CMake}
 
 # Overview {#cmake_overview}
 
-Starting with netCDF-C 4.3.0, we are happy to announce the inclusion of CMake support.  CMake will allow for building netCDF on a wider range of platforms, include Microsoft Windows with Visual Studio.  CMake support also provides robust unit and regression testing tools.  We will also maintain the standard autotools-based build system in parallel.
+Starting with netCDF-C 4.3.0, we are happy to announce the inclusion
+of CMake support.  CMake will allow for building netCDF on a wider
+range of platforms, include Microsoft Windows with Visual Studio.
+CMake support also provides robust unit and regression testing tools.
+We will also maintain the standard autotools-based build system in
+parallel.
 
-In addition to providing new build options for netCDF-C, we will also provide pre-built binary downloads for the shared versions of netCDF for use with Visual Studio.  
+In addition to providing new build options for netCDF-C, we will also
+provide pre-built binary downloads for the shared versions of netCDF
+for use with Visual Studio.
 
 		
 # Requirements {#cmake_requirements}
