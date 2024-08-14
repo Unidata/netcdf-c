@@ -60,15 +60,15 @@ TESTS += tst_hyrax.sh
 TESTS += test_partvar
 
 # Various
- TESTS += tst_longremote3.sh
- tst_longremote3.log: tst_remote3.log
+TESTS += tst_longremote3.sh
+tst_longremote3.log: tst_remote3.log
 endif
 
 if NETCDF_ENABLE_DAP_LONG_TESTS
- test_manyurls_SOURCES = test_manyurls.c manyurls.h
- check_PROGRAMS += test_manyurls
- test_manyurls.log: tst_longremote3.log
- TESTS += test_manyurls
+test_manyurls_SOURCES = test_manyurls.c manyurls.h
+check_PROGRAMS += test_manyurls
+test_manyurls.log: tst_longremote3.log
+TESTS += test_manyurls
 endif
 
 test_partvar_SOURCES = test_partvar.c
