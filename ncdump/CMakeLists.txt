@@ -251,6 +251,7 @@ endif()
 
     set_tests_properties(ncdump_tst_nccopy3 PROPERTIES DEPENDS
         "ncdump_tst_calendars;ncdump_run_utf8_tests;ncdump_tst_output;ncdump_tst_64bit;ncdump_run_tests;ncdump_tst_lengths")
+    set_tests_properties(ncdump_tst_nccopy3 ncdump_tst_output PROPERTIES RUN_SERIAL TRUE)
 
   endif()
 
