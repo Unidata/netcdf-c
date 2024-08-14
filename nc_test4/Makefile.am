@@ -137,16 +137,15 @@ ref_tst_interops4.nc CMakeLists.txt run_grp_rename.sh			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl noop.cdl ref_filtered.cdl		\
-ref_unfiltered.cdl ref_bzip2.c ref_unfilteredvv.cdl	\
-ref_filteredvv.cdl ref_multi.cdl                                        \
-ref_ncgenF.cdl ref_nccopyF.cdl                                          \
-ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
-ref_filter_order_create.txt ref_filter_order_read.txt			\
-ref_any.cdl tst_specific_filters.sh tst_unknown.sh                      \
-tst_virtual_datasets.c noop1.cdl unknown.cdl  \
-tst_broken_files.c ref_bloscx.cdl tst_bloscfail.sh			\
-tst_fixedstring.sh ref_fixedstring.h5 ref_fixedstring.cdl               \
-tst_filterinstall.sh tst_filter_vlen.sh tst_filter_misc.sh
+ref_unfiltered.cdl ref_bzip2.c ref_unfilteredvv.cdl			\
+ref_filteredvv.cdl ref_multi.cdl ref_ncgenF.cdl ref_nccopyF.cdl		\
+ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh			\
+ref_filter_order_create.txt ref_filter_order_read.txt ref_any.cdl	\
+tst_specific_filters.sh tst_unknown.sh tst_virtual_datasets.c		\
+noop1.cdl unknown.cdl tst_broken_files.c ref_bloscx.cdl			\
+tst_bloscfail.sh tst_fixedstring.sh ref_fixedstring.h5			\
+ref_fixedstring.cdl tst_filterinstall.sh tst_filter_vlen.sh		\
+tst_filter_misc.sh run_zstd_test.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
