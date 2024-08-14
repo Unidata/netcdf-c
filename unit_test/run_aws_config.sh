@@ -13,7 +13,8 @@ THISDIR=`pwd`
 cd $ISOPATH
 
 mkdir -p $THISDIR/.aws/
-echo """[uni]
+cat << 'EOF' > $THISDIR/.aws/config
+[uni]
 region = somewhere-1
 endpoint_url = https://example.com/bucket/prefix/1
 key = value
@@ -26,17 +27,19 @@ dummy_key = dummy_value
 
 [profile play]
 region = us-east-1
-endpoint_url = https://play.min.io/""" > $THISDIR/.aws/config
+endpoint_url = https://play.min.io/
+EOF
 
-
-echo """[play] 
+cat << 'EOF' > $THISDIR/.aws/credentials
+[play] 
 aws_access_key_id = DummyKeys
 aws_secret_access_key = DummySecret
 
 [uni]
 region = somewhere-2
 endpoint_url = https://example.com/bucket/prefix/2
-key = value2""" > $THISDIR/.aws/credentials
+key = value2
+EOF
 
 echo -e "Testing loading AWS configuration in ${THISDIR}/.aws/config"
 NC_TEST_AWS_DIR=${THISDIR} AWS_PROFILE=unidata ${CMD} ${execdir}/aws_config  endpoint_url region dummy_key
