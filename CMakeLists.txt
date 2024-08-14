@@ -624,7 +624,7 @@ option(NETCDF_ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it
 option(NETCDF_ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
 
 # If user wants, then install selected plugins (default on)
-set(PLUGIN_INSTALL_DIR "NO" CACHE STRING "Whether and where we should install plugins; defaults to yes")
+set(PLUGIN_INSTALL_DIR "YES" CACHE STRING "Whether and where we should install plugins; defaults to yes")
 
 # This is ugly, but seems necessary because of CMake's boolean structure
 set(boolval FALSE)
@@ -685,7 +685,7 @@ else() # No option specified
     set(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 endif()
 
-message(STATUS "Final value of-DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
+message(STATUS "ENABLE_PLUGIN_INSTALL=${ENABLE_PLUGIN_INSTALL} PLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
 
 # Try to enable NCZarr zip support
 option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ${NETCDF_ENABLE_NCZARR})
