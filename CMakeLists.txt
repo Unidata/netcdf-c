@@ -685,6 +685,8 @@ else() # No option specified
     set(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 endif()
 
+message(STATUS "Final value of-DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
+
 # Try to enable NCZarr zip support
 option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ${NETCDF_ENABLE_NCZARR})
 
