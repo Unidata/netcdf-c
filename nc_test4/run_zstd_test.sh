@@ -16,12 +16,13 @@ echo "findplugin.sh loaded"
 echo "${HDF5_PLUGIN_DIR}"
 
 findplugin h5zstd
-echo "HDF5_PLUGIN_DIR=$HDF5_PLUGIN_DIR"
-
 echo
 echo "Testing Zstandard compression..."
 
 export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_DIR}"
+echo "HDF5_PLUGIN_PATH=$HDF5_PLUGIN_PATH"
+ls -l "${HDF5_PLUGIN_PATH}"
+
 echo "set HDF5_PLUGIN_PATH: ${HDF5_PLUGIN_PATH}"
 
 ./tst_zstd
