@@ -2102,7 +2102,7 @@ AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory
               [Install selected standard filters in specified or default directory])],
 	      [],[with_plugin_dir=no])
 if test "x$have_zstd" = xyes; then
-   if test "x$with_plugin_dir" = xno; then
+   if test "x$enable_plugins" = xyes && test "x$with_plugin_dir" = xno; then
       with_plugin_dir=yes
    fi
 fi
