@@ -1513,7 +1513,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	if(jvalue != NULL)
 	    var->storage = NC_CHUNKED;
 	/* Extract dimrefs list	 */
-	if((stat = dictgetalt(jncvar,"dimension_references","dimensions",&jdimrefs))) goto done;
+	if((stat = dictgetalt(jncvar,"dimension_references","dimrefs",&jdimrefs))) goto done;
 	if(jdimrefs != NULL) { /* Extract the dimref names */
 	    assert((NCJsort(jdimrefs) == NCJ_ARRAY));
 	    if(zvar->scalar) {
@@ -1851,7 +1851,7 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
 
     if(jsuper != NULL) {
 	if(jsuper->sort != NCJ_DICT) {stat = NC_ENCZARR; goto done;}
-	if((stat = NCJdictget(jsuper,"version",&jtmp))<0) {stat = NC_EINVAL; goto done;}
+	if((stat = dictgetalt(jsuper,"nczarr_version","version",&jtmp))<0) {stat = NC_EINVAL; goto done;}
 	nczarr_version = nulldup(NCJstring(jtmp));
     }
 
@@ -2572,14 +2572,13 @@ getnczarrkey(NC_OBJ* container, const char* name, const NCjson** jncxxxp)
 	jxxx = NULL;
         if((stat = NCJdictget(zobj->atts,name,&jxxx))<0) {stat = NC_EINVAL; goto done;}
     }
-    if(name == NULL) {
-        jxxx = NULL;
+    if(jxxx == NULL) {
         /* Try .zxxx second */
 	if(zobj->obj != NULL) {
             if((stat = NCJdictget(zobj->obj,name,&jxxx))<0) {stat = NC_EINVAL; goto done;}
 	}
-	/* Mark as old style with _nczarr_xxx in obj not attributes */
-	zobj->nczv1 = 1;
+	if(jxxx != NULL)
+  	    zobj->nczv1 = 1; /* Mark as old style with _nczarr_xxx in obj not attributes */
     }
     if(jncxxxp) *jncxxxp = jxxx;
 done:
