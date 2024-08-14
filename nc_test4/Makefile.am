@@ -11,10 +11,10 @@
 include $(top_srcdir)/lib_flags.am
 
 # Un comment to use a more verbose test driver
-#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT = export SETX=1;
+SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+TESTS_ENVIRONMENT = export SETX=1;
 
 TEST_EXTENSIONS = .sh
 
@@ -112,6 +112,12 @@ endif # NETCDF_ENABLE_FILTER_TESTING
 endif # NETCDF_ENABLE_PLUGINS
 endif # USE_HDF5
 endif # NETCDF_BUILD_UTILITIES
+
+# Zstandard tests.
+if HAVE_ZSTD
+check_PROGRAMS += tst_zstd
+#TESTS += run_zstd_test.sh
+endif # HAVE_ZSTD
 
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
