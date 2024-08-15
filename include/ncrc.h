@@ -15,6 +15,7 @@ and accessing rc files (e.g. .daprc).
 #include "ncuri.h"
 #include "nclist.h"
 #include "ncbytes.h"
+#include <stdio.h>
 
 /* getenv() keys */
 #define NCRCENVIGNORE "NCRCENV_IGNORE"
