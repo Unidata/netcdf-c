@@ -1227,15 +1227,18 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
    @param ncid The file ID.
    @param varid The variable ID.
    @param start Pointer to start array. If NULL ::NC_EINVALCOORDS will
-   be returned for non-scalar variable.
+   be returned for non-scalar variable. This array must be same size
+   as variable's number of dimensions.
    @param count Pointer to pointer to count array. If *count is NULL,
    an array of the correct size will be allocated, and filled with
    counts that represent the full extent of the variable. In this
-   case, the memory must be freed by the caller.
+   case, the memory must be freed by the caller. If provided, this
+   array must be same size as variable's number of dimensions.
    @param stride Pointer to pointer to stride array. If NULL, stide is
    ignored. If *stride is NULL an array of the correct size will be
    allocated, and filled with ones. In this case, the memory must be
-   freed by the caller.
+   freed by the caller. If provided, this
+   array must be same size as variable's number of dimensions.
 
    @return ::NC_NOERR No error.
    @return ::NC_EBADID Bad ncid.
