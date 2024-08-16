@@ -250,7 +250,9 @@ endif()
     endif()
 
     set_tests_properties(ncdump_tst_nccopy3 PROPERTIES DEPENDS
-        "ncdump_tst_calendars;ncdump_run_utf8_tests;ncdump_tst_output;ncdump_tst_64bit;ncdump_run_tests;ncdump_tst_lengths")
+      "ncdump_tst_calendars;ncdump_run_utf8_tests;ncdump_tst_output;ncdump_tst_64bit;ncdump_run_tests;ncdump_tst_lengths")
+    set_tests_properties(ncdump_tst_nccopy4 PROPERTIES DEPENDS
+      "ncdump_ncgen_tests;ncdump_tst_ncgen4;ncdump_tst_fillbug;ncdump_tst_netcdf4_4;ncdump_tst_h_scalar;ncdump_tst_netcdf4")
 
   endif()
 
