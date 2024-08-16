@@ -96,8 +96,8 @@ TESTS += run_unlim_io.sh run_nccopyz.sh
 endif
 
 if LARGE_FILE_TESTS
-	check_PROGRAMS += test_writecaching test_readcaching
-	TESTS += run_cachetest.sh
+check_PROGRAMS += test_writecaching test_readcaching
+TESTS += run_cachetest.sh
 endif
 
 endif #NETCDF_BUILD_UTILITIES
@@ -105,7 +105,7 @@ endif #NETCDF_BUILD_UTILITIES
 if NETCDF_BUILD_UTILITIES 
 
 if NETCDF_ENABLE_NCZARR_ZIP
-	TESTS += run_newformat.sh
+TESTS += run_newformat.sh
 endif
 
 if LARGE_FILE_TESTS
