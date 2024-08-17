@@ -272,7 +272,7 @@ endif()
     add_sh_test(ncdump tst_netcdf4_4)
     add_sh_test(ncdump tst_nccopy4)
     set_tests_properties(ncdump_tst_nccopy4 PROPERTIES DEPENDS
-      "ncdump_ncgen_tests;ncdump_tst_ncgen4;ncdump_tst_fillbug;ncdump_tst_netcdf4_4;ncdump_tst_h_scalar;ncdump_tst_netcdf4;ncdump_run_ncgen_tests;ncdump_tst_output;ncdump_tst_ncgen4;ncdump_sh_tst_fillbug;tst_comp;tst_comp2;tst_nans;tst_opaque_data;tst_create_files;tst_special_atts")
+      "ncdump_ncgen_tests;ncdump_tst_ncgen4;ncdump_tst_fillbug;ncdump_tst_netcdf4_4;ncdump_tst_h_scalar;ncdump_tst_netcdf4;ncdump_run_ncgen_tests;ncdump_tst_output;ncdump_tst_ncgen4;ncdump_sh_tst_fillbug;tst_comp;tst_comp2;tst_nans;tst_opaque_data;tst_create_files;tst_special_atts;ncdump_tst_nccopy3")
     add_sh_test(ncdump tst_calendars_nc4)
 
     set_tests_properties(ncdump_tst_nccopy4 PROPERTIES DEPENDS "")
