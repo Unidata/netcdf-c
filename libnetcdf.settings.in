@@ -50,6 +50,9 @@ MMap Support:		@HAS_MMAP@
 ERANGE Fill Support:	@HAS_ERANGE_FILL@
 Relaxed Boundary Check:	@RELAX_COORD_BOUND@
 
+Plugins Enabled:        @HAS_PLUGINS@
+Plugin Install Dir:     @NETCDF_PLUGIN_INSTALL_DIR@
+
 Quantization:		@HAS_QUANTIZE@
 Logging:     		@HAS_LOGGING@
 SZIP Write Support:     @HAS_SZLIB_WRITE@
