@@ -11,10 +11,10 @@
 include $(top_srcdir)/lib_flags.am
 
 # Un comment to use a more verbose test driver
-#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT = export SETX=1;
+# SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+# sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+# LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+# TESTS_ENVIRONMENT = export SETX=1;
 
 TEST_EXTENSIONS = .sh
 
@@ -113,6 +113,14 @@ endif # NETCDF_ENABLE_PLUGINS
 endif # USE_HDF5
 endif # NETCDF_BUILD_UTILITIES
 
+# Zstandard tests.
+if NETCDF_ENABLE_PLUGINS
+if HAVE_ZSTD
+check_PROGRAMS += tst_zstd
+TESTS += run_zstd_test.sh
+endif # HAVE_ZSTD
+endif # NETCDF_ENABLE_PLUGINS
+
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
 if TEST_PARALLEL4
@@ -129,16 +137,15 @@ ref_tst_interops4.nc CMakeLists.txt run_grp_rename.sh			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl noop.cdl ref_filtered.cdl		\
-ref_unfiltered.cdl ref_bzip2.c ref_unfilteredvv.cdl	\
-ref_filteredvv.cdl ref_multi.cdl                                        \
-ref_ncgenF.cdl ref_nccopyF.cdl                                          \
-ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
-ref_filter_order_create.txt ref_filter_order_read.txt			\
-ref_any.cdl tst_specific_filters.sh tst_unknown.sh                      \
-tst_virtual_datasets.c noop1.cdl unknown.cdl  \
-tst_broken_files.c ref_bloscx.cdl tst_bloscfail.sh			\
-tst_fixedstring.sh ref_fixedstring.h5 ref_fixedstring.cdl               \
-tst_filterinstall.sh tst_filter_vlen.sh tst_filter_misc.sh
+ref_unfiltered.cdl ref_bzip2.c ref_unfilteredvv.cdl			\
+ref_filteredvv.cdl ref_multi.cdl ref_ncgenF.cdl ref_nccopyF.cdl		\
+ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh			\
+ref_filter_order_create.txt ref_filter_order_read.txt ref_any.cdl	\
+tst_specific_filters.sh tst_unknown.sh tst_virtual_datasets.c		\
+noop1.cdl unknown.cdl tst_broken_files.c ref_bloscx.cdl			\
+tst_bloscfail.sh tst_fixedstring.sh ref_fixedstring.h5			\
+ref_fixedstring.cdl tst_filterinstall.sh tst_filter_vlen.sh		\
+tst_filter_misc.sh run_zstd_test.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
