@@ -618,22 +618,26 @@ set(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers t
 set(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # Locate some compressors
+option(NETCDF_ENABLE_PLUGINS "Enable netCDF Plugins." ON)
 option(NETCDF_ENABLE_FILTER_SZIP  "Enable use of Szip compression library if it is available. Required if NETCDF_ENABLE_NCZARR is true." ON)
 option(NETCDF_ENABLE_FILTER_BZ2   "Enable use of Bz2 compression library if it is available." ON)
 option(NETCDF_ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it is available." ON)
 option(NETCDF_ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
 
 # If user wants, then install selected plugins (default on)
-set(PLUGIN_INSTALL_DIR "NO" CACHE STRING "Whether and where we should install plugins; defaults to yes")
+set(NETCDF_PLUGIN_INSTALL_DIR "YES" CACHE STRING "Whether and where we should install plugins; defaults to yes")
+if(NOT NETCDF_ENABLE_PLUGINS)
+  unset(NETCDF_PLUGIN_INSTALL_DIR CACHE)
+endif()
 
 # This is ugly, but seems necessary because of CMake's boolean structure
 set(boolval FALSE)
-if(DEFINED PLUGIN_INSTALL_DIR)
-  booleanize(${PLUGIN_INSTALL_DIR} boolval)
+if(DEFINED NETCDF_PLUGIN_INSTALL_DIR)
+  booleanize(${NETCDF_PLUGIN_INSTALL_DIR} boolval)
   if(boolval)
     set(ENABLE_PLUGIN_INSTALL YES)
     # No actual value was specified
-    unset(PLUGIN_INSTALL_DIR CACHE)
+    unset(NETCDF_PLUGIN_INSTALL_DIR CACHE)
   else()
     if(boolval STREQUAL "NOTFOUND")
       # Must be an actual value
@@ -648,42 +652,44 @@ endif()
 
 # Ensure no defined plugin dir if not enabled
 if(NOT ENABLE_PLUGIN_INSTALL)
-    unset(PLUGIN_INSTALL_DIR CACHE)
+    unset(NETCDF_PLUGIN_INSTALL_DIR CACHE)
 endif()
 
 if(ENABLE_PLUGIN_INSTALL)
-    if(NOT DEFINED PLUGIN_INSTALL_DIR)
+    if(NOT DEFINED NETCDF_PLUGIN_INSTALL_DIR)
       # Default to HDF5_PLUGIN_PATH or its default directories
       if(DEFINED ENV{HDF5_PLUGIN_PATH})
-        set(PLUGIN_INSTALL_DIR "$ENV{HDF5_PLUGIN_PATH}")
+        set(NETCDF_PLUGIN_INSTALL_DIR "$ENV{HDF5_PLUGIN_PATH}")
       else()
         if(ISMSVC OR ISMINGW)
-	  set(PLUGIN_INSTALL_DIR "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
+	  set(NETCDF_PLUGIN_INSTALL_DIR "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
 	else()
-	  set(PLUGIN_INSTALL_DIR "/usr/local/hdf5/lib/plugin")
+	  set(NETCDF_PLUGIN_INSTALL_DIR "/usr/local/hdf5/lib/plugin")
 	endif()
       endif()
-        message(STATUS "Defaulting to -DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
+        message(STATUS "Defaulting to -DPLUGIN_INSTALL_DIR=${NETCDF_PLUGIN_INSTALL_DIR}")
     endif()
 endif()
 
 if(ENABLE_PLUGIN_INSTALL)
   # Use the lowest priority dir in the path
   if(NOT ISMSVC AND NOT ISMINGW)
-    string(REPLACE ":" ";" PATH_LIST ${PLUGIN_INSTALL_DIR})
+    string(REPLACE ":" ";" PATH_LIST ${NETCDF_PLUGIN_INSTALL_DIR})
   else()
-    set(PATH_LIST ${PLUGIN_INSTALL_DIR})
+    set(PATH_LIST ${NETCDF_PLUGIN_INSTALL_DIR})
   endif()
 
   # Get last element
-  list(GET PATH_LIST -1 PLUGIN_INSTALL_DIR)
-  set(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
-  message(STATUS "Final value of-DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
+  list(GET PATH_LIST -1 NETCDF_PLUGIN_INSTALL_DIR)
+  set(PLUGIN_INSTALL_DIR_SETTING "${NETCDF_PLUGIN_INSTALL_DIR}")
+  message(STATUS "Final value of-DPLUGIN_INSTALL_DIR=${NETCDF_PLUGIN_INSTALL_DIR}")
 else() # No option specified
-    unset(PLUGIN_INSTALL_DIR)
-    unset(PLUGIN_INSTALL_DIR CACHE)
+    unset(NETCDF_PLUGIN_INSTALL_DIR)
+    unset(NETCDF_PLUGIN_INSTALL_DIR CACHE)
     set(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 endif()
+
+message(STATUS "ENABLE_PLUGIN_INSTALL=${ENABLE_PLUGIN_INSTALL} PLUGIN_INSTALL_DIR=${NETCDF_PLUGIN_INSTALL_DIR}")
 
 # Try to enable NCZarr zip support
 option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ${NETCDF_ENABLE_NCZARR})
@@ -1696,6 +1702,7 @@ is_enabled(NETCDF_ENABLE_S3_INTERNAL HAS_S3_INTERNAL)
 is_enabled(HAS_HDF5_ROS3 HAS_HDF5_ROS3)
 is_enabled(NETCDF_ENABLE_NCZARR HAS_NCZARR)
 is_enabled(NETCDF_ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
+is_enabled(NETCDF_ENABLE_PLUGINS HAS_PLUGINS)
 is_enabled(NETCDF_ENABLE_QUANTIZE HAS_QUANTIZE)
 is_enabled(NETCDF_ENABLE_LOGGING HAS_LOGGING)
 is_enabled(NETCDF_ENABLE_FILTER_TESTING DO_FILTER_TESTS)
