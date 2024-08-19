@@ -2035,6 +2035,7 @@ AC_SUBST(HAS_HDF5_ROS3,[$has_hdf5_ros3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(NETCDF_ENABLE_S3_TESTING,[$with_s3_testing])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
+AC_SUBST(HAS_PLUGINS, [$enable_plugins])
 AC_SUBST(HAS_QUANTIZE,[$enable_quantize])
 AC_SUBST(HAS_LOGGING,[$enable_logging])
 AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
@@ -2102,7 +2103,7 @@ AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory
               [Install selected standard filters in specified or default directory])],
 	      [],[with_plugin_dir=no])
 if test "x$have_zstd" = xyes; then
-   if test "x$with_plugin_dir" = xno; then
+   if test "x$enable_plugins" = xyes && test "x$with_plugin_dir" = xno; then
       with_plugin_dir=yes
    fi
 fi
@@ -2142,7 +2143,7 @@ AM_CONDITIONAL([ENABLE_PLUGIN_DIR], [test "x$enable_plugin_dir" = xyes])
 AC_SUBST([PLUGIN_INSTALL_DIR], [$with_plugin_dir])
 # Better value for libnetcdf.settings
 AC_SUBST([PLUGIN_INSTALL_DIR_SETTING], [$with_plugin_dir_setting])
-
+AC_SUBST(NETCDF_PLUGIN_INSTALL_DIR, [$PLUGIN_INSTALL_DIR])
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])
 

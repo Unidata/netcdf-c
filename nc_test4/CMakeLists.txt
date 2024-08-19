@@ -102,6 +102,12 @@ IF(HAVE_H5Z_SZIP)
   ENDIF()
 ENDIF()
 
+IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
+  IF(HAVE_ZSTD)
+    BUILD_BIN_TEST(tst_zstd)
+    add_sh_test(nc_test4 run_zstd_test)
+  ENDIF()
+ENDIF()
 
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/ref_bzip2.c ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.h5 ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
