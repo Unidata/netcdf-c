@@ -444,15 +444,15 @@ endif()
 ################################
 
 # As a long term goal, and because it is now the case that
-# -DNETCDF_ENABLE_NCZARR => USE_NETCDF4, so make the external options
-# -DNETCDF_ENABLE_NETCDF_4 and -DNETCDF_ENABLE_NETCDF4 obsolete
-# in favor of -DNETCDF_ENABLE_HDF5.
+# NETCDF_ENABLE_NCZARR => USE_NETCDF4, so make the external options
+# NETCDF_ENABLE_NETCDF_4 and NETCDF_ENABLE_NETCDF4 obsolete
+# in favor of NETCDF_ENABLE_HDF5.
 # We will do the following for one more release cycle.
-# 1. Make -DNETCDF_ENABLE_NETCDF_4 be an alias for -DNETCDF_ENABLE_NETCDF4.
-# 2. Make -DNETCDF_ENABLE_NETCDF4 an alias for -DNETCDF_ENABLE_HDF5.
+# 1. Make NETCDF_ENABLE_NETCDF_4 be an alias for NETCDF_ENABLE_NETCDF4.
+# 2. Make NETCDF_ENABLE_NETCDF4 an alias for NETCDF_ENABLE_HDF5.
 # 3. Internally, convert most (but not all) uses of USE_NETCDF_4 and USE_NETCDF4 to USE_HDF5.
 
-# Collect the values of -DNETCDF_ENABLE_NETCDF_4, -DNETCDF_ENABLE_NETCDF4, and -DNETCDF_ENABLE_HDF5.
+# Collect the values of NETCDF_ENABLE_NETCDF_4, NETCDF_ENABLE_NETCDF4, and NETCDF_ENABLE_HDF5.
 
 # Figure out which options are defined and process options
 if(DEFINED NETCDF_ENABLE_NETCDF_4)
