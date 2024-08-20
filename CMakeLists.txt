@@ -445,8 +445,8 @@ endif()
 
 # As a long term goal, and because it is now the case that
 # -DNETCDF_ENABLE_NCZARR => USE_NETCDF4, so make the external options
-# -DNETCDF_ENABLE_NETCDF_4 and _DNETCDF_ENABLE_NETCDF4 obsolete
-# in favor of --NETCDF_ENABLE_HDF5.
+# -DNETCDF_ENABLE_NETCDF_4 and -DNETCDF_ENABLE_NETCDF4 obsolete
+# in favor of -DNETCDF_ENABLE_HDF5.
 # We will do the following for one more release cycle.
 # 1. Make -DNETCDF_ENABLE_NETCDF_4 be an alias for -DNETCDF_ENABLE_NETCDF4.
 # 2. Make -DNETCDF_ENABLE_NETCDF4 an alias for -DNETCDF_ENABLE_HDF5.
