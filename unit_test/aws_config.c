@@ -50,8 +50,6 @@ main(int argc, char** argv)
     CHECK(NC_s3sdkinitialize());
     NCglobalstate* gs = NC_getglobalstate();
     //Not checking, aborts if ~/.aws/config doesn't exist
-    //int notloaded = NC_aws_load_credentials(gs);
-    //fprintf(stderr,"RETCODE: %d\n", notloaded);           
     CHECK(NC_aws_load_credentials(gs));
     
     // Lets ensure the active profile is loaded
@@ -59,30 +57,26 @@ main(int argc, char** argv)
     const char* activeprofile = NULL;
     CHECK(NC_getactives3profile(NULL, &activeprofile));
 
-    //if (notloaded) { // If not loaded, we'll use profile "no"
-    //    CHECK(strncmp(activeprofile, "no", sizeof("no")));
-    //    // And we passed this test...
-    //} else { 
-        fprintf(stderr, "Active profile:%s\n", STR(activeprofile));
-        // ARGV contains should contain "key[=[value]]" pairs to verify
-        // if parsed when loading the aws config on the respective profile
+    fprintf(stderr, "Active profile:%s\n", STR(activeprofile));
+    
+    // ARGV contains should contain "key[=value]" to verify
+    // if key was parsed when loading the aws config and if it's
+    // value is updated in case it's redefined on the .aws/credentials
+    for(int i = 1; i < argc; i++) {
+        const char *argkey = strtok(argv[i],"=");
+        const char *argvalue = strtok(NULL,"=");
+        const char* value = NULL;
 
-        for(int i = 1; i < argc; i++) {
-            const char *argkey = strtok(argv[i],"=");
-            const char *argvalue = strtok(NULL,"=");
-            const char* value = NULL;
-
-            NC_s3profilelookup(activeprofile,argkey,&value);
-            fprintf(stderr, "%s\t%s -> %s\n",value?"":"*** FAIL:", argv[i],value?value:"NOT DEFINED!");
-            if ( value == NULL 
-                || (argvalue != NULL 
-                    && strncmp(value, argvalue, strlen(value)))
-            ){
-                    c++;
-                    stat |= NC_ERCFILE;
-            }
+        NC_s3profilelookup(activeprofile,argkey,&value);
+        fprintf(stderr, "%s\t%s -> %s\n",value?"":"*** FAIL:", argv[i],value?value:"NOT DEFINED!");
+        if ( value == NULL 
+            || (argvalue != NULL 
+                && strncmp(value, argvalue, strlen(value)))
+        ){
+                c++;
+                stat |= NC_ERCFILE;
         }
-    //}
+    }
 
 done:
     cleanup();
