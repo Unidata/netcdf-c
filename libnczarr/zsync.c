@@ -46,7 +46,8 @@ static int insert_attr(NCjson* jatts, NCjson* jtypes, const char* aname, NCjson*
 static int insert_nczarr_attr(NCjson* jatts, NCjson* jtypes);
 static int upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts);
 static int getnczarrkey(NC_OBJ* container, const char* name, const NCjson** jncxxxp);
-static int downloadzarrobj(NC_FILE_INFO_T*, struct ZARROBJ* zobj, const char* fullpath, const char* objname);
+static int downloadconsolidated(NC_FILE_INFO_T*);
+static int get_zarrobj(NC_FILE_INFO_T*, struct ZARROBJ* zobj, const char* fullpath, const char* objname);
 static int dictgetalt(const NCjson* jdict, const char* name, const char* alt, const NCjson** jvaluep);
 
 /**************************************************/
@@ -1142,7 +1143,7 @@ define_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
     if((stat = NCZ_grpkey(grp,&fullpath))) goto done;
 
     /* Download .zgroup and .zattrs */
-    if((stat = downloadzarrobj(file,&zgrp->zgroup,fullpath,ZGROUP))) goto done;
+    if((stat = get_zarrobj(file,&zgrp->zgroup,fullpath,ZGROUP))) goto done;
     jgroup = zgrp->zgroup.obj;
     jattrs = zgrp->zgroup.atts;
 
@@ -1448,7 +1449,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	goto done;
 
     /* Download */
-    if((stat = downloadzarrobj(file,&zvar->zarray,varpath,ZARRAY))) goto done;
+    if((stat = get_zarrobj(file,&zvar->zarray,varpath,ZARRAY))) goto done;
     jvar = zvar->zarray.obj;
     jatts = zvar->zarray.atts;
     assert(jvar == NULL || NCJsort(jvar) == NCJ_DICT);
@@ -1818,8 +1819,9 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     /* Construct grp key */
     if((stat = NCZ_grpkey(root,&fullpath))) goto done;
 
+    int valid_consolidated = downloadconsolidated(file); //init zinfo->consolidated;
     /* Download the root group .zgroup and associated .zattrs */
-    if((stat = downloadzarrobj(file, &zroot->zgroup, fullpath, ZGROUP))) goto done;
+    if((stat = get_zarrobj(file, &zroot->zgroup, fullpath, ZGROUP))) goto done;
     jzgroup = zroot->zgroup.obj;    
 
     /* Look for superblock; first in .zattrs and then in .zgroup */
@@ -1834,7 +1836,7 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
 	file->no_write = 1;
     }
     
-    if(jsuper == NULL) {
+    if(jsuper == NULL && valid_consolidated) {
 	/* See if this is looks like a NCZarr/Zarr dataset at all
            by looking for anything here of the form ".z*" */
         if((stat = ncz_validate(file))) goto done;
@@ -1979,19 +1981,45 @@ searchvars(NCZ_FILE_INFO_T* zfile, NC_GRP_INFO_T* grp, NClist* varnames)
     /* Compute the key for the grp */
     if((stat = NCZ_grpkey(grp,&grpkey))) goto done;
     /* Get the map and search group */
-    if((stat = nczmap_search(zfile->map,grpkey,matches))) goto done;
-    for(i=0;i<nclistlength(matches);i++) {
-	const char* name = nclistget(matches,i);
-	if(name[0] == NCZM_DOT) continue; /* zarr/nczarr specific */
-	/* See if name/.zarray exists */
-	if((stat = nczm_concat(grpkey,name,&varkey))) goto done;
-	if((stat = nczm_concat(varkey,ZARRAY,&zarray))) goto done;
-	if((stat = nczmap_exists(zfile->map,zarray)) == NC_NOERR)
-	    nclistpush(varnames,strdup(name));
-	stat = NC_NOERR;
-	nullfree(varkey); varkey = NULL;
-	nullfree(zarray); zarray = NULL;
-    }
+	if(zfile->consolidated) {
+		const char * group = grpkey + (grpkey[0] == '/');
+		size_t lgroup = strlen(group);
+
+		const NCjson * jmetadata = NULL;
+		NCJdictget(zfile->consolidated,"metadata", &jmetadata);
+		for(i=0;i<NCJlength(jmetadata);i+=2){
+			NCjson* jname = NCJith(jmetadata,i);
+			const char * fullname = NCJstring(jname);
+			size_t lfullname = strlen(fullname);
+			if(lfullname < lgroup || \
+				strncmp(fullname,group,lgroup) || \
+				(lgroup > 0 && fullname[lgroup] != NCZM_SEP[0]) ) {
+				continue;
+			}
+			char * start = fullname + lgroup + (lgroup>0);
+			char * end = strchr(start,NCZM_SEP[0]);
+			if(end == NULL) continue;
+			size_t lname = end - start;
+			//Ends with ".zarray"
+			if(strncmp(ZMETAARRAY,end,sizeof(ZMETAARRAY)) == 0){
+				nclistpush(varnames,strndup(start,lname));
+			}
+		}
+	}else{
+		if((stat = nczmap_search(zfile->map,grpkey,matches))) goto done;
+		for(i=0;i<nclistlength(matches);i++) {
+		const char* name = nclistget(matches,i);
+		if(name[0] == NCZM_DOT) continue; /* zarr/nczarr specific */
+		/* See if name/.zarray exists */
+		if((stat = nczm_concat(grpkey,name,&varkey))) goto done;
+		if((stat = nczm_concat(varkey,ZARRAY,&zarray))) goto done;
+		if((stat = nczmap_exists(zfile->map,zarray)) == NC_NOERR)
+			nclistpush(varnames,strdup(name));
+		stat = NC_NOERR;
+		nullfree(varkey); varkey = NULL;
+		nullfree(zarray); zarray = NULL;
+		}
+	}
 
 done:
     nullfree(grpkey);
@@ -2013,21 +2041,46 @@ searchsubgrps(NCZ_FILE_INFO_T* zfile, NC_GRP_INFO_T* grp, NClist* subgrpnames)
 
     /* Compute the key for the grp */
     if((stat = NCZ_grpkey(grp,&grpkey))) goto done;
-    /* Get the map and search group */
-    if((stat = nczmap_search(zfile->map,grpkey,matches))) goto done;
-    for(i=0;i<nclistlength(matches);i++) {
-	const char* name = nclistget(matches,i);
-	if(name[0] == NCZM_DOT) continue; /* zarr/nczarr specific */
-	/* See if name/.zgroup exists */
-	if((stat = nczm_concat(grpkey,name,&subkey))) goto done;
-	if((stat = nczm_concat(subkey,ZGROUP,&zgroup))) goto done;
-	if((stat = nczmap_exists(zfile->map,zgroup)) == NC_NOERR)
-	    nclistpush(subgrpnames,strdup(name));
-	stat = NC_NOERR;
-	nullfree(subkey); subkey = NULL;
-	nullfree(zgroup); zgroup = NULL;
-    }
+	if(zfile->consolidated) {
+		const char * group = grpkey + (grpkey[0] == '/');
+		size_t lgroup = strlen(group);
 
+		const NCjson * jmetadata = NULL;
+		NCJdictget(zfile->consolidated,"metadata", &jmetadata);
+		for(i=0;i<NCJlength(jmetadata);i+=2){
+			NCjson* jname = NCJith(jmetadata,i);
+			const char * fullname = NCJstring(jname);
+			size_t lfullname = strlen(fullname);
+			
+			if(lfullname < lgroup || \
+				strncmp(fullname,group,lgroup) || \
+				(lgroup > 0 && fullname[lgroup] != NCZM_SEP[0]) ) {
+				continue;
+			}
+			char * start = fullname + lgroup + (lgroup>0);
+			char * end = strchr(start,NCZM_SEP[0]);
+			if(end == NULL) continue;
+			size_t lname = end - start;
+			//Ends with "/.zgroup
+			if(strncmp(ZMETAGROUP,end,sizeof(ZMETAGROUP)) == 0){
+				nclistpush(subgrpnames,strndup(start,lname));
+			}
+		}
+	}else{/* Get the map and search group */
+	if((stat = nczmap_search(zfile->map,grpkey,matches))) goto done;
+	for(i=0;i<nclistlength(matches);i++) {
+		const char* name = nclistget(matches,i);
+		if(name[0] == NCZM_DOT) continue; /* zarr/nczarr specific */
+		/* See if name/.zgroup exists */
+		if((stat = nczm_concat(grpkey,name,&subkey))) goto done;
+		if((stat = nczm_concat(subkey,ZGROUP,&zgroup))) goto done;
+		if((stat = nczmap_exists(zfile->map,zgroup)) == NC_NOERR)
+		nclistpush(subgrpnames,strdup(name));
+		stat = NC_NOERR;
+		nullfree(subkey); subkey = NULL;
+		nullfree(zgroup); zgroup = NULL;
+	}
+	}
 done:
     nullfree(grpkey);
     nullfree(subkey);
@@ -2586,22 +2639,56 @@ done:
 }
 
 static int
-downloadzarrobj(NC_FILE_INFO_T* file, struct ZARROBJ* zobj, const char* fullpath, const char* objname)
+downloadconsolidated(NC_FILE_INFO_T* file){
+    int stat = NC_NOERR;
+    NCjson * md = NULL;
+    NCZ_FILE_INFO_T* zinfo = ((NCZ_FILE_INFO_T*)file->format_file_info);
+    if (!isconsolidaded(zinfo)) {
+       return NC_ENCZARR;
+    }
+    // Download /.zmetadata 
+    if((stat=NCZ_downloadjson(zinfo->map,ZMETADATA,&md))) goto done;
+    if(md == NULL){
+        return NC_ENCZARR;
+    }
+
+    zinfo->consolidated = md; md = NULL;
+done:
+    return THROW(stat);
+}
+
+
+static int
+get_zarrobj(NC_FILE_INFO_T* file, struct ZARROBJ* zobj, const char* fullpath, const char* objname)
 {
     int stat = NC_NOERR;
     char* key = NULL;
-    NCZMAP* map = ((NCZ_FILE_INFO_T*)file->format_file_info)->map;
-
     /* Download .zXXX and .zattrs */
     nullfree(zobj->prefix);
     zobj->prefix = strdup(fullpath);
     NCJreclaim(zobj->obj); zobj->obj = NULL;
     NCJreclaim(zobj->atts); zobj->obj = NULL;
-    if((stat = nczm_concat(fullpath,objname,&key))) goto done;
-    if((stat=NCZ_downloadjson(map,key,&zobj->obj))) goto done;
-    nullfree(key); key = NULL;
-    if((stat = nczm_concat(fullpath,ZATTRS,&key))) goto done;
-    if((stat=NCZ_downloadjson(map,key,&zobj->atts))) goto done;
+
+    NCZ_FILE_INFO_T* zinfo = ((NCZ_FILE_INFO_T*)file->format_file_info);
+    if(zinfo->consolidated){
+        NCjson * jtmp = NULL;
+        if(NCJdictget(zinfo->consolidated,"metadata",&jtmp) == 0 && jtmp){
+            NCjson * tmp = NULL;
+            if((stat = nczm_concat(fullpath,objname,&key))) goto done;
+            if((stat=NCJdictget(jtmp,key+(key[0]=='/'),&tmp))) goto done;
+	    if(tmp)NCJclone(tmp,&zobj->obj);
+            nullfree(key); key = NULL;
+            if((stat = nczm_concat(fullpath,ZATTRS,&key))) goto done;
+            if((stat=NCJdictget(jtmp,key+(key[0]=='/'),&tmp))) goto done;
+	    if(tmp)NCJclone(tmp,&zobj->atts);
+        }
+    }else{
+	if((stat = nczm_concat(fullpath,objname,&key))) goto done;
+	if((stat=NCZ_downloadjson(zinfo->map,key,&zobj->obj))) goto done;
+	nullfree(key); key = NULL;
+	if((stat = nczm_concat(fullpath,ZATTRS,&key))) goto done;
+	if((stat=NCZ_downloadjson(zinfo->map,key,&zobj->atts))) goto done;
+    }
 done:
     nullfree(key);
     return THROW(stat);

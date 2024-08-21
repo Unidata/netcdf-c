@@ -50,6 +50,7 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
     if((stat = nczmap_close(zinfo->map,(abort && zinfo->creating)?1:0)))
 	goto done;
     nclistfreeall(zinfo->controllist);
+    NCJreclaim(zinfo->consolidated);
     NC_authfree(zinfo->auth);
     nullfree(zinfo);
 

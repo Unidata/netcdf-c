@@ -37,12 +37,14 @@
 #    define NC_MAX_PATH 4096
 #  endif
 #endif
-
-#define ZMETAROOT "/.zgroup"
-#define ZMETAATTR "/.zattrs"
-#define ZGROUP ".zgroup"
-#define ZATTRS ".zattrs"
-#define ZARRAY ".zarray"
+#define ZMETAROOT   "/.zgroup"
+#define ZMETAGROUP  "/.zgroup"
+#define ZMETAATTR   "/.zattrs"
+#define ZMETAARRAY  "/.zarray"
+#define ZMETADATA   ".zmetadata"
+#define ZGROUP  ".zgroup"
+#define ZATTRS  ".zattrs"
+#define ZARRAY  ".zarray"
 
 /* V2 Reserved Attributes */
 /*
@@ -101,6 +103,7 @@ Inserted into any .zattrs
 #define ncidforx(file,grpid) ((file)->controller->ext_ncid | (grpid))
 #define ncidfor(var) ncidforx((var)->container->nc4_info,(var)->container->hdr.id)
 
+#define isconsolidaded(var) ( (var)->controls.flags & (FLAG_CONSOLIDATED) )
 /**************************************************/
 /* Forward */
 
@@ -134,13 +137,15 @@ typedef struct NCZ_FILE_INFO {
     int creating; /* 1=> created 0=>open */
     int native_endianness; /* NC_ENDIAN_LITTLE | NC_ENDIAN_BIG */
     NClist* controllist; /* Envv format */
+    NCjson * consolidated;
     struct Controls {
         size64_t flags;
-#		define FLAG_PUREZARR    1
-#		define FLAG_SHOWFETCH   2
-#		define FLAG_LOGGING     4
-#		define FLAG_XARRAYDIMS  8
-#		define FLAG_NCZARR_KEY  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
+#		define FLAG_PUREZARR        1
+#		define FLAG_SHOWFETCH       2
+#		define FLAG_LOGGING         4
+#		define FLAG_XARRAYDIMS      8
+#		define FLAG_NCZARR_KEY      16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
+#       define FLAG_CONSOLIDATED    32
 	NCZM_IMPL mapimpl;
     } controls;
     int default_maxstrlen; /* default max str size for variables of type string */

@@ -122,7 +122,7 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* controls)
     if (!(file->format_file_info = calloc(1, sizeof(NCZ_FILE_INFO_T))))
         {stat = NC_ENOMEM; goto done;}
     zinfo = file->format_file_info;
-
+	zinfo->consolidated = NULL;
     /* Fill in NCZ_FILE_INFO_T */
     zinfo->creating = 0;
     zinfo->common.file = file;
@@ -279,6 +279,7 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
 	else if(strcasecmp(p,"zip")==0) zinfo->controls.mapimpl = NCZM_ZIP;
 	else if(strcasecmp(p,"file")==0) zinfo->controls.mapimpl = NCZM_FILE;
 	else if(strcasecmp(p,"s3")==0) zinfo->controls.mapimpl = NCZM_S3;
+    else if(strcasecmp(p,"consolidated")==0) zinfo->controls.flags |= FLAG_CONSOLIDATED;
     }
     /* Apply negative controls by turning off negative flags */
     /* This is necessary to avoid order dependence of mode flags when both positive and negative flags are defined */
