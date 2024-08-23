@@ -10,7 +10,7 @@ This file contains a high-level description of this package's evolution. Release
 * Provide better documentation for the .rc file mechanism and API. See [Github #2956](https://github.com/Unidata/netcdf-c/pull/2956) for more information.
 * Convert NCZarr V2 to store all netcdf-4 specific info as attributes. This improves interoperability with other Zarr implementations by no longer using non-standard keys. The price to be paid is that lazy attribute reading cannot be supported. See [Github #2836](https://github.com/Unidata/netcdf-c/pull/2936) for more information.
 * Cleanup the option code for NETCDF_ENABLE_SET_LOG_LEVEL\[_FUNC\] See [Github #2931](https://github.com/Unidata/netcdf-c/pull/2931) for more information.
-* 
+
 ### Release Candidate 1 - July 26, 2024
 
 * Convert NCZarr V2 to store all netcdf-4 specific info as attributes. This improves interoperability with other Zarr implementations by no longer using non-standard keys. The price to be paid is that lazy attribute reading cannot be supported. See [Github #2836](https://github.com/Unidata/netcdf-c/issues/2936) for more information.
@@ -661,11 +661,9 @@ Example Work Flow from netcdf-c source directory:
 * $ `make build-netcdf-fortran`
 * $ `make install-netcdf-fortran`
 
-> These make targets are **only** valid after `make install` has been invoked.  This cannot be enforced rigidly in the makefile for reasons we will expand on in the documentation, but in short: `make install` may require sudo, but using sudo will discard environmental variables required when attempting to build netcdf-fortran in this manner.<br><br>
+> These make targets are **only** valid after `make install` has been invoked.  This cannot be enforced rigidly in the makefile for reasons we will expand on in the documentation, but in short: `make install` may require sudo, but using sudo will discard environmental variables required when attempting to build netcdf-fortran in this manner.
 
 > It is important to note that this is functionality is for *convenience only*. It will remain possible to build `netcdf-c` and `netcdf-fortran` manually.  These make targets should hopefully suffice for the majority of our users, but for corner cases it may still be required of the user to perform a manual build.  [NCF-323](https://bugtracking.unidata.ucar.edu/browse/NCF-323)
-
-----
 
 * Added a failure state if the `m4` utility is not found on non-Windows systems; previously, the build would fail when it reached the point of invoking m4.
 
