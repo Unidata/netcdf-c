@@ -11,8 +11,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 # Load the findplugins function
 . ${builddir}/findplugin.sh
-echo "findplugin.sh loaded"
-echo "${HDF5_PLUGIN_DIR}"
 export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_DIR}"
 echo "HDF5_PLUGIN_PATH=$HDF5_PLUGIN_PATH"
 
