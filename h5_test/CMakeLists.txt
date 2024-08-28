@@ -29,7 +29,7 @@ ENDIF()
 if(NETCDF_ENABLE_PLUGINS)
   if(NETCDF_ENABLE_FILTER_ZSTD)
     build_bin_test(tst_h_zstd)
-    add_sh_test(h5_test runz_zstd_tests)    
+    add_sh_test(h5_test run_zstd_tests)    
   endif()
 endif()
 
