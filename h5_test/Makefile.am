@@ -2,9 +2,9 @@
 # Copyright 2018 University Corporation for Atmospheric Research/Unidata
 # See COPYRIGHT file for conditions of use.
 #
-# This entire directory will be skipped, unless the configure script
-# is run with --enable-netcdf-4. This directory contains tests that
-# only use HDF5; these tests don't use netCDF at all.
+# This directory contains tests that only use HDF5; these tests don't
+# use netCDF at all. These tests will only be run if netcdf-4 is
+# enabled.
 #
 # If one of these tests fails, then netCDF-4 will not work correctly.
 # Ed Hartnett, Ward Fisher
@@ -21,10 +21,16 @@ tst_h_strings tst_h_strings1 tst_h_strings2 tst_h_ints			\
 tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3	\
 tst_h_enums tst_h_dimscales4 tst_h_rename
 
-# If benchmarks were turned on, build and run a bunch more tests.
+# If benchmarks were turned on, build and run more tests.
 if BUILD_BENCHMARKS
 H5TESTS += tst_h_mem
 endif # BUILD_BENCHMARKS
+
+if NETCDF_ENABLE_PLUGINS
+if HAVE_ZSTD
+H5TESTS += tst_h_zstd
+endif # HAVE_ZSTD
+endif # NETCDF_ENABLE_PLUGINS
 
 # List of tests to compile.
 check_PROGRAMS = $(H5TESTS)
