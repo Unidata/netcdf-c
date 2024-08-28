@@ -74,8 +74,6 @@ main()
         if (H5Pset_chunk(propid, 1, dims)) ERR;
         if ((code = H5Pset_filter(propid, id, H5Z_FLAG_OPTIONAL, 1, &ulevel)))
             ERR;
-        
-        if (H5Pset_deflate(propid, DEFLATE_LEVEL)) ERR;
         if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
         if ((datasetid = H5Dcreate1(grpid, VAR_BOOL_NAME, H5T_NATIVE_HBOOL,
                                    spaceid, propid)) < 0) ERR;
@@ -97,13 +95,13 @@ main()
         /* The possible values of filter (which is just an int) can be
          * found in H5Zpublic.h. */
         if ((num_filters = H5Pget_nfilters(propid)) < 0) ERR;
-        printf("num_filters %d\n");
-        /* if (num_filters != 1) ERR; */
-        /* if ((filter = H5Pget_filter2(propid, 0, &flags, &cd_nelems, cd_values, */
-        /*                              namelen, name, &filter_config)) < 0) ERR; */
-        /* if (filter != H5Z_FILTER_ZSTD || cd_nelems != 1 || */
-        /*     cd_values[0] != ulevel) ERR; */
-        /* if (strcmp(name, ZSTD_NAME)) ERR; */
+        printf("num_filters %d\n", num_filters);
+        if (num_filters != 1) ERR;
+        if ((filter = H5Pget_filter2(propid, 0, &flags, &cd_nelems, cd_values,
+                                     namelen, name, &filter_config)) < 0) ERR;
+        if (filter != H5Z_FILTER_ZSTD || cd_nelems != 1 ||
+            cd_values[0] != ulevel) ERR;
+        if (strcmp(name, ZSTD_NAME)) ERR;
 
         if (H5Dclose(datasetid) < 0 ||
             H5Pclose(propid) < 0 ||
