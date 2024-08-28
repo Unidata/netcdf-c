@@ -26,6 +26,7 @@ if BUILD_BENCHMARKS
 H5TESTS += tst_h_mem
 endif # BUILD_BENCHMARKS
 
+# If zstd is enabled, run a test for it.
 if NETCDF_ENABLE_PLUGINS
 if HAVE_ZSTD
 H5TESTS += tst_h_zstd
