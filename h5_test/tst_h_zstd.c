@@ -51,6 +51,7 @@ main()
         htri_t avail = -1;
         unsigned int id = H5Z_FILTER_ZSTD;
         unsigned int ulevel = 1;
+        herr_t code;
 
         /* Check that zstandard filter is available. */
         if((avail = H5Zfilter_avail(id)) < 0) ERR;
@@ -70,6 +71,9 @@ main()
         if ((propid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
         if (H5Pset_layout(propid, H5D_CHUNKED)) ERR;
         if (H5Pset_chunk(propid, 1, dims)) ERR;
+        if ((code = H5Pset_filter(propid, id, H5Z_FLAG_OPTIONAL, 1, &ulevel)))
+            ERR;
+        
         if (H5Pset_deflate(propid, DEFLATE_LEVEL)) ERR;
         if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
         if ((datasetid = H5Dcreate1(grpid, VAR_BOOL_NAME, H5T_NATIVE_HBOOL,
