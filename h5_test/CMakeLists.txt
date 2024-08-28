@@ -33,4 +33,8 @@ if(NETCDF_ENABLE_PLUGINS)
   endif()
 endif()
 
+# Copy the shell file to build directory.
+file(COPY run_h5_zstd_tests.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
+
+
 
