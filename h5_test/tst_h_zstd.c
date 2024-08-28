@@ -24,6 +24,7 @@
 #define DIM1_LEN 3
 #define MAX_DIMS 255
 #define NDIM1 1
+#define H5Z_FILTER_ZSTD 32015
 
 int
 main()
@@ -32,7 +33,7 @@ main()
     int bool_out[DIM1_LEN] = {0, 1, 0};
     hsize_t dims[1];
 
-    printf("\n*** Checking HDF5 variable functions.\n");
+    printf("\n*** Checking HDF5 variable functions with zstandard compression.\n");
     printf("*** Checking HDF5 deflate filter setting and getting...");
 #define DEFLATE_LEVEL 9
 #define MAX_NAME 100
@@ -47,8 +48,12 @@ main()
         size_t cd_nelems = NUM_CD_ELEM;
         size_t namelen = MAX_NAME;
         char name[MAX_NAME + 1];
+        htri_t avail = -1;
+        unsigned int id = H5Z_FILTER_ZSTD;
 
-
+        if((avail = H5Zfilter_avail(id)) < 0) ERR;
+        if (!avail) ERR;
+        
         /* Open file and create group. */
         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                                 H5P_DEFAULT)) < 0) ERR;
