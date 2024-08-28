@@ -57,7 +57,7 @@ endif
 # We must include these files in the distribution.
 EXTRA_DIST = run_par_tests.sh.in ref_tst_h_compounds.h5		\
 ref_tst_h_compounds2.h5 run_par_tests.sh ref_tst_compounds.nc	\
-h5_err_macros.h CMakeLists.txt
+h5_err_macros.h CMakeLists.txt run_h5_zstd_tests.sh
 
 # Clean up test results.
 CLEANFILES = tst_h_*.h5
