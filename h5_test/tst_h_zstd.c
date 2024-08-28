@@ -50,7 +50,9 @@ main()
         char name[MAX_NAME + 1];
         htri_t avail = -1;
         unsigned int id = H5Z_FILTER_ZSTD;
+        unsigned int ulevel = 1;
 
+        /* Check that zstandard filter is available. */
         if((avail = H5Zfilter_avail(id)) < 0) ERR;
         if (!avail) ERR;
         
@@ -59,7 +61,7 @@ main()
                                 H5P_DEFAULT)) < 0) ERR;
         if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
-        /* Write an array of bools, with compression. */
+        /* Write an array of bools, with zstandard compression. */
         dims[0] = DIM1_LEN;
         if ((propid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
         if (H5Pset_layout(propid, H5D_CHUNKED)) ERR;
