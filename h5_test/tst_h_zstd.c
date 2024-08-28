@@ -17,13 +17,9 @@
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_zstd.h5"
-#define TEST_NAME "tst_h_zstd"
-#define GRP_NAME "Henry_V"
-#define VAR_BOOL_NAME "Southhamptons_Battle_Record"
-#define GRP2_NAME "Some_3D_Met_Data"
+#define GRP_NAME "Bebbanburg"
+#define VAR_BOOL_NAME "Uhtred"
 #define DIM1_LEN 3
-#define MAX_DIMS 255
-#define NDIM1 1
 #define H5Z_FILTER_ZSTD 32015
 
 int
