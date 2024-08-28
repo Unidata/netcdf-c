@@ -124,6 +124,21 @@ done:
     return NC_NOERR;
 }
 
+/**
+ * Add filter to netCDF's list of filters for a variable.
+ *
+ * This function handles necessary filter ordering for shuffle and
+ * fletcher32 filters.
+ *
+ * @param var Pointer to the NC_VAR_INFO_T for a variable.
+ * @param id HDF5 filter ID.
+ * @param nparams Number of parameters in filter parameter list.
+ * @param params Array that holds nparams unsigned ints - the filter parameters.
+ * @param flags NetCDF flags about the filter.
+ *
+ * @return ::NC_NOERR on success, error code otherwise.
+ * @author Dennis Heimbigner
+ */
 int
 NC4_hdf5_addfilter(NC_VAR_INFO_T* var, unsigned int id, size_t nparams, const unsigned int* params, int flags)
 {
