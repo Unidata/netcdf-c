@@ -12,6 +12,14 @@
 # Set AM_CPPFLAGS and AM_LDFLAGS based on user choices.
 include $(top_srcdir)/lib_flags.am
 
+# Un comment to use a more verbose test driver
+SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+TESTS_ENVIRONMENT = export SETX=1;
+
+TEST_EXTENSIONS = .sh
+
 # These programs test HDF5 to make sure it will do (some of) the stuff
 # that netCDF-4 needs.
 H5TESTS = tst_h_files tst_h_files2 tst_h_files4 tst_h_atts		\
