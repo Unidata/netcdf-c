@@ -44,7 +44,7 @@ TESTS = $(H5TESTS)
 if NETCDF_ENABLE_PLUGINS
 if HAVE_ZSTD
 check_PROGRAMS += tst_h_zstd
-TESTS += run_zstd_tests.sh
+TESTS += run_h5_zstd_tests.sh
 endif # HAVE_ZSTD
 endif # NETCDF_ENABLE_PLUGINS
 
