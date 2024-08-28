@@ -26,18 +26,19 @@ if BUILD_BENCHMARKS
 H5TESTS += tst_h_mem
 endif # BUILD_BENCHMARKS
 
-# If zstd is enabled, run a test for it.
-if NETCDF_ENABLE_PLUGINS
-if HAVE_ZSTD
-H5TESTS += tst_h_zstd
-endif # HAVE_ZSTD
-endif # NETCDF_ENABLE_PLUGINS
-
 # List of tests to compile.
 check_PROGRAMS = $(H5TESTS)
 
 # List of tests to run.
 TESTS = $(H5TESTS)
+
+# If zstd is enabled, run a test for it.
+if NETCDF_ENABLE_PLUGINS
+if HAVE_ZSTD
+check_PROGRAMS += tst_h_zstd
+TESTS += run_zstd_tests.sh
+endif # HAVE_ZSTD
+endif # NETCDF_ENABLE_PLUGINS
 
 # The parallel program is run from a script.
 if TEST_PARALLEL4

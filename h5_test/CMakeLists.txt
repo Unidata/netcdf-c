@@ -7,13 +7,6 @@
 
 SET(H5TESTS tst_h_files tst_h_files2 tst_h_files4 tst_h_atts tst_h_atts3 tst_h_atts4 tst_h_vars tst_h_vars2 tst_h_vars3 tst_h_grps tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_vl tst_h_opaques tst_h_strings tst_h_strings1 tst_h_strings2 tst_h_ints tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3 tst_h_enums tst_h_dimscales4 tst_h_rename)
 
-# If zstd is enabled, run a test for it.
-if(NETCDF_ENABLE_PLUGINS)
-  if(NETCDF_ENABLE_FILTER_ZSTD)
-    set(H5TESTS ${H5TESTS}  tst_h_zstd)
-  endif()
-endif()
-
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h5 ${CMAKE_CURRENT_SOURCE_DIR}/*.nc)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
@@ -31,3 +24,13 @@ IF(TEST_PARALLEL4)
   build_bin_test(tst_h_par_compress)
   add_sh_test(h5_test run_par_tests)
 ENDIF()
+
+# If zstd is enabled, run a test for it.
+if(NETCDF_ENABLE_PLUGINS)
+  if(NETCDF_ENABLE_FILTER_ZSTD)
+    build_bin_test(tst_h_zstd)
+    add_sh_test(h5_test runz_zstd_tests)    
+  endif()
+endif()
+
+
