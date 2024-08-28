@@ -178,8 +178,7 @@ main(int argc, char **argv)
         } /* next compression filter (zlib and szip) */
 	    
 	/* Now run tests with unlimited dim. */
-        /* for (f = 0; f < NUM_COMPRESSION_FILTERS; f++) */
-        for (f = 1; f < NUM_COMPRESSION_FILTERS; f++)
+        for (f = 0; f < NUM_COMPRESSION_FILTERS; f++)
         {
             for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++)
             {
