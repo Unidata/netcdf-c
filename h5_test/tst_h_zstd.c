@@ -54,7 +54,11 @@ main()
 
         /* Check that zstandard filter is available. */
         if((avail = H5Zfilter_avail(id)) < 0) ERR;
-        if (!avail) ERR;
+        if (!avail)
+        {
+            printf("zstandard filter not available, but expected to be.\n");
+            ERR;
+        }
         
         /* Open file and create group. */
         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
