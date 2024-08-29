@@ -15,39 +15,37 @@
 #include "err_macros.h"
 #include <hdf5.h>
 
-#define FILE_NAME "tst_h_par_zstd.h5"
+#define FILE_NAME "tst_h_par.h5"
 #define VAR_NAME "Athelstan"
 #define NDIMS 1
 #define MILLION 1000000
 #define DIM2_LEN 16000000
 #define SC1 100000 /* slice count. */
 #define H5Z_FILTER_ZSTD 32015
-
-/* The following code, when uncommented, adds szip testing for
- * parallel I/O. However, this currently fails. I have a support
- * request in to HDF5 about this. Ed 7/8/20 */
-#ifdef NC_HAS_ZSTD
-#define NUM_COMPRESS_FILTERS 2
-#else
-#define NUM_COMPRESS_FILTERS 1
-#endif 
+#define MAX_NUM_FILTERS 3
 
 int
 main(int argc, char **argv)
 {
     int cf;
     int p, my_rank;
+    int num_compress_filters;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &p);
 
+    num_compress_filters = 1;
+#ifdef HAVE_ZSTD
+    num_compress_filters++;
+#endif 
+
     /* For builds with HDF5 prior to 1.10.3, just return success. */
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
-    for (cf = 0; cf < NUM_COMPRESS_FILTERS; cf++)
+    for (cf = 0; cf < num_compress_filters; cf++)
     {
 	if (!my_rank)
-	    printf("*** Testing parallel I/O with %s compression...", cf ? "szip" : "zlib");
+	    printf("*** Testing parallel I/O with %s compression...", cf ? "zstd" : "zlib");
 	{
 	    hid_t fapl_id, fileid, whole_spaceid, dsid, slice_spaceid, whole_spaceid1, xferid;
 	    hid_t plistid;
