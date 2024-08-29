@@ -39,14 +39,24 @@ main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &p);
 
-    strcpy(filter_name[0], "zlib");
+    /* We always have zlib. */
     id[0] = H5Z_FILTER_DEFLATE;
+    strcpy(filter_name[0], "zlib");
     num_compress_filters = 1;
+
+    /* We might have zstd. */
 #ifdef HAVE_ZSTD
     id[num_compress_filters] = H5Z_FILTER_ZSTD;
     strcpy(filter_name[num_compress_filters], "zstd");
     num_compress_filters++;
-#endif 
+#endif
+
+    /* We might have szip. */
+#ifdef HAVE_H5Z_SZIP    
+    id[num_compress_filters] = H5Z_FILTER_SZIP;
+    strcpy(filter_name[num_compress_filters], "szip");
+    num_compress_filters++;
+#endif
 
     /* For builds with HDF5 prior to 1.10.3, just return success. */
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
@@ -104,6 +114,12 @@ main(int argc, char **argv)
 		if ((code = H5Pset_filter(plistid, H5Z_FILTER_ZSTD, H5Z_FLAG_OPTIONAL, 1, &ulevel)))
 		    ERR;
 	    }
+	    else if (id[cf] == H5Z_FILTER_SZIP)
+            {
+		int options_mask = 32;
+		int bits_per_pixel = 32;
+		if (H5Pset_szip(plistid, options_mask, bits_per_pixel)) ERR;
+            }
 
 	    /* Set chunking. */
 	    if (H5Pset_chunk(plistid, NDIMS, &chunksize) < 0) ERR;
