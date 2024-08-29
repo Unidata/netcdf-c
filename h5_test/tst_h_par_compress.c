@@ -15,7 +15,7 @@
 #include "err_macros.h"
 #include <hdf5.h>
 
-#define FILE_NAME "tst_h_par.h5"
+#define FILE_NAME "tst_h_par_compress.h5"
 #define VAR_NAME "Athelstan"
 #define NDIMS 1
 #define MILLION 1000000
