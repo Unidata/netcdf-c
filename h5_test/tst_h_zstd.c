@@ -19,7 +19,9 @@
 #define FILE_NAME "tst_h_zstd.h5"
 #define GRP_NAME "Bebbanburg"
 #define VAR_BOOL_NAME "Uhtred"
+#define VAR_INT_NAME "Alfred"
 #define DIM1_LEN 3
+#define DIM1_LEN_20 20
 #define H5Z_FILTER_ZSTD 32015
 
 int
@@ -89,7 +91,6 @@ main()
         /* The possible values of filter (which is just an int) can be
          * found in H5Zpublic.h. */
         if ((num_filters = H5Pget_nfilters(propid)) < 0) ERR;
-        printf("num_filters %d\n", num_filters);
         if (num_filters != 1) ERR;
         if ((filter = H5Pget_filter2(propid, 0, &flags, &cd_nelems, cd_values,
                                      namelen, name, &filter_config)) < 0) ERR;
@@ -120,25 +121,31 @@ main()
         char name[MAX_NAME + 1];
         unsigned int id = H5Z_FILTER_ZSTD;
         unsigned int ulevel = 1;
+	int int_out[DIM1_LEN_20];
+	int int_in[DIM1_LEN_20];
         herr_t code;
+	int i;
 
+	for (i = 0; i < DIM1_LEN_20; i++)
+	    int_out[i] = i * 10;
+	
         /* Open file and create group. */
         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                                 H5P_DEFAULT)) < 0) ERR;
         if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
-        /* Write an array of bools, with zstandard compression. */
-        dims[0] = DIM1_LEN;
+        /* Write an array of ints, with zstandard compression. */
+        dims[0] = DIM1_LEN_20;
         if ((propid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
         if (H5Pset_layout(propid, H5D_CHUNKED)) ERR;
         if (H5Pset_chunk(propid, 1, dims)) ERR;
         if ((code = H5Pset_filter(propid, id, H5Z_FLAG_OPTIONAL, 1, &ulevel)))
             ERR;
         if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-        if ((datasetid = H5Dcreate1(grpid, VAR_BOOL_NAME, H5T_NATIVE_HBOOL,
+        if ((datasetid = H5Dcreate1(grpid, VAR_INT_NAME, H5T_NATIVE_INT,
                                    spaceid, propid)) < 0) ERR;
-        if (H5Dwrite(datasetid, H5T_NATIVE_HBOOL, H5S_ALL, H5S_ALL, H5P_DEFAULT,
-                     bool_out) < 0) ERR;
+        if (H5Dwrite(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                     int_out) < 0) ERR;
         if (H5Dclose(datasetid) < 0 ||
             H5Pclose(propid) < 0 ||
             H5Sclose(spaceid) < 0 ||
@@ -149,13 +156,12 @@ main()
         /* Now reopen the file and check. */
         if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
         if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
-        if ((datasetid = H5Dopen1(grpid, VAR_BOOL_NAME)) < 0) ERR;
+        if ((datasetid = H5Dopen1(grpid, VAR_INT_NAME)) < 0) ERR;
         if ((propid = H5Dget_create_plist(datasetid)) < 0) ERR;
 
         /* The possible values of filter (which is just an int) can be
          * found in H5Zpublic.h. */
         if ((num_filters = H5Pget_nfilters(propid)) < 0) ERR;
-        printf("num_filters %d\n", num_filters);
         if (num_filters != 1) ERR;
         if ((filter = H5Pget_filter2(propid, 0, &flags, &cd_nelems, cd_values,
                                      namelen, name, &filter_config)) < 0) ERR;
@@ -163,6 +169,10 @@ main()
             cd_values[0] != ulevel) ERR;
         if (strcmp(name, ZSTD_NAME)) ERR;
 
+        if (H5Dread(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                     int_in) < 0) ERR;
+	for (i = 0; i < DIM1_LEN_20; i++)
+	    if (int_in[i] != int_out[i]) ERR;
         if (H5Dclose(datasetid) < 0 ||
             H5Pclose(propid) < 0 ||
             H5Gclose(grpid) < 0 ||
