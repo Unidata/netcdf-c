@@ -18,7 +18,6 @@
 #define FILE_NAME "tst_h_par_compress.h5"
 #define VAR_NAME "Athelstan"
 #define NDIMS 1
-#define MILLION 1000000
 #define DIM2_LEN 16000000
 #define SC1 100000 /* slice count. */
 #define H5Z_FILTER_DEFLATE 1
