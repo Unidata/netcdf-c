@@ -21,7 +21,9 @@
 #define MILLION 1000000
 #define DIM2_LEN 16000000
 #define SC1 100000 /* slice count. */
+#define H5Z_FILTER_DEFLATE 1
 #define H5Z_FILTER_ZSTD 32015
+#define H5Z_FILTER_SZIP 4
 #define MAX_NUM_FILTERS 3
 
 int
@@ -30,13 +32,19 @@ main(int argc, char **argv)
     int cf;
     int p, my_rank;
     int num_compress_filters;
+    char filter_name[MAX_NUM_FILTERS][NC_MAX_NAME + 1];
+    int id[MAX_NUM_FILTERS];
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &p);
 
+    strcpy(filter_name[0], "zlib");
+    id[0] = H5Z_FILTER_DEFLATE;
     num_compress_filters = 1;
 #ifdef HAVE_ZSTD
+    id[num_compress_filters] = H5Z_FILTER_ZSTD;
+    strcpy(filter_name[num_compress_filters], "zstd");
     num_compress_filters++;
 #endif 
 
@@ -45,7 +53,7 @@ main(int argc, char **argv)
     for (cf = 0; cf < num_compress_filters; cf++)
     {
 	if (!my_rank)
-	    printf("*** Testing parallel I/O with %s compression...", cf ? "zstd" : "zlib");
+	    printf("*** Testing parallel I/O with %s compression...", filter_name[cf]);
 	{
 	    hid_t fapl_id, fileid, whole_spaceid, dsid, slice_spaceid, whole_spaceid1, xferid;
 	    hid_t plistid;
@@ -86,15 +94,14 @@ main(int argc, char **argv)
 	    if (H5Pset_fill_time(plistid, H5D_FILL_TIME_NEVER) < 0) ERR;
 	
 	    /* Set compression, either deflate or szip. */
-	    if (cf == 0)
+	    if (id[cf] == H5Z_FILTER_DEFLATE)
 	    {
 		if (H5Pset_deflate(plistid, deflate_level) < 0) ERR;
 	    }
-	    else
+	    else if (id[cf] == H5Z_FILTER_ZSTD)
 	    {
-		unsigned int id = H5Z_FILTER_ZSTD;
 		herr_t code;		
-		if ((code = H5Pset_filter(plistid, id, H5Z_FLAG_OPTIONAL, 1, &ulevel)))
+		if ((code = H5Pset_filter(plistid, H5Z_FILTER_ZSTD, H5Z_FLAG_OPTIONAL, 1, &ulevel)))
 		    ERR;
 	    }
 
