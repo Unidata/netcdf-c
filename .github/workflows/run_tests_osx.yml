@@ -108,7 +108,7 @@ jobs:
       ###
       - name: Install autoconf
         shell: bash -l {0}
-        run: brew install automake
+        run: brew install automake m4
 
       - name: Run autoconf
         shell: bash -l {0}
