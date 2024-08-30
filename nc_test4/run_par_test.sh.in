@@ -10,7 +10,7 @@ set -e
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-if test "x@HAVE_ZSTD@" = "xyes" ; then
+if test "x@HAS_ZSTD@" = "xyes" ; then
   # Load the findplugins function
   . ${builddir}/findplugin.sh
   echo "findplugin.sh loaded"
