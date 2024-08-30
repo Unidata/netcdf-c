@@ -485,7 +485,7 @@ main(int argc, char **argv)
         float *data_in;
         int elements_per_pe = SZIP_DIM_LEN/mpi_size;
         size_t start[NDIMS1], count[NDIMS1];
-        int i;
+        int i, ret;
 
         /* Create test data. */
         if (!(data = malloc(elements_per_pe * sizeof(float)))) ERR;
@@ -497,7 +497,11 @@ main(int argc, char **argv)
                           &ncid)) ERR;
         if (nc_def_dim(ncid, SZIP_DIM_NAME, SZIP_DIM_LEN, &dimid)) ERR;
         if (nc_def_var(ncid, SZIP_VAR_NAME, NC_FLOAT, NDIMS1, &dimid, &varid)) ERR;
-        if (nc_def_var_zstandard(ncid, varid, 4)) ERR;
+        if ((ret = nc_def_var_zstandard(ncid, varid, 4)))
+	{
+	    printf("%s\n", nc_strerror(ret));
+	    ERR;
+	}
         if (nc_enddef(ncid)) ERR;
         start[0] = mpi_rank * elements_per_pe;
         count[0] = elements_per_pe;
