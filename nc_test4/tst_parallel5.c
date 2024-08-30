@@ -497,7 +497,7 @@ main(int argc, char **argv)
                           &ncid)) ERR;
         if (nc_def_dim(ncid, SZIP_DIM_NAME, SZIP_DIM_LEN, &dimid)) ERR;
         if (nc_def_var(ncid, SZIP_VAR_NAME, NC_FLOAT, NDIMS1, &dimid, &varid)) ERR;
-        /* if (nc_def_var_szip(ncid, varid, NC_SZIP_NN, SZIP_PIXELS_PER_BLOCK)) ERR; */
+        if (nc_def_var_zstandard(ncid, varid, 4)) ERR;
         if (nc_enddef(ncid)) ERR;
         start[0] = mpi_rank * elements_per_pe;
         count[0] = elements_per_pe;
