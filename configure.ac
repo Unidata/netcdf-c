@@ -1,4 +1,4 @@
-#                                               -*- Autoconf -*-
+o#                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
 # This is part of Unidata's netCDF package. Copyright 2005-2018, see
@@ -784,6 +784,10 @@ if test "x$enable_filter_zstd" = "xyes" ; then
 else
    have_zstd=no
 fi
+AC_MSG_CHECKING([whether we are going to build with zstd])
+AC_SUBST([HAVE_ZSTD], [$have_zstd])
+AC_MSG_RESULT([$have_zstd])
+
 ##
 # End zstd checks
 ##
