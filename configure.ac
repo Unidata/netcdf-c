@@ -785,7 +785,7 @@ else
    have_zstd=no
 fi
 AC_MSG_CHECKING([whether we are going to build with zstd])
-AC_SUBST([HAVE_ZSTD], [$have_zstd])
+AC_SUBST([HAS_ZSTD], [$have_zstd])
 AC_MSG_RESULT([$have_zstd])
 
 ##
