@@ -647,7 +647,7 @@ jobs:
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: netcdf-c-autotools-source-distribution
 
