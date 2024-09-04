@@ -14,6 +14,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 echo
 echo "Testing MPI parallel I/O with various other mode flags..."
-@MPIEXEC@ -n 1 ./tst_warn &> tst_warn_out.txt
-cat tst_warn_out.txt
+@MPIEXEC@ -n 1 ./tst_warn > tmp_tst_warn_out.txt 2>&1
+cat tmp_tst_warn_out.txt
 

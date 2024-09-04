@@ -1,0 +1,8 @@
+
+*** Testing for HDF5 extra output
+*** Testing create of parallel I/O file...ok.
+*** Tests successful!
+HDF5-DIAG: Error detected in HDF5 (1.14.3) thread 0:
+  #000: H5FD.c line 373 in H5FDunregister(): not a file driver
+    major: Invalid arguments to routine
+    minor: Inappropriate type
