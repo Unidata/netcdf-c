@@ -1845,7 +1845,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/s3gc.in ${CMAKE_CURRENT_BINARY_DIR}/s
 #####
 # Build and copy nc_test4/findplugin.sh to various places
 #####
-foreach(CC nc_test4 nczarr_test v3_nczarr_test plugins examples/C)
+foreach(CC nc_test4 nczarr_test v3_nczarr_test plugins h5_test examples/C)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/${CC}/findplugin.sh @ONLY NEWLINE_STYLE LF)
 endforeach()
 
