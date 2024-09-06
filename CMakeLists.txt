@@ -1763,6 +1763,21 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
   "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
   @ONLY)
 
+if(NETCDF_ENABLE_PARALLEL4 AND NETCDF_ENABLE_HDF5)
+  if(HDF5_PARALLEL)
+    configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test.sh.in"
+      "${netCDF_BINARY_DIR}/tmp/run_par_test.sh" @ONLY NEWLINE_STYLE LF)
+    file(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test.sh"
+      DESTINATION ${netCDF_BINARY_DIR}/nc_test4
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    configure_file("${netCDF_SOURCE_DIR}/h5_test/run_par_tests.sh.in"
+      "${netCDF_BINARY_DIR}/tmp/run_par_tests.sh" @ONLY NEWLINE_STYLE LF)
+    file(COPY "${netCDF_BINARY_DIR}/tmp/run_par_tests.sh"
+      DESTINATION ${netCDF_BINARY_DIR}/h5_test
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+  endif()
+endif()
+
 # Read in settings file, print out.
 # Avoid using system-specific calls so that this
 # might also work on Windows.
