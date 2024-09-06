@@ -114,7 +114,7 @@ if(USE_HDF5)
   ##
   # Assert HDF5 version meets minimum required version.
   ##
-  set(HDF5_VERSION_REQUIRED 1.8.10)
+  set(HDF5_VERSION_REQUIRED 1.8.15)
 
   ###
   # For now we assume that if we are building netcdf

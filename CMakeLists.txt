@@ -948,6 +948,22 @@ if(NETCDF_ENABLE_PARALLEL4 AND NETCDF_ENABLE_HDF5)
       set(MPIEXEC "${NETCDF_MPIEXEC}")
     endif()
     message(STATUS "MPIEXEC command will be ${MPIEXEC}")
+    configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test.sh.in"
+      "${netCDF_BINARY_DIR}/tmp/run_par_test.sh" @ONLY NEWLINE_STYLE LF)
+    file(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test.sh"
+      DESTINATION ${netCDF_BINARY_DIR}/nc_test4
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_warn_test.sh.in"
+      "${netCDF_BINARY_DIR}/tmp/run_par_warn_test.sh" @ONLY NEWLINE_STYLE LF)
+    file(COPY "${netCDF_BINARY_DIR}/tmp/run_par_warn_test.sh"
+      DESTINATION ${netCDF_BINARY_DIR}/nc_test4
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    configure_file("${netCDF_SOURCE_DIR}/h5_test/run_par_tests.sh.in"
+      "${netCDF_BINARY_DIR}/tmp/run_par_tests.sh" @ONLY NEWLINE_STYLE LF)
+    file(COPY "${netCDF_BINARY_DIR}/tmp/run_par_tests.sh"
+      DESTINATION ${netCDF_BINARY_DIR}/h5_test
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    set(IMPORT_MPI "include(CMakeFindDependencyMacro)\nfind_dependency(MPI COMPONENTS C)")
   endif()
 endif()
 
@@ -1844,7 +1860,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/s3gc.in ${CMAKE_CURRENT_BINARY_DIR}/s
 #####
 # Build and copy nc_test4/findplugin.sh to various places
 #####
-foreach(CC nc_test4 nczarr_test v3_nczarr_test plugins examples/C)
+foreach(CC nc_test4 nczarr_test v3_nczarr_test plugins h5_test examples/C)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/${CC}/findplugin.sh @ONLY NEWLINE_STYLE LF)
 endforeach()
 

@@ -127,8 +127,8 @@ if TEST_PARALLEL4
 check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3		\
 tst_parallel4 tst_parallel5 tst_nc4perf tst_mode tst_simplerw_coll_r	\
 tst_mode tst_parallel_zlib tst_parallel_compress tst_quantize_par	\
-tst_parallel6
-TESTS += run_par_test.sh
+tst_parallel6 tst_warn
+TESTS += run_par_test.sh run_par_warn_test.sh
 endif # TEST_PARALLEL4
 
 EXTRA_DIST = run_par_test.sh.in ref_tst_compounds.nc			\
@@ -145,7 +145,8 @@ tst_specific_filters.sh tst_unknown.sh tst_virtual_datasets.c		\
 noop1.cdl unknown.cdl tst_broken_files.c ref_bloscx.cdl			\
 tst_bloscfail.sh tst_fixedstring.sh ref_fixedstring.h5			\
 ref_fixedstring.cdl tst_filterinstall.sh tst_filter_vlen.sh		\
-tst_filter_misc.sh run_zstd_test.sh
+tst_filter_misc.sh run_zstd_test.sh run_par_warn_test.sh.in		\
+ref_tmp_tst_warn_out.txt
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
@@ -160,7 +161,7 @@ testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
 tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp                 \
 tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp tmp_*.cdl
 
-DISTCLEANFILES = findplugin.sh run_par_test.sh
+DISTCLEANFILES = findplugin.sh run_par_test.sh run_par_warn_test.sh	
 
 clean-local:
 	rm -fr testdir_* testset_*

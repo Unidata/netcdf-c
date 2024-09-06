@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# This .in file is processed at build time into a shell that runs some
+# parallel I/O tests for netCDF/HDF5 parallel I/O. This tests for
+# unexpected output from the HDF5 library. See
+# https://github.com/Unidata/netcdf-c/issues/3003.
+
+# Ed Hartnett
+
+set -e
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
+echo
+echo "Testing MPI parallel I/O with various other mode flags..."
+@MPIEXEC@ -n 1 ./tst_warn > tmp_tst_warn_out.txt 2>&1
+cat tmp_tst_warn_out.txt
+diff -w tmp_tst_warn_out.txt ref_tmp_tst_warn_out.txt
+
