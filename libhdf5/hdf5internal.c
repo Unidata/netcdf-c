@@ -51,7 +51,13 @@ extern int nc_log_level;
 int nc4_hdf5_initialized = 0; /**< True if initialization has happened. */
 
 /**
- * @internal Provide a wrapper for H5Eset_auto
+ * @internal Provide a wrapper for H5Eset_auto.
+ *
+ * If preprocessor symbol DEBUGH5 is set (at the top of this file),
+ * then error messages will be pronted by the h5catch() function. If
+ * not, a NULL will be passed as the second argument to H5eset_auto2()
+ * and error messages will not be printed by HDF5.
+ *
  * @param func Pointer to func.
  * @param client_data Client data.
  *

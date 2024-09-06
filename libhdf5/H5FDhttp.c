@@ -257,7 +257,7 @@ EXTERNL hid_t
 H5FD_http_finalize(void)
 {
     /* Reset VFL ID */
-    if (H5FD_HTTP_g)
+    if (H5FD_HTTP_g && (H5Iis_valid(H5FD_HTTP_g) > 0))
          H5FDunregister(H5FD_HTTP_g);
     H5FD_HTTP_g = 0;
 
