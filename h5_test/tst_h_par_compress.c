@@ -16,38 +16,53 @@
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_par_compress.h5"
-#define VAR_NAME "HALs_memory"
+#define VAR_NAME "Athelstan"
 #define NDIMS 1
-#define MILLION 1000000
 #define DIM2_LEN 16000000
 #define SC1 100000 /* slice count. */
-
-/* The following code, when uncommented, adds szip testing for
- * parallel I/O. However, this currently fails. I have a support
- * request in to HDF5 about this. Ed 7/8/20 */
-/* #ifdef HAVE_H5Z_SZIP */
-/* #define NUM_COMPRESS_FILTERS 2 */
-/* #else */
-/* #define NUM_COMPRESS_FILTERS 1 */
-/* #endif /\* HAVE_H5Z_SZIP *\/ */
-#define NUM_COMPRESS_FILTERS 1
+#define H5Z_FILTER_DEFLATE 1
+#define H5Z_FILTER_ZSTD 32015
+#define H5Z_FILTER_SZIP 4
+#define MAX_NUM_FILTERS 3
 
 int
 main(int argc, char **argv)
 {
     int cf;
     int p, my_rank;
+    int num_compress_filters;
+    char filter_name[MAX_NUM_FILTERS][NC_MAX_NAME + 1];
+    int id[MAX_NUM_FILTERS];
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &p);
 
+    /* We always have zlib. */
+    id[0] = H5Z_FILTER_DEFLATE;
+    strcpy(filter_name[0], "zlib");
+    num_compress_filters = 1;
+
+    /* We might have zstd. */
+#ifdef HAVE_ZSTD
+    id[num_compress_filters] = H5Z_FILTER_ZSTD;
+    strcpy(filter_name[num_compress_filters], "zstd");
+    num_compress_filters++;
+#endif
+
+    /* We might have szip. */
+#ifdef HAVE_H5Z_SZIP    
+    id[num_compress_filters] = H5Z_FILTER_SZIP;
+    strcpy(filter_name[num_compress_filters], "szip");
+    num_compress_filters++;
+#endif
+
     /* For builds with HDF5 prior to 1.10.3, just return success. */
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
-    for (cf = 0; cf < NUM_COMPRESS_FILTERS; cf++)
+    for (cf = 0; cf < num_compress_filters; cf++)
     {
 	if (!my_rank)
-	    printf("*** Testing parallel I/O with %s compression...", cf ? "szip" : "zlib");
+	    printf("*** Testing parallel I/O with %s compression...", filter_name[cf]);
 	{
 	    hid_t fapl_id, fileid, whole_spaceid, dsid, slice_spaceid, whole_spaceid1, xferid;
 	    hid_t plistid;
@@ -56,6 +71,7 @@ main(int argc, char **argv)
 	    int data[SC1], data_in[SC1];
 	    int num_steps;
 	    int deflate_level = 4;
+	    unsigned int ulevel = 1;	    
 	    int i, s;
 
 	    /* We will write the same slice of random data over and over to
@@ -87,16 +103,22 @@ main(int argc, char **argv)
 	    if (H5Pset_fill_time(plistid, H5D_FILL_TIME_NEVER) < 0) ERR;
 	
 	    /* Set compression, either deflate or szip. */
-	    if (cf == 0)
+	    if (id[cf] == H5Z_FILTER_DEFLATE)
 	    {
 		if (H5Pset_deflate(plistid, deflate_level) < 0) ERR;
 	    }
-	    else
+	    else if (id[cf] == H5Z_FILTER_ZSTD)
 	    {
+		herr_t code;		
+		if ((code = H5Pset_filter(plistid, H5Z_FILTER_ZSTD, H5Z_FLAG_OPTIONAL, 1, &ulevel)))
+		    ERR;
+	    }
+	    else if (id[cf] == H5Z_FILTER_SZIP)
+            {
 		int options_mask = 32;
 		int bits_per_pixel = 32;
 		if (H5Pset_szip(plistid, options_mask, bits_per_pixel)) ERR;
-	    }
+            }
 
 	    /* Set chunking. */
 	    if (H5Pset_chunk(plistid, NDIMS, &chunksize) < 0) ERR;
