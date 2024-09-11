@@ -462,29 +462,39 @@ else
    enable_set_log_level=no
 fi
 
+# Does the user want to allow reading of remote data via range headers?
+AC_MSG_CHECKING([whether byte range support is enabled])
+AC_ARG_ENABLE([byterange],
+              [AS_HELP_STRING([--disable-byterange],
+                              [allow byte-range I/O])])
+test "x$enable_byterange" = xno || enable_byterange=yes
+AC_MSG_RESULT($enable_byterange)
 
-# CURLOPT_USERNAME is not defined until curl version 7.19.1
-# CURLOPT_PASSWORD is not defined until curl version 7.19.1
-# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
-# CURLINFO_RESPONSE_CODE is not defined until curl version 7.10.7
-# CURLOPT_CHUNK_BGN_FUNCTION is not defined until curl version 7.21.0
-# CURL_MAX_READ_SIZE is not defined until 7.59
+if test "x$enable_dap" = xno && test "x$enable_byterange" = xyes; then 
+   AC_MSG_WARN([DAP required for byterange. Byterange support disabled.])
+   enable_byterange=no
+fi
 
-# Save/restore CFLAGS
+###
+# Stanza to check for functionality which requires linking against
+# libcurl.
+###
+
 if test "x$enable_dap" = xyes || test "x$enable_nczarr" = xyes; then 
    enable_curl=yes
 fi
 
 if test "x$enable_curl" = xyes; then
 
-   if test "x$enable_dap" = xyes & test "x$found_curl" = xno ; then
+
+   if test "x$enable_dap" = xyes && test "x$found_curl" = xno ; then
       AC_MSG_WARN([curl required for dap access. DAP support disabled.])
       enable_dap=no
    fi
 
    # Need curl for byte ranges
    if test "x$found_curl" = xno && test "x$enable_byterange" = xyes ; then
-   AC_MSG_ERROR([curl required for byte range support. Install curl or build without --enable-byterange.])
+   AC_MSG_WARN([curl required for byte range support. Install curl or build without --enable-byterange.])
    enable_byterange=no
    fi
 
@@ -502,8 +512,16 @@ if test "x$enable_curl" = xyes; then
    enable_dap=no
    fi
 
+   # Save/restore CFLAGS
    SAVECFLAGS="$CFLAGS"
    CFLAGS="${curl_cflags}"
+
+   # CURLOPT_USERNAME is not defined until curl version 7.19.1
+   # CURLOPT_PASSWORD is not defined until curl version 7.19.1
+   # CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
+   # CURLINFO_RESPONSE_CODE is not defined until curl version 7.10.7
+   # CURLOPT_CHUNK_BGN_FUNCTION is not defined until curl version 7.21.0
+   # CURL_MAX_READ_SIZE is not defined until 7.59
 
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
    [#include "curl/curl.h"],
@@ -587,6 +605,11 @@ if test "x$enable_curl" = xyes; then
 
    CFLAGS="$SAVECFLAGS"
 fi
+
+###
+# End libcurl-related stanza
+###
+
 ###
 # Libxml2 control block.
 ###
@@ -1403,13 +1426,7 @@ if test "x$enable_mmap" = xyes; then
     AC_DEFINE([USE_MMAP], [1], [if true, use mmap for in-memory files])
 fi
 
-# Does the user want to allow reading of remote data via range headers?
-AC_MSG_CHECKING([whether byte range support is enabled])
-AC_ARG_ENABLE([byterange],
-              [AS_HELP_STRING([--disable-byterange],
-                              [allow byte-range I/O])])
-test "x$enable_byterange" = xno || enable_byterange=yes
-AC_MSG_RESULT($enable_byterange)
+
 
 if test "x$enable_remote_functionality" = xno ; then
   AC_MSG_WARN([--disable-remote-functionality => --disable-byterange])
