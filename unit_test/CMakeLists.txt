@@ -41,11 +41,19 @@ IF(NETCDF_BUILD_UTILITIES)
     build_bin_test(aws_config)
     add_sh_test(unit_test run_aws_config)
   ENDIF()
+
+  # plugin path test
+  if(NETCDF_ENABLE_NCZARR AND NETCDF_ENABLE_HDF5)
+    build_bin_test(tst_pluginpaths ${XGETOPTSRC})
+    add_sh_test(unit_test run_pluginpaths)
+  endif()
 ENDIF()
 
 # Performance tests
+if(BUILD_BENCHMARKS)
 add_bin_test(unit_test tst_exhash timer_utils.c)
 add_bin_test(unit_test tst_xcache timer_utils.c)
+endif()
 
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)

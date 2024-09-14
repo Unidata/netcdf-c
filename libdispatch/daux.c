@@ -30,6 +30,7 @@ See COPYRIGHT for license information.
 #include "nclog.h"
 #include "ncrc.h"
 #include "netcdf_filter.h"
+#include "ncplugins.h"
 
 struct NCAUX_FIELD {
     char* name;
@@ -57,6 +58,7 @@ static int computefieldinfo(struct NCAUX_CMPD* cmpd);
 static int filterspec_cvt(const char* txt, size_t* nparamsp, unsigned int* params);
 
 EXTERNL int nc_dump_data(int ncid, nc_type xtype, void* memory, size_t count, char** bufp);
+EXTERNL int nc_parse_plugin_pathlist(const char* path0, NClist* dirlist);
 
 /**************************************************/
 /*
@@ -615,7 +617,7 @@ ncaux_h5filterspec_parselist(const char* txt0, int* formatp, size_t* nspecsp, NC
 done:
     nullfree(spec);
     if(vector) {
-	int i;
+	size_t i;
         for(i=0;i<nspecs;i++)
 	    ncaux_h5filterspec_free(vector[i]);
 	nullfree(vector);
@@ -955,3 +957,133 @@ ncaux_dump_data(int ncid, int xtype, void* memory, size_t count, char** bufp)
     return nc_dump_data(ncid, xtype, memory, count, bufp);
 }
 
+/**************************************************/
+/* Path List Utilities */
+
+/* Path-list Parser:
+@param pathlist0 the string to parse
+@param ndirsp return the number of parsed directories
+@param dirs return the parsed directories; caller must free
+@param sep the separator parsing: one of ';' | ':' | '\0', where zero means use platform default.
+@return NC_NOERR || NC_EXXX
+*/
+EXTERNL int
+ncaux_plugin_path_parse(const char* pathlist0, char sep, size_t* ndirsp, char** dirs)
+{
+    int stat = NC_NOERR;
+    size_t i;
+    char* path = NULL;
+    char* p;
+    size_t count;
+    size_t plen;
+    NClist* vec = nclistnew();
+    char seps[3] = "\0\0\0"; /* will contain all allowable separators */
+
+    if(pathlist0 == NULL || pathlist0[0] == '\0') {if(ndirsp) *ndirsp = 0; goto done;}
+
+
+    /* If a separator is specified, use it, otherwise search for ';' or ':' */
+    seps[0] = sep;
+    if(sep == '\0') {seps[0] = ';'; seps[1] = ':';}
+
+    plen = strlen(pathlist0); /* assert plen > 0 */
+    if((path = malloc(plen+1+1))==NULL) {stat = NC_ENOMEM; goto done;}
+    memcpy(path,pathlist0,plen);
+    path[plen] = '\0'; path[plen+1] = '\0';  /* double null term */
+
+    for(count=0,p=path;*p;p++) {
+	if(strchr(seps,*p) == NULL)
+	    continue; /* non-separator */
+	else {
+	    *p = '\0';
+ 	    count++;
+	}
+    }
+    count++; /* count last piece */
+
+    /* capture the parsed pieces */
+    for(p=path,i=0;i<count;i++) {
+	size_t len = strlen(p);
+	if(len > 0) 
+	    nclistpush(vec, p); /* use the contents of path */
+        p = p+len+1; /* point to next piece */
+    }
+
+    if(dirs) {
+	for(i=0;i<nclistlength(vec);i++)
+	    dirs[i] = nulldup(nclistget(vec,i));
+    }
+    if(ndirsp) *ndirsp = nclistlength(vec); /* always return true count */
+
+done:
+    nullfree(path);
+    nclistfree(vec);
+    return stat;
+}
+
+/*
+Path-list concatenator where given a vector of directories,
+concatenate all dirs with specified separator.
+If the separator is 0, then use the default platform separator.
+
+@param ndirs the number of directories
+@param dirsp the directory vector to concatenate
+@param sep one of ';', ':', or '\0'
+@param catlen length of the cat arg including a nul terminator
+@param cat user provided space for holding the concatenation; nul termination guaranteed if catlen > 0.
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+
+Note that this function is called twice: first time to get the expected size of
+the concatenated string and second to get the contents of the concatenation.
+*/
+EXTERNL int
+ncaux_plugin_path_tostring(size_t ndirs, char** const dirs, char sep, size_t* catlen, char* cat)
+{
+    int stat = NC_NOERR;
+    NCbytes* buf = ncbytesnew();
+    size_t i;
+
+    if(sep == '\0')
+#ifdef _WIN32
+        sep = ';';
+#else
+	sep = ':';
+#endif    
+    if(cat != NULL) *cat = '\0'; /* Make sure it is nul terminated */
+    if(ndirs > 0) {
+	for(i=0;i<ndirs;i++) {
+	    if(i>0) ncbytesappend(buf,sep);
+	    if(dirs[i] != NULL) ncbytescat(buf,dirs[i]);
+	}
+    }
+    ncbytesnull(buf);
+    if(cat)
+	memcpy(cat,ncbytescontents(buf),ncbyteslength(buf)+1); /* include nul termiator */
+    if(catlen) *catlen = ncbyteslength(buf)+1; /* overwrite with the true cat length */
+    ncbytesfree(buf);
+    return stat;
+}
+
+/*
+Reclaim a char** object possibly produced by ncaux_plugin_parse function.
+
+@param veclen the number of entries in vec
+@param vec    a char** vectore
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+*/
+EXTERNL int
+ncaux_plugin_path_freestringvec(size_t veclen, char** vec)
+{
+    int stat = NC_NOERR;
+    size_t i;
+    if(vec == NULL) goto done;
+    for(i=0;i<veclen;i++) {
+	if(vec[i] != NULL) free(vec[i]);
+	vec[i] = NULL;
+    }
+    free(vec);
+done:
+    return stat;
+}

@@ -61,6 +61,7 @@ zinternal.h \
 zmap.h \
 zodom.h \
 zprovenance.h \
+zplugins.h \
 zfilter.h \
 zdebug.h
 
@@ -69,6 +70,7 @@ libnczarr_la_SOURCES += zmap_zip.c
 endif
 
 if NETCDF_ENABLE_NCZARR_FILTERS
+libnczarr_la_SOURCES += zplugins.c
 libnczarr_la_SOURCES += zfilter.c
 endif
 

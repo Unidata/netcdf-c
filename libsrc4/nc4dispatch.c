@@ -25,7 +25,6 @@ extern NC_Dispatch UDF0_DISPATCH;
 extern NC_Dispatch UDF1_DISPATCH;
 #endif /* USE_UDF1 */
 
-
 /**
  * @internal Initialize netCDF-4. If user-defined format(s) have been
  * specified in configure, load their dispatch table(s).
@@ -62,6 +61,7 @@ NC4_initialize(void)
     }
 #endif
 #endif
+
     NC_initialize_reserved();
     return ret;
 }

@@ -34,7 +34,7 @@ libdispatch_la_SOURCES += drc.c
 # Add functions only found in netCDF-4.
 # They are always defined, even if they just return an error
 libdispatch_la_SOURCES += dgroup.c dvlen.c dcompound.c dtype.c denum.c	\
-dopaque.c dfilter.c
+dopaque.c dfilter.c dplugins.c
 
 # Add V2 API convenience library if needed.
 if BUILD_V2

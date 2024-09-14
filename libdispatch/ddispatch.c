@@ -13,6 +13,7 @@ See LICENSE.txt for license information.
 #include "ncpathmgr.h"
 #include "ncxml.h"
 #include "nc4internal.h"
+#include "ncplugins.h"
 
 /* Required for getcwd, other functions. */
 #ifdef HAVE_UNISTD_H
@@ -165,9 +166,12 @@ NC_createglobalstate(void)
     int stat = NC_NOERR;
     const char* tmp = NULL;
     
+    if(nc_globalstate != NULL) goto done;
+
     if(nc_globalstate == NULL) {
-        nc_globalstate = calloc(1,sizeof(NCglobalstate));
+        if((nc_globalstate = calloc(1,sizeof(NCglobalstate)))==NULL) {stat = NC_ENOMEM; goto done;}
     }
+
     /* Initialize struct pointers */
     if((nc_globalstate->rcinfo = calloc(1,sizeof(struct NCRCinfo)))==NULL)
             {stat = NC_ENOMEM; goto done;}
@@ -175,6 +179,12 @@ NC_createglobalstate(void)
             {stat = NC_ENOMEM; goto done;}
     if((nc_globalstate->rcinfo->s3profiles = nclistnew())==NULL)
             {stat = NC_ENOMEM; goto done;}
+
+    /* plugin path state */
+    if((nc_globalstate->formatxstate.pluginapi = (const NC_PluginPathDispatch**)calloc(NC_FORMATX_COUNT,sizeof(NC_PluginPathDispatch*)))==NULL)
+            {stat = NC_ENOMEM; goto done;}
+    memset(nc_globalstate->formatxstate.state,0,NC_FORMATX_COUNT*sizeof(void*));
+    if((stat = nc_plugin_path_initialize())) goto done;
 
     /* Get environment variables */
     if(getenv(NCRCENVIGNORE) != NULL)
@@ -215,6 +225,15 @@ NC_freeglobalstate(void)
         if(nc_globalstate->rcinfo) {
 	    NC_rcclear(nc_globalstate->rcinfo);
 	    free(nc_globalstate->rcinfo);
+	}
+	{
+	    size_t i;
+	    (void)nc_plugin_path_finalize();
+	    /* Verify states reclaimed */
+	    for(i=0;i<NC_FORMATX_COUNT;i++)
+		assert(nc_globalstate->formatxstate.state[i] == NULL);
+	    memset(nc_globalstate->formatxstate.state,0,NC_FORMATX_COUNT*sizeof(void*));
+	    nullfree(nc_globalstate->formatxstate.pluginapi);
 	}
 	free(nc_globalstate);
 	nc_globalstate = NULL;

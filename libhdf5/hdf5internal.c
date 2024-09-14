@@ -15,12 +15,13 @@
  */
 
 #include "config.h"
-#include "hdf5internal.h"
-#include "hdf5err.h" /* For BAIL2 */
 #include <stddef.h>
 #ifdef _WIN32
 #include <windows.h>
 #endif
+#include "hdf5internal.h"
+#include "hdf5err.h" /* For BAIL2 */
+#include "ncplugins.h"
 
 #undef DEBUGH5
 

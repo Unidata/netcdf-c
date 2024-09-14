@@ -1153,7 +1153,7 @@ AC_ARG_ENABLE([benchmarks],
                               are timed. We use these tests to check netCDF performance.])])
 test "x$enable_benchmarks" = xyes || enable_benchmarks=no
 AC_MSG_RESULT($enable_benchmarks)
-if test "x$enable_HDF5" = xno -a "x$enable_benchmarks" = xyes; then
+if test "x$enable_hdf5" = xno -a "x$enable_benchmarks" = xyes; then
 AC_MSG_ERROR([Can't use benchmarks if HDF5 is disabled.])
 fi
 AM_CONDITIONAL(BUILD_BENCHMARKS, [test x$enable_benchmarks = xyes])
@@ -1633,6 +1633,7 @@ has_hdf5_ros3=no
 
 if test "x$enable_hdf5" = xyes; then
 
+   AC_DEFINE([NETCDF_ENABLE_HDF5], [1], [if true, use HDF5])
    AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
@@ -2257,6 +2258,13 @@ AX_SET_META([NC_HAS_BZ2],[$have_bz2],[yes])
 # CMakeLists.txt also changes to match.
 AC_SUBST([NC_DISPATCH_VERSION], [5])
 AC_DEFINE_UNQUOTED([NC_DISPATCH_VERSION], [${NC_DISPATCH_VERSION}], [Dispatch table version.])
+
+# This is the version of the plugin path dispatch table.
+# If the dispatch table is changed, this should be incremented.
+# If this is changed, make sure the value in
+# CMakeLists.txt also changes to match.
+AC_SUBST([NC_PLUGINPATH_DISPATCH_VERSION], [1])
+AC_DEFINE_UNQUOTED([NC_PLUGINPATH_DISPATCH_VERSION], [${NC_PLUGINPATH_DISPATCH_VERSION}], [Plugin Path Dispatch table version.])
 
 #####
 # End netcdf_meta.h definitions.

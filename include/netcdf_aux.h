@@ -96,6 +96,70 @@ EXTERNL int ncaux_abort_compound(void* tag);
 EXTERNL int ncaux_add_field(void* tag,  const char *name, nc_type field_type,
 			   int ndims, const int* dimsizes);
 
+/**************************************************/
+/* Path-list Utilities */
+
+/**
+Parse a string into a sequence of path directories.
+
+The pathlist argument has the following syntax:
+    paths := <empty> | dirlist
+    dirlist := dir | dirlist separator dir
+    separator := ';' | ':'
+    dir := <OS specific directory path>
+
+@param pathlist a string encoding a list of directories
+@param sep  one of ';' | ':' | '\0' where '\0' means use the platform's default separator.
+@param ndirsp return the number of directories in dirsp
+@param dirsp return a vector of strings representing the directories parsed from pathlist; caller frees
+@return ::NC_NOERR
+
+Note that this function is called twice: first time to get the number of directories
+and second to get the directories.
+
+Author: Dennis Heimbigner
+*/
+
+EXTERNL int ncaux_plugin_path_parse(const char* pathlist, char sep, size_t* ndirsp, char** dirs);
+
+/**
+Concatenate a vector of directories with the separator between.
+This is more-or-less the inverse of the ncaux_plugin_path_parse function
+
+The resulting string has following syntax:
+    paths := <empty> | dirlist
+    dirlist := dir | dirlist separator dir
+    separator := ';' | ':'
+    dir := <OS specific directory path>
+    
+@param ndirs the number of directories
+@param dirsp the directory vector to concatenate
+@param sep one of ';', ':', or '\0'
+@param catlen length of the cat arg including a nul terminator
+@param cat user provided space for holding the concatenation; nul termination guaranteed if catlen > 0.
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+
+Note that this function is called twice: first time to get the expected size of
+the concatenated string and second to get the contents of the concatenation.
+
+Author: Dennis Heimbigner
+*/
+
+EXTERNL int ncaux_plugin_path_tostring(size_t ndirs, char** const dirs, char sep, size_t* catlen, char* cat);
+
+
+/*
+Reclaim a char** object possibly produced by ncaux_plugin_parse function.
+
+@param veclen the number of entries in vec
+@param vec    a char** vectore
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+*/
+
+EXTERNL int ncaux_plugin_path_freestringvec(size_t veclen, char** vec);
+
 #if defined(__cplusplus)
 }
 #endif

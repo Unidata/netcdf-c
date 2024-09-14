@@ -927,7 +927,6 @@ NCJinsertstring(NCjson* object, const char* key, const char* value)
     else
         NCJnewstring(NCJ_STRING,value,&jvalue);
     NCJinsert(object,key,jvalue);
-done:
     return NCJTHROW(stat);
 }
 
@@ -941,7 +940,6 @@ NCJinsertint(NCjson* object, const char* key, long long ivalue)
     snprintf(digits,sizeof(digits),"%lld",ivalue);
     NCJnewstring(NCJ_STRING,digits,&jvalue);
     NCJinsert(object,key,jvalue);
-done:
     return NCJTHROW(stat);
 }
 
@@ -1146,5 +1144,7 @@ netcdf_supresswarnings(void)
     ignore = (void*)NCJparse;
     ignore = (void*)NCJdump;
     ignore = (void*)NCJtotext;
+    ignore = (void*)NCJinsertstring;
+    ignore = (void*)NCJinsertint;
     ignore = ignore;
 }

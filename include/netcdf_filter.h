@@ -12,8 +12,8 @@
 #ifndef NETCDF_FILTER_H
 #define NETCDF_FILTER_H 1
 
-/* API for libdispatch/dfilter.c
-*/
+/**************************************************/
+/* API for libdispatch/dfilter.c */
 
 /* Must match values in <H5Zpublic.h> */
 #ifndef H5Z_FILTER_DEFLATE
@@ -110,9 +110,65 @@ EXTERNL int nc_inq_var_zstandard(int ncid, int varid, int* hasfilterp, int *leve
 EXTERNL int nc_def_var_blosc(int ncid, int varid, unsigned subcompressor, unsigned level, unsigned blocksize, unsigned addshuffle);
 EXTERNL int nc_inq_var_blosc(int ncid, int varid, int* hasfilterp, unsigned* subcompressorp, unsigned* levelp, unsigned* blocksizep, unsigned* addshufflep);
 
+/* Filter path query/set */
+EXTERNL int nc_filter_path_query(int id);
+
+/**************************************************/
+/* API for libdispatch/dplugin.c */
+
+/* Plugin path functions */
+
+/**
+ * This function is called as part of nc_initialize.
+ * Its purpose is to initialize the plugin paths state.
+ * @return NC_NOERR
+ * @author Dennis Heimbigner
+*/
+
+EXTERNL int nc_plugin_path_initialize(void);
+
+/**
+ * This function is called as part of nc_finalize()
+ * Its purpose is to clean-up plugin path state.
+ * @return NC_NOERR
+ * @author Dennis Heimbigner
+*/
+
+EXTERNL int nc_plugin_path_finalize(void);
+
+/**
+ * Return the current sequence of directories in the internal plugin path list.
+ * Since this function does not modify the plugin path, it can be called at any time.
+ * @param formatx specify which dispatch implementatio to read: currently NC_FORMATX_NC_HDF5 or NC_FORMATX_NCZARR.
+ * @param ndirsp return the number of dirs in the internal path list
+ * @param dirs memory for storing the sequence of directies in the internal path list.
+ * @return NC_NOERR
+ * @author Dennis Heimbigner
+ *
+ * As a rule, this function needs to be called twice.
+ * The first time with npaths not NULL and pathlist set to NULL
+ *     to get the size of the path list.
+ * The second time with pathlist not NULL to get the actual sequence of paths.
+*/
+
+EXTERNL int nc_plugin_path_read(int formatx, size_t* ndirsp, char** dirs);
+
+/**
+ * Empty the current internal path sequence
+ * and replace with the sequence of directories argument.
+ *
+ * Using a paths argument of NULL or npaths argument of 0 will clear the set of plugin paths.
+ * @param formatx specify which dispatch implementation to write: currently NC_FORMATX_NC_HDF5 or NC_FORMATX_NCZARR.
+ * @param ndirs length of the dirs argument
+ * @param dirs to overwrite the current internal path list
+ * @return NC_NOERR
+ * @author Dennis Heimbigner
+*/
+
+EXTERNL int nc_plugin_path_write(int formatx, size_t ndirs, char** const dirs);
+
 #if defined(__cplusplus)
 }
 #endif
-/**************************************************/
 
 #endif /* NETCDF_FILTER_H */

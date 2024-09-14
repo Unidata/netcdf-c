@@ -19,7 +19,6 @@ zcvt.c
 zdim.c
 zdispatch.c
 zfile.c
-zfilter.c
 zgrp.c
 zinternal.c
 zmap.c
@@ -42,12 +41,17 @@ zinternal.h
 zmap.h
 zodom.h
 zprovenance.h
+zplugins.h
 zfilter.h
 zdebug.h
 )
 
 if(NETCDF_ENABLE_NCZARR_ZIP)
     set(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
+endif()
+
+if(NETCDF_ENABLE_NCZARR_FILTERS)
+set(libnczarr_SOURCES ${libnczarr_SOURCES} zfilter.c zplugins.c)
 endif()
 
 if(NETCDF_ENABLE_S3) 
@@ -59,7 +63,10 @@ endif()
 
 add_library(nczarr OBJECT ${libnczarr_SOURCES})
 
+target_link_libraries(nczarr PUBLIC CURL::libcurl ${CURL_LIBRARIES})
+target_include_directories(nczarr PUBLIC ${CURL_INCLUDE_DIRS})
 target_include_directories(nczarr PUBLIC ../libncpoco)
+target_compile_options(nczarr PRIVATE -DCURL_STATICLIB=1)
 
 if (USE_HDF5)
     target_link_libraries(nczarr PRIVATE HDF5::HDF5)

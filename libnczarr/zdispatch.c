@@ -10,6 +10,8 @@
  */
 
 #include "zincludes.h"
+#include "zplugins.h"
+#include "zfilter.h"
 
 /* Forward */
 static int NCZ_var_par_access(int ncid, int varid, int par_access);
@@ -124,10 +126,30 @@ NCZ_initialize(void)
 {
     int stat;
     NCZ_dispatch_table = &NCZ_dispatcher;
-    if (!ncz_initialized)
-        NCZ_initialize_internal();
+    char* dimsep = NULL;
+    NCglobalstate* gs = NULL;
+    GlobalNCZarr* gz = NULL;
+
+    if (ncz_initialized) goto done;
+    ncz_initialized = 1;
+
+    gs = NC_getglobalstate();
+    gz = gs->formatxstate.state[NC_FORMATX_NCZARR];
+    assert(gz != NULL);
+
+    /* Defaults */
+    gz->dimension_separator = DFALT_DIM_SEPARATOR;
+    dimsep = NC_rclookup("ZARR.DIMENSION_SEPARATOR",NULL,NULL);
+    if(dimsep != NULL) {
+        /* Verify its value */
+	if(dimsep != NULL && strlen(dimsep) == 1 && islegaldimsep(dimsep[0]))
+	    gz->dimension_separator = dimsep[0];
+    }
     stat = NCZ_provenance_init();
-    if(stat) ncz_initialized = 1;
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
+    NCZ_filter_initialize();
+#endif
+done:
     return stat;
 }
 
@@ -140,9 +162,17 @@ NCZ_initialize(void)
 int
 NCZ_finalize(void)
 {
-    NCZ_finalize_internal();
+    int stat = NC_NOERR;
+    /* Reclaim global resources */
+    ncz_initialized = 0;
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
+    NCZ_filter_finalize();
+#endif
+#ifdef NETCDF_ENABLE_S3
+    NCZ_s3finalize();
+#endif
     NCZ_provenance_finalize();
-    return NC_NOERR;
+    return stat;
 }
 
 static int
@@ -197,7 +227,6 @@ NCZ_inq_filter_avail(int ncid, unsigned id)
     NC_UNUSED(id);
     return REPORT(NC_ENOFILTER,"inq_filter_avail");
 }
-
 
 #endif /*NETCDF_ENABLE_NCZARR_FILTERS*/
 

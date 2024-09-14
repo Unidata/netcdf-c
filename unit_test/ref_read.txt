@@ -1,0 +1,5 @@
+testread(hdf5): /zero:/one:/two:/hdf5:/three:/four
+testread(nczarr): /zero:/one:/two:/nczarr:three:/four:/five
+testread(all): 
+testread(hdf5): /zero:/one:/two:/hdf5:/three:/four
+testread(nczarr): /zero:/one:/two:/nczarr:three:/four:/five

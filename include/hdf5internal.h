@@ -196,6 +196,11 @@ struct NC_HDF5_Filter {
     unsigned int* params;  /**< Params for arbitrary filter. */
 };
 
+/* The type for the NC_FORMATX_NC_HDF5 Global State Object */
+typedef struct GlobalHDF5 { /* libhdf5 dispatcher specific parameters */
+    int placeholder; /* ensure a non-empty struct */
+} GlobalHDF5;
+
 int NC4_hdf5_filter_initialize(void);
 int NC4_hdf5_filter_finalize(void);
 int NC4_hdf5_filter_remove(NC_VAR_INFO_T* var, unsigned int id);

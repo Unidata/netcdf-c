@@ -1,0 +1,9 @@
+testwrite(hdf5): before: /zero:/one:/two:/hdf5:/three:/four
+testwrite(hdf5): after: /zero:/one:/two:/hdf5:/three:/four:/modhdf5
+testwrite(nczarr): before: /zero:/one:/two:/nczarr:three:/four:/five
+testwrite(nczarr): after: /modnczarr:/zero:/one:/two:/nczarr:three:/four:/five
+testwrite(all): 
+testwrite(hdf5): before: /zero:/one:/two:/hdf5:/three:/four
+testwrite(hdf5): after: /zero:/one:/two:/hdf5:/three:/four:/modhdf5
+testwrite(nczarr): before: /zero:/one:/two:/nczarr:three:/four:/five
+testwrite(nczarr): after: /modnczarr:/zero:/one:/two:/nczarr:three:/four:/five

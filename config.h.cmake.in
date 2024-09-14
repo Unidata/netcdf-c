@@ -493,8 +493,11 @@ with zip */
 /* Add extra properties to _NCProperties attribute */
 #cmakedefine NCPROPERTIES_EXTRA ${NCPROPERTIES_EXTRA}
 
-/* Idspatch table version */
+/* Version for dispatch table version */
 #cmakedefine NC_DISPATCH_VERSION ${NC_DISPATCH_VERSION}
+
+/* Version for plugin path dispatch table version */
+#cmakedefine NC_PLUGINPATH_DISPATCH_VERSION ${NC_PLUGINPATH_DISPATCH_VERSION}
 
 /* no IEEE float on this platform */
 #cmakedefine NO_IEEE_FLOAT 1

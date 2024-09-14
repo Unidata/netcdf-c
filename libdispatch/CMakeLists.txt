@@ -33,7 +33,7 @@ set_property(SOURCE dinstance_intern.c dinstance.c dvarput.c
 # Netcdf-4 only functions. Must be defined even if not used
 target_sources(dispatch
   PRIVATE
-    dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c
+    dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c dplugins.c
 )
 
 if(BUILD_V2)

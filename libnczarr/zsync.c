@@ -1533,7 +1533,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
     /* Capture dimension_separator (must precede chunk cache creation) */
     {
 	NCglobalstate* ngs = NC_getglobalstate();
-	assert(ngs != NULL);
+	GlobalNCZarr* ncz = (GlobalNCZarr*)ngs->formatxstate.state[NC_FORMATX_NCZARR];
 	zvar->dimension_separator = 0;
 	if((stat = NCJdictget(jvar,"dimension_separator",&jvalue))<0) {stat = NC_EINVAL; goto done;}
 	if(jvalue != NULL) {
@@ -1543,7 +1543,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	}
 	/* If value is invalid, then use global default */
 	if(!islegaldimsep(zvar->dimension_separator))
-	    zvar->dimension_separator = ngs->zarr.dimension_separator; /* use global value */
+	    zvar->dimension_separator = ncz->dimension_separator; /* use global value */
 	assert(islegaldimsep(zvar->dimension_separator)); /* we are hosed */
     }
 
@@ -1650,7 +1650,6 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	if(var->filters == NULL) var->filters = (void*)nclistnew();
 	if(zvar->incompletefilters == NULL) zvar->incompletefilters = (void*)nclistnew();
 	chainindex = 0; /* track location of filter in the chain */
-	if((stat = NCZ_filter_initialize())) goto done;
 	if((stat = NCJdictget(jvar,"filters",&jvalue))<0) {stat = NC_EINVAL; goto done;}
 	if(jvalue != NULL && NCJsort(jvalue) != NCJ_NULL) {
 	    int k;
@@ -1672,7 +1671,6 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
     { 
 	if(var->filters == NULL) var->filters = (void*)nclistnew();
-	if((stat = NCZ_filter_initialize())) goto done;
 	if((stat = NCJdictget(jvar,"compressor",&jfilter))<0) {stat = NC_EINVAL; goto done;}
 	if(jfilter != NULL && NCJsort(jfilter) != NCJ_NULL) {
 	    if(NCJsort(jfilter) != NCJ_DICT) {stat = NC_EFILTER; goto done;}

@@ -1284,7 +1284,7 @@ check_file_type(const char *path, int omode, int use_parallel,
     if((status = openmagic(&magicinfo))) goto done;
 
     /* Verify we have a large enough file */
-    if(magicinfo.filelen < (unsigned long long)MAGIC_NUMBER_LEN)
+    if(MAGIC_NUMBER_LEN >= (unsigned long long)magicinfo.filelen)
 	{status = NC_ENOTNC; goto done;}
     if((status = readmagic(&magicinfo,0L,magic)) != NC_NOERR) {
 	status = NC_ENOTNC;
@@ -1306,7 +1306,7 @@ check_file_type(const char *path, int omode, int use_parallel,
     {
 	size_t pos = 512L;
         for(;;) {
-	    if((pos+MAGIC_NUMBER_LEN) > magicinfo.filelen)
+	    if((pos+MAGIC_NUMBER_LEN) > (unsigned long long)magicinfo.filelen)
 		{status = NC_ENOTNC; goto done;}
             if((status = readmagic(&magicinfo,pos,magic)) != NC_NOERR)
 	        {status = NC_ENOTNC; goto done; }

@@ -47,51 +47,6 @@ set_auto(void* func, void *client_data)
 #endif
 
 /**
- * @internal Provide a function to do any necessary initialization of
- * the ZARR library.
- */
-int
-NCZ_initialize_internal(void)
-{
-    int stat = NC_NOERR;
-    char* dimsep = NULL;
-    NCglobalstate* ngs = NULL;
-
-    ncz_initialized = 1;
-    ngs = NC_getglobalstate();
-    if(ngs != NULL) {
-        /* Defaults */
-	ngs->zarr.dimension_separator = DFALT_DIM_SEPARATOR;
-        dimsep = NC_rclookup("ZARR.DIMENSION_SEPARATOR",NULL,NULL);
-        if(dimsep != NULL) {
-            /* Verify its value */
-	    if(dimsep != NULL && strlen(dimsep) == 1 && islegaldimsep(dimsep[0]))
-		ngs->zarr.dimension_separator = dimsep[0];
-        }    
-    }
-
-    return stat;
-}
-
-/**
- * @internal Provide a function to do any necessary finalization of
- * the ZARR library.
- */
-int
-NCZ_finalize_internal(void)
-{
-    /* Reclaim global resources */
-    ncz_initialized = 0;
-#ifdef NETCDF_ENABLE_NCZARR_FILTERS
-    NCZ_filter_finalize();
-#endif
-#ifdef NETCDF_ENABLE_S3
-    NCZ_s3finalize();
-#endif
-    return NC_NOERR;
-}
-
-/**
  * @internal Given a varid, return the maximum length of a dimension
  * using dimid.
  *
@@ -113,7 +68,7 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid,
     *maxlen = 0;
 
     /* Find this var. */
-    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
+    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,(size_t)varid);
     if (!var) return NC_ENOTVAR;
     assert(var->hdr.id == varid);
 
@@ -230,7 +185,7 @@ ncz_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len)
 {
     NC_VAR_INFO_T *var;
     int retval;
-    int i;
+    size_t i;
 
     assert(grp && len);
     LOG((3, "%s: grp->name %s dimid %d", __func__, grp->hdr.name, dimid));
@@ -382,7 +337,7 @@ static int
 close_dims(NC_GRP_INFO_T *grp)
 {
     NC_DIM_INFO_T *dim;
-    int i;
+    size_t i;
 
     for (i = 0; i < ncindexsize(grp->dim); i++)
     {
@@ -417,7 +372,7 @@ close_dims(NC_GRP_INFO_T *grp)
 static int
 close_types(NC_GRP_INFO_T *grp)
 {
-    int i;
+    size_t i;
 
     for (i = 0; i < ncindexsize(grp->type); i++)
     {
@@ -456,7 +411,7 @@ close_types(NC_GRP_INFO_T *grp)
 static int
 ncz_rec_grp_NCZ_del(NC_GRP_INFO_T *grp)
 {
-    int i;
+    size_t i;
     int retval;
 
     assert(grp && grp->format_grp_info);
@@ -608,7 +563,7 @@ ncz_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
     if (att)
     {
         my_att = use_name ? (NC_ATT_INFO_T *)ncindexlookup(attlist, my_norm_name) :
-            (NC_ATT_INFO_T *)ncindexith(attlist, attnum);
+            (NC_ATT_INFO_T *)ncindexith(attlist, (size_t)attnum);
         if (!my_att)
             return NC_ENOTATT;
     }
