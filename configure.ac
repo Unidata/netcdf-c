@@ -462,6 +462,17 @@ else
    enable_set_log_level=no
 fi
 
+# Do we want to enable unsafe macros, e.g. _FillValue in addition to NC_FillValue.
+# See https://github.com/Unidata/netcdf-c/issues/3029
+AC_MSG_CHECKING([whether to allow unsafe macros])
+AC_ARG_ENABLE([unsafe-macros],
+               [AS_HELP_STRING([--enable-unsafe-macros],
+                              [enable unsafe macros for backwards compatibility purposes. Use with caution.\
+                              This can lead to unexpected consequences/behavior.])])
+if test "x$enable_unsafe_macros" = xyes; then
+   AC_DEFINE([NETCDF_ENABLE_LEGACY_MACROS], 1, [If true, enable unsafe macros in netcdf.h])
+fi
+
 # Does the user want to allow reading of remote data via range headers?
 AC_MSG_CHECKING([whether byte range support is enabled])
 AC_ARG_ENABLE([byterange],
