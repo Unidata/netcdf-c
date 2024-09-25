@@ -547,6 +547,11 @@ else()
   set(NETCDF_ENABLE_HDF4 OFF)
 endif()
 
+# Option legacy  macros 
+# Do we want to enable unsafe macros, e.g. _FillValue in addition to NC_FillValue.
+# See https://github.com/Unidata/netcdf-c/issues/3029
+option(NETCDF_ENABLE_LEGACY_MACROS "Enable legacy macros for backwards compatibility. Use with Caution." OFF)
+
 # Option Logging, only valid for netcdf4 dispatchers.
 option(NETCDF_ENABLE_LOGGING "Enable Logging." OFF)
 if(NOT NETCDF_ENABLE_NETCDF4)
