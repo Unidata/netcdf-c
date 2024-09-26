@@ -469,6 +469,7 @@ AC_ARG_ENABLE([legacy-macros],
                [AS_HELP_STRING([--enable-legacy-macros],
                               [enable legacy macros for backwards compatibility purposes. Use with caution.\
                               This can lead to unexpected consequences/behavior.])])
+test "x$enable_legacy_macros" = xyes || enable_legacy_macros=no
 if test "x$enable_legacy_macros" = xyes; then
    AC_DEFINE([NETCDF_ENABLE_LEGACY_MACROS], 1, [If true, enable legacy macros in netcdf.h])
 fi
@@ -2169,7 +2170,7 @@ elif test "x$with_plugin_dir" = xyes ; then # --with-plugin-dir, no argument
         if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
 	    PLUGIN_PATH="${ALLUSERSPROFILE}\\hdfd5\\lib\\plugin"
 	else
-       if test "x${prefix}" = x ; then
+      if test "x${prefix}" = xNONE ; then
    	    PLUGIN_PATH="/usr/local/hdf5/lib/plugin"
       else 
          PLUGIN_PATH="${prefix}/hdf5/lib/plugin"
