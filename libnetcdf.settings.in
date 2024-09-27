@@ -24,6 +24,7 @@ Shared Library:		@enable_shared@
 Static Library:		@enable_static@
 Extra libraries:	@LIBS@
 XML Parser:             @XMLPARSER@
+Legacy Macros:          @HAS_LEGACY_MACROS@
 
 # Features
 --------

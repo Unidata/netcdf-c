@@ -496,6 +496,9 @@ with zip */
 /* Idspatch table version */
 #cmakedefine NC_DISPATCH_VERSION ${NC_DISPATCH_VERSION}
 
+/* Enable Legacy, potential-conflict Macro _FillValue */
+#cmakedefine NETCDF_ENABLE_LEGACY_MACROS
+
 /* no IEEE float on this platform */
 #cmakedefine NO_IEEE_FLOAT 1
 

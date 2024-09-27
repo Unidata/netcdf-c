@@ -109,7 +109,15 @@ extern "C" {
  * different value than the above defaults, create an attribute with
  * the same type as the variable and this reserved name. The value you
  * give the attribute will be used as the fill value for that
- * variable. */
+ * variable. 
+ * Refactored to NC_FillValue in support of 
+ * https://github.com/Unidata/netcdf-c/issues/2858, and parameterized
+ * behind an unsafe macros option as part of 
+ * https://github.com/Unidata/netcdf-c/issues/3029
+ */
+#ifdef NETCDF_ENABLE_LEGACY_MACROS
+#define _FillValue      "_FillValue"
+#endif
 #define NC_FillValue      "_FillValue"
 #define NC_FILL         0       /**< Argument to nc_set_fill() to clear NC_NOFILL */
 #define NC_NOFILL       0x100   /**< Argument to nc_set_fill() to turn off filling of data. */
