@@ -466,10 +466,11 @@ fi
 # See https://github.com/Unidata/netcdf-c/issues/3029
 AC_MSG_CHECKING([whether to allow legacy macros])
 AC_ARG_ENABLE([legacy-macros],
-               [AS_HELP_STRING([--enable-legacy-macros],
+               [AS_HELP_STRING([--disable-legacy-macros],
                               [enable legacy macros for backwards compatibility purposes. Use with caution.\
                               This can lead to unexpected consequences/behavior.])])
-test "x$enable_legacy_macros" = xyes || enable_legacy_macros=no
+test "x$enable_legacy_macros" = xno || enable_legacy_macros=yes
+AC_MSG_RESULT($enable_legacy_macros)
 if test "x$enable_legacy_macros" = xyes; then
    AC_DEFINE([NETCDF_ENABLE_LEGACY_MACROS], 1, [If true, enable legacy macros in netcdf.h])
 fi
