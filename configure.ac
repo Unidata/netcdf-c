@@ -462,6 +462,19 @@ else
    enable_set_log_level=no
 fi
 
+# Do we want to enable unsafe macros, e.g. _FillValue in addition to NC_FillValue.
+# See https://github.com/Unidata/netcdf-c/issues/3029
+AC_MSG_CHECKING([whether to allow legacy macros])
+AC_ARG_ENABLE([legacy-macros],
+               [AS_HELP_STRING([--disable-legacy-macros],
+                              [enable legacy macros for backwards compatibility purposes. Use with caution.\
+                              This can lead to unexpected consequences/behavior.])])
+test "x$enable_legacy_macros" = xno || enable_legacy_macros=yes
+AC_MSG_RESULT($enable_legacy_macros)
+if test "x$enable_legacy_macros" = xyes; then
+   AC_DEFINE([NETCDF_ENABLE_LEGACY_MACROS], 1, [If true, enable legacy macros in netcdf.h])
+fi
+
 # Does the user want to allow reading of remote data via range headers?
 AC_MSG_CHECKING([whether byte range support is enabled])
 AC_ARG_ENABLE([byterange],
@@ -1932,6 +1945,7 @@ AM_CONDITIONAL(USE_DAP, [test "x$enable_dap" = xyes]) # Alias
 # Provide protocol specific flags
 AM_CONDITIONAL(NETCDF_ENABLE_DAP, [test "x$enable_dap" = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_DAP4, [test "x$enable_dap4" = xyes])
+AM_CONDITIONAL(NETCDF_ENABLE_LEGACY_MACROS, [test "x$netcdf_enable_legacy_macros" = xyes])
 AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
 AM_CONDITIONAL(NETCDF_ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
@@ -2050,6 +2064,7 @@ AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
 AC_SUBST(HAS_DAP2,[$enable_dap])
 AC_SUBST(HAS_DAP4,[$enable_dap4])
+AC_SUBST(HAS_LEGACY_MACROS,[$enable_legacy_macros])
 AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_CDF5,[$enable_cdf5])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
@@ -2156,8 +2171,13 @@ elif test "x$with_plugin_dir" = xyes ; then # --with-plugin-dir, no argument
         if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
 	    PLUGIN_PATH="${ALLUSERSPROFILE}\\hdfd5\\lib\\plugin"
 	else
-	    PLUGIN_PATH="/usr/local/hdf5/lib/plugin"
-	fi
+      if test "x${prefix}" = xNONE ; then
+   	    PLUGIN_PATH="/usr/local/hdf5/lib/plugin"
+      else 
+         PLUGIN_PATH="${prefix}/hdf5/lib/plugin"
+      fi
+
+   fi
     fi
     # Use the lowest priority dir in the path
     if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then

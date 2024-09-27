@@ -9,11 +9,13 @@ This file contains a high-level description of this package's evolution. Release
 
 ## Known Issue
 
-* Parallel operation using `mpich 4.2.0` (the default on `Ubuntu 24.04`) results in 'unexpected results' when running `nc_test4/run_par_test.sh`.  This can be fixed by removing `mpich` and associated libraries and development packages and installing `mpich 4.2.2` by hand, or by using `openmpi` provided via `apt`.
+> Parallel operation using `mpich 4.2.0` (the default on `Ubuntu 24.04`) results in 'unexpected results' when running `nc_test4/run_par_test.sh`.  This can be fixed by removing `mpich` and associated libraries and development packages and installing `mpich 4.2.2` by hand, or by using `openmpi` provided via `apt`.
 
 ## Release Notes
 
 ### Release Candidate 2 - TBD
+
+> Note: To avoid a conflict between `_FillValue` and `libc++18`, we have introduced a new option, `--enable-legacy-macros` for autotools and `NETCDF_ENABLE_LEGACY_MACROS` for cmake.  These are turned on by default currently but will be turned off eventually.  Developers are encouraged to move away from the `FillValue` macro and replace it with the new `NC_FillValue` macro.  See [Github #2858](https://github.com/Unidata/netcdf-c/issues/2858) for more information. 
 
 * Provide better documentation for the .rc file mechanism and API. See [Github #2956](https://github.com/Unidata/netcdf-c/pull/2956) for more information.
 * Convert NCZarr V2 to store all netcdf-4 specific info as attributes. This improves interoperability with other Zarr implementations by no longer using non-standard keys. The price to be paid is that lazy attribute reading cannot be supported. See [Github #2836](https://github.com/Unidata/netcdf-c/pull/2936) for more information.
