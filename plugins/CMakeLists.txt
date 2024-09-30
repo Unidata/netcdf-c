@@ -118,7 +118,6 @@ else()
   buildplugin(h5bzip2 "h5bzip2" ${Bzip2_LIBRARIES})
 endif()
 
-
 # Installation
 if(ENABLE_PLUGIN_INSTALL)
 
