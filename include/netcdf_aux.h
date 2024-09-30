@@ -96,9 +96,104 @@ EXTERNL int ncaux_abort_compound(void* tag);
 EXTERNL int ncaux_add_field(void* tag,  const char *name, nc_type field_type,
 			   int ndims, const int* dimsizes);
 
+/**************************************************/
+/* Path-list Utilities */
+
+/* Opaque */
+struct NCPluginList;
+
+/**
+Parse a string into a sequence of path directories.
+
+The pathlist argument has the following syntax:
+    paths := <empty> | dirlist
+    dirlist := dir | dirlist separator dir
+    separator := ';' | ':'
+    dir := <OS specific directory path>
+
+@param pathlist a string encoding a list of directories
+@param sep  one of ';' | ':' | '\0' where '\0' means use the platform's default separator.
+@param dirs a pointer to an  NCPluginPath object for returning the number and vector of directories from the parse.
+@return ::NC_NOERR | NC_EXXX
+
+Note: If dirs->dirs is not NULL, then this function
+will allocate the space for the vector of directory path.
+The user is then responsible for free'ing that vector
+(or call ncaux_plugin_path_reclaim).
+
+Author: Dennis Heimbigner
+*/
+EXTERNL int ncaux_plugin_path_parse(const char* pathlist, char sep, struct NCPluginList* dirs);
+
+/**
+Concatenate a vector of directories with the separator between.
+This is more-or-less the inverse of the ncaux_plugin_path_parse function
+
+The resulting string has following syntax:
+    paths := <empty> | dirlist
+    dirlist := dir | dirlist separator dir
+    separator := ';' | ':'
+    dir := <OS specific directory path>
+    
+@param dirs a pointer to an  NCPluginList object giving the number and vector of directories to concatenate.
+@param sep one of ';', ':', or '\0'
+@param catlen length of the cat arg including a nul terminator
+@param cat user provided space for holding the concatenation; nul termination guaranteed if catlen > 0.
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+
+Note: If dirs->dirs is not NULL, then this function
+will allocate the space for the vector of directory path.
+The user is then responsible for free'ing that vector
+(or call ncaux_plugin_path_reclaim).
+
+Author: Dennis Heimbigner
+*/
+EXTERNL int ncaux_plugin_path_tostring(const struct NCPluginList* dirs, char sep, char** catp);
+
+/*
+Clear the contents of a NCPluginList object.
+@param dirs a pointer to an NCPluginList object giving the number and vector of directories to reclaim
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+
+Author: Dennis Heimbigner
+*/
+EXTERNL int ncaux_plugin_path_clear(struct NCPluginList* dirs);
+
+/*
+Reclaim a NCPluginList object possibly produced by ncaux_plugin_parse function.
+WARNING: do not call with a static or stack allocated object.
+@param dirs a pointer to an  NCPluginList object giving the number and vector of directories to reclaim
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+
+Author: Dennis Heimbigner
+*/
+EXTERNL int ncaux_plugin_path_reclaim(struct NCPluginList* dirs);
+
+/*
+Modify a plugin path set to append a new directory to the end.
+@param dirs a pointer to an  NCPluginList object giving the number and vector of directories to which 'dir' argument is appended.
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+
+Author: Dennis Heimbigner
+*/
+EXTERNL int ncaux_plugin_path_append(struct NCPluginList* dirs, const char* dir);
+
+/*
+Modify a plugin path set to prepend a new directory to the front.
+@param dirs a pointer to an  NCPluginList object giving the number and vector of directories to which 'dir' argument is appended.
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+
+Author: Dennis Heimbigner
+*/
+EXTERNL int ncaux_plugin_path_prepend(struct NCPluginList* dirs, const char* dir);
+
 #if defined(__cplusplus)
 }
 #endif
 
 #endif /*NCAUX_H*/
-

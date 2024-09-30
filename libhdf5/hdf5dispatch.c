@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "hdf5dispatch.h"
 
 #ifdef NETCDF_ENABLE_BYTERANGE
 #include "H5FDhttp.h"

@@ -57,6 +57,7 @@ static int computefieldinfo(struct NCAUX_CMPD* cmpd);
 static int filterspec_cvt(const char* txt, size_t* nparamsp, unsigned int* params);
 
 EXTERNL int nc_dump_data(int ncid, nc_type xtype, void* memory, size_t count, char** bufp);
+EXTERNL int nc_parse_plugin_pathlist(const char* path0, NClist* dirlist);
 
 /**************************************************/
 /*
@@ -615,7 +616,7 @@ ncaux_h5filterspec_parselist(const char* txt0, int* formatp, size_t* nspecsp, NC
 done:
     nullfree(spec);
     if(vector) {
-	int i;
+	size_t i;
         for(i=0;i<nspecs;i++)
 	    ncaux_h5filterspec_free(vector[i]);
 	nullfree(vector);
@@ -955,3 +956,209 @@ ncaux_dump_data(int ncid, int xtype, void* memory, size_t count, char** bufp)
     return nc_dump_data(ncid, xtype, memory, count, bufp);
 }
 
+/**************************************************/
+/* Path List Utilities */
+
+/* Path-list Parser:
+@param pathlist0 the string to parse
+@param dirs return the parsed directories -- see note below.
+@param sep the separator parsing: one of ';' | ':' | '\0', where zero means use platform default.
+@return NC_NOERR || NC_EXXX
+
+Note: If dirs->dirs is not NULL, then this function
+will allocate the space for the vector of directory path.
+The user is then responsible for free'ing that vector
+(or call ncaux_plugin_path_reclaim).
+*/
+EXTERNL int
+ncaux_plugin_path_parse(const char* pathlist0, char sep, NCPluginList* dirs)
+{
+    int stat = NC_NOERR;
+    size_t i;
+    char* path = NULL;
+    char* p;
+    size_t count;
+    size_t plen;
+    char seps[3] = "\0\0\0"; /* will contain all allowable separators */
+
+    if(dirs == NULL) {stat = NC_EINVAL; goto done;}
+
+    if(pathlist0 == NULL || pathlist0[0] == '\0') {dirs->ndirs = 0; goto done;}
+
+    /* If a separator is specified, use it, otherwise search for ';' or ':' */
+    seps[0] = sep;
+    if(sep == '\0') {seps[0] = ';'; seps[1] = ':';}
+
+    plen = strlen(pathlist0); /* assert plen > 0 */
+    if((path = malloc(plen+1+1))==NULL) {stat = NC_ENOMEM; goto done;}
+    memcpy(path,pathlist0,plen);
+    path[plen] = '\0'; path[plen+1] = '\0';  /* double null term */
+
+    for(count=0,p=path;*p;p++) {
+	if(strchr(seps,*p) == NULL)
+	    continue; /* non-separator */
+	else {
+	    *p = '\0';
+ 	    count++;
+	}
+    }
+    count++; /* count last piece */
+
+    /* Save and allocate */
+    dirs->ndirs = count;
+    if(dirs->dirs == NULL) {
+	if((dirs->dirs = (char**)calloc(count,sizeof(char*)))==NULL)
+	    {stat = NC_ENOMEM; goto done;}
+    }
+
+    /* capture the parsed pieces */
+    for(p=path,i=0;i<count;i++) {
+	size_t len = strlen(p);
+	dirs->dirs[i] = strdup(p);
+        p = p+len+1; /* point to next piece */
+    }
+
+done:
+    nullfree(path);
+    return stat;
+}
+
+/*
+Path-list concatenator where given a vector of directories,
+concatenate all dirs with specified separator.
+If the separator is 0, then use the default platform separator.
+
+@param dirs the counted directory vector to concatenate
+@param sep one of ';', ':', or '\0'
+@param catp return the concatenation; WARNING: caller frees.
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+*/
+EXTERNL int
+ncaux_plugin_path_tostring(const NCPluginList* dirs, char sep, char** catp)
+{
+    int stat = NC_NOERR;
+    NCbytes* buf = ncbytesnew();
+    size_t i;
+
+    if(dirs == NULL) {stat = NC_EINVAL; goto done;}
+    if(dirs->ndirs > 0 && dirs->dirs == NULL) {stat = NC_EINVAL; goto done;}
+
+    if(sep == '\0')
+#ifdef _WIN32
+        sep = ';';
+#else
+	sep = ':';
+#endif    
+    if(dirs->ndirs > 0) {
+	for(i=0;i<dirs->ndirs;i++) {
+	    if(i>0) ncbytesappend(buf,sep);
+	    if(dirs->dirs[i] != NULL) ncbytescat(buf,dirs->dirs[i]);
+	}
+    }
+    ncbytesnull(buf);
+    if(catp) *catp = ncbytesextract(buf);
+done:
+    ncbytesfree(buf);
+    return stat;
+}
+
+/*
+Clear an NCPluginList object possibly produced by ncaux_plugin_parse function.
+@param dirs the object to clear
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+*/
+EXTERNL int
+ncaux_plugin_path_clear(NCPluginList* dirs)
+{
+    int stat = NC_NOERR;
+    size_t i;
+    if(dirs == NULL || dirs->ndirs == 0 || dirs->dirs == NULL) goto done;
+    for(i=0;i<dirs->ndirs;i++) {
+	if(dirs->dirs[i] != NULL) free(dirs->dirs[i]);
+	dirs->dirs[i] = NULL;
+    }
+    free(dirs->dirs);
+    dirs->dirs = NULL;
+    dirs->ndirs = 0;
+done:
+    return stat;
+}
+
+/*
+Reclaim an NCPluginList object.
+@param dir the object to reclaim
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+*/
+EXTERNL int
+ncaux_plugin_path_reclaim(NCPluginList* dirs)
+{
+    int stat = NC_NOERR;
+    if((stat = ncaux_plugin_path_clear(dirs))) goto done;
+    nullfree(dirs);
+done:
+    return stat;
+}
+
+/*
+Modify a plugin path set to append a new directory to the end.
+@param dirs a pointer to an  NCPluginPath object giving the number and vector of directories to which 'dir' argument is appended.
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+
+WARNING: dirs->dirs may be reallocated.
+
+Author: Dennis Heimbigner
+*/
+
+EXTERNL int
+ncaux_plugin_path_append(NCPluginList* dirs, const char* dir)
+{
+    int stat = NC_NOERR;
+    char** newdirs = NULL;
+    char** olddirs = NULL;
+    if(dirs == NULL || dir == NULL) {stat = NC_EINVAL; goto done;}
+    olddirs = dirs->dirs; dirs->dirs = NULL;
+    if((newdirs = (char**)calloc(dirs->ndirs+1,sizeof(char*)))==NULL)
+	{stat = NC_ENOMEM; goto done;}
+    if(dirs->ndirs > 0)
+	memcpy(newdirs,olddirs,sizeof(char*)*dirs->ndirs);
+    nullfree(olddirs);
+    dirs->dirs = newdirs; newdirs = NULL;
+    dirs->dirs[dirs->ndirs] = nulldup(dir);
+    dirs->ndirs++;
+done:
+    return stat;
+}
+
+/*
+Modify a plugin path set to prepend a new directory to the front.
+@param dirs a pointer to an  NCPluginList object giving the number and vector of directories to which 'dir' argument is appended.
+@return ::NC_NOERR
+@return ::NC_EINVAL for illegal arguments
+
+WARNING: dirs->dirs may be reallocated.
+
+Author: Dennis Heimbigner
+*/
+EXTERNL int
+ncaux_plugin_path_prepend(struct NCPluginList* dirs, const char* dir)
+{
+    int stat = NC_NOERR;
+    char** newdirs = NULL;
+    char** olddirs = NULL;
+    if(dirs == NULL || dir == NULL) {stat = NC_EINVAL; goto done;}
+    olddirs = dirs->dirs; dirs->dirs = NULL;
+    if((newdirs = (char**)calloc(dirs->ndirs+1,sizeof(char*)))==NULL)
+	{stat = NC_ENOMEM; goto done;}
+    if(dirs->ndirs > 0)
+	memcpy(&newdirs[1],olddirs,sizeof(char*)*dirs->ndirs);
+    nullfree(olddirs);
+    dirs->dirs = newdirs; newdirs = NULL;
+    dirs->dirs[0] = nulldup(dir);
+    dirs->ndirs++;
+done:
+    return stat;
+}

@@ -62,4 +62,5 @@ h5_err_macros.h CMakeLists.txt run_h5_zstd_tests.sh
 # Clean up test results.
 CLEANFILES = tst_h_*.h5
 
-DISTCLEANFILES = run_par_test.sh
+DISTCLEANFILES = run_par_test.sh findplugin.sh
+
