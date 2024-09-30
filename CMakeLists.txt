@@ -54,7 +54,6 @@ if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
   endif ()
 endif ()
 
-
 ################################
 # The target
 ################################
@@ -71,8 +70,6 @@ endif()
 
 add_library(netcdf)
 add_library(netCDF::netcdf ALIAS netcdf)
-
-
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
@@ -363,12 +360,12 @@ endif()
 set(DEFAULT_CHUNK_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
 set(DEFAULT_CHUNK_CACHE_SIZE 16777216U CACHE STRING "Default Chunk Cache Size.")
 set(DEFAULT_CHUNKS_IN_CACHE 1000 CACHE STRING "Default number of chunks in cache.")
-set(DEFAULT_CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy (a number between 0 and 1, inclusive.")
+set(DEFAULT_CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy (a number between 0 and 1, inclusive).")
 
 # HDF5 default cache size values
 set(CHUNK_CACHE_SIZE ${DEFAULT_CHUNK_CACHE_SIZE} CACHE STRING "Default HDF5 Chunk Cache Size.")
 set(CHUNK_CACHE_NELEMS ${DEFAULT_CHUNKS_IN_CACHE} CACHE STRING "Default maximum number of elements in cache.")
-set(CHUNK_CACHE_PREEMPTION ${DEFAULT_CHUNK_CACHE_PREEMPTION} CACHE STRING "Default file chunk cache preemption policy for HDf5 files(a number between 0 and 1, inclusive.")
+set(CHUNK_CACHE_PREEMPTION ${DEFAULT_CHUNK_CACHE_PREEMPTION} CACHE STRING "Default file chunk cache preemption policy for HDf5 files(a number between 0 and 1, inclusive.)")
 
 set(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 set(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
@@ -660,8 +657,29 @@ if(NOT ENABLE_PLUGIN_INSTALL)
     unset(NETCDF_PLUGIN_INSTALL_DIR CACHE)
 endif()
 
-if(ENABLE_PLUGIN_INSTALL)
-    if(NOT DEFINED NETCDF_PLUGIN_INSTALL_DIR)
+# Internally, the variable HDF5_PLUGIN_PATH
+# is always used as a surrogate for the default
+# plugin path. If it was not defined by the user,
+# then set it internally.
+if((NOT DEFINED HDF5_PLUGIN_PATH) OR ("${HDF5_PLUGIN_PATH}" STREQUAL ""))
+  if(ISMSVC OR ISMINGW)
+    string(REPLACE "\\" "/" AUP "$ENV{ALLUSERSPROFILE}")
+    set(HDF5_PLUGIN_PATH "${AUP}/hdf5/lib/plugin")
+  else()
+    set(HDF5_PLUGIN_PATH "/usr/local/hdf5/lib/plugin")
+  endif()
+  set(ENV{HDF5_PLUGIN_PATH} "${HDF5_PLUGIN_PATH}")
+endif()
+
+# The --with-plugin-dir gives the user control of the plugin
+# directory. If set to 'yes' (the default), then the last directory in
+# HDF5_PLUGIN_PATH is used (see above).
+# If a specific directory is provided, it will be used.
+# If 'no', then plugins will not be installed.
+
+if(NETCDF_ENABLE_PLUGIN_INSTALL)
+    if(DEFINED NETCDF_PLUGIN_INSTALL_DIR)
+      set(NETCDF_PLUGIN_INSTALL_DIR "${HDF5_PLUGIN_PATH}")
       # Default to HDF5_PLUGIN_PATH or its default directories
       if(DEFINED ENV{HDF5_PLUGIN_PATH})
         set(NETCDF_PLUGIN_INSTALL_DIR "$ENV{HDF5_PLUGIN_PATH}")
@@ -682,15 +700,7 @@ endif(ENABLE_PLUGIN_INSTALL)
 
 if(ENABLE_PLUGIN_INSTALL)
   # Use the lowest priority dir in the path
-  if(NOT ISMSVC AND NOT ISMINGW)
-    string(REPLACE ":" ";" PATH_LIST ${NETCDF_PLUGIN_INSTALL_DIR})
-  else()
-    set(PATH_LIST ${NETCDF_PLUGIN_INSTALL_DIR})
-  endif()
-
-  # Get last element
-  list(GET PATH_LIST -1 NETCDF_PLUGIN_INSTALL_DIR)
-  set(PLUGIN_INSTALL_DIR_SETTING "${NETCDF_PLUGIN_INSTALL_DIR}")
+  getlastdir("${HDF5_PLUGIN_PATH}" "NETCDF_PLUGIN_INSTALL_DIR")
   message(STATUS "Final value of-DPLUGIN_INSTALL_DIR=${NETCDF_PLUGIN_INSTALL_DIR}")
 else() # No option specified
     unset(NETCDF_PLUGIN_INSTALL_DIR)
@@ -753,10 +763,10 @@ if(NOT WIN32)
 endif()
 
 # Options for S3 Support
-#option(NETCDF_ENABLE_S3 "Enable S3 support." OFF)
 option(NETCDF_ENABLE_S3_AWS "Enable S3 support via AWS-CPP-SDK" OFF)
 option(NETCDF_ENABLE_S3_INTERNAL "Enable S3 Internal support." OFF)
 
+#option(NETCDF_ENABLE_S3 "Enable S3 support." OFF)
 cmake_dependent_option(NETCDF_ENABLE_S3 "Enable S3 Support" ON "NETCDF_ENABLE_S3_AWS OR NETCDF_ENABLE_S3_INTERNAL" OFF)
 
 option(NETCDF_ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of NETCDF_ENABLE_S3" ${NETCDF_ENABLE_S3})
@@ -877,7 +887,7 @@ if(NETCDF_ENABLE_TESTS)
   # See https://github.com/Unidata/netcdf-c/issues/2627 for more information.
   ###
   option(NETCDF_ENABLE_BENCHMARKS "Run benchmark Tests." OFF)
-
+  set(BUILD_BENCHMARKS ${NETCDF_ENABLE_BENCHMARKS} CACHE BOOL "alias for NETCDF_ENABLE_BENCHMARKS")
 
   ###
   # End known-failures.
@@ -1380,8 +1390,8 @@ endif(NETCDF_ENABLE_MMAP)
 # Used in the `configure_file` calls below
 set(ISCMAKE "yes")
 if(MSVC)
-  set(ISMSVC ON CACHE BOOL "" FORCE)
-  set(REGEDIT ON CACHE BOOL "" FORCE)
+  set(ISMSVC yes CACHE BOOL "" FORCE)
+  set(REGEDIT yes CACHE BOOL "" FORCE)
   # Get windows major version and build number
   execute_process(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
   if(WININFO STREQUAL "")
@@ -1563,8 +1573,6 @@ endif()
 # EXPORT_FILE_NAME netcdf_Export.h
 # STATIC_DEFINE netcdf_BUILT_AS_STATIC
 #)
-
-
 
 ##
 # Brute force, grab all of the dlls from the dependency directory,

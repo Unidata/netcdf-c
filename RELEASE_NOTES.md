@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
+* Extend the netcdf API to support programmatic changes to the plugin search path. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????) for more information.
+
 ## Known Issue
 
 > Parallel operation using `mpich 4.2.0` (the default on `Ubuntu 24.04`) results in 'unexpected results' when running `nc_test4/run_par_test.sh`.  This can be fixed by removing `mpich` and associated libraries and development packages and installing `mpich 4.2.2` by hand, or by using `openmpi` provided via `apt`.
