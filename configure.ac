@@ -2038,7 +2038,7 @@ else
    NC_LIBS="$with_netcdf_c_lib"
 fi
 if test "x$enable_shared" != xyes; then
-   NC_LIBS="$LDFLAGS $NC_LIBS $LIBS"
+   NC_LIBS="$LDFLAGS $NC_LIBS"
 fi
 
 case "x$target_os" in
