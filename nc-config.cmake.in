@@ -14,7 +14,8 @@ cc="@CMAKE_C_COMPILER@"
 cflags="-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
 libs="-L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ @NC_LIBS@"
 libsprivate="@LIBS@"
-HAS_STATIC=""
+HAS_STATIC="FALSE"
+PRINTLIBS="FALSE"
 
 has_dap2="@NETCDF_ENABLE_DAP2@"
 if [ -z $has_dap2 -o "$has_dap2" = "OFF" ]; then
@@ -228,6 +229,9 @@ fi
 
 for i in "$@"; do
     case $i in
+        --libs)
+            PRINTLIBS="TRUE"
+            ;;
         --static)
             HAS_STATIC="TRUE"
             ;;
@@ -349,7 +353,7 @@ while test $# -gt 0; do
 
     --libs)
         if [ "x$HAS_STATIC" = "xTRUE" ]; then
-            echo $libs $libsprivate
+            echo $LDFLAGS $libs $libsprivate
         else
             echo $libs
         fi
@@ -369,7 +373,9 @@ while test $# -gt 0; do
         
         ;;
     --static)
-
+        if [ "x$PRINTLIBS" != "xTRUE" ]; then
+            echo $LDFLAGS $libs $libsprivate
+        fi
         ;;
 
     --prefix)
