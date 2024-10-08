@@ -832,7 +832,7 @@ ncuriremoveparam(NCURI* uri, const char* key)
 static int
 ncfind(NClist* params, const char* key)
 {
-    int i;
+    size_t i;
     if(key == NULL) return -1;
     if(params == NULL) return -1;
     for(i=0;i<nclistlength(params);i+=2) {

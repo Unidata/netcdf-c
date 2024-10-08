@@ -965,6 +965,7 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
                          @abs_top_srcdir@/docs/all-error-codes.md \
                          @abs_top_srcdir@/docs/filters.md \
                          @abs_top_srcdir@/docs/quickstart_filters.md \
+                         @abs_top_srcdir@/docs/pluginpath.md \
                          @abs_top_srcdir@/docs/quickstart_paths.md \
                          @abs_top_srcdir@/docs/quickstart_env.md \
                          @abs_top_srcdir@/include/netcdf.h \

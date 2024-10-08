@@ -1,4 +1,4 @@
-o#                                               -*- Autoconf -*-
+#                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
 # This is part of Unidata's netCDF package. Copyright 2005-2018, see
@@ -936,8 +936,6 @@ else
    AC_MSG_RESULT([${have_zip}])
    enable_nczarr_zip=${have_zip} # alias
 
-
-
    AC_MSG_CHECKING([whether nczarr zip support is enabled])
    AC_MSG_RESULT([${enable_nczarr_zip}])
 
@@ -949,14 +947,9 @@ else
    AC_MSG_CHECKING([whether netcdf S3 support should be enabled])
    AC_ARG_ENABLE([s3],
                [AS_HELP_STRING([--enable-s3],
-                                 [enable netcdf S3 support])])
+                                 [enable netcdf S3 support (default off)])])
    test "x$enable_s3" = xyes || enable_s3=no
    AC_MSG_RESULT($enable_s3)
-
-   if test "x$enable_remote_functionality" = xno ; then
-   AC_MSG_WARN([--disable-remote-functionality => --disable-s3])
-   enable_s3=no
-   fi
 
    # --enable-nczarr-s3 is synonym for --enable-s3 (but...)
    AC_MSG_CHECKING([whether netcdf NCZarr S3 support should be enabled])
@@ -966,10 +959,15 @@ else
    AC_MSG_RESULT([$enable_nczarr_s3 (Deprecated) Please use --enable-s3)])
 
    # Set enable_s3 instead of enable_nczarr_s3
-   if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes && test "x$enable_remote_functionality" = xyes; then
+   if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes ; then
    enable_s3=yes # back compatibility
    fi
    unset enable_nczarr_s3
+
+   if test "x$enable_remote_functionality" = xno ; then
+   AC_MSG_WARN([--disable-remote-functionality => --disable-s3])
+   enable_s3=no
+   fi
 
    # Note we check for the library after checking for enable_s3
    # because for some reason this fails if we unconditionally test for sdk
@@ -1166,7 +1164,7 @@ AC_ARG_ENABLE([benchmarks],
                               are timed. We use these tests to check netCDF performance.])])
 test "x$enable_benchmarks" = xyes || enable_benchmarks=no
 AC_MSG_RESULT($enable_benchmarks)
-if test "x$enable_HDF5" = xno -a "x$enable_benchmarks" = xyes; then
+if test "x$enable_hdf5" = xno -a "x$enable_benchmarks" = xyes; then
 AC_MSG_ERROR([Can't use benchmarks if HDF5 is disabled.])
 fi
 AM_CONDITIONAL(BUILD_BENCHMARKS, [test x$enable_benchmarks = xyes])
@@ -1645,7 +1643,7 @@ enable_hdf5_szip=no
 has_hdf5_ros3=no
 
 if test "x$enable_hdf5" = xyes; then
-
+   AC_DEFINE([NETCDF_ENABLE_HDF5], [1], [if true, use HDF5])
    AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
@@ -2145,57 +2143,62 @@ fi
 
 AC_SUBST(STD_FILTERS,[$std_filters])
 
+# Internally, the variable HDF5_PLUGIN_PATH
+# is always used as a surrogate for the default
+# plugin path. If it was not defined by the user,
+# then set it internally.
+if test "x${HDF5_PLUGIN_PATH}" = x ; then
+  if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
+    HDF5_PLUGIN_PATH="${ALLUSERSPROFILE}\\hdfd5\\lib\\plugin"
+  else
+    HDF5_PLUGIN_PATH="/usr/local/hdf5/lib/plugin"
+  fi
+fi
+
 # The --with-plugin-dir gives the user control of the plugin
-# directory. If set to 'yes' (the default), then first directory in
-# the HDF5_PLUGIN_PATH, or /usr/local/hdf5/lib/plugin (the default
-# HDF5 plugin dir) will be used. If another directory is provided, it
-# will be used. If 'no', then plugins will not be installed.
+# directory. If set to 'yes' (the default), then the last directory in
+# HDF5_PLUGIN_PATH is used (see above).
+# If a specific directory is provided, it will be used.
+# If 'no', then plugins will not be installed.
+
 AC_MSG_CHECKING([whether and where we should install plugins])
 AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>|yes|no|--without-plugin-dir],
               [Install selected standard filters in specified or default directory])],
 	      [],[with_plugin_dir=no])
+AC_MSG_RESULT([$with_plugin_dir])
+# Using selected filter options forces installation
 if test "x$have_zstd" = xyes; then
    if test "x$enable_plugins" = xyes && test "x$with_plugin_dir" = xno; then
+      AC_MSG_WARN([--enable_filter-zstd => --with-plugin-dir.])
       with_plugin_dir=yes
    fi
 fi
-AC_MSG_RESULT([$with_plugin_dir])
 if test "x$with_plugin_dir" = xno ; then # option missing|disabled
     with_plugin_dir=no
     with_plugin_dir_setting="N.A."
     enable_plugin_dir=no
-elif test "x$with_plugin_dir" = xyes ; then # --with-plugin-dir, no argument
-    # Default to last dir (lowest search priority) in HDF5_PLUGIN_PATH
-    PLUGIN_PATH="$HDF5_PLUGIN_PATH"
-    if test "x${PLUGIN_PATH}" = x ; then
-        if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
-	    PLUGIN_PATH="${ALLUSERSPROFILE}\\hdfd5\\lib\\plugin"
-	else
-      if test "x${prefix}" = xNONE ; then
-   	    PLUGIN_PATH="/usr/local/hdf5/lib/plugin"
-      else 
-         PLUGIN_PATH="${prefix}/hdf5/lib/plugin"
-      fi
-
-   fi
+elif test "x$with_plugin_dir" != x ; then
+    if test "x$with_plugin_dir" != xyes && test "x$with_plugin_dir" != xno ; then
+      # Presume true directory
+      HDF5_PLUGIN_PATH="${with_plugin_dir}"
     fi
-    # Use the lowest priority dir in the path
-    if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
-      PLUGIN_DIR=`echo "$PLUGIN_PATH" | tr ';' ' '`
-    else
-      PLUGIN_DIR=`echo "$PLUGIN_PATH" | tr ':' ' '`
-    fi
-    for pp in ${PLUGIN_DIR} ; do last="$pp"; done
-    PLUGIN_DIR="$last"
-    with_plugin_dir_setting="$PLUGIN_DIR"
-    # canonical form is all forward slashes
-    with_plugin_dir=`echo "$PLUGIN_DIR" | tr '\\\\' '/'`
-    enable_plugin_dir=yes
-    AC_MSG_NOTICE([Defaulting to --with-plugin-dir=$with_plugin_dir])
-else # --with-plugin-dir=<dir|path>
-    with_plugin_dir_setting="$with_plugin_dir"
-    enable_plugin_dir=yes
 fi
+
+# Use the last dir (lowest search priority) in HDF5_PLUGIN_PATH
+PLUGIN_PATH="$HDF5_PLUGIN_PATH"
+if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
+  PLUGIN_DIR=`echo "$PLUGIN_PATH" | tr ';' ' '`
+else
+  PLUGIN_DIR=`echo "$PLUGIN_PATH" | tr ':;' '  '`
+fi
+last=
+for pp in ${PLUGIN_DIR} ; do last="$pp"; done
+PLUGIN_DIR="$last"
+with_plugin_dir_setting="$PLUGIN_DIR"
+# canonical form is all forward slashes
+with_plugin_dir=`echo "$PLUGIN_DIR" | tr '\\\\' '/'`
+enable_plugin_dir=yes
+AC_MSG_NOTICE([Final --with-plugin-dir=$with_plugin_dir])
 AM_CONDITIONAL([ENABLE_PLUGIN_DIR], [test "x$enable_plugin_dir" = xyes])
 AC_SUBST([PLUGIN_INSTALL_DIR], [$with_plugin_dir])
 # Better value for libnetcdf.settings

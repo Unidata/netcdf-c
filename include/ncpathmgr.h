@@ -169,6 +169,9 @@ EXTERNL int NChasdriveletter(const char* path);
    because it first converts to wide character and then to utf8. */
 EXTERNL int NCpath2utf8(const char* path, char** u8p);
 
+/* Convert stdin, stdout, stderr to use binary mode (\r\n -> \n) */
+EXTERNL int NCstdbinary(void);
+
 /* Wrap various stdio and unistd IO functions.
 It is especially important to use for windows so that
 NCpathcvt (above) is invoked on the path.

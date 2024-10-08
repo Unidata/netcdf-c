@@ -59,7 +59,8 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
    }
    else
    {
-      int i, ret, equal1;
+      size_t i;
+      int ret, equal1;
       char name1[NC_MAX_NAME];
       char name2[NC_MAX_NAME];
       size_t size1, size2;
@@ -283,7 +284,9 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
    char name[NC_MAX_NAME + 1];
    char att_name[NC_MAX_NAME + 1];
    nc_type xtype;
-   int ndims, dimids_in[NC_MAX_VAR_DIMS], dimids_out[NC_MAX_VAR_DIMS], natts, real_ndims;
+   int ndims; 
+   int dimids_in[NC_MAX_VAR_DIMS], dimids_out[NC_MAX_VAR_DIMS];
+   int natts, real_ndims;
    int varid_out;
    int a, d;
    void *data = NULL;
@@ -295,14 +298,14 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
    int src_format, dest_format;
    char type_name[NC_MAX_NAME+1];
    char dimname_in[NC_MAX_NAME + 1];
-   int i;
+   size_t i;
 
    /* Learn about this var. */
    if ((retval = nc_inq_var(ncid_in, varid_in, name, &xtype,
                             &ndims, dimids_in, &natts)))
       return retval;
    /* find corresponding dimids in the output file */
-   for(i = 0; i < ndims; i++) {
+   for(i = 0; i < (size_t)ndims; i++) {
       dimids_out[i] = dimids_in[i];
       if ((retval = nc_inq_dimname(ncid_in, dimids_in[i], dimname_in)))
          return retval;

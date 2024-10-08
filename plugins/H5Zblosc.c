@@ -107,6 +107,7 @@ param[6] -- compressor to use
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "netcdf_filter_build.h"
 #include <netcdf_json.h>
@@ -374,7 +375,6 @@ const H5Z_class2_t blosc_H5Filter[1] = {
         (H5Z_func_t)(blosc_filter),    /* The filter function */
     }
 };
-
 
 H5PL_type_t H5PLget_plugin_type(void) { return H5PL_TYPE_FILTER; }
 const void* H5PLget_plugin_info(void) { return blosc_H5Filter; }

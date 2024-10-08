@@ -11,6 +11,7 @@ target_sources(dispatch
     dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8.c dinternal.c doffsets.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c utf8proc.h utf8proc.c dpathmgr.c dutil.c drc.c dauth.c dreadonly.c dnotnc4.c dnotnc3.c dinfermodel.c
     daux.c dinstance.c dinstance_intern.c
     dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c
+    ncproplist.c 
 )
 
 if (NETCDF_ENABLE_DLL)
@@ -33,7 +34,7 @@ set_property(SOURCE dinstance_intern.c dinstance.c dvarput.c
 # Netcdf-4 only functions. Must be defined even if not used
 target_sources(dispatch
   PRIVATE
-    dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c
+    dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c dplugins.c
 )
 
 if(BUILD_V2)

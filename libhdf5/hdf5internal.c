@@ -15,9 +15,11 @@
  */
 
 #include "config.h"
+#include <stddef.h>
+#include "netcdf.h"
+#include "ncplugins.h"
 #include "hdf5internal.h"
 #include "hdf5err.h" /* For BAIL2 */
-#include <stddef.h>
 #ifdef _WIN32
 #include <windows.h>
 #endif
