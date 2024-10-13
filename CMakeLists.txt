@@ -627,92 +627,55 @@ option(NETCDF_ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it
 option(NETCDF_ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
 
 # If user wants, then install selected plugins (default on)
-set(NETCDF_PLUGIN_INSTALL_DIR "YES" CACHE STRING "Whether and where we should install plugins; defaults to yes")
+
+set(NETCDF_WITH_PLUGIN_DIR "YES" CACHE STRING "Whether and where we should install plugins; defaults to yes")
 if(NOT NETCDF_ENABLE_PLUGINS)
-  unset(NETCDF_PLUGIN_INSTALL_DIR CACHE)
+  set(NETCDF_WITH_PLUGIN_DIR "NO" CACHE STRING "NETCDF_ENABLE_PLUGIS=no => NETCDF_WITH_PLUGIN_DIR=no")
 endif()
 
-# This is ugly, but seems necessary because of CMake's boolean structure
-set(boolval FALSE)
-if(DEFINED NETCDF_PLUGIN_INSTALL_DIR)
-  booleanize(${NETCDF_PLUGIN_INSTALL_DIR} boolval)
-  if(boolval)
-    set(ENABLE_PLUGIN_INSTALL YES)
-    # No actual value was specified
-    unset(NETCDF_PLUGIN_INSTALL_DIR CACHE)
-  else()
-    if(boolval STREQUAL "NOTFOUND")
-      # Must be an actual value
-      set(ENABLE_PLUGIN_INSTALL YES)
-    else()
-      set(ENABLE_PLUGIN_INSTALL NO)
-    endif()
-  endif()
+# Note: the term PLATFORMDEFAULT stands for:
+# -- /usr/loca/hdf5/lib/plugin If on a *nix* machine
+# -- %ALLUSERSPROFILE%/hdf5/lib/plugins If on a windows or Mingw platform
+if(ISMSVC OR ISMINGW)
+    set(PLATFORMDEFAULT "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
+    set(PLATFORMSEP ";")
 else()
-  set(ENABLE_PLUGIN_INSTALL NO)
+    set(PLATFORMDEFAULT "/usr/local/hdf5/lib/plugin")
+    set(PLATFORMSEP ":")
 endif()
 
-# Ensure no defined plugin dir if not enabled
-if(NOT ENABLE_PLUGIN_INSTALL)
-    unset(NETCDF_PLUGIN_INSTALL_DIR CACHE)
+# Internally, the variable DEFAULT_PLUGIN_INSTALL_DIR is the default
+# directory into which plugins are installed; this may be undefined if
+# plugin installation is disabled (the usual case). It is exported as
+# NETCDF_DEFAULT_PLUGIN_INSTALL_DIR.
+#
+# Similarly the variable DEFAULT_PLUGIN_SEARH_PATH is the default list
+# of directories to search to locate plugins.
+#
+# See configure.ac to see a table defining the rules for computing these two variables.
+
+if (DEFINED NETCDF_WITH_PLUGIN_DIR) # Table row 2
+    set(DEFAULT_PLUGIN_INSTALL_DIR "${NETCDF_WITH_PLUGIN_DIR}")
+    set(DEFAULT_PLUGIN_SEARCH_PATH "${NETCDF_WITH_PLUGIN_DIR}${PLATFORMSEP}${PLATFORMDEFAULT")
+elseif (DEFINED CMAKE_INSTALL_PREFIX) # Table row 3
+    set(DEFAULT_PLUGIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/hdf5/lib/plugin")
+    set(DEFAULT_PLUGIN_SEARCH_PATH "${NETCDF_WITH_PLUGIN_DIR}${PLATFORSEP}${PLATFORMDEFAULT}")
+else # Table row 1
+    unset(DEFAULT_PLUGIN_INSTALL_DIR)
+    set(DEFAULT_PLUGIN_SEARCH_PATH "${PLATFORMDEFAULT}")
 endif()
+# canonical form is all forward slashes
+string(replace "\\\\" "/" DEFAULT_PLUGIN_INSTALL_DIR "${DEFAULT_PLUGIN_INSTALL_DIR}")
+string(replace "\\\\" "/" DEFAULT_PLUGIN_SEARCH_PATH "${DEFAULT_PLUGIN_SEARCH_PATH}")
 
-# Internally, the variable HDF5_PLUGIN_PATH
-# is always used as a surrogate for the default
-# plugin path. If it was not defined by the user,
-# then set it internally.
-if((NOT DEFINED HDF5_PLUGIN_PATH) OR ("${HDF5_PLUGIN_PATH}" STREQUAL ""))
-  if(ISMSVC OR ISMINGW)
-    string(REPLACE "\\" "/" AUP "$ENV{ALLUSERSPROFILE}")
-    set(HDF5_PLUGIN_PATH "${AUP}/hdf5/lib/plugin")
-  else()
-    if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-      set(HDF5_PLUGIN_PATH "/usr/local/hdf5/lib/plugin")
-    else()
-      set(HDF5_PLUGIN_PATH "${CMAKE_INSTALL_PREFIX}/hdf5/lib/plugin")
-    endif(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  endif()
-  set(ENV{HDF5_PLUGIN_PATH} "${HDF5_PLUGIN_PATH}")
-endif()
-
-# The --with-plugin-dir gives the user control of the plugin
-# directory. If set to 'yes' (the default), then the last directory in
-# HDF5_PLUGIN_PATH is used (see above).
-# If a specific directory is provided, it will be used.
-# If 'no', then plugins will not be installed.
-
-if(NETCDF_ENABLE_PLUGIN_INSTALL)
-    if(DEFINED NETCDF_PLUGIN_INSTALL_DIR)
-      set(NETCDF_PLUGIN_INSTALL_DIR "${HDF5_PLUGIN_PATH}")
-      # Default to HDF5_PLUGIN_PATH or its default directories
-      if(DEFINED ENV{HDF5_PLUGIN_PATH})
-        set(NETCDF_PLUGIN_INSTALL_DIR "$ENV{HDF5_PLUGIN_PATH}")
-      else()
-        if(ISMSVC OR ISMINGW)
-	        set(NETCDF_PLUGIN_INSTALL_DIR "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
-	      else()
-          if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-            set(NETCDF_PLUGIN_INSTALL_DIR "/usr/local/hdf5/lib/plugin")
-          else()
-            set(NETCDF_PLUGIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/hdf5/lib/plugin")
-          endif(NOT DEFINED CMAKE_INSTALL_PREFIX)
-        endif(ISMSVC OR ISMINGW)
-      endif(DEFINED ENV{HDF5_PLUGIN_PATH})
-      message(STATUS "Defaulting to -DPLUGIN_INSTALL_DIR=${NETCDF_PLUGIN_INSTALL_DIR}")
-    endif()
-endif(NETCDF_ENABLE_PLUGIN_INSTALL)
-
-if(ENABLE_PLUGIN_INSTALL)
-  # Use the lowest priority dir in the path
-  getlastdir("${HDF5_PLUGIN_PATH}" "NETCDF_PLUGIN_INSTALL_DIR")
-  message(STATUS "Final value of-DPLUGIN_INSTALL_DIR=${NETCDF_PLUGIN_INSTALL_DIR}")
-else() # No option specified
-    unset(NETCDF_PLUGIN_INSTALL_DIR)
-    unset(NETCDF_PLUGIN_INSTALL_DIR CACHE)
-    set(PLUGIN_INSTALL_DIR_SETTING "N.A.")
-endif()
-
-message(STATUS "ENABLE_PLUGIN_INSTALL=${ENABLE_PLUGIN_INSTALL} PLUGIN_INSTALL_DIR=${NETCDF_PLUGIN_INSTALL_DIR}")
+# Inferences
+if (DEFINED DEFAULT_PLUGIN_INSTALL_DIR)
+    set(ENABLE_PLUGIN_DIR yes)
+else
+    set(ENABLE_PLUGIN_DIR no)
+fi
+set(NETCDF_PLUGIN_INSTALL_DIR "${DEFAULT_PLUGIN_INSTALL_DIR}")
+set(NETCDF_PLUGIN_SEARCH_PATH "${DEFAULT_PLUGIN_SEARCH_PATH}")
 
 # Try to enable NCZarr zip support
 option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ${NETCDF_ENABLE_NCZARR})

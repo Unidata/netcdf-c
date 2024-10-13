@@ -26,20 +26,24 @@
 #endif
 
 #include "netcdf.h"
+#include "netcdf_filter.h"
+#include "netcdf_aux.h"
 #include "ncpathmgr.h"
+#include "ncbytes.h"
 
 static const char* USAGE =
-"ncpathcvt [-c|-C|-m|-u|-w] [-h] [-e] [-F] [-d <driveletter>] [-B<char>] [-k] [-p] PATH\n"
+"ncpathcvt [-c|-m|-u|-w] [-e] [-h] [-k] [-p] [-x] [-F] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
 "Options\n"
 "  -h help"
 "  -e add backslash escapes to '\' and ' '\n"
-"  -d <driveletter> use driveletter when needed; defaults to 'c'\n"
 "  -B <char> convert occurrences of <char> to blank\n"
+"  -D <driveletter> use driveletter when needed; defaults to 'c'\n"
 "  -F convert occurrences of '\\' to '/'"
+"  -S <char> use <char> as path separator when parsing;\n"
+"     currently limited to ';' or ':' but defaults to ';'\n"
 "Output type options:\n"
 "  -c convert to Cygwin form of path\n"
-"  -C return canonical form of path\n"
-"  -m convert to MSYS form of path\n"
+"  -m convert to MSYS form of path: currently an alias for -w\n"
 "  -u convert to Unix form of path\n"
 "  -w convert to Windows form of path\n"
 "Other options:\n"
@@ -56,10 +60,10 @@ struct Options {
     int escapes;
     int drive;
     int debug;
-    int canon;
     int blank;
     int slash;
     int pathkind;
+    int sep;
 } cvtoptions;
 
 static char* escape(const char* path);
@@ -187,36 +191,65 @@ printpathkind(const char* path)
 }
 
 int
+processdir(const char* indir, char** cvtdirp)
+{
+    char* cvtdir = NULL;
+
+    if(cvtoptions.target == NCPD_UNKNOWN) {
+        cvtdir = NCpathcvt(indir);
+    } else {
+        cvtdir = NCpathcvt_test(indir,cvtoptions.target,(char)cvtoptions.drive);
+    }
+
+    if(cvtdir && cvtoptions.escapes) {
+	char* dir = cvtdir; cvtdir = NULL;
+        cvtdir = escape(dir);
+	free(dir);
+    }
+    if(cvtdir && cvtoptions.slash) {
+	char* dir = cvtdir; cvtdir = NULL;
+        cvtdir = slash(dir);
+	free(dir);
+    }
+
+    if(cvtdirp) {*cvtdirp = cvtdir; cvtdir = NULL;}
+
+    if(cvtdir) free(cvtdir);
+    return 0;
+}
+
+int
 main(int argc, char** argv)
 {
     int c;
-    char* cvtpath = NULL;
-    char* inpath, *canon = NULL;
-
+    char* inpath  = NULL;
+    NCPluginList indirs = {0,NULL};
+    NCbytes* outpath = ncbytesnew();
+    int stat = NC_NOERR;
+    size_t i;
+    
     memset((void*)&cvtoptions,0,sizeof(cvtoptions));
     cvtoptions.drive = 'c';
+    cvtoptions.sep = ';';
 
-    while ((c = getopt(argc, argv, "B:CFcD:d:ehkmpuwX")) != EOF) {
+    while ((c = getopt(argc, argv, "B:D:FS:Xchkmpuwx")) != EOF) {
 	switch(c) {
 	case 'c': cvtoptions.target = NCPD_CYGWIN; break;
-	case 'd': cvtoptions.drive = optarg[0]; break;
-	case 'e': cvtoptions.escapes = 1; break;
 	case 'h': usage(NULL); break;
 	case 'k': printlocalkind(); break;
-	case 'm': cvtoptions.target = NCPD_MSYS; break;
+	case 'm': cvtoptions.target = NCPD_WIN; break; /* Aliased */
 	case 'p': cvtoptions.pathkind = 1; break;
 	case 'u': cvtoptions.target = NCPD_NIX; break;
 	case 'w': cvtoptions.target = NCPD_WIN; break;
+	case 'x': cvtoptions.escapes = 1; break;
 	case 'B':
 	    cvtoptions.blank = optarg[0];
 	    if(cvtoptions.blank < ' ' || cvtoptions.blank == '\177')
 		usage("Bad -B argument");
 	    break;
-	case 'C': cvtoptions.canon = 1; break;
+	case 'D': cvtoptions.drive = optarg[0]; break;
 	case 'F': cvtoptions.slash = 1; break;
-	case 'D':
-	    sscanf(optarg,"%d",&cvtoptions.debug);
-	    break;
+	case 'S': cvtoptions.sep = optarg[0]; break;
 	case 'X': printenv(); break;
 	case '?':
 	   usage("unknown option");
@@ -252,33 +285,22 @@ main(int argc, char** argv)
 	goto done;
     }
 
-    /* Canonicalize */
-    if(NCpathcanonical(inpath,&canon))
-       usage("Could not convert to canonical form");
+    /* Break using the path separator */
+    if((stat = ncaux_plugin_path_parse(inpath,cvtoptions.sep,&indirs)))
+	{usage(nc_strerror(stat));}
+    for(i=0;i<indirs.ndirs;i++) {
+	char* outdir = NULL;
+	if((stat = processdir(indirs.dirs[i],&outdir))) 
+	    {usage(nc_strerror(stat));}
+	if(i > 0) ncbytesappend(outpath,cvtoptions.sep);
+	ncbytescat(outpath,outdir);
+	nullfree(outdir);
+    }
+    printf("%s",ncbytescontents(outpath));
 
-    if(cvtoptions.canon) {
-	cvtpath = canon; canon = NULL;
-    } else if(cvtoptions.target == NCPD_UNKNOWN) {
-        cvtpath = NCpathcvt(canon);
-    } else {
-        cvtpath = NCpathcvt_test(canon,cvtoptions.target,(char)cvtoptions.drive);
-    }
-
-    if(cvtpath && cvtoptions.escapes) {
-	char* path = cvtpath; cvtpath = NULL;
-        cvtpath = escape(path);
-	free(path);
-    }
-    if(cvtpath && cvtoptions.slash) {
-	char* path = cvtpath; cvtpath = NULL;
-        cvtpath = slash(path);
-	free(path);
-    }
-    printf("%s",cvtpath);
 done:
-    if(canon) free(canon);
     if(inpath) free(inpath);
-    if(cvtpath) free(cvtpath);
+    ncaux_plugin_path_clear(&indirs);
+    ncbytesfree(outpath);
     return 0;
 }
-

@@ -32,7 +32,8 @@ main(int argc, char** argv)
 {
     int i;
     int len;
-    char* result = NULL;
+    char* input = NULL;
+    char* output = NULL;
     int noeol = 1; /* Default to -n vs -N */
     int escape = 1; /* Ditto */
     char* p = NULL;
@@ -42,16 +43,18 @@ main(int argc, char** argv)
     NCstdbinary(); /* avoid \r\n for windows */
 
     opterr = 1;
-    while ((c = getopt(argc, argv,"enEN")) != EOF) {
+    while ((c = getopt(argc, argv,"enxNX")) != EOF) {
 	switch(c) {
-	case 'e': escape = 1; break;
+	case 'e': goto nomoreargs;
+	case 'x': escape = 1; break;
 	case 'n': noeol = 1; break;
-	case 'E': escape = 0; break;
+	case 'X': escape = 0; break;
 	case 'N': noeol = 0; break;
 	case '?': default: break; /* ignore */
 	}
     }    
 
+nomoreargs:
     /* leave non-flag args */
     argc -= optind;
     argv += optind;
@@ -59,17 +62,20 @@ main(int argc, char** argv)
     /* Compute the max possible length of output */
     for(len=0,i=0;i<argc;i++) len += (int)strlen(argv[i]);
     len += (argc - 1); /* inter-arg spacing */
-    result = (char*)malloc((size_t)len+1+1); /* +1 for nul term +1 for '\n' */
-    assert(result != NULL);
-    result[0] = '\0';
+    input = (char*)calloc(1,(size_t)len+1+1); /* +1 for nul term +1 for '\n' */
+    assert(input != NULL);
+    input[0] = '\0';
     /* Concat all the arguments with  ' ' between them */   
     for(i=0;i<argc;i++) {
-	if(i > 0) strcat(result," ");
-	strcat(result,argv[i]);
+	if(i > 0) strcat(input," ");
+	strcat(input,argv[i]);
     }
-    /* Optionally de-escape the result */
-    if(escape) {
-	for(p=result,q=result;*p;) {
+    output = (char*)calloc(1,(size_t)len+1+1); /* +1 for nul term +1 for '\n' */
+    assert(output != NULL);
+    output[0] = '\0';
+    /* Optionally de-escape the input */
+    for(p=input,q=output;*p;) {
+        if(escape) {
 	    switch (*p) {
 	    default: *q++ = *p; break;
 	    case '\\':
@@ -87,13 +93,14 @@ main(int argc, char** argv)
 		break;
 	    }
 	    p++;
-	}
-    } else
-	*q++ = *p++;
+        } else
+	    *q++ = *p++;
+    }
     if(!noeol) *p++ = '\n';
     *p = '\0';
-    fputs(result,stdout);
+    fputs(output,stdout);
     fflush(stdout);
-    free(result);
+    free(input);
+    free(output);
     return 0;
 }

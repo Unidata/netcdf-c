@@ -62,6 +62,12 @@ static int pathdebug = -1;
 
 #endif
 
+/* The /D/x/y/z MSYS paths cause to much parsing confusion.
+   So by default, suppress them. This means that the windows
+   format should be used instead.
+*/
+#undef MSYSPATHS
+
 /*
 Code to provide some path conversion code so that
 paths in one format can be used on a platform that uses
@@ -871,7 +877,7 @@ parsepath(const char* inpath, struct Path* path)
 	    {stat = NC_ENOMEM; goto done;}
 	path->kind = NCPD_WIN; /* Might be MINGW */
     }
-#if 0
+#ifdef MSYSPATHS
     /* X. look for MSYS2 path /D/... */
     else if(len >= 2
 	&& (tmp1[0] == '/')
@@ -888,7 +894,7 @@ parsepath(const char* inpath, struct Path* path)
 	    {stat = NC_ENOMEM; goto done;}
 	path->kind = NCPD_MSYS;
     }
-#endif
+#endif /*MSYSPATHS*/
     /* 5. look for *nix* path; note this includes MSYS2 paths as well */
     else if(len >= 1 && tmp1[0] == '/') {
 	/* Assume this is a *nix path */
@@ -993,12 +999,14 @@ unparsepath(struct Path* xp, char** pathp, int target)
     CASE(NCPD_CYGWIN,NCPD_NIX):
         len = nulllen(xp->path);
         if(xp->drive != 0)
-	    len += (cdlen + 2); /* /cygdrive/D */
+	    len += (cdlen+1); /* strlen("/cygdrive/D") */
 	len++;
         if((path = (char*)malloc(len))==NULL)
 	    {stat = NCTHROW(NC_ENOMEM); goto done;}
 	path[0] = '\0';
 	if(xp->drive != 0) {
+	    /* There is no good/standard way to map a windows drive letter to a *nix* path,
+	       so, just use "/D" where D is the drive letter */
             strlcat(path,"/cygdrive/",len);
 	    sdrive[0] = xp->drive; sdrive[1] = '\0';
             strlcat(path,sdrive,len);
