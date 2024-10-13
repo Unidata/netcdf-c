@@ -9,39 +9,58 @@ set -e
 export MSYS2_ARG_CONV_EXCL='*'
 
 # We need to find the drive letter, if any
-DL=`${NCPATHCVT} -c -e / | sed -e 's|/cygdrive/\([a-zA-Z]\)/.*|\1|'`
+DL=`${NCPATHCVT} -c -x / | sed -e 's|/cygdrive/\([a-zA-Z]\)/.*|\1|'`
 if test "x$DL" != x ; then
   # Lower case drive letter
-  DLL=`echon "$DL" | tr '[:upper:]' '[:lower:]'`
-  DL="-d $DLL"
+  DLL=`echon -e "$DL" | tr '[:upper:]' '[:lower:]'`
+  DL="-D $DLL"
 fi
 
-
-testcase1() {
+testcaseD() {
 T="$1"
 P="$2"
-
-echon "path: $T: |$P| => |" >>tmp_pathcvt.txt
-${NCPATHCVT} -B"@" ${DL} "$T" -e "$P" >>tmp_pathcvt.txt
+# Fixup for shell handling of '\'
+PX=`echon -n "$P" | sed -e 's/\\\\\\\\/\\\\/g'`
+echon -e "path: $T: |$P| => |" >>tmp_pathcvt.txt
+${NCPATHCVT} -B"@" ${DL} "$T" -x "$PX" >>tmp_pathcvt.txt
 echo "|" >> tmp_pathcvt.txt
 }
 
-testcase() {
-    testcase1 "-u" "$1"
-    testcase1 "-c" "$1"
-    testcase1 "-m" "$1"
-    testcase1 "-w" "$1"
-    testcase1 "-C" "$1"
+testcaseP() {
+T="$1"
+P="$2"
+# Fixup for shell handling of '\'
+PX=`echon -n "$P" | sed -e 's/\\\\\\\\/\\\\/g'`
+echon -e "path: $T: |$P| => |" >>tmp_pathcvt.txt
+${NCPATHCVT} -S';' -B"@" ${DL} "$T" -x "$PX" >>tmp_pathcvt.txt
+echo "|" >> tmp_pathcvt.txt
+}
+
+# Note that -m is not tested as it is currently an alias for -w
+testcase1() {
+    testcaseD "-u" "$1"
+    testcaseD "-c" "$1"
+    testcaseD "-w" "$1"
+}
+
+testcase2() {
+    testcaseP "-u" "$1"
+    testcaseP "-c" "$1"
+    testcaseP "-w" "$1"
 }
 
 rm -f tmp_pathcvt.txt
 
 # '@' will get translated to embedded blank
-PATHS="/xxx/x/y d:/x/y /cygdrive/d/x/y /d/x/y /cygdrive/d /d /cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn d:\\x\\y d:\\x\\y@w\\z"
-for p in $PATHS ; do
-testcase $p
+TESTPATHS1="/xxx/x/y d:/x/y /cygdrive/d/x/y /d/x/y /cygdrive/d /d /cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn d:\\\\x\\\\y d:\\\\x\\\\y@w\\\\z"
+for p in $TESTPATHS1 ; do
+testcase1 "$p"
 done
-exit
+
+TESTPATHS2="/xxx/x/y;/cygdrive/d/x/y /d/x/y;/cygdrive/d cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn;d:\\\\x\\\\y d:\\\\x\\\\y@w\\\\z"
+for p in $TESTPATHS2 ; do
+testcase2 "$p"
+done
 
 diff -w ${srcdir}/ref_pathcvt.txt ./tmp_pathcvt.txt
 
