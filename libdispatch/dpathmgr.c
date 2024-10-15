@@ -721,6 +721,19 @@ NCpath2utf8(const char* s, char** u8p)
     return ansi2utf8(s,u8p);
 }
 
+int
+NCstdbinary(void)
+{
+    int fd;
+    fd = _fileno(stdin);
+    if(_setmode(fd,_O_BINARY)<0) return NC_EINVAL;
+    fd = _fileno(stdout);
+    if(_setmode(fd,_O_BINARY)<0) return NC_EINVAL;
+    fd = _fileno(stderr);
+    if(_setmode(fd,_O_BINARY)<0) return NC_EINVAL;
+    return NC_NOERR;        
+}
+
 #else /*!WINPATH*/
 
 int
@@ -736,6 +749,13 @@ NCpath2utf8(const char* path, char** u8p)
 done:
     return stat;
 }
+
+int
+NCstdbinary(void)
+{
+    return NC_NOERR;
+}
+
 #endif /*!WINPATH*/
 
 EXTERNL int

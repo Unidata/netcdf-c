@@ -484,17 +484,18 @@ static int
 dump_compound(int ncid, nc_type xtype, size_t size, size_t nfields, Position* offset, NCbytes* buf)
 {
     int stat = NC_NOERR;
-    size_t i;
+    int i;
     ptrdiff_t saveoffset;
     int ndims;
     int dimsizes[NC_MAX_VAR_DIMS];
+    int fid;
 
     saveoffset = offset->offset;
 
     ncbytescat(buf,"<");
 
     /* Get info about each field in turn and dump it */
-    for(int fid=0;fid<nfields;fid++) {
+    for(fid=0;fid<(int)nfields;fid++) {
 	size_t fieldalignment;
 	nc_type fieldtype;
 	char name[NC_MAX_NAME];

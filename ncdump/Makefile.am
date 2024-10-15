@@ -37,6 +37,10 @@ utils.h utils.c dimmap.h dimmap.c list.c list.h
 noinst_PROGRAMS += ncvalidator
 ncvalidator_SOURCES = ncvalidator.c
 
+# An equivalent to echo that always implements -n flag
+noinst_PROGRAMS += echon
+echon_SOURCES = echon.c
+
 # A non-installed utility program to convert paths; similar to cygpath
 noinst_PROGRAMS += ncpathcvt
 ncpathcvt_SOURCES = ncpathcvt.c

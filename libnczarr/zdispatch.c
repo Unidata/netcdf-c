@@ -10,6 +10,7 @@
  */
 
 #include "zincludes.h"
+#include "zplugins.h"
 
 /* Forward */
 static int NCZ_var_par_access(int ncid, int varid, int par_access);
@@ -197,7 +198,6 @@ NCZ_inq_filter_avail(int ncid, unsigned id)
     NC_UNUSED(id);
     return REPORT(NC_ENOFILTER,"inq_filter_avail");
 }
-
 
 #endif /*NETCDF_ENABLE_NCZARR_FILTERS*/
 

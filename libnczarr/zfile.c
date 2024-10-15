@@ -294,7 +294,7 @@ NCZ_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
     NC_FILE_INFO_T* file;
     NC_GRP_INFO_T *grp;
     int stat = NC_NOERR;
-    int i;
+    size_t i;
 
     LOG((2, "%s: ncid 0x%x", __func__, ncid));
 

@@ -125,6 +125,9 @@ are set when opening a binary file on Windows. */
 #endif
 
 /* if true, use hdf5 S3 virtual file reader */
+#cmakedefine NETCDF_ENABLE_HDF5 1
+
+/* if true, use hdf5 S3 virtual file reader */
 #cmakedefine NETCDF_ENABLE_HDF5_ROS3 1
 
 /* if true, enable CDF5 Support */
