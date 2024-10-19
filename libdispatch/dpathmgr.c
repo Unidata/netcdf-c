@@ -62,12 +62,6 @@ static int pathdebug = -1;
 
 #endif
 
-/* The /D/x/y/z MSYS paths cause to much parsing confusion.
-   So by default, suppress them. This means that the windows
-   format should be used instead.
-*/
-#undef MSYSPATHS
-
 /*
 Code to provide some path conversion code so that
 paths in one format can be used on a platform that uses
