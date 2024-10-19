@@ -30,6 +30,7 @@ See COPYRIGHT for license information.
 #include "nclog.h"
 #include "ncrc.h"
 #include "netcdf_filter.h"
+#include "ncpathmgr.h"
 
 struct NCAUX_FIELD {
     char* name;
@@ -979,7 +980,7 @@ ncaux_plugin_path_parse(const char* pathlist0, char sep, NCPluginList* dirs)
     char* p;
     size_t count;
     size_t plen;
-    char seps[3] = "\0\0\0"; /* will contain all allowable separators */
+    char seps[2] = "\0\0"; /* will contain all allowable separators */
 
     if(dirs == NULL) {stat = NC_EINVAL; goto done;}
 
@@ -987,8 +988,13 @@ ncaux_plugin_path_parse(const char* pathlist0, char sep, NCPluginList* dirs)
 
     /* If a separator is specified, use it, otherwise search for ';' or ':' */
     seps[0] = sep;
-    if(sep == '\0') {seps[0] = ';'; seps[1] = ':';}
-
+    if(sep == 0) {
+	if(NCgetlocalpathkind() == NCPD_WIN
+	    || NCgetlocalpathkind() == NCPD_MSYS)
+	   seps[0] = ';';
+	else
+	    seps[0] = ':';
+    }
     plen = strlen(pathlist0); /* assert plen > 0 */
     if((path = malloc(plen+1+1))==NULL) {stat = NC_ENOMEM; goto done;}
     memcpy(path,pathlist0,plen);

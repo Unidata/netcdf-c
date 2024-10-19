@@ -115,7 +115,7 @@ getfrom(int formatx, char** textp)
     if((stat = ncaux_plugin_path_tostring(&dirs,';',&text))) goto done;
     *textp = text; text = NULL;
 done:
-    nullfree(text);
+    if(text != NULL) free(text);
     ncaux_plugin_path_clear(&dirs);
     return stat;
 }
@@ -158,7 +158,7 @@ main(int argc, char** argv)
     }
     printf("%s",text); /* suppress trailing eol */
 done:
-    nullfree(text);
+    if(text != NULL) free(text);
     nc_finalize();
     return (stat?1:0);
 }
