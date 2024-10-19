@@ -76,6 +76,7 @@ nc_plugin_path_initialize(void)
     * initial global plugin path using the following rules, which are those used
     * by the HDF5 library, except as modified for plugin install (which HDF5 does not support).
     */
+
     /* Initialize the implementations */
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
     if((stat = NCZ_plugin_path_initialize())) goto done;    
