@@ -110,11 +110,11 @@ static struct MountPoint {
     char drive;
 } mountpoint;
 
-/* Pick the target kind for testing */
-static int testkind = 0;
+/* Pick the platform kind for testing */
+static int platform = 0;
 
 static int parsepath(const char* inpath, struct Path* path);
-static int unparsepath(struct Path* p, char** pathp, int target);
+static int unparsepath(struct Path* p, char** pathp, int platform);
 static int getwdpath(void);
 static void clearPath(struct Path* path);
 static void pathinit(void);
@@ -142,7 +142,7 @@ NCpathcvt(const char* inpath)
     char* tmp1 = NULL;
     char* result = NULL;
     struct Path inparsed = empty;
-    int target = NCgetlocalpathkind();
+    int platform= NCgetlocalpathkind();
 
     if(inpath == NULL) goto done; /* defensive driving */
 
@@ -158,7 +158,7 @@ NCpathcvt(const char* inpath)
     if(pathdebug > 0)
         fprintf(stderr,">>> NCpathcvt: inparsed=%s\n",printPATH(&inparsed));
 
-    if((stat = unparsepath(&inparsed,&result,target)))
+    if((stat = unparsepath(&inparsed,&result,platform)))
         {REPORT(stat,"NCpathcvt: unparsepath"); goto done;}
 
 done:
@@ -274,7 +274,7 @@ NCpathcvt_test(const char* inpath, int ukind, int udrive)
 
     mountpoint.drive = (char)udrive;
     mountpoint.defined = (mountpoint.drive || nulllen(mountpoint.prefix) > 0);
-    testkind = ukind;
+    platform = ukind;
     result = NCpathcvt(inpath);
     mountpoint = old;
     return result;
@@ -807,6 +807,7 @@ parsepath(const char* inpath, struct Path* path)
     char* tmp1 = NULL;
     size_t len;
     char* p;
+    int platform = NCgetlocalpathkind();
 
     assert(path);
     memset(path,0,sizeof(struct Path));
@@ -877,13 +878,17 @@ parsepath(const char* inpath, struct Path* path)
 	    {stat = NC_ENOMEM; goto done;}
 	path->kind = NCPD_WIN; /* Might be MINGW */
     }
-#ifdef MSYSPATHS
-    /* X. look for MSYS2 path /D/... */
-    else if(len >= 2
+    /* The /D/x/y/z MSYS paths cause much parsing confusion.
+       So only use it if the current platform is windows of mingw.
+       Otherwise use windows paths
+    */
+    /* X. look for MSYS path /D/... */
+    else if((platform== NCPD_WIN || platform == NCPD_MSYS)
+        && len >= 2
 	&& (tmp1[0] == '/')
 	&& strchr(windrive,tmp1[1]) != NULL
 	&& (tmp1[2] == '/' || tmp1[2] == '\0')) {
-	/* Assume this is an MSYS2 path */
+	/* Assume this is an MSYS path */
 	path->drive = tmp1[1];
 	/* Remainder */
 	if(tmp1[2] == '\0')
@@ -894,7 +899,6 @@ parsepath(const char* inpath, struct Path* path)
 	    {stat = NC_ENOMEM; goto done;}
 	path->kind = NCPD_MSYS;
     }
-#endif /*MSYSPATHS*/
     /* 5. look for *nix* path; note this includes MSYS2 paths as well */
     else if(len >= 1 && tmp1[0] == '/') {
 	/* Assume this is a *nix path */
@@ -914,7 +918,7 @@ done:
 }
 
 static int
-unparsepath(struct Path* xp, char** pathp, int target)
+unparsepath(struct Path* xp, char** pathp, int platform)
 {
     int stat = NC_NOERR;
     size_t len;
@@ -928,7 +932,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
     if(xp->kind == NCPD_REL) {
 	/* Pass thru relative paths, but with proper slashes */
 	if((path = strdup(xp->path))==NULL) stat = NC_ENOMEM;
-	if(target == NCPD_WIN || target == NCPD_MSYS) {
+	if(platform == NCPD_WIN || platform == NCPD_MSYS) {
 	    char* p;
             for(p=path;*p;p++) {if(*p == '/') *p = '\\';} /* back slash*/
 	}
@@ -936,12 +940,12 @@ unparsepath(struct Path* xp, char** pathp, int target)
     }
 
     /* We need a two level switch with an arm
-       for every pair of (xp->kind,target)
+       for every pair of (xp->kind,platform)
     */
 
 #define CASE(k,t) case ((k)*10+(t))
 
-    switch (xp->kind*10 + target) {
+    switch (xp->kind*10 + platform) {
     CASE(NCPD_NIX,NCPD_NIX):
 	assert(xp->drive == 0);
 	len = nulllen(xp->path)+1;
@@ -999,15 +1003,20 @@ unparsepath(struct Path* xp, char** pathp, int target)
     CASE(NCPD_CYGWIN,NCPD_NIX):
         len = nulllen(xp->path);
         if(xp->drive != 0)
-	    len += (cdlen+1); /* strlen("/cygdrive/D") */
-	len++;
+	    len += (cdlen + 1); /* strlen("/cygdrive/D") */
+	len++; /* nul term */
         if((path = (char*)malloc(len))==NULL)
 	    {stat = NCTHROW(NC_ENOMEM); goto done;}
 	path[0] = '\0';
 	if(xp->drive != 0) {
-	    /* There is no good/standard way to map a windows drive letter to a *nix* path,
-	       so, just use "/D" where D is the drive letter */
+	    /* There is no good/standard way to map a windows
+               drive letter to a *nix* path.*/
+#if 0
             strlcat(path,"/cygdrive/",len);
+#else
+	    /* so, just use "/D" where D is the drive letter */
+	    strlcat(path,"/",len);
+#endif
 	    sdrive[0] = xp->drive; sdrive[1] = '\0';
             strlcat(path,sdrive,len);
 	}
@@ -1118,7 +1127,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
     }
 
     if(pathdebug > 0)
-	fprintf(stderr,">>> unparse: target=%s xp=%s path=|%s|\n",NCgetkindname(target),printPATH(xp),path);
+	fprintf(stderr,">>> unparse: platform=%s xp=%s path=|%s|\n",NCgetkindname(platform),printPATH(xp),path);
 
 exit:
     if(pathp) {*pathp = path; path = NULL;}
@@ -1177,7 +1186,7 @@ int
 NCgetlocalpathkind(void)
 {
     int kind = NCPD_UNKNOWN;
-    if(testkind) return testkind;
+    if(platform) return platform;
 #ifdef __CYGWIN__
 	kind = NCPD_CYGWIN;
 #elif defined _MSC_VER /* not _WIN32 */

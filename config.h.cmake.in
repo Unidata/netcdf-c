@@ -163,8 +163,11 @@ are set when opening a binary file on Windows. */
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine NETCDF_ENABLE_PLUGINS 1
 
-/* Define the install dir */
-#cmakedefine NETCDF_PLUGIN_INSTALL_DIR ${NETCDF_PLUGIN_INSTALL_DIR}
+/* Define the plugin install dir */
+#cmakedefine NETCDF_PLUGIN_INSTALL_DIR "${NETCDF_PLUGIN_INSTALL_DIR}"
+
+/* Define the plugin search path */
+#cmakedefine NETCDF_PLUGIN_SEARCH_PATH "${NETCDF_PLUGIN_SEARCH_PATH}"
 
 /* if true, enable S3 support */
 #cmakedefine NETCDF_ENABLE_S3 1

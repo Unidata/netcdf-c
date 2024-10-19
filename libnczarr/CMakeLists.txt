@@ -69,6 +69,10 @@ if (USE_HDF5)
     target_link_libraries(nczarr PRIVATE HDF5::HDF5)
 endif(USE_HDF5)
 
+if(NETCDF_ENABLE_NCZARR_ZIP)
+   target_include_directories(nczarr PRIVATE ${Zip_INCLUDE_DIRS})
+endif(NETCDF_ENABLE_NCZARR_ZIP)
+
 if(STATUS_PARALLEL)
     target_link_libraries(nczarr PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)

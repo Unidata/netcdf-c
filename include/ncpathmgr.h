@@ -35,6 +35,7 @@ Assumptions about Input path:
        Cygwin (/cygdrive/D/...),
        Windows|MINGW|MSYS (D:\...),
        Windows network path (\\mathworks\...)
+       MSYS (/D/...) but only if local platform is Windows or MSYS.
 4. It is encoded in the local platform character set.  Note that
    for most systems, this is utf-8. But for Windows, the
    encoding is most likely some form of ANSI code page, probably
@@ -52,7 +53,9 @@ Parsing Rules:
 4. A leading // is a windows network path and is converted
    to a drive letter using the fake drive letter "/".
    So '//svc/x/y' translates to '/:/svc/x/y'.
-5. All other cases are assumed to be Unix variants with no drive letter. 
+5. If the platform is Windows or MSYS, then a leading /D/ is treated
+   as a drive letter.
+6. All other cases are assumed to be Unix variants with no drive letter. 
 
 After parsing, the following pieces of information are kept in a struct.
 a. kind: The inferred path type (e.g. cygwin, unix, etc)

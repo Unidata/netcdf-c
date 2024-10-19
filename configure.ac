@@ -2144,7 +2144,8 @@ fi
 AC_SUBST(STD_FILTERS,[$std_filters])
 
 # The --with-plugin-dir option gives the user control of the plugin install
-# directory. This also used as the default plugin directory when searching for plugins.
+# directory. This also used as one of the default plugin directory when
+# searching for plugins.
 # If a specific directory is provided, it will be used.
 # If not defined or defined with the value no, or --without-plugin-dir, then
 # plugin installation will be suppressed (but see below).
@@ -2180,18 +2181,9 @@ fi
 # of directories to search to locate plugins. It is exported as
 # NETCDF_PLUGIN_SEARCH_PATH
 #
-#               Table showing the computation of DEFAULT_PLUGIN_INSTALL_DIR and DEFAULT_PLUGIN_SEARCH_PATH.
-# =============================================================================================================================
-# | --with-plugin-dir | --prefix         | DEFAULT_PLUGIN_INSTALL_DIR       | DEFAULT_PLUGIN_SEARCH_PATH                      |
-# =============================================================================================================================
-# | undefined         | undefined        | undefined                        | PLATFORMDEFALT                                  |
-# -----------------------------------------------------------------------------------------------------------------------------
-# | undefined         | <abspath-prefix> | <abspath-prefix>/hdf5/lib/plugin | <abspath-prefix>/hdf5/lib/plugin;PLATFORMDEFALT |
-# -----------------------------------------------------------------------------------------------------------------------------
-# | <abspath-plugins> | N.A.             | <abspath-plugins>                | <abspath-plugins>;PLATFORMDEFALT                |
-# -----------------------------------------------------------------------------------------------------------------------------
-# Note: HDF5_PLUGIN_PATH is ignored at build time.
-# Note: ';' is used as a placeholder for PLATFORMSEP.
+# See the document docs/pluginpath.md for a more detailed discussion
+# of how NETCDF_PLUGIN_INSTALL_DIR and NETCDF_PLUGIN_SEARCH_PATH are
+# computed.
 
 # Canonicalize --with-prefix-dir and --prefix
 if test "x$with_plugin_dir" = xno ; then unset with_plugin_dir ; fi
