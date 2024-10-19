@@ -9,7 +9,6 @@ Configured On:		@CONFIG_DATE@
 Host System:		@host_cpu@-@host_vendor@-@host_os@
 Build Directory: 	@abs_top_builddir@
 Install Prefix:         @prefix@
-Plugin Install Prefix:  @PLUGIN_INSTALL_DIR_SETTING@
 
 # Compiling Options
 -----------------
@@ -53,6 +52,7 @@ Relaxed Boundary Check:	@RELAX_COORD_BOUND@
 
 Plugins Enabled:        @HAS_PLUGINS@
 Plugin Install Dir:     @NETCDF_PLUGIN_INSTALL_DIR@
+Plugin Search Path:     @NETCDF_PLUGIN_SEARCH_PATH@
 
 Quantization:		@HAS_QUANTIZE@
 Logging:     		@HAS_LOGGING@

@@ -1,10 +1,11 @@
-/**************************************************/
-/* Global state plugin path implementation */
-
 /*
  * Copyright 2018, University Corporation for Atmospheric Research
  * See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
+
+/**************************************************/
+/* Global state plugin path implementation */
+
 /**
  * @file
  * Functions for working with plugins. 
@@ -35,15 +36,12 @@ Unified plugin related code
 
 /* list of environment variables to check for plugin roots */
 #define PLUGIN_ENV "HDF5_PLUGIN_PATH"
-#define PLUGIN_DIR_UNIX "/usr/local/hdf5/plugin"
-#define PLUGIN_DIR_WIN "%s/hdf5/lib/plugin"
-#define WIN32_ROOT_ENV "ALLUSERSPROFILE"
 
 /* Control path verification */
 #define PLUGINPATHVERIFY "NC_PLUGIN_PATH_VERIFY"
 
 /*Forward*/
-static int builddefault(NCPluginList* dirs);
+static int buildinitialpluginpath(NCPluginList* dirs);
 
 static int NC_plugin_path_initialized = 0;
 static int NC_plugin_path_verify = 1;
@@ -74,15 +72,9 @@ nc_plugin_path_initialize(void)
     gs = NC_getglobalstate();
 
    /**
-    * When the netcdf-c library initializes itself, it chooses an initial
-    * global plugin path using the following rules, which are those used
-    * by the HDF5 library:
-    * 1. If HDF5_PLUGIN_PATH environment variable is defined,
-    * then its value is used as the initial plugin path.
-    * 2. If HDF5_PLUGIN_PATH is not defined, then the initial plugin path is either:
-    *     /usr/local/hdf5/plugin -- for Linux/Unix/Cygwin,
-    *     %ALLUSERSPROFILE%/hdf5/lib/plugin -- for Windows/Mingw.
-    * This initial global plugin path will be propagated to HDF5 and NCZarr.
+    * When the netcdf-c library initializes itself (at runtime), it chooses an
+    * initial global plugin path using the following rules, which are those used
+    * by the HDF5 library, except as modified for plugin install (which HDF5 does not support).
     */
 
     /* Initialize the implementations */
@@ -93,15 +85,9 @@ nc_plugin_path_initialize(void)
     if((stat = NC4_hdf5_plugin_path_initialize())) goto done;
 #endif
 
-#ifdef USE_HDF5
-    /* Case (a,b): Get the initial HDF5 plugin path set */
-    if((stat = NC4_hdf5_plugin_path_get(&dirs))) goto done;
-    if(dirs.ndirs > 0) hdf5found = 1;
-#endif /*USE_HDF5*/
-
-    if(!hdf5found) { /* Case: (c) HDF5 not enabled or otherwise empty */
-        if((stat = builddefault(&dirs))) goto done; /* Construct a default */
-    }
+    /* Compute the initial global plugin path */
+    assert(dirs.ndirs == 0 && dirs.dirs == NULL);
+    if((stat = buildinitialpluginpath(&dirs))) goto done; /* Construct a default */
 
     /* Sync to the actual implementations */
 #ifdef USE_HDF5
@@ -114,9 +100,17 @@ nc_plugin_path_initialize(void)
     /* Set the global plugin dirs sequence */
     assert(gs->pluginpaths == NULL);
     gs->pluginpaths = nclistnew();
-    nclistsetlength(gs->pluginpaths,dirs.ndirs);
-    memcpy(((char**)gs->pluginpaths->content),dirs.dirs,dirs.ndirs*sizeof(char*));
+    if(dirs.ndirs > 0) {
+	size_t i;
+	char** dst;
+        nclistsetlength(gs->pluginpaths,dirs.ndirs);
+	dst = (char**)nclistcontents(gs->pluginpaths);
+	assert(dst != NULL);
+	for(i=0;i<dirs.ndirs;i++)
+	    dst[i] = strdup(dirs.dirs[i]);
+    }
 done:
+    ncaux_plugin_path_clear(&dirs);
     return NCTHROW(stat);
 }
 
@@ -219,7 +213,7 @@ nc_plugin_path_get(NCPluginList* dirs)
     if(gs->pluginpaths == NULL) gs->pluginpaths = nclistnew(); /* suspenders and belt */
     if(dirs == NULL) goto done;
     dirs->ndirs = nclistlength(gs->pluginpaths);
-    if(dirs->dirs == NULL) {
+    if(dirs->ndirs > 0 && dirs->dirs == NULL) {
 	if((dirs->dirs = (char**)calloc(dirs->ndirs,sizeof(char*)))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
     }
@@ -240,6 +234,7 @@ nc_plugin_path_get(NCPluginList* dirs)
 		assert(strcmp(dirs->dirs[i],l5.dirs[i])==0);
 		nullfree(l5.dirs[i]);
 	    }
+	    nullfree(l5.dirs);
 	}
 #endif /*NETCDF_ENABLE_HDF5*/
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
@@ -252,6 +247,7 @@ nc_plugin_path_get(NCPluginList* dirs)
 		assert(strcmp(dirs->dirs[i],lz.dirs[i])==0);
 		nullfree(lz.dirs[i]);
 	    }
+	    nullfree(lz.dirs);
         }
 #endif /*NETCDF_ENABLE_NCZARR_FILTERS*/
     }
@@ -301,41 +297,42 @@ done:
     return NCTHROW(stat);
 }
 
-/* Setup the plugin path default */
+/**
+ * When the netcdf-c library initializes itself (at runtime), it chooses an
+ * initial global plugin path using the following rules, which are those used
+ * by the HDF5 library, except as modified for plugin install (which HDF5 does not support).
+ *
+ * Note: In the following, PLATFORMPATH is:
+ * -- /usr/local/lhdf5/lib/plugin if platform is *nix*
+ * -- %ALLUSERSPROFILE%/hdf5/lib/plugin if platform is Windows or Mingw
+ * and in the following, PLATFORMSEP is:
+ * -- ":" if platform is *nix*
+ * -- ";" if platform is Windows or Mingw
+ * and
+ *     NETCDF_PLUGIN_SEARCH_PATH is the value constructed at build-time (see configure.ac)
+ *
+ * Table showing the computation of the initial global plugin path
+ * =================================================
+ * | HDF5_PLUGIN_PATH | Initial global plugin path |
+ * =================================================
+ * | undefined        | NETCDF_PLUGIN_SEARCH_PATH  |
+ * -------------------------------------------------
+ * | <path1;...pathn> | <path1;...pathn>           |
+ * -------------------------------------------------
+ */
 static int
-builddefault(NCPluginList* dirs)
+buildinitialpluginpath(NCPluginList* dirs)
 {
     int stat = NC_NOERR;
-    char* hdf5defaultpluginpath = NULL;
-    const char* pluginroots = NULL;
-    size_t i;
-#ifdef _WIN32
-    const char* win32_root;
-    char dfalt[4096];
-#endif
-
+    const char* hdf5path = NULL;
     /* Find the plugin directory root(s) */
-    pluginroots = getenv(PLUGIN_ENV); /* Usually HDF5_PLUGIN_PATH */
-    if(pluginroots != NULL) {
-	if((stat = ncaux_plugin_path_parse(pluginroots,'\0',dirs))) goto done;
-    } else {
-#ifdef _WIN32
-	win32_root = getenv(WIN32_ROOT_ENV);
-	if(win32_root != NULL && strlen(win32_root) > 0) {
-	    snprintf(dfalt,sizeof(dfalt),PLUGIN_DIR_WIN,win32_root);
-	    hdf5defaultpluginpath = strdup(dfalt);
-	}
-#else /*!_WIN32*/
-        hdf5defaultpluginpath = strdup(PLUGIN_DIR_UNIX);
-#endif
-        /* Use the default as the only value in the default list */
-        if(hdf5defaultpluginpath != NULL) {
-	    ncaux_plugin_path_clear(dirs); /* make sure it is empty */
-            if((stat=ncaux_plugin_path_append(dirs,hdf5defaultpluginpath)))
-		goto done;
-	}
+    hdf5path = getenv(PLUGIN_ENV); /* HDF5_PLUGIN_PATH */
+    if(hdf5path == NULL) {
+	/* Use NETCDF_PLUGIN_SEARCH_PATH */
+	hdf5path = NETCDF_PLUGIN_SEARCH_PATH;
     }
+    if((stat = ncaux_plugin_path_parse(hdf5path,'\0',dirs))) goto done;
+
 done:
-    nullfree(hdf5defaultpluginpath);
     return stat;
 }

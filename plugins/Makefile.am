@@ -18,7 +18,7 @@ RPATH = -rpath $(abs_top_builddir)/.libs
 
 # This is where the plugins are to be installed
 if ENABLE_PLUGIN_DIR
-  plugindir = @PLUGIN_INSTALL_DIR@
+  plugindir = @NETCDF_PLUGIN_INSTALL_DIR@
 else
   plugindir = ${ALTPLUGINDIR}
   AM_LDFLAGS += ${RPATH}

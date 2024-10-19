@@ -13,7 +13,7 @@ Test the NCpathcvt
 #include "netcdf.h"
 #include "ncpathmgr.h"
 
-#undef DEBUG
+#define DEBUG
 
 #define NKINDS 4
 static const int kinds[NKINDS] = {NCPD_NIX,NCPD_MSYS,NCPD_CYGWIN,NCPD_WIN};
@@ -44,31 +44,31 @@ static Test PATHTESTS[] = {
 	 "d:\\x\\y"		/*NCPD_WIN*/
 	}},
 {"/cygdrive/d/x/y",{
-	 "/cygdrive/d/x/y",	/*NCPD_LINUX*/
+	"/d/x/y",		/*NCPD_LINUX*/
 	"d:\\x\\y",		/*NCPD_MSYS*/
 	"/cygdrive/d/x/y",	/*NCPD_CYGWIN*/
 	 "d:\\x\\y"		/*NCPD_WIN*/
 	}},
 {"/d/x/y",{
 	 "/d/x/y",		/*NCPD_LINUX*/
-	"c:\\d\\x\\y",		/*NCPD_MSYS*/
+	"d:\\x\\y",		/*NCPD_MSYS*/
 	 "/cygdrive/c/d/x/y",	/*NCPD_CYGWIN*/
-	 "c:\\d\\x\\y"		/*NCPD_WIN*/
+	 "d:\\x\\y"		/*NCPD_WIN*/
 	}},
 {"/cygdrive/d",{
-	 "/cygdrive/d",		/*NCPD_LINUX*/
+	 "/d",			/*NCPD_LINUX*/
 	"d:",			/*NCPD_MSYS*/
 	 "/cygdrive/d",		/*NCPD_CYGWIN*/
 	 "d:"			/*NCPD_WIN*/
 	}},
 {"/d", {
 	"/d",			/*NCPD_LINUX*/
-	"c:\\d",		/*NCPD_MSYS*/
+	"d:",			/*NCPD_MSYS*/
 	 "/cygdrive/c/d",	/*NCPD_CYGWIN*/
-	 "c:\\d"		/*NCPD_WIN*/
+	 "d:"			/*NCPD_WIN*/
 	}},
 {"/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",{
-    "/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",	/*NCPD_LINUX*/
+    "/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",		/*NCPD_LINUX*/
     "d:\\git\\netcdf-c\\dap4_test\\test_anon_dim.2.syn",	/*NCPD_MSYS*/
     "/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",	/*NCPD_CYGWIN*/
     "d:\\git\\netcdf-c\\dap4_test\\test_anon_dim.2.syn"		/*NCPD_WIN*/

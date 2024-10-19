@@ -75,30 +75,52 @@ This initial global plugin path will be propagated to HDF5 and NCZarr.
 At build-time, the target location directory into which libraries implementing plugins are installed is specified using a special *./configure* option
 ````
 --with-plugin-dir=<directorypath>
-or
---with-plugin-dir
 ````
 or its corresponding *cmake* option.
 ````
--DNETCDF_PLUGIN_INSTALL_DIR=<directorypath>
-or
--DNETCDF_PLUGIN_INSTALL_DIR=YES
+-DNETCDF_WITH_PLUGIN_DIR=<directorypath>
 ````
-If this option is specified but with no specific directory,
-then it defaults to one of three values:
-1. If *HDF5\_PLUGIN\_PATH* defined, then use the last directory in that path,
-2. else use `/usr/local/hdf5/lib/plugin` for linux/unix operating systems (including Cygwin) else use
-3. `%ALLUSERSPROFILE%\\hdf5\\lib\\plugin` for Windows and MinGW.
 
-If the option is specified with an absolute directory path, then all plugin libraries will be installed in that directory only.
+## Build-Time Operations
 
-If the option is not specified at all, or one of the following options is used,
-then no attempt will be made to install plugins.
-````
---without-plugin-dir
-or (cmake)
--DNETCDF_PLUGIN_INSTALL_DIR=NO
-````
+At build time, certain plugin-related constants are constructed.
+1. NETCDF_PLUGIN_INSTALL_DIR -- the directory into which compiled plugins should be installed
+2. NETCDF_PLUGIN_SEARCH_PATH -- the default search path to be used at run-time if not over-ridden by the *HDF5_PLUGIN_PATH* environment variable.
+
+<table style="border:2px solid black;border-collapse:collapse">
+<tr style="outline: thin solid;" align="center"><td colspan="4">Table showing the build-time computation of DEFAULT_PLUGIN_INSTALL_DIR and DEFAULT_PLUGIN_SEARCH_PATH.</td>
+<tr style="outline: thin solid" ><th>--with-plugin-dir<th>--prefix<th>DEFAULT_PLUGIN_INSTALL_DIR<th>DEFAULT_PLUGIN_SEARCH_PATH
+<tr style="outline: thin solid" ><td>undefined<td>undefined<td>undefined<td>PLATFORMDEFALT
+<tr style="outline: thin solid" ><td>undefined<td>&lt;abspath-prefix&gt;<td>&lt;abspath-prefix&gt;/hdf5/lib/plugin<td>&lt;abspath-prefix&gt;/hdf5/lib/plugin&lt;SEP&gt;PLATFORMDEFALT
+<tr style="outline: thin solid" ><td>&lt;abspath-plugins&gt;<td>N.A.<td>&lt;abspath-plugins&gt;<td>&lt;abspath-plugins&gt;&lt;SEP&gt;PLATFORMDEFALT
+</table>
+
+Notes:
+1. HDF5_PLUGIN_PATH is ignored at build time.
+
+2. ';' is used as a placeholder for PLATFORMSEP.
+
+3. The term PLATFORMDEFAULT stands for:
+    - /usr/local/hdf5/lib/plugin If on a *nix* machine
+    - %ALLUSERSPROFILE%/hdf5/lib/plugins If on a windows or Mingw platform
+4. The term SEP stands for:
+    - ':' If on a *nix* machine
+    - ';' If on a windows or Mingw platform
+
+## Run-Time Operations
+
+When the netcdf-c library initializes itself (at runtime), it chooses an
+initial global plugin path for the config.h value.
+This value defaults to  *NETCDF_PLUGIN_SEARCH_PATH*.
+If, however, HDF5_PLUGIN_PATH is defined, then it is used to override
+*NETCDF_PLUGIN_SEARCH_PATH*.
+
+<table style="border:2px solid black;border-collapse:collapse">
+<tr style="outline: thin solid" align="center"><td colspan="2">Table showing the computation of the initial global plugin path</td>
+<tr style="outline: thin solid"><th>HDF5_PLUGIN_PATH<th>Initial global plugin path
+<tr style="outline: thin solid"><td>undefined<td>NETCDF_PLUGIN_SEARCH_PATH
+<tr style="outline: thin solid"><td>&lt;path1;...pathn&gt;<td>&lt;path1;...pathn&gt;
+</table>
 
 ## Multi-Threaded Access to the Plugin Path.
 Specifically, note that modifying the plugin path must be done "atomically".
