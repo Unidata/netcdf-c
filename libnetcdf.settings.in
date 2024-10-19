@@ -52,7 +52,7 @@ Relaxed Boundary Check:	@RELAX_COORD_BOUND@
 
 Plugins Enabled:        @HAS_PLUGINS@
 Plugin Install Dir:     @NETCDF_PLUGIN_INSTALL_DIR@
-Plugin Default Path:    @NETCDF_PLUGIN_SEARCH_PATH@
+Plugin Search Path:     @NETCDF_PLUGIN_SEARCH_PATH@
 
 Quantization:		@HAS_QUANTIZE@
 Logging:     		@HAS_LOGGING@
