@@ -298,11 +298,6 @@ else
 fi
 AC_SUBST([DOXYGEN_SERVER_BASED_SEARCH], ["NO"])
 
-AC_ARG_ENABLE([doxygen-pdf-output],
-    [AS_HELP_STRING([--enable-doxygen-pdf-output],
-        [Build netCDF library documentation in PDF format. Experimental.])])
-AC_SUBST([NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT], [$enable_doxygen_pdf_output])
-AM_CONDITIONAL([NC_NETCDF_ENABLE_DOXYGEN_PDF_OUTPUT], [test "x$enable_doxygen_pdf_output" = xyes])
 
 AC_ARG_ENABLE([dot],
 	[AS_HELP_STRING([--enable-dot],
