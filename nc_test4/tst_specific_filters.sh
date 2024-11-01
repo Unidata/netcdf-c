@@ -17,11 +17,7 @@ THISDIR=`pwd`
 cd $ISOPATH
 fi
 
-if test"x$FP_ISMINGW" == xyes || test"x$FP_ISMSYS" == xyes || test"x$FP_ISMSVC" == xyes ; then
-BLOSCARGS="32001,0,0,4,256,5,1,1"
-else
 BLOSCARGS="32001,0,0,0,256,5,1,1"
-fi
 BLOSCARGSALT="32001,0,0,4,256,5,1,1"
 BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
 
@@ -158,11 +154,9 @@ testblosc() {
   if ! avail blosc; then return 0; fi
   runfilter $zext blosc $BLOSCARGS "$BLOSCCODEC"
   # Need to ignore the first three parameters by setting them to 0
-if test 1 = 0 ; then
-  sed -e "s|${BLOSCARGSALT}|${BLOSCARGS}|" < tmp_filter_blosc.dump > tmp.dump
-  rm -f tmp_filter_blosc.dump
-  mv -f tmp.dump tmp_filter_blosc.dump
-fi
+  rm -f tmp.dump
+  sed -e "s|${BLOSCARGSALT}|${BLOSCARGS}|" < tmp_filt_blosc.dump > tmp.dump
+  mv -f tmp.dump tmp_filt_blosc.dump
   diff -b -w "tmp_filt_blosc.cdl" "tmp_filt_blosc.dump"
 }
 
