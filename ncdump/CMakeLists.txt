@@ -3,7 +3,7 @@
 # 2015, 2016, 2017, 2018
 # University Corporation for Atmospheric Research/Unidata.
 
-# See netcdffff-c/COPYRIGHT file for more info.
+# See netcdf-c/COPYRIGHT file for more info.
 #IF(BUILD_SHARED_LIBS AND WIN32)
 #  remove_definitions(-DDLL_EXPORT)
 #  remove_definitions(-DDLL_NETCDF)
