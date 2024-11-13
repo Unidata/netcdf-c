@@ -2048,139 +2048,139 @@ yyreduce:
 
   case 84: /* name: SCAN_ALIAS  */
 #line 248 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2053 "dapy.c"
     break;
 
   case 85: /* name: SCAN_ARRAY  */
 #line 249 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2059 "dapy.c"
     break;
 
   case 86: /* name: SCAN_ATTR  */
 #line 250 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2065 "dapy.c"
     break;
 
   case 87: /* name: SCAN_BYTE  */
 #line 251 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2071 "dapy.c"
     break;
 
   case 88: /* name: SCAN_DATASET  */
 #line 252 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2077 "dapy.c"
     break;
 
   case 89: /* name: SCAN_DATA  */
 #line 253 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2083 "dapy.c"
     break;
 
   case 90: /* name: SCAN_ERROR  */
 #line 254 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2089 "dapy.c"
     break;
 
   case 91: /* name: SCAN_FLOAT32  */
 #line 255 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2095 "dapy.c"
     break;
 
   case 92: /* name: SCAN_FLOAT64  */
 #line 256 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2101 "dapy.c"
     break;
 
   case 93: /* name: SCAN_GRID  */
 #line 257 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2107 "dapy.c"
     break;
 
   case 94: /* name: SCAN_INT16  */
 #line 258 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2113 "dapy.c"
     break;
 
   case 95: /* name: SCAN_INT32  */
 #line 259 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2119 "dapy.c"
     break;
 
   case 96: /* name: SCAN_MAPS  */
 #line 260 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2125 "dapy.c"
     break;
 
   case 97: /* name: SCAN_SEQUENCE  */
 #line 261 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2131 "dapy.c"
     break;
 
   case 98: /* name: SCAN_STRING  */
 #line 262 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2137 "dapy.c"
     break;
 
   case 99: /* name: SCAN_STRUCTURE  */
 #line 263 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2143 "dapy.c"
     break;
 
   case 100: /* name: SCAN_UINT16  */
 #line 264 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2149 "dapy.c"
     break;
 
   case 101: /* name: SCAN_UINT32  */
 #line 265 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2155 "dapy.c"
     break;
 
   case 102: /* name: SCAN_URL  */
 #line 266 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2161 "dapy.c"
     break;
 
   case 103: /* name: SCAN_CODE  */
 #line 267 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2167 "dapy.c"
     break;
 
   case 104: /* name: SCAN_MESSAGE  */
 #line 268 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2173 "dapy.c"
     break;
 
   case 105: /* name: SCAN_PROG  */
 #line 269 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2179 "dapy.c"
     break;
 
   case 106: /* name: SCAN_PTYPE  */
 #line 270 "dap.y"
-                         {yyval=strdup(yyvsp[0]);}
+                         {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
 #line 2185 "dapy.c"
     break;
 

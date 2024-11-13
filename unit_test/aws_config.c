@@ -46,8 +46,7 @@ main(int argc, char** argv)
     int c = 0,stat = NC_NOERR;
 
     /* Load RC and .aws/config */
-    CHECK(nc_initialize());
-    CHECK(NC_s3sdkinitialize());
+    CHECK(nc_initialize()); /* Will invoke NC_s3sdkinitialize()); */
     NCglobalstate* gs = NC_getglobalstate();
     //Not checking, aborts if ~/.aws/config doesn't exist
     CHECK(NC_aws_load_credentials(gs));

@@ -23,7 +23,7 @@ static int
 ncbytesfail(void)
 {
     fflush(stdout);
-    fprintf(stderr,"bytebuffer failure\n");
+    fprintf(stderr,"NCbytes failure\n");
     fflush(stderr);
 #ifdef NCBYTESDEBUG
     abort();

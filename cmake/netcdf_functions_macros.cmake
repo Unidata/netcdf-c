@@ -325,3 +325,15 @@ function(is_disabled feature ret_val)
     set("NC_${ret_val}" 1 PARENT_SCOPE)
   endif(${feature})
 endfunction()
+
+# Extract the last element from a path string
+function(getlastdir s ret_val)
+  if(NOT ISMSVC AND NOT ISMINGW)
+    string(REPLACE ":" ";" list "${s}")
+  else()
+    set(list ${s})
+  endif()
+  list(GET list -1 last)
+  set(${ret_val} "${last}" PARENT_SCOPE)
+endfunction()
+

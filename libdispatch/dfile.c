@@ -1748,6 +1748,13 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
     return ncp->dispatch->inq_type(ncid,xtype,name,size);
 }
 
+/** \defgroup dispatch dispatch functions. */
+/** \{
+
+\ingroup dispatch
+*/
+
+
 /**
    Check the create mode parameter for sanity.
 
@@ -2214,3 +2221,4 @@ nc__pseudofd(void)
     }
     return pseudofd++;
 }
+/** \} */
