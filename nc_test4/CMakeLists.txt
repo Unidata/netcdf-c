@@ -40,6 +40,8 @@ IF(NETCDF_BUILD_UTILITIES)
   ADD_SH_TEST(nc_test4 tst_misc)
   build_bin_test(tst_fillonly)
   ADD_SH_TEST(nc_test4 test_fillonly)
+# H5 and nczarr Fixed string support
+  build_bin_test(build_fixedstring)
   ADD_SH_TEST(nc_test4 tst_fixedstring)
 IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
   build_bin_test(tst_filterparser)

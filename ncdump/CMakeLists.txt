@@ -23,7 +23,8 @@ set(printfqn_FILES printfqn.c ${XGETOPTSRC})
 set(ncpathcvt_FILES ncpathcvt.c ${XGETOPTSRC})
 set(ncfilteravail_FILES ncfilteravail.c ${XGETOPTSRC})
 set(nchdf5version_FILES nchdf5version.c)
- 
+set(echon_FILES echon.c ${XGETOPTSRC})
+
 ## 
 # Turn off inclusion of particular files when using the cmake-native
 # option to turn on Unity Builds.  
@@ -42,6 +43,7 @@ add_executable(nccopy ${nccopy_FILES})
 add_executable(ncvalidator ${ncvalidator_FILES})
 add_executable(ncpathcvt ${ncpathcvt_FILES})
 add_executable(ncfilteravail ${ncfilteravail_FILES})
+add_executable(echon ${echon_FILES})
 
 if(USE_HDF5)
   add_executable(nc4print nc4print.c nc4printer.c)
@@ -63,6 +65,7 @@ target_link_libraries(nccopy netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncvalidator netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncpathcvt netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncfilteravail netcdf ${ALL_TLL_LIBS})
+target_link_libraries(echon netcdf ${ALL_TLL_LIBS})
 
 if(NETCDF_ENABLE_DAP)
   target_link_libraries(ocprint netcdf ${ALL_TLL_LIBS})
@@ -90,6 +93,7 @@ if(WIN32)
   setbinprops(ncvalidator)
   setbinprops(ncpathcvt)
   setbinprops(ncfilteravail)
+  setbinprops(echon)
 
   if(USE_HDF5)
     setbinprops(printfqn)

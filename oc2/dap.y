@@ -245,29 +245,29 @@ errorprog : /*empty*/ {$$=null;} | SCAN_PROG    '=' WORD_WORD ';' {$$=$3;}
 */
 name:
           WORD_WORD      {$$=dapdecode(parsestate->lexstate,$1);}
-	| SCAN_ALIAS     {$$=strdup($1);}
-	| SCAN_ARRAY     {$$=strdup($1);}
-	| SCAN_ATTR      {$$=strdup($1);}
-	| SCAN_BYTE      {$$=strdup($1);}
-	| SCAN_DATASET   {$$=strdup($1);}
-	| SCAN_DATA      {$$=strdup($1);}
-	| SCAN_ERROR     {$$=strdup($1);}
-	| SCAN_FLOAT32   {$$=strdup($1);}
-	| SCAN_FLOAT64   {$$=strdup($1);}
-	| SCAN_GRID      {$$=strdup($1);}
-	| SCAN_INT16     {$$=strdup($1);}
-	| SCAN_INT32     {$$=strdup($1);}
-	| SCAN_MAPS      {$$=strdup($1);}
-	| SCAN_SEQUENCE  {$$=strdup($1);}
-	| SCAN_STRING    {$$=strdup($1);}
-	| SCAN_STRUCTURE {$$=strdup($1);}
-	| SCAN_UINT16    {$$=strdup($1);}
-	| SCAN_UINT32    {$$=strdup($1);}
-	| SCAN_URL       {$$=strdup($1);}
-	| SCAN_CODE      {$$=strdup($1);}
-	| SCAN_MESSAGE   {$$=strdup($1);}
-	| SCAN_PROG      {$$=strdup($1);}
-	| SCAN_PTYPE     {$$=strdup($1);}
+ 	| SCAN_ALIAS     {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_ARRAY     {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_ATTR      {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_BYTE      {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_DATASET   {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_DATA      {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_ERROR     {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_FLOAT32   {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_FLOAT64   {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_GRID      {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_INT16     {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_INT32     {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_MAPS      {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_SEQUENCE  {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_STRING    {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_STRUCTURE {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_UINT16    {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_UINT32    {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_URL       {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_CODE      {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_MESSAGE   {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_PROG      {$$=dapdecode(parsestate->lexstate,$1);}
+	| SCAN_PTYPE     {$$=dapdecode(parsestate->lexstate,$1);}
 	;
 
 %%

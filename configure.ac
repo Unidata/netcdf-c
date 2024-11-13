@@ -1,4 +1,4 @@
-o#                                               -*- Autoconf -*-
+#                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
 # This is part of Unidata's netCDF package. Copyright 2005-2018, see
@@ -945,8 +945,6 @@ else
    AC_MSG_RESULT([${have_zip}])
    enable_nczarr_zip=${have_zip} # alias
 
-
-
    AC_MSG_CHECKING([whether nczarr zip support is enabled])
    AC_MSG_RESULT([${enable_nczarr_zip}])
 
@@ -958,14 +956,9 @@ else
    AC_MSG_CHECKING([whether netcdf S3 support should be enabled])
    AC_ARG_ENABLE([s3],
                [AS_HELP_STRING([--enable-s3],
-                                 [enable netcdf S3 support])])
+                                 [enable netcdf S3 support (default off)])])
    test "x$enable_s3" = xyes || enable_s3=no
    AC_MSG_RESULT($enable_s3)
-
-   if test "x$enable_remote_functionality" = xno ; then
-   AC_MSG_WARN([--disable-remote-functionality => --disable-s3])
-   enable_s3=no
-   fi
 
    # --enable-nczarr-s3 is synonym for --enable-s3 (but...)
    AC_MSG_CHECKING([whether netcdf NCZarr S3 support should be enabled])
@@ -975,10 +968,15 @@ else
    AC_MSG_RESULT([$enable_nczarr_s3 (Deprecated) Please use --enable-s3)])
 
    # Set enable_s3 instead of enable_nczarr_s3
-   if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes && test "x$enable_remote_functionality" = xyes; then
+   if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes ; then
    enable_s3=yes # back compatibility
    fi
    unset enable_nczarr_s3
+
+   if test "x$enable_remote_functionality" = xno ; then
+   AC_MSG_WARN([--disable-remote-functionality => --disable-s3])
+   enable_s3=no
+   fi
 
    # Note we check for the library after checking for enable_s3
    # because for some reason this fails if we unconditionally test for sdk
@@ -1175,7 +1173,7 @@ AC_ARG_ENABLE([benchmarks],
                               are timed. We use these tests to check netCDF performance.])])
 test "x$enable_benchmarks" = xyes || enable_benchmarks=no
 AC_MSG_RESULT($enable_benchmarks)
-if test "x$enable_HDF5" = xno -a "x$enable_benchmarks" = xyes; then
+if test "x$enable_hdf5" = xno -a "x$enable_benchmarks" = xyes; then
 AC_MSG_ERROR([Can't use benchmarks if HDF5 is disabled.])
 fi
 AM_CONDITIONAL(BUILD_BENCHMARKS, [test x$enable_benchmarks = xyes])
@@ -1653,7 +1651,7 @@ enable_hdf5_szip=no
 has_hdf5_ros3=no
 
 if test "x$enable_hdf5" = xyes; then
-
+   AC_DEFINE([NETCDF_ENABLE_HDF5], [1], [if true, use HDF5])
    AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
    AC_DEFINE([H5_USE_16_API], [1], [use HDF5 1.6 API])
 
@@ -2153,62 +2151,82 @@ fi
 
 AC_SUBST(STD_FILTERS,[$std_filters])
 
-# The --with-plugin-dir gives the user control of the plugin
-# directory. If set to 'yes' (the default), then first directory in
-# the HDF5_PLUGIN_PATH, or /usr/local/hdf5/lib/plugin (the default
-# HDF5 plugin dir) will be used. If another directory is provided, it
-# will be used. If 'no', then plugins will not be installed.
+# The --with-plugin-dir option gives the user control of the plugin install
+# directory. This also used as one of the default plugin directory when
+# searching for plugins.
+# If a specific directory is provided, it will be used.
+# If not defined or defined with the value no, or --without-plugin-dir, then
+# plugin installation will be suppressed (but see below).
 AC_MSG_CHECKING([whether and where we should install plugins])
-AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>|yes|no|--without-plugin-dir],
+AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>|no|--without-plugin-dir],
               [Install selected standard filters in specified or default directory])],
 	      [],[with_plugin_dir=no])
-if test "x$have_zstd" = xyes; then
-   if test "x$enable_plugins" = xyes && test "x$with_plugin_dir" = xno; then
-      with_plugin_dir=yes
-   fi
-fi
 AC_MSG_RESULT([$with_plugin_dir])
-if test "x$with_plugin_dir" = xno ; then # option missing|disabled
-    with_plugin_dir=no
-    with_plugin_dir_setting="N.A."
-    enable_plugin_dir=no
-elif test "x$with_plugin_dir" = xyes ; then # --with-plugin-dir, no argument
-    # Default to last dir (lowest search priority) in HDF5_PLUGIN_PATH
-    PLUGIN_PATH="$HDF5_PLUGIN_PATH"
-    if test "x${PLUGIN_PATH}" = x ; then
-        if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
-	    PLUGIN_PATH="${ALLUSERSPROFILE}\\hdfd5\\lib\\plugin"
-	else
-      if test "x${prefix}" = xNONE ; then
-   	    PLUGIN_PATH="/usr/local/hdf5/lib/plugin"
-      else 
-         PLUGIN_PATH="${prefix}/hdf5/lib/plugin"
-      fi
 
-   fi
-    fi
-    # Use the lowest priority dir in the path
-    if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
-      PLUGIN_DIR=`echo "$PLUGIN_PATH" | tr ';' ' '`
-    else
-      PLUGIN_DIR=`echo "$PLUGIN_PATH" | tr ':' ' '`
-    fi
-    for pp in ${PLUGIN_DIR} ; do last="$pp"; done
-    PLUGIN_DIR="$last"
-    with_plugin_dir_setting="$PLUGIN_DIR"
-    # canonical form is all forward slashes
-    with_plugin_dir=`echo "$PLUGIN_DIR" | tr '\\\\' '/'`
-    enable_plugin_dir=yes
-    AC_MSG_NOTICE([Defaulting to --with-plugin-dir=$with_plugin_dir])
-else # --with-plugin-dir=<dir|path>
-    with_plugin_dir_setting="$with_plugin_dir"
+# Using selected filter options forces installation
+if test "x$have_zstd" = xyes; then
+    AC_MSG_WARN([--enable_filter-zstd => --enable-plugins.])
+    enable_plugins=yes
+fi
+
+# Note: the term PLATFORMDEFAULT stands for:
+# -- /usr/loca/hdf5/lib/plugin If on a *nix* machine
+# -- %ALLUSERSPROFILE%/hdf5/lib/plugins If on a windows or Mingw platform
+if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
+    PLATFORMDEFAULT="${ALLUSERSPROFILE}\\hdf5\\lib\\plugin"
+    PLATFORMSEP=";"
+else
+    PLATFORMDEFAULT="/usr/local/hdf5/lib/plugin"
+    PLATFORMSEP=":"
+fi
+
+# Internally, the variable DEFAULT_PLUGIN_INSTALL_DIR is the default
+# directory into which plugins are installed; this may be undefined if
+# plugin installation is disabled (the usual case). It is exported as
+# NETCDF_PLUGIN_INSTALL_DIR.
+#
+# Similarly the variable DEFAULT_PLUGIN_SEARCH_PATH is the default list
+# of directories to search to locate plugins. It is exported as
+# NETCDF_PLUGIN_SEARCH_PATH
+#
+# See the document docs/pluginpath.md for a more detailed discussion
+# of how NETCDF_PLUGIN_INSTALL_DIR and NETCDF_PLUGIN_SEARCH_PATH are
+# computed.
+
+# Canonicalize --with-prefix-dir and --prefix
+if test "x$with_plugin_dir" = xno ; then unset with_plugin_dir ; fi
+if test "xprefix" = x ; then prefix=NONE ; fi
+if test "x$with_plugin_dir" != x ; then  # Table row 3
+    DEFAULT_PLUGIN_INSTALL_DIR="${with_plugin_dir}"
+    DEFAULT_PLUGIN_SEARCH_PATH="${with_plugin_dir}${PLATFORMSEP}${PLATFORMDEFAULT}"
+elif test "x$prefix" != xNONE ; then  # Table row 2
+    DEFAULT_PLUGIN_INSTALL_DIR="${prefix}/hdf5/lib/plugin"
+    DEFAULT_PLUGIN_SEARCH_PATH="${prefix}/hdf5/lib/plugin${PLATFORMSEP}${PLATFORMDEFAULT}"
+else # Table row 1
+    unset DEFAULT_PLUGIN_INSTALL_DIR
+    DEFAULT_PLUGIN_SEARCH_PATH="${PLATFORMDEFAULT}"
+fi
+# canonical form is all forward slashes
+DEFAULT_PLUGIN_INSTALL_DIR=`echo "$DEFAULT_PLUGIN_INSTALL_DIR" | tr '\\\\' '/'`
+DEFAULT_PLUGIN_SEARCH_PATH=`echo "$DEFAULT_PLUGIN_SEARCH_PATH" | tr '\\\\' '/'`
+
+# Inferences
+if test "x$DEFAULT_PLUGIN_INSTALL_DIR" = x ; then # option missing|disabled
+    enable_plugin_dir=no
+else
     enable_plugin_dir=yes
 fi
+
+if test "x$enable_plugin_dir" = xyes ; then
+  AC_DEFINE([ENABLE_PLUGIN_DIR], [1], [If true, enable filter installation])
+fi
+
 AM_CONDITIONAL([ENABLE_PLUGIN_DIR], [test "x$enable_plugin_dir" = xyes])
-AC_SUBST([PLUGIN_INSTALL_DIR], [$with_plugin_dir])
-# Better value for libnetcdf.settings
-AC_SUBST([PLUGIN_INSTALL_DIR_SETTING], [$with_plugin_dir_setting])
-AC_SUBST(NETCDF_PLUGIN_INSTALL_DIR, [$PLUGIN_INSTALL_DIR])
+AC_DEFINE_UNQUOTED([NETCDF_PLUGIN_INSTALL_DIR], ["${DEFAULT_PLUGIN_INSTALL_DIR}"], [Final Install Dir])
+AC_DEFINE_UNQUOTED([NETCDF_PLUGIN_SEARCH_PATH], ["${DEFAULT_PLUGIN_SEARCH_PATH}"], [Final Search Path])
+AC_SUBST([NETCDF_PLUGIN_INSTALL_DIR], [${DEFAULT_PLUGIN_INSTALL_DIR}])
+AC_SUBST([NETCDF_PLUGIN_SEARCH_PATH], [${DEFAULT_PLUGIN_SEARCH_PATH}])
+
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])
 

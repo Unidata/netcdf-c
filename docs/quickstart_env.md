@@ -1,5 +1,7 @@
-Appendix D.3. Environment Variables and .RC files {#nc_env_quickstart}
+Appendix G. Environment Variables and .RC files QuickStart {#nc_env_quickstart}
 ==============================
+
+[TOC]
 
 The netCDF-c library provides several parameterization mechanisms to
 control its behavior at run-time. The term _run-time_ means that the
@@ -147,7 +149,7 @@ Other keys are as follows:
 * oc2/occurlfunctions.c
     - HTTP.NETRC -- alternate way to specify the path of the .netrc file
 
-## Point of Contact {#nc_env_poc}
+## History {#nc_env_history}
 
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>

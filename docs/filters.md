@@ -13,9 +13,8 @@ should be aware.
 * ***Auto Install of filters***<br>
 An option is now provided to automatically install
 HDF5 filters into a default location, or optionally
-into a user-specified location. This is described in
-[Appendix H](#filters_appendixh)
-(with supporting information in [Appendix G](#filters_appendixg)). 
+into a user-specified location.
+This is described in the *pluginpath.md* document.
 
 * ***NCZarr Filter Support***<br>
 [NCZarr filters](#filters_nczarr) are now supported.
@@ -367,32 +366,8 @@ The details for writing such a filter are defined in the HDF5 documentation[1,2]
 ### Plugin directory {#filters_plugindir}
 
 The HDF5 loader searches for plugins in a number of directories.
-This search is contingent on the presence or absence of the environment
-variable named ***HDF5\_PLUGIN\_PATH***.
-
-As with all other "...PATH" variables, it is a sequence of absolute
-directories separated by a separator character. For *nix* operating systems,
-this separator is the colon (':') character. For Windows and Mingw, the
-separator is the semi-colon (';') character. So for example:
-
-* Linux:   `export HDF5_PLUGIN_PATH=/usr/lib:/usr/local/lib`
-* Windows: `export HDF5_PLUGIN_PATH=c:\\ProgramData\\hdf5\\plugin;c:\\tools\\lib`
-
-If HDF5\_PLUGIN\_PATH is defined, then the loader will search each directory
-in the path from left to right looking for shared libraries with specific
-exported symbols representing the entry points into the library.
-
-If HDF5\_PLUGIN\_PATH is not defined, the loader defaults to using
-these default directories:
-
-* Linux:  `/usr/local/hdf5/lib/plugin`
-* Windows: `%ALLUSERSPROFILE%\\hdf5\\lib\\plugin`
-
-It should be noted that there is a difference between the search order
-for HDF5 versus NCZarr. The HDF5 loader will search only the directories
-specificed in HDF5\_PLUGIN\_PATH. In NCZarr, the loader
-searches HDF5\_PLUGIN\_PATH and as a last resort,
-it also searches the default directory.
+The netcdf-c process for installing and locating plugins is described
+in detail in the *pluginpath.md* document.
 
 ### Plugin Library Naming {#filters_Pluginlib}
 
@@ -1164,7 +1139,7 @@ When installing the netcdf library, the following other libraries must be instal
 2. The HDF5 wrapper for *libzstd.so* -- There are several options for obtaining this (see [Appendix G](#filters_appendixg).)
 3. (Optional) The Zarr wrapper for *libzstd.so* -- you need this if you intend to read/write Zarr datasets that were compressed using zstandard; again see [Appendix G](#filters_appendixg).
 
-## Appendix G. Finding Filters  {#filters_appendixg}
+## Appendix G. Finding Filter Implementations {#filters_appendixg}
 
 A major problem for filter users is finding an implementation of an HDF5 filter wrapper and (optionally)
 its corresponding NCZarr wrapper. There are several ways to do this.
@@ -1190,40 +1165,7 @@ so they are only usable with netcdf-4. This will change in the future.
 As part of the overall build process, a number of filter wrappers are built as shared libraries in the "plugins" directory.
 These wrappers can be installed as part of the overall netcdf-c installation process.
 WARNING: the installer still needs to make sure that the actual filter/compression libraries are installed: e.g. libzstd and/or libblosc.
-
-The target location into which libraries in the "plugins" directory are installed is specified
-using a special *./configure* option
-
-````
---with-plugin-dir=<directorypath>
-or
---with-plugin-dir
-````
-or its corresponding *cmake* option.
-
-````
--DPLUGIN_INSTALL_DIR=<directorypath>
-or
--DPLUGIN_INSTALL_DIR=YES
-````
-This option defaults to the value "yes", which means that filters are
-installed by default. This can be disabled by one of the following options.
-
-````
---without-plugin-dir (automake)
-or
---with-plugin-dir=no (automake)
-or
--DPLUGIN_INSTALL_DIR=NO (CMake)
-````
-
-If the option is specified with no argument (automake) or with the value "YES" (CMake),
-then it defaults (in order) to the following directories:
-
-1. If the HDF5\_PLUGIN\_PATH environment variable is defined, then last directory in the list of directories in the path is used.
-2.  (a) `/usr/local/hdf5/lib/plugin` for linux/unix operating systems (including Cygwin)<br>
-    (b) `%ALLUSERSPROFILE%\\hdf5\\lib\\plugin` for Windows and MinGW
-
+See the document *pluginpaths.md* for details on the installation process.
 If NCZarr is enabled, then in addition to wrappers for the standard filters,
 additional libraries will be installed to support NCZarr access to filters.
 Currently, this list includes the following:
@@ -1242,31 +1184,6 @@ order to use them, it needs additional Codec capabilities
 provided by the *lib__nczh5filters.so* shared library.  Note also that
 if you disable HDF5 support, but leave NCZarr support enabled,
 then all of the above filters should continue to work.
-
-### HDF5\_PLUGIN\_PATH
-
-At the moment, NetCDF uses the existing HDF5 environment variable
-*HDF5\_PLUGIN\_PATH* to locate the directories in which filter wrapper
-shared libraries are located. This is used both for the HDF5 filter
-wrappers but also the NCZarr codec wrappers.
-
-*HDF5\_PLUGIN\_PATH* is a typical Windows or Unix style
-path-list.  That is it is a sequence of absolute directory paths
-separated by a specific separator character. For Windows, the
-separator character is a semicolon (';') and for Unix, it is a a
-colon (':').
-
-So, if HDF5\_PLUGIN\_PATH is defined at build time, and
-*--with-plugin-dir* is specified with no argument then the last
-directory in the path will be the one into which filter wrappers are
-installed. Otherwise the default directories are used.
-
-The important thing to note is that at run-time, there are several cases to consider:
-
-1. HDF5\_PLUGIN\_PATH is defined and is the same value as it was at build time -- no action needed
-2. HDF5\_PLUGIN\_PATH is defined and is has a different value from build time -- the user is responsible for ensuring that the run-time path includes the same directory used at build time, otherwise this case will fail.
-3. HDF5\_PLUGIN\_PATH is not defined at either run-time or build-time -- no action needed
-4. HDF5\_PLUGIN\_PATH is not defined at run-time but was defined at build-time -- this will probably fail
 
 ## Appendix I. A Warning on Backward Compatibility {#filters_appendixi}
 
@@ -1290,9 +1207,9 @@ A user may encounter an incompatibility if any of the following appears in user 
 
 For additional information, see [Appendix B](#filters_appendixb).
 
-## Point of Contact {#filters_poc}
+## History {#filters_history}
 
 *Author*: Dennis Heimbigner<br>
-*Email*: dmh at ucar dot edu<br>
+*Email*: dennis.heimbigner@gmail.com<br>
 *Initial Version*: 1/10/2018<br>
 *Last Revised*: 5/18/2022

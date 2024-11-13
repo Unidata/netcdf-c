@@ -50,6 +50,8 @@ static int endswith(const char* s, const char* suffix);
 static void freeentry(struct AWSentry* e);
 static int awsparse(const char* text, NClist* profiles);
 
+extern void awsprofiles(void);
+
 /**************************************************/
 /* Capture environmental Info */
 
@@ -255,7 +257,7 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
     ncurirebuild(newurl);
     /* return various items */
 #ifdef AWSDEBUG
-    fprintf(stderr,">>> NC_s3urlrebuild: final=%s bucket=|%s| region=|%s|\n",uri->uri,bucket,region);
+    fprintf(stderr,">>> NC_s3urlrebuild: final=%s bucket=|%s| region=|%s|\n",newurl->uri,bucket,region);
 #endif
     if(newurlp) {*newurlp = newurl; newurl = NULL;}
     if(s3 != NULL) {
@@ -507,22 +509,7 @@ NC_aws_load_credentials(NCglobalstate* gstate)
     gstate->rcinfo->s3profiles = profiles; profiles = NULL;
 
 #ifdef AWSDEBUG
-    {int i,j;
-	fprintf(stderr,">>> profiles:\n");
-	for(i=0;i<nclistlength(gstate->rcinfo->s3profiles);i++) {
-	    struct AWSprofile* p = (struct AWSprofile*)nclistget(gstate->rcinfo->s3profiles,i);
-	    fprintf(stderr,"    [%s]",p->name);
-	    for(j=0;j<nclistlength(p->entries);j++) {
-	        struct AWSentry* e = (struct AWSentry*)nclistget(p->entries,j);
-		if(strcmp(e->key,"aws_access_key_id")
-		    fprintf(stderr," %s=%d",e->key,(int)strlen(e->value));
-		else if(strcmp(e->key,"aws_secret_access_key")
-		    fprintf(stderr," %s=%d",e->key,(int)strlen(e->value));
-		else fprintf(stderr," %s=%s",e->key,e->value);
-	    }
-            fprintf(stderr,"\n");
-	}
-    }
+    awsprofiles();
 #endif
 
 done:
@@ -666,7 +653,7 @@ NC_getdefaults3region(NCURI* uri, const char** regionp)
     if(region == NULL)
 	  region = NC_getglobalstate()->aws.default_region; /* Force use of the Amazon default */
 #ifdef AWSDEBUG
-    fprintf(stderr,">>> activeregion = |%s|\n",region));
+    fprintf(stderr,">>> activeregion = |%s|\n",region);
 #endif
     if(regionp) *regionp = region;
     return stat;
@@ -936,10 +923,52 @@ freeentry(struct AWSentry* e)
 {
     if(e) {
 #ifdef AWSDEBUG
-fprintf(stderr,">>> freeentry: key=%p value=%p\n",e->key,e->value);
+fprintf(stderr,">>> freeentry: key=%s value=%s\n",e->key,e->value);
 #endif
         nullfree(e->key);
         nullfree(e->value);
         nullfree(e);
     }
 }
+
+/* Provide profile-related  dumper(s) */
+void
+awsdumpprofile(struct AWSprofile* p)
+{
+    size_t j;
+    if(p == NULL) {
+        fprintf(stderr,"    <NULL>");
+	goto done;
+    }
+    fprintf(stderr,"    [%s]",p->name);
+    if(p->entries == NULL) {
+	fprintf(stderr,"<NULL>");
+	goto done;
+    }
+    for(j=0;j<nclistlength(p->entries);j++) {
+        struct AWSentry* e = (struct AWSentry*)nclistget(p->entries,j);
+	fprintf(stderr," %s=%s",e->key,e->value);
+    }
+done:
+    fprintf(stderr,"\n");
+}
+
+void
+awsdumpprofiles(NClist* profiles)
+{
+    size_t i;
+    NCglobalstate* gs = NC_getglobalstate();
+    for(i=0;i<nclistlength(gs->rcinfo->s3profiles);i++) {
+	struct AWSprofile* p = (struct AWSprofile*)nclistget(profiles,i);
+	awsdumpprofile(p);
+    }
+}
+
+void
+awsprofiles(void)
+{
+    NCglobalstate* gs = NC_getglobalstate();
+    fprintf(stderr,">>> profiles from global->rcinfo->s3profiles:\n");
+    awsdumpprofiles(gs->rcinfo->s3profiles);
+}
+

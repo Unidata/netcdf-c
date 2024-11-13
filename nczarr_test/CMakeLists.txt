@@ -130,7 +130,7 @@ IF(NETCDF_ENABLE_TESTS)
   ENDIF()
 
   # Helper programs for testing
-  BUILD_BIN_TEST(zhex)
+  build_bin_test(zhex)
   build_bin_test_with_util_lib(zisjson ut_util)
   TARGET_INCLUDE_DIRECTORIES(zisjson PUBLIC ../libnczarr)
   build_bin_test_with_util_lib(zs3parse ut_util)
