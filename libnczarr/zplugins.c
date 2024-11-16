@@ -759,7 +759,7 @@ printhdf5(const NCZ_HDF5 h)
 static void static_unused(void)
 {
     void* p = NULL;
-    p = p;
+    (void)p;
     p = static_unused;
 #if defined(DEBUGF) || defined(DEBUGL)
 (void)printplugin(NULL);
