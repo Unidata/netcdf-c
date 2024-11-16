@@ -61,7 +61,9 @@ nc_plugin_path_initialize(void)
     int stat = NC_NOERR;
     struct NCglobalstate* gs = NULL;
     NCPluginList dirs = {0,NULL};
+#ifdef USE_HDF5
     int hdf5found = 0; /* 1 => we got a legit plugin path set from HDF5 */
+#endif
 
     if(!NC_initialized) nc_initialize();
     if(NC_plugin_path_initialized != 0) goto done;
