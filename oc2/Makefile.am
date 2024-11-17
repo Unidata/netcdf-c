@@ -12,7 +12,7 @@ AM_CPPFLAGS =  -I.. -I$(top_srcdir) -I$(top_srcdir)/include
 
 # OC Sources; include the dapy.[ch] to avoid the need for bison by user
 SRC=oc.c \
-daplex.c dapparse.c dapy.c \
+daplex.c dapparse.c dap.tab.c \
 occompile.c occurlfunctions.c \
 ocdata.c ocdebug.c ocdump.c  \
 ocinternal.c ocnode.c \
