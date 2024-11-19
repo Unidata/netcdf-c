@@ -285,6 +285,8 @@ exhashlocate(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf** leafp, int* indexp
         /* Is there room in the leaf to add an entry? */
 #if DEBUG >= 3
 	fprintf(stderr,"locate: iter=%d offset=%x leaf=(%d)%p active=%d\n",iter,offset,leaf->uid,leaf,(int)leaf->active);
+#else
+	(void)iter;
 #endif
        if(leaf->active < map->leaflen) break; /* yes, there is room */
        /* Not Enough room, so we need to split this leaf */
