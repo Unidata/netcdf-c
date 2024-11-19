@@ -544,7 +544,6 @@ vardata(
     void *vals;
 
     int id;
-    size_t nels;
     size_t ncols;
     int vrank = vp->ndims;
 
@@ -555,7 +554,6 @@ vardata(
     edg = (size_t *) emalloc((size_t)(1 + vrank) * sizeof(size_t));
     add = (size_t *) emalloc((size_t)(1 + vrank) * sizeof(size_t));
 
-    nels = 1;
     if(vrank == 0) { /*scalar*/
 	cor[0] = 0;
 	edg[0] = 1;
@@ -563,7 +561,6 @@ vardata(
 	for (id = 0; id < vrank; id++) {
 	    cor[id] = 0;
 	    edg[id] = 1;
-	    nels *= vdims[id];	/* total number of values for variable */
 	}
     }
     printf("\n");
