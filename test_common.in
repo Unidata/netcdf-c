@@ -201,7 +201,8 @@ fi
 
 # OS/X and windows apparently have no echo -n option, so fake it
 echon() {
-    ${execdir}/../ncdump/echon -n $@
+    echo -n $@
+    #${execdir}/../ncdump/echon -n $@
 }
 
 # Test for filter availability
