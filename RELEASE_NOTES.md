@@ -15,7 +15,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## Release Notes
 
-### Release Candidate 2 - November 20, 2024
+### Release Candidate 2 - November 22, 2024
 
 > Note: To avoid a conflict between `_FillValue` and `libc++18`, we have introduced a new option, `--enable-legacy-macros` for autotools and `NETCDF_ENABLE_LEGACY_MACROS` for cmake.  These are turned on by default currently but will be turned off eventually.  Developers are encouraged to move away from the `FillValue` macro and replace it with the new `NC_FillValue` macro.  See [Github #2858](https://github.com/Unidata/netcdf-c/issues/2858) for more information. 
 
