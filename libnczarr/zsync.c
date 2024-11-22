@@ -1846,10 +1846,15 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     if(jsuper == NULL) {
 	/* See if this is looks like a NCZarr/Zarr dataset at all
            by looking for anything here of the form ".z*" */
-        if((stat = ncz_validate(file))) goto done;
+        if(!NCZMD_is_metadata_consolidated(zinfo) || (stat = ncz_validate(file))) goto done;
 	/* ok, assume pure zarr with no groups */
 	zinfo->controls.flags |= FLAG_PUREZARR;	
 	if(zarr_format == NULL) zarr_format = strdup("2");
+    }
+
+    int tformat = 0;
+    if(!NCZMD_get_metadata_format(zinfo, &tformat)){
+        sprintf(zarr_format, "%d",tformat);
     }
 
     /* Look for _nczarr_group */
