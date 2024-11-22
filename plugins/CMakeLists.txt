@@ -136,7 +136,7 @@ if(Zstd_FOUND)
 endif()
 if(Blosc_FOUND)
   installplugin(h5blosc)
-endif(NETCDF_ENABLE_PLUGINS)
+endif()
 
 # Copy some test files from current source dir to out-of-tree build dir.
 file(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
