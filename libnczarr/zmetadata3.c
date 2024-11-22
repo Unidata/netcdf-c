@@ -72,7 +72,7 @@ int NCZMD_v3_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *sub
 	/* Compute the key for the grp */
 	if ((stat = NCZ_grpkey(grp, &grpkey)))
 		goto done;
-	if ((stat = nczmap_list(zfile->map, grpkey, matches)))
+	if ((stat = nczmap_search(zfile->map, grpkey, matches)))
 		goto done;
 	for (i = 0; i < nclistlength(matches); i++)
 	{
@@ -102,7 +102,7 @@ done:
 
 int extract_node_types(const NCjson *jobj, const char * prefix, const char *node_type, NClist **nodenames){
 	size_t lprefix = strlen(prefix);
-	for (int i = 0; i < NCJarraylength(jobj); i += 2)	{
+	for (int i = 0; i < NCJlength(jobj); i += 2)	{
 		const NCjson *jname = NCJith(jobj, i);
 		const NCjson *jvalue = NCJith(jobj, i+1);
 
@@ -177,7 +177,7 @@ int NCZMD_v3_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *
 	if ((stat = NCZ_grpkey(grp, &grpkey)))
 		goto done;
 	/* Get the map and search group */
-	if ((stat = nczmap_list(zfile->map, grpkey, matches)))
+	if ((stat = nczmap_search(zfile->map, grpkey, matches)))
 		goto done;
 	for (i = 0; i < nclistlength(matches); i++)
 	{
@@ -263,7 +263,7 @@ static int get_consolidated_json_node(const NCjson * zobj, const char* c_node_na
 	}
 
 	// for each key, check if is a dict and has matching node_type 
-	for (i = 0; i < NCJarraylength(jmetadata); i += 2)	{
+	for (i = 0; i < NCJlength(jmetadata); i += 2)	{
 		const NCjson *jname = NCJith(jmetadata, i);
 		if (NCJsort(jname) != NCJ_STRING || strncmp(NCJstring(jname),node_name, lnode_name+1)){
 			continue;

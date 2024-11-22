@@ -75,7 +75,7 @@ int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *sub
 	/* Compute the key for the grp */
 	if ((stat = NCZ_grpkey(grp, &grpkey)))
 		goto done;
-	if ((stat = nczmap_list(zfile->map, grpkey, matches)))
+	if ((stat = nczmap_search(zfile->map, grpkey, matches)))
 		goto done;
 	for (i = 0; i < nclistlength(matches); i++)
 	{
@@ -119,7 +119,7 @@ int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist 
 
 	const NCjson *jmetadata = NULL;
 	NCJdictget(zfile->metadata_handler->jcsl, "metadata", &jmetadata);
-	for (i = 0; i < NCJarraylength(jmetadata); i += 2)
+	for (i = 0; i < NCJlength(jmetadata); i += 2)
 	{
 		NCjson *jname = NCJith(jmetadata, i);
 		const char *fullname = NCJstring(jname);
@@ -163,7 +163,7 @@ int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *
 	if ((stat = NCZ_grpkey(grp, &grpkey)))
 		goto done;
 	/* Get the map and search group */
-	if ((stat = nczmap_list(zfile->map, grpkey, matches)))
+	if ((stat = nczmap_search(zfile->map, grpkey, matches)))
 		goto done;
 	for (i = 0; i < nclistlength(matches); i++)
 	{
@@ -216,7 +216,7 @@ int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NCli
 
 	const NCjson *jmetadata = NULL;
 	NCJdictget(zfile->metadata_handler->jcsl, "metadata", &jmetadata);
-	for (i = 0; i < NCJarraylength(jmetadata); i += 2)
+	for (i = 0; i < NCJlength(jmetadata); i += 2)
 	{
 		NCjson *jname = NCJith(jmetadata, i);
 		const char *fullname = NCJstring(jname);
