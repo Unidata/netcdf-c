@@ -1140,5 +1140,5 @@ netcdf_supresswarnings(void)
     ignore = (void*)NCJtotext;
     ignore = (void*)NCJinsertstring;
     ignore = (void*)NCJinsertint;
-    ignore = ignore;
+    (void)ignore;
 }

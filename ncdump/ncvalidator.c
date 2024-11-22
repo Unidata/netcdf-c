@@ -2107,6 +2107,8 @@ val_NC_check_voff(NC *ncp)
         prev_off = varp->begin + varp->len;
         prev = i;
     }
+    
+    (void)nerrs;
 
     return status;
 }
