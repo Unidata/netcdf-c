@@ -420,12 +420,7 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
                 int rank, size_t* start, size_t* count)
 {
     int stat = NC_NOERR;
-    int i;
     char* data = bbContents(memory);
-    size_t nelems;
-
-    /* Compute total number of elements */
-    for(nelems=1,i=0;i<rank;i++) nelems *= count[i];
 
 #ifdef GENDEBUG
     {
