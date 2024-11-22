@@ -1144,8 +1144,9 @@ define_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
     /* Construct grp path */
     if((stat = NCZ_grpkey(grp,&fullpath))) goto done;
 
+    stat = NCZMD_fetch_json_group(zinfo, grp, fullpath, &zgrp->zgroup.obj);
+    stat = NCZMD_fetch_json_attrs(zinfo, grp, fullpath, &zgrp->zgroup.atts);
     /* Download .zgroup and .zattrs */
-    if((stat = downloadzarrobj(file,&zgrp->zgroup,fullpath,ZGROUP))) goto done;
     jgroup = zgrp->zgroup.obj;
     jattrs = zgrp->zgroup.atts;
 
@@ -1451,7 +1452,9 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	goto done;
 
     /* Download */
-    if((stat = downloadzarrobj(file,&zvar->zarray,varpath,ZARRAY))) goto done;
+    if(stat = NCZMD_fetch_json_array(zinfo, grp, varpath, &zvar->zarray.obj) 
+    || NCZMD_fetch_json_attrs(zinfo, grp, varpath, &zvar->zarray.atts)) goto done;
+    
     jvar = zvar->zarray.obj;
     jatts = zvar->zarray.atts;
     assert(jvar == NULL || NCJsort(jvar) == NCJ_DICT);
@@ -1822,7 +1825,10 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     if((stat = NCZ_grpkey(root,&fullpath))) goto done;
 
     /* Download the root group .zgroup and associated .zattrs */
-    if((stat = downloadzarrobj(file, &zroot->zgroup, fullpath, ZGROUP))) goto done;
+        /* Download */
+    if(stat = NCZMD_fetch_json_group(zinfo, root, fullpath, &zroot->zgroup.obj) 
+    || NCZMD_fetch_json_attrs(zinfo, root, fullpath, &zroot->zgroup.atts)) goto done;
+    
     jzgroup = zroot->zgroup.obj;    
 
     /* Look for superblock; first in .zattrs and then in .zgroup */
@@ -1960,9 +1966,9 @@ parse_group_content_pure(NCZ_FILE_INFO_T*  zinfo, NC_GRP_INFO_T* grp, NClist* va
     ZTRACE(3,"zinfo=%s grp=%s |varnames|=%u |subgrps|=%u",zinfo->common.file->controller->path,grp->hdr.name,(unsigned)nclistlength(varnames),(unsigned)nclistlength(subgrps));
 
     nclistclear(varnames);
-    if((stat = searchvars(zinfo,grp,varnames))) goto done;
+    if((stat = NCZMD_list_variables(zinfo, grp,varnames))) goto done;
     nclistclear(subgrps);
-    if((stat = searchsubgrps(zinfo,grp,subgrps))) goto done;
+    if((stat = NCZMD_list_groups(zinfo, grp,varnames))) goto done;
 
 done:
     return ZUNTRACE(THROW(stat));
