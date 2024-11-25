@@ -23,7 +23,6 @@ zgrp.c
 zinternal.c
 zmap.c
 zmap_file.c
-zmetadata3.c
 zmetadata2.c
 zmetadata.c
 zodom.c

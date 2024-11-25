@@ -9,8 +9,6 @@
 
 extern int NCZF2_initialize(void);
 extern int NCZF2_finalize(void);
-extern int NCZF3_initialize(void);
-extern int NCZF3_finalize(void);
 
 /**************************************************/
 ////////////////////////////////////////////////////
@@ -19,7 +17,6 @@ int NCZMD_initialize(void)
 {	
     int stat = NC_NOERR;
     if((stat=NCZMD2_initialize())) goto done;
-    if((stat=NCZMD3_initialize())) goto done;
 done:
     return THROW(stat);
 }
@@ -29,7 +26,6 @@ int NCZMD_finalize(void)
 
     int stat = NC_NOERR;
     if((stat=NCZMD2_finalize())) goto done;
-    if((stat=NCZMD3_finalize())) goto done;
 done:
     return THROW(stat);
 }
@@ -157,34 +153,17 @@ int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile, const NCZ_Metadata **mdha
 		goto done;
 	}
 
-	zmd_dispatcher = NCZ_metadata_handler2;
 
-	if ((stat = NCZ_downloadjson(zfile->map, Z2METADATA, &jcsl)) != NC_NOERR || jcsl == NULL)
-	{
-		if ((stat = NCZ_downloadjson(zfile->map, Z3METADATA, &jcsl)) != NC_NOERR || jcsl == NULL)
-		{
-			/* We've tried to get any json 
-			objects for consolidated access
-			but they seem to be absent */
-			goto done;
-		}
-		NCjson * jtmp = NULL;
-		if (NCJsort(jcsl) != NCJ_DICT || NCJdictget(jcsl,"consolidated_metadata", &jtmp) || NCJsort(jtmp) != NCJ_DICT)
-		{
-			zmd_dispatcher = NCZ_metadata_handler3;
-		}
-		else
-		{
-			zmd_dispatcher = NCZ_csl_metadata_handler3;
-		}
-	}
-	else
+	if ((stat = NCZ_downloadjson(zfile->map, Z2METADATA, &jcsl)) == NC_NOERR
+		&& jcsl != NULL && NCJsort(jcsl) == NCJ_DICT)
 	{
 		zmd_dispatcher = NCZ_csl_metadata_handler2;
+	}else{
+		zmd_dispatcher = NCZ_metadata_handler2;
+		NCJreclaim(jcsl);
+		jcsl = NULL;
 	}
 
-	if (jcsl != NULL && NCJsort(jcsl) == NCJ_DICT)
-	{
 		NCZ_Metadata *zmdh = NULL;
 		if ((zmdh = (NCZ_Metadata *)calloc(1, sizeof(NCZ_Metadata))) == NULL)
 		{
@@ -195,12 +174,6 @@ int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile, const NCZ_Metadata **mdha
 		zmdh->dispatcher = zmd_dispatcher;
 
 		*mdhandlerp = (const NCZ_Metadata *)zmdh;
-	}
-	else
-	{
-		NCJreclaim(jcsl); // Free jcsl if not assigned
-	}
-
 done:
 	return stat;
 }
