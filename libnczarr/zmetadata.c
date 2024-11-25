@@ -177,3 +177,9 @@ int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile, const NCZ_Metadata **mdha
 done:
 	return stat;
 }
+
+void NCZMD_free_metadata_handler(NCZ_Metadata * zmd){
+	if (zmd == NULL) return;
+	NCJreclaim(zmd->jcsl);
+	nullfree(zmd);
+}

@@ -96,6 +96,7 @@ extern int NCZMD_fetch_json_array(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, co
 extern int NCZMD_is_metadata_consolidated(NCZ_FILE_INFO_T *zfile);
 extern int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat); // Only pure Zarr is determined
 extern int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile, const NCZ_Metadata **mdhandlerp);
+extern void NCZMD_free_metadata_handler(NCZ_Metadata * zmd);
 
 #if defined(__cplusplus)
 }
