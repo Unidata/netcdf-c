@@ -309,7 +309,13 @@ NC_s3urlprocess(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
 
     /* Rebuild the URL to path format and get a usable region and optional bucket*/
     if((stat = NC_s3urlrebuild(url,s3,&url2))) goto done;
-    s3->host = strdup(url2->host);
+    if(url2->port){
+        s3->host = strndup(url2->host,strlen(url2->host) + 1 + strlen(url2->port) +1);
+        s3->host = strcat(s3->host, ":");
+        s3->host = strcat(s3->host, url2->port);
+    }else{
+        s3->host = strdup(url2->host);
+    }
     /* construct the rootkey minus the leading bucket */
     pathsegments = nclistnew();
     if((stat = NC_split_delim(url2->path,'/',pathsegments))) goto done;
