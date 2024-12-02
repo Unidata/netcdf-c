@@ -1,0 +1,2 @@
+testxset(global): before: /zero;/one;/two;/three;/four
+testxset(global): after: /zero;/one;/mod;/two;/three;/four
