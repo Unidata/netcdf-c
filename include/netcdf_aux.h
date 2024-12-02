@@ -103,7 +103,7 @@ EXTERNL int ncaux_add_field(void* tag,  const char *name, nc_type field_type,
 struct NCPluginList;
 
 /**
-Parse a string into a sequence of path directories.
+Parse a counted string into a sequence of path directories.
 
 The pathlist argument has the following syntax:
     paths := <empty> | dirlist
@@ -111,6 +111,7 @@ The pathlist argument has the following syntax:
     separator := ';' | ':'
     dir := <OS specific directory path>
 
+@param pathlen length of pathlist arg
 @param pathlist a string encoding a list of directories
 @param sep  one of ';' | ':' | '\0' where '\0' means use the platform's default separator.
 @param dirs a pointer to an  NCPluginPath object for returning the number and vector of directories from the parse.
@@ -121,6 +122,17 @@ will allocate the space for the vector of directory path.
 The user is then responsible for free'ing that vector
 (or call ncaux_plugin_path_reclaim).
 
+Author: Dennis Heimbigner
+*/
+EXTERNL int ncaux_plugin_path_parsen(size_t pathlen, const char* pathlist, char sep, struct NCPluginList* dirs);
+
+/**
+Parse a nul-terminated string into a sequence of path directories.
+@param pathlist a string encoding a list of directories
+@param sep  one of ';' | ':' | '\0' where '\0' means use the platform's default separator.
+@param dirs a pointer to an  NCPluginPath object for returning the number and vector of directories from the parse.
+@return ::NC_NOERR | NC_EXXX
+See also the comments for ncaux_plugin_path_parsen
 Author: Dennis Heimbigner
 */
 EXTERNL int ncaux_plugin_path_parse(const char* pathlist, char sep, struct NCPluginList* dirs);
@@ -191,6 +203,47 @@ Modify a plugin path set to prepend a new directory to the front.
 Author: Dennis Heimbigner
 */
 EXTERNL int ncaux_plugin_path_prepend(struct NCPluginList* dirs, const char* dir);
+
+/**************************************************/
+/* FORTRAN is not good at manipulating C char** vectors,
+   so provide some wrappers for use by netcdf-fortran
+   that read/write plugin path as a single string.
+   For simplicity, the path separator is always semi-colon.
+*/
+
+/**
+ * Return the length (as in strlen) of the current plugin path directories encoded as a string.
+ * @return length of the string encoded plugin path.
+ * @author Dennis Heimbigner
+ *
+ * @author: Dennis Heimbigner
+*/
+EXTERNL int ncaux_plugin_path_stringlen(void);
+
+/**
+ * Return the current sequence of directories in the internal global
+ * plugin path list encoded as a string path using ';' as a path separator.
+ * @param pathlen the length of the path argument.
+ * @param path a string into which the current plugin paths are encodeded.
+ * @return NC_NOERR | NC_EXXX
+ * @author Dennis Heimbigner
+ *
+ * @author: Dennis Heimbigner
+*/
+EXTERNL int ncaux_plugin_path_stringget(int pathlen, char* path);
+
+/**
+ * Set the current sequence of directories in the internal global
+ * plugin path list to the sequence of directories encoded as a
+ * string path using ';' as a path separator.
+ * @param pathlen the length of the path argument.
+ * @param path a string encoding the sequence of directories and using ';' to separate them.
+ * @return NC_NOERR | NC_EXXX
+ * @author Dennis Heimbigner
+ *
+ * @author: Dennis Heimbigner
+*/
+EXTERNL int ncaux_plugin_path_stringset(int pathlen, const char* path);
 
 #if defined(__cplusplus)
 }

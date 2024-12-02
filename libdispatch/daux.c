@@ -102,7 +102,7 @@ EXTERNL int
 ncaux_abort_compound(void* tag)
 {
 #ifdef USE_NETCDF4
-    int i;
+    size_t i;
     struct NCAUX_CMPD* cmpd = (struct NCAUX_CMPD*)tag;
     if(cmpd == NULL) goto done;
     if(cmpd->name) free(cmpd->name);
@@ -164,7 +164,7 @@ EXTERNL int
 ncaux_end_compound(void* tag, nc_type* idp)
 {
 #ifdef USE_NETCDF4
-    int i;
+    size_t i;
     int status = NC_NOERR;
     struct NCAUX_CMPD* cmpd = (struct NCAUX_CMPD*)tag;
 
@@ -247,7 +247,7 @@ getpadding(size_t offset, size_t alignment)
 static size_t
 dimproduct(size_t ndims, int* dimsizes)
 {
-    int i;
+    size_t i;
     size_t product = 1;
     for(i=0;i<ndims;i++) product *= (size_t)dimsizes[i];
     return product;
@@ -256,7 +256,7 @@ dimproduct(size_t ndims, int* dimsizes)
 static int
 computefieldinfo(struct NCAUX_CMPD* cmpd)
 {
-    int i;
+    size_t i;
     int status = NC_NOERR;
     size_t offset = 0;
     size_t totaldimsize;
@@ -272,7 +272,7 @@ computefieldinfo(struct NCAUX_CMPD* cmpd)
 
     for(offset=0,i=0;i<cmpd->nfields;i++) {
         struct NCAUX_FIELD* field = &cmpd->fields[i];
-	int alignment = 0;
+	size_t alignment = 0;
 	nc_type firsttype = findfirstfield(cmpd->ncid,field->fieldtype);
 
         /* only support 'c' alignment for now*/
@@ -432,7 +432,8 @@ and the parameters themselves (hence the unsigned int** paramsp).
 EXTERNL int
 ncaux_h5filterspec_parse(const char* txt, unsigned int* idp, size_t* nparamsp, unsigned int** paramsp)
 {
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
+    size_t i;
     char* p;
     char* sdata0 = NULL; /* what to free */
     char* sdata = NULL; /* sdata0 with leading prefix skipped */
@@ -595,7 +596,7 @@ ncaux_h5filterspec_parselist(const char* txt0, int* formatp, size_t* nspecsp, NC
 	p = q + 1;
     }
     if(nspecs >  0) {
-	int count = 0;
+	size_t count = 0;
 	if((vector = (NC_H5_Filterspec**)calloc(sizeof(NC_H5_Filterspec*),nspecs)) == NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	/* pass 2: parse */
@@ -961,6 +962,7 @@ ncaux_dump_data(int ncid, int xtype, void* memory, size_t count, char** bufp)
 /* Path List Utilities */
 
 /* Path-list Parser:
+@param pathlen length of the pathlist0 arg
 @param pathlist0 the string to parse
 @param dirs return the parsed directories -- see note below.
 @param sep the separator parsing: one of ';' | ':' | '\0', where zero means use platform default.
@@ -972,19 +974,18 @@ The user is then responsible for free'ing that vector
 (or call ncaux_plugin_path_reclaim).
 */
 EXTERNL int
-ncaux_plugin_path_parse(const char* pathlist0, char sep, NCPluginList* dirs)
+ncaux_plugin_path_parsen(size_t pathlen, const char* pathlist0, char sep, NCPluginList* dirs)
 {
     int stat = NC_NOERR;
     size_t i;
     char* path = NULL;
     char* p;
     size_t count;
-    size_t plen;
     char seps[2] = "\0\0"; /* will contain all allowable separators */
 
     if(dirs == NULL) {stat = NC_EINVAL; goto done;}
 
-    if(pathlist0 == NULL || pathlist0[0] == '\0') {dirs->ndirs = 0; goto done;}
+    if(pathlen == 0 || pathlist0 == NULL) {dirs->ndirs = 0; goto done;}
 
     /* If a separator is specified, use it, otherwise search for ';' or ':' */
     seps[0] = sep;
@@ -995,10 +996,9 @@ ncaux_plugin_path_parse(const char* pathlist0, char sep, NCPluginList* dirs)
 	else
 	    seps[0] = ':';
     }
-    plen = strlen(pathlist0); /* assert plen > 0 */
-    if((path = malloc(plen+1+1))==NULL) {stat = NC_ENOMEM; goto done;}
-    memcpy(path,pathlist0,plen);
-    path[plen] = '\0'; path[plen+1] = '\0';  /* double null term */
+    if((path = malloc(pathlen+1+1))==NULL) {stat = NC_ENOMEM; goto done;}
+    memcpy(path,pathlist0,pathlen);
+    path[pathlen] = '\0'; path[pathlen+1] = '\0';  /* double null term */
 
     for(count=0,p=path;*p;p++) {
 	if(strchr(seps,*p) == NULL)
@@ -1027,6 +1027,20 @@ ncaux_plugin_path_parse(const char* pathlist0, char sep, NCPluginList* dirs)
 done:
     nullfree(path);
     return stat;
+}
+
+/* Wrapper around ncaux_plugin_path_parsen
+to allow passing a nul-terminated string to parse.
+@param pathlist0 the nul-termiated string to parse
+@param dirs return the parsed directories -- see note below.
+@param sep the separator parsing: one of ';' | ':' | '\0', where zero means use platform default.
+@return NC_NOERR || NC_EXXX
+See also the comments for ncaux_plugin_path_parsen.
+*/
+EXTERNL int
+ncaux_plugin_path_parse(const char* pathlist0, char sep, NCPluginList* dirs)
+{
+    return ncaux_plugin_path_parsen(nulllen(pathlist0),pathlist0,sep,dirs);
 }
 
 /*
@@ -1166,5 +1180,97 @@ ncaux_plugin_path_prepend(struct NCPluginList* dirs, const char* dir)
     dirs->dirs[0] = nulldup(dir);
     dirs->ndirs++;
 done:
+    return stat;
+}
+
+/* FORTRAN is not good at manipulating C char** vectors,
+   so provide some wrappers for use by netcdf-fortran
+   that read/write plugin path as a single string.
+   For simplicity, the path separator is always semi-colon.
+*/
+
+/**
+ * Return the length (as in strlen) of the current plugin path directories encoded as a string.
+ * @return length of the string encoded plugin path or -1 if failed.
+ * @author Dennis Heimbigner
+ *
+ * @author: Dennis Heimbigner
+*/
+int
+ncaux_plugin_path_stringlen(void)
+{
+    int len = 0;
+    int stat = NC_NOERR;
+    struct NCPluginList npl = {0,NULL};
+    char* buf = NULL;
+
+    /* Get the list of dirs */
+    if((stat = nc_plugin_path_get(&npl))) goto done;
+    /* Convert to a string path separated by ';' */
+    if((stat = ncaux_plugin_path_tostring(&npl,';',&buf))) goto done;
+    len = nulllen(buf);
+
+done:
+    if(npl.dirs != NULL) {(void)ncaux_plugin_path_clear(&npl);}
+    nullfree(buf);
+    if(stat) return -1; else return len;
+}
+
+/**
+ * Return the current sequence of directories in the internal global
+ * plugin path list encoded as a string path using ';' as a path separator.
+ * @param pathlen the length of the path argument.
+ * @param path a string into which the current plugin paths are encodeded.
+ * @return NC_NOERR | NC_EXXX
+ * @author Dennis Heimbigner
+ *
+ * @author: Dennis Heimbigner
+*/
+int
+ncaux_plugin_path_stringget(int pathlen, char* path)
+{
+    int stat = NC_NOERR;
+    struct NCPluginList npl = {0,NULL};
+    char* buf = NULL;
+
+    if(pathlen == 0 || path == NULL) {stat = NC_EINVAL; goto done;}
+
+    /* Get the list of dirs */
+    if((stat = nc_plugin_path_get(&npl))) goto done;
+    /* Convert to a string path separated by ';' */
+    if((stat = ncaux_plugin_path_tostring(&npl,';',&buf))) goto done;
+    strncpy(path,buf,(size_t)pathlen);
+
+done:
+    nullfree(buf);
+    if(npl.dirs != NULL) {(void)ncaux_plugin_path_clear(&npl);}
+    return stat;
+}
+
+/**
+ * Set the current sequence of directories in the internal global
+ * plugin path list to the sequence of directories encoded as a
+ * string path using ';' as a path separator.
+ * @param pathlen the length of the path argument.
+ * @param path a string encoding the sequence of directories and using ';' to separate them.
+ * @return NC_NOERR | NC_EXXX
+ * @author Dennis Heimbigner
+ *
+ * @author: Dennis Heimbigner
+*/
+int
+ncaux_plugin_path_stringset(int pathlen, const char* path)
+{
+    int stat = NC_NOERR;
+    struct NCPluginList npl = {0,NULL};
+
+    if(pathlen == 0 || path == NULL) {stat = NC_EINVAL; goto done;}
+    /* Parse the incoming path */
+    if((stat = ncaux_plugin_path_parsen((size_t)pathlen,path,';',&npl))) goto done;
+    /* set the list of dirs */
+    if((stat = nc_plugin_path_set(&npl))) goto done;
+
+done:
+    if(npl.dirs != NULL) {(void)ncaux_plugin_path_clear(&npl);}
     return stat;
 }
