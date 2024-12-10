@@ -14,20 +14,20 @@ extern int NCZF2_finalize(void);
 ////////////////////////////////////////////////////
 
 int NCZMD_initialize(void)
-{	
-    int stat = NC_NOERR;
-    if((stat=NCZMD2_initialize())) goto done;
+{
+	int stat = NC_NOERR;
+	if((stat=NCZMD2_initialize())) goto done;
 done:
-    return THROW(stat);
+	return THROW(stat);
 }
 
 int NCZMD_finalize(void)
 {
 
-    int stat = NC_NOERR;
-    if((stat=NCZMD2_finalize())) goto done;
+	int stat = NC_NOERR;
+	if((stat=NCZMD2_finalize())) goto done;
 done:
-    return THROW(stat);
+	return THROW(stat);
 }
 
 // Returns the list of subgroups from *grp
@@ -69,7 +69,7 @@ int NCZMD_fetch_json_attrs(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const cha
 {
 	int stat = NC_NOERR;
 	char *group= NULL;
-	char *key = NULL;	
+	char *key = NULL;
 
 	if (grp && ((stat = NCZ_grpkey(grp, &group)) != NC_NOERR)) 
 		goto done;
@@ -110,9 +110,9 @@ int NCZMD_is_metadata_consolidated(NCZ_FILE_INFO_T *zfile)
 	NCZ_Metadata *zmd = NULL;
 	zmd = zfile->metadata_handler;
 	if (zmd == NULL ||
-	    zmd->jcsl == NULL ||
-	    NCJsort(zmd->jcsl) != NCJ_DICT ||
-	    !(zmd->dispatcher->flags & ZARR_CONSOLIDATED))
+		zmd->jcsl == NULL ||
+		NCJsort(zmd->jcsl) != NCJ_DICT ||
+		!(zmd->dispatcher->flags & ZARR_CONSOLIDATED))
 	{
 		return NC_ENOOBJECT;
 	}
@@ -134,9 +134,6 @@ int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat)
 		return NC_NOERR;
 	}
 
-	// At this point, we know that version 3 cannot be
-	// otherwise the zarr.json would have been found
-	// when setting the handler.
 	// Last thing to do is to look for:
 	//      .zattrs, .zgroup or .zarray
 
@@ -149,6 +146,7 @@ int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat)
 	return NC_NOERR;
 }
 
+//Inference of the metadata handler
 int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile, const NCZ_Metadata **mdhandlerp)
 {
 	int stat = NC_NOERR;

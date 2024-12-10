@@ -16,32 +16,31 @@ int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist 
 int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
 int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
 
-
 int v2_json_content(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
 int v2_csl_json_content(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
 
 /**************************************************/
 
 static const NCZ_Metadata_Dispatcher NCZ_md2_table = {
-    ZARRFORMAT2,
-    NCZ_METADATA_VERSION,  /* Version of the dispatch table */
-    ZARR_NOT_CONSOLIDATED, /* Flags*/
+	ZARRFORMAT2,
+	NCZ_METADATA_VERSION,  /* Version of the dispatch table */
+	ZARR_NOT_CONSOLIDATED, /* Flags*/
 
-    .list_groups = NCZMD_v2_list_groups,
-    .list_variables = NCZMD_v2_list_variables,
+	.list_groups = NCZMD_v2_list_groups,
+	.list_variables = NCZMD_v2_list_variables,
 
-    .fetch_json_content = v2_json_content,
+	.fetch_json_content = v2_json_content,
 };
 
 static const NCZ_Metadata_Dispatcher NCZ_csl_md2_table = {
-    ZARRFORMAT2,
-    NCZ_METADATA_VERSION, /* Version of the dispatch table */
-    ZARR_CONSOLIDATED,	  /* Flags*/
+	ZARRFORMAT2,
+	NCZ_METADATA_VERSION, /* Version of the dispatch table */
+	ZARR_CONSOLIDATED,	  /* Flags*/
 
-    .list_groups = NCZMD_v2_csl_list_groups,
-    .list_variables = NCZMD_v2_csl_list_variables,
+	.list_groups = NCZMD_v2_csl_list_groups,
+	.list_variables = NCZMD_v2_csl_list_variables,
 
-    .fetch_json_content = v2_csl_json_content,
+	.fetch_json_content = v2_csl_json_content,
 };
 
 const NCZ_Metadata_Dispatcher *NCZ_metadata_handler2 = &NCZ_md2_table;
@@ -52,13 +51,13 @@ const NCZ_Metadata_Dispatcher *NCZ_csl_metadata_handler2 = &NCZ_csl_md2_table;
 int
 NCZMD2_initialize(void)
 {
-    return NC_NOERR;
+	return NC_NOERR;
 }
 
 int
 NCZMD2_finalize(void)
 {
-    return NC_NOERR;
+	return NC_NOERR;
 }
 
 ////////////////////////////////////////////////////
@@ -128,8 +127,8 @@ int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist 
 		size_t lfullname = strlen(fullname);
 
 		if (lfullname < lgroup ||
-		    strncmp(fullname, group, lgroup) ||
-		    (lgroup > 0 && fullname[lgroup] != NCZM_SEP[0]))
+			strncmp(fullname, group, lgroup) ||
+			(lgroup > 0 && fullname[lgroup] != NCZM_SEP[0]))
 		{
 			continue;
 		}
@@ -216,8 +215,8 @@ int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NCli
 		const char *fullname = NCJstring(jname);
 		size_t lfullname = strlen(fullname);
 		if (lfullname < lgroup ||
-		    strncmp(fullname, group, lgroup) ||
-		    (lgroup > 0 && fullname[lgroup] != NCZM_SEP[0]))
+			strncmp(fullname, group, lgroup) ||
+			(lgroup > 0 && fullname[lgroup] != NCZM_SEP[0]))
 		{
 			continue;
 		}
@@ -291,7 +290,7 @@ int v2_json_content(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const cha
 	const char *suffix;
 	char * key = NULL;
 	if ((stat = zarr_obj_type2suffix(zobj_t, &suffix))
-	    || (stat = nczm_concat(prefix, suffix, &key))){
+		|| (stat = nczm_concat(prefix, suffix, &key))){
 		goto done;
 	}
 
