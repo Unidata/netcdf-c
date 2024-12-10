@@ -1143,10 +1143,10 @@ define_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
 
     /* Construct grp path */
     if((stat = NCZ_grpkey(grp,&fullpath))) goto done;
-
-    stat = NCZMD_fetch_json_group(zinfo, grp, fullpath, &zgrp->zgroup.obj);
-    stat = NCZMD_fetch_json_attrs(zinfo, grp, fullpath, &zgrp->zgroup.atts);
+    
     /* Download .zgroup and .zattrs */
+    stat = NCZMD_fetch_json_group(zinfo, grp, NULL, &zgrp->zgroup.obj);
+    stat = NCZMD_fetch_json_attrs(zinfo, grp, NULL, &zgrp->zgroup.atts);
     jgroup = zgrp->zgroup.obj;
     jattrs = zgrp->zgroup.atts;
 
@@ -1408,7 +1408,6 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
     const NCjson* jncvar = NULL;
     const NCjson* jdimrefs = NULL;
     const NCjson* jvalue = NULL;
-    char* varpath = NULL;
     char* key = NULL;
     size64_t* shapes = NULL;
     NClist* dimnames = NULL;
@@ -1447,13 +1446,9 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
     /* Indicate we do not have quantizer yet */
     var->quantize_mode = -1;
 
-    /* Construct var path */
-    if((stat = NCZ_varkey(var,&varpath)))
-	goto done;
-
     /* Download */
-    if(stat = NCZMD_fetch_json_array(zinfo, grp, varpath, &zvar->zarray.obj) 
-    || NCZMD_fetch_json_attrs(zinfo, grp, varpath, &zvar->zarray.atts)) goto done;
+    if(stat = NCZMD_fetch_json_array(zinfo, grp, varname, &zvar->zarray.obj) 
+    || NCZMD_fetch_json_attrs(zinfo, grp, varname, &zvar->zarray.atts)) goto done;
     
     jvar = zvar->zarray.obj;
     jatts = zvar->zarray.atts;
@@ -1717,7 +1712,6 @@ suppressvar:
 
 done:
     nclistfreeall(dimnames); dimnames = NULL;
-    nullfree(varpath); varpath = NULL;
     nullfree(shapes); shapes = NULL;
     nullfree(key); key = NULL;
     return ZUNTRACE(stat);
@@ -1821,13 +1815,10 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     zinfo = (NCZ_FILE_INFO_T*)file->format_file_info;    
     zroot = (NCZ_GRP_INFO_T*)root->format_grp_info;    
 
-    /* Construct grp key */
-    if((stat = NCZ_grpkey(root,&fullpath))) goto done;
-
     /* Download the root group .zgroup and associated .zattrs */
         /* Download */
-    if(stat = NCZMD_fetch_json_group(zinfo, root, fullpath, &zroot->zgroup.obj) 
-    || NCZMD_fetch_json_attrs(zinfo, root, fullpath, &zroot->zgroup.atts)) goto done;
+    if(stat = NCZMD_fetch_json_group(zinfo, root, NULL, &zroot->zgroup.obj) 
+    || NCZMD_fetch_json_attrs(zinfo, root, NULL, &zroot->zgroup.atts)) goto done;
     
     jzgroup = zroot->zgroup.obj;    
 
@@ -1854,6 +1845,9 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
 
     int tformat = 0;
     if(!NCZMD_get_metadata_format(zinfo, &tformat)){
+		if (zarr_format == NULL) {
+			zarr_format = strdup("0");
+		}
         sprintf(zarr_format, "%d",tformat);
     }
 
@@ -1882,7 +1876,8 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     if(nczarrvp) {*nczarrvp = nczarr_version; nczarr_version = NULL;}
     if(zarrfp) {*zarrfp = zarr_format; zarr_format = NULL;}
 done:
-    nullfree(fullpath);
+	NCJreclaim(zroot->zgroup.obj);
+	NCJreclaim(zroot->zgroup.atts);
     nullfree(zarr_format);
     nullfree(nczarr_version);
     return ZUNTRACE(THROW(stat));
@@ -1973,7 +1968,7 @@ parse_group_content_pure(NCZ_FILE_INFO_T*  zinfo, NC_GRP_INFO_T* grp, NClist* va
     nclistclear(varnames);
     if((stat = NCZMD_list_variables(zinfo, grp,varnames))) goto done;
     nclistclear(subgrps);
-    if((stat = NCZMD_list_groups(zinfo, grp,varnames))) goto done;
+    if((stat = NCZMD_list_groups(zinfo, grp,subgrps))) goto done;
 
 done:
     return ZUNTRACE(THROW(stat));

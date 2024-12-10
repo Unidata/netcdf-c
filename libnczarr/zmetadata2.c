@@ -75,6 +75,7 @@ int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *sub
 	/* Compute the key for the grp */
 	if ((stat = NCZ_grpkey(grp, &grpkey)))
 		goto done;
+	/* Get the map and search group */
 	if ((stat = nczmap_search(zfile->map, grpkey, matches)))
 		goto done;
 	for (i = 0; i < nclistlength(matches); i++)
@@ -95,6 +96,7 @@ int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *sub
 		nullfree(zgroup);
 		zgroup = NULL;
 	}
+
 done:
 	nullfree(grpkey);
 	nullfree(subkey);
@@ -152,8 +154,8 @@ done:
 
 int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *varnames)
 {
-	int stat = NC_NOERR;
 	size_t i;
+	int stat = NC_NOERR;
 	char *grpkey = NULL;
 	char *varkey = NULL;
 	char *zarray = NULL;
@@ -175,17 +177,9 @@ int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *
 			goto done;
 		if ((stat = nczm_concat(varkey, Z2ARRAY, &zarray)))
 			goto done;
-		switch (stat = nczmap_exists(zfile->map, zarray))
-		{
-		case NC_NOERR:
+		if ((stat = nczmap_exists(zfile->map, zarray)) == NC_NOERR)
 			nclistpush(varnames, strdup(name));
-			break;
-		case NC_ENOOBJECT:
-			stat = NC_NOERR;
-			break; /* ignore */
-		default:
-			goto done;
-		}
+		stat = NC_NOERR;
 		nullfree(varkey);
 		varkey = NULL;
 		nullfree(zarray);

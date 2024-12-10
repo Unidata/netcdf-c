@@ -50,15 +50,17 @@ int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *var
 int NCZMD_fetch_json_group(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jgroup)
 {
 	int stat = NC_NOERR;
+	char *group= NULL;
 	char *key = NULL;	
 
-	if (grp && ((stat = NCZ_grpkey(grp, &key)) != NC_NOERR)) 
+	if (grp && ((stat = NCZ_grpkey(grp, &group)) != NC_NOERR)) 
 		goto done;
-	if (name && (stat = nczm_concat(key, name, &key)))
+	if ((stat = nczm_concat(group, name, &key)))
 		goto done;
 
 	stat = zfile->metadata_handler->dispatcher->fetch_json_content(zfile, NCZMD_GROUP, key, jgroup);
 done:	
+	nullfree(group);
 	nullfree(key);
 	return stat;
 }
@@ -66,15 +68,17 @@ done:
 int NCZMD_fetch_json_attrs(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jattrs)
 {
 	int stat = NC_NOERR;
+	char *group= NULL;
 	char *key = NULL;	
 
-	if (grp && ((stat = NCZ_grpkey(grp, &key)) != NC_NOERR)) 
+	if (grp && ((stat = NCZ_grpkey(grp, &group)) != NC_NOERR)) 
 		goto done;
-	if (name && (stat = nczm_concat(key, name, &key)))
+	if ((stat = nczm_concat(group, name, &key)))
 		goto done;
 
-	stat = zfile->metadata_handler->dispatcher->fetch_json_content(zfile, NCZMD_ATTRS, key, jattrs);
+	stat = zfile->metadata_handler->dispatcher->fetch_json_content(zfile, NCZMD_ATTRS, key , jattrs);
 done:	
+	nullfree(group);
 	nullfree(key);
 	return stat;
 }
@@ -82,15 +86,19 @@ done:
 int NCZMD_fetch_json_array(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jarray)
 {
 	int stat = NC_NOERR;
+	char *group= NULL;
 	char *key = NULL;	
 
-	if (grp && ((stat = NCZ_grpkey(grp, &key)) != NC_NOERR)) 
-		goto done;
-	if (name && (stat = nczm_concat(key, name, &key)))
+	if (grp && ((stat = NCZ_grpkey(grp, &group)) != NC_NOERR)) 
 		goto done;
 
+	if ((stat = nczm_concat(group, name, &key)))
+		goto done;
+	
+
 	stat = zfile->metadata_handler->dispatcher->fetch_json_content(zfile, NCZMD_ARRAY, key, jarray);
-done:	
+done:
+	nullfree(group);
 	nullfree(key);
 	return stat;
 }
