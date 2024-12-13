@@ -61,6 +61,7 @@ typedef struct NCZ_Metadata_Dispatcher
 	int (*list_groups)(NCZ_FILE_INFO_T *, NC_GRP_INFO_T *, NClist *subgrpnames);
 	int (*list_variables)(NCZ_FILE_INFO_T *, NC_GRP_INFO_T *, NClist *varnames);
 	int (*fetch_json_content)(NCZ_FILE_INFO_T *, NCZMD_MetadataType, const char *name, NCjson **jobj);
+	int (*update_json_content)(NCZ_FILE_INFO_T *, NCZMD_MetadataType, const char *name, const NCjson *jobj);
 } NCZ_Metadata_Dispatcher;
 
 typedef struct NCZ_Metadata
@@ -86,6 +87,10 @@ extern int NCZMD_fetch_json_group(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, co
 extern int NCZMD_fetch_json_attrs(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jattrs);
 extern int NCZMD_fetch_json_array(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jarrays);
 
+/* Write operations */
+extern int NCZMD_update_json_group(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jgroup);
+extern int NCZMD_update_json_attrs(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jattrs);
+extern int NCZMD_update_json_array(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jarrays);
 /**************************************************/
 
 /* Inference for the Metadata handler */

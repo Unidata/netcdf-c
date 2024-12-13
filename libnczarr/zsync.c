@@ -43,7 +43,6 @@ static int json_convention_read(const NCjson* jdict, NCjson** jtextp);
 static int ncz_validate(NC_FILE_INFO_T* file);
 static int insert_attr(NCjson* jatts, NCjson* jtypes, const char* aname, NCjson* javalue, const char* atype);
 static int insert_nczarr_attr(NCjson* jatts, NCjson* jtypes);
-static int upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts);
 static int getnczarrkey(NC_OBJ* container, const char* name, const NCjson** jncxxxp);
 static int downloadzarrobj(NC_FILE_INFO_T*, struct ZARROBJ* zobj, const char* fullpath, const char* objname);
 static int dictgetalt(const NCjson* jdict, const char* name, const char* alt, const NCjson** jvaluep);
@@ -155,9 +154,6 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
     char version[1024];
     int purezarr = 0;
     NCZMAP* map = NULL;
-    char* fullpath = NULL;
-    char* key = NULL;
-    NCjson* json = NULL;
     NCjson* jgroup = NULL;
     NCjson* jdims = NULL;
     NCjson* jvars = NULL;
@@ -168,7 +164,7 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
     NCjson* jatts = NULL;
     NCjson* jtypes = NULL;
 
-    LOG((3, "%s: dims: %s", __func__, key));
+    LOG((3, "%s: dims", __func__));
     ZTRACE(3,"file=%s grp=%s isclose=%d",file->controller->path,grp->hdr.name,isclose);
 
     zinfo = file->format_file_info;
@@ -180,17 +176,16 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
     if((stat = NCZ_grpkey(grp,&fullpath)))
         goto done;
 
-    /* build group contents */
+    /* build ZGROUP contents */
     NCJnew(NCJ_DICT,&jgroup);
     snprintf(version,sizeof(version),"%d",zinfo->zarr.zarr_version);
     if((stat = NCJaddstring(jgroup,NCJ_STRING,"zarr_format"))<0) {stat = NC_EINVAL; goto done;}
     if((stat = NCJaddstring(jgroup,NCJ_INT,version))<0) {stat = NC_EINVAL; goto done;}
-    /* build group path */
-    if((stat = nczm_concat(fullpath,Z2GROUP,&key)))
+    /* build ZGROUP path */
+    if((stat = nczm_concat(fullpath,ZGROUP,&key)))
 	goto done;
     /* Write to map */
-    if((stat=NCZ_uploadjson(map,key,(const NCjson*)jgroup))) goto done;
-    nullfree(key); key = NULL;
+    if((stat=NCZMD_update_json_group(zinfo,grp,NULL,(const NCjson*)jgroup))) goto done;
 
     if(!purezarr) {
         if(grp->parent == NULL) { /* Root group */
@@ -254,7 +249,7 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
     }
 
     /* Write out the .zattrs */
-    if((stat = upload_attrs(file,(NC_OBJ*)grp,jatts))) goto done;
+    if((stat = NCZMD_update_json_attrs(zinfo, grp, NULL, (const NCjson *)jatts))) goto done;
 
     /* Now synchronize all the variables */
     for(i=0; i<ncindexsize(grp->vars); i++) {
@@ -271,7 +266,6 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
 done:
     NCJreclaim(jtmp);
     NCJreclaim(jsuper);
-    NCJreclaim(json);
     NCJreclaim(jgroup);
     NCJreclaim(jdims);
     NCJreclaim(jvars);
@@ -279,8 +273,6 @@ done:
     NCJreclaim(jnczgrp);
     NCJreclaim(jtypes);
     NCJreclaim(jatts);
-    nullfree(fullpath);
-    nullfree(key);
     return ZUNTRACE(THROW(stat));
 }
 
@@ -302,8 +294,6 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     NCZ_FILE_INFO_T* zinfo = NULL;
     char number[1024];
     NCZMAP* map = NULL;
-    char* fullpath = NULL;
-    char* key = NULL;
     char* dimpath = NULL;
     NClist* dimrefs = NULL;
     NCjson* jvar = NULL;
@@ -341,10 +331,6 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     /* Build the filter working parameters for any filters */
     if((stat = NCZ_filter_setup(var))) goto done;
 #endif
-
-    /* Construct var path */
-    if((stat = NCZ_varkey(var,&fullpath)))
-	goto done;
 
     /* Create the zarray json object */
     NCJnew(NCJ_DICT,&jvar);
@@ -483,15 +469,10 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
         if((stat = NCJinsert(jvar,"dimension_separator",jtmp))<0) {stat = NC_EINVAL; goto done;}
         jtmp = NULL;
     }
-
-    /* build .zarray path */
-    if((stat = nczm_concat(fullpath,Z2ARRAY,&key)))
-	goto done;
-
+  
     /* Write to map */
-    if((stat=NCZ_uploadjson(map,key,(const NCjson*)jvar)))
+    if((stat=NCZMD_update_json_array(zinfo,var->container,var->hdr.name,(const NCjson*)jvar)))
 	goto done;
-    nullfree(key); key = NULL;
 
     /* Capture dimref names as FQNs */
     if(var->ndims > 0) {
@@ -549,15 +530,13 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
 	jtypes = NULL;
     }
 
-    /* Write out the .zattrs */
-    if((stat = upload_attrs(file,(NC_OBJ*)var,jatts))) goto done;
+    /* Write out the <grp>/<var.name>/.zattrs */
+    if((stat = NCZMD_update_json_attrs(zinfo,var->container, var->hdr.name, jatts))) goto done;
 
     var->created = 1;
 
 done:
     nclistfreeall(dimrefs);
-    nullfree(fullpath);
-    nullfree(key);
     nullfree(dtypename);
     nullfree(dimpath);
     NCJreclaim(jvar);
@@ -2435,7 +2414,7 @@ upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts)
     if(stat) goto done;
 
     /* write .zattrs*/
-    if((stat = nczm_concat(fullpath,Z2ATTRS,&key))) goto done;
+    if((stat = nczm_concat(fullpath,ZATTRS,&key))) goto done;
     if((stat=NCZ_uploadjson(map,key,(const NCjson*)jatts))) goto done;
     nullfree(key); key = NULL;
 

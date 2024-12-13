@@ -16,8 +16,11 @@ int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist 
 int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
 int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
 
-int v2_json_content(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
-int v2_csl_json_content(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
+int fetch_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
+int fetch_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
+
+int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, const NCjson *jobj);
+int update_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, const NCjson *jobj);
 
 /**************************************************/
 
@@ -29,7 +32,8 @@ static const NCZ_Metadata_Dispatcher NCZ_md2_table = {
 	.list_groups = NCZMD_v2_list_groups,
 	.list_variables = NCZMD_v2_list_variables,
 
-	.fetch_json_content = v2_json_content,
+	.fetch_json_content = fetch_json_content_v2,
+	.update_json_content = update_json_content_v2,
 };
 
 static const NCZ_Metadata_Dispatcher NCZ_csl_md2_table = {
@@ -40,7 +44,8 @@ static const NCZ_Metadata_Dispatcher NCZ_csl_md2_table = {
 	.list_groups = NCZMD_v2_csl_list_groups,
 	.list_variables = NCZMD_v2_csl_list_variables,
 
-	.fetch_json_content = v2_csl_json_content,
+	.fetch_json_content = fetch_csl_json_content_v2,
+	.update_json_content = update_csl_json_content_v2,
 };
 
 const NCZ_Metadata_Dispatcher *NCZ_metadata_handler2 = &NCZ_md2_table;
@@ -258,7 +263,7 @@ static int zarr_obj_type2suffix(NCZMD_MetadataType zarr_obj_type, const char **s
 	return NC_NOERR;
 }
 
-int v2_csl_json_content(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, NCjson **jobj)
+int fetch_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, NCjson **jobj)
 {
 	int stat = NC_NOERR;
 	const NCjson *jtmp = NULL;
@@ -284,7 +289,7 @@ done:
 
 }
 
-int v2_json_content(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, NCjson **jobj)
+int fetch_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, NCjson **jobj)
 {
 	int stat = NC_NOERR;
 	const char *suffix;
@@ -299,4 +304,29 @@ done:
 	nullfree(key);
 	return stat;
 }
+
 ////////////////////////////////////////////////////////////////////////////
+//		 Write to internal JSON pointer and/or directly to storage
+/////////////////////////////
+int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, const NCjson *jobj)
+{
+	int stat = NC_NOERR;
+	return stat;
+
+}
+
+int update_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, const NCjson *jobj)
+{
+	int stat = NC_NOERR;
+	const char *suffix;
+	char * key = NULL;
+	if ((stat = zarr_obj_type2suffix(zobj_t, &suffix))
+		|| (stat = nczm_concat(prefix, suffix, &key))){
+		goto done;
+	}
+
+	stat = NCZ_uploadjson(zfile->map, key, jobj);
+done:
+	nullfree(key);
+	return stat;
+}
