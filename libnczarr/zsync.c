@@ -263,6 +263,8 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
 	if((stat = ncz_sync_grp(file,g,isclose))) goto done;
     }
 
+	// Last step try to write consolidated file
+	stat = NCZMD_consolidate(zinfo);
 done:
     NCJreclaim(jtmp);
     NCJreclaim(jsuper);

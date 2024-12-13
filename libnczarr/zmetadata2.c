@@ -10,6 +10,8 @@
 extern int NCZF2_initialize(void);
 extern int NCZF2_finalize(void);
 
+#define  MINIMIM_CSL_REP_RAW "{\"metadata\":{},\"zarr_consolidated_format\":1}"
+
 int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
 int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
 
@@ -311,6 +313,48 @@ done:
 int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, const NCjson *jobj)
 {
 	int stat = NC_NOERR;
+
+	// uses normal implementation to write all the .z files
+	if ((stat)=update_json_content_v2(zfile,zobj_t,prefix,jobj)){
+	}
+	// Allocating representation if doesn't exist
+	if (zfile->metadata_handler->jcsl == NULL && 
+		(stat = NCJparse(MINIMIM_CSL_REP_RAW,0,&zfile->metadata_handler->jcsl))){
+		goto done;
+	}
+	// Updating the internal JSON representation to be synced later
+	NCjson * jrep = NULL;
+	if (stat = NCJdictget(zfile->metadata_handler->jcsl,"metadata", &jrep) || jrep == NULL) {
+		goto done;
+	}
+	
+	const char *suffix;
+	char * key = NULL;
+	if ((stat = zarr_obj_type2suffix(zobj_t, &suffix))
+		|| (stat = nczm_concat(prefix, suffix, &key))){
+		goto done;
+	}
+	// Concatenate will add separator as prefix if prefix NULL
+	const char * mdkey= key[0] == '/'?key+1:key;
+	
+	NCjson * jval = NULL;
+	// does it exist?
+	if ((stat = NCJdictget(jrep,mdkey, jval))) {
+		goto done; 
+	}
+
+	if (jval != NULL){
+		//  free before updating/overwritting existing value
+		NCJreclaim(jval);
+	}
+
+	if( stat = NCJclone(jobj,&jval)){
+		goto done;
+	}
+	NCJinsert(jrep, mdkey, jval);
+done:
+	// No frees at this point
+	free(key);
 	return stat;
 
 }
