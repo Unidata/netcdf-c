@@ -189,7 +189,7 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
     if((stat = nczm_concat(fullpath,Z2GROUP,&key)))
 	goto done;
     /* Write to map */
-    if((stat=NCZ_uploadjson(map,key,jgroup))) goto done;
+    if((stat=NCZ_uploadjson(map,key,(const NCjson*)jgroup))) goto done;
     nullfree(key); key = NULL;
 
     if(!purezarr) {
@@ -489,7 +489,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
 	goto done;
 
     /* Write to map */
-    if((stat=NCZ_uploadjson(map,key,jvar)))
+    if((stat=NCZ_uploadjson(map,key,(const NCjson*)jvar)))
 	goto done;
     nullfree(key); key = NULL;
 
@@ -2436,7 +2436,7 @@ upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts)
 
     /* write .zattrs*/
     if((stat = nczm_concat(fullpath,Z2ATTRS,&key))) goto done;
-    if((stat=NCZ_uploadjson(map,key,jatts))) goto done;
+    if((stat=NCZ_uploadjson(map,key,(const NCjson*)jatts))) goto done;
     nullfree(key); key = NULL;
 
 done:
