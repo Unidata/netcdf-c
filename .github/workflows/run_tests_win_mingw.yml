@@ -72,9 +72,9 @@ jobs:
 
       - name: Upload test failures
         if: ${{ failure() && steps.tests.conclusion == 'failure' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: mingw-autotools-test-logs
+          name: mingw-autotools-test-logs-${{ matrix.msystem }}
           path: |
             */*.log
             */*.trs
