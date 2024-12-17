@@ -49,6 +49,14 @@ jobs:
           make install -j $(nproc)
           popd
 
+      - name: Handle Error for libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+        shell: bash -l {0}
+        run: | 
+          cat config.log
+          echo "Checking filesystem limits"
+          ulimit -a
+        if: ${{ failure() }}
+
   nc-autotools-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
