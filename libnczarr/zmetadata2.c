@@ -132,11 +132,11 @@ int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist 
 		{
 			continue;
 		}
-		char *start = fullname + lgroup + (lgroup > 0);
-		char *end = strchr(start, NCZM_SEP[0]);
-		if (end == NULL)
+		const char *start = fullname + lgroup + (lgroup > 0);
+		const char *end = strchr(start, NCZM_SEP[0]);
+		if (end == NULL || end <= start)
 			continue;
-		size_t lname = end - start;
+		size_t lname = (size_t)(end - start);
 		// Ends with "/.zgroup
 		if (strncmp(Z2METAROOT, end, sizeof(Z2METAROOT)) == 0)
 		{
@@ -220,11 +220,11 @@ int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NCli
 		{
 			continue;
 		}
-		char *start = fullname + lgroup + (lgroup > 0);
-		char *end = strchr(start, NCZM_SEP[0]);
-		if (end == NULL)
+		const char *start = fullname + lgroup + (lgroup > 0);
+		const char *end = strchr(start, NCZM_SEP[0]);
+		if (end == NULL || end <= start)
 			continue;
-		size_t lname = end - start;
+		size_t lname = (size_t)(end - start);
 		// Ends with ".zarray"
 		if (strncmp("/" Z2ARRAY, end, sizeof("/" Z2ARRAY)) == 0)
 		{
@@ -261,7 +261,7 @@ static int zarr_obj_type2suffix(NCZMD_MetadataType zarr_obj_type, const char **s
 int v2_csl_json_content(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, NCjson **jobj)
 {
 	int stat = NC_NOERR;
-	NCjson *jtmp = NULL;
+	const NCjson *jtmp = NULL;
 	const char *suffix;
 	char * key = NULL;
 	if ( (stat = zarr_obj_type2suffix(zobj_t, &suffix))
@@ -273,7 +273,7 @@ int v2_csl_json_content(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const
 	&& jtmp && NCJsort(jtmp) == NCJ_DICT)
 	{
 		NCjson *tmp = NULL;
-		if ((stat = NCJdictget(jtmp, key + (key[0] == '/'), &tmp)))
+		if ((stat = NCJdictget(jtmp, key + (key[0] == '/'), (const NCjson**)&tmp)))
 			goto done;
 		if (tmp)
 			NCJclone(tmp, jobj);

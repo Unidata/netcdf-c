@@ -7,8 +7,8 @@
 
 /**************************************************/
 
-extern int NCZF2_initialize(void);
-extern int NCZF2_finalize(void);
+extern int NCZMD2_initialize(void);
+extern int NCZMD2_finalize(void);
 
 /**************************************************/
 ////////////////////////////////////////////////////
