@@ -45,8 +45,8 @@ jobs:
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
           ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
-          make -j $(nproc)
-          make install -j $(nproc)
+          make -j 12
+          make install -j 12
           popd
 
       - name: Handle Error for libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -240,21 +240,21 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j $(nproc)
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j 12
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --verbose -j $(nproc) .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --verbose -j 12 .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j $(nproc) --rerun-failed --output-on-failure -VV
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
         if: ${{ failure() }}
 
   #####
@@ -397,21 +397,21 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j $(nproc)
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j 12
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j $(nproc) .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j $(nproc) --rerun-failed --output-on-failure -VV
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
         if: ${{ failure() }}
 
 
@@ -472,19 +472,19 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j $(nproc)
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j 12
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j $(nproc) .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j $(nproc) --rerun-failed --output-on-failure -VV
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
         if: ${{ failure() }}
