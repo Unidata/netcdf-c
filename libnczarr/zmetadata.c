@@ -166,7 +166,7 @@ done:
 ////////////////////////////////////////////////////////////////////////////
 // Writes .zmetadata file into storage
 int NCZMD_consolidate(NCZ_FILE_INFO_T *zfile) {
-	int stat = NC_ENCZARR;
+	int stat = NC_NOERR;
 	if (zfile->creating == 1 && zfile->metadata_handler != NULL && zfile->metadata_handler->jcsl !=NULL){
 		stat = NCZ_uploadjson(zfile->map, Z2METADATA ,zfile->metadata_handler->jcsl);
 	}
@@ -228,7 +228,7 @@ int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile, const NCZ_Metadata **mdha
 		goto done;
 	}
 
-	if (zfile->creating || (stat = NCZ_downloadjson(zfile->map, Z2METADATA, &jcsl)) == NC_NOERR
+	if ((zfile->creating || (stat = NCZ_downloadjson(zfile->map, Z2METADATA, &jcsl)) == NC_NOERR)
 		&& jcsl != NULL && NCJsort(jcsl) == NCJ_DICT)
 	{
 		zmd_dispatcher = NCZ_csl_metadata_handler2;

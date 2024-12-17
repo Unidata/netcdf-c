@@ -132,7 +132,6 @@ int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist 
 		NCjson *jname = NCJith(jmetadata, i);
 		const char *fullname = NCJstring(jname);
 		size_t lfullname = strlen(fullname);
-
 		if (lfullname < lgroup ||
 			strncmp(fullname, group, lgroup) ||
 			(lgroup > 0 && fullname[lgroup] != NCZM_SEP[0]))
@@ -323,7 +322,7 @@ int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t
 		goto done;
 	}
 	// Updating the internal JSON representation to be synced later
-	NCjson * jrep = NULL;
+	const NCjson * jrep = NULL;
 	if (stat = NCJdictget(zfile->metadata_handler->jcsl,"metadata", &jrep) || jrep == NULL) {
 		goto done;
 	}
@@ -336,21 +335,9 @@ int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t
 	}
 	// Concatenate will add separator as prefix if prefix NULL
 	const char * mdkey= key[0] == '/'?key+1:key;
-	
 	NCjson * jval = NULL;
-	// does it exist?
-	if ((stat = NCJdictget(jrep,mdkey, jval))) {
-		goto done; 
-	}
-
-	if (jval != NULL){
-		//  free before updating/overwritting existing value
-		NCJreclaim(jval);
-	}
-
-	if( stat = NCJclone(jobj,&jval)){
-		goto done;
-	}
+	NCJclone(jobj,&jval);
+	// We overwrite existing values if key is the same
 	NCJinsert(jrep, mdkey, jval);
 done:
 	// No frees at this point

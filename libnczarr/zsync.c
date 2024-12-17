@@ -80,6 +80,7 @@ ncz_sync_file(NC_FILE_INFO_T* file, int isclose)
     if((stat = ncz_sync_grp(file, file->root_grp, isclose)))
         goto done;
 
+	stat = NCZMD_consolidate((NCZ_FILE_INFO_T*)file->format_file_info);
 done:
     NCJreclaim(json);
     return ZUNTRACE(stat);
@@ -264,7 +265,6 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
     }
 
 	// Last step try to write consolidated file
-	stat = NCZMD_consolidate(zinfo);
 done:
     NCJreclaim(jtmp);
     NCJreclaim(jsuper);
