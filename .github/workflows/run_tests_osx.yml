@@ -230,21 +230,21 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j 12
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j $(nproc)
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --verbose -j 12 .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --verbose -j $(nproc) .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j $(nproc) --rerun-failed --output-on-failure -VV
         if: ${{ failure() }}
 
   #####
@@ -387,21 +387,21 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j 12
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j $(nproc)
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j $(nproc) .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j $(nproc) --rerun-failed --output-on-failure -VV
         if: ${{ failure() }}
 
 
@@ -462,19 +462,19 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j 12
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j $(nproc)
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j $(nproc) .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j $(nproc) --rerun-failed --output-on-failure -VV
         if: ${{ failure() }}
