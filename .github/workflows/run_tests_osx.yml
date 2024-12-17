@@ -55,6 +55,8 @@ jobs:
           cat config.log
           echo "Checking filesystem limits"
           ulimit -a
+          echo "Checking user process limits"
+          sysctl -a | grep maxproc
         if: ${{ failure() }}
 
   nc-autotools-osx:
