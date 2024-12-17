@@ -81,7 +81,7 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* controls)
 
     /* Initialize metadata handle */
     assert(zinfo->map != NULL);
-    if((stat = NCZMD_set_metadata_handler(zinfo,&zinfo->metadata_handler))) goto done;
+    if((stat = NCZMD_set_metadata_handler(zinfo,(const NCZ_Metadata**)&zinfo->metadata_handler))) goto done;
 
 done:
     ncurifree(uri);

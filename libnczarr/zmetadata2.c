@@ -314,7 +314,8 @@ int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t
 	int stat = NC_NOERR;
 
 	// uses normal implementation to write all the .z files
-	if ((stat)=update_json_content_v2(zfile,zobj_t,prefix,jobj)){
+	if ((stat=update_json_content_v2(zfile,zobj_t,prefix,jobj))){
+		goto done;
 	}
 	// Allocating representation if doesn't exist
 	if (zfile->metadata_handler->jcsl == NULL && 
@@ -322,8 +323,8 @@ int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t
 		goto done;
 	}
 	// Updating the internal JSON representation to be synced later
-	const NCjson * jrep = NULL;
-	if (stat = NCJdictget(zfile->metadata_handler->jcsl,"metadata", &jrep) || jrep == NULL) {
+	NCjson * jrep = NULL;
+	if ((stat = NCJdictget(zfile->metadata_handler->jcsl,"metadata", (const NCjson**)&jrep)) || jrep == NULL) {
 		goto done;
 	}
 	
