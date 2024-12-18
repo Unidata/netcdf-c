@@ -21,7 +21,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.10.8, 1.12.2, 1.14.5 ]
+        hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
 
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.5 ]
+        hdf5: [ 1.14.3 ]
 
     steps:
 
@@ -106,7 +106,7 @@ jobs:
           make -j
           make install -j
           popd
-                    if [ "${{ matrix.hdf5 }}" = "1.14.5" ]; then
+          if [ "${{ matrix.hdf5 }}" = "1.14.5" ]; then
             wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.5.tar.gz
             tar -zxf hdf5_1.14.5.tar.gz
             mv hdf5_1.14.5 hdf5-1.14.5
@@ -141,7 +141,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.5 ]
+        hdf5: [ 1.14.3 ]
     steps:
 
       - uses: actions/checkout@v4
@@ -236,7 +236,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.5 ]
+        hdf5: [ 1.14.3 ]
     steps:
 
       - uses: actions/checkout@v4
@@ -332,7 +332,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.5 ]
+        hdf5: [ 1.14.3 ]
     steps:
 
       - uses: actions/checkout@v4
@@ -412,7 +412,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.5 ]
+        hdf5: [ 1.14.3 ]
 
     steps:
 
@@ -492,7 +492,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.5 ]
+        hdf5: [ 1.14.3 ]
 
     steps:
 
@@ -574,7 +574,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.14.5 ]
+        hdf5: [ 1.14.3 ]
 
     steps:
 
@@ -651,7 +651,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [1.10.8, 1.12.2, 1.14.5 ]
+        hdf5: [1.10.8, 1.12.2, 1.14.3 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -815,7 +815,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.10.8, 1.12.2, 1.14.5 ]
+        hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
