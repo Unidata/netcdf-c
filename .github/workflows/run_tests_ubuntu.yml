@@ -45,7 +45,7 @@ jobs:
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
-
+          set +e
           wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
           tar -jxf hdf-4.2.15.tar.bz2
           pushd hdf-4.2.15
@@ -112,6 +112,7 @@ jobs:
           ##
           # End convoluted HDF5 download failover
           ##
+          set -e
 
   build-deps-parallel:
 
@@ -144,6 +145,7 @@ jobs:
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
+          set +e
 
           wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
           tar -jxf hdf-4.2.15.tar.bz2
@@ -214,6 +216,7 @@ jobs:
           make -j
           make install -j
           popd
+          set -e
           
   #####
   # One-Off Autotools-based tests.
