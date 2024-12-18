@@ -182,13 +182,13 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
     if((stat = NCZ_grpkey(grp,&fullpath)))
         goto done;
 
-    /* build ZGROUP contents */
+    /* build group contents */
     NCJnew(NCJ_DICT,&jgroup);
     snprintf(version,sizeof(version),"%d",zinfo->zarr.zarr_version);
     if((stat = NCJaddstring(jgroup,NCJ_STRING,"zarr_format"))<0) {stat = NC_EINVAL; goto done;}
     if((stat = NCJaddstring(jgroup,NCJ_INT,version))<0) {stat = NC_EINVAL; goto done;}
-    /* build ZGROUP path */
-    if((stat = nczm_concat(fullpath,ZGROUP,&key)))
+    /* build group path */
+    if((stat = nczm_concat(fullpath,Z2GROUP,&key)))
 	goto done;
     /* Write to map */
     if((stat=NCZ_uploadjson(map,key,jgroup))) goto done;
@@ -487,7 +487,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     }
 
     /* build .zarray path */
-    if((stat = nczm_concat(fullpath,ZARRAY,&key)))
+    if((stat = nczm_concat(fullpath,Z2ARRAY,&key)))
 	goto done;
 
     /* Write to map */
@@ -1994,7 +1994,7 @@ searchvars(NCZ_FILE_INFO_T* zfile, NC_GRP_INFO_T* grp, NClist* varnames)
 	if(name[0] == NCZM_DOT) continue; /* zarr/nczarr specific */
 	/* See if name/.zarray exists */
 	if((stat = nczm_concat(grpkey,name,&varkey))) goto done;
-	if((stat = nczm_concat(varkey,ZARRAY,&zarray))) goto done;
+	if((stat = nczm_concat(varkey,Z2ARRAY,&zarray))) goto done;
 	if((stat = nczmap_exists(zfile->map,zarray)) == NC_NOERR)
 	    nclistpush(varnames,strdup(name));
 	stat = NC_NOERR;
@@ -2029,7 +2029,7 @@ searchsubgrps(NCZ_FILE_INFO_T* zfile, NC_GRP_INFO_T* grp, NClist* subgrpnames)
 	if(name[0] == NCZM_DOT) continue; /* zarr/nczarr specific */
 	/* See if name/.zgroup exists */
 	if((stat = nczm_concat(grpkey,name,&subkey))) goto done;
-	if((stat = nczm_concat(subkey,ZGROUP,&zgroup))) goto done;
+	if((stat = nczm_concat(subkey,Z2GROUP,&zgroup))) goto done;
 	if((stat = nczmap_exists(zfile->map,zgroup)) == NC_NOERR)
 	    nclistpush(subgrpnames,strdup(name));
 	stat = NC_NOERR;
@@ -2508,7 +2508,7 @@ upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts)
     if(stat) goto done;
 
     /* write .zattrs*/
-    if((stat = nczm_concat(fullpath,ZATTRS,&key))) goto done;
+    if((stat = nczm_concat(fullpath,Z2ATTRS,&key))) goto done;
     if((stat=NCZ_uploadjson(map,key,jatts))) goto done;
     nullfree(key); key = NULL;
 
@@ -2609,7 +2609,7 @@ downloadzarrobj(NC_FILE_INFO_T* file, struct ZARROBJ* zobj, const char* fullpath
     if((stat = nczm_concat(fullpath,objname,&key))) goto done;
     if((stat=NCZ_downloadjson(map,key,&zobj->obj))) goto done;
     nullfree(key); key = NULL;
-    if((stat = nczm_concat(fullpath,ZATTRS,&key))) goto done;
+    if((stat = nczm_concat(fullpath,Z2ATTRS,&key))) goto done;
     if((stat=NCZ_downloadjson(map,key,&zobj->atts))) goto done;
 done:
     nullfree(key);

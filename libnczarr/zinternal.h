@@ -14,7 +14,6 @@
 
 #define ZARRVERSION "2"
 #define ZARRFORMAT2 2
-#define ZARRFORMAT3 3
 
 /* NCZARRVERSION is independent of Zarr version,
    but NCZARRVERSION => ZARRVERSION */
@@ -40,27 +39,12 @@
 #  endif
 #endif
 
-#define ZMETAROOT "/.zgroup"
-#define ZMETAATTR "/.zattrs"
-#define ZGROUP ".zgroup"
-#define ZATTRS ".zattrs"
-#define ZARRAY ".zarray"
 /* V2 Reserved Objects */
 #define Z2METAROOT "/.zgroup"
 #define Z2ATTSROOT "/.zattrs"
 #define Z2GROUP ".zgroup"
 #define Z2ATTRS ".zattrs"
 #define Z2ARRAY ".zarray"
-
-/* V3 Reserved Objects */
-#define Z3METAROOT "/zarr.json"
-#define Z3OBJECT "zarr.json"
-#define Z3GROUP Z3OBJECT
-#define Z3ATTRS Z3OBJECT
-#define Z3ARRAY Z3OBJECT
-
-/* Bytes codec name */
-#define ZBYTES3 "bytes"
 
 /* V2 Reserved Attributes */
 /*
