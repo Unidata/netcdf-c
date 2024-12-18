@@ -45,7 +45,6 @@ jobs:
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
-
           wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
           tar -jxf hdf-4.2.15.tar.bz2
           pushd hdf-4.2.15
@@ -53,15 +52,24 @@ jobs:
           make -j
           make install -j
           popd
-
-          wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
-          tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+    
+          if [ "${{ matrix.hdf5 }}" = "1.14.5" ]; then
+            wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.5.tar.gz
+            tar -zxf hdf5_1.14.5.tar.gz
+            mv hdf5_1.14.5 hdf5-1.14.5
+          else
+            wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
+            tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+          fi
           pushd hdf5-${{ matrix.hdf5 }}
           ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
           make -j
           make install -j
           popd
-          
+
+      - name: Check libhdf5-serial-${{ matrix.hdf5}}
+        run: |
+          ls ${HOME}/environments/**
 
   build-deps-parallel:
 
@@ -87,7 +95,18 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-mpicc
+
+
+      - name: Install mpicc manually
+        shell: bash -l {0}
+        run: |
+          sudo apt remove mpich -y && sudo apt autoremove -y
+          wget https://www.mpich.org/static/downloads/4.2.3/mpich-4.2.3.tar.gz
+          tar -zxf mpich-4.2.3.tar.gz
+          cd mpich-4.2.3
+          ./configure --prefix=/usr
+          make -j 12 && sudo make install -j 12
 
 
       - name: Build libhdf5-${{ matrix.hdf5 }}-pnetcdf-1.12.3
@@ -102,9 +121,15 @@ jobs:
           make -j
           make install -j
           popd
+          if [ "${{ matrix.hdf5 }}" = "1.14.5" ]; then
+            wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.5.tar.gz
+            tar -zxf hdf5_1.14.5.tar.gz
+            mv hdf5_1.14.5 hdf5-1.14.5
+          else
+            wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
+            tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+          fi
 
-          wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
-          tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
           CC=mpicc ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib --enable-parallel
           make -j
@@ -117,6 +142,12 @@ jobs:
           make -j
           make install -j
           popd
+
+      - name: Check libhdf5-parallel-${{ matrix.hdf5}}
+        run: |
+          ls ${HOME}/environments/**
+          echo ""
+          mpicc -v
           
   #####
   # One-Off Autotools-based tests.
@@ -344,7 +375,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-mpicc
 
       - name: Check Cache
         shell: bash -l {0}
@@ -375,17 +406,17 @@ jobs:
 
       - name: Build Library and Utilities
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make -j
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make -j 4
         if: ${{ success() }}
 
       - name: Build Tests
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make check TESTS="" -j
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make check TESTS="" -j 4
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make check -j
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make check -j 4
         if: ${{ success() }}
 
 
@@ -462,14 +493,14 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 4 .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 4 --rerun-failed --output-on-failure -VV
         if: ${{ failure() }}
 
  ##
@@ -590,7 +621,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-mpicc
 
       - name: Check Cache
         shell: bash -l {0}
