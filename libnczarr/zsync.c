@@ -173,18 +173,10 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
 
     purezarr = (zinfo->controls.flags & FLAG_PUREZARR)?1:0;
 
-    /* Construct grp key */
-    if((stat = NCZ_grpkey(grp,&fullpath)))
-        goto done;
-
-    /* build ZGROUP contents */
     NCJnew(NCJ_DICT,&jgroup);
     snprintf(version,sizeof(version),"%d",zinfo->zarr.zarr_version);
     if((stat = NCJaddstring(jgroup,NCJ_STRING,"zarr_format"))<0) {stat = NC_EINVAL; goto done;}
     if((stat = NCJaddstring(jgroup,NCJ_INT,version))<0) {stat = NC_EINVAL; goto done;}
-    /* build ZGROUP path */
-    if((stat = nczm_concat(fullpath,ZGROUP,&key)))
-	goto done;
     /* Write to map */
     if((stat=NCZMD_update_json_group(zinfo,grp,NULL,(const NCjson*)jgroup))) goto done;
 
