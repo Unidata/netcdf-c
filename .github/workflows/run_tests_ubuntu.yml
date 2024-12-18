@@ -102,6 +102,7 @@ jobs:
             fi
           fi
           H5FILE=${H5FILENAME}
+          mkdir -p $(pwd)/${H5DIR}
           tar ${SCFLAG} ${H5FILE} -C $(pwd)/${H5DIR} --strip-components=${SC}
           pushd ${H5DIR}
           ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
@@ -202,6 +203,7 @@ jobs:
             fi
           fi
           H5FILE=${H5FILENAME}
+          mkdir -p $(pwd)/${H5DIR}
           tar ${SCFLAG} ${H5FILE} -C $(pwd)/${H5DIR} --strip-components=${SC}
           pushd ${H5DIR}
           ./configure --disable-static --enable-shared --pre
