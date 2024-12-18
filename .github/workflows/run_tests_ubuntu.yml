@@ -53,15 +53,65 @@ jobs:
           make -j
           make install -j
           popd
+    
+          ##
+          # Begin convoluted failover for downloading hdf5,
+          # based on inconsistencies in naming conventions and download locations.
+          ##
 
-          wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
-          tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
-          pushd hdf5-${{ matrix.hdf5 }}
+          H5VER=${{ matrix.hdf5 }}
+          H5MAJ=$(echo $H5VER | cut -d '.' -f 1)
+          H5MIN=$(echo $H5VER | cut -d '.' -f 2)
+          H5REV=$(echo $H5VER | cut -d '.' -f 3)
+          H5DIR="hdf5-${H5VER}${H5VERSUFFIX}-${{ runner.os }}"
+          H5DIR_ALT="hdf5_${H5VER}${H5VERSUFFIX}"
+          H5FILE="${H5DIR}.tar.bz2"
+          H5FILEGZ="${H5DIR}.tar.gz"
+          H5FILEGZ_ALT="${H5DIR_ALT}.tar.gz"
+
+
+          H5URL_DIRECT="https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${H5MAJ}.${H5MIN}/hdf5-${H5VER}/src/${H5FILE}"
+          H5URL_DIRECT_GZ="https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${H5MAJ}.${H5MIN}/hdf5-${H5VER}/src/${H5FILEGZ}"
+          H5URL_GITHUB="https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5-${H5MAJ}.${H5MIN}.${H5REV}${H5VERSUFFIX}.tar.gz"
+          H5URL_GITHUB_ALT="https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${H5MAJ}.${H5MIN}.${H5REV}${H5VERSUFFIX}.tar.gz"
+
+          SC=2
+          SCFLAG="-zxf"
+          H5FILENAME=${H5FILE}
+
+          wget "${H5URL_DIRECT}" ; FILEGOT=$?
+          if [ ${FILEGOT} -eq 0 ]; then
+            SCFLAG="-jxf"
+            H5FILENAME=${H5FILE}
+          else
+            wget "${H5URL_DIRECT_GZ}" ; FILEGOT=$?
+            if [ ${FILEGOT} -eq 0 ]; then
+              H5FILENAME=${H5FILEGZ}
+            else
+              wget "${H5URL_GITHUB}" ; FILEGOT=$?
+              if [ ${FILEGOT} -eq 0 ]; then
+                H5FILENAME="${H5FILEGZ}"
+                SC=1
+              else
+                wget "${H5URL_GITHUB_ALT}" ; FILEGOT=$?
+                if [ ${FILEGOT} -eq 0 ]; then
+                  H5FILENAME=${H5FILEGZ_ALT}
+                  SC=1
+                fi
+              fi
+            fi
+          fi
+          H5FILE=${H5FILENAME}
+          tar ${SCFLAG} ${H5FILE} -C $(pwd)/${H5DIR} --strip-components=${SC}
+          pushd ${H5DIR}
           ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
           make -j
           make install -j
           popd
           
+          ##
+          # End convoluted HDF5 download failover
+          ##
 
   build-deps-parallel:
 
@@ -102,10 +152,57 @@ jobs:
           make -j
           make install -j
           popd
+          ##
+          # Begin convoluted failover for downloading hdf5,
+          # based on inconsistencies in naming conventions and download locations.
+          ##
 
-          wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
-          tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
-          pushd hdf5-${{ matrix.hdf5 }}
+          H5VER=${{ matrix.hdf5 }}
+          H5MAJ=$(echo $H5VER | cut -d '.' -f 1)
+          H5MIN=$(echo $H5VER | cut -d '.' -f 2)
+          H5REV=$(echo $H5VER | cut -d '.' -f 3)
+          H5DIR="hdf5-${H5VER}${H5VERSUFFIX}-${{ runner.os }}"
+          H5DIR_ALT="hdf5_${H5VER}${H5VERSUFFIX}"
+          H5FILE="${H5DIR}.tar.bz2"
+          H5FILEGZ="${H5DIR}.tar.gz"
+          H5FILEGZ_ALT="${H5DIR_ALT}.tar.gz"
+
+
+          H5URL_DIRECT="https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${H5MAJ}.${H5MIN}/hdf5-${H5VER}/src/${H5FILE}"
+          H5URL_DIRECT_GZ="https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${H5MAJ}.${H5MIN}/hdf5-${H5VER}/src/${H5FILEGZ}"
+          H5URL_GITHUB="https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5-${H5MAJ}.${H5MIN}.${H5REV}${H5VERSUFFIX}.tar.gz"
+          H5URL_GITHUB_ALT="https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${H5MAJ}.${H5MIN}.${H5REV}${H5VERSUFFIX}.tar.gz"
+
+          SC=2
+          SCFLAG="-zxf"
+          H5FILENAME=${H5FILE}
+
+          wget "${H5URL_DIRECT}" ; FILEGOT=$?
+          if [ ${FILEGOT} -eq 0 ]; then
+            SCFLAG="-jxf"
+            H5FILENAME=${H5FILE}
+          else
+            wget "${H5URL_DIRECT_GZ}" ; FILEGOT=$?
+            if [ ${FILEGOT} -eq 0 ]; then
+              H5FILENAME=${H5FILEGZ}
+            else
+              wget "${H5URL_GITHUB}" ; FILEGOT=$?
+              if [ ${FILEGOT} -eq 0 ]; then
+                H5FILENAME="${H5FILEGZ}"
+                SC=1
+              else
+                wget "${H5URL_GITHUB_ALT}" ; FILEGOT=$?
+                if [ ${FILEGOT} -eq 0 ]; then
+                  H5FILENAME=${H5FILEGZ_ALT}
+                  SC=1
+                fi
+              fi
+            fi
+          fi
+          H5FILE=${H5FILENAME}
+          tar ${SCFLAG} ${H5FILE} -C $(pwd)/${H5DIR} --strip-components=${SC}
+          pushd ${H5DIR}
+          ./configure --disable-static --enable-shared --pre
           CC=mpicc ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib --enable-parallel
           make -j
           make install -j
