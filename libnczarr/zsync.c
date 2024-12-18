@@ -33,8 +33,6 @@ static int define_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* diminfo
 static int define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames);
 static int define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname);
 static int define_subgrps(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* subgrpnames);
-static int searchvars(NCZ_FILE_INFO_T*, NC_GRP_INFO_T*, NClist*);
-static int searchsubgrps(NCZ_FILE_INFO_T*, NC_GRP_INFO_T*, NClist*);
 static int locategroup(NC_FILE_INFO_T* file, size_t nsegs, NClist* segments, NC_GRP_INFO_T** grpp);
 static int createdim(NC_FILE_INFO_T* file, const char* name, size64_t dimlen, NC_DIM_INFO_T** dimp);
 static int parsedimrefs(NC_FILE_INFO_T*, NClist* dimnames,  size64_t* shape, NC_DIM_INFO_T** dims, int create);
@@ -1972,77 +1970,6 @@ parse_group_content_pure(NCZ_FILE_INFO_T*  zinfo, NC_GRP_INFO_T* grp, NClist* va
 
 done:
     return ZUNTRACE(THROW(stat));
-}
-
-
-static int
-searchvars(NCZ_FILE_INFO_T* zfile, NC_GRP_INFO_T* grp, NClist* varnames)
-{
-    size_t i;
-    int stat = NC_NOERR;
-    char* grpkey = NULL;
-    char* varkey = NULL;
-    char* zarray = NULL;
-    NClist* matches = nclistnew();
-
-    /* Compute the key for the grp */
-    if((stat = NCZ_grpkey(grp,&grpkey))) goto done;
-    /* Get the map and search group */
-    if((stat = nczmap_search(zfile->map,grpkey,matches))) goto done;
-    for(i=0;i<nclistlength(matches);i++) {
-	const char* name = nclistget(matches,i);
-	if(name[0] == NCZM_DOT) continue; /* zarr/nczarr specific */
-	/* See if name/.zarray exists */
-	if((stat = nczm_concat(grpkey,name,&varkey))) goto done;
-	if((stat = nczm_concat(varkey,Z2ARRAY,&zarray))) goto done;
-	if((stat = nczmap_exists(zfile->map,zarray)) == NC_NOERR)
-	    nclistpush(varnames,strdup(name));
-	stat = NC_NOERR;
-	nullfree(varkey); varkey = NULL;
-	nullfree(zarray); zarray = NULL;
-    }
-
-done:
-    nullfree(grpkey);
-    nullfree(varkey);
-    nullfree(zarray);
-    nclistfreeall(matches);
-    return stat;
-}
-
-static int
-searchsubgrps(NCZ_FILE_INFO_T* zfile, NC_GRP_INFO_T* grp, NClist* subgrpnames)
-{
-    size_t i;
-    int stat = NC_NOERR;
-    char* grpkey = NULL;
-    char* subkey = NULL;
-    char* zgroup = NULL;
-    NClist* matches = nclistnew();
-
-    /* Compute the key for the grp */
-    if((stat = NCZ_grpkey(grp,&grpkey))) goto done;
-    /* Get the map and search group */
-    if((stat = nczmap_search(zfile->map,grpkey,matches))) goto done;
-    for(i=0;i<nclistlength(matches);i++) {
-	const char* name = nclistget(matches,i);
-	if(name[0] == NCZM_DOT) continue; /* zarr/nczarr specific */
-	/* See if name/.zgroup exists */
-	if((stat = nczm_concat(grpkey,name,&subkey))) goto done;
-	if((stat = nczm_concat(subkey,Z2GROUP,&zgroup))) goto done;
-	if((stat = nczmap_exists(zfile->map,zgroup)) == NC_NOERR)
-	    nclistpush(subgrpnames,strdup(name));
-	stat = NC_NOERR;
-	nullfree(subkey); subkey = NULL;
-	nullfree(zgroup); zgroup = NULL;
-    }
-
-done:
-    nullfree(grpkey);
-    nullfree(subkey);
-    nullfree(zgroup);
-    nclistfreeall(matches);
-    return stat;
 }
 
 /* Convert a list of integer strings to 64 bit dimension sizes (shapes) */
