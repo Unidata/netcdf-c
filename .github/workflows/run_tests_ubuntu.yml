@@ -67,6 +67,10 @@ jobs:
           make install -j
           popd
 
+      - name: Check libhdf5-serial-${{ matrix.hdf5}}
+        run: |
+          ls ${HOME}/environments/**
+
   build-deps-parallel:
 
     runs-on: ubuntu-latest
@@ -127,6 +131,12 @@ jobs:
           make -j
           make install -j
           popd
+
+      - name: Check libhdf5-parallel-${{ matrix.hdf5}}
+        run: |
+          ls ${HOME}/environments/**
+          echo ""
+          mpicc -v
           
   #####
   # One-Off Autotools-based tests.
