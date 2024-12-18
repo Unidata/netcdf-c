@@ -2368,55 +2368,6 @@ insert_nczarr_attr(NCjson* jatts, NCjson* jtypes)
     return NC_NOERR;
 }
 
-/**
-Upload a .zattrs object
-Optionally take control of jatts and jtypes
-@param file
-@param container
-@param jattsp
-@param jtypesp
-*/
-static int
-upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts)
-{
-    int stat = NC_NOERR;
-    NCZ_FILE_INFO_T* zinfo = NULL;
-    NC_VAR_INFO_T* var = NULL;
-    NC_GRP_INFO_T* grp = NULL;
-    NCZMAP* map = NULL;
-    char* fullpath = NULL;
-    char* key = NULL;
-
-    ZTRACE(3,"file=%s grp=%s",file->controller->path,container->name);
-
-    if(jatts == NULL) goto done;    
-
-    zinfo = file->format_file_info;
-    map = zinfo->map;
-
-    if(container->sort == NCVAR) {
-        var = (NC_VAR_INFO_T*)container;
-    } else if(container->sort == NCGRP) {
-        grp = (NC_GRP_INFO_T*)container;
-    }
-
-    /* Construct container path */
-    if(container->sort == NCGRP)
-	stat = NCZ_grpkey(grp,&fullpath);
-    else
-	stat = NCZ_varkey(var,&fullpath);
-    if(stat) goto done;
-
-    /* write .zattrs*/
-    if((stat = nczm_concat(fullpath,ZATTRS,&key))) goto done;
-    if((stat=NCZ_uploadjson(map,key,(const NCjson*)jatts))) goto done;
-    nullfree(key); key = NULL;
-
-done:
-    nullfree(fullpath);
-    return ZUNTRACE(THROW(stat));
-}
-
 #if 0
 /**
 @internal Get contents of a meta object; fail it it does not exist
