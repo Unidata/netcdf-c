@@ -1,0 +1,67 @@
+{
+    "metadata": {
+        ".zattrs": {
+            "Description": "Consolidated zarr test"
+        },
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "G1/.zattrs": {
+            "Details": "Varibles are chunked"
+        },
+        "G1/.zgroup": {
+            "zarr_format": 2
+        },
+        "G1/subg1/.zgroup": {
+            "zarr_format": 2
+        },
+        "G1/subg1/myarray/.zarray": {
+            "chunks": [
+                6,
+                15
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<i4",
+            "fill_value": 0,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                6,
+                15
+            ],
+            "zarr_format": 2
+        },
+        "G2/.zgroup": {
+            "zarr_format": 2
+        },
+        "G2/other variable with spaces/.zarray": {
+            "chunks": [
+                3,
+                5
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<i8",
+            "fill_value": 0,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                3,
+                5
+            ],
+            "zarr_format": 2
+        }
+    },
+    "zarr_consolidated_format": 1
+}
