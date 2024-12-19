@@ -17,7 +17,7 @@ jobs:
 
   build-deps-serial:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -73,7 +73,7 @@ jobs:
 
   build-deps-parallel:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -146,7 +146,7 @@ jobs:
   nc-ac-tests-oneoff-serial-shared:
 
     needs: build-deps-serial
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -241,7 +241,7 @@ jobs:
   nc-ac-tests-oneoff-serial-static:
 
     needs: build-deps-serial
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -337,7 +337,7 @@ jobs:
   nc-ac-tests-oneoff-parallel:
 
     needs: build-deps-parallel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -417,7 +417,7 @@ jobs:
   nc-cmake-tests-oneoff-serial-shared:
 
     needs: build-deps-serial
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -497,7 +497,7 @@ jobs:
   nc-cmake-tests-oneoff-serial-static:
 
     needs: build-deps-serial
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -579,7 +579,7 @@ jobs:
   nc-cmake-tests-oneoff-parallel:
 
     needs: build-deps-parallel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -656,7 +656,7 @@ jobs:
   nc-autotools:
 
     needs: [ nc-cmake-tests-oneoff-serial-shared, nc-cmake-tests-oneoff-serial-static, nc-ac-tests-oneoff-serial-shared, nc-ac-tests-oneoff-serial-static, nc-cmake-tests-oneoff-parallel, nc-ac-tests-oneoff-parallel ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -820,7 +820,7 @@ jobs:
   nc-cmake:
 
     needs: [ nc-cmake-tests-oneoff-serial-shared, nc-cmake-tests-oneoff-serial-static, nc-ac-tests-oneoff-serial-shared, nc-ac-tests-oneoff-serial-static, nc-cmake-tests-oneoff-parallel, nc-ac-tests-oneoff-parallel ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
