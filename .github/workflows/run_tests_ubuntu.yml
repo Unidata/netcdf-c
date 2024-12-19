@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
+ 
   build-deps-serial:
 
     runs-on: ubuntu-22.04
@@ -38,7 +38,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-${{ runner.name }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
 
       - name: Build libhdf5-${{ matrix.hdf5 }}
@@ -95,7 +95,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-${{ runner.name }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Build libhdf5-${{ matrix.hdf5 }}-pnetcdf-1.12.3
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
@@ -177,7 +177,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-${{ runner.name }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -272,7 +272,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-${{ runner.name }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -363,7 +363,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-${{ runner.name }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -447,7 +447,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-${{ runner.name }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -528,7 +528,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-${{ runner.name }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -609,7 +609,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-${{ runner.name }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -724,7 +724,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-${{ runner.name }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -867,7 +867,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-${{ runner.name }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
