@@ -97,18 +97,6 @@ jobs:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-mpicc
 
-
-      - name: Install mpicc manually
-        shell: bash -l {0}
-        run: |
-          sudo apt remove mpich -y && sudo apt autoremove -y
-          wget https://www.mpich.org/static/downloads/4.2.3/mpich-4.2.3.tar.gz
-          tar -zxf mpich-4.2.3.tar.gz
-          cd mpich-4.2.3
-          ./configure --prefix=/usr
-          make -j 12 && sudo make install -j 12
-
-
       - name: Build libhdf5-${{ matrix.hdf5 }}-pnetcdf-1.12.3
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
