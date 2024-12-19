@@ -16,7 +16,7 @@ jobs:
 
   build-deps-osx:
 
-    runs-on: macos-12
+    runs-on: macos-13
 
     strategy:
       matrix:
@@ -45,14 +45,24 @@ jobs:
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
           ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
-          make -j
-          make install -j
+          make -j 12
+          make install -j 12
           popd
+
+      - name: Handle Error for libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+        shell: bash -l {0}
+        run: | 
+          cat config.log
+          echo "Checking filesystem limits"
+          ulimit -a
+          echo "Checking user process limits"
+          sysctl -a | grep maxproc
+        if: ${{ failure() }}
 
   nc-autotools-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
-    runs-on: macos-12
+    runs-on: macos-13
 
     strategy:
       matrix:
@@ -158,7 +168,7 @@ jobs:
   nc-cmake-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
-    runs-on: macos-12
+    runs-on: macos-13
 
     strategy:
       matrix:
@@ -253,7 +263,7 @@ jobs:
   nc-ac-tests-oneoff-osx:
 
     needs: build-deps-osx
-    runs-on: macos-12
+    runs-on: macos-13
 
     strategy:
       matrix:
@@ -334,7 +344,7 @@ jobs:
   nc-cmake-tests-oneoff-osx-shared:
 
     needs: build-deps-osx
-    runs-on: macos-12
+    runs-on: macos-13
 
     strategy:
       matrix:
@@ -408,7 +418,7 @@ jobs:
   nc-cmake-tests-oneoff-osx-static:
 
     needs: build-deps-osx
-    runs-on: macos-12
+    runs-on: macos-13
 
     strategy:
       matrix:
