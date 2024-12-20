@@ -47,6 +47,10 @@ ACT_GET=1,
 ACT_SET=2,
 /* Synthetic Actions */
 ACT_CLEAR=3,
+/* ncaux commands */
+ACT_XGET=4,
+ACT_XSET=5,
+ACT_XCLEAR=6,
 } Action;
 
 static struct ActionTable {
@@ -57,6 +61,9 @@ static struct ActionTable {
 {ACT_GET,"get"},
 {ACT_SET,"set"},
 {ACT_CLEAR,"clear"},
+{ACT_XGET,"xget"},
+{ACT_XSET,"xset"},
+{ACT_XCLEAR,"xclear"},
 {ACT_NONE,NULL}
 };
 
@@ -101,7 +108,8 @@ static void
 pluginusage(void)
 {
     fprintf(stderr,"usage: tst_pluginpath [-d] -x <command>[:<arg>],<command>[:<arg>]...\n");
-    fprintf(stderr,"\twhere <command> is one of: read | write | clear| or formatx.\n");
+    fprintf(stderr,"\twhere <command> is one of: read | write | clear|formatx|xread|xwrite.\n");
+    fprintf(stderr,"\t                       and xread|xwrite use the ncaux API.\n");
     fprintf(stderr,"\twhere <arg> is arbitrary string (with '\\,' to escape commas); arg can be missing or empty.\n");
     exit(1);
 }
@@ -175,10 +183,14 @@ parseactionlist(const char* cmds0)
     strncpy(cmds,cmds0,cmdlen);
     /* split into command + formatx + arg strings and count */
     ncmds = 0;
+#ifdef DEBUG
 fprintf(stderr,"$$$ cmds=|%s|\n",cmds);
+#endif
     for(leave=0,p=cmds;!leave;p=q) {
 	q = xstrchr(p,',');
+#ifdef DEBUG
 fprintf(stderr,"$$$ p=|%s| q=|%s|\n",p,q);
+#endif
 	if(q == NULL) {
 	    q = cmds+cmdlen; /* point to trailing nul */
 	    leave = 1;
@@ -187,7 +199,9 @@ fprintf(stderr,"$$$ p=|%s| q=|%s|\n",p,q);
 	}	
 	ncmds++;
     }
+#ifdef DEBUG
 fprintf(stderr,"$$$ ncmds=%d\n",(int)ncmds);
+#endif
     if(ncmds > NACTIONS) {fprintf(stderr,"error: -x must have not more than %zu commands.\n",(size_t)NACTIONS); pluginusage();}
     dumpoptions.nactions = ncmds;
     /* Now process each command+formatx+arg triple */
@@ -214,7 +228,9 @@ fprintf(stderr,"$$$ ncmds=%d\n",(int)ncmds);
 	descape(dumpoptions.actions[i].name);
 	descape(dumpoptions.actions[i].arg);
 	dumpoptions.actions[i].action = decodeop(dumpoptions.actions[i].name);
+#ifdef DEBUG
 fprintf(stderr,"$$$ [%d] name=|%s| arg=|%s|\n",(int)i,dumpoptions.actions[i].name,dumpoptions.actions[i].arg);
+#endif
     }
     return;
 }
@@ -292,6 +308,45 @@ done:
     return NCCHECK(stat);
 }
 
+static int
+actionxclear(const struct Execute* action)
+{
+    int stat = NC_NOERR;
+    const char* path="";
+    if((stat=ncaux_plugin_path_stringset(strlen(path),path))) goto done;
+done:
+    return NCCHECK(stat);
+}
+
+static int
+actionxget(const struct Execute* action)
+{
+    int stat = NC_NOERR;
+    char path[4096];
+    int pathlen = 0;
+   
+    /* get pathlen */
+    if((pathlen=ncaux_plugin_path_stringlen()) < 0) {stat = NC_EINVAL; goto done;}
+    /* Get global plugin path */
+    if((stat=ncaux_plugin_path_stringget(sizeof(path),path))) goto done;
+    path[pathlen] = '\0'; /* nul term */
+    printf("%s\n",path);
+    
+done:
+    return NCCHECK(stat);
+}
+
+static int
+actionxset(const struct Execute* action)
+{
+    int stat = NC_NOERR;
+
+    /* set global plugin path */
+    if((stat=ncaux_plugin_path_stringset(strlen(action->arg),action->arg))) goto done;
+done:
+    return NCCHECK(stat);
+}
+
 int
 main(int argc, char** argv)
 {
@@ -338,6 +393,9 @@ fprintf(stderr,">>>> [%zu] %s(%d) : %s\n",i,
 	case ACT_CLEAR: if((stat=actionclear(&dumpoptions.actions[i]))) goto done; break;
 	case ACT_GET: if((stat=actionget(&dumpoptions.actions[i]))) goto done; break;
 	case ACT_SET: if((stat=actionset(&dumpoptions.actions[i]))) goto done; break;
+	case ACT_XCLEAR: if((stat=actionxclear(&dumpoptions.actions[i]))) goto done; break;
+	case ACT_XGET: if((stat=actionxget(&dumpoptions.actions[i]))) goto done; break;
+	case ACT_XSET: if((stat=actionxset(&dumpoptions.actions[i]))) goto done; break;
 	}
     }
 

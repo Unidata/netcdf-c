@@ -534,7 +534,7 @@ NC_copy_att(int ncid_in, int varid_in, const char *name,
    {
 	/* Copy arbitrary attributes. */
         int class;
-        size_t size;
+        size_t size = 0;
         nc_type xtype_out = NC_NAT;
 
         if(xtype <= NC_MAX_ATOMIC_TYPE) {

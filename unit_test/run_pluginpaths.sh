@@ -86,6 +86,20 @@ testset() {
     printf "testset(nczarr): after: %s\n" `${TP} -x "set:${DFALT},set:${DFALTSET},get:nczarr"` >> ${filename}.txt
 }                           
 
+# Test the ncaux set/get/clear functions */
+testxget() {
+    filenamefor tmp xget
+    # print out the global state
+    printf "testxget(global): %s\n" `${TP} -x "xset:${DFALT},xget:global"` >> ${filename}.txt
+}                           
+
+testxset() {
+    filenamefor tmp xset
+    # print out the global state, modify it and print again
+    printf "testxset(global): before: %s\n" `${TP} -x "xset:${DFALT},xget:global"` >> ${filename}.txt
+    printf "testxset(global): after: %s\n" `${TP} -x "xset:${DFALT},xset:${DFALTSET},xget:global"` >> ${filename}.txt
+}
+
 #########################
 
 cleanup() {
@@ -98,7 +112,7 @@ init() {
 
 # Verify output for a specific action
 verify() {
-    for action in get set ; do
+    for action in get set xget xset; do
         if diff -wBb ${srcdir}/ref_${action}.txt tmp_${action}.txt ; then
 	    echo "***PASS: $action"
 	else
@@ -111,5 +125,7 @@ verify() {
 init
 testget
 testset
+testxget
+testxset
 verify
 cleanup
