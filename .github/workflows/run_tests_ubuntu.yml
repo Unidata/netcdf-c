@@ -232,7 +232,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}
+          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}-${{ github.job }}
           path: |
             *.tar*
             *.zip
@@ -329,7 +329,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}
+          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}-${{ github.job }}
           path: |
             *.tar*
             *.zip
