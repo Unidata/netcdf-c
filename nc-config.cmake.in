@@ -9,6 +9,7 @@ exec_prefix="@CMAKE_INSTALL_PREFIX@"
 libdir="@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@"
 includedir="@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
 plugindir="@NETCDF_PLUGIN_INSTALL_DIR@"
+pluginsearchpath="@NETCDF_PLUGIN_SEARCH_PATH@"
 
 cc="@CMAKE_C_COMPILER@"
 cflags="-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
@@ -142,40 +143,41 @@ Usage: nc-config [OPTION]
 
 Available values for OPTION include:
 
-  --help             display this help message and exit
-  --all              display all options
-  --cc               C compiler
-  --cflags           pre-processor and compiler flags
+  --help              display this help message and exit
+  --all               display all options
+  --cc                C compiler
+  --cflags            pre-processor and compiler flags
   
-  --has-dap2         whether OPeNDAP (DAP2) is enabled in this build
-  --has-dap4         whether DAP4 is enabled in this build
-  --has-dap          same as --has-dap2 (Deprecated)
-  --has-nc2          whether NetCDF-2 API is enabled
-  --has-nc4          whether NetCDF-4/HDF-5 is enabled in this build
-  --has-hdf5         whether HDF5 is used in build (always the same as --has-nc4)
-  --has-hdf4         whether HDF4 was used in build
-  --has-logging      whether logging is enabled with --enable-logging.
-  --has-pnetcdf      whether PnetCDF was used in build
-  --has-szlib        whether szlib is included in build
-  --has-cdf5         whether cdf5 support is included in build
-  --has-parallel4    whether has parallel IO support via HDF5
-  --has-parallel     whether has parallel IO support via HDF5 or PnetCDF
-  --has-nczarr       whether nczarr enabled
-  --has-zstd         whether zstandard compression enabled
-  --has-multifilters whether multifilter support is enabled
-  --has-quanitze     whether quantize support is enabled
-  --has-stdfilters   lists the standard filters enabled
-  --has-benchmarks   whether benchmarks enabled
+  --has-dap2          whether OPeNDAP (DAP2) is enabled in this build
+  --has-dap4          whether DAP4 is enabled in this build
+  --has-dap           same as --has-dap2 (Deprecated)
+  --has-nc2           whether NetCDF-2 API is enabled
+  --has-nc4           whether NetCDF-4/HDF-5 is enabled in this build
+  --has-hdf5          whether HDF5 is used in build (always the same as --has-nc4)
+  --has-hdf4          whether HDF4 was used in build
+  --has-logging       whether logging is enabled with --enable-logging.
+  --has-pnetcdf       whether PnetCDF was used in build
+  --has-szlib         whether szlib is included in build
+  --has-cdf5          whether cdf5 support is included in build
+  --has-parallel4     whether has parallel IO support via HDF5
+  --has-parallel      whether has parallel IO support via HDF5 or PnetCDF
+  --has-nczarr        whether nczarr enabled
+  --has-zstd          whether zstandard compression enabled
+  --has-multifilters  whether multifilter support is enabled
+  --has-quanitze      whether quantize support is enabled
+  --has-stdfilters    lists the standard filters enabled
+  --has-benchmarks    whether benchmarks enabled
 
-  --libs             library linking information for netcdf
-  --libs-ac-syntax   forces autotools-compatible syntax argument for libraries
-  --static           library linking information for statically-compiled netcdf
-  --prefix           Install prefix
-  --includedir       Include directory
-  --libdir           Library directory
-  --plugindir        Plugin directory
-  --version          Library version
-  --build-system     Build System
+  --libs              library linking information for netcdf
+  --libs-ac-syntax    forces autotools-compatible syntax argument for libraries
+  --static            library linking information for statically-compiled netcdf
+  --prefix            Install prefix
+  --includedir        Include directory
+  --libdir            Library directory
+  --plugindir         Plugin install directory
+  --plugin-searchpath Plugin search directory
+  --version           Library version
+  --build-system      Build System
 
 EOF
 
@@ -187,10 +189,10 @@ all()
         echo
         echo "This $version has been built with the following features: "
         echo
-        echo "  --cc            -> $cc"
-        echo "  --cflags        -> $cflags"
-        echo "  --libs          -> $libs"
-        echo "  --static        -> $libsprivate"
+        echo "  --cc               -> $cc"
+        echo "  --cflags           -> $cflags"
+        echo "  --libs             -> $libs"
+        echo "  --static           -> $libsprivate"
         echo
 
         echo 
@@ -214,12 +216,13 @@ all()
         echo "  --has-stdfilters   -> @STD_FILTERS@"
         echo "  --has-quantize     -> $has_quantize"
         echo
-        echo "  --prefix        -> $prefix"
-        echo "  --includedir    -> $includedir"
-        echo "  --libdir        -> $libdir"
-        echo "  --plugindir     -> $plugindir"
-        echo "  --version       -> $version"
-        echo "  --build-system  -> cmake"
+        echo "  --prefix            -> $prefix"
+        echo "  --includedir        -> $includedir"
+        echo "  --libdir            -> $libdir"
+        echo "  --plugindir         -> $plugindir"
+        echo "  --plugin-searchpath -> $pluginsearchpath"
+        echo "  --version           -> $version"
+        echo "  --build-system      -> cmake"
         echo
 }
 
@@ -273,6 +276,10 @@ while test $# -gt 0; do
 
     --plugindir)
         echo $plugindir
+        ;;
+
+    --plugin-searchpath)
+        echo $pluginsearchpath
         ;;
 
     --has-dap)
