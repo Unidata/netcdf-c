@@ -17,11 +17,12 @@ jobs:
  
   build-deps-serial:
 
-    runs-on: ubuntu-22.04
-
     strategy:
       matrix:
         hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
+        runs-on: [ ubuntu-22.04 ]
+
+    runs-on: ${{ matrix.runs-on }}
 
     steps:
       - uses: actions/checkout@v4
@@ -146,11 +147,13 @@ jobs:
   nc-ac-tests-oneoff-serial-shared:
 
     needs: build-deps-serial
-    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
         hdf5: [ 1.14.3 ]
+        runs-on: [ ubuntu-22.04 ]
+
+    runs-on: ${{ matrix.runs-on }}
     steps:
 
       - uses: actions/checkout@v4
@@ -227,9 +230,9 @@ jobs:
         if: ${{ success() }}
         run: make dist -j
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: netcdf-c-autotools-source-distribution
+          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}
           path: |
             *.tar*
             *.zip
@@ -241,11 +244,13 @@ jobs:
   nc-ac-tests-oneoff-serial-static:
 
     needs: build-deps-serial
-    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
         hdf5: [ 1.14.3 ]
+        runs-on: [ ubuntu-22.04 ]
+
+    runs-on: ${{ matrix.runs-on }}
     steps:
 
       - uses: actions/checkout@v4
@@ -321,15 +326,6 @@ jobs:
         shell: bash -l {0}
         if: ${{ success() }}
         run: make dist -j
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: netcdf-c-autotools-source-distribution
-          path: |
-            *.tar*
-            *.zip
-            *.tgz
-
 
   ##
   # Parallel
@@ -656,7 +652,7 @@ jobs:
   nc-autotools:
 
     needs: [ nc-cmake-tests-oneoff-serial-shared, nc-cmake-tests-oneoff-serial-static, nc-ac-tests-oneoff-serial-shared, nc-ac-tests-oneoff-serial-static, nc-cmake-tests-oneoff-parallel, nc-ac-tests-oneoff-parallel ]
-    runs-on: ubuntu-22.04
+
 
     strategy:
       matrix:
@@ -664,11 +660,14 @@ jobs:
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
+        runs-on: [ ubuntu-22.04 ]
+
+    runs-on: ${{ matrix.runs-on }}
     steps:
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: netcdf-c-autotools-source-distribution
+          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}
 
       - name: Unpack source distribution
         shell: bash -l {0}
