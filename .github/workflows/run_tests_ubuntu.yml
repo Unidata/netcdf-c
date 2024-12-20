@@ -232,7 +232,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}-${{ github.job }}
+          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}
           path: |
             *.tar*
             *.zip
@@ -326,15 +326,6 @@ jobs:
         shell: bash -l {0}
         if: ${{ success() }}
         run: make dist -j
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}-${{ github.job }}
-          path: |
-            *.tar*
-            *.zip
-            *.tgz
-
 
   ##
   # Parallel
