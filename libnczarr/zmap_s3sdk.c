@@ -223,14 +223,14 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     z3map->s3client = NC_s3sdkcreateclient(&z3map->s3);
 
     /* Search the root for content */
-    content = nclistnew();
-    if((stat = NC_s3sdkgetkeys(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
-	goto done;
-    if(nkeys == 0) {
-	/* dataset does not actually exist; we choose to return ENOOBJECT instead of EEMPTY */
-	stat = NC_ENOOBJECT;
-	goto done;
-    }
+    // content = nclistnew();
+    // if((stat = NC_s3sdkgetkeys(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
+	// goto done;
+    // if(nkeys == 0) {
+	// /* dataset does not actually exist; we choose to return ENOOBJECT instead of EEMPTY */
+	// stat = NC_ENOOBJECT;
+	// goto done;
+    // }
     if(mapp) *mapp = (NCZMAP*)z3map;    
 
 done:
