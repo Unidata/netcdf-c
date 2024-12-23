@@ -5,6 +5,7 @@ dimensions:
 	lon = 30 ;
 variables:
 	float fractional_snow_cover(time, lat, lon) ;
+ 		fractional_snow_cover:_FillValue = NaNf ;
 		fractional_snow_cover:ID = 68 ;
 		fractional_snow_cover:esa_cci_path = NaN ;
 		fractional_snow_cover:long_name = "Surface Fraction Covered by Snow" ;

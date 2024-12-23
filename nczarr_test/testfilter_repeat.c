@@ -34,7 +34,7 @@
 static size_t dimsize[NDIMS] = {4,4,4,4};
 static size_t chunksize[NDIMS] = {4,4,4,4};
 
-static int ndims = NDIMS;
+static size_t ndims = NDIMS;
 
 static size_t totalproduct = 1; /* x-product over max dims */
 static size_t actualproduct = 1; /* x-product over actualdims */
@@ -58,7 +58,7 @@ static void reset(void);
 static void odom_reset(void);
 static int odom_more(void);
 static int odom_next(void);
-static int odom_offset(void);
+static size_t odom_offset(void);
 static float expectedvalue(void);
 
 #define ERRR do { \
@@ -90,7 +90,7 @@ report(const char* msg, int lineno)
 static int
 verifychunks(void)
 {
-    int i;
+    size_t i;
     int store = -1;
     size_t localchunks[MAXDIMS];
     memset(localchunks,0,sizeof(localchunks));
@@ -101,7 +101,7 @@ verifychunks(void)
     }
     for(i=0;i<ndims;i++) {
         if(chunksize[i] != localchunks[i]) {
-            fprintf(stderr,"bad chunk size: %d\n",i);
+            fprintf(stderr,"bad chunk size: %zu\n",i);
             return 0;
         }
     }
@@ -111,14 +111,14 @@ verifychunks(void)
 static int
 create(void)
 {
-    int i;
+    size_t i;
 
     /* Create a file with one big variable */
     CHECK(nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid));
     CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
     for(i=0;i<ndims;i++) {
         char dimname[1024];
-        snprintf(dimname,sizeof(dimname),"dim%d",i);
+        snprintf(dimname,sizeof(dimname),"dim%zu",i);
         CHECK(nc_def_dim(ncid, dimname, dimsize[i], &dimids[i]));
     }
     CHECK(nc_def_var(ncid, "var", NC_FLOAT, ndims, dimids, &varid));
@@ -151,7 +151,7 @@ openfile(void)
 {
     unsigned int filterids[MAXPARAMS];
     size_t nfilters = 0;
-    int k;
+    size_t k;
 
     /* Open the file and check it. */
     CHECK(nc_open(testfile, NC_NOWRITE, &ncid));
@@ -185,13 +185,13 @@ fill(void)
 {
    odom_reset();
    if(1) {
-        int i;
+        size_t i;
         if(actualproduct <= 1) abort();
         for(i=0;i<actualproduct;i++)
             expected[i] = (float)i;
    } else {
        while(odom_more()) {
-            int offset = odom_offset();
+            size_t offset = odom_offset();
             float expect = expectedvalue();
             expected[offset] = expect;
             odom_next();
@@ -206,10 +206,10 @@ compare(void)
     printf("data comparison: |array|=%ld\n",(unsigned long)actualproduct);
     if(1)
     {
-        int i;
+        size_t i;
         for(i=0;i<actualproduct;i++) {
             if(expected[i] != array[i]) {
-                fprintf(stderr,"data mismatch: array[%d]=%f expected[%d]=%f\n",
+                fprintf(stderr,"data mismatch: array[%zu]=%f expected[%zu]=%f\n",
                             i,array[i],i,expected[i]);
                 errs++;
                 if(errs >= MAXERRS)
@@ -220,10 +220,10 @@ compare(void)
    {
        odom_reset();
        while(odom_more()) {
-            int offset = odom_offset();
+            size_t offset = odom_offset();
             float expect = expectedvalue();
             if(array[offset] != expect) {
-                fprintf(stderr,"data mismatch: array[%d]=%f expected=%f\n",
+                fprintf(stderr,"data mismatch: array[%zu]=%f expected=%f\n",
                             offset,array[offset],expect);
                 errs++;
                 if(errs >= MAXERRS)
@@ -312,14 +312,14 @@ odom_next(void)
     return 1;
 }
 
-static int
+static size_t
 odom_offset(void)
 {
-    int i;
-    int offset = 0;
+    size_t i;
+    size_t offset = 0;
     for(i=0;i<ndims;i++) {
-        offset *= (int)dimsize[i];
-        offset += (int)odom[i];
+        offset *= dimsize[i];
+        offset += odom[i];
     }
     return offset;
 }
@@ -327,7 +327,7 @@ odom_offset(void)
 static float
 expectedvalue(void)
 {
-    int i;
+    size_t i;
     float offset = 0;
 
     for(i=0;i<ndims;i++) {
@@ -340,7 +340,7 @@ expectedvalue(void)
 static void
 init(int argc, char** argv)
 {
-    int i;
+    size_t i;
 
     /* get the testfile path */
     if(argc > 1)

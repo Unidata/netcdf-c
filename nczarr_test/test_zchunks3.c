@@ -19,7 +19,10 @@ static int ret = NC_NOERR;
 #define NVALS 45360		/* 7 * 4 * 2 * 3 * 5 * 6 * 9 */
 
 /* Make trackable ERR macro replacement */
-static int lerr(int stat, const char* file, int lineno) {
+static int
+lerr(int stat, const char* file, int lineno)
+{
+    NC_UNUSED(stat);
     fflush(stdout); /* Make sure our stdout is synced with stderr. */
     err++;
     fprintf(stderr, "Sorry! Unexpected result(%d), %s, line: %d\n",ret,file,lineno);
@@ -44,6 +47,9 @@ main(int argc, char** argv)
     float fvar_data[NVALS];
     int r, i;
     char* file_name = FILE_NAME;
+
+    NC_UNUSED(argc);
+    NC_UNUSED(argv);
 
     printf("*** Creating chunkable test file %s...\n", file_name);
 

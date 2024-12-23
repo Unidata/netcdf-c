@@ -25,6 +25,7 @@
 #include "ncutf8.h"
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
 #include "ncrc.h"
 
 /** @internal Number of reserved attributes. These attributes are
@@ -44,7 +45,6 @@ static NC_reservedatt NC_reserved[] = {
     {NC_ATT_DIMENSION_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*DIMENSION_LIST*/
     {NC_ATT_NAME, READONLYFLAG|HIDDENATTRFLAG},				/*NAME*/
     {NC_ATT_REFERENCE_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*REFERENCE_LIST*/
-    {NC_XARRAY_DIMS, READONLYFLAG|HIDDENATTRFLAG},			/*_ARRAY_DIMENSIONS*/
     {NC_ATT_CODECS, VARFLAG|READONLYFLAG|NAMEONLYFLAG},			/*_Codecs*/
     {NC_ATT_FORMAT, READONLYFLAG},					/*_Format*/
     {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG|VIRTUALFLAG},		/*_IsNetcdf4*/
@@ -53,15 +53,29 @@ static NC_reservedatt NC_reserved[] = {
     {NC_ATT_DIMID_NAME, READONLYFLAG|HIDDENATTRFLAG},			/*_Netcdf4Dimid*/
     {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG|VIRTUALFLAG},		/*_SuperblockVersion*/
     {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
-    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
-    {NC_NCZARR_ATTR, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_attr */
-    {NC_NCZARR_GROUP, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_group */
-    {NC_NCZARR_ARRAY, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_array */
-    {NC_NCZARR_SUPERBLOCK, READONLYFLAG|HIDDENATTRFLAG},		/*_nczarr_superblock */
+    {NC_XARRAY_DIMS, READONLYFLAG|HIDDENATTRFLAG|COMPLEXJSON},		/*_ARRAY_DIMENSIONS*/
+    {NC_NCZARR_SUPERBLOCK_ATTR, READONLYFLAG|HIDDENATTRFLAG|COMPLEXJSON},	/*_nczarr_superblock */
+    {NC_NCZARR_GROUP_ATTR, READONLYFLAG|HIDDENATTRFLAG|COMPLEXJSON},		/*_nczarr_group */
+    {NC_NCZARR_ARRAY_ATTR, READONLYFLAG|HIDDENATTRFLAG|COMPLEXJSON},		/*_nczarr_array */
+    {NC_NCZARR_ATTRS_ATTR, READONLYFLAG|HIDDENATTRFLAG|COMPLEXJSON},		/*_nczarr_attrs */
+    {NC_NCZARR_ATTR_ATTR, READONLYFLAG|HIDDENATTRFLAG|COMPLEXJSON},		/*_nczarr_attr */
+    {NC_NCZARR_GROUP_ATTR, READONLYFLAG|HIDDENATTRFLAG|COMPLEXJSON},		/*_nczarr_group */
+    {NC_NCZARR_ARRAY_ATTR, READONLYFLAG|HIDDENATTRFLAG|COMPLEXJSON},		/*_nczarr_array */
 };
 #define NRESERVED (sizeof(NC_reserved) / sizeof(NC_reservedatt))  /*|NC_reservedatt*/
 
+static const struct Quantizer {
+char* name;
+int mode;
+} NC_quantize_atts[] = {
+{NC_QUANTIZE_BITGROOM_ATT_NAME, NC_QUANTIZE_BITGROOM},
+{NC_QUANTIZE_GRANULARBR_ATT_NAME, NC_QUANTIZE_GRANULARBR},
+{NC_QUANTIZE_BITROUND_ATT_NAME, NC_QUANTIZE_BITROUND},
+{NULL,0}
+};
+
 /*Forward */
+static int nc4_rec_grp_del_att_data(NC_GRP_INFO_T *grp);
 static int NC4_move_in_NCList(NC* nc, int new_id);
 static int bincmp(const void* arg1, const void* arg2);
 static int sortcmp(const void* arg1, const void* arg2);
@@ -340,7 +354,7 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
     nc->dispatchdata = h5;
     h5->controller = nc;
 
-    h5->hdr.sort = NCFIL;
+    h5->hdr.sort = NCFILE;
     h5->hdr.name = strdup(path);    
     h5->hdr.id = nc->ext_ncid;
 
@@ -795,9 +809,11 @@ nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
     /* Allocate space for dimension information. */
     if (ndims)
     {
-      if (!(var->dim = calloc((size_t)ndims, sizeof(NC_DIM_INFO_T *))))
+	if(var->dim != NULL) free(var->dim);
+	if (!(var->dim = calloc((size_t)ndims, sizeof(NC_DIM_INFO_T *))))
             return NC_ENOMEM;
-      if (!(var->dimids = calloc((size_t)ndims, sizeof(int))))
+	if(var->dimids != NULL) free(var->dimids);
+        if (!(var->dimids = calloc((size_t)ndims, sizeof(int))))
             return NC_ENOMEM;
 
         /* Initialize dimids to illegal values (-1). See the comment
@@ -1544,18 +1560,20 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
 }
 
 /**
- * @internal Recursively delete the data for a group (and everything
- * it contains) in our internal metadata store.
+ * @internal Recursively delete the attribute data for all groups and
+ * vars. We must delete the attribute contents
+ * before deleteing any metadata because nc_reclaim_data depends
+ * on the existence of the type info.
  *
  * @param grp Pointer to group info struct.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett, Dennis Heimbigner
  */
-int
+static int
 nc4_rec_grp_del_att_data(NC_GRP_INFO_T *grp)
 {
-    int retval;
+    int retval = NC_NOERR;
 
     assert(grp);
     LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
@@ -1564,13 +1582,13 @@ nc4_rec_grp_del_att_data(NC_GRP_INFO_T *grp)
      * if there is an error. */
     for (size_t i = 0; i < ncindexsize(grp->children); i++)
         if ((retval = nc4_rec_grp_del_att_data((NC_GRP_INFO_T *)ncindexith(grp->children, i))))
-            return retval;
+            goto done;
 
     /* Free attribute data in this group */
     for (size_t i = 0; i < ncindexsize(grp->att); i++) {
         NC_ATT_INFO_T * att = (NC_ATT_INFO_T*)ncindexith(grp->att, i);
-        if((retval = NC_reclaim_data_all(grp->nc4_info->controller,att->nc_typeid,att->data,att->len)))
-            return retval;
+	if((retval = NC_reclaim_data_all(grp->nc4_info->controller,att->nc_typeid,att->data,att->len)))
+            goto done;
 	att->data = NULL;
 	att->len = 0;
 	att->dirty = 0;
@@ -1581,15 +1599,16 @@ nc4_rec_grp_del_att_data(NC_GRP_INFO_T *grp)
 	NC_VAR_INFO_T* v = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
 	for(size_t j=0;j<ncindexsize(v->att);j++) {
 	    NC_ATT_INFO_T* att = (NC_ATT_INFO_T*)ncindexith(v->att, j);
-   	    if((retval = NC_reclaim_data_all(grp->nc4_info->controller,att->nc_typeid,att->data,att->len)))
-	        return retval;
+	    if((retval = NC_reclaim_data_all(grp->nc4_info->controller,att->nc_typeid,att->data,att->len)))
+	        goto done;
 	    att->data = NULL;
 	    att->len = 0;
 	    att->dirty = 0;
 	}
     }
 
-    return NC_NOERR;
+done:
+    return retval;
 }
 
 /**
@@ -1837,7 +1856,8 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
     NC_FIELD_INFO_T *field;
     char tabs[MAX_NESTS+1] = "";
     char temp_string[10];
-    int t, retval, d, i;
+    int t, retval;
+    size_t i,d;
 
     /* Come up with a number of tabs relative to the group. */
     for (t = 0; t < tab_count && t < MAX_NESTS; t++)
@@ -1865,7 +1885,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
 
     for (i = 0; i < ncindexsize(grp->vars); i++)
     {
-        int j;
+        size_t j;
         char storage_str[NC_MAX_NAME] = "";
         char *dims_string = NULL;
 
@@ -1918,7 +1938,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
         /* Is this a compound type? */
         if (type->nc_type_class == NC_COMPOUND)
         {
-            int j;
+            size_t j;
             LOG((3, "compound type"));
             for (j = 0; j < nclistlength(type->u.c.field); j++)
             {
@@ -2048,6 +2068,26 @@ NC_findreserved(const char* name)
 #else
     return (const NC_reservedatt*)bsearch(name,NC_reserved,NRESERVED,sizeof(NC_reservedatt),bincmp);
 #endif
+}
+
+const char*
+NC_findquantizeattname(int mode)
+{
+    const struct Quantizer* q;
+    for(q=NC_quantize_atts;q->name;q++) {
+	if(q->mode == mode) return q->name;
+    }
+    return NULL;
+}
+
+int
+NC_isquantizeattname(const char* name)
+{
+    const struct Quantizer* q;
+    for(q=NC_quantize_atts;q->name;q++) {
+	if(strcmp(q->name,name)==0) return 1;
+    }
+    return 0;
 }
 
 /* Ed Hartness requires this function */

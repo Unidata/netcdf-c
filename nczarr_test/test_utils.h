@@ -28,7 +28,7 @@ typedef struct Options {
     Op op;
     int mode;
     int formatx;
-    int rank;
+    size_t rank;
     char file[1024];
     unsigned flags; 
     size_t dimlens[NC_MAX_VAR_DIMS];
@@ -49,7 +49,7 @@ typedef struct Metadata {
 } Metadata;
 
 typedef struct Odometer {
-  int rank; /*rank */
+  size_t rank; /*rank */
   size_t start[NC_MAX_VAR_DIMS];
   size_t edges[NC_MAX_VAR_DIMS];
   size_t stride[NC_MAX_VAR_DIMS];
@@ -60,7 +60,7 @@ typedef struct Odometer {
 
 extern void usage(int);
 
-EXTERNL Odometer* odom_new(int rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max);
+EXTERNL Odometer* odom_new(size_t rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max);
 EXTERNL void odom_free(Odometer* odom);
 EXTERNL int odom_more(Odometer* odom);
 EXTERNL int odom_next(Odometer* odom);
@@ -70,11 +70,11 @@ EXTERNL const char* odom_print1(Odometer* odom, int isshort);
 EXTERNL const char* odom_print(Odometer* odom);
 EXTERNL const char* odom_printshort(Odometer* odom);
 
-EXTERNL int parsevector(const char* s0, size_t* vec);
-EXTERNL int parsedata(const char* s0, int* data);
+EXTERNL size_t parsevector(const char* s0, size_t* vec);
+EXTERNL size_t parsedata(const char* s0, int* data);
 EXTERNL const char* filenamefor(const char* f0);
-EXTERNL const char* printvector(int rank, const size_t* vec);
-EXTERNL const char* printvector64(int rank, const size64_t* vec);
+EXTERNL const char* printvector(size_t rank, const size_t* vec);
+EXTERNL const char* printvector64(size_t rank, const size64_t* vec);
 
 EXTERNL int getoptions(int* argcp, char*** argvp);
 EXTERNL int verifyoptions(Options*);

@@ -3,7 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-. "$srcdir/test_nczarr.sh"
+. "${builddir}/test_nczarr.sh"
 
 set -e
 
@@ -21,17 +21,6 @@ testmisc $1
 testmulti $1
 testrep $1
 testorder $1
-}
-
-# Function to remove selected -s attributes from file;
-# These attributes might be platform dependent
-sclean() {
-    cat $1 \
- 	| sed -e '/:_IsNetcdf4/d' \
-	| sed -e '/:_Endianness/d' \
-	| sed -e '/_NCProperties/d' \
-	| sed -e '/_SuperblockVersion/d' \
-	| cat > $2
 }
 
 # Function to extract _Filter attribute from a file
@@ -53,13 +42,13 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 # Locate the plugin path and the library names; argument order is critical
 
 # Find misc and capture
-findplugin h5misc
+if ! findplugin h5misc ; then exit 0; fi
 MISCLIB="${HDF5_PLUGIN_LIB}"
 MISCDIR="${HDF5_PLUGIN_DIR}"
 MISCPATH="${MISCDIR}/${MISCLIB}"
 
 # Find bzip2 and capture
-findplugin h5bzip2
+if ! findplugin h5bzip2 ; then exit 0; fi
 BZIP2LIB="${HDF5_PLUGIN_LIB}"
 BZIP2DIR="${HDF5_PLUGIN_DIR}"
 BZIP2PATH="${BZIP2DIR}/${BZIP2LIB}"
@@ -76,9 +65,10 @@ echo "*** Testing dynamic filters using API for storage format $zext"
 fileargs tmp_api
 deletemap $zext $file
 ${execdir}/testfilter $fileurl
-${NCDUMP} -s -n bzip2 $fileurl > ./tmp_api_$zext.txt
+${ZMD} -h $fileurl
+${NCDUMP} -s -n bzip2 $fileurl > ./tmp_api_$zext.dump
 # Remove irrelevant -s output
-sclean ./tmp_api_$zext.txt ./tmp_api_$zext.dump
+sclean ./tmp_api_$zext.dump
 diff -b -w ${srcdir}/ref_bzip2.cdl ./tmp_api_$zext.dump
 echo "*** Pass: API dynamic filter for map=$zext"
 }
@@ -89,6 +79,7 @@ echo "*** Testing dynamic filters parameter passing for storage format $zext"
 fileargs tmp_misc
 deletemap $zext $file
 ${execdir}/testfilter_misc $fileurl
+${ZMD} -h $fileurl
 # Verify the parameters via ncdump
 ${NCDUMP} -s $fileurl > ./tmp_misc_$zext.txt
 # Extract the parameters
@@ -109,10 +100,11 @@ echo "*** Testing dynamic filters using ncgen for storage format $zext"
 fileargs tmp_misc
 deletemap $zext $file
 ${NCGEN} -lb -4 -o $fileurl ${srcdir}/../nc_test4/bzip2.cdl
+${ZMD} -h $fileurl
 ${NCDUMP} -s -n bzip2 $fileurl > ./tmp_ng_$zext.txt
 # Remove irrelevant -s output
-sclean ./tmp_ng_$zext.txt ./tmp_ng2_$zext.txt
-diff -b -w ${srcdir}/ref_bzip2.cdl ./tmp_ng2_$zext.txt
+sclean ./tmp_ng_$zext.txt
+diff -b -w ${srcdir}/ref_bzip2.cdl ./tmp_ng_$zext.txt
 echo "*** Pass: ncgen dynamic filter for storage format $zext"
 }
 
@@ -125,10 +117,11 @@ deletemap $zext $file
 ${NCGEN} -4 -lb -o $fileurl ${srcdir}/../nc_test4/ref_unfiltered.cdl
 fileurl0=$fileurl
 fileargs tmp_filtered
-${NCCOPY} -M0 -F "/g/var,307,9,4" $fileurl0 $fileurl
-${NCDUMP} -s -n filtered $fileurl > ./tmp_ncp_$zext.txt
+${NCCOPY} -Xf -M0 -F "/g/var,307,9,4" $fileurl0 $fileurl
+${ZMD} -h $fileurl
+${NCDUMP} -s -n filtered $fileurl > ./tmp_ncp_$zext.dump
 # Remove irrelevant -s output
-sclean ./tmp_ncp_$zext.txt ./tmp_ncp_$zext.dump
+sclean ./tmp_ncp_$zext.dump
 diff -b -w ${srcdir}/ref_filtered.cdl ./tmp_ncp_$zext.dump
 echo "	*** Pass: nccopy simple filter for storage format $zext"
 }
@@ -149,10 +142,11 @@ echo "*** Testing multiple filters for storage format $zext"
 fileargs tmp_multi
 deletemap $zext $file
 ${execdir}/testfilter_multi $fileurl
+${ZMD} -h $fileurl
 ${NCDUMP} -hsF -n multifilter $fileurl >./tmp_multi_$zext.cdl
 # Remove irrelevant -s output
-sclean ./tmp_multi_$zext.cdl ./tmp_smulti_$zext.cdl
-diff -b -w ${srcdir}/ref_multi.cdl ./tmp_smulti_$zext.cdl
+sclean ./tmp_multi_$zext.cdl
+diff -b -w ${srcdir}/ref_multi.cdl ./tmp_multi_$zext.cdl
 echo "*** Pass: multiple filters for storage format $zext"
 }
 

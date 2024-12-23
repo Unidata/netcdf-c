@@ -145,7 +145,7 @@ static const char * const reqattr[] = {
 	"SCALEMIN",
 	"SCALEMAX",
 	"FIELDNAM",
-	_FillValue
+	NC_FillValue
 };
 #define NUM_RATTRS	6
 
@@ -388,9 +388,9 @@ main(int argc, char *argv[])
  	{
  	int ifill = -1; double dfill = -9999;
  	assert( nc_put_att_int(id, Long_id,
- 		_FillValue, NC_INT, 1, &ifill) == NC_NOERR);
+ 		NC_FillValue, NC_INT, 1, &ifill) == NC_NOERR);
  	assert( nc_put_att_double(id, Double_id,
- 		_FillValue, NC_DOUBLE, 1, &dfill) == NC_NOERR);
+ 		NC_FillValue, NC_DOUBLE, 1, &dfill) == NC_NOERR);
  	}
 
 #ifdef REDEF

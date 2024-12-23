@@ -74,11 +74,11 @@ endif(NETCDF_ENABLE_DAP)
 ####
 # We have to do a little tweaking
 # to remove the Release/ and Debug/ directories
-# in Windows builds.  This is required to get
+# in MSVC builds.  This is required to get
 # test scripts to work.
 ####
 
-if(WIN32)
+if(MSVC)
   macro(setbinprops name)
     set_target_properties(${name} 
       PROPERTIES 
@@ -131,7 +131,7 @@ endif()
     target_link_libraries(tst_fileinfo netcdf ${ALL_TLL_LIBS})
   ENDIF()
 
-  IF(WIN32)
+  IF(MSVC)
     set_target_properties(rewrite-scalar 
       PROPERTIES 
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -184,7 +184,7 @@ endif()
           RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
       )
     endif(USE_HDF5)
-  endif(WIN32)
+  endif(MSVC)
 
   # Build support programs
   build_bin_test_no_prefix(tst_utf8)
@@ -217,10 +217,11 @@ endif()
 
   if(HAVE_BASH)
 
-  ## Start adding tests in the appropriate order
+  # Support programs
   add_bin_test_no_prefix(ref_ctest)
   add_bin_test_no_prefix(ref_ctest64)
 
+  ## Start adding tests in the appropriate order
   add_sh_test(ncdump run_tests)
   add_sh_test(ncdump tst_64bit)
   add_sh_test(ncdump tst_lengths)

@@ -3,7 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "$top_srcdir/nczarr_test/test_nczarr.sh"
+. "${builddir}/test_nczarr.sh"
 
 set -e
 
@@ -16,6 +16,7 @@ cd $ISOPATH
 zarrscalar() {
     rm -f $2
     sed -e '/dimensions:/d' -e '/_scalar_ =/d' -e '/int v/ s|(_scalar_)||' <$1 >$2
+cat $1 > rescale_$1
 }
 
 testcase() {
@@ -50,11 +51,11 @@ ${NCDUMP} -n ref_scalar $nczarrurl > tmp_scalar_nczarr_${zext}.cdl
 ${ZMD} -h $nczarrurl > tmp_scalar_nczarr_${zext}.txt
 
 echo "*** verify"
-diff -bw $top_srcdir/nczarr_test/ref_scalar_nczarr.cdl tmp_scalar_nczarr_${zext}.cdl
+diff -bw $top_srcdir/nczarr_test/ref_scalar_nczarr.cdl ${ISOPATH}/tmp_scalar_nczarr_${zext}.cdl
 
 # Fixup
 zarrscalar tmp_scalar_zarr_${zext}.cdl tmp_rescale_zarr_${zext}.cdl
-diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_rescale_zarr_${zext}.cdl
+diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl ${ISOPATH}/tmp_rescale_zarr_${zext}.cdl
 }
 
 testcase file

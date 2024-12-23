@@ -8,11 +8,8 @@
  */
 
 #include "config.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#ifdef _MSC_VER
-#include <io.h>
+#ifdef USE_HDF5
+#include "hdf5internal.h"
 #endif
 
 #include "netcdf.h"
@@ -20,10 +17,6 @@
 #include "ncdispatch.h"
 #include "nc4internal.h"
 #include "nclog.h"
-
-#ifdef USE_HDF5
-#include "hdf5internal.h"
-#endif
 
 #ifdef NETCDF_ENABLE_NCZARR
 #include "zdispatch.h"

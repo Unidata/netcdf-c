@@ -31,7 +31,7 @@ typedef struct NCZ_Plugin {
     } hdf5;
     struct CodecAPI {
 	int defaulted; /* codeclib was a defaulting library */
-	int ishdf5raw; /* The codec is the hdf5raw codec */
+	int ishdf5raw; /* The codec uses the hdf5raw format */
 	const struct NCZ_codec_t* codec;
 	struct NCPSharedLib* codeclib; /* of the codec; null if same as hdf5 */
     } codec;

@@ -90,6 +90,7 @@ static void
 buildpath(const char* target,NCZM_IMPL impl)
 {
     NCbytes* buf = ncbytesnew();
+    NC_UNUSED(impl);
     switch(itoptions.impl) {
     case NCZM_ZIP:
     case NCZM_FILE:
