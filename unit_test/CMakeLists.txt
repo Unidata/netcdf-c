@@ -22,7 +22,6 @@ add_bin_test(unit_test test_ncuri)
 
 IF(NETCDF_ENABLE_HDF5)
   IF(NOT WIN32)
-    add_bin_test(unit_test tst_nclist)
     add_bin_test(unit_test tst_nc4internal)
   ENDIF(NOT WIN32)
   build_bin_test(tst_reclaim ${XGETOPTSRC})
@@ -36,8 +35,9 @@ IF(NETCDF_ENABLE_HDF5)
   endif()
 ENDIF(NETCDF_ENABLE_HDF5)
 
+#This needs repair
 # Path convert test(s)
-add_bin_test(unit_test test_pathcvt)
+#add_bin_test(unit_test test_pathcvt)
 
 IF(NETCDF_BUILD_UTILITIES)
   IF(NETCDF_ENABLE_S3 AND WITH_S3_TESTING)

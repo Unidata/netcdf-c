@@ -1,11 +1,9 @@
 #!/bin/sh
 
-set -e
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "$srcdir/test_nczarr.sh"
+. "${builddir}/test_nczarr.sh"
 
 set -e
 
@@ -21,6 +19,17 @@ cd $ISOPATH
 
 UH="${NCZARR_S3_TEST_HOST}"
 UB="${NCZARR_S3_TEST_BUCKET}"
+
+# Load the findplugins function
+. ${builddir}/findplugin.sh
+echo "findplugin.sh loaded"
+
+# One of the tests depends on having blosc installed
+# Assume all test filters are in same plugin dir
+if ! findplugin h5blosc ; then exit 0; fi
+
+if ! avail bzip2; then exit 0; fi
+if ! avail blosc; then exit 0; fi
 
 testcasefile() {
   echo "	to Running File Testcase:	$1	$2	$3"
@@ -45,18 +54,18 @@ testcasezip() {
 }
 
 testcases3() {
-  set -x
-  echo "	o Running S3 Testcase:	$1	$2"
+  echo -e "\to Running S3 Testcase:\t$1\t$2"
   zext=s3
   base=$1
   mode=$2
   rm -f tmp_${base}_${zext}.cdl
   url="https://${UH}/${UB}/${base}.zarr#mode=${mode},s3"
   echo "flags: $flags"
-  # Dumping everything causes timeout so dump metadata only
-  ${NCDUMP} $metaonly $flags $url > tmp_${base}_${zext}.cdl
-  # Find the proper ref file
-  diff -b ${srcdir}/ref_${base}_meta.cdl tmp_${base}_${zext}.cdl
+  # Dumping everything causes timeout so dump a single var
+  ${NCDUMP} -v "group_with_dims/var2D" $flags $url > tmp_${base}_${zext}.cdl
+  # Use the proper ref file
+  diff -b ${ISOPATH}/ref_${base}_2d.cdl tmp_${base}_${zext}.cdl
+  set +x
 }
 
 testallcases() {
@@ -76,7 +85,7 @@ case "$zext" in
 	;;
     s3)
 	# Read a test case created by netcdf-java zarr.
-	# unpack
+	# unpack the diff baseline files
 	# Use gunzip because it always appears to be available
         gunzip -c ${srcdir}/ref_zarr_test_data.cdl.gz > ${ISOPATH}/ref_zarr_test_data.cdl
         gunzip -c ${srcdir}/ref_zarr_test_data_2d.cdl.gz > ${ISOPATH}/ref_zarr_test_data_2d.cdl

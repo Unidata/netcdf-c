@@ -23,6 +23,7 @@ nccopy
 \%[\-F \fI filterspec \fP]
 \%[\-L \fI n \fP]
 \%[\-M \fI n \fP]
+\%[\-X \fI flag \fP \fI arg \fP]
 \%\fI infile \fP
 \%\fI outfile \fP
 .hy
@@ -307,6 +308,11 @@ is a 32-bit unsigned integer.
 .IP
 This parameter may be repeated multiple times with different
 variable names.
+.IP "\fB \-X \fP \fI flag \fP \fI arg \fP"
+Flag overflow option for uncommon flags.
+.IP
+\fBflag == 'f'\fP forces enabling of the global fill flag  (nc_set_fill).
+This option may be used multiple times to set several flags.
 
 .SH EXAMPLES
 .LP

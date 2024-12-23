@@ -32,30 +32,30 @@ static int ncz_sync_netcdf4_file(NC_FILE_INFO_T* file, int isclose);
 int
 NCZ_redef(int ncid)
 {
-    NC_FILE_INFO_T* zinfo = NULL;
+    NC_FILE_INFO_T* file = NULL;
     int stat = NC_NOERR;
 
     ZTRACE(0,"NCZ_redef(ncid)");
 
     /* Find this file's metadata. */
-    if ((stat = nc4_find_grp_h5(ncid, NULL, &zinfo)))
+    if ((stat = nc4_find_grp_h5(ncid, NULL, &file)))
         goto done;
-    assert(zinfo);
+    assert(file);
 
     /* If we're already in define mode, return an error. */
-    if (zinfo->flags & NC_INDEF)
+    if (file->flags & NC_INDEF)
         {stat = NC_EINDEFINE; goto done;}
 
     /* If the file is read-only, return an error. */
-    if (zinfo->no_write)
+    if (file->no_write)
         {stat = NC_EPERM; goto done;}
 
     /* Set define mode. */
-    zinfo->flags |= NC_INDEF;
+    file->flags |= NC_INDEF;
 
     /* For nc_abort, we need to remember if we're in define mode as a
        redef. */
-    zinfo->redef = NC_TRUE;
+    file->redef = NC_TRUE;
 
 done:
     return ZUNTRACE(stat);
@@ -75,12 +75,17 @@ done:
  * @author Dennis Heimbigner, Ed Hartnett
  */
 int
-NCZ__enddef(int ncid, size_t h_minfree, size_t v_align,
-            size_t v_minfree, size_t r_align)
+NCZ__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align)
 {
     int stat = NC_NOERR;
     NC_FILE_INFO_T* h5 = NULL;
     NC_GRP_INFO_T* grp = NULL;
+
+    NC_UNUSED(h_minfree);
+    NC_UNUSED(v_align);
+    NC_UNUSED(v_minfree);
+    NC_UNUSED(r_align);
+
     ZTRACE(0,"ncid=%d",ncid);
     if ((stat = nc4_find_grp_h5(ncid, &grp, &h5)))
         goto done;
@@ -316,11 +321,6 @@ NCZ_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
     }
     if (nattsp)
     {
-        /* Do we need to read the atts? */
-        if (!grp->atts_read)
-            if ((stat = ncz_read_atts(file,(NC_OBJ*)grp)))
-                return stat;
-
         *nattsp = ncindexcount(grp->att);
     }
 
@@ -364,6 +364,7 @@ ncz_sync_netcdf4_file(NC_FILE_INFO_T* file, int isclose)
     int stat = NC_NOERR;
 
     assert(file && file->format_file_info);
+
     LOG((3, "%s", __func__));
     ZTRACE(2,"file=%s",file->hdr.name);
 
@@ -391,9 +392,9 @@ ncz_sync_netcdf4_file(NC_FILE_INFO_T* file, int isclose)
         if((stat = NCZ_write_provenance(file)))
             goto done;
 
-        /* Write all the metadata. */
-	if((stat = ncz_sync_file(file,isclose)))
-	    goto done;
+        /* Write out meta-data if we are closing as opposed to enddef() */
+        if(isclose) 
+            {if((stat = ncz_encode_file(file,1))) goto done;}
     }
 done:
     return ZUNTRACE(stat);
@@ -447,8 +448,7 @@ NCZ_set_fill(int ncid, int fillmode, int *old_modep)
     ZTRACE(0,"NCZ_set_fill(ncid,fillmode,old)");
 
     /* Get pointer to file info. */
-    if ((stat = nc4_find_grp_h5(ncid, NULL, &h5)))
-        goto done;
+    if ((stat = nc4_find_grp_h5(ncid, NULL, &h5))) goto done;
     assert(h5);
 
     /* Trying to set fill on a read-only file? You sicken me! */

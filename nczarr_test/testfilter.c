@@ -60,7 +60,7 @@ data:
 
 static size_t dimsize = DIMSIZE;
 static size_t chunksize = CHUNKSIZE;
-static int actualdims = NDIMS;
+static size_t actualdims = NDIMS;
 
 static size_t actualproduct = 1; /* x-product over dim sizes */
 static size_t chunkproduct = 1; /* x-product over chunksizes */
@@ -112,7 +112,7 @@ and verify that it is as expected.
 static int
 verifychunks(void)
 {
-    int i;
+    size_t i;
     int store = -1;
     size_t chunksizes[NDIMS];
     memset(chunksizes,0,sizeof(chunksizes));
@@ -125,7 +125,7 @@ verifychunks(void)
     /* Chunk sizes must match our predefined set */
     for(i=0;i<actualdims;i++) {
         if(chunksizes[i] != chunks[i]) {
-	    fprintf(stderr,"bad chunk size: %d\n",i);
+	    fprintf(stderr,"bad chunk size: %zu\n",i);
 	    return NC_EBADCHUNK;
 	}
     }
@@ -140,11 +140,11 @@ static int
 compare(void)
 {
     int errs = 0;
-    int i;
+    size_t i;
     printf("data comparison: |array|=%ld\n",(unsigned long)actualproduct);
     for(i=0;i<actualproduct;i++) {
 	if(expected[i] != array[i]) {
-	    printf("mismatch: array[%d]=%f expected[%d]=%f\n",
+	    printf("mismatch: array[%zu]=%f expected[%zu]=%f\n",
                             i,array[i],i,expected[i]);
             errs++;
             if(errs >= MAXERRS)
@@ -164,7 +164,7 @@ Create the file, write it, then re-read for comparison.
 static int
 test_bzip2(void)
 {
-    int i;
+    size_t i;
     unsigned int level = BZIP2_LEVEL;
     unsigned int id=0;
     size_t nparams = 0;
@@ -183,7 +183,7 @@ test_bzip2(void)
     /* Define the dimensions */
     for(i=0;i<actualdims;i++) {
 	char dimname[1024];
-	snprintf(dimname,sizeof(dimname),"dim%d",i);
+	snprintf(dimname,sizeof(dimname),"dim%zu",i);
         CHECK(nc_def_dim(ncid, dimname, dims[i], &dimids[i]));
     }
 
@@ -277,7 +277,7 @@ test_bzip2(void)
 static void
 init(int argc, char** argv)
 {
-    int i;
+    size_t i;
 
     /* get the testfile path */
     if(argc > 1)

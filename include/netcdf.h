@@ -342,14 +342,18 @@ there. */
 #define NC_SZIP_NN 32 /**< SZIP NN option mask. */
 #define NC_SZIP_EC 4  /**< SZIP EC option mask. */
 
+/* If this is extended, then you need to modify nc4internal.c */
 #define NC_NOQUANTIZE 0 /**< No quantization in use. */    
 #define NC_QUANTIZE_BITGROOM 1 /**< Use BitGroom quantization. */
 #define NC_QUANTIZE_GRANULARBR 2 /**< Use Granular BitRound quantization. */
 #define NC_QUANTIZE_BITROUND 3 /**< Use BitRound quantization. */
+#define NC_QUANTIZE_MAX NC_QUANTIZE_BITROUND
 
 /**@{*/
 /** When quantization is used for a variable, an attribute of the
- * appropriate name is added. */
+ * appropriate name is added.
+ * If this set is extended, then propogate to NC_quantize_atts in nc4internal.c
+ */
 #define NC_QUANTIZE_BITGROOM_ATT_NAME "_QuantizeBitGroomNumberOfSignificantDigits"
 #define NC_QUANTIZE_GRANULARBR_ATT_NAME "_QuantizeGranularBitRoundNumberOfSignificantDigits"
 #define NC_QUANTIZE_BITROUND_ATT_NAME "_QuantizeBitRoundNumberOfSignificantBits"
@@ -376,7 +380,12 @@ there. */
 #define NC_ISSYSERR(err)        ((err) > 0)
 
 #define NC_NOERR        0          /**< No Error */
+#if 0
+/* This is unused, so re-purpose it to generic error */
 #define NC2_ERR         (-1)       /**< Returned for all errors in the v2 API. */
+#else
+#define NC_ERR         (-1)       /**< Returned for generic errors */
+#endif
 
 /** Not a netcdf id.
 
@@ -531,8 +540,9 @@ by the desired type. */
 #define NC_EOBJECT       (-140)    /**< Some object exists when it should not */
 #define NC_ENOOBJECT     (-141)    /**< Some object not found */
 #define NC_EPLUGIN       (-142)    /**< Unclassified failure in accessing a dynamically loaded plugin> */
-
-#define NC4_LAST_ERROR   (-142)    /**< @internal All netCDF errors > this. */
+#define NC_ENOTZARR      (-143)    /**< Malformed (NC)Zarr file */
+ 
+#define NC4_LAST_ERROR   (-143)    /**< @internal All netCDF errors > this. */
 
 /* Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
 #define NC_EURL         (NC_EDAPURL)   /**< Malformed URL */

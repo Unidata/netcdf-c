@@ -32,7 +32,20 @@ will generate an error.
 */
 #define DBLVAL 12345678.12345678
 
-static htri_t H5Z_test_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id);
+/* Test values */
+struct All spec = {
+(char)-17,		/* signed byte */
+(unsigned char)23,	/* unsigned byte */
+(signed short)-25,			/* signed short */
+(unsigned short)27U,			/* unsigned short */
+77,			/* signed int */
+93U,			/* unsigned int */
+789.0f,			/* float */
+-9223372036854775807LL,	/* signed int64 */
+18446744073709551615ULL,/* unsigned int64 */
+(double)12345678.12345678/* double */
+};
+
 static size_t H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
                      const unsigned int cd_values[], size_t nbytes,
                      size_t *buf_size, void **buf);
@@ -46,35 +59,24 @@ const H5Z_class2_t H5Z_TEST[1] = {{
     1,                               /* encoder_present flag (set to true) */
     1,                               /* decoder_present flag (set to true) */
     "test",                          /* Filter name for debugging    */
-    (H5Z_can_apply_func_t)H5Z_test_can_apply, /* The "can apply" callback  */
+    NULL,			     /* The "can apply" callback  */
     NULL,			     /* The "set local" callback  */
     (H5Z_func_t)H5Z_filter_test,     /* The actual filter function   */
 }};
 
 /* External Discovery Functions */
-DLLEXPORT
+DECLSPEC
 H5PL_type_t
 H5PLget_plugin_type(void)
 {
     return H5PL_TYPE_FILTER;
 }
 
-DLLEXPORT
+DECLSPEC
 const void*
 H5PLget_plugin_info(void)
 {
     return H5Z_TEST;
-}
-
-/* Make this explicit */
-/*
- * The "can_apply" callback returns positive a valid combination, zero for an
- * invalid combination and negative for an error.
- */
-static htri_t
-H5Z_test_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id)
-{
-    return 1; /* Assume it can always apply */
 }
 
 /*
@@ -228,6 +230,7 @@ static void
 extractparams(size_t nparams, const unsigned int* params, struct All* all)
 {
     size_t offset = 0;
+    NC_UNUSED(nparams);
     extract1(&all->tbyte,sizeof(all->tbyte),&params[offset]); offset += 1;
     extract1(&all->tubyte,sizeof(all->tubyte),&params[offset]); offset += 1;
     extract1(&all->tshort,sizeof(all->tshort),&params[offset]); offset += 1;
@@ -249,7 +252,7 @@ paramcheck(size_t nparams, const unsigned int* params, struct All* extracted)
     memset(&all,0,sizeof(all));
 
     if(nparams != NPARAMS) {
-	fprintf(stderr,">>> Incorrect number of parameters: expected=%ld sent=%ld\n",(unsigned long)NPARAMS,(unsigned long)nparams);
+	fprintf(stderr,">>> (0) Incorrect number of parameters: expected=%ld sent=%ld\n",(unsigned long)NPARAMS,(unsigned long)nparams);
 	goto fail;
     }
 

@@ -38,6 +38,7 @@
 #define ENABLE_C
 #define ENABLE_F77
 #define ENABLE_JAVA
+#define ENABLE_CDF5
 
 #include "netcdf.h"
 #include "netcdf_filter.h"

@@ -18,7 +18,7 @@ typedef struct Vardef  {
     char* name;
     nc_type typeid;
     size_t typesize;
-    int rank;
+    size_t rank;
     Dimdef* dimrefs[NC_MAX_VAR_DIMS];
     size64_t dimsizes[NC_MAX_VAR_DIMS];
     size64_t chunksizes[NC_MAX_VAR_DIMS];
@@ -29,7 +29,7 @@ typedef struct NCZ_UT_PRINTER {
     int printsort;
     void (*printer)(struct NCZ_UT_PRINTER*);
     /* Union of all fields */
-    int rank;
+    size_t rank;
     size64_t count;
     size64_t offset;
     size64_t* indices;

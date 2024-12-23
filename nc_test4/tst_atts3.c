@@ -2392,17 +2392,17 @@ main(int argc, char **argv)
 	  int res = 0;
 	  /* This should return error, because attribute has too many values */
 #if 1
-	  res=nc_put_att_int(ncid, varid, "_FillValue", NC_INT, 2, var_FillValue_atts);
+	  res=nc_put_att_int(ncid, varid, NC_FillValue, NC_INT, 2, var_FillValue_atts);
 	  if(res != NC_EINVAL) ERR;
 #else
-	  if ((res=nc_put_att_int(ncid, varid, "_FillValue", NC_INT, 2, var_FillValue_atts))
+	  if ((res=nc_put_att_int(ncid, varid, NC_FillValue, NC_INT, 2, var_FillValue_atts))
 	      != NC_EINVAL) ERR;
 #endif
 	  /* This also should return error, because types don't match */
-	  if (nc_put_att_float(ncid, varid, "_FillValue", NC_FLOAT, 1, &var_FillValue_att)
+	  if (nc_put_att_float(ncid, varid, NC_FillValue, NC_FLOAT, 1, &var_FillValue_att)
 	      != NC_EBADTYPE) ERR;
 	  /* This should succeed, _FillValue is valid */
-	  if (nc_put_att_int(ncid, varid, "_FillValue", NC_INT, 1, var_FillValue_atts)) ERR;
+	  if (nc_put_att_int(ncid, varid, NC_FillValue, NC_INT, 1, var_FillValue_atts)) ERR;
       }
 
       if (nc_close(ncid)) ERR;

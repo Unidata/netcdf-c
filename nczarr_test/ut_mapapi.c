@@ -1,5 +1,4 @@
-/*
- *	Copyright 2018, University Corporation for Atmospheric Research
+/*	Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -27,7 +26,6 @@ static char* keyprefix = NULL; /* Hold, e.g. S3 bucket name */
 /* Forward */
 static void title(const char*);
 static int report(int pf, const char* op, NCZMAP*);
-static int reportx(int pf, const char* tag, const char* op, NCZMAP*);
 static char* makekey(const char* key);
 
 static int simplecreate(void);
@@ -99,7 +97,7 @@ simplecreate(void)
     
     printf("Pass: create: create: %s\n",url);
 
-    truekey = makekey(ZMETAROOT);
+    truekey = makekey(Z2METAROOT);
     if((stat = nczmap_write(map, truekey, 0, NULL)))
 	goto done;
     printf("Pass: create: defineobj: %s\n",truekey);
@@ -159,7 +157,6 @@ simpledelete(void)
         report(XFAIL,"open",map);
 	stat = NC_NOERR;
 	break;
-    case NC_EEMPTY:
     default: abort();
     }     
 
@@ -184,13 +181,13 @@ simplemeta(void)
     report(PASS,"open",map);
 	
     /* Make sure .nczarr exists (from simplecreate) */
-    truekey = makekey(ZMETAROOT);
+    truekey = makekey(Z2METAROOT);
     if((stat = nczmap_exists(map,truekey)))
 	goto done;
     report(PASS,".nczarr: exists",map);
     free(truekey); truekey = NULL;
 
-    if((stat=nczm_concat(META1,ZARRAY,&key)))
+    if((stat=nczm_concat(META1,Z2ARRAY,&key)))
 	goto done;
     truekey = makekey(key);
     nullfree(key); key = NULL;
@@ -199,13 +196,13 @@ simplemeta(void)
     report(PASS,".zarray: def",map);
     free(truekey); truekey = NULL;
 
-    truekey = makekey(ZMETAROOT);
+    truekey = makekey(Z2METAROOT);
     if((stat = nczmap_write(map, truekey, strlen(metadata1), metadata1)))
 	goto done;
     report(PASS,".nczarr: writemetadata",map);
     free(truekey); truekey = NULL;
     
-    if((stat=nczm_concat(META1,ZARRAY,&key)))
+    if((stat=nczm_concat(META1,Z2ARRAY,&key)))
 	goto done;
     truekey = makekey(key);
     free(key); key = NULL;    
@@ -225,7 +222,7 @@ simplemeta(void)
     report(PASS,"re-open",map);
 
     /* Read previously written */
-    truekey = makekey(ZMETAROOT);
+    truekey = makekey(Z2METAROOT);
     if((stat = nczmap_exists(map, truekey)))
 	goto done;
     report(PASS,".nczarr: exists",map);
@@ -245,7 +242,7 @@ simplemeta(void)
     else report(PASS,".nczarr: content verify",map);
     nullfree(content); content = NULL;
 
-    if((stat=nczm_concat(META1,ZARRAY,&key)))
+    if((stat=nczm_concat(META1,Z2ARRAY,&key)))
 	goto done;
     truekey = makekey(key);
     nullfree(key); key = NULL;
@@ -345,47 +342,6 @@ done:
 }
 
 static int
-searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
-{
-
-    int stat = NC_NOERR;
-    NClist* matches = nclistnew();
-    char prefix[4096]; /* only ok because we know testdata */
-    size_t prefixlen;
-    
-    nclistpush(objects,strdup(prefix0));
-
-    prefix[0] = '\0';
-    strlcat(prefix,prefix0,sizeof(prefix));
-    prefixlen = strlen(prefix);
-
-    /* get next level object keys **below** the prefix: should have form: <name> */
-    switch (stat = nczmap_search(map, prefix, matches)) {
-    case NC_NOERR: break;
-    case NC_ENOTFOUND: stat = NC_NOERR; break;/* prefix is not a dir */
-    default: goto done;
-    }
-    reportx(PASS,prefix,"search",map);
-
-    /* recurse */
-    for(size_t i=0;i<nclistlength(matches);i++) {
-	const char* key = nclistget(matches,i);
-	/* ensure trailing '/' */
-        if(prefix[prefixlen-1] != '/')
-	    strlcat(prefix,"/",sizeof(prefix));
-	strlcat(prefix,key,sizeof(prefix));
-        if((stat = searchR(map,depth+1,prefix,objects))) goto done;
-	/* restore prefix */
-	prefix[prefixlen] = '\0';
-	if(stat != NC_NOERR)
-	    goto done;
-    }
-done:
-    nclistfreeall(matches);
-    return THROW(stat);
-}
-
-static int
 search(void)
 {
 
@@ -395,13 +351,10 @@ search(void)
 
     if((stat = nczmap_open(impl,url,0,0,NULL,&map)))
 	goto done;
-    report(PASS,"open",map);
 
     /* Do a recursive search on root to get all object keys */
-    if((stat=searchR(map,0,"/",objects)))
-	goto done;
-    /* Sort */
-    ut_sortlist(objects);
+    if((stat=ut_search(map,"/",objects))) goto done;
+
     /* Print out the list */
     for(size_t i=0;i<nclistlength(objects);i++) {
 	const char* key = nclistget(objects,i);
@@ -409,11 +362,7 @@ search(void)
     }
 
 done:
-    /* Do not delete so later tests can use it */
-    if(map) {
-        (void)nczmap_close(map,0);
-        report(PASS,"close",map);
-    }
+    (void)nczmap_close(map,0);
     nclistfreeall(objects);
     return THROW(stat);
 }
@@ -459,14 +408,6 @@ title(const char* func)
 {
     printf("testing: %s:\n",func);
     fflush(stdout);
-}
-
-static int
-reportx(int pf, const char* tag, const char* op, NCZMAP* map)
-{
-    char s[4096];
-    snprintf(s,sizeof(s),"%s: %s",tag,op);
-    return report(pf,s,map);
 }
 
 static int

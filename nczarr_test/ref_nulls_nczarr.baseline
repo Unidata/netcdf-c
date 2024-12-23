@@ -6,6 +6,7 @@ variables:
 		test:space_sng = " " ;
 		test:zero_sng = "0" ;
 		test:nul0 = 0b ;
+		test:_FillValue = -2147483647 ;
 data:
 
  test = 1 ;

@@ -110,7 +110,6 @@ param[6] -- compressor to use
 #include <assert.h>
 
 #include "netcdf_filter_build.h"
-#include <netcdf_json.h>
 
 #include "H5Zblosc.h"
 
@@ -154,6 +153,8 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space)
   H5T_class_t classt;
   hsize_t chunkdims[32];
 
+  NC_UNUSED(space);
+
   assert(sizeof(hid_t) == 8);
   
   if(H5Pget_filter_by_id1(dcpl, H5Z_FILTER_BLOSC, &flags, &nelements, values, 0, NULL) < 0) goto failed;
@@ -176,14 +177,14 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space)
     goto failed;
   }
 
-  typesize = H5Tget_size(type);
+  typesize = (unsigned)H5Tget_size(type);
   if (typesize == 0) goto failed;
   /* Get the size of the base type, even for ARRAY types */
   classt = H5Tget_class(type);
   if (classt == H5T_ARRAY) {
     /* Get the array base component */
     super_type = H5Tget_super(type);
-    basetypesize = H5Tget_size(super_type);
+    basetypesize = (unsigned)H5Tget_size(super_type);
     /* Release resources */
     H5Tclose(super_type);
   } else {
@@ -207,7 +208,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space)
       fprintf(stderr,")\n");
 #endif
       for (i = 0; i < ndims; i++) {
-        bufsize *= chunkdims[i];
+        bufsize *= (unsigned)chunkdims[i];
       }
       values[3] = bufsize;
   }
@@ -227,8 +228,8 @@ failed:
 #endif /*USE_HDF5*/
 
 /* The filter function */
-static
-size_t blosc_filter(unsigned flags, size_t cd_nelmts,
+static size_t
+blosc_filter(unsigned flags, size_t cd_nelmts,
                     const unsigned cd_values[], size_t nbytes,
                     size_t* buf_size, void** buf)
 {
@@ -251,13 +252,13 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
   typesize = cd_values[2];      /* The datatype size */
   /* Optional params */
   if (cd_nelmts >= 5) {
-    clevel = cd_values[4];        /* The compression level */
+    clevel = (int)cd_values[4];        /* The compression level */
   }
   if (cd_nelmts >= 6) {
-    doshuffle = cd_values[5];  /* BLOSC_SHUFFLE, BLOSC_BITSHUFFLE */
+    doshuffle = (int)cd_values[5];  /* BLOSC_SHUFFLE, BLOSC_BITSHUFFLE */
   }
   if (cd_nelmts >= 7) {
-    compcode = cd_values[6];     /* The Blosc compressor used */
+    compcode = (int)cd_values[6];     /* The Blosc compressor used */
     code = blosc_compcode_to_compname(compcode, &compname);
     if (code == -1) {
       fprintf(stderr,"Blosc Filter Error: this Blosc library does not have support for the '%s' compressor\n",compname);
@@ -349,7 +350,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     free(*buf);
     *buf = outbuf;
     *buf_size = outbuf_size;
-    return bloscsize;  /* Size of compressed/decompressed data */
+    return (size_t)bloscsize;  /* Size of compressed/decompressed data */
   }
 
 failed:

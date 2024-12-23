@@ -51,7 +51,7 @@ usage(int err)
 }
 
 static void
-CHECKRANK(int r)
+CHECKRANK(size_t r)
 {
     if(options->rank == 0)
         options->rank = r;
@@ -65,7 +65,8 @@ int
 getoptions(int* argcp, char*** argvp)
 {
     int ret = NC_NOERR;
-    int i,c;
+    size_t i;
+    int c;
     const char* p;
 
     /* initialize */
@@ -106,7 +107,7 @@ getoptions(int* argcp, char*** argvp)
 	    options->flags |= HAS_MAX;
 	    break;
 	case 'n':
-	    CHECKRANK(atoi(optarg));
+	    CHECKRANK((size_t)atoi(optarg));
 	    break;
 	case 'p':
 	    CHECKRANK(parsevector(optarg,options->stop));
@@ -301,7 +302,7 @@ getmetadata(int create)
 {
     int ret = NC_NOERR;
     char dname[NC_MAX_NAME];
-    int i;
+    size_t i;
 
     if(meta == NULL) {
 	if((meta = calloc(1,sizeof(Metadata)))==NULL)
@@ -318,7 +319,7 @@ getmetadata(int create)
 	}
         if((ret = nc_create(options->file,options->mode|NC_CLOBBER,&meta->ncid))) goto done;
         for(i=0;i<options->rank;i++) {
-            snprintf(dname,sizeof(dname),"d%d",i);
+            snprintf(dname,sizeof(dname),"d%zu",i);
 	    if(options->dimlens[i] == 0)
                 ret = nc_def_dim(meta->ncid,dname,NC_UNLIMITED,&meta->dimids[i]);
 	    else
@@ -334,7 +335,7 @@ getmetadata(int create)
     } else {/*Open*/
         if((ret = nc_open(options->file,options->mode|NC_WRITE,&meta->ncid))) goto done;
         for(i=0;i<options->rank;i++) {
-            snprintf(dname,sizeof(dname),"d%d",i);
+            snprintf(dname,sizeof(dname),"d%zu",i);
             if((ret = nc_inq_dimid(meta->ncid,dname,&meta->dimids[i]))) goto done;
             if((ret = nc_inq_dimlen(meta->ncid,meta->dimids[i],&options->dimlens[i]))) goto done;
         }
@@ -364,12 +365,12 @@ cleanup(void)
     nullfree(options);
 }
 
-int
+size_t
 parsevector(const char* s0, size_t* vec)
 {
     char* s = strdup(s0);
     char* p = NULL;
-    int i, done;
+    size_t i, done;
 
     if(s0 == NULL || vec == NULL) abort();
 
@@ -388,12 +389,12 @@ parsevector(const char* s0, size_t* vec)
     return i;
 }
 
-int
+size_t
 parsedata(const char* s0, int* data)
 {
     char* s = strdup(s0);
     char* p = NULL;
-    int i, done;
+    size_t i, done;
 
 
     if(s0 == NULL || data == NULL) abort();
@@ -411,19 +412,19 @@ parsedata(const char* s0, int* data)
 }
 
 const char*
-printvector(int rank, const size_t* vec)
+printvector(size_t rank, const size_t* vec)
 {
     size64_t v64[NC_MAX_VAR_DIMS];
-    int r;
+    size_t r;
     for(r=0;r<rank;r++) v64[r]= (size64_t)vec[r];
     return printvector64(rank,v64);
 }
 
 const char*
-printvector64(int rank, const size64_t* vec)
+printvector64(size_t rank, const size64_t* vec)
 {
     char s[NC_MAX_VAR_DIMS*3+1];
-    int i;
+    size_t i;
     char* ss = NULL;
 
     s[0] = '\0';
@@ -440,7 +441,7 @@ printvector64(int rank, const size64_t* vec)
 }
 
 Odometer*
-odom_new(int rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max)
+odom_new(size_t rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max)
 {
      size_t i;
      Odometer* odom = NULL;

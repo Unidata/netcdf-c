@@ -30,7 +30,7 @@
 
 #define LONGCOUNT 1010
 
-enum Actions {ERROR_ACTION, EXISTS_ACTION, SIZE_ACTION, READ_ACTION, WRITE_ACTION, DELETE_ACTION, LIST_ACTION, LONGLIST_ACTION, SEARCH_ACTION};
+enum Actions {ERROR_ACTION, EXISTS_ACTION, SIZE_ACTION, READ_ACTION, WRITE_ACTION, DELETE_ACTION, LIST_ACTION, LONGLIST_ACTION, LISTALL_ACTION};
 
 struct Options {
     int debug;
@@ -78,7 +78,7 @@ actionfor(const char* s)
     else if(strcasecmp(s,"write")==0) return WRITE_ACTION;
     else if(strcasecmp(s,"list")==0) return LIST_ACTION;
     else if(strcasecmp(s,"longlist")==0) return LONGLIST_ACTION;
-    else if(strcasecmp(s,"search")==0) return SEARCH_ACTION;
+    else if(strcasecmp(s,"listall")==0) return LISTALL_ACTION;
     else if(strcasecmp(s,"delete")==0) return DELETE_ACTION;
     return ERROR_ACTION;
 }
@@ -125,6 +125,39 @@ profilesetup(const char* url)
 done:
     return stat;
 }
+
+#if 0
+static int
+s3treesetup(void)
+{
+    int stat = NC_NOERR;
+    size64_t size = 0;
+    void* content = NULL;
+    char key[8192];
+
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/netcdf-c/test_s3",!FORCE);
+
+    CHECK(profilesetup(dumpoptions.url));
+    newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
+#ifdef DEBUG
+    printf("url=%s {url=%s bucket=%s region=%s profile=%s}\n",
+               dumpoptions.url,newurl,s3info.bucket,s3info.region,activeprofile);
+#endif
+    if((s3client = NC_s3sdkcreateclient(&s3info))==NULL) {CHECK(NC_ES3);}
+
+    snprintf(key,sizeof(key),"%s/%s",dumpoptions.key,"x");
+    CHECK(NC_s3sdkwriteobject(s3client, s3info.bucket, key, 0, NULL, NULL));
+    snprintf(key,sizeof(key),"%s/%s",dumpoptions.key,"x/y");
+    CHECK(NC_s3sdkwriteobject(s3client, s3info.bucket, key, 0, NULL, NULL));
+    snprintf(key,sizeof(key),"%s/%s",dumpoptions.key,"x/y/z");
+    CHECK(NC_s3sdkwriteobject(s3client, s3info.bucket, key, 0, NULL, NULL));
+    snprintf(key,sizeof(key),"%s/%s",dumpoptions.key,"x/y/w");
+    CHECK(NC_s3sdkwriteobject(s3client, s3info.bucket, key, 0, NULL, NULL));
+done:
+    cleanup();
+    return stat;
+}
+#endif
 
 static int
 testbucketexists(void)
@@ -236,7 +269,7 @@ done:
 }
 
 static int
-testgetkeys(void)
+testlist(void)
 {
     int stat = NC_NOERR;
     size_t i,nkeys = 0;
@@ -250,8 +283,8 @@ testgetkeys(void)
     printf("url=%s => info=%s\n",dumpoptions.url,NC_s3dumps3info(&s3info));
 #endif
     if((s3client = NC_s3sdkcreateclient(&s3info))==NULL) {CHECK(NC_ES3);}
-    CHECK(NC_s3sdkgetkeys(s3client, s3info.bucket, dumpoptions.key, &nkeys, &keys, NULL));
-    printf("testgetkeys: nkeys=%u; keys:\n",(unsigned)nkeys);
+    CHECK(NC_s3sdklist(s3client, s3info.bucket, dumpoptions.key, &nkeys, &keys, NULL));
+    printf("testlist: nkeys=%u; keys:\n",(unsigned)nkeys);
     for(i=0;i<nkeys;i++) {
         printf("\t|%s|\n",keys[i]);
     }
@@ -265,7 +298,7 @@ done:
 }
 
 static int
-testgetkeyslong(void)
+testlistlong(void)
 {
     int stat = NC_NOERR;
     size_t i,nkeys = 0;
@@ -290,8 +323,8 @@ testgetkeyslong(void)
         snprintf(path,sizeof(path),"%s/getkey_%d",dumpoptions.key,(int)i);
         CHECK(NC_s3sdkwriteobject(s3client, s3info.bucket, path, strlen(uploaddata), uploaddata, NULL));
     }
-    CHECK(NC_s3sdkgetkeys(s3client, s3info.bucket, dumpoptions.key, &nkeys, &keys, NULL));
-    printf("testgetkeys: nkeys=%u; keys:\n",(unsigned)nkeys);
+    CHECK(NC_s3sdklist(s3client, s3info.bucket, dumpoptions.key, &nkeys, &keys, NULL));
+    printf("testlistlong: nkeys=%u; keys:\n",(unsigned)nkeys);
     if(nkeys != LONGCOUNT) {
         fprintf(stderr,"*** nkeys mismatch: create=%d found=%d\n",LONGCOUNT,(int)nkeys);
     }
@@ -320,9 +353,9 @@ testgetkeyslong(void)
         printf("\tkey=%s: ",keys[i]);
         stat = NC_s3sdkdeletekey(s3client, s3info.bucket, keys[i], NULL);
         switch (stat) {
-        case NC_NOERR:  printf("deleted\n");        break;
-        case NC_EEMPTY: printf("does not exist\n"); break;
-        default:        printf("failed\n");         break;
+        case NC_NOERR:     printf("deleted\n");        break;
+        case NC_ENOOBJECT: printf("does not exist\n"); break;
+        default:           printf("failed\n");         break;
         }
         stat = NC_NOERR; /* reset */
     }    
@@ -336,13 +369,13 @@ done:
 }
 
 static int
-testsearch(void)
+testlistall(void)
 {
     int stat = NC_NOERR;
     size_t i,nkeys = 0;
     char** keys = NULL;
 
-    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/object_store/dir1",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/object_store",!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -350,8 +383,8 @@ testsearch(void)
     printf("url=%s => info=%s\n",dumpoptions.url,NC_s3dumps3info(&s3info));
 #endif
     if((s3client = NC_s3sdkcreateclient(&s3info))==NULL) {CHECK(NC_ES3);}
-    CHECK(NC_s3sdksearch(s3client, s3info.bucket, dumpoptions.key, &nkeys, &keys, NULL));
-    printf("testsearch: nkeys=%u; keys:\n",(unsigned)nkeys);
+    CHECK(NC_s3sdklistall(s3client, s3info.bucket, dumpoptions.key, &nkeys, &keys, NULL));
+    printf("testlistall: nkeys=%u; keys:\n",(unsigned)nkeys);
     for(i=0;i<nkeys;i++) {
         printf("\t|%s|\n",keys[i]);
     }
@@ -381,21 +414,21 @@ testdeletekey(void)
     if((s3client = NC_s3sdkcreateclient(&s3info))==NULL) {CHECK(NC_ES3);}
     stat = NC_s3sdkdeletekey(s3client, s3info.bucket, dumpoptions.key, NULL);
 
-    printf("testdeletekey: url %s: ",newurl);
+    printf("testdeletekey: url %s%s: ",newurl,dumpoptions.key);
     switch (stat) {
-    case NC_NOERR:  printf("deleted\n");        break;
-    case NC_EEMPTY: printf("does not exist\n"); break;
-    default:        printf("failed\n");         break;
+    case NC_NOERR:     printf("deleted\n");        break;
+    case NC_ENOOBJECT: printf("does not exist\n"); break;
+    default:           printf("failed\n");         break;
     }
     stat = NC_NOERR; /* reset */
     
     /* Verify deleted and size */
     stat = NC_s3sdkinfo(s3client, s3info.bucket, dumpoptions.key, &size, NULL);
-    printf("testdeletekey.info: url %s: ",newurl);
+    printf("testdeletekey: url %s%s: ",newurl,dumpoptions.key);
     switch (stat) {
-    case NC_NOERR:  printf("not deleted; size=%d\n",(int)size); break;
-    case NC_EEMPTY: printf("deleted\n"); break;
-    default:        printf("failed\n"); goto done;
+    case NC_NOERR:     printf("not deleted; size=%d\n",(int)size); break;
+    case NC_ENOOBJECT: printf("deleted\n"); break;
+    default:           printf("failed\n"); goto done;
     }
     stat = NC_NOERR; /* reset */
 
@@ -408,7 +441,7 @@ static void
 cleanup(void)
 {
     if(s3client)
-        NC_s3sdkclose(s3client, &s3info, 0/*deleteit*/, NULL);
+        NC_s3sdkclose(s3client, NULL);
     s3client = NULL;
     NC_s3clear(&s3info);
     ncurifree(purl); purl = NULL;
@@ -464,12 +497,12 @@ main(int argc, char** argv)
         if((stat = testread())) goto done;
         printf("Test: testinfo\n");
         if((stat = testinfo())) goto done;
-        printf("Test: testgetkeys\n");
-        if((stat = testgetkeys())) goto done;
-        printf("Test: testgetkeyslong\n");
-        if((stat = testgetkeyslong())) goto done;
-        printf("Test: testsearch\n");
-        if((stat = testsearch())) goto done;
+        printf("Test: testlist\n");
+        if((stat = testlist())) goto done;
+        printf("Test: testlistlong\n");
+        if((stat = testlistlong())) goto done;
+        printf("Test: testlistall\n");
+        if((stat = testlistall())) goto done;
         printf("Test: testdeletekey\n");
         if((stat = testdeletekey())) goto done;
     } else {
@@ -498,9 +531,9 @@ main(int argc, char** argv)
         case SIZE_ACTION: stat = testinfo(); break;
         case READ_ACTION: stat = testread(); break;
         case WRITE_ACTION: stat = testwrite(); break;
-        case LIST_ACTION: stat = testgetkeys(); break;
-        case LONGLIST_ACTION: stat = testgetkeyslong(); break;
-        case SEARCH_ACTION: stat = testsearch(); break;
+        case LIST_ACTION: stat = testlist(); break;
+        case LONGLIST_ACTION: stat = testlistlong(); break;
+        case LISTALL_ACTION: stat = testlistall(); break;
         case DELETE_ACTION: stat = testdeletekey(); break;
         case ERROR_ACTION: /* fall thru */
         default: fprintf(stderr,"Illegal action\n"); exit(1);

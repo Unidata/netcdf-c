@@ -1,12 +1,3 @@
-#include "config.h"
-#include <sys/types.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <stdio.h>
-
-#include "netcdf_filter_build.h"
-
 /* WARNING:
 Starting with HDF5 version 1.10.x, the plugin code MUST be
 careful when using the standard *malloc()*, *realloc()*, and
@@ -33,7 +24,6 @@ will generate an error.
 #include <errno.h>
 
 #include "netcdf_filter_build.h"
-#include <netcdf_json.h>
 
 #include "H5Zzstd.h"
 
@@ -76,6 +66,9 @@ H5PLget_plugin_info(void)
 static htri_t
 H5Z_zstd_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id)
 {
+    NC_UNUSED(dcpl_id);
+    NC_UNUSED(type_id);
+    NC_UNUSED(space_id);
     return 1; /* Assume it can always apply */
 }
 
@@ -91,6 +84,8 @@ H5Z_filter_zstd(unsigned int flags, size_t cd_nelmts,
   size_t outdatalen;
   size_t err;
   unsigned long long dsize;
+
+  NC_UNUSED(nbytes);
 
   /* Get level parameter */
   if(cd_nelmts != 1) {

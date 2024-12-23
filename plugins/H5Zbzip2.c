@@ -33,12 +33,10 @@ will generate an error.
 #include <errno.h>
 
 #include "netcdf_filter_build.h"
-#include <netcdf_json.h>
 
 #include "h5bzip2.h"
 
 /* Forward */
-static htri_t H5Z_bzip2_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id);
 static size_t H5Z_filter_bzip2(unsigned flags,size_t cd_nelmts,const unsigned cd_values[],
                     size_t nbytes,size_t *buf_size,void**buf);
 
@@ -48,7 +46,7 @@ const H5Z_class2_t H5Z_BZIP2[1] = {{
     1,              /* encoder_present flag (set to true) */
     1,              /* decoder_present flag (set to true) */
     "bzip2",                  /* Filter name for debugging    */
-    (H5Z_can_apply_func_t)H5Z_bzip2_can_apply, /* The "can apply" callback  */
+    NULL,			/* The "can apply" callback  */
     NULL,                       /* The "set local" callback     */
     (H5Z_func_t)H5Z_filter_bzip2,         /* The actual filter function   */
 }};
@@ -66,17 +64,6 @@ const void*
 H5PLget_plugin_info(void)
 {
     return H5Z_BZIP2;
-}
-
-/* Make this explicit */
-/*
- * The "can_apply" callback returns positive a valid combination, zero for an
- * invalid combination and negative for an error.
- */
-static htri_t
-H5Z_bzip2_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id)
-{
-    return 1; /* Assume it can always apply */
 }
 
 static size_t
@@ -126,9 +113,9 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Feed data to the decompression process and get decompressed data. */
     stream.next_out = outbuf;
-    stream.avail_out = outbuflen;
+    stream.avail_out = (unsigned)outbuflen;
     stream.next_in = *buf;
-    stream.avail_in = nbytes;
+    stream.avail_in = (unsigned)nbytes;
     do {
       ret = BZ2_bzDecompress(&stream);
       if (ret < 0) {
@@ -145,7 +132,7 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
           goto cleanupAndFail;
         }
         stream.next_out = newbuf + outbuflen;  /* half the new buffer behind */
-        stream.avail_out = outbuflen;  /* half the new buffer ahead */
+        stream.avail_out = (unsigned)outbuflen;  /* half the new buffer ahead */
         outbuf = newbuf;
         outbuflen = newbuflen;
       }
@@ -174,7 +161,7 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Get compression block size if present. */
     if (cd_nelmts > 0) {
-      blockSize100k = cd_values[0];
+      blockSize100k = (int)cd_values[0];
       if (blockSize100k < 1 || blockSize100k > 9) {
 	fprintf(stderr, "invalid compression block size: %d\n", blockSize100k);
 	goto cleanupAndFail;
@@ -191,8 +178,8 @@ H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
     }
 
     /* Compress data. */
-    odatalen = outbuflen;
-    ret = BZ2_bzBuffToBuffCompress(outbuf, &odatalen, *buf, nbytes,
+    odatalen = (unsigned)outbuflen;
+    ret = BZ2_bzBuffToBuffCompress(outbuf, &odatalen, *buf, (unsigned)nbytes,
                                    blockSize100k, 0, 0);
     outdatalen = odatalen;
     if (ret != BZ_OK) {

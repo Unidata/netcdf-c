@@ -5354,7 +5354,7 @@ main()
    if (nc_put_att_text(ncid, nsteph_id, "long_name", 16, "current timestep")) ERR;
    { /* _FillValue */
       static const double ABSORB_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, ABSORB_id, "_FillValue", NC_DOUBLE, 1, ABSORB_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, ABSORB_id, NC_FillValue, NC_DOUBLE, 1, ABSORB_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double ABSORB_missing_value_att[1] = {1e+36} ;
@@ -5365,7 +5365,7 @@ main()
    if (nc_put_att_text(ncid, ABSORB_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double AEROD_v_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, AEROD_v_id, "_FillValue", NC_DOUBLE, 1, AEROD_v_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, AEROD_v_id, NC_FillValue, NC_DOUBLE, 1, AEROD_v_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double AEROD_v_missing_value_att[1] = {1e+36} ;
@@ -5376,7 +5376,7 @@ main()
    if (nc_put_att_text(ncid, AEROD_v_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double AODABS_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, AODABS_id, "_FillValue", NC_DOUBLE, 1, AODABS_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, AODABS_id, NC_FillValue, NC_DOUBLE, 1, AODABS_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double AODABS_missing_value_att[1] = {1e+36} ;
@@ -5387,7 +5387,7 @@ main()
    if (nc_put_att_text(ncid, AODABS_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double AODDUST1_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, AODDUST1_id, "_FillValue", NC_DOUBLE, 1, AODDUST1_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, AODDUST1_id, NC_FillValue, NC_DOUBLE, 1, AODDUST1_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double AODDUST1_missing_value_att[1] = {1e+36} ;
@@ -5398,7 +5398,7 @@ main()
    if (nc_put_att_text(ncid, AODDUST1_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double AODDUST2_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, AODDUST2_id, "_FillValue", NC_DOUBLE, 1, AODDUST2_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, AODDUST2_id, NC_FillValue, NC_DOUBLE, 1, AODDUST2_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double AODDUST2_missing_value_att[1] = {1e+36} ;
@@ -5409,7 +5409,7 @@ main()
    if (nc_put_att_text(ncid, AODDUST2_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double AODDUST3_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, AODDUST3_id, "_FillValue", NC_DOUBLE, 1, AODDUST3_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, AODDUST3_id, NC_FillValue, NC_DOUBLE, 1, AODDUST3_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double AODDUST3_missing_value_att[1] = {1e+36} ;
@@ -5420,7 +5420,7 @@ main()
    if (nc_put_att_text(ncid, AODDUST3_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double AODMODE1_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, AODMODE1_id, "_FillValue", NC_DOUBLE, 1, AODMODE1_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, AODMODE1_id, NC_FillValue, NC_DOUBLE, 1, AODMODE1_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double AODMODE1_missing_value_att[1] = {1e+36} ;
@@ -5431,7 +5431,7 @@ main()
    if (nc_put_att_text(ncid, AODMODE1_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double AODMODE2_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, AODMODE2_id, "_FillValue", NC_DOUBLE, 1, AODMODE2_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, AODMODE2_id, NC_FillValue, NC_DOUBLE, 1, AODMODE2_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double AODMODE2_missing_value_att[1] = {1e+36} ;
@@ -5442,7 +5442,7 @@ main()
    if (nc_put_att_text(ncid, AODMODE2_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double AODMODE3_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, AODMODE3_id, "_FillValue", NC_DOUBLE, 1, AODMODE3_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, AODMODE3_id, NC_FillValue, NC_DOUBLE, 1, AODMODE3_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double AODMODE3_missing_value_att[1] = {1e+36} ;
@@ -5453,7 +5453,7 @@ main()
    if (nc_put_att_text(ncid, AODMODE3_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double AODVIS_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, AODVIS_id, "_FillValue", NC_DOUBLE, 1, AODVIS_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, AODVIS_id, NC_FillValue, NC_DOUBLE, 1, AODVIS_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double AODVIS_missing_value_att[1] = {1e+36} ;
@@ -5533,7 +5533,7 @@ main()
    if (nc_put_att_text(ncid, BPROD_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double BURDEN1_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, BURDEN1_id, "_FillValue", NC_DOUBLE, 1, BURDEN1_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, BURDEN1_id, NC_FillValue, NC_DOUBLE, 1, BURDEN1_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double BURDEN1_missing_value_att[1] = {1e+36} ;
@@ -5544,7 +5544,7 @@ main()
    if (nc_put_att_text(ncid, BURDEN1_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double BURDEN2_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, BURDEN2_id, "_FillValue", NC_DOUBLE, 1, BURDEN2_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, BURDEN2_id, NC_FillValue, NC_DOUBLE, 1, BURDEN2_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double BURDEN2_missing_value_att[1] = {1e+36} ;
@@ -5555,7 +5555,7 @@ main()
    if (nc_put_att_text(ncid, BURDEN2_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double BURDEN3_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, BURDEN3_id, "_FillValue", NC_DOUBLE, 1, BURDEN3_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, BURDEN3_id, NC_FillValue, NC_DOUBLE, 1, BURDEN3_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double BURDEN3_missing_value_att[1] = {1e+36} ;
@@ -5647,7 +5647,7 @@ main()
    if (nc_put_att_text(ncid, DTV_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double EXTINCT_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, EXTINCT_id, "_FillValue", NC_DOUBLE, 1, EXTINCT_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, EXTINCT_id, NC_FillValue, NC_DOUBLE, 1, EXTINCT_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double EXTINCT_missing_value_att[1] = {1e+36} ;
@@ -5855,7 +5855,7 @@ main()
    if (nc_put_att_text(ncid, OCNFRAC_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double ODV_bc_a1_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, ODV_bc_a1_id, "_FillValue", NC_DOUBLE, 1, ODV_bc_a1_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, ODV_bc_a1_id, NC_FillValue, NC_DOUBLE, 1, ODV_bc_a1_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double ODV_bc_a1_missing_value_att[1] = {1e+36} ;
@@ -5866,7 +5866,7 @@ main()
    if (nc_put_att_text(ncid, ODV_bc_a1_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double ODV_dst_a1_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, ODV_dst_a1_id, "_FillValue", NC_DOUBLE, 1, ODV_dst_a1_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, ODV_dst_a1_id, NC_FillValue, NC_DOUBLE, 1, ODV_dst_a1_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double ODV_dst_a1_missing_value_att[1] = {1e+36} ;
@@ -5877,7 +5877,7 @@ main()
    if (nc_put_att_text(ncid, ODV_dst_a1_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double ODV_dst_a3_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, ODV_dst_a3_id, "_FillValue", NC_DOUBLE, 1, ODV_dst_a3_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, ODV_dst_a3_id, NC_FillValue, NC_DOUBLE, 1, ODV_dst_a3_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double ODV_dst_a3_missing_value_att[1] = {1e+36} ;
@@ -5888,7 +5888,7 @@ main()
    if (nc_put_att_text(ncid, ODV_dst_a3_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double ODV_ncl_a1_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, ODV_ncl_a1_id, "_FillValue", NC_DOUBLE, 1, ODV_ncl_a1_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, ODV_ncl_a1_id, NC_FillValue, NC_DOUBLE, 1, ODV_ncl_a1_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double ODV_ncl_a1_missing_value_att[1] = {1e+36} ;
@@ -5899,7 +5899,7 @@ main()
    if (nc_put_att_text(ncid, ODV_ncl_a1_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double ODV_ncl_a3_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, ODV_ncl_a3_id, "_FillValue", NC_DOUBLE, 1, ODV_ncl_a3_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, ODV_ncl_a3_id, NC_FillValue, NC_DOUBLE, 1, ODV_ncl_a3_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double ODV_ncl_a3_missing_value_att[1] = {1e+36} ;
@@ -5910,7 +5910,7 @@ main()
    if (nc_put_att_text(ncid, ODV_ncl_a3_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double ODV_pom_a1_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, ODV_pom_a1_id, "_FillValue", NC_DOUBLE, 1, ODV_pom_a1_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, ODV_pom_a1_id, NC_FillValue, NC_DOUBLE, 1, ODV_pom_a1_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double ODV_pom_a1_missing_value_att[1] = {1e+36} ;
@@ -5921,7 +5921,7 @@ main()
    if (nc_put_att_text(ncid, ODV_pom_a1_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double ODV_so4_a1_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, ODV_so4_a1_id, "_FillValue", NC_DOUBLE, 1, ODV_so4_a1_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, ODV_so4_a1_id, NC_FillValue, NC_DOUBLE, 1, ODV_so4_a1_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double ODV_so4_a1_missing_value_att[1] = {1e+36} ;
@@ -5932,7 +5932,7 @@ main()
    if (nc_put_att_text(ncid, ODV_so4_a1_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double ODV_soa_a1_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, ODV_soa_a1_id, "_FillValue", NC_DOUBLE, 1, ODV_soa_a1_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, ODV_soa_a1_id, NC_FillValue, NC_DOUBLE, 1, ODV_soa_a1_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double ODV_soa_a1_missing_value_att[1] = {1e+36} ;
@@ -6083,7 +6083,7 @@ main()
    if (nc_put_att_text(ncid, SRFRAD_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double SSAVIS_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, SSAVIS_id, "_FillValue", NC_DOUBLE, 1, SSAVIS_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, SSAVIS_id, NC_FillValue, NC_DOUBLE, 1, SSAVIS_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double SSAVIS_missing_value_att[1] = {1e+36} ;
@@ -6152,7 +6152,7 @@ main()
    if (nc_put_att_text(ncid, TROP_FD_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double TROP_P_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, TROP_P_id, "_FillValue", NC_DOUBLE, 1, TROP_P_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, TROP_P_id, NC_FillValue, NC_DOUBLE, 1, TROP_P_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double TROP_P_missing_value_att[1] = {1e+36} ;
@@ -6166,7 +6166,7 @@ main()
    if (nc_put_att_text(ncid, TROP_PD_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double TROP_T_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, TROP_T_id, "_FillValue", NC_DOUBLE, 1, TROP_T_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, TROP_T_id, NC_FillValue, NC_DOUBLE, 1, TROP_T_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double TROP_T_missing_value_att[1] = {1e+36} ;
@@ -6177,7 +6177,7 @@ main()
    if (nc_put_att_text(ncid, TROP_T_id, "cell_methods", 10, "time: mean")) ERR;
    { /* _FillValue */
       static const double TROP_Z_FillValue_att[1] = {1e+36} ;
-      if (nc_put_att_double(ncid, TROP_Z_id, "_FillValue", NC_DOUBLE, 1, TROP_Z_FillValue_att)) ERR;
+      if (nc_put_att_double(ncid, TROP_Z_id, NC_FillValue, NC_DOUBLE, 1, TROP_Z_FillValue_att)) ERR;
    }
    { /* missing_value */
       static const double TROP_Z_missing_value_att[1] = {1e+36} ;

@@ -2,10 +2,13 @@ netcdf ref_string {
 dimensions:
 	d2 = 2 ;
 variables:
-	char c(d2) ;
+	char c(d2) ;	
+		c:_FillValue = "" ;
 	string v(d2) ;
+		string v:_FillValue = "" ;
 	string truncated ;
 		truncated:_nczarr_maxstrlen = 4 ;
+		string truncated:_FillValue = "" ;
 
 // global attributes:
 		string :stringattr = "abc", "def" ;

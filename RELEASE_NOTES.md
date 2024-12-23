@@ -5,6 +5,9 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
+## 4.9.4 - TBD
+* Add experimental support for the Zarr Version 3 storage format. This code willl change as the Zarr Version 3 Specification evolves. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+
 ## 4.9.3 - TBD
 
 * Extend the netcdf API to support programmatic changes to the plugin search path. See [Github #3034](https://github.com/Unidata/netcdf-c/pull/3034) for more information.
@@ -25,8 +28,6 @@ This file contains a high-level description of this package's evolution. Release
 * Provide better documentation for the .rc file mechanism and API. See [Github #2956](https://github.com/Unidata/netcdf-c/pull/2956) for more information.
 * Convert NCZarr V2 to store all netcdf-4 specific info as attributes. This improves interoperability with other Zarr implementations by no longer using non-standard keys. The price to be paid is that lazy attribute reading cannot be supported. See [Github #2836](https://github.com/Unidata/netcdf-c/pull/2936) for more information.
 * Cleanup the option code for NETCDF_ENABLE_SET_LOG_LEVEL\[_FUNC\] See [Github #2931](https://github.com/Unidata/netcdf-c/pull/2931) for more information.
-
-### Release Candidate 1 - July 26, 2024
 
 * Convert NCZarr V2 to store all netcdf-4 specific info as attributes. This improves interoperability with other Zarr implementations by no longer using non-standard keys. The price to be paid is that lazy attribute reading cannot be supported. See [Github #2836](https://github.com/Unidata/netcdf-c/issues/2936) for more information.
 * Cleanup the option code for NETCDF_ENABLE_SET_LOG_LEVEL\[_FUNC\] See [Github #2931](https://github.com/Unidata/netcdf-c/issues/2931) for more information.

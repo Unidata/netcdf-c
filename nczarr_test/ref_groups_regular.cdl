@@ -1,8 +1,8 @@
 netcdf tmp_groups_regular {
 dimensions:
-	_Anonymous_Dim_3 = 3 ;
 	_Anonymous_Dim_2 = 2 ;
 	_Anonymous_Dim_10 = 10 ;
+	_Anonymous_Dim_3 = 3 ;
 
 // global attributes:
 		:_Format = "netCDF-4" ;

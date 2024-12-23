@@ -1,5 +1,5 @@
 /*
- *	Copyright 2018, University Corporation for Atmospheric Research
+ *      Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -70,24 +70,24 @@ strdup(const char* s)
 size_t
 strlcpy(char *dst, const char* src, size_t dsize)
 {
-	const char *osrc = src;
-	size_t nleft = dsize;
+        const char *osrc = src;
+        size_t nleft = dsize;
 
-	/* Copy as many bytes as will fit. */
-	if (nleft != 0) {
-		while (--nleft != 0) {
-			if ((*dst++ = *src++) == '\0')
-				break;
-		}
-	}
-	/* Not enough room in dst, add NUL and traverse rest of src. */
-	if (nleft == 0) {
-		if (dsize != 0)
-			*dst = '\0';		/* NUL-terminate dst */
-		while (*src++)
-			;
-	}
-	return(src - osrc - 1);	/* count does not include NUL */
+        /* Copy as many bytes as will fit. */
+        if (nleft != 0) {
+                while (--nleft != 0) {
+                        if ((*dst++ = *src++) == '\0')
+                                break;
+                }
+        }
+        /* Not enough room in dst, add NUL and traverse rest of src. */
+        if (nleft == 0) {
+                if (dsize != 0)
+                        *dst = '\0';            /* NUL-terminate dst */
+                while (*src++)
+                        ;
+        }
+        return(src - osrc - 1); /* count does not include NUL */
 }
 #endif
 
@@ -119,29 +119,33 @@ strlcpy(char *dst, const char* src, size_t dsize)
 size_t
 nc_strlcat(char* dst, const char* src, size_t dsize)
 {
-	const char *odst = dst;
-	const char *osrc = src;
-	size_t n = dsize;
-	size_t dlen;
+        const char *odst = dst;
+        const char *osrc = src;
+        size_t n = dsize;
+        size_t dlen,slen;
 
-	/* Find the end of dst and adjust bytes left but don't go past end. */
-	while (n-- != 0 && *dst != '\0')
-		dst++;
-	dlen = dst - odst;
-	n = dsize - dlen;
+        /* Find the end of dst and adjust bytes left but don't go past end. */
+        while (n-- != 0 && *dst != '\0')
+                dst++;
+        dlen = dst - odst;
+        n = dsize - dlen;
 
-	if (n-- == 0)
-		return(dlen + strlen(src));
-	while (*src != '\0') {
-		if (n != 0) {
-			*dst++ = *src;
-			n--;
-		}
-		src++;
-	}
-	*dst = '\0';
-
-	return(dlen + (src - osrc));	/* count does not include NUL */
+        slen = (src==NULL?0:strlen(src));
+        if (n-- == 0)
+                return(dlen + slen);
+        if(src != NULL) {
+            while (*src != '\0') {
+                    if (n != 0) {
+                            *dst++ = *src;
+                            n--;
+                    }
+                    src++;
+            }
+            *dst = '\0';
+        }    
+	if(src != NULL)
+            return(dlen + (src - osrc));    /* count does not include NUL */
+	return dlen;
 }
 #endif /*!HAVE_STRLCAT*/
 
@@ -151,11 +155,11 @@ nc_strlcat(char* dst, const char* src, size_t dsize)
 Not currently used
 /* Define an version of strcasestr renamed to avoid any system definition */
 /* See https://android.googlesource.com/platform/bionic/+/a27d2baa/libc/string/strcasestr.c */
-/*	$OpenBSD: strcasestr.c,v 1.3 2006/03/31 05:34:55 deraadt Exp $	*/
-/*	$NetBSD: strcasestr.c,v 1.2 2005/02/09 21:35:47 kleink Exp $	*/
+/*      $OpenBSD: strcasestr.c,v 1.3 2006/03/31 05:34:55 deraadt Exp $  */
+/*      $NetBSD: strcasestr.c,v 1.2 2005/02/09 21:35:47 kleink Exp $    */
 /*-
  * Copyright (c) 1990, 1993
- *	The Regents of the University of California.  All rights reserved.
+ *      The Regents of the University of California.  All rights reserved.
  *
  * This code is derived from software contributed to Berkeley by
  * Chris Torek.

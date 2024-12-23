@@ -3,7 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "$srcdir/test_nczarr.sh"
+. "${builddir}/test_nczarr.sh"
 
 # This shell script tests support for the NC_STRING type
 
@@ -26,7 +26,7 @@ fileargs tmp_string_nczarr "mode=nczarr,$zext"
 nczarrurl="$fileurl"
 nczarrfile="$file"
 
-# setupp
+# setup
 deletemap $zext $zarrfile
 deletemap $zext $nczarrfile
 
@@ -44,10 +44,10 @@ ${NCDUMP} -n ref_string $nczarrurl > tmp_string_nczarr_${zext}.cdl
 ${ZMD} -t 'string/6' $nczarrurl > tmp_string_nczarr_${zext}.txt
 
 echo "*** verify zarr output"
-diff -bw ${srcdir}/ref_string_zarr.baseline tmp_string_zarr_${zext}.cdl
+diff -bw ${srcdir}/ref_string_zarr.baseline ${ISOPATH}/tmp_string_zarr_${zext}.cdl
 
 echo "*** verify nczarr output"
-diff -bw ${srcdir}/ref_string_nczarr.baseline tmp_string_nczarr_${zext}.cdl
+diff -bw ${srcdir}/ref_string_nczarr.baseline ${ISOPATH}/tmp_string_nczarr_${zext}.cdl
 }
 
 testcase file

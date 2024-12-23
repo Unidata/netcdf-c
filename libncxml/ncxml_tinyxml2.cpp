@@ -14,6 +14,10 @@
 
 using namespace tinyxml2;
 
+#ifdef _MSC_VER /*Do not use _WIN32*/
+#define XMLDocument tinyxml2::XMLDocument
+#endif
+
 static int ncxml_initialized = 0;
 
 void

@@ -1599,7 +1599,7 @@ nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
  * @internal Get the length, in bytes, of one element of a type in
  * memory.
  *
- * @param h5 Pointer to HDF5 file info struct.
+ * @param h5 Pointer to Netcdf-4 file info struct.
  * @param xtype NetCDF type ID.
  * @param len Pointer that gets length in bytes.
  *

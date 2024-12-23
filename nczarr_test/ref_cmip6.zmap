@@ -1,0 +1,555 @@
+[0] /.zattrs : (3182) |{"Conventions": "CF-1.7 CMIP-6.2", "activity_id": "CMIP", "branch_method": "standard", "branch_time_in_child": 0.0, "branch_time_in_parent": 0.0, "cmor_version": "3.3.2", "contact": "Kenneth Lo (cdkkl@giss.nasa.gov)", "coordinates": "lat_bnds lon_bnds time_bnds", "creation_date": "2018-11-20T18:45:56Z", "data_specs_version": "01.00.23", "experiment": "all-forcing simulation of the recent past", "experiment_id": "historical", "external_variables": "areacella", "forcing_index": 1, "frequency": "day", "further_info_url": "https://furtherinfo.es-doc.org/CMIP6.NASA-GISS.GISS-E2-1-G.historical.none.r1i1p1f1", "grid": "atmospheric grid: 144x90, ocean grid: 288x180", "grid_label": "gn", "history": "2018-11-20T18:45:56Z ; CMOR rewrote data to be consistent with CMIP6, CF-1.7 CMIP-6.2 and CF standards.", "initialization_index": 1, "institution": "Goddard Institute for Space Studies, New York, NY 10025, USA", "institution_id": "NASA-GISS", "license": "CMIP6 model data produced by NASA Goddard Institute for Space Studies is licensed under a Creative Commons Attribution ShareAlike 4.0 International License (https://creativecommons.org/licenses). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file) and at https:///pcmdi.llnl.gov/. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.", "mip_era": "CMIP6", "model_id": "E200f10aF40oQ40", "nominal_resolution": "250 km", "parent_activity_id": "CMIP", "parent_experiment_id": "piControl", "parent_experiment_rip": "r1i1p1", "parent_mip_era": "CMIP6", "parent_source_id": "GISS-E2-1-G", "parent_time_units": "days since 4150-1-1", "parent_variant_label": "r1i1p1f1", "physics_index": 1, "product": "model-output", "realization_index": 1, "realm": "atmos", "references": "https://data.giss.nasa.gov/modelE/cmip6", "source": "GISS-E2.1G (2016): \naerosol: Varies with physics-version (p==1 none, p==3 OMA, p==4 TOMAS, p==5 MATRIX)\natmos: GISS-E2.1 (2.5x2 degree; 144 x 90 longitude/latitude; 40 levels; top level 0.1 hPa)\natmosChem: Varies with physics-version (p==1 Non-interactive, p>1 GPUCCINI)\nland: GISS LSM\nlandIce: none\nocean: GISS Ocean (1.25x1 degree; 288 x 180 longitude/latitude; 32 levels; top grid cell 0-10 m)\nocnBgchem: none\nseaIce: GISS SI", "source_id": "GISS-E2-1-G", "source_type": "AOGCM", "sub_experiment": "none", "sub_experiment_id": "none", "table_id": "day", "table_info": "Creation Date:(21 March 2018) MD5:f76dbc1e8bf6b7e4aee30573a09e5454", "title": "GISS-E2-1-G output prepared for CMIP6", "tracking_id": "hdl:21.14100/364b8aea-de19-4e29-ac36-0b26406e9a29", "variable_id": "tasmin", "variant_label": "r1i1p1f1", "status": "2019-10-25;created;by nhn2@columbia.edu"}|
+[1] /.zgroup : (24) |{
+    "zarr_format": 2
+}|
+[2] /.zmetadata : (10410) |{
+    "metadata": {
+        ".zattrs": {
+            "Conventions": "CF-1.7 CMIP-6.2",
+            "activity_id": "CMIP",
+            "branch_method": "standard",
+            "branch_time_in_child": 0.0,
+            "branch_time_in_parent": 0.0,
+            "cmor_version": "3.3.2",
+            "contact": "Kenneth Lo (cdkkl@giss.nasa.gov)",
+            "coordinates": "lat_bnds lon_bnds time_bnds",
+            "creation_date": "2018-11-20T18:45:56Z",
+            "data_specs_version": "01.00.23",
+            "experiment": "all-forcing simulation of the recent past",
+            "experiment_id": "historical",
+            "external_variables": "areacella",
+            "forcing_index": 1,
+            "frequency": "day",
+            "further_info_url": "https://furtherinfo.es-doc.org/CMIP6.NASA-GISS.GISS-E2-1-G.historical.none.r1i1p1f1",
+            "grid": "atmospheric grid: 144x90, ocean grid: 288x180",
+            "grid_label": "gn",
+            "history": "2018-11-20T18:45:56Z ; CMOR rewrote data to be consistent with CMIP6, CF-1.7 CMIP-6.2 and CF standards.",
+            "initialization_index": 1,
+            "institution": "Goddard Institute for Space Studies, New York, NY 10025, USA",
+            "institution_id": "NASA-GISS",
+            "license": "CMIP6 model data produced by NASA Goddard Institute for Space Studies is licensed under a Creative Commons Attribution ShareAlike 4.0 International License (https://creativecommons.org/licenses). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file) and at https:///pcmdi.llnl.gov/. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
+            "mip_era": "CMIP6",
+            "model_id": "E200f10aF40oQ40",
+            "nominal_resolution": "250 km",
+            "parent_activity_id": "CMIP",
+            "parent_experiment_id": "piControl",
+            "parent_experiment_rip": "r1i1p1",
+            "parent_mip_era": "CMIP6",
+            "parent_source_id": "GISS-E2-1-G",
+            "parent_time_units": "days since 4150-1-1",
+            "parent_variant_label": "r1i1p1f1",
+            "physics_index": 1,
+            "product": "model-output",
+            "realization_index": 1,
+            "realm": "atmos",
+            "references": "https://data.giss.nasa.gov/modelE/cmip6",
+            "source": "GISS-E2.1G (2016): \naerosol: Varies with physics-version (p==1 none, p==3 OMA, p==4 TOMAS, p==5 MATRIX)\natmos: GISS-E2.1 (2.5x2 degree; 144 x 90 longitude/latitude; 40 levels; top level 0.1 hPa)\natmosChem: Varies with physics-version (p==1 Non-interactive, p>1 GPUCCINI)\nland: GISS LSM\nlandIce: none\nocean: GISS Ocean (1.25x1 degree; 288 x 180 longitude/latitude; 32 levels; top grid cell 0-10 m)\nocnBgchem: none\nseaIce: GISS SI",
+            "source_id": "GISS-E2-1-G",
+            "source_type": "AOGCM",
+            "sub_experiment": "none",
+            "sub_experiment_id": "none",
+            "table_id": "day",
+            "table_info": "Creation Date:(21 March 2018) MD5:f76dbc1e8bf6b7e4aee30573a09e5454",
+            "title": "GISS-E2-1-G output prepared for CMIP6",
+            "tracking_id": "hdl:21.14100/364b8aea-de19-4e29-ac36-0b26406e9a29",
+            "variable_id": "tasmin",
+            "variant_label": "r1i1p1f1",
+            "status": "2019-10-25;created;by nhn2@columbia.edu",
+            "netcdf_tracking_ids": "hdl:21.14100/364b8aea-de19-4e29-ac36-0b26406e9a29",
+            "version_id": "v20181015"
+        },
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "height/.zarray": {
+            "chunks": [],
+            "compressor": null,
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [],
+            "zarr_format": 2
+        },
+        "height/.zattrs": {
+            "_ARRAY_DIMENSIONS": [],
+            "axis": "Z",
+            "long_name": "height",
+            "positive": "up",
+            "standard_name": "height",
+            "units": "m"
+        },
+        "lat/.zarray": {
+            "chunks": [
+                90
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                90
+            ],
+            "zarr_format": 2
+        },
+        "lat/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat"
+            ],
+            "axis": "Y",
+            "bounds": "lat_bnds",
+            "long_name": "latitude",
+            "standard_name": "latitude",
+            "units": "degrees_north"
+        },
+        "lat_bnds/.zarray": {
+            "chunks": [
+                90,
+                2
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                90,
+                2
+            ],
+            "zarr_format": 2
+        },
+        "lat_bnds/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lat",
+                "bnds"
+            ]
+        },
+        "lon/.zarray": {
+            "chunks": [
+                144
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                144
+            ],
+            "zarr_format": 2
+        },
+        "lon/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lon"
+            ],
+            "axis": "X",
+            "bounds": "lon_bnds",
+            "long_name": "longitude",
+            "standard_name": "longitude",
+            "units": "degrees_east"
+        },
+        "lon_bnds/.zarray": {
+            "chunks": [
+                144,
+                2
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                144,
+                2
+            ],
+            "zarr_format": 2
+        },
+        "lon_bnds/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "lon",
+                "bnds"
+            ]
+        },
+        "tasmin/.zarray": {
+            "chunks": [
+                1928,
+                90,
+                144
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f4",
+            "fill_value": 1.0000000200408773e+20,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                23725,
+                90,
+                144
+            ],
+            "zarr_format": 2
+        },
+        "tasmin/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "lat",
+                "lon"
+            ],
+            "cell_measures": "area: areacella",
+            "cell_methods": "area: mean time: minimum",
+            "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
+            "coordinates": "height",
+            "history": "2018-11-20T18:45:56Z altered by CMOR: Treated scalar dimension: 'height'. 2018-11-20T18:45:56Z altered by CMOR: replaced missing value flag (-1e+30) with standard missing value (1e+20).",
+            "long_name": "Daily Minimum Near-Surface Air Temperature",
+            "standard_name": "air_temperature",
+            "units": "K"
+        },
+        "time/.zarray": {
+            "chunks": [
+                23725
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                23725
+            ],
+            "zarr_format": 2
+        },
+        "time/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time"
+            ],
+            "axis": "T",
+            "bounds": "time_bnds",
+            "calendar": "365_day",
+            "long_name": "time",
+            "standard_name": "time",
+            "units": "days since 1850-01-01"
+        },
+        "time_bnds/.zarray": {
+            "chunks": [
+                11863,
+                2
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                23725,
+                2
+            ],
+            "zarr_format": 2
+        },
+        "time_bnds/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "bnds"
+            ],
+            "calendar": "365_day",
+            "units": "days since 1850-01-01"
+        }
+    },
+    "zarr_consolidated_format": 1
+}|
+[3] /height/.zarray : (167) |{
+    "chunks": [],
+    "compressor": null,
+    "dtype": "<f8",
+    "fill_value": "NaN",
+    "filters": null,
+    "order": "C",
+    "shape": [],
+    "zarr_format": 2
+}|
+[4] /height/.zattrs : (146) |{
+    "_ARRAY_DIMENSIONS": [],
+    "axis": "Z",
+    "long_name": "height",
+    "positive": "up",
+    "standard_name": "height",
+    "units": "m"
+}|
+[5] /height/0 : (8) (ubyte) |...|
+[6] /lat/.zarray : (315) |{
+    "chunks": [
+        90
+    ],
+    "compressor": {
+        "blocksize": 0,
+        "clevel": 5,
+        "cname": "lz4",
+        "id": "blosc",
+        "shuffle": 1
+    },
+    "dtype": "<f8",
+    "fill_value": "NaN",
+    "filters": null,
+    "order": "C",
+    "shape": [
+        90
+    ],
+    "zarr_format": 2
+}|
+[7] /lat/.zattrs : (185) |{
+    "_ARRAY_DIMENSIONS": [
+        "lat"
+    ],
+    "axis": "Y",
+    "bounds": "lat_bnds",
+    "long_name": "latitude",
+    "standard_name": "latitude",
+    "units": "degrees_north"
+}|
+[8] /lat/0 : (169) (ubyte) |...|
+[9] /lat_bnds/.zarray : (337) |{
+    "chunks": [
+        90,
+        2
+    ],
+    "compressor": {
+        "blocksize": 0,
+        "clevel": 5,
+        "cname": "lz4",
+        "id": "blosc",
+        "shuffle": 1
+    },
+    "dtype": "<f8",
+    "fill_value": "NaN",
+    "filters": null,
+    "order": "C",
+    "shape": [
+        90,
+        2
+    ],
+    "zarr_format": 2
+}|
+[10] /lat_bnds/.zattrs : (66) |{
+    "_ARRAY_DIMENSIONS": [
+        "lat",
+        "bnds"
+    ]
+}|
+[11] /lat_bnds/0.0 : (338) (ubyte) |...|
+[12] /lon/.zarray : (317) |{
+    "chunks": [
+        144
+    ],
+    "compressor": {
+        "blocksize": 0,
+        "clevel": 5,
+        "cname": "lz4",
+        "id": "blosc",
+        "shuffle": 1
+    },
+    "dtype": "<f8",
+    "fill_value": "NaN",
+    "filters": null,
+    "order": "C",
+    "shape": [
+        144
+    ],
+    "zarr_format": 2
+}|
+[13] /lon/.zattrs : (186) |{
+    "_ARRAY_DIMENSIONS": [
+        "lon"
+    ],
+    "axis": "X",
+    "bounds": "lon_bnds",
+    "long_name": "longitude",
+    "standard_name": "longitude",
+    "units": "degrees_east"
+}|
+[14] /lon/0 : (407) (ubyte) |...|
+[15] /lon_bnds/.zarray : (339) |{
+    "chunks": [
+        144,
+        2
+    ],
+    "compressor": {
+        "blocksize": 0,
+        "clevel": 5,
+        "cname": "lz4",
+        "id": "blosc",
+        "shuffle": 1
+    },
+    "dtype": "<f8",
+    "fill_value": "NaN",
+    "filters": null,
+    "order": "C",
+    "shape": [
+        144,
+        2
+    ],
+    "zarr_format": 2
+}|
+[16] /lon_bnds/.zattrs : (66) |{
+    "_ARRAY_DIMENSIONS": [
+        "lon",
+        "bnds"
+    ]
+}|
+[17] /lon_bnds/0.0 : (536) (ubyte) |...|
+[18] /tasmin/.zarray : (387) |{
+    "chunks": [
+        1928,
+        90,
+        144
+    ],
+    "compressor": {
+        "blocksize": 0,
+        "clevel": 5,
+        "cname": "lz4",
+        "id": "blosc",
+        "shuffle": 1
+    },
+    "dtype": "<f4",
+    "fill_value": 1.0000000200408773e+20,
+    "filters": null,
+    "order": "C",
+    "shape": [
+        23725,
+        90,
+        144
+    ],
+    "zarr_format": 2
+}|
+[19] /tasmin/.zattrs : (637) |{
+    "_ARRAY_DIMENSIONS": [
+        "time",
+        "lat",
+        "lon"
+    ],
+    "cell_measures": "area: areacella",
+    "cell_methods": "area: mean time: minimum",
+    "comment": "minimum near-surface (usually, 2 meter) air temperature (add cell_method attribute 'time: min')",
+    "coordinates": "height",
+    "history": "2018-11-20T18:45:56Z altered by CMOR: Treated scalar dimension: 'height'. 2018-11-20T18:45:56Z altered by CMOR: replaced missing value flag (-1e+30) with standard missing value (1e+20).",
+    "long_name": "Daily Minimum Near-Surface Air Temperature",
+    "standard_name": "air_temperature",
+    "units": "K"
+}|
+[20] /tasmin/0.0.0 : (65730615) (ubyte) |...|
+[21] /tasmin/1.0.0 : (65705599) (ubyte) |...|
+[22] /tasmin/10.0.0 : (65570000) (ubyte) |...|
+[23] /tasmin/11.0.0 : (65552687) (ubyte) |...|
+[24] /tasmin/12.0.0 : (20264680) (ubyte) |...|
+[25] /tasmin/2.0.0 : (65690159) (ubyte) |...|
+[26] /tasmin/3.0.0 : (65729822) (ubyte) |...|
+[27] /tasmin/4.0.0 : (65720121) (ubyte) |...|
+[28] /tasmin/5.0.0 : (65673861) (ubyte) |...|
+[29] /tasmin/6.0.0 : (65673990) (ubyte) |...|
+[30] /tasmin/7.0.0 : (65667344) (ubyte) |...|
+[31] /tasmin/8.0.0 : (65597706) (ubyte) |...|
+[32] /tasmin/9.0.0 : (65564548) (ubyte) |...|
+[33] /time/.zarray : (321) |{
+    "chunks": [
+        23725
+    ],
+    "compressor": {
+        "blocksize": 0,
+        "clevel": 5,
+        "cname": "lz4",
+        "id": "blosc",
+        "shuffle": 1
+    },
+    "dtype": "<f8",
+    "fill_value": "NaN",
+    "filters": null,
+    "order": "C",
+    "shape": [
+        23725
+    ],
+    "zarr_format": 2
+}|
+[34] /time/.zattrs : (214) |{
+    "_ARRAY_DIMENSIONS": [
+        "time"
+    ],
+    "axis": "T",
+    "bounds": "time_bnds",
+    "calendar": "365_day",
+    "long_name": "time",
+    "standard_name": "time",
+    "units": "days since 1850-01-01"
+}|
+[35] /time/0 : (3006) (ubyte) |...|
+[36] /time_bnds/.zarray : (343) |{
+    "chunks": [
+        11863,
+        2
+    ],
+    "compressor": {
+        "blocksize": 0,
+        "clevel": 5,
+        "cname": "lz4",
+        "id": "blosc",
+        "shuffle": 1
+    },
+    "dtype": "<f8",
+    "fill_value": "NaN",
+    "filters": null,
+    "order": "C",
+    "shape": [
+        23725,
+        2
+    ],
+    "zarr_format": 2
+}|
+[37] /time_bnds/.zattrs : (132) |{
+    "_ARRAY_DIMENSIONS": [
+        "time",
+        "bnds"
+    ],
+    "calendar": "365_day",
+    "units": "days since 1850-01-01"
+}|
+[38] /time_bnds/0.0 : (2939) (ubyte) |...|
+[39] /time_bnds/1.0 : (2940) (ubyte) |...|
