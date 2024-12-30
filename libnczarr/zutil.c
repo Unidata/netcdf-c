@@ -272,7 +272,7 @@ done:
 @author Dennis Heimbigner
 */
 int
-NCZ_uploadjson(NCZMAP* zmap, const char* key, NCjson* json)
+NCZ_uploadjson(NCZMAP* zmap, const char* key, const NCjson* json)
 {
     int stat = NC_NOERR;
     char* content = NULL;

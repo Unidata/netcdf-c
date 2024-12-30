@@ -1737,6 +1737,7 @@ endif()
 
 # The Unidata testing S3 bucket
 # WARNING: this must match the value in configure.ac
+set(S3ENDPOINT "s3.us-east-1.amazonaws.com" CACHE STRING "S3 endpoint")
 set(S3TESTBUCKET "unidata-zarr-test-data" CACHE STRING "S3 test bucket")
 
 # The working S3 path tree within the Unidata bucket.

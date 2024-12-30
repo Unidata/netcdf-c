@@ -48,6 +48,7 @@ extern "C" {
 #include "ncjson.h"
 
 #include "zmap.h"
+#include "zmetadata.h"
 #include "zinternal.h"
 #include "zdispatch.h"
 #include "zprovenance.h"
