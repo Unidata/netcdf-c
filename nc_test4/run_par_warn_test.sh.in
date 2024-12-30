@@ -16,5 +16,5 @@ echo
 echo "Testing MPI parallel I/O with various other mode flags..."
 @MPIEXEC@ -n 1 ./tst_warn > tmp_tst_warn_out.txt 2>&1
 cat tmp_tst_warn_out.txt
-diff -w tmp_tst_warn_out.txt ref_tmp_tst_warn_out.txt
+diff -w tmp_tst_warn_out.txt ${srcdir}/ref_tmp_tst_warn_out.txt
 
