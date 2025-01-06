@@ -198,7 +198,12 @@ extern const NCZ_Formatter* NCZ_formatter3; /* NCZarr V3 dispatch table => Zarr 
 
 /* Use inference to get map and the formatter */
 extern int NCZ_get_map(NC_FILE_INFO_T* file, NCURI* url, mode_t mode, size64_t constraints, void* params, NCZMAP** mapp);
-extern int NCZ_get_formatter(NC_FILE_INFO_T* file, const NCZ_Formatter** formatterp);
+
+extern int NCZ_get_create_formatter(NC_FILE_INFO_T* file, const NCZ_Formatter** formatterp);
+extern int NCZ_get_open_formatter(NC_FILE_INFO_T* file, const NCZ_Formatter** formatterp);
+
+extern int NCZ_infer_open_zarr_format(NC_FILE_INFO_T* file);
+extern int NCZ_infer_open_nczarr_format(NC_FILE_INFO_T* file);
 
 /**************************************************/
 /* Misc. */

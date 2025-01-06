@@ -27,6 +27,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include "ncrc.h"
+#include "nclog.h"
 
 /** @internal Number of reserved attributes. These attributes are
  * hidden from the netcdf user, but exist in the implementation
@@ -174,31 +175,31 @@ nc4_check_name(const char *name, char *norm_name)
 
     /* Check for NULL. */
     if (!name)
-        return NC_EINVAL;
+        return NCTHROW(NC_EINVAL);
 
     /* Make sure this is a valid netcdf name. This should be done
      * before the name is normalized, because it gives better error
      * codes for bad utf8 strings. */
     if ((retval = NC_check_name(name)))
-        return retval;
+        return NCTHROW(retval);
 
     /* Normalize the name. */
     if ((retval = nc_utf8_normalize((const unsigned char *)name,
                                     (unsigned char **)&temp)))
-        return retval;
+        return NCTHROW(retval);
 
     /* Check length of normalized name. */
     if (strlen(temp) > NC_MAX_NAME)
     {
         free(temp);
-        return NC_EMAXNAME;
+        return NCTHROW(NC_EMAXNAME);
     }
 
     /* Copy the normalized name. */
     strcpy(norm_name, temp);
     free(temp);
 
-    return NC_NOERR;
+    return NCTHROW(NC_NOERR);
 }
 
 /**

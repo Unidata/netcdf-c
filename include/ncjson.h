@@ -113,7 +113,7 @@ OPTEXPORT int NCJinsert(NCjson* object, const char* key, NCjson* jvalue);
 /* Insert key-value pair into a dict object. key and value will be copied */
 OPTEXPORT int NCJinsertstring(NCjson* object, const char* key, const char* value);
 
-/* Overwrite key-value pair into a dict object. Act like NCJinsert if key not found */
+/* Overwrite key-value pair in a dict object. Act like NCJinsert if key not found */
 OPTEXPORT int NCJoverwrite(NCjson* object, const char* key, NCjson* value);
 
 /* Insert key-value pair into a dict object. key and value will be copied */
@@ -164,7 +164,19 @@ OPTEXPORT void NCJdictsort(NCjson* jdict);
 
 /**************************************************/
 /* Error detection helper */
-#define NCJcheck(expr) do{if((expr) < 0) {stat = (NCJ_ERR); goto done;}}while(0)
+#undef NCJDEBUG
+#ifdef NCJDEBUG
+static int
+NCJBREAKPOINT(int err)
+{
+    (void)NCJBREAKPOINT;
+    return err;
+}
+#else
+#define NCJBREAKPOINT(err) (err)
+#endif /*NCJDEBUG*/
+#define NCJcheck(expr) do{if((expr) < 0) {stat = NCJBREAKPOINT(NCJ_ERR); goto done;}}while(0)
+
 /**************************************************/
 
 #endif /*!NCJSON_H*/ /* Leave the ! as a tag for sed */

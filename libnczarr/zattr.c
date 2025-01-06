@@ -1021,7 +1021,7 @@ NCZ_computeattrdata(NC_FILE_INFO_T* file, const NCjson* jdata, struct NCZ_AttrIn
 
     NC_UNUSED(file);
 
-    ZTRACE(3,"typehint=%d typeid=%d values=|%s|",ainfo->typehint,ainfo->nctype,NCJtotext(jdata));
+    ZTRACE(3,"typeid=%d values=|%s|",ainfo->nctype,NCJtotext(jdata,0));
 
     /* See if this is a simple vector (or scalar) of atomic types vs more complex json */
     isjson = (ainfo->nctype == NC_JSON || NCZ_iscomplexjson(ainfo->name,jdata));
@@ -1066,7 +1066,7 @@ NCZ_attr_convert(const NCjson* src, nc_type typeid, size_t* countp, NCbytes* dst
     size_t i;
     size_t count = 0;
 
-    ZTRACE(3,"src=%s typeid=%d typelen=%u",NCJtotext(src),typeid,typelen);
+    ZTRACE(3,"src=%s typeid=%d",NCJtotext(src,0),typeid);
 
     /* 3 cases:
        (1) singleton atomic value

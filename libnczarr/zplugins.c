@@ -82,8 +82,10 @@ int
 NCZ_plugin_path_finalize(void)
 {
     int stat = NC_NOERR;
-    size_t i;
     struct NCglobalstate* gs = NC_getglobalstate();
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
+    size_t i;
+#endif
 
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
     /* Reclaim all loaded filters */

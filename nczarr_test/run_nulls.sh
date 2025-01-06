@@ -3,7 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "${builddir}/test_nczarr.sh"
+. "${srcdir}/test_nczarr.sh"
 
 set -e
 
@@ -32,9 +32,9 @@ deletemap $zext $nczarrfile
 
 # Create alternate ref files
 echo "*** create pure zarr file"
-${NCGEN} -4 -b -o "$zarrurl" $srcdir/ref_nulls.cdl
+${NCGEN} -4 -b -o "$zarrurl" $srcdir/../nczarr_test/ref_nulls.cdl
 echo "*** create nczarr file"
-${NCGEN} -4 -b -o "$nczarrurl" $srcdir/ref_nulls.cdl
+${NCGEN} -4 -b -o "$nczarrurl" $srcdir/../nczarr_test/ref_nulls.cdl
 
 echo "*** read purezarr"
 ${NCDUMP} -n ref_nulls $zarrurl > tmp_nulls_zarr_${zext}.cdl

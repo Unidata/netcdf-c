@@ -44,6 +44,7 @@ S3 Support:	        @HAS_S3@
 S3 SDK:  	        @WHICH_S3_SDK@
 
 NCZarr Support:		@HAS_NCZARR@
+NCZarr Support V3:	@HAS_NCZARR_V3@
 NCZarr File Support:	yes
 NCZarr Zip Support:	@HAS_NCZARR_ZIP@
 NCZarr S3 Support:	@HAS_S3@

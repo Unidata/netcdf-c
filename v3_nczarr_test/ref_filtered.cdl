@@ -11,11 +11,10 @@ dimensions:
 group: g {
   variables:
   	float var(dim0, dim1, dim2, dim3) ;
-  		var:_FillValue = 9.96921e+36f ;
-  		var:_Storage = "chunked" ;
+		var:_Storage = "chunked" ;
   		var:_ChunkSizes = 4, 4, 4, 4 ;
   		var:_Filter = "307,9" ;
-   		var:_Codecs = "[{\"name\": \"bz2\", \"configuration\": {\"level\": 9}}]" ;
+  		var:_Codecs = "[{\"name\": \"bz2\", \"configuration\": {\"level\": 9}}]" ;
 
   // group attributes:
   data:

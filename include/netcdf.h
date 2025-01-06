@@ -541,8 +541,9 @@ by the desired type. */
 #define NC_ENOOBJECT     (-141)    /**< Some object not found */
 #define NC_EPLUGIN       (-142)    /**< Unclassified failure in accessing a dynamically loaded plugin> */
 #define NC_ENOTZARR      (-143)    /**< Malformed (NC)Zarr file */
- 
-#define NC4_LAST_ERROR   (-143)    /**< @internal All netCDF errors > this. */
+#define NC_EZARRMETA     (-144)    /**< Malformed (NC)Zarr file consolidated metadata */
+
+#define NC4_LAST_ERROR   (-144)    /**< @internal All netCDF errors > this. */
 
 /* Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
 #define NC_EURL         (NC_EDAPURL)   /**< Malformed URL */

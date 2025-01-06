@@ -29,8 +29,9 @@ noinst_LTLIBRARIES = libnczarr.la
 
 # The source files.
 libnczarr_la_SOURCES = \
-zformat.c \
-zformat3.c \
+zmetadata.c \
+zmetadata0.c \
+zmetadata2.c \
 zformat2.c \
 zsync.c \
 zinfer.c \
@@ -57,9 +58,11 @@ zfilter.c \
 zplugins.c \
 zutil.c \
 zvar.c \
+zformat.c \
 zwalk.c \
 znc4.c \
 zdebug.c \
+zmetadata.h \
 zformat.h \
 zarr.h \
 zfill.h \
@@ -75,6 +78,10 @@ zplugins.h \
 zfilter.h \
 znc4.h \
 zdebug.h
+
+#ifdef NETCDF_ENABLE_NCZARR_V3 
+libnczarr_la_SOURCES += zmetadata3.c zformat3.c
+#endif
 
 if NETCDF_ENABLE_NCZARR_ZIP
 libnczarr_la_SOURCES += zmap_zip.c 

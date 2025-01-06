@@ -284,7 +284,7 @@ ziptruncate(const char* surl)
     zip_close(zip);
 done:
     ncurifree(url);
-    return stat;    
+    return ZUNTRACE(stat);    
 }
 
 /**************************************************/

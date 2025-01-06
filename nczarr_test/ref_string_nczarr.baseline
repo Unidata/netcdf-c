@@ -3,7 +3,6 @@ dimensions:
 	d2 = 2 ;
 variables:
 	char c(d2) ;	
-		c:_FillValue = "" ;
 	string v(d2) ;
 		string v:_FillValue = "" ;
 	string truncated ;

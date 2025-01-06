@@ -263,7 +263,7 @@ done:
     ncurifree(url);
     ncurifree(purl);
     (void)NC_s3clear(&info);
-    return stat;
+    return ZUNTRACE(stat);
 }
 
 /**************************************************/
@@ -290,6 +290,37 @@ zs3exists(NCZMAP* map, const char* key)
 */
 static int
 zs3len(NCZMAP* map, const char* key, size64_t* lenp)
+{
+    int stat = NC_NOERR;
+    ZS3MAP* z3map = (ZS3MAP*)map;
+    char* truekey = NULL;
+
+    ZTRACE(6,"map=%s key=%s",map->url,key);
+
+    if((stat = maketruekey(z3map->s3.rootkey,key,&truekey))) goto done;
+
+    switch (stat = NC_s3sdkinfo(z3map->s3client,z3map->s3.bucket,truekey,lenp,&z3map->errmsg)) {
+    case NC_NOERR: break;
+    case NC_EEMPTY: stat = NC_ENOOBJECT; /* fall thru */
+    case NC_ENOOBJECT:
+	if(lenp) *lenp = 0;
+	goto done;
+    default:
+        goto done;
+    }
+done:
+    nullfree(truekey);
+    reporterr(z3map);
+    return ZUNTRACE(stat);
+}
+
+/*
+@return NC_NOERR if key is a prefix for some existing object.
+@return NC_EEMPTY if key is not such a prefix.
+@return NC_EXXX return true error
+*/
+static int
+zs3keyexists(NCZMAP* map, const char* key)
 {
     int stat = NC_NOERR;
     ZS3MAP* z3map = (ZS3MAP*)map;

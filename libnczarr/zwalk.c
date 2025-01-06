@@ -459,13 +459,13 @@ transfern(const struct Common* common, unsigned char* slpptr, unsigned char* mem
     if(common->reading) {
 	if(slpstride == 1) {
 	    if((stat=NCZ_copy_data(common->file,common->var,slpptr,avail,common->reading,memptr))) goto done;
-///            memcpy(memptr,slpptr,len); /* straight copy */
+////            memcpy(memptr,slpptr,len); /* straight copy */
 	} else {
 	    for(m=0,s=0;s<avail;s+=slpstride,m++) {
 		size_t soffset = s*typesize;
 		size_t moffset = m*typesize;
  	        if((stat=NCZ_copy_data(common->file,common->var,slpptr+soffset,1,common->reading,memptr+moffset))) goto done;
-///	    memcpy(memptr+moffset,slpptr+soffset,typesize);
+////	    memcpy(memptr+moffset,slpptr+soffset,typesize);
 	    }
 	}
         if(common->swap && xtype < NC_STRING)

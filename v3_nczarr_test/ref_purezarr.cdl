@@ -1,10 +1,9 @@
 netcdf tmp_purezarr {
 dimensions:
- 	x = 2 ;
- 	y = 5 ;
+	x = 2 ;
+	y = 5 ;
 variables:
 	int i(x, y) ;
-		i:_FillValue = -2147483647 ;
 data:
 
  i =

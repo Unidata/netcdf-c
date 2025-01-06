@@ -6,7 +6,7 @@
 #define ZDEBUG_H
 
 #define ZCATCH /* Warning: significant performance impact */
-#undef ZTRACING /* Warning: significant performance impact */
+#define ZTRACING /* Warning: significant performance impact */
 
 #undef ZDEBUG /* general debug */
 #undef ZDEBUG1 /* detailed debug */
@@ -62,6 +62,7 @@ EXTERNL char* nczprint_idvector(size_t,const int*);
 EXTERNL char* nczprint_paramvector(size_t,const unsigned*);
 EXTERNL char* nczprint_sizevector(size_t,const size_t*);
 EXTERNL char* nczprint_envv(const char** envv);
+EXTERNL char* nczprint_envlist(const NClist* l);
 
 EXTERNL void zdumpcommon(const struct Common*);
 

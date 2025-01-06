@@ -367,7 +367,7 @@ NCZ_addfilter(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NCZ_Filter** fip)
     NCZ_Filter* oldfi = NULL;
     int exists = 0;
 
-    ZTRACE(6,"file=%s var=%s id=%u nparams=%u params=%p",file->hdr.name,var->hdr.name,hdf5->id,hdf5->visible.nparams,hdf5->visible.params);
+    ZTRACE(6,"file=%s var=%s",file->hdr.name,var->hdr.name);
     
     assert(fip != NULL && *fip != NULL);
     
@@ -608,6 +608,7 @@ int
 NCZ_filter_finalize(void)
 {
     int stat = NC_NOERR;
+    ZTRACE(6,"");
     if(!NCZ_filter_initialized) goto done;
     NCZ_filter_initialized = 0;
 

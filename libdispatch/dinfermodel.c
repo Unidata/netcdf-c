@@ -170,6 +170,7 @@ static const struct MODEINFER modenegations[] = {
 {"bytes","nczarr"}, /* bytes negates (nc)zarr */
 {"bytes","zarr"},
 {"noxarray","xarray"},
+{"nozmetadata","zmetadata"},
 {NULL,NULL}
 };
 
@@ -409,6 +410,7 @@ envvlist2string(NClist* envv, const char* delim)
     NCbytes* buf = NULL;
     char* result = NULL;
 
+    NC_UNUSED(delim);
     if(envv == NULL || nclistlength(envv) == 0) return NULL;
     buf = ncbytesnew();
     for(i=0;i<nclistlength(envv);i+=2) {
@@ -719,6 +721,9 @@ done:
 static int
 processfragmentkeys(const char* key, const char* value, NCmodel* model)
 {
+    NC_UNUSED(key);
+    NC_UNUSED(value);
+    NC_UNUSED(model);
     return NC_NOERR;
 }
 

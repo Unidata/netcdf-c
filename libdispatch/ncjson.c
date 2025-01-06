@@ -883,6 +883,8 @@ NCJclone(const NCjson* json, NCjson** clonep)
 {
     int stat = NCJ_OK;
     NCjson* clone = NULL;
+
+    if(clonep) *clonep = NULL;
     if(json == NULL) goto done;
     switch(NCJsort(json)) {
     case NCJ_INT:
@@ -967,21 +969,44 @@ done:
     return NCJTHROW(stat);
 }
 
-/* Insert key-value pair into a dict object. key will be strdup'd, jvalue will be claimed */
+/* Insert key-value pair into a dict object. key will be strdup'd, jvalue will be used without copying.
+   If key already exists, then it's value is overwritten
+*/
 OPTSTATIC int
-NCJinsert(NCjson* dict, const char* key, NCjson* jvalue)
+NCJinsert(NCjson* jdict, const char* key, NCjson* jvalue)
 {
     int stat = NCJ_OK;
+    size_t i;
     NCjson* jkey = NULL;
-    if(dict == NULL
-	|| dict->sort != NCJ_DICT
+    NCjson* jprev = NULL;
+    int found;
+
+    if(jdict == NULL
+	|| NCJsort(jdict) != NCJ_DICT
 	|| key == NULL
 	|| jvalue == NULL) {stat = NCJTHROW(NCJ_ERR); goto done;}
-    if((stat = NCJnewstring(NCJ_STRING,key,&jkey))==NCJ_ERR) goto done;
-    if((stat=listsetalloc(&dict->list,dict->list.len+2))<0) goto done;
-    if((stat = NCJappend(dict,jkey))==NCJ_ERR) goto done;
-    if((stat = NCJappend(dict,jvalue))==NCJ_ERR) goto done;
+    for(found=(-1),i=0;i < NCJdictlength(jdict); i++) {
+	jkey = NCJdictkey(jdict,i);
+	if (jkey != NULL && strcmp(NCJstring(jkey), key) == 0) {
+	    found = (int)i;
+	    break;
+	}
+    }
+    if(found >= 0) {
+	jprev = NCJdictvalue(jdict,found);
+	// replace existing values for new key
+	NCJreclaim(jprev); // free old value
+	NCJdictvalue(jdict,found) = jvalue; jvalue = NULL;
+	jkey = NULL; /* avoid reclamation */
+    } else { /* not found */
+        if((stat=listsetalloc(&jdict->list,jdict->list.len+2))<0) goto done;
+	NCJcheck(NCJnewstring(NCJ_STRING, key, (NCjson**)&jkey));
+	NCJcheck(NCJappend(jdict,jkey)); jkey = NULL;
+	NCJcheck(NCJappend(jdict,jvalue)); jvalue = NULL;
+    }
 done:
+    NCJreclaim(jkey);
+    NCJreclaim(jvalue);
     return NCJTHROW(stat);
 }
 

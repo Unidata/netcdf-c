@@ -362,6 +362,29 @@ nczprint_envv(const char** envv)
     return capture(result);
 }
 
+char*
+nczprint_envlist(const NClist* l)
+{
+    char* result = NULL;
+    size_t i;
+    NCbytes* buf = ncbytesnew();
+
+    ncbytescat(buf,"(");
+    if(l) {
+        for(i=0;i<nclistlength(l);i++) {
+	    const char* e = (const char*)nclistget(l,i);
+	    if(i > 0) ncbytescat(buf,",");
+	    ncbytescat(buf,"'");
+	    ncbytescat(buf,e);
+	    ncbytescat(buf,"'");
+	}
+    }
+    ncbytescat(buf,")");
+    result = ncbytesextract(buf);
+    ncbytesfree(buf);
+    return capture(result);
+}
+
 void
 zdumpcommon(const struct Common* c)
 {

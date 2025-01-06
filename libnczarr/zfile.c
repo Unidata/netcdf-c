@@ -165,7 +165,7 @@ NCZ_sync(int ncid)
 
     /* do not do this if file is writeonce */
     stat = ncz_sync_netcdf4_file(file,!ZCLOSE);
-    return stat;
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -217,7 +217,7 @@ NCZ_close(int ncid, void* params)
     if ((stat = nc4_find_grp_h5(ncid, NULL, &h5)))
         return stat;
     assert(h5);
-    return ncz_closeorabort(h5, params, 0);
+    return ZUNTRACE(ncz_closeorabort(h5, params, 0));
 }
 
 /**

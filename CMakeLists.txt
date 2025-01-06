@@ -45,7 +45,6 @@ set(PACKAGE "netCDF" CACHE STRING "")
 include(netcdf_functions_macros)
 include(deprecated)
 
-
 # Backport of built-in `PROJECT_IS_TOP_LEVEL` from CMake 3.21
 if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
   set(NETCDF_IS_TOP_LEVEL OFF)
@@ -1762,6 +1761,10 @@ endif()
 # The Unidata testing S3 bucket
 # WARNING: this must match the value in configure.ac
 set(S3TESTBUCKET "unidata-zarr-test-data" CACHE STRING "S3 test bucket")
+
+# Additional S3 Test Endpoing
+set(S3ENDPOINT "s3.us-east-1.amazonaws.com" CACHE STRING "S3 endpoint")
+
 
 # The working S3 path tree within the Unidata bucket.
 # WARNING: this must match the value in configure.ac

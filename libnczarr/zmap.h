@@ -260,7 +260,7 @@ Check if a specified content-bearing object exists or not.
 @param map -- the containing map
 @param key -- the key specifying the content-bearing object
 @return NC_NOERR if the object exists
-@return NC_EEMPTY if the object is not content bearing.
+@return NC_ENOOBJECT if the object does not exist
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
 EXTERNL int nczmap_exists(NCZMAP* map, const char* key);

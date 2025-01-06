@@ -33,7 +33,7 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* urlcontrol
     NCjson* json = NULL;
     char* key = NULL;
 
-    ZTRACE(3,"file=%s root=%s urlcontrols=%s",file->hdr.name,root->hdr.name,(controls?nczprint_env(urlcontrols):"null"));
+    ZTRACE(3,"root=%s urlcontrols=%s",root->hdr.name,(urlcontrols?nczprint_envlist(urlcontrols):"null"));
 
     nc = (NC*)file->controller;
 
@@ -74,7 +74,10 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* urlcontrol
     if((stat = NCZ_get_map(file,uri,(mode_t)nc->mode,zfile->flags,NULL,&zfile->map))) goto done;
 
     /* And get the format dispatcher */
-    if((stat = NCZ_get_formatter(file, (const NCZ_Formatter**)&zfile->dispatcher))) goto done;
+    if((stat = NCZ_get_create_formatter(file, (const NCZ_Formatter**)&zfile->dispatcher))) goto done;
+
+    /* And get the consolidated metadata handler */
+    if((stat = NCZMD_set_metadata_handler(file))) goto done;
 
 done:
     ncurifree(uri);
@@ -101,7 +104,7 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* urlcontrols)
     NCZ_FILE_INFO_T* zfile = NULL;
     NClist* modeargs = NULL;
 
-    ZTRACE(3,"file=%s controls=%s",file->hdr.name,(controls?nczprint_envv(controls):"null"));
+    ZTRACE(3,"file=%s urlcontrols=%s",file->hdr.name,(urlcontrols?nczprint_envlist(urlcontrols):"null"));
 
     /* Extract info reachable via file */
     nc = (NC*)file->controller;
@@ -139,8 +142,18 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* urlcontrols)
     /* initialize map handle*/
     if((stat = NCZ_get_map(file,uri,(mode_t)nc->mode,zfile->flags,NULL,&zfile->map))) goto done;
 
-    /* And get the format dispatcher */
-    if((stat = NCZ_get_formatter(file, (const NCZ_Formatter**)&zfile->dispatcher))) goto done;
+    /* Get the zarr_format */
+    if((stat = NCZ_infer_open_zarr_format(file))) goto done;
+
+    /* And add the consolidated metadata manager to file */
+    /* Must follow NCZ_infer_ope_zarr_format because it uses the discovered zarr format */
+    if((stat = NCZMD_set_metadata_handler(file))) goto done;
+
+    /* Set the nczarr format; must follow set_metadata_handler because it needs to read metadata */
+    if((stat = NCZ_infer_open_nczarr_format(file))) goto done;
+    
+    /* And get the format dispatcher: uses discovered zarr and nczarr formats and the metadata handler */
+    if((stat = NCZ_get_open_formatter(file, (const NCZ_Formatter**)&zfile->dispatcher))) goto done;
 
     /* Load the meta-data */
     if((stat = ncz_decode_file(file))) goto done;
@@ -227,6 +240,19 @@ controllookup(NClist* controls, const char* key)
     return NULL;
 }
 
+/**
+Look to various sources to get control information
+for a given dataset. Current sources:
+1. From URL:
+    * "mode=..."
+    * "log"
+    * "show=..."
+2. Environment variables:
+
+@param zinfo modified to add controls
+@return NC_NOERR if success
+@return NC_EXXX if failures
+*/
 static int
 applycontrols(NCZ_FILE_INFO_T* zinfo)
 {
@@ -236,6 +262,7 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     NClist* modelist = nclistnew();
     size64_t noflags = 0; /* track non-default negative flags */
 
+    /* Apply controls from URL mode=... */
     if((value = controllookup(zinfo->urlcontrols,"mode")) != NULL) {
 	if((stat = NCZ_comma_parse(value,modelist))) goto done;
     }
@@ -255,6 +282,10 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
 	    zinfo->zarr.zarr_format = ZARRFORMAT2;
 	else if(strcasecmp(p,ZARRFORMAT3_STRING)==0)
 	    zinfo->zarr.zarr_format = ZARRFORMAT3;
+	else if(strcasecmp(p,NOZMETADATACONTROL)==0)
+	    zinfo->flags |= FLAG_NOCONSOLIDATED;
+	else if(strcasecmp(p,ZMETADATACONTROL)==0)
+	    noflags |= FLAG_NOCONSOLIDATED;
     }
 
     /* Apply negative controls by turning off negative flags */
@@ -270,6 +301,9 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
 	if(strcasecmp(value,"fetch")==0)
 	    zinfo->flags |= FLAG_SHOWFETCH;
     }
+
+    /* Environment Variables */
+
 done:
     nclistfreeall(modelist);
     return stat;

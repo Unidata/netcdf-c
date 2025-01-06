@@ -49,6 +49,7 @@ extern "C" {
 #include "ncproplist.h"
 
 #include "zmap.h"
+#include "zmetadata.h"
 #include "zinternal.h"
 #include "zfilter.h"
 #include "zformat.h"

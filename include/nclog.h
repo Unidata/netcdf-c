@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include "ncexternl.h"
 
-#undef NCCATCH
+#define NCCATCH
 
 #define NCENVLOGGING "NCLOGGING"
 #define NCENVTRACING "NCTRACING"

@@ -1,0 +1,4 @@
+[0] /.zgroup
+[1] /data1/0
+[2] /meta1/.zarray
+[3] /meta2/.zarray

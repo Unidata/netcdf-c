@@ -567,6 +567,14 @@ NCZ_mapkind(NCZM_IMPL impl)
     return "Unknown";
 }
 
+/**
+Walk the content-bearing keys of a dataset and invoke
+a specified function on each such key.
+@param map
+@param prefix only pass keys that have this prefix
+@param fcn to process each key; return NC_NOERR to stop walk, NC_ENOOBJECT to keep going.
+@param param arbitrary arg to give to fcn
+*/
 int
 nczmap_walk(NCZMAP* map, const char* prefix, NCZWALKFCN fcn, void* param)
 {
@@ -574,6 +582,7 @@ nczmap_walk(NCZMAP* map, const char* prefix, NCZWALKFCN fcn, void* param)
     NCbytes* path = ncbytesnew();
     NClist* subtree = nclistnew();
     size_t i;
+    int stop;
 
     assert(prefix != NULL && strlen(prefix) > 0);
     if(prefix[0] != '/') ncbytescat(path,"/");
@@ -584,12 +593,15 @@ nczmap_walk(NCZMAP* map, const char* prefix, NCZWALKFCN fcn, void* param)
     if(nclistlength(subtree) == 0) goto done; /* empty subtree */
     
     /* Apply fcn to all paths in subtree */
-    for(i=0;i<nclistlength(subtree);i++) {
+    for(stop=0,i=0;!stop && i<nclistlength(subtree);i++) {
         const char* key = nclistget(subtree,i);
 	if(key == NULL) continue;
 	/* invoke function */
-	stat = fcn(map,ncbytescontents(path),key,param);
-	if(stat != NC_NOERR) goto done;
+	switch(stat = fcn(map,ncbytescontents(path),key,param)) {
+	case NC_NOERR: stop = 1; break; /* stop walk */
+	case NC_ENOOBJECT: break; /* keep walking */
+	default: goto done;
+	}
     }
 
 done:

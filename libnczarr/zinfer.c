@@ -43,53 +43,85 @@ Read:
 struct TagParam {
     int zarrformat;
     int nczarrformat;
+    int haszmetadata;
+};
+
+struct ZarrObjects {
+    const char* name;
+    int zarr_version;
+    int haszmetadata;
+} zarrobjects[] = {
+{"zarr.json",	ZARRFORMAT3,	0},
+{".zgroup",	ZARRFORMAT2,	0},
+{".zarray",	ZARRFORMAT2,	0},
+{".zattrs",	ZARRFORMAT2,	0},
+{".zmetadata",	ZARRFORMAT2,	1},
+{NULL,		0,		0},	
 };
 
 /**************************************************/
 /*Forward*/
 
-static int NCZ_infer_format(NC_FILE_INFO_T* file, int* zarrformatp, int* nczarrformatp);
-static int NCZ_infer_storage_type(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCURI* url, NCZM_IMPL* implp);
-
-static int infer_create_format(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCZMAP* map, int* zarrformatp, int* nczarrformatp);
-static int infer_open_format(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCZMAP* map, int* zarrformatp, int* nczarrformatp);
-
+static int NCZ_infer_storage_type(NC_FILE_INFO_T* file, NCURI* url, NCZM_IMPL* implp);
+static int infer_create_format(NC_FILE_INFO_T* file, int* zarrformatp, int* nczarrformatp);
 static int tagsearch(NCZMAP* map, const char* prefix, const char* segment, void* param);
 
 /**************************************************/
 
-static int
-NCZ_infer_format(NC_FILE_INFO_T* file, int* zarrformatp, int* nczarrformatp)
+/**
+Figure out the formatter to use when creating a file
+@param file
+@param formatterp
+@return NC_NOERR | NC_EXXX
+*/
+
+int
+NCZ_get_create_formatter(NC_FILE_INFO_T* file, const NCZ_Formatter** formatterp)
 {
     int stat = NC_NOERR;
-    int create;
+    const NCZ_Formatter* formatter = NULL;
     NCZ_FILE_INFO_T* zfile = NULL;
-    NCZMAP* zmap = NULL;
-    int zarrformat = 0;
-    int nczarrformat = 0;
+    int zarr_format = 0;
+    int nczarr_format = 0;
 
     zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
     assert(zfile != NULL);
-    create = zfile->creating;
-    zmap = zfile->map;
-    assert(zmap != NULL);
-    /* Assume controls exist and have been applied */
 
-    if(create) 
-	stat = infer_create_format(file,zfile,zmap,&zarrformat,&nczarrformat);
-    else
-	stat = infer_open_format(file,zfile,zmap,&zarrformat,&nczarrformat);
-    if(zarrformatp) *zarrformatp = zarrformat;
-    if(nczarrformatp) *nczarrformatp = nczarrformat;
+    /* Infer the zarr+nczarr formats */
+    if((stat = infer_create_format(file,&zarr_format,&nczarr_format))) goto done;
+    zfile->zarr.zarr_format = zarr_format;
+    zfile->zarr.nczarr_format = nczarr_format;
+
+    /* If the nczarr_format is NULL, then that implies pure zarr,
+       so use the zarr format instead. */
+    if(nczarr_format != 0) {
+        switch(nczarr_format) {
+        case 2: formatter = NCZ_formatter2; break;
+        case 3: formatter = NCZ_formatter3; break;
+        default: stat = NC_ENCZARR; goto done;
+        }
+    } else { /* Decide based on zarr format plus the fact that it is pure zarr */
+        switch(zarr_format) {
+        case 2: formatter = NCZ_formatter2; break;
+        case 3: formatter = NCZ_formatter3; break;
+        default: stat = NC_ENCZARR; goto done;
+        }
+    }
+
+    if(formatterp) *formatterp = formatter;
+
+done:
     return THROW(stat);
 }
 
 static int
-infer_create_format(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCZMAP* map, int* zarrformatp, int* nczarrformatp)
+infer_create_format(NC_FILE_INFO_T* file, int* zarrformatp, int* nczarrformatp)
 {
     int stat = NC_NOERR;
     int zarrformat = 0;
     int nczarrformat = NCZARRFORMAT0;
+    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
+    NCZMAP* map = zfile->map;
 
     NC_UNUSED(file);
     NC_UNUSED(map);
@@ -110,16 +142,58 @@ infer_create_format(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCZMAP* map, i
     return THROW(stat);
 }
 
-static int
-infer_open_format(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCZMAP* map, int* zarrformatp, int* nczarrformatp)
+/**
+Figure out the formatter to use when opening a file
+@param file
+@param formatterp
+@return NC_NOERR | NC_EXXX
+*/
+
+int
+NCZ_get_open_formatter(NC_FILE_INFO_T* file, const NCZ_Formatter** formatterp)
+{
+    int stat = NC_NOERR;
+    const NCZ_Formatter* formatter = NULL;
+    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
+    int zarr_format = zfile->zarr.zarr_format;
+    int nczarr_format = zfile->zarr.nczarr_format;
+
+    zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
+    assert(zfile != NULL);
+
+    zfile->zarr.zarr_format = zarr_format;
+    zfile->zarr.nczarr_format = nczarr_format;
+    assert(zfile->zarr.zarr_format != 0 && zfile->zarr.nczarr_format != 0);
+
+    /* If the nczarr_format is NULL, then that implies pure zarr,
+       so use the zarr format instead. */
+    if(nczarr_format != 0) {
+        switch(nczarr_format) {
+        case 2: formatter = NCZ_formatter2; break;
+        case 3: formatter = NCZ_formatter3; break;
+        default: stat = NC_ENCZARR; goto done;
+        }
+    } else { /* Decide based on zarr format plus the fact that it is pure zarr */
+        switch(zarr_format) {
+        case 2: formatter = NCZ_formatter2; break;
+        case 3: formatter = NCZ_formatter3; break;
+        default: stat = NC_ENCZARR; goto done;
+        }
+    }
+
+    if(formatterp) *formatterp = formatter;
+
+done:
+    return THROW(stat);
+}
+
+int
+NCZ_infer_open_zarr_format(NC_FILE_INFO_T* file)
 {
     int stat = NC_NOERR;
     int zarrformat = 0;
-    int nczarrformat = 0;
-    NCjson* jrootgrp = NULL;
-    const NCjson* jsuperg = NULL;
-    const NCjson* jsupera = NULL;
-    struct TagParam param;
+    struct TagParam param = {0,0,0};
+    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
 
     NC_UNUSED(file);
 
@@ -127,28 +201,49 @@ infer_open_format(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCZMAP* map, int
 
     if(zarrformat == 0) {
         /* We need to search subtree for a V2 or V3 tag */
-	param.zarrformat = 0; param.nczarrformat = 0;
-        switch(stat = nczmap_walk(map,"/",tagsearch, &param)) {
-        case NC_NOERR:
+        switch(stat = nczmap_walk(zfile->map,"/",tagsearch, &param)) {
+        case NC_ENOOBJECT:
 	    /* No tag was found, so its not a zarr file */
 	    stat = NC_ENOTZARR;
  	    goto done;
-        case NC_EOBJECT: /* Arbitrary error signaling found and format is in param */
-	    stat = NC_NOERR;
+        case NC_NOERR: /* found and format is in param */
 	    switch(param.zarrformat) {
-	    case ZARRFORMAT2: case ZARRFORMAT3: zarrformat = param.zarrformat; break;
-	    default: stat = NC_ENOTZARR; goto done;
+	    case ZARRFORMAT2: case ZARRFORMAT3:
+		zarrformat = param.zarrformat;
+		break;
+	    default:
+		stat = NC_ENOTZARR;
+		goto done;
 	    }
 	    break;
-        default: stat = NC_ENOTZARR; goto done;
+        default:
+	    stat = NC_ENOTZARR;
+	    goto done;
 	}
     }
+    if(zarrformat == 0) {stat = NC_ENOTZARR; goto done;}
+    zfile->zarr.zarr_format = zarrformat;    
 
-    if(zarrformat == ZARRFORMAT2 && nczarrformat == 0) {
-	NCjson* jrootatts = NULL;
-        /* Download /.zattrs  and /.zgroup */
-        if((stat = NCZ_downloadjson(zfile->map, Z2ATTSROOT, &jrootgrp))) goto done;
-        if((stat = NCZ_downloadjson(zfile->map, Z2METAROOT, &jrootatts))) goto done;
+done:
+    return THROW(stat);
+}
+
+int
+NCZ_infer_open_nczarr_format(NC_FILE_INFO_T* file)
+{
+    int stat = NC_NOERR;
+    NCjson* jrootgrp = NULL;
+    const NCjson* jsuperg = NULL;
+    const NCjson* jsupera = NULL;
+    NCjson* jrootatts = NULL;
+    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
+    int zarrformat = zfile->zarr.zarr_format;
+    int nczarrformat = 0;
+    
+    if(zarrformat == ZARRFORMAT2) {
+        /* Download /.zgroup  and /.zattrs */
+        if((stat = NCZMD_fetch_json_content(file, NCZMD_GROUP, Z2METAROOT, &jrootgrp))) goto done;
+        if((stat = NCZMD_fetch_json_content(file, NCZMD_ATTRS, Z2ATTSROOT, &jrootatts))) goto done;
         /* Look for superblock */
 	if(jrootgrp != NULL) NCJdictget(jrootgrp,NC_NCZARR_SUPERBLOCK_ATTR,(NCjson**)&jsuperg);
 	if(jrootatts != NULL) NCJdictget(jrootatts,NC_NCZARR_SUPERBLOCK_ATTR,(NCjson**)&jsupera);
@@ -156,11 +251,11 @@ infer_open_format(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCZMAP* map, int
 	NCZ_reclaim_json(jrootgrp); jrootgrp = NULL;
 	NCZ_reclaim_json(jrootatts); jrootatts = NULL;
     }
-
+#ifdef NETCDF_ENABLE_NCZARR_V3
     if(zarrformat == ZARRFORMAT3 && nczarrformat == 0) {
 	const NCjson* jrootatts = NULL;
         /* Look for "/zarr.json" */
-        if((stat = NCZ_downloadjson(zfile->map, Z3METAROOT, &jrootgrp))) goto done;
+        if((stat = NCZMD_fetch_json_content(file, NCZMD_GROUP, Z3METAROOT, &jrootgrp))) goto done;
 	if(jrootgrp == NULL || NCJsort(jrootgrp) != NCJ_DICT) {
 	    nczarrformat = NCZARRFORMAT0;
 	} else {
@@ -178,27 +273,30 @@ infer_open_format(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCZMAP* map, int
 	}
 	NCZ_reclaim_json(jrootgrp); jrootgrp = NULL;
     }
-
-    if(zarrformat == 0) {stat = NC_ENOTZARR; goto done;}
-
-    if(zarrformatp) *zarrformatp = zarrformat;
-    if(nczarrformatp) *nczarrformatp = nczarrformat;
+#else
+	{stat = NC_ENOTBUILT; goto done;}
+#endif
+    
+    if(nczarrformat == 0) nczarrformat = zarrformat;
+    zfile->zarr.nczarr_format = nczarrformat;
 
 done:
-    if(stat == NC_ENOTZARR) {
-        if(zarrformatp) *zarrformatp = 0;
-	if(nczarrformatp) *nczarrformatp = NCZARRFORMAT0;
-    }
     NCZ_reclaim_json(jrootgrp);
+    NCZ_reclaim_json(jrootatts);
     return THROW(stat);
 }
 
+/*
+Figure out the zarr format based on the
+top-level keys of the dataset.
+*/
 static int
 tagsearch(NCZMAP* map, const char* prefix, const char* key, void* param)
 {
     struct TagParam* formats = (struct TagParam*)param;
     const char* segment = NULL;
     size_t seglen = 0;
+    struct ZarrObjects* zo = NULL;
 
     NC_UNUSED(map);
     NC_UNUSED(prefix);
@@ -209,19 +307,13 @@ tagsearch(NCZMAP* map, const char* prefix, const char* key, void* param)
     seglen = strlen(segment);
     if(seglen == 0) return NC_NOERR;
     
-    if(strcasecmp(segment,"zarr.json")==0) {
-        formats->zarrformat = ZARRFORMAT3;
-	return NC_EOBJECT; /* arbitrary error telling walker to stop */
+    for(zo=zarrobjects;zo->name;zo++) {
+	if(strcasecmp(segment,zo->name)==0) {
+            formats->zarrformat = zo->zarr_version;
+	    return NC_NOERR; /* tell walker to stop */
+	}
     }
-    if(seglen < 2) return NC_NOERR; /* keep looking */
-    if(segment[0] != '.' || segment[1] != 'z') return NC_NOERR;
-    if(strcasecmp(segment,Z2GROUP)==0
-       || strcasecmp(segment,Z2ARRAY)==0
-       || strcasecmp(segment,Z2ATTRS)==0) {
-	formats->zarrformat = ZARRFORMAT2;
-	return NC_EOBJECT; /* V2 object found */
-    }
-    return NC_NOERR; /* Keep looking */
+    return NC_ENOOBJECT; /* Keep looking */
 }
 
 /**************************************************/
@@ -246,11 +338,12 @@ Read:
 */
 
 static int
-NCZ_infer_storage_type(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCURI* url, NCZM_IMPL* implp)
+NCZ_infer_storage_type(NC_FILE_INFO_T* file, NCURI* url, NCZM_IMPL* implp)
 {
     int ret = NC_NOERR;
     int create;
     NCZM_IMPL impl = NCZM_UNDEF;
+    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
 
     NC_UNUSED(file);
 
@@ -267,7 +360,7 @@ NCZ_infer_storage_type(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCURI* url,
     if(!create) { /* Reading a file of some kind */
 	if(strcasecmp(url->protocol,"file")==0) {
 	    struct stat buf;
-	    /* Either file or zip */
+	    /* Storage: file,zip,... */
 	    if(NCstat(url->path,&buf)<0) {ret = errno; goto done;}
 	    if(S_ISDIR(buf.st_mode))
 		impl = NCZM_FILE; /* only possibility */
@@ -289,7 +382,7 @@ NCZ_infer_storage_type(NC_FILE_INFO_T* file, NCZ_FILE_INFO_T* zfile, NCURI* url,
     }
 
     if(impl == NCZM_UNDEF)
-	{ret = NC_ENOTZARR; goto done;}
+	{ret = NC_EURL; goto done;}
 
     if(implp) *implp = impl;
 done:
@@ -321,7 +414,7 @@ NCZ_get_map(NC_FILE_INFO_T* file, NCURI* url, mode_t mode, size64_t constraints,
     assert(zfile != NULL);
     create = zfile->creating;
 
-    if((stat = NCZ_infer_storage_type(file, zfile, url, &impl))) goto done;
+    if((stat = NCZ_infer_storage_type(file, url, &impl))) goto done;
     
     if((path = ncuribuild(url,NULL,NULL,NCURIALL))==NULL) {stat = NC_ENCZARR; goto done;}
 
@@ -333,7 +426,11 @@ NCZ_get_map(NC_FILE_INFO_T* file, NCURI* url, mode_t mode, size64_t constraints,
     	    {if((stat = nczmap_open(impl,path,mode,constraints,params,&map))) goto done;}
 	break;
     case NCZM_UNDEF:
-    default: stat = NC_ENOTZARR; goto done;
+	stat = NC_EURL;
+	goto done;
+    default:
+        stat = NC_ENOTZARR;
+	goto done;
     }
 
     if(mapp) {*mapp = map; map = NULL;}
@@ -341,56 +438,6 @@ NCZ_get_map(NC_FILE_INFO_T* file, NCURI* url, mode_t mode, size64_t constraints,
 done:
     nullfree(path);
     if(map) (void)nczmap_close(map,0);
-    return THROW(stat);
-}
-
-
-/**
-Figure out the formatter to use.
-
-@param file
-@param formatterp
-
-@return NC_NOERR | NC_EXXX
-*/
-
-int
-NCZ_get_formatter(NC_FILE_INFO_T* file, const NCZ_Formatter** formatterp)
-{
-    int stat = NC_NOERR;
-    const NCZ_Formatter* formatter = NULL;
-    NCZ_FILE_INFO_T* zfile = NULL;
-    int zarr_format = 0;
-    int nczarr_format = 0;
-
-    zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
-    assert(zfile != NULL);
-
-    /* Infer the NCZarr+Zarr formats */
-    if((stat = NCZ_infer_format(file, &zarr_format, &nczarr_format))) goto done;
-
-    zfile->zarr.zarr_format = zarr_format;
-    zfile->zarr.nczarr_format = nczarr_format;
-
-    /* If the nczarr_format is NULL, then that implies pure zarr,
-       so use the zarr format instead. */
-    if(nczarr_format != 0) {
-        switch(nczarr_format) {
-        case 2: formatter = NCZ_formatter2; break;
-        case 3: formatter = NCZ_formatter3; break;
-        default: stat = NC_ENCZARR; goto done;
-        }
-    } else { /* Decide based on zarr format plus the fact that it is pure zarr */
-        switch(zarr_format) {
-        case 2: formatter = NCZ_formatter2; break;
-        case 3: formatter = NCZ_formatter3; break;
-        default: stat = NC_ENCZARR; goto done;
-        }
-    }
-
-    if(formatterp) *formatterp = formatter;
-
-done:
     return THROW(stat);
 }
 

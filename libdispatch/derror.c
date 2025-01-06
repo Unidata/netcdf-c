@@ -287,7 +287,9 @@ const char *nc_strerror(int ncerr1)
 	 return "NetCDF: Unclassified failure in accessing a dynamically loaded plugin";
       case NC_ENOTZARR:
 	 return "Malformed (NC)Zarr file";
-     default:
+      case NC_EZARRMETA:
+         return "Malformed (NC)Zarr file consolidated metadata";
+      default:
 #ifdef USE_PNETCDF
         /* The behavior of ncmpi_strerror here is to return
            NULL, not a string.  This causes problems in (at least)

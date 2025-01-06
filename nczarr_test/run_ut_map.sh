@@ -3,8 +3,9 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-. ${builddir}/test_nczarr.sh
+. ${srcdir}/test_nczarr.sh
 
+set -x
 set -e
 
 s3isolate "testdir_utmap"
@@ -32,6 +33,7 @@ testmapcreate() {
   $CMD -k$1 -x create -o $output
   cdl="ut_${tag}_create_${zext}.cdl"
   ref="ref_ut_${tag}_create.cdl"
+echo "@@@@"
   dumpmap $zext $output ./$cdl
   diff -wb ${srcdir}/$ref ./$cdl
   # delete the test file

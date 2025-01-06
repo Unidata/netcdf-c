@@ -293,54 +293,6 @@ done:
 }
 
 /**
-@internal Get contents of a meta object; fail it it does not exist
-@param zmap - [in] map
-@param key - [in] key of the object
-@param jsonp - [out] return parsed json
-@return NC_NOERR
-@return NC_ENOOBJECT [object did not exist]
-@author Dennis Heimbigner
-*/
-int
-NCZ_readdict(NCZMAP* zmap, const char* key, NCjson** jsonp)
-{
-    int stat = NC_NOERR;
-    NCjson* json = NULL;
-
-    if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
-    if(json != NULL) {
-        if(NCJsort(json) != NCJ_DICT) {stat = NC_ENCZARR; goto done;}
-    }
-    if(jsonp) {*jsonp = json; json = NULL;}
-done:
-    NCZ_reclaim_json(json);
-    return stat;
-}
-
-/**
-@internal Get contents of a meta object; fail it it does not exist
-@param zmap - [in] map
-@param key - [in] key of the object
-@param jsonp - [out] return parsed json
-@return NC_NOERR
-@return NC_ENOOBJECT [object did not exist]
-@author Dennis Heimbigner
-*/
-int
-NCZ_readarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
-{
-    int stat = NC_NOERR;
-    NCjson* json = NULL;
-
-    if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
-    if(NCJsort(json) != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
-    if(jsonp) {*jsonp = json; json = NULL;}
-done:
-    NCZ_reclaim_json(json);
-    return stat;
-}
-
-/**
 @internal Given an nc_type, produce the corresponding
 fill value JSON type
 @param nctype - [in] nc_type
@@ -369,7 +321,7 @@ NCZ_isLittleEndian(void)
     return (u.bytes[0] == 1 ? 1 : 0);
 }
 
-
+#if 0
 /*
 Given a path to a group, return the list of objects
 that contain another object with the name of the tag.
@@ -418,6 +370,7 @@ done:
     ncbytesfree(path);
     return stat;
 }
+#endif /*0*/
 
 /* Infer the attribute's type based on its value(s).*/
 int

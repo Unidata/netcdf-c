@@ -7,6 +7,10 @@
 
 # The source files for the HDF5 dispatch layer.
 SET(libnczarr_SOURCES
+zmetadata.c
+zmetadata0.c
+zmetadata2.c
+zmetadata3.c
 zformat.c
 zformat3.c
 zformat2.c
@@ -38,6 +42,7 @@ znc4.c
 zfilter.c
 zplugins.c
 zdebug.c
+zmetadata.h
 zformat.h
 zarr.h
 zfill.h

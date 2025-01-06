@@ -70,6 +70,8 @@ ncz_encode_file(NC_FILE_INFO_T* file, int isclose)
     if((stat = ncz_encode_grp(file, file->root_grp)))
         goto done;
 
+    if((stat = NCZMD_consolidate(file))) goto done;
+
 done:
     return ZUNTRACE(stat);
 }
@@ -310,9 +312,9 @@ ncz_flush_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
 	    size64_t* indices = nczodom_indices(chunkodom);
 	    /* Convert to key */
 	    if((stat = NCZ_buildchunkpath(zvar->cache,indices,&key))) goto done;
-	    switch (stat = nczmap_exists(map,key)) {
+	    switch (stat = NCZMD_exists(file,key)) {
 	    case NC_NOERR: goto next; /* already exists */
-	    case NC_EEMPTY: break; /* does not exist, create it with fill */
+	    case NC_ENOOBJECT: break; /* does not exist, create it with fill */
 	    default: goto done; /* some other error */
 	    }
             /* If we reach here, then chunk does not exist, create it with fill */
@@ -361,6 +363,15 @@ ncz_decode_file(NC_FILE_INFO_T* file)
     /* Download the root group object and associated attributes  */
     root = file->root_grp;
     if((stat = NCZF_download_grp(file, root, &zobj))) goto done;
+    
+#if 0
+Is this code needed?
+    switch(stat = NCZMD_is_metadata_consolidated(file)) {
+    case NC_NOERR: break;
+    case NC_ENOOBJECT: stat = NC_NOERR; break;
+    default: goto done;
+    }
+#endif
 
     /* Decode the group metadata to get only the superblock */
     if((stat = NCZF_decode_group(file,root,&zobj,NULL,(NCjson**)&jsuper))) goto done;
@@ -434,7 +445,7 @@ ncz_decode_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, struct ZOBJ* zobj)
     int purezarr = 0;
     const NCjson* jnczgrp = NULL;
 
-    ZTRACE(3,"file=%s parent=%s",file->controller->path,(parent?parent->hdr.name:"NULL"));
+    ZTRACE(3,"grp=%s",grp->hdr.name);
 
     TESTPUREZARR;
 
@@ -473,35 +484,6 @@ done:
     nclistfreeall(subgrps);
     return ZUNTRACE(THROW(stat));
 }
-
-#if 0
-/**
- * @internal Materialize dimensions into memory
- *
- * @param file Pointer to file info struct.
- * @param parent Pointer to parent grp info struct.
- * @param diminfo vector of struct NCZ_DimInfo*
- *
- * @return ::NC_NOERR No error.
- * @author Dennis Heimbigner
- */
-static int
-ncz_decode_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* parent, NClist* diminfo)
-{
-    int stat = NC_NOERR;
-    size_t i;
-
-    ZTRACE(3,"file=%s parent=%s |diminfo|=%u",file->controller->path,parent->hdr.name,nclistlength(diminfo));
-
-    for(i=0;i<nclistlength(diminfo);i++) {
-	struct NCZ_DimInfo* dim = (struct NCZ_DimInfo*)nclistget(diminfo,i);
-	if((stat = ncz4_create_dim(file,parent,dim->name,dim->shape,dim->unlimited,NULL))) goto done;
-    }
-
-done:
-    return ZUNTRACE(THROW(stat));
-}
-#endif /*0*/
 
 /**
  * @internal Materialize single var into memory;
@@ -587,7 +569,7 @@ done:
     nclistfree(filters);
     ncbytesfree(fqn);
     NCZ_clear_zobj(&zobj);
-    return THROW(stat);
+    return ZUNTRACE(THROW(stat));
 }
 
 /**
@@ -607,7 +589,7 @@ ncz_decode_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* parent, NClist* varnames)
     int stat = NC_NOERR;
     size_t i;
 
-    ZTRACE(3,"file=%s grp=%s |varnames|=%u",file->controller->path,grp->hdr.name,nclistlength(varnames));
+    ZTRACE(3,"parent=%s |varnames|=%u",parent->hdr.name,nclistlength(varnames));
 
     /* Load each var in turn */
     for(i = 0; i < nclistlength(varnames); i++) {
@@ -655,12 +637,7 @@ ncz_decode_atts(NC_FILE_INFO_T* file, NC_OBJ* container, const NCjson* jatts)
 	/* If we have not read a _FillValue attribute, then go ahead and create it */
 	if(stat == NC_ENOTATT) {
 	    stat = NC_NOERR; /*reset*/
-	    ainfo.name = NC_FillValue;
-	    ainfo.nctype = var->type_info->hdr.id;
-	    if((stat = NC4_inq_atomic_type(ainfo.nctype, NULL, &ainfo.typelen))) goto done;
-	    ainfo.datalen = 1;
-	    if((stat = NC_copy_data_all(file->controller,ainfo.nctype,var->fill_value,ainfo.datalen,&ainfo.data))) goto done;
-	    if((stat = ncz_makeattr(file,(NC_OBJ*)var,&ainfo,&special))) goto done;
+	    if((stat = NCZ_sync_dual_att(file,(NC_OBJ*)var,NC_FillValue, DA_FILLVALUE, FIXATT))) goto done;
 	} else if(stat != NC_NOERR) goto done;
     }
 
@@ -781,7 +758,7 @@ get_group_content_pure(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varname
 {
     int stat = NC_NOERR;
 
-    ZTRACE(3,"zinfo=%s grp=%s |varnames|=%u |subgrps|=%u",zinfo->common.file->controller->path,grp->hdr.name,(unsigned)nclistlength(varnames),(unsigned)nclistlength(subgrps));
+    ZTRACE(3,"grp=%s |varnames|=%u |subgrps|=%u",grp->hdr.name,(unsigned)nclistlength(varnames),(unsigned)nclistlength(subgrps));
 
     nclistclear(varnames);
     if((stat = NCZF_searchobjects(file,grp,varnames,subgrps))) goto done;
@@ -789,82 +766,6 @@ get_group_content_pure(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varname
 done:
     return ZUNTRACE(THROW(stat));
 }
-
-#if 0
-/**
- * @internal Get the metadata for a variable.
- *
- * @param var Pointer to var info struct.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_ENOMEM Out of memory.
- * @return ::NC_EHDFERR HDF5 returned error.
- * @return ::NC_EVARMETA Error with var metadata.
- * @author Ed Hartnett
- */
-static int
-ncz_get_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
-{
-    int retval = NC_NOERR;
-
-    assert(file && var && var->format_var_info);
-    LOG((3, "%s: var %s", __func__, var->hdr.name));
-    ZTRACE(3,"file=%s var=%s",file->controller->path,var->hdr.name);
-    
-    /* Have we already read the var metadata? */
-    if (var->meta_read)
-	goto done;
-
-#ifdef LOOK
-    /* Get the current chunk cache settings. */
-    if ((access_pid = H5Dget_access_plist(hdf5_var->hdf_datasetid)) < 0)
-	BAIL(NC_EVARMETA);
-
-    /* Learn about current chunk cache settings. */
-    if ((H5Pget_chunk_cache(access_pid, &(var->chunk_cache_nelems),
-			    &(var->chunk_cache_size), &rdcc_w0)) < 0)
-	BAIL(NC_EHDFERR);
-    var->chunk_cache_preemption = rdcc_w0;
-
-    /* Get the dataset creation properties. */
-    if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
-	BAIL(NC_EHDFERR);
-
-    /* Get var chunking info. */
-    if ((retval = get_chunking_info(propid, var)))
-	BAIL(retval);
-
-    /* Get filter info for a var. */
-    if ((retval = get_filter_info(propid, var)))
-	BAIL(retval);
-
-    /* Get fill value, if defined. */
-    if ((retval = get_fill_info(propid, var)))
-	BAIL(retval);
-
-    /* Is this a deflated variable with a chunksize greater than the
-     * current cache size? */
-    if ((retval = nc4_adjust_var_cache(var)))
-	BAIL(retval);
-
-    /* Is there an attribute which means quantization was used? */
-    if ((retval = get_quantize_info(var)))
-	BAIL(retval);
-
-    if (var->coords_read && !var->dimscale)
-	if ((retval = get_attached_info(var, hdf5_var, var->ndims, hdf5_var->hdf_datasetid)))
-	    goto done;;
-#endif
-
-    /* Remember that we have read the metadata for this var. */
-    var->meta_read = NC_TRUE;
-done:
-#if 0
-#endif
-    return ZUNTRACE(retval);
-}
-#endif /*0*/
 
 /**
 Insert an attribute into a list of attribute, including typing
@@ -890,210 +791,6 @@ ncz_insert_attr(NCjson* jatts, NCjson* jtypes, const char* aname, NCjson** javal
 }
 
 /**************************************************/
-#if 0
-/* Convert an attribute "types list to an envv style list */
-static int
-jtypesatypes(NCjson* jtypes, NClist* atypes)
-{
-    int stat = NC_NOERR;
-    size_t i;
-    for(i=0;i<NCJarraylength(jtypes);i+=2) {
-	const NCjson* key = NCJith(jtypes,i);
-	const NCjson* value = NCJith(jtypes,i+1);
-	if(NCJsort(key) != NCJ_STRING) {stat = (THROW(NC_ENCZARR)); goto done;}
-	if(NCJsort(value) != NCJ_STRING) {stat = (THROW(NC_ENCZARR)); goto done;}
-	nclistpush(atypes,strdup(NCJstring(key)));
-	nclistpush(atypes,strdup(NCJstring(value)));
-    }
-done:
-    return stat;
-}
-#endif
-
-#if 0
-/* See if there is reason to believe the specified path is a legitimate (NC)Zarr file
- * Do a breadth first walk of the tree starting at file path.
- * @param file to validate
- * @return ::NC_NOERR if it looks ok
- * @return ::NC_ENOTNC if it does not look ok
- */
-static int
-ncz_validate(NC_FILE_INFO_T* file)
-{
-    int stat = NC_NOERR;
-    NCZ_FILE_INFO_T* zinfo = (NCZ_FILE_INFO_T*)file->format_file_info;
-    int validate = 0;
-    NCbytes* prefix = ncbytesnew();
-    NClist* queue = nclistnew();
-    NClist* nextlevel = nclistnew();
-    NCZMAP* map = zinfo->map;
-    char* path = NULL;
-    char* segment = NULL;
-    size_t seglen;
-	    
-    ZTRACE(3,"file=%s",file->controller->path);
-
-    path = strdup("/");
-    nclistpush(queue,path);
-    path = NULL;
-    do {
-        nullfree(path); path = NULL;
-	/* This should be full path key */
-	path = nclistremove(queue,0); /* remove from front of queue */
-	/* get list of next level segments (partial keys) */
-	assert(nclistlength(nextlevel)==0);
-        if((stat=nczmap_search(map,path,nextlevel))) {validate = 0; goto done;}
-        /* For each s in next level, test, convert to full path, and push onto queue */
-	while(nclistlength(nextlevel) > 0) {
-            segment = nclistremove(nextlevel,0);
-            seglen = nulllen(segment);
-	    if((seglen >= 2 && memcmp(segment,".z",2)==0) || (seglen >= 4 && memcmp(segment,".ncz",4)==0)) {
-		validate = 1;
-	        goto done;
-	     }
-	     /* Convert to full path */
-	     ncbytesclear(prefix);
-	     ncbytescat(prefix,path);
-	     if(strlen(path) > 1) ncbytescat(prefix,"/");
-	     ncbytescat(prefix,segment);
-	     /* push onto queue */
-	     nclistpush(queue,ncbytesextract(prefix));
- 	     nullfree(segment); segment = NULL;
-	 }
-    } while(nclistlength(queue) > 0);
-done:
-    if(!validate) stat = NC_ENOTNC;
-    nullfree(path);
-    nullfree(segment);
-    nclistfreeall(queue);
-    nclistfreeall(nextlevel);
-    ncbytesfree(prefix);
-    return ZUNTRACE(THROW(stat));
-}
-#endif
-
-#if 0
-/**
-Insert _nczarr_attrs into .zattrs
-Take control of jtypes
-@param jatts
-@param jtypes
-*/
-static int
-insert_nczarr_attrs(NCjson* jatts, NCjson* jtypes)
-{
-    NCjson* jdict = NULL;
-    if(jatts != NULL && jtypes != NULL) {
-	NCJinsertstring(jtypes,NCZ_ATTRS,NC_JSON_DTYPE); /* type for _nczarr_attrs */
-        NCJnew(NCJ_DICT,&jdict);
-        NCJinsert(jdict,"types",jtypes);
-        NCJinsert(jatts,NCZ_ATTR,jdict);
-        jdict = NULL;
-    }
-    return NC_NOERR;
-}
-#endif /*0*/
-
-#if 0
-/**
-Upload a .zattrs object
-Optionally take control of jatts and jtypes
-@param file
-@param container
-@param jattsp
-@param jtypesp
-*/
-static int
-upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts)
-{
-    int stat = NC_NOERR;
-    NCZ_FILE_INFO_T* zinfo = NULL;
-    NC_VAR_INFO_T* var = NULL;
-    NC_GRP_INFO_T* grp = NULL;
-    NCZMAP* map = NULL;
-    char* fullpath = NULL;
-    char* key = NULL;
-
-    ZTRACE(3,"file=%s grp=%s",file->controller->path,grp->hdr.name);
-
-    if(jatts == NULL) goto done;    
-
-    zinfo = file->format_file_info;
-    map = zinfo->map;
-
-    if(container->sort == NCVAR) {
-        var = (NC_VAR_INFO_T*)container;
-    } else if(container->sort == NCGRP) {
-        grp = (NC_GRP_INFO_T*)container;
-    }
-
-    /* Construct container path */
-    if(container->sort == NCGRP)
-	stat = NCZ_grpkey(grp,&fullpath);
-    else
-	stat = NCZ_varkey(var,&fullpath);
-    if(stat) goto done;
-
-    /* write .zattrs*/
-    if((stat = nczm_concat(fullpath,ZATTRS,&key))) goto done;
-    if((stat=NCZ_uploadjson(map,key,jatts))) goto done;
-    nullfree(key); key = NULL;
-
-done:
-    nullfree(key);
-    nullfree(fullpath);
-    return ZUNTRACE(THROW(stat));
-}
-#endif /*0*/
-
-#if 0
-/**
-@internal Get contents of a meta object; fail it it does not exist
-@param zmap - [in] map
-@param key - [in] key of the object
-@param jsonp - [out] return parsed json || NULL if not exists
-@return NC_NOERR
-@return NC_EXXX
-@author Dennis Heimbigner
-*/
-static int
-readarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
-{
-    int stat = NC_NOERR;
-    NCjson* json = NULL;
-
-    if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
-    if(json != NULL && NCJsort(json) != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
-    if(jsonp) {*jsonp = json; json = NULL;}
-done:
-    NCZ_reclaim_json(json);
-    return stat;
-}
-#endif
-
-#if 0
-static int
-downloadzarrobj(NC_FILE_INFO_T* file, struct ZARROBJ* zobj, const char* fullpath, const char* objname)
-{
-    int stat = NC_NOERR;
-    char* key = NULL;
-    NCZMAP* map = ((NCZ_FILE_INFO_T*)file->format_file_info)->map;
-
-    /* Download .zXXX and .zattrs */
-    nullfree(zobj->prefix);
-    zobj->prefix = strdup(fullpath);
-    NCZ_reclaim_json(zobj->obj); zobj->obj = NULL;
-    NCZ_reclaim_json(zobj->atts); zobj->obj = NULL;
-    if((stat = nczm_concat(fullpath,objname,&key))) goto done;
-    if((stat=NCZ_downloadjson(map,key,&zobj->obj))) goto done;
-    nullfree(key); key = NULL;
-    if((stat = nczm_concat(fullpath,ZATTRS,&key))) goto done;
-    if((stat=NCZ_downloadjson(map,key,&zobj->atts))) goto done;
-done:
-    nullfree(key);
-    return THROW(stat);
-}
-#endif /*0*/
 
 /* Convert dimrefs to dimension declarations  (possibly creating them) */
 static int

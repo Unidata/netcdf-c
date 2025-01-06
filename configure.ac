@@ -237,6 +237,17 @@ AC_ARG_ENABLE([nczarr],
 test "x$enable_nczarr" = xno || enable_nczarr=yes
 AC_MSG_RESULT($enable_nczarr)
 
+AC_MSG_CHECKING([whether netcdf zarr storage format version 3 should be enabled])
+AC_ARG_ENABLE([nczarr-v3],
+              [AS_HELP_STRING([--enable-nczarr-v3],
+                              [enable netcdf zarr version 3 storage support])]) dnl
+test "x$enable_nczarr_v3" = xyes || enable_nczarr_v3=no
+AC_MSG_RESULT($enable_nczarr_v3)
+if test "x$enable_nczarr_v3" = xyes ; then
+AC_DEFINE([NETCDF_ENABLE_NCZARR_V3], [1], [if true, include NCZarr V3 support])
+fi
+AM_CONDITIONAL([NETCDF_ENABLE_NCZARR_V3],[test "x$enable_nczarr_v3" = xyes])
+
 # HDF5 | HDF4 | NCZarr => netcdf-4
 if test "x$enable_hdf5" = xyes || test "x$enable_hdf4" = xyes || test "x$enable_nczarr" = xyes ; then
    enable_netcdf4=yes
@@ -248,11 +259,14 @@ AC_ARG_ENABLE([default-zarr-format_v3],
               [AS_HELP_STRING([--enable-default-zarr-format_v3],
                               [Specify the default Zarr format.])])
 test "x$enable_default_zarr_format_v3" = xyes | enable_default_zarr_format_v3=no # V2 is the default by default
+if test "x$enable_nczarr_v3" = xno ; then
+  enable_default_zarr_format_v3=no
+fi
 AC_MSG_RESULT([$enable_default_zarr_format_v3}])
 if test "x$enable_default_zarr_format_v3" = xyes; then
    DFALTZARRFORMAT=3
 else
-DFALTZARRFORMAT=2
+   DFALTZARRFORMAT=2
 fi
 AC_DEFINE_UNQUOTED([DFALTZARRFORMAT], [$DFALTZARRFORMAT], [Default Zarr format])
 AC_SUBST([DFALTZARRFORMAT],[$DFALTZARRFORMAT])
@@ -2135,6 +2149,7 @@ AC_SUBST(HAS_S3_AWS,[$enable_s3_aws])
 AC_SUBST(HAS_S3_INTERNAL,[$enable_s3_internal])
 AC_SUBST(HAS_HDF5_ROS3,[$has_hdf5_ros3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
+AC_SUBST(HAS_NCZARR_V3,[$enable_nczarr_v3])
 AC_SUBST(NETCDF_ENABLE_S3_TESTING,[$with_s3_testing])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
 AC_SUBST(NCZARR_DEFAULT_FORMAT,[$DFALTZARRFORMAT])
@@ -2168,6 +2183,11 @@ AC_SUBST([S3TESTBUCKET],["unidata-zarr-test-data"])
 # WARNING: this must match the value in CMakeLists.txt
 AC_DEFINE([S3TESTSUBTREE], ["netcdf-c"], [S3 test path prefix])
 AC_SUBST([S3TESTSUBTREE],[netcdf-c])
+
+# Additional S3 Test Endpoint
+# WARNING: this must match the value in CMakeLists.txt
+AC_DEFINE([S3ENDPOINT], ["s3.us-east-1.amazonaws.com"], [S3 test endpoint])
+AC_SUBST([S3ENDPOINT],["s3.us-east-1.amazonaws.com"])
 
 # Build a small unique id to avoid interference on same platform
 PLATFORMUID="$RANDOM"
@@ -2334,6 +2354,7 @@ AX_SET_META([NC_HAS_S3_AWS],[$enable_s3_aws],[yes])
 AX_SET_META([NC_HAS_S3_INTERNAL],[$enable_s3_internal],[yes])
 AX_SET_META([NC_HAS_HDF5_ROS3],[$has_hdf5_ros3],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
+AX_SET_META([NC_HAS_NCZARR_V3],[$enable_nczarr_v3],[yes])
 AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
 AX_SET_META([NC_HAS_QUANTIZE],[$enable_quantize],[yes])
 AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
@@ -2432,19 +2453,8 @@ AC_CONFIG_FILES([Makefile
                  dap4_test/Makefile
                  plugins/Makefile
 		 nczarr_test/Makefile
- 		 v3_nczarr_test/Makefile
+		 v3_nczarr_test/Makefile
                  ])
 AC_OUTPUT()
-
-# Initialize v3_nczarr_test
-AC_MSG_CHECKING([@@@ Initializing v3_nczarr_test])
-set -x
-mkdir -p v3_nczarr_test
-cd v3_nczarr_test
-find . -maxdepth 0 -type f -not \( -name CMakeLists.txt -or -name '*.am' -or -name Makefile.in \) -delete
-cp v3only/* .
-cd ..
-set +x
-AC_MSG_RESULT([done])
 
 cat libnetcdf.settings

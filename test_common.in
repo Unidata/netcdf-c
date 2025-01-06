@@ -61,6 +61,9 @@ S3TESTBUCKET=@S3TESTBUCKET@
 # All S3 tests should use this to store intermediate results.
 S3TESTSUBTREE=@S3TESTSUBTREE@
 
+# Additional S3 test endpoint
+S3ENDPOINT=@S3ENDPOINT@
+
 TESTUID=@TESTUID@
 
 set -e

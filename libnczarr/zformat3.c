@@ -196,14 +196,13 @@ int
 ZF3_download_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, struct ZOBJ* zobj)
 {
     int stat = NC_NOERR;
-    NCZ_FILE_INFO_T* zinfo = (NCZ_FILE_INFO_T*)file->format_file_info;
     char* fullpath = NULL;
     char* key = NULL;
 
     /* Download zarr.json */
     if((stat = NCZ_grpkey(grp,&fullpath))) goto done;
     if((stat = nczm_concat(fullpath,Z3GROUP,&key))) goto done;
-    if((stat = NCZ_downloadjson(zinfo->map,key,&zobj->jobj))) goto done;
+    if((stat = NCZMD_fetch_json_content(file,NCZMD_GROUP,key,&zobj->jobj))) goto done;
     nullfree(key); key = NULL;
     /* Verify that group zarr.json exists */
     if(zobj->jobj == NULL) {stat = NC_ENOTZARR; goto done;}
@@ -221,14 +220,13 @@ int
 ZF3_download_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, struct ZOBJ* zobj)
 {
     int stat = NC_NOERR;
-    NCZ_FILE_INFO_T* zinfo = (NCZ_FILE_INFO_T*)file->format_file_info;
     char* fullpath = NULL;
     char* key = NULL;
 
     /* Download zarr.json */
     if((stat = NCZ_varkey(var,&fullpath))) goto done;
     if((stat = nczm_concat(fullpath,Z3ARRAY,&key))) goto done;
-    if((stat = NCZ_downloadjson(zinfo->map,key,&zobj->jobj))) goto done;
+    if((stat = NCZMD_fetch_json_content(file,NCZMD_ARRAY,key,&zobj->jobj))) goto done;
     nullfree(key); key = NULL;
     /* Verify that var zarr.json exists */
     if(zobj->jobj == NULL) {stat = NC_ENOTZARR; goto done;}
@@ -516,7 +514,7 @@ ZF3_decode_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, struct ZOBJ* zobj, NCli
     if((stat = NCZ_filter_initialize())) goto done;
 #endif
     {
-	if((stat = NCJdictget(jvar,"codecs",(NCjson**)&jcodecs))<0) {stat = NC_EINVAL; goto done;}
+	NCJcheck(NCJdictget(jvar,"codecs",(NCjson**)&jcodecs));
 	if(jcodecs == NULL || NCJsort(jcodecs) != NCJ_ARRAY || NCJarraylength(jcodecs) == 0)
 	    {stat = NC_ENOTZARR; goto done;}
 	/* Get endianess from the first codec */
@@ -638,7 +636,6 @@ int
 ZF3_upload_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, struct ZOBJ* zobj)
 {
     int stat = NC_NOERR;
-    NCZ_FILE_INFO_T* zinfo = (NCZ_FILE_INFO_T*)file->format_file_info;
     char* fullpath = NULL;
     char* key = NULL;
 
@@ -651,7 +648,7 @@ ZF3_upload_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, struct ZOBJ* zobj)
     /* build ZGROUP path */
     if((stat = nczm_concat(fullpath,Z3GROUP,&key))) goto done;
     /* Write to map */
-    if((stat=NCZ_uploadjson(zinfo->map,key,zobj->jobj))) goto done;
+    if((stat=NCZMD_update_json_content(file,NCZMD_GROUP,key,zobj->jobj))) goto done;
     nullfree(key); key = NULL;
 
 done:
@@ -664,7 +661,6 @@ int
 ZF3_upload_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, struct ZOBJ* zobj)
 {
     int stat = NC_NOERR;
-    NCZ_FILE_INFO_T* zinfo = (NCZ_FILE_INFO_T*)file->format_file_info;
     char* fullpath = NULL;
     char* key = NULL;
 
@@ -677,7 +673,7 @@ ZF3_upload_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, struct ZOBJ* zobj)
     /* build ZARRAY path */
     if((stat = nczm_concat(fullpath,Z3ARRAY,&key))) goto done;
     /* Write to map */
-    if((stat=NCZ_uploadjson(zinfo->map,key,zobj->jobj))) goto done;
+    if((stat=NCZMD_update_json_content(file,NCZMD_ARRAY,key,zobj->jobj))) goto done;
     nullfree(key); key = NULL;
 
 done:
@@ -1204,47 +1200,60 @@ ZF3_searchobjects(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames, NC
 {
     int stat = NC_NOERR;
     size_t i;
-    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
     char* grpkey = NULL;
-    char* subgrpkey = NULL;
-    char* varkey = NULL;
-    char* zarray = NULL;
-    char* zgroup = NULL;
     NClist* matches = nclistnew();
+    char* subkey = NULL;
+    char* objkey = NULL;
+    NCjson* jcontents = NULL;
+    const NCjson* jnodetype = NULL;
 
     /* Compute the key for the grp */
     if((stat = NCZ_grpkey(grp,&grpkey))) goto done;
-    if((stat = nczmap_list(zfile->map,grpkey,matches))) goto done; /* Shallow listing */
-    /* Search grp for group-level .zxxx and for var-level .zxxx*/
+    if((stat = NCZMD_list(file,grpkey,matches))) goto done; /* Shallow listing */
+    /* Search grp for zarr.json objects and for chunk objects */
+    /* In order to tell if the name refers to an array, there are two ways to do it.
+       1. we extend the objkey with "/c/ or "/c." to see if it exists as a prefix.
+       2. we read the zarr.json and look at the node_type field.
+       In the absence of consolidated metadat, (1) is slightly faster, but requires
+       extending the zmap interface.
+       So, for now, we implement case (2).
+    */
     for(i=0;i<nclistlength(matches);i++) {
 	const char* name = nclistget(matches,i);
-	if(name[0] == NCZM_DOT) continue; /* current group components */
-	/* See if name is an array by testing for name/.zarray exists */
-	if((stat = nczm_concat(grpkey,name,&varkey))) goto done;
-	if((stat = nczm_concat(varkey,Z3ARRAY,&zarray))) goto done;
-	if((stat = nczmap_exists(zfile->map,zarray)) == NC_NOERR) {
-	    nclistpush(varnames,strdup(name));
-	} else {
-	    /* See if name is a group by testing for name/.zgroup exists */
-	    if((stat = nczm_concat(grpkey,name,&subgrpkey))) goto done;
-	    if((stat = nczm_concat(varkey,Z3GROUP,&zgroup))) goto done;
-	    if((stat = nczmap_exists(zfile->map,zgroup)) == NC_NOERR)
+	const char* ndtype = NULL;
+	if(strcmp(name,Z3OBJECT) == 0) continue; /* current group metadata */
+	/* Look for a zarr.json */
+	if((stat = nczm_concat(grpkey,name,&subkey))) goto done;
+	if((stat = nczm_concat(subkey,Z3OBJECT,&objkey))) goto done;
+	/* Read the zarr.json object */
+	switch (stat = NCZMD_fetch_json_content(file,NCZMD_GROUP,objkey,&jcontents)) {
+	case NC_NOERR: { /* We found a zarr.json object */
+	    if(jcontents == NULL || NCJsort(jcontents) != NCJ_DICT) break;
+	    NCJcheck(NCJdictget(jcontents,"node_type",(NCjson**)&jnodetype));
+	    if(jnodetype == NULL || NCJsort(jnodetype) != NCJ_STRING) {stat = NC_ENOTZARR; goto done;}
+	    ndtype = NCJstring(jnodetype);
+	    if(strcmp("array",ndtype)==0)
+		nclistpush(varnames,strdup(name));
+	    else if(strcmp("group",ndtype)==0)
 		nclistpush(subgrpnames,strdup(name));
+	    else
+	        {stat = NC_ENOTZARR; goto done;}
+	    } break;
+	case NC_ENOOBJECT: break; /* keep searching */
+	default: goto done;
 	}
 	stat = NC_NOERR;
-	nullfree(varkey); varkey = NULL;
-	nullfree(zarray); zarray = NULL;
-	nullfree(subgrpkey); subgrpkey = NULL;
-	nullfree(zgroup); zgroup = NULL;
+	nullfree(subkey); subkey = NULL;
+	nullfree(objkey); objkey = NULL;
+	NCJreclaim(jcontents); jcontents = NULL;
     }
 
 done:
+    nullfree(subkey);
+    nullfree(objkey);
     nullfree(grpkey);
-    nullfree(varkey);
-    nullfree(zarray);
-    nullfree(zgroup);
-    nullfree(subgrpkey);
     nclistfreeall(matches);
+    NCJreclaim(jcontents);
     return stat;
 }
 
@@ -1672,7 +1681,7 @@ computeattrinfo(NC_FILE_INFO_T* file, NC_OBJ* container, const char* aname, cons
     int stat = NC_NOERR;
     const NCjson* jatype = NULL;
 
-    ZTRACE(3,"name=%s typehint=%d values=|%s|",att->name,att->typehint,NCJtotext(att->jdata));
+    ZTRACE(3,"container=%s aname=%s",container->name,aname);
 
     assert(aname != NULL);
 
@@ -1699,7 +1708,7 @@ computeattrinfo(NC_FILE_INFO_T* file, NC_OBJ* container, const char* aname, cons
     if((stat = NCZ_computeattrdata(file,jdata,ainfo))) goto done;
 
 done:
-    return ZUNTRACEX(THROW(stat),"typeid=%d typelen=%d len=%u",ainfo->nctype,ainfo->typelen,ainfo->len);
+    return ZUNTRACEX(THROW(stat),"typeid=%d typelen=%d datalen=%u",ainfo->nctype,ainfo->typelen,ainfo->datalen);
 }
 
 /* Build a {name,configuration} dict */

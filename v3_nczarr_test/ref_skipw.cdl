@@ -1,0 +1,17 @@
+netcdf tmp_skipw {
+dimensions:
+	d0 = 6 ;
+	d1 = 6 ;
+variables:
+	int v(d0, d1) ;
+		v:_FillValue = -1 ;
+data:
+
+ v =
+  0, _, _, _, _, 1,
+  _, _, _, _, _, _,
+  _, _, _, _, _, _,
+  _, _, _, _, _, _,
+  _, _, _, _, _, _,
+  2, _, _, _, _, 3 ;
+}

@@ -74,7 +74,7 @@ ncz_open_file(const char *path, int mode, NClist* controls, int ncid)
     LOG((3, "%s: path %s mode %d", __func__, path, mode));
     assert(path);
 
-    ZTRACE(2,"path=%s,mode=%d,ncid=%d,controls=%s)",path,mode,ncid,(controls?nczprint_envv(controls):"null"));
+    ZTRACE(2,"path=%s,mode=%d,ncid=%d,controls=%s)",path,mode,ncid,(controls?nczprint_envlist(controls):"null"));
 
     /* Convert ncid to an NC* structure pointer */
     if((stat = NC_check_id(ncid,&nc))) goto exit;

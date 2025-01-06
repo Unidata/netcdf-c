@@ -23,7 +23,11 @@ remove_definitions(-DDLL_EXPORT)
 file(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh
 	${CMAKE_CURRENT_SOURCE_DIR}/ref*.cdl
 	${CMAKE_CURRENT_SOURCE_DIR}/ref*.txt
-	${CMAKE_CURRENT_SOURCE_DIR}/ref*.zmap)
+	${CMAKE_CURRENT_SOURCE_DIR}/ref*.zmap
+	${CMAKE_CURRENT_SOURCE_DIR}/ref*.baseline
+	${CMAKE_CURRENT_SOURCE_DIR}/ref*.baseline
+	${CMAKE_CURRENT_SOURCE_DIR}/ref*.tgz
+	)
 
 file(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
@@ -181,6 +185,7 @@ IF(NETCDF_ENABLE_TESTS)
     add_sh_test(nczarr_test run_external)
     add_sh_test(nczarr_test run_quantize)
     add_sh_test(nczarr_test run_notzarr)
+    add_sh_test(nczarr_test run_consolidated_zarr)
 
     if(USE_HDF5)
     add_sh_test(nczarr_test run_fillonlyz)

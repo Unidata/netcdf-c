@@ -4,7 +4,6 @@ dimensions:
 	_Anonymous_Dim_5 = 5 ;
 variables:
 	int i(_Anonymous_Dim_2, _Anonymous_Dim_5) ;
-	    i:_FillValue = -2147483647 ;
 data:
 
  i =

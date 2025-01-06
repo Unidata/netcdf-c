@@ -38,7 +38,7 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 
     if(!abort) {
         /* Flush | create all chunks for all vars */
-        if((stat=zwrite_vars(file->root_grp))) goto done;
+	        if((stat=zwrite_vars(file->root_grp))) goto done;
     }
 
     /* Internal close to reclaim zarr annotations */
@@ -47,8 +47,13 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 
     zinfo = file->format_file_info;
 
-    if((stat = nczmap_close(zinfo->map,(abort && zinfo->creating)?1:0)))
-	goto done;
+    /* Reclaim the metadata handler contents */
+    if(NCZMD_is_metadata_consolidated(file) == NC_NOERR)
+	NCZMD_close(file);
+
+    /* Release the zmap handler */
+    if((stat = nczmap_close(zinfo->map,(abort && zinfo->creating)?1:0))) goto done;
+
     nclistfreeall(zinfo->urlcontrols);
     NC_authfree(zinfo->auth);
 

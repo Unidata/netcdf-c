@@ -8,13 +8,14 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-. "${builddir}/test_nczarr.sh"
+. "${srcdir}/test_nczarr.sh"
 
 # Isolate both test and S3
 s3isolate "testdir_nan"
 THISDIR=`pwd`
 cd $ISOPATH
 
+set -x
 set -e
 
 # Functions
@@ -37,11 +38,11 @@ for t in tst_nans ; do
    rm -fr ${t}.$zext
    rm -f tmp_${t}.dmp
    fileargs $t
-   ${NCGEN} -4 -lb -o ${fileurl} ${srcdir}/${ref}.cdl
+   ${NCGEN} -4 -lb -o ${fileurl} ${srcdir}/../ncdump/${ref}.cdl
 ${ZMD} -h -t float ${fileurl}
-   ${NCDUMP} ${headflag} ${specflag} -n ${ref} ${fileurl} > tmp_${t}.dmp
+   ${NCDUMP} ${headflag} ${specflag} ${fileurl} > tmp_${t}.dmp
    # compare against expected
-   diff -b -w ${srcdir}/${ref}.cdl ./tmp_${t}.dmp
+   diff -b -w ${srcdir}/../ncdump/${ref}.cdl ./tmp_${t}.dmp
    echo "*** SUCCEED: ${t}"
 done
 }

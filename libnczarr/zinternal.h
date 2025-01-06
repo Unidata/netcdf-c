@@ -36,9 +36,11 @@
 /* Map the NCZarr Format version to a string */
 #define NCZARR_FORMAT_VERSION_TEMPLATE "%d.0.0"
 
-
 /* The name of the env var for changing default zarr format */
 #define NCZARRDEFAULTFORMAT "NCZARRFORMAT"
+
+/* The name of the env var for controlling .zmetadata use*/
+#define NCZARRDEFAULTNOMETA "NCNOZMETADATA"
 
 /* These have to do with creating chunked datasets in ZARR. */
 #define NCZ_CHUNKSIZE_FACTOR (10)
@@ -60,7 +62,8 @@
 #  endif
 #endif
 
-/* V2 Reserved Objects */
+/* V2 Reserved Objects */#
+#define Z2METADATA "/.zmetadata"
 #define Z2METAROOT "/.zgroup"
 #define Z2ATTSROOT "/.zattrs"
 #define Z2GROUP ".zgroup"
@@ -68,10 +71,12 @@
 #define Z2ARRAY ".zarray"
 
 /* V3 Reserved Objects */
-#define Z3METAROOT "/zarr.json"
+#define Z3METADATA "/zarr.json"
+#define Z3METAROOT Z3METADATA
 #define Z3OBJECT "zarr.json"
 #define Z3GROUP Z3OBJECT
 #define Z3ARRAY Z3OBJECT
+#define Z3CHUNK "c"
 
 /* Bytes codec name */
 #define ZBYTES3 "bytes"
@@ -201,8 +206,10 @@ Optionally Inserted into any group zarr.json or array zarr.json is the extra att
 #define DIMSCALAR "/_scalar_"
 #define FORMAT2CONTROL "v2"
 #define FORMAT3CONTROL "v3"
+#define ZMETADATACONTROL "zmetadata"
+#define NOZMETADATACONTROL "nozmetadata"
 
-#define LEGAL_DIM_SEPARATORS "./"
+#define LEGAL_DIM_SEPARATORS "/."
 #define DFALT_DIM_SEPARATOR_V2 '.'
 #define DFALT_DIM_SEPARATOR_V3 '/'
 
@@ -260,6 +267,7 @@ typedef struct NCZ_FILE_INFO {
     NCZcommon common;
     struct NCZMAP* map; /* implementation */
     struct NCauth* auth;
+    struct NCZ_Metadata metadata_handler;
     struct Zarrformat {
 	int zarr_format;
 	int nczarr_format;
@@ -270,11 +278,12 @@ typedef struct NCZ_FILE_INFO {
     size_t default_maxstrlen; /* default max str size for variables of type string */
     NClist* urlcontrols; /* controls specified by the file url fragment */
     size64_t flags;
-#		define FLAG_PUREZARR    1
-#		define FLAG_SHOWFETCH   2
-#		define FLAG_LOGGING     4
-#		define FLAG_XARRAYDIMS  8
-#		define FLAG_NCZARR_KEY  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
+#		define FLAG_PUREZARR       1
+#		define FLAG_SHOWFETCH      2
+#		define FLAG_LOGGING        4
+#		define FLAG_XARRAYDIMS     8
+#		define FLAG_NCZARR_KEY	  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
+#		define FLAG_NOCONSOLIDATED  32 /*  Suppress consolidated metadata */
     NCZM_IMPL mapimpl;
     struct NCZ_Formatter* dispatcher;
     struct NCZ_META_HDR* metastate; /* Hold per-format state */

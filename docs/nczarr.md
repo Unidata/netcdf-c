@@ -35,8 +35,9 @@ NCZarr uses a data model that, by design, extends the Zarr Version 2 Specificati
 
 __Note Carefully__: a legal _NCZarr_ dataset is expected to also be a legal _Zarr_ dataset.
 The inverse is true also. A legal _Zarr_ dataset is expected to also be a legal _NCZarr_ dataset, where "legal" means it conforms to the Zarr version 2 or 3 specification.
-In addition, certain non-Zarr features are allowed and used.
-Specifically the XArray [7] ''\_ARRAY\_DIMENSIONS'' attribute is one such.
+In addition, certain extra-Zarr features are allowed and used, namely:
+1. the XArray [7] ''\_ARRAY\_DIMENSIONS'' attribute.
+2. the .zmetadata conventions where all the JSON metadata is held in a single object.
 
 There are two other, secondary assumptions:
 
@@ -151,11 +152,13 @@ the netcdf-c library was built.
 
 As an aside, it should be the case that zipping a _file_
 format directory tree will produce a file readable by the
-_zip_ storage format, and vice-versa.
+_zip_ storage format, and vice-versa. This may change depending
+on the outcome of current deliberations by the Zarr committee.
 
 By default, the XArray convention is supported for Zarr Version 2
 and used for both NCZarr files and pure Zarr files. It is not
-needed for Version 3 and is ignored.
+needed for Version 3, which has an equivalent array metadata key
+called "dimension_names"
 This means that every variable in the root group whose named dimensions
 are also in the root group will have an attribute called
 *\_ARRAY\_DIMENSIONS* that stores those dimension names.
@@ -442,6 +445,39 @@ Any of the following conditions will cause ''_ARRAY_DIMENSIONS'' not to be writt
 * ''_ARRAY_DIMENSIONS'' assigns conflicting sizes to a dimension name.
 
 Note that this attribute is not needed for Zarr Version 3, and is ignored.
+
+## The ".zmetdata" Mode
+The NCzarr implementation of Version 2 also support the ".zmetadata" convention.
+This convention adds an extra, root-level object called ".zmetadata".
+This object is a JSON dictionary with this form:
+````
+{"metadata":
+    {
+        "<key>": <contents>,
+        "<key>": <contents>,
+	...
+        "<key>": <contents>
+    },
+"zarr_consolidated_format":1
+}
+````
+Each &lt;key&gt; refers to a content-bearing object and the &lt;contents&gt; is the JSON content of that object.
+An example might look as follows:
+````
+{
+  "metadata":
+    {
+        ".zgroup": {"zarr_format": 2},
+        ".zattr":  {"globalfloat": 1},
+        "v/.zarray": {"zarr_format": 2, "shape": [1], "dtype": "<i4", "chunks": [1], "fill_value": -2147483647, "order": "C", "compressor": null, "filters": null}
+    },
+  "zarr_consolidated_format":1
+}
+````
+The .zmetadata object is used by default. If necessary, it can be disabled
+in either of two ways.
+1. The _nozmetadata_ mode tells the library to disable the use of .zmetadata for a file.
+2. The environment variable "NCNOZMETADATA", if set to any non-null value, will disable the use of .zmetadata for all files.
 
 # Examples {#nczarr_examples}
 
