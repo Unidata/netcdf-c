@@ -46,7 +46,6 @@ for t in tst_nans ; do
    fileargs $t
    ${NCGEN} -4 -lb -o ${fileurl} ${cdl}/${ref}.cdl
    ${NCDUMP} ${headflag} ${specflag} -n ${ref} ${fileurl} > tmp_${t}.dmp
-${ZMD} -t float ${fileurl}
    # compare against expected
    diff -b -w ${expected}/${ref}.dmp ./tmp_${t}.dmp
    echo "*** SUCCEED: ${t}"
