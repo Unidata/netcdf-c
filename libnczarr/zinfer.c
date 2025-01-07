@@ -163,7 +163,7 @@ NCZ_get_open_formatter(NC_FILE_INFO_T* file, const NCZ_Formatter** formatterp)
 
     zfile->zarr.zarr_format = zarr_format;
     zfile->zarr.nczarr_format = nczarr_format;
-    assert(zfile->zarr.zarr_format != 0 && zfile->zarr.nczarr_format != 0);
+    assert(zfile->zarr.zarr_format != 0);
 
     /* If the nczarr_format is NULL, then that implies pure zarr,
        so use the zarr format instead. */
