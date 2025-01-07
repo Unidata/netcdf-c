@@ -129,10 +129,7 @@ dumpmap() {
     zext=$1
     zbase=`basename $2 ".$zext"`
     fileargs $zbase
-df -h
-export NCTRACING=10
     ${ZMD} -t int -x objdump $fileurl > $3
-unset NCTRACING
 }
 
 # Function to remove selected -s attributes from file;
