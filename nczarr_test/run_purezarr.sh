@@ -42,7 +42,7 @@ ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_whole.cdl
 fileargs tmp_nczarr "mode=zarr,$zext"
 export NCTRACING=10
 ${NCDUMP} -n nczarr2zarr $fileurl > tmp_nczarr_${zext}.cdl
-unsetenv
+unset NCTRACING
 diff -b ${srcdir}/ref_nczarr2zarr.cdl tmp_nczarr_${zext}.cdl
 }
 
