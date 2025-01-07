@@ -5,6 +5,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "${srcdir}/test_nczarr.sh"
 
+set -x
 set -e
 
 s3isolate "testdir_purezarr"
@@ -29,7 +30,9 @@ echo "*** Test: xarray zarr write then read; format=$zext"
 fileargs tmp_xarray "mode=zarr,$zext"
 #deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_purezarr_base.cdl
+export NCTRACING=10
 ${NCDUMP} $fileurl > tmp_xarray_${zext}.cdl
+unset NCTRACING
 diff -b ${srcdir}/ref_xarray.cdl tmp_xarray_${zext}.cdl
 
 echo "*** Test: pure zarr reading nczarr; format=$zext; without xarray"
@@ -37,7 +40,9 @@ fileargs tmp_nczarr "mode=nczarr,noxarray,$zext"
 deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_whole.cdl
 fileargs tmp_nczarr "mode=zarr,$zext"
+export NCTRACING=10
 ${NCDUMP} -n nczarr2zarr $fileurl > tmp_nczarr_${zext}.cdl
+unsetenv
 diff -b ${srcdir}/ref_nczarr2zarr.cdl tmp_nczarr_${zext}.cdl
 }
 
