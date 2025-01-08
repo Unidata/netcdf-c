@@ -24,6 +24,10 @@
 int
 NC_RO_rename_att(int ncid, int varid, const char *name, const char *newname)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(varid);
+   NC_UNUSED(name);
+   NC_UNUSED(newname);
    return NC_EPERM;
 }
 
@@ -40,6 +44,9 @@ NC_RO_rename_att(int ncid, int varid, const char *name, const char *newname)
 int
 NC_RO_del_att(int ncid, int varid, const char *name)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(varid);
+   NC_UNUSED(name);
    return NC_EPERM;
 }
 
@@ -61,6 +68,13 @@ int
 NC_RO_put_att(int ncid, int varid, const char *name, nc_type file_type,
               size_t len, const void *data, nc_type mem_type)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(varid);
+   NC_UNUSED(name);
+   NC_UNUSED(file_type);
+   NC_UNUSED(len);
+   NC_UNUSED(data);
+   NC_UNUSED(mem_type);
    return NC_EPERM;
 }
 
@@ -78,6 +92,10 @@ NC_RO_put_att(int ncid, int varid, const char *name, nc_type file_type,
 int
 NC_RO_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(name);
+   NC_UNUSED(len);
+   NC_UNUSED(idp);
    return NC_EPERM;
 }
 
@@ -94,6 +112,9 @@ NC_RO_def_dim(int ncid, const char *name, size_t len, int *idp)
 int
 NC_RO_rename_dim(int ncid, int dimid, const char *name)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(dimid);
+   NC_UNUSED(name);
    return NC_EPERM;
 }
 
@@ -114,6 +135,12 @@ int
 NC_RO_def_var(int ncid, const char *name, nc_type xtype,
               int ndims, const int *dimidsp, int *varidp)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(name);
+   NC_UNUSED(xtype);
+   NC_UNUSED(ndims);
+   NC_UNUSED(dimidsp);
+   NC_UNUSED(varidp);
    return NC_EPERM;
 }
 
@@ -132,6 +159,10 @@ NC_RO_def_var(int ncid, const char *name, nc_type xtype,
 int
 NC_RO_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(varid);
+   NC_UNUSED(no_fill);
+   NC_UNUSED(fill_value);
    return NC_EPERM;
 }
 
@@ -148,6 +179,9 @@ NC_RO_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 int
 NC_RO_rename_var(int ncid, int varid, const char *name)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(varid);
+   NC_UNUSED(name);
    return NC_EPERM;
 }
 
@@ -168,6 +202,12 @@ int
 NC_RO_put_vara(int ncid, int varid, const size_t *startp,
                const size_t *countp, const void *op, int memtype)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(varid);
+   NC_UNUSED(startp);
+   NC_UNUSED(countp);
+   NC_UNUSED(op);
+   NC_UNUSED(memtype);
    return NC_EPERM;
 }
 
@@ -184,6 +224,9 @@ NC_RO_put_vara(int ncid, int varid, const size_t *startp,
 int
 NC_RO_set_fill(int ncid, int fillmode, int *old_modep)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(fillmode);
+   NC_UNUSED(old_modep);
    return NC_EPERM;
 }
 
@@ -198,6 +241,7 @@ NC_RO_set_fill(int ncid, int fillmode, int *old_modep)
 int
 NC_RO_redef(int ncid)
 {
+   NC_UNUSED(ncid);
    return NC_EPERM;
 }
 
@@ -217,6 +261,11 @@ int
 NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align,
               size_t v_minfree, size_t r_align)
 {
+   NC_UNUSED(ncid);
+   NC_UNUSED(h_minfree);
+   NC_UNUSED(v_align);
+   NC_UNUSED(v_minfree);
+   NC_UNUSED(r_align);
    return NC_NOERR;   
 }
 
@@ -231,6 +280,7 @@ NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align,
 int
 NC_RO_sync(int ncid)
 {
+   NC_UNUSED(ncid);
    return NC_NOERR;
 }
 
@@ -255,6 +305,14 @@ NC_RO_create(const char* path, int cmode, size_t initialsz, int basepe,
              size_t *chunksizehintp, void *parameters,
              const NC_Dispatch *dispatch, int ncid)
 {
+   NC_UNUSED(path);
+   NC_UNUSED(cmode);
+   NC_UNUSED(initialsz);
+   NC_UNUSED(basepe);
+   NC_UNUSED(chunksizehintp);
+   NC_UNUSED(parameters);
+   NC_UNUSED(dispatch);
+   NC_UNUSED(ncid);
    return NC_EPERM;
 }
 

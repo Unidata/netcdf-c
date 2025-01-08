@@ -282,14 +282,14 @@ NC_readfileF(FILE* stream, NCbytes* content, long long amount)
 {
 #define READ_BLOCK_SIZE 4194304
     int ret = NC_NOERR;
-    size_t red = 0;
+    long long red = 0;
     char *part = (char*) malloc(READ_BLOCK_SIZE);
 
     while(amount < 0 || red < amount) {
 	size_t count = fread(part, 1, READ_BLOCK_SIZE, stream);
 	if(ferror(stream)) {ret = NC_EIO; goto done;}
 	if(count > 0) ncbytesappendn(content,part,(unsigned long)count);
-	red += count;
+	red += (long long)count;
     if (feof(stream)) break;
     }
     /* Keep only amount */
@@ -545,8 +545,8 @@ lexical_compare(const void* arg1, const void* arg2)
 {
     char* s1 = *((char**)arg1);
     char* s2 = *((char**)arg2);
-    size_t slen1 = nulllen(s1);
-    size_t slen2 = nulllen(s2);
+    int slen1 = (int)nulllen(s1);
+    int slen2 = (int)nulllen(s2);
     if(slen1 != slen2) return (slen1 - slen2);
     return strcmp(s1,s2);
 }
@@ -560,7 +560,7 @@ void
 NC_sortenvv(size_t n, char** envv)
 {
     if(n <= 1) return;
-    qsort(envv, (int)n, sizeof(char*), lexical_compare);
+    qsort(envv, n, sizeof(char*), lexical_compare);
 }
 
 /**

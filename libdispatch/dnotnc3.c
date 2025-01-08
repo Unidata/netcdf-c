@@ -29,6 +29,14 @@ NC_NOTNC3_get_varm(int ncid, int varid, const size_t *start,
                    const size_t *edges, const ptrdiff_t *stride,
                    const ptrdiff_t *imapp, void *value0, nc_type memtype)
 {
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(start);
+    NC_UNUSED(edges);
+    NC_UNUSED(stride);
+    NC_UNUSED(imapp);
+    NC_UNUSED(value0);
+    NC_UNUSED(memtype);
     return NC_ENOTNC4;
 }
 
@@ -53,5 +61,13 @@ NC_NOTNC3_put_varm(int ncid, int varid, const size_t * start,
                    const ptrdiff_t *imapp, const void *value0,
                    nc_type memtype)
 {
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(start);
+    NC_UNUSED(edges);
+    NC_UNUSED(stride);
+    NC_UNUSED(imapp);
+    NC_UNUSED(value0);
+    NC_UNUSED(memtype);
     return NC_ENOTNC4;
 }

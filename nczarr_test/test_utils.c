@@ -326,7 +326,7 @@ getmetadata(int create)
                 ret = nc_def_dim(meta->ncid,dname,options->dimlens[i],&meta->dimids[i]);
 	    if(ret) goto done;
         }
-        if((ret = nc_def_var(meta->ncid,"v",NC_INT,options->rank,meta->dimids,&meta->varid))) goto done;
+        if((ret = nc_def_var(meta->ncid,"v",NC_INT,(int)options->rank,meta->dimids,&meta->varid))) goto done;
         if((ret = nc_def_var_fill(meta->ncid,meta->varid,0,&meta->fill))) goto done;
         if(options->formatx == NC_FORMATX_NC4 || options->formatx == NC_FORMATX_NCZARR) {
             if((ret = nc_def_var_chunking(meta->ncid,meta->varid,NC_CHUNKED,options->chunks))) goto done;
@@ -474,7 +474,7 @@ odom_more(Odometer* odom)
 int
 odom_next(Odometer* odom)
 {
-     int i;
+     size_t i;
      for(i=odom->rank-1;i>=0;i--) {
 	 odom->index[i] += odom->stride[i];
 	 if(odom->index[i] < odom->stop[i]) break;

@@ -103,6 +103,7 @@ static int
 init(NCPSharedLib* lib)
 {
     int ret = NC_NOERR;
+    NC_UNUSED(lib);
     return ret;
 }
 
@@ -110,6 +111,7 @@ static int
 reclaim(NCPSharedLib* lib)
 {
     int ret = NC_NOERR;
+    NC_UNUSED(lib);
     return ret;
 }
 

@@ -7,10 +7,10 @@ include $(top_srcdir)/lib_flags.am
 AM_TESTS_ENVIRONMENT += export NCZARRFORMAT=2;export NCNOZMETADATA=1;
 TESTS_ENVIRONMENT =
 TEST_EXTENSIONS = .sh
-SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-TESTS_ENVIRONMENT += export SETX=1;
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT += export SETX=1;
 
 AM_CFLAGS += -I${top_srcdir}
 AM_CPPFLAGS += -I${top_srcdir}

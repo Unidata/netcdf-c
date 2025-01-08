@@ -138,7 +138,7 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     int retval;
     NC_TYPE_INFO_T *type = NULL;
 
-    ZTRACE(1,"ncid=%d name=%s xtype=%d ndims=%d dimids=%s",ncid,name,xtype,ndims,nczprint_idvector(ndims,dimids));
+    ZTRACE(1,"ncid=%d name=%s xtype=%d ndims=%d dimids=%s",ncid,name,xtype,ndims,nczprint_idvector((size_t)ndims,dimids));
     
     /* Find info for this file and group, and set pointer to each. */
     if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))

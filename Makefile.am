@@ -108,10 +108,10 @@ if NETCDF_ENABLE_PLUGINS
 NCPOCO = libncpoco
 endif
 
-# Build Cloud Storage if desired.
 if NETCDF_ENABLE_NCZARR
 ZARR = libnczarr
 ZARR_TEST_DIRS = nczarr_test
+# Build Cloud Storage if desired.
 if NETCDF_ENABLE_NCZARR_V3
 ZARR_TEST_DIRS += v3_nczarr_test
 endif

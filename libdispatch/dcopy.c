@@ -109,9 +109,9 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
 
 	    for(i = 0; i < nelems1; i++)
 	    {
-	       if ((ret = nc_inq_enum_member(ncid1, typeid1, i, name1,
+	       if ((ret = nc_inq_enum_member(ncid1, typeid1, (int)i, name1,
 					     value1)) ||
-		   (ret = nc_inq_enum_member(ncid2, typeid2, i, name2,
+		   (ret = nc_inq_enum_member(ncid2, typeid2, (int)i, name2,
 					     value2)) ||
 		   strcmp(name1, name2) != 0 || memcmp(value1, value2, size1) != 0)
 	       {
@@ -131,10 +131,10 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
 	    for(i = 0; i < nelems1; i++)
 	    {
 	       int j;
-	       if ((ret = nc_inq_compound_field(ncid1, typeid1, i, name1, &offset1,
+	       if ((ret = nc_inq_compound_field(ncid1, typeid1, (int)i, name1, &offset1,
 						&ftype1, &ndims1, dimsizes1)))
 		  return ret;
-	       if ((ret = nc_inq_compound_field(ncid2, typeid2, i, name2, &offset2,
+	       if ((ret = nc_inq_compound_field(ncid2, typeid2, (int)i, name2, &offset2,
 						&ftype2, &ndims2, dimsizes2)))
 		  return ret;
 	       if(ndims1 != ndims2)

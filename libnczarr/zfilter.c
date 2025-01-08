@@ -90,25 +90,8 @@ NCZ_hdf5_empty(void)
 static int NCZ_filter_initialized = 0;
 
 /**************************************************/
-
-#ifdef ZTRACING
-static const char*
-NCJtrace(const NCjson* j)
-{
-    static char jstat[4096];
-    char* js = NULL;
-    jstat[0] = '\0';
-    if(j) {
-        (void)NCJunparse(j,0,&js);
-	if(js) strlcat(jstat,js,sizeof(jstat));
-	nullfree(js);
-    }
-    return jstat;
-}
-
 #define IEXISTS(x,p) (((x) && *(x)? (*(x))-> p : 0xffffffff))
 #define SEXISTS(x,p) (((x) && *(x)? (*(x))-> p : "null"))
-#endif
 
 #if defined(DEBUGF) || defined(DEBUGL)
 

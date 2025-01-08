@@ -121,7 +121,7 @@ create(void)
         snprintf(dimname,sizeof(dimname),"dim%zu",i);
         CHECK(nc_def_dim(ncid, dimname, dimsize[i], &dimids[i]));
     }
-    CHECK(nc_def_var(ncid, "var", NC_FLOAT, ndims, dimids, &varid));
+    CHECK(nc_def_var(ncid, "var", NC_FLOAT, (int)ndims, dimids, &varid));
     return NC_NOERR;
 }
 
@@ -347,7 +347,7 @@ odom_more(void)
 static int
 odom_next(void)
 {
-    int i; /* do not make unsigned */
+    size_t i; /* do not make unsigned */
     for(i=ndims-1;i>=0;i--) {
         odom[i] += 1;
         if(odom[i] < dimsize[i]) break;

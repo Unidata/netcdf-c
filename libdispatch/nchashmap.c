@@ -334,7 +334,7 @@ NC_hashmapfree(NC_hashmap* hash)
 {
     Trace("NC_hashmapfree");
     if(hash) {
-      int i;
+      size_t i;
 #ifdef DEBUG
       printhashmapstats(hash);
 #endif

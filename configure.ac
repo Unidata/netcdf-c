@@ -226,8 +226,6 @@ AC_MSG_RESULT($enable_dap)
 if test "x$enable_remote_functionality" = xno ; then
   AC_MSG_WARN([All network access is disabled => DAP support disabled.])
   enable_dap=no
-  AC_MSG_WARN([All network access is disabled => NCZARR support disabled.])
-  enable_nczarr=no
 fi
 
 AC_MSG_CHECKING([whether netcdf zarr storage format should be disabled])
@@ -1013,6 +1011,11 @@ else
    if test "x$enable_remote_functionality" = xno ; then
    AC_MSG_WARN([--disable-remote-functionality => --disable-s3])
    enable_s3=no
+   fi
+
+   if test "x$enable_remote_functionality" = xno ; then
+     AC_MSG_WARN([--disable-remote-functionality => NCZARR S3 support disabled.])
+     enable_nczarr_s3=no
    fi
 
    # Note we check for the library after checking for enable_s3
@@ -1982,13 +1985,12 @@ AC_MSG_WARN([--disable-plugins => --disable-nczarr-filters])
 enable_nczarr_filters=no
 fi
 
-if test "x$enable_plugins" = xno ; then
-AC_MSG_WARN([--disable-plugins => --disable-filter-testing])
-enable_filter_testing=no
-fi
-
 if test "x$enable_nczarr" = xno; then
 AC_MSG_WARN([--disable-nczarr => --disable-nczarr-filters])
+enable_nczarr_filters=no
+fi
+
+if test "x$enable_nczarr_filters" = xno ; then
 enable_nczarr_filters=no
 fi
 

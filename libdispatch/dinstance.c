@@ -427,6 +427,7 @@ dump_vlen(int ncid, nc_type xtype, nc_type basetype, Position* offset, NCbytes* 
     nc_vlen_t* vl = (nc_vlen_t*)(offset->memory+offset->offset);
     char s[128];
 
+    NC_UNUSED(xtype);
     if(vl->len > 0 && vl->p == NULL)
         {stat = NC_EINVAL; goto done;}
 
@@ -457,6 +458,7 @@ dump_enum(int ncid, nc_type xtype, nc_type basetype, Position* offset, NCbytes* 
 {
     int stat = NC_NOERR;
 
+    NC_UNUSED(xtype);
     /* basically same as an instance of the enum's integer basetype */
     stat = dump_datar(ncid,basetype,offset,buf);
     return stat;
@@ -467,6 +469,9 @@ dump_opaque(int ncid, nc_type xtype, size_t size, Position* offset, NCbytes* buf
 {
     size_t i;
     char sx[16];
+
+    NC_UNUSED(ncid);
+    NC_UNUSED(xtype);
     /* basically a fixed size sequence of bytes */
     ncbytescat(buf,"|");
     for(i=0;i<size;i++) {

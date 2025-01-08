@@ -1049,7 +1049,7 @@ NCZ_computeattrdata(NC_FILE_INFO_T* file, const NCjson* jdata, struct NCZ_AttrIn
 done:
     ncbytesfree(buf);
     if(reclaimvalues) {NCJreclaim((NCjson*)jdata); jdata = NULL; /* we created it */}
-    return ZUNTRACEX(THROW(stat),"typelen=%d count=%u",(ainfo->nctype?ainfo->nctype:0),(ainfo->datalen?ainfo->datalen:-1));
+    return ZUNTRACEX(THROW(stat),"typeid=%d typelen=%d datalen=%zu",ainfo->nctype,ainfo->typelen,ainfo->datalen);
 }
 
 /* Convert a json value to actual data values of an attribute.

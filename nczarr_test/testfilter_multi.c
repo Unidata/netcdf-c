@@ -217,7 +217,7 @@ test_multi(void)
     }
 
     /* Define the variable */
-    CHECK(nc_def_var(ncid, "var", NC_FLOAT, actualdims, dimids, &varid));
+    CHECK(nc_def_var(ncid, "var", NC_FLOAT, (int)actualdims, dimids, &varid));
 
     /* Set chunking on the variable */
     CHECK(nc_def_var_chunking(ncid,varid,NC_CHUNKED,chunks));

@@ -436,7 +436,7 @@ ZF3_decode_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, struct ZOBJ* zobj, NCli
 	    if((stat=NCZ_decodesizet64vec(jvalue, &zarr_rank, shapes))) goto done;	
 	}
 	/* Set the rank of the variable */
-	if((stat = nc4_var_set_ndims(var, zarr_rank))) goto done;
+	if((stat = nc4_var_set_ndims(var, (int)zarr_rank))) goto done;
     }
 
     /* Process dimrefs (might be NULL) */

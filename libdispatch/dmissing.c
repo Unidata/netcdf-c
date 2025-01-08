@@ -87,7 +87,7 @@ strlcpy(char *dst, const char* src, size_t dsize)
                 while (*src++)
                         ;
         }
-        return(src - osrc - 1); /* count does not include NUL */
+        return (size_t)(src - osrc - 1); /* count does not include NUL */
 }
 #endif
 
@@ -127,7 +127,7 @@ nc_strlcat(char* dst, const char* src, size_t dsize)
         /* Find the end of dst and adjust bytes left but don't go past end. */
         while (n-- != 0 && *dst != '\0')
                 dst++;
-        dlen = dst - odst;
+        dlen = (size_t)(dst - odst);
         n = dsize - dlen;
 
         slen = (src==NULL?0:strlen(src));
@@ -144,7 +144,7 @@ nc_strlcat(char* dst, const char* src, size_t dsize)
             *dst = '\0';
         }    
 	if(src != NULL)
-            return(dlen + (src - osrc));    /* count does not include NUL */
+            return (dlen + (size_t)(src - osrc));    /* count does not include NUL */
 	return dlen;
 }
 #endif /*!HAVE_STRLCAT*/

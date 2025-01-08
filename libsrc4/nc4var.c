@@ -186,8 +186,12 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     NC_GRP_INFO_T *grp;
     NC_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
-    int d;
+    size_t d;
     int retval;
+
+    NC_UNUSED(deflate_levelp);
+    NC_UNUSED(nparamsp);
+    NC_UNUSED(params);
 
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
@@ -302,7 +306,8 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *storagep, int *chunksizesp)
 {
     NC_VAR_INFO_T *var;
     size_t *cs = NULL;
-    int i, retval;
+    int retval;
+    size_t i;
 
     /* Get pointer to the var. */
     if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
@@ -773,7 +778,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         case NC_UBYTE:
             for (sp = (short *)src, ubp = dest; count < len; count++)
             {
-                if (*sp > X_UCHAR_MAX || *sp < 0)
+                if (((unsigned)(*sp)) > X_UCHAR_MAX || *sp < 0)
                     (*range_error)++;
                 *ubp++ = (unsigned char)*sp++;
             }
@@ -905,7 +910,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         case NC_UBYTE:
             for (ip = (int *)src, ubp = dest; count < len; count++)
             {
-                if (*ip > X_UCHAR_MAX || *ip < 0)
+                if (((unsigned)(*ip)) > X_UCHAR_MAX || *ip < 0)
                     (*range_error)++;
                 *ubp++ = (unsigned char)*ip++;
             }
@@ -929,7 +934,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         case NC_USHORT:
             for (ip = (int *)src, usp = dest; count < len; count++)
             {
-                if (*ip > X_USHORT_MAX || *ip < 0)
+                if (((unsigned)(*ip)) > X_USHORT_MAX || *ip < 0)
                     (*range_error)++;
                 *usp++ = (unsigned short)*ip++;
             }
@@ -945,7 +950,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         case NC_UINT:
             for (ip = (int *)src, uip = dest; count < len; count++)
             {
-                if (*ip > X_UINT_MAX || *ip < 0)
+                if (((unsigned)(*ip)) > X_UINT_MAX || *ip < 0)
                     (*range_error)++;
                 *uip++ = (unsigned int)*ip++;
             }
@@ -1680,7 +1685,7 @@ nc4_check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunk
 {
     double dprod;
     size_t type_len;
-    int d;
+    size_t d;
     int retval;
 
     if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->hdr.id, &type_len)))
@@ -1712,7 +1717,7 @@ nc4_check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunk
 int
 nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
-    int d;
+    size_t d;
     size_t type_size;
     float num_values = 1, num_unlim = 0;
     int retval;

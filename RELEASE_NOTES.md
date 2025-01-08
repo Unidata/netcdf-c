@@ -6,10 +6,13 @@ Release Notes       {#RELEASE_NOTES}
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
 ## 4.9.4 - TBD
-* Add experimental support for the Zarr Version 3 storage format. This code willl change as the Zarr Version 3 Specification evolves. See [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068).
+* Cleanup various warnings for selected modules. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+
+* Add experimental support for Zarr consolidated metadata for Zarr Version 2 and Version 3 storage format. See [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068).
+
+* Add support for the Zarr Version 3 storage format. This code may change if the Zarr Version 3 Specification evolves. See [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068).
 
 ## 4.9.3 - TBD
-
 * Extend the netcdf API to support programmatic changes to the plugin search path. See [Github #3034](https://github.com/Unidata/netcdf-c/pull/3034) for more information.
 
 ## Known Issue
