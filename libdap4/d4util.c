@@ -59,18 +59,6 @@ ncd4__testurl(const char* path, char** basenamep)
     return ok;
 }
 
-/* Return 1 if this machine is little endian */
-int
-NCD4_isLittleEndian(void)
-{
-    union {
-        unsigned char bytes[SIZEOF_INT];
-	int i;
-    } u;
-    u.i = 1;
-    return (u.bytes[0] == 1 ? 1 : 0);
-}
-
 /* Compute the size of an atomic type, except opaque */
 size_t
 NCD4_typesize(nc_type tid)

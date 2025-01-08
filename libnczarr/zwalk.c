@@ -80,7 +80,8 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
     size64_t memshape[NC_MAX_VAR_DIMS];
     NCZSlice slices[NC_MAX_VAR_DIMS];
     struct Common common;
-    NCZ_FILE_INFO_T* zfile = NULL;
+    NC_FILE_INFO_T* file = var->container->nc4_info;
+    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
     NCZ_VAR_INFO_T* zvar = NULL;
     size_t typesize;
 
@@ -102,7 +103,6 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
     memset(&common,0,sizeof(common));
     common.var = var;
     common.file = (var->container)->nc4_info;
-    zfile = common.file->format_file_info;
     zvar = common.var->format_var_info;
 
     common.reading = reading;

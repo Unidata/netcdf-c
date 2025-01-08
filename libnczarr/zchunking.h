@@ -71,11 +71,11 @@ struct Common {
     void* memory;
     size_t typesize;
     size64_t chunkcount; /* computed product of chunklens; warning indices, not bytes */
-    int swap; /* var->format_info_file->native_endianness == var->endianness */
     size64_t shape[NC_MAX_VAR_DIMS]; /* shape of the output hyperslab */
     NCZSliceProjections* allprojections;
     /* Parametric chunk reader */
     struct Reader reader;
+    int swap; /* var->format_info_file->native_endianness == var->endianness */
 };
 
 /**************************************************/

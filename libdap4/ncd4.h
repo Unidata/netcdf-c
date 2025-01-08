@@ -135,7 +135,6 @@ EXTERNL int NCD4_inferChecksums(NCD4meta* meta, NCD4response* resp);
 /* From d4util.c */
 EXTERNL d4size_t NCD4_dimproduct(NCD4node* node);
 EXTERNL size_t NCD4_typesize(nc_type tid);
-EXTERNL int NCD4_isLittleEndian(void);/* Return 1 if this machine is little endian */
 EXTERNL int NCD4_errorNC(int code, const int line, const char* file);
 EXTERNL int NCD4_error(int code, const int line, const char* file, const char* fmt, ...);
 EXTERNL char* NCD4_makeFQN(NCD4node* node);

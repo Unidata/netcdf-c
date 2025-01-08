@@ -52,7 +52,7 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* urlcontrol
     /* Fill in NCZ_FILE_INFO_T */
     zfile->creating = 1;
     zfile->common.file = file;
-    zfile->native_endianness = (NCZ_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
+    zfile->native_endianness = (NC_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
     if((zfile->urlcontrols=nclistclone(urlcontrols,1)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
 
@@ -120,7 +120,7 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* urlcontrols)
     /* Fill in NCZ_FILE_INFO_T */
     zfile->creating = 0;
     zfile->common.file = file;
-    zfile->native_endianness = (NCZ_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
+    zfile->native_endianness = (NC_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
     if((zfile->urlcontrols = nclistclone(urlcontrols,1))==NULL) /*0=>envv style*/
 	{stat = NC_ENOMEM; goto done;}
     
