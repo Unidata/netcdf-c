@@ -123,7 +123,6 @@ were added for new errors unique to netCDF-4.
 #define NC_EOBJECT       (-140)    // Some object exists when it should not
 #define NC_ENOOBJECT     (-141)    // Some object not found
 #define NC_EPLUGIN       (-142)    // Unclassified failure in accessing a dynamically loaded plugin
-#define NC4_LAST_ERROR   (-142)    // Last Error Placeholder 
 
 
 ~~~~
