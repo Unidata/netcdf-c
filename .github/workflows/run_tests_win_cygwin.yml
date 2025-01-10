@@ -87,6 +87,14 @@ jobs:
         timeout-minutes: 30
         run: |
           make check -j$(nproc) SHELL=/bin/dash
+
+      - name: Upload autoconf test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: cygwin-autotools-test-logs
+          path: |
+            */*.log
+            */*.trs
   
   build-and-test-cmake:
     name: Cygwin-based CMake tests
