@@ -75,8 +75,8 @@ jobs:
         with:
           name: mingw-autotools-test-logs-${{ matrix.msystem }}
           path: |
-        */*.log
-        */*.trs
+            */*.log
+            */*.trs
 
   build-and-test-cmake:
 
