@@ -244,13 +244,13 @@ main() {/* create tst_diskless2.nc */
 
     {
     static const double p_FillValue_att[1] = {((double)-9999)} ;
-    stat = nc_put_att_double(root_grp, p_id, "_FillValue", NC_DOUBLE, 1, p_FillValue_att);
+    stat = nc_put_att_double(root_grp, p_id, NC_FillValue, NC_DOUBLE, 1, p_FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
     {
     static const int rh_FillValue_att[1] = {-1} ;
-    stat = nc_put_att_int(root_grp, rh_id, "_FillValue", NC_INT, 1, rh_FillValue_att);
+    stat = nc_put_att_int(root_grp, rh_id, NC_FillValue, NC_INT, 1, rh_FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 

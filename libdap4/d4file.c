@@ -546,7 +546,7 @@ NCD4_newInfo(NCD4INFO** d4infop)
     NCD4INFO* info = NULL;
     if((info = calloc(1,sizeof(NCD4INFO)))==NULL)
         {ret = NC_ENOMEM; goto done;}
-    info->platform.hostlittleendian = NCD4_isLittleEndian();
+    info->platform.hostlittleendian = NC_isLittleEndian();
     info->responses = nclistnew();
     if(d4infop) {*d4infop = info; info = NULL;}
 done:

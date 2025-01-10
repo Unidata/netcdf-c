@@ -9,7 +9,7 @@
 struct NCZSlice;
 
 typedef struct NCZOdometer {
-    int rank; /*rank */
+    size_t rank; /*rank */
     size64_t* start;
     size64_t* stride;
     size64_t* stop; /* start + (count*stride) */
@@ -24,8 +24,8 @@ typedef struct NCZOdometer {
 
 /**************************************************/
 /* From zodom.c */
-extern NCZOdometer* nczodom_new(int rank, const size64_t*, const size64_t*, const size64_t*, const size64_t*);
-extern NCZOdometer* nczodom_fromslices(int rank, const struct NCZSlice* slices);
+extern NCZOdometer* nczodom_new(size_t rank, const size64_t*, const size64_t*, const size64_t*, const size64_t*);
+extern NCZOdometer* nczodom_fromslices(size_t rank, const struct NCZSlice* slices);
 extern int nczodom_more(const NCZOdometer*);
 extern void nczodom_next(NCZOdometer*);
 extern size64_t* nczodom_indices(const NCZOdometer*);

@@ -8,7 +8,7 @@
 */
 
 #include "config.h"
-#include <nc_tests.h>
+#include "nc_tests.h"
 #include "nc.h"
 #include "nc4internal.h"
 #include "ncdispatch.h"
@@ -23,8 +23,8 @@
 #define DIM_LEN 5
 #define TYPE_NAME "Madonna"
 #define TYPE_SIZE TEST_VAL_42
-#define FIELD_NAME "Britany_Spears"
-#define FIELD_OFFSET 9
+#define TST_FIELD_NAME "Britany_Spears"
+#define TST_FIELD_OFFSET 9
 
 int
 main(int argc, char **argv)
@@ -85,8 +85,10 @@ main(int argc, char **argv)
         char *path;
         void *dispatchdata_in;
         int mode = 0, mode_in;
-        NC_GRP_INFO_T *grp, *grp2;
-        NC_FILE_INFO_T *h5, *h52;
+        NC_GRP_INFO_T *grp;
+        NC_GRP_INFO_T *grpx;
+        NC_FILE_INFO_T *h5;
+        NC_FILE_INFO_T *h52;
 
         /* Create the NC* instance and insert its dispatcher */
         if (new_NC(NC3_dispatch_table, FILE_NAME, mode, &ncp)) ERR;
@@ -116,24 +118,24 @@ main(int argc, char **argv)
         if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, NULL, NULL)) ERR;
         if (nc4_find_nc_grp_h5(ncp->ext_ncid, &ncp_in2, NULL, NULL)) ERR;
         if (ncp_in2->ext_ncid != ncp->ext_ncid) ERR;
-        if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, &grp2, NULL)) ERR;
-        if (grp2->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
+        if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, &grpx, NULL)) ERR;
+        if (grpx->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
         if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, NULL, &h52)) ERR;
         if (h52->controller->ext_ncid != ncp->ext_ncid) ERR;
 
         /* There are additional functions which use the NULL
          * parameters of nc4_find_nc_grp_h5(). */
-        grp2 = NULL;
+        grpx = NULL;
         h52 = NULL;
         if (nc4_find_grp_h5(ncp->ext_ncid, NULL, NULL)) ERR;
-        if (nc4_find_grp_h5(ncp->ext_ncid, &grp2, NULL)) ERR;
-        if (grp2->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
+        if (nc4_find_grp_h5(ncp->ext_ncid, &grpx, NULL)) ERR;
+        if (grpx->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
         if (nc4_find_grp_h5(ncp->ext_ncid, NULL, &h52)) ERR;
         if (h52->controller->ext_ncid != ncp->ext_ncid) ERR;
-        grp2 = NULL;
+        grpx = NULL;
         if (nc4_find_nc4_grp(ncp->ext_ncid, NULL)) ERR;
-        if (nc4_find_nc4_grp(ncp->ext_ncid, &grp2)) ERR;
-        if (grp2->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
+        if (nc4_find_nc4_grp(ncp->ext_ncid, &grpx)) ERR;
+        if (grpx->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
 
         /* Delete the NC_FILE_INFO_T and related storage. */
         if (nc4_file_list_del(ncp->ext_ncid)) ERR;
@@ -244,7 +246,7 @@ main(int argc, char **argv)
         if (nc4_type_list_add(grp, TYPE_SIZE, TYPE_NAME, &type)) ERR;
 
         /* Add a field to the type. */
-        /* if (nc4_field_list_add(type, FIELD_NAME, FIELD_OFFSET, NC_INT, 0, */
+        /* if (nc4_field_list_add(type, TST_FIELD_NAME, TST_FIELD_OFFSET, NC_INT, 0, */
         /*                        NULL)) ERR; */
 
         /* Find it. */

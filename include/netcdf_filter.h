@@ -65,6 +65,10 @@ BLOSC_BITSHUFFLE=2  /* bit-wise shuffle */
 enum BLOSC_SUBCOMPRESSORS {BLOSC_LZ=0, BLOSC_LZ4=1, BLOSC_LZ4HC=2, BLOSC_SNAPPY=3, BLOSC_ZLIB=4, BLOSC_ZSTD=5};
 #endif
 
+/* Codecs for hdf5 filters that do not have a codec */
+#define H5Z_FILTER_RAW ((unsigned int)((int)-1)) /* Fake filter id */
+#define H5Z_CODEC_RAW "_hdf5raw_"
+
 #if defined(__cplusplus)
 extern "C" {
 #endif

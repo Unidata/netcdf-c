@@ -282,14 +282,14 @@ NC_readfileF(FILE* stream, NCbytes* content, long long amount)
 {
 #define READ_BLOCK_SIZE 4194304
     int ret = NC_NOERR;
-    size_t red = 0;
+    long long red = 0;
     char *part = (char*) malloc(READ_BLOCK_SIZE);
 
     while(amount < 0 || red < amount) {
 	size_t count = fread(part, 1, READ_BLOCK_SIZE, stream);
 	if(ferror(stream)) {ret = NC_EIO; goto done;}
 	if(count > 0) ncbytesappendn(content,part,(unsigned long)count);
-	red += count;
+	red += (long long)count;
     if (feof(stream)) break;
     }
     /* Keep only amount */
@@ -538,4 +538,48 @@ NC_joinwith(NClist* segments, const char* sep, const char* prefix, const char* s
 done:
     ncbytesfree(buf);
     return stat;
+}
+
+static int
+lexical_compare(const void* arg1, const void* arg2)
+{
+    char* s1 = *((char**)arg1);
+    char* s2 = *((char**)arg2);
+    int slen1 = (int)nulllen(s1);
+    int slen2 = (int)nulllen(s2);
+    if(slen1 != slen2) return (slen1 - slen2);
+    return strcmp(s1,s2);
+}
+
+/**
+Sort a vector of strings.
+@param n Number of strings to sort
+@param env vector of strings to sort
+*/
+void
+NC_sortenvv(size_t n, char** envv)
+{
+    if(n <= 1) return;
+    qsort(envv, n, sizeof(char*), lexical_compare);
+}
+
+/**
+Sort a nclist of strings.
+@param l NClist of strings
+*/
+void
+NC_sortlist(NClist* l)
+{
+    if(l == NULL || nclistlength(l) == 0) return;
+    NC_sortenvv(nclistlength(l),(char**)nclistcontents(l));
+}
+
+/* Free up a vector of strings */
+void
+NC_freeenvv(size_t nkeys, char** keys)
+{
+    size_t i;
+    for(i=0;i<nkeys;i++)
+	nullfree(keys[i]);
+    nullfree(keys);
 }

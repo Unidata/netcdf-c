@@ -24,8 +24,6 @@
 #include <math.h>
 #include <assert.h>
 
-#include "netcdf_json.h"
-
 #include "netcdf.h"
 #include "netcdf_filter.h"
 #include "netcdf_filter_build.h"
@@ -100,7 +98,7 @@ NCZ_get_codec_info(void)
 /* NCZarr Interface Functions */
 
 static int
-NCZ_misc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** paramsp)
+NCZ_misc_codec_to_hdf5(void* env, const char* codec_json, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
@@ -108,13 +106,15 @@ NCZ_misc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
     size_t i,nparams = 0;
     unsigned* params = NULL;
 
+    NC_UNUSED(env);
+
     /* parse the JSON */
-    if(NCJparse(codec_json,0,&jcodec))
+    if(NCJparse(codec_json,0,&jcodec)<0)
 	{stat = NC_EFILTER; goto done;}
     if(NCJsort(jcodec) != NCJ_DICT) {stat = NC_EPLUGIN; goto done;}
 
     /* Verify the codec ID */
-    if(NCJdictget(jcodec,"id",&jtmp))
+    if(NCJdictget(jcodec,"id",(NCjson**)&jtmp)<0)
 	{stat = NC_EFILTER; goto done;}
     if(jtmp == NULL || !NCJisatomic(jtmp)) {stat = NC_EINVAL; goto done;}
     if(strcmp(NCJstring(jtmp),NCZ_misc_codec.codecid)!=0) {stat = NC_EINVAL; goto done;}
@@ -134,9 +134,9 @@ NCZ_misc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
 
     for(i=0;i<nparams;i++) {
 	struct NCJconst jc;
-        if(NCJdictget(jcodec,fields[i],&jtmp))
+        if(NCJdictget(jcodec,fields[i],(NCjson**)&jtmp)<0)
 	    {stat = NC_EFILTER; goto done;}
-	if(NCJcvt(jtmp,NCJ_INT,&jc))
+	if(NCJcvt(jtmp,NCJ_INT,&jc)<0)
 	    {stat = NC_EFILTER; goto done;}
 	if(jc.ival < 0 || jc.ival > NC_MAX_UINT) {stat = NC_EINVAL; goto done;}
 	params[i] = (unsigned)jc.ival;
@@ -151,11 +151,13 @@ done:
 }
 
 static int
-NCZ_misc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
+NCZ_misc_hdf5_to_codec(void* env, size_t nparams, const unsigned* params, char** codecp)
 {
     int i,stat = NC_NOERR;
     char json[4096];
     char value[1024];
+
+    NC_UNUSED(env);
 
     if(nparams == 0 || params == NULL)
         {stat = NC_EINVAL; goto done;}

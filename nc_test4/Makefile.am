@@ -79,7 +79,6 @@ TESTS += tst_szip.sh
 endif
 
 # Filter Tests (requires ncdump and ncgen and HDF5)
-if USE_HDF5
 if NETCDF_ENABLE_PLUGINS
 if NETCDF_ENABLE_FILTER_TESTING
 extradir =
@@ -111,7 +110,6 @@ endif
 
 endif # NETCDF_ENABLE_FILTER_TESTING
 endif # NETCDF_ENABLE_PLUGINS
-endif # USE_HDF5
 endif # NETCDF_BUILD_UTILITIES
 
 # Zstandard tests.
@@ -164,8 +162,15 @@ tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp tmp_*.cdl ref_fixedstring.h5
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh run_par_warn_test.sh	
 
-clean-local:
-	rm -fr testdir_* testset_*
-
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
+
+# The (otherwise unused) program build_fixedstring.c
+# is used to generate the test file ref_fixedstring.h5.
+# That test file is built and included as part of the distribution,
+# so the build_fixedstring.c program generally does not need to
+# be executed unless the test file needs to be modified..
+noinst_PROGRAMS = build_fixedstring
+build_fixedstring_SOURCES = build_fixedstring.c
+ref_fixedstring.h5:
+	${builddir}/build_fixedstring

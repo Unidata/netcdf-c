@@ -1522,6 +1522,7 @@ nc_set_base_pe(int ncid, int pe)
 {
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
+    NC_UNUSED(pe);
     if(stat != NC_NOERR) return stat;
     return NC_NOERR;
 }
