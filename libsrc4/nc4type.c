@@ -15,6 +15,8 @@
 #include "nc4dispatch.h"
 #include <stddef.h>
 
+#define NC_STRING_LEN sizeof(char *)  /**< @internal Size of char *. */
+
 /**
  * @internal Find all user-defined types for a location. This finds
  * all user-defined types in a group.
@@ -476,16 +478,21 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
     NC_FILE_INFO_T *h5;
     NC_TYPE_INFO_T *type = NULL;
     char *norm_name = NULL;
-    int i, retval = NC_NOERR;
+    int retval = NC_NOERR;
 
-    /* Handle atomic types. */
-    for (i = 0; i < NUM_ATOMIC_TYPES; i++)
-        if (!strcmp(name, nc4_atomic_name[i]))
-        {
-            if (typeidp)
-                *typeidp = i;
+    /* Normalize name. */
+    if (!(norm_name = (char*)malloc(strlen(name) + 1)))
+        {retval = NC_ENOMEM; goto done;}
+    if ((retval = nc4_normalize_name(name, norm_name)))
             goto done;
+
+    switch(retval = NC4_inq_atomic_typeid(ncid,norm_name,typeidp)) {
+    case NC_NOERR: goto done;
+    case NC_EBADTYPE: retval = NC_NOERR; break;
+    default: goto done;
         }
+
+    /* Must be a user-defined type */
 
     /* Find info for this file and group, and set pointer to each. */
     if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
@@ -497,12 +504,6 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
      * the middle). */
     if (name[0] != '/' && strstr(name, "/"))
         {retval = NC_EINVAL; goto done;}
-
-    /* Normalize name. */
-    if (!(norm_name = (char*)malloc(strlen(name) + 1)))
-        {retval = NC_ENOMEM; goto done;}
-    if ((retval = nc4_normalize_name(name, norm_name)))
-	goto done;
 
     /* If this is a fqn, then walk the sequence of parent groups to the last group
        and see if that group has a type of the right name */
@@ -568,57 +569,24 @@ int
 nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype, int *type_class)
 {
     int retval = NC_NOERR;
+    NC_TYPE_INFO_T *type;
 
     LOG((4, "%s xtype: %d", __func__, xtype));
     assert(type_class);
 
     /* If this is an atomic type, the answer is easy. */
-    if (xtype <= NC_STRING)
-    {
-        switch (xtype)
-        {
-        case NC_BYTE:
-        case NC_UBYTE:
-        case NC_SHORT:
-        case NC_USHORT:
-        case NC_INT:
-        case NC_UINT:
-        case NC_INT64:
-        case NC_UINT64:
-            /* NC_INT is class used for all integral types */
-            *type_class = NC_INT;
-            break;
-
-        case NC_FLOAT:
-        case NC_DOUBLE:
-            /* NC_FLOAT is class used for all floating-point types */
-            *type_class = NC_FLOAT;
-            break;
-
-        case NC_CHAR:
-            *type_class = NC_CHAR;
-            break;
-
-        case NC_STRING:
-            *type_class = NC_STRING;
-            break;
-
-        default:
-            BAIL(NC_EBADTYPE);
-        }
+    retval = NC4_get_atomic_typeclass(xtype,type_class);
+    switch (retval) {
+    case NC_NOERR: goto exit;
+    case NC_EBADTYPE: break;
+    default: goto exit;
     }
-    else
-    {
-        NC_TYPE_INFO_T *type;
-
         /* See if it's a used-defined type */
         if ((retval = nc4_find_type(h5, xtype, &type)))
             BAIL(retval);
         if (!type)
             BAIL(NC_EBADTYPE);
-
         *type_class = type->nc_type_class;
-    }
 
 exit:
     return retval;

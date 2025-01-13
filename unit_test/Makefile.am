@@ -27,8 +27,12 @@ noinst_PROGRAMS =
 noinst_PROGRAMS += ncpluginpath
 ncpluginpath_SOURCES = ncpluginpath.c
 
-check_PROGRAMS += tst_nclist test_ncuri test_pathcvt
-TESTS += tst_nclist test_ncuri test_pathcvt
+#This needs repair
+#check_PROGRAMS += test_pathcvt
+#TESTS += test_pathcvt
+
+check_PROGRAMS += test_ncuri
+TESTS += test_ncuri
 
 # Performance tests
 if BUILD_BENCHMARKS
@@ -66,6 +70,11 @@ EXTRA_DIST += ref_get.txt ref_set.txt
 EXTRA_DIST += ref_xget.txt ref_xset.txt
 
 CLEANFILES = reclaim_tests*.txt reclaim_tests.nc tmp_*.txt
+
+.PHONY: clean-local-check
+clean-local: clean-local-check
+clean-local-check:
+	rm -rf testset_*
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

@@ -506,13 +506,13 @@ EXTERNL s3r_t *NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char* 
 
 EXTERNL int NCH5_s3comms_s3r_close(s3r_t *handle);
 
-EXTERNL int NCH5_s3comms_s3r_read(s3r_t *handle, const char* url, size_t offset, size_t len, s3r_buf_t* data);
+EXTERNL int NCH5_s3comms_s3r_read(s3r_t *handle, const char* url, size_t offset, size_t len, s3r_buf_t* data, long* httpcodep);
 
-EXTERNL int NCH5_s3comms_s3r_write(s3r_t *handle, const char* url, const s3r_buf_t* data);
+EXTERNL int NCH5_s3comms_s3r_write(s3r_t *handle, const char* url, const s3r_buf_t* data, long* httpcodep);
 
-EXTERNL int NCH5_s3comms_s3r_getkeys(s3r_t *handle, const char* url, s3r_buf_t* response);
+EXTERNL int NCH5_s3comms_s3r_getkeys(s3r_t *handle, const char* url, s3r_buf_t* response, long* httpcodep);
 
-EXTERNL int NCH5_s3comms_s3r_getsize(s3r_t *handle, const char* url, long long * sizep);
+EXTERNL int NCH5_s3comms_s3r_getsize(s3r_t *handle, const char* url, long long * sizep, long* httpcodep);
 
 EXTERNL int NCH5_s3comms_s3r_deletekey(s3r_t *handle, const char* url, long* httpcodep);
 

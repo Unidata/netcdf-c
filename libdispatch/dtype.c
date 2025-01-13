@@ -38,7 +38,6 @@ type). Read attributes of the new type with nc_get_att (see
 
 /** \{ */
 
-
 /** 
 \ingroup user_types
 Learn if two types are equal.

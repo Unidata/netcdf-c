@@ -1,0 +1,34 @@
+# Track everything in the distribution
+DISTSRC =
+DISTBUILTSRC =
+DISTBUILTSCRIPTS =
+DISTV3SCRIPTS =
+DISTV2SCRIPTS =
+DISTSCRIPTS =
+DISTBASELINE =
+DISTV3BASELINE =
+DISTV2BASELINE =
+
+DISTBUILTSRC += test_quantize.c test_filter_vlen.c test_unlim_vars.c test_endians.c test_put_vars_two_unlim_dim.c test_chunking.c test_put_vars_two_unlim_dim.c
+
+# All .[ch] files except those in ALLBUILT and ALLV3SRC
+DISTSRC += test_utils.c test_utils.h ut_util.c ut_test.c ut_includes.h ut_test.h ut_util.h test_nczarr_utils.h ut_map.c ut_mapapi.c ut_json.c test_fillonlyz.c test_chunkcases.c test_notzarr.c test_filter_avail.c test_nczfilter.c testfilter.c testfilter_misc.c testfilter_order.c testfilter_repeat.c testfilter_multi.c zhex.c zisjson.c zmapio.c zs3parse.c s3util.c tst_pure_awssdk.cpp ncdumpchunks.c bm_chunks3.c bm_utils.c timer_utils.c bm_utils.h bm_timer.h test_zchunks.c test_zchunks2.c test_zchunks3.c test_unlim_io.c test_writecaching.c test_readcaching.c
+
+DISTBUILTSCRIPTS += run_unknown.sh run_specific_filters.sh run_filter_vlen.sh run_filterinstall.sh run_mud.sh run_nccopy5.sh run_filter_misc.sh
+
+# V3 only
+DISTV3SCRIPTS += run_nan.sh
+
+# V2 only
+DISTV2SCRIPTS += run_corrupt.sh run_external.sh run_interop.sh run_nczarr_fill.sh
+
+DISTSCRIPTS += run_chunkcases.sh run_fillonlyz.sh run_filter.sh run_nccopyz.sh run_nczarr_fill.sh run_nczfilter.sh run_newformat.sh run_perf_chunks1.sh run_unlim_io.sh test_nczarr.sh run_ut_map.sh run_ut_mapapi.sh run_ncgen4.sh run_nan.sh run_quantize.sh run_purezarr.sh run_misc.sh run_jsonconvention.sh run_strings.sh run_scalar.sh run_nulls.sh run_notzarr.sh
+
+# V3 specific versions of files
+DISTV3BASELINE += ref_nczarr2zarr.cdl ref_purezarr.cdl ref_xarray.cdl ref_misc2.cdl ref_jsonconvention.cdl ref_jsonconvention.zmap ref_nulls_zarr.baseline ref_string_zarr.baseline ref_string_nczarr.baseline ref_zarr_test_data_2d.cdl.gz ref_groups_regular.cdl ref_tst_nans.dmp ref_bzip2.cdl ref_filtered.cdl ref_any.cdl ref_multi.cdl
+
+# V2 only
+DISTV2BASELINE += ref_noshape.file.zip ref_power_901_constants.cdl ref_power_901_constants_orig.zip
+
+# Excludes DISTV3BASELINE DISTV3BASELINE
+DISTBASELINE += ref_avail1.cdl ref_avail1.dmp ref_avail1.txt ref_byte.cdl ref_byte_fill_value_null.cdl ref_byte_fill_value_null.zarr.zip ref_byte.zarr.zip ref_fillonly.cdl ref_groups.h5 ref_misc1.cdl ref_misc1.dmp ref_ndims.cdl ref_ndims.dmp ref_newformatpure.cdl ref_notzarr.tar.gz ref_nulls.cdl ref_nulls_nczarr.baseline ref_oldformat.cdl ref_oldformat.zip ref_perdimspecs.cdl ref_purezarr_base.cdl ref_quotes.cdl ref_quotes_orig.zip ref_rem.cdl ref_rem.dmp ref_scalar.cdl ref_skip.cdl ref_skip.txt ref_skipw.cdl ref_string.cdl ref_t_meta_dim1.cdl ref_t_meta_var1.cdl ref_ut_json_build.txt ref_ut_json_parse.txt ref_ut_mapapi_create.cdl ref_ut_mapapi_data.cdl ref_ut_mapapi_meta.cdl ref_ut_mapapi_search.txt ref_ut_map_create.cdl ref_ut_map_readmeta2.txt ref_ut_map_readmeta.txt ref_ut_map_search.txt ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl ref_ut_proj.txt ref_ut_testmap_create.cdl ref_whole.cdl ref_whole.txt ref_zarr_test_data.cdl.gz

@@ -1,0 +1,20 @@
+netcdf ref_fillonly {
+dimensions:
+// When UNLIMITED is implemented, then use this value for x
+//	x = UNLIMITED ; // (6 currently)
+        x = 6;
+variables:
+	int i(x) ;
+		i:_Storage = "chunked" ;
+		i:_ChunkSizes = 6 ;
+	float f(x) ;
+		f:_FillValue = -9999.f ;
+		f:_Storage = "chunked" ;
+		f:_ChunkSizes = 6 ;
+
+// global attributes:
+		:_Format = "netCDF-4" ;
+data:
+
+ i = 1, 2, 3, 4, 5, 6 ;
+}

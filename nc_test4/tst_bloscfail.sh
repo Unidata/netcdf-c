@@ -31,7 +31,7 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 }
 
 if test "x$TESTNCZARR" = x1 ; then
-. "$srcdir/test_nczarr.sh"
+. $srcdir/test_nczarr.sh
 fi
 
 if ! avail blosc; then echo "Blosc compressor not found"; exit 0; fi

@@ -27,7 +27,7 @@ for f in $2 ; do
   F="${f}${SF}"
   rm -f ./ctest_${F}.c 
   ${NCGEN} -$K -lc ${srcdir}/ref_tst_${f}.cdl > ./ctest_${F}.c
-  diff -w ./ctest_${F}.c ${srcdir}/ref_ctest_${F}.c
+  diff -wb ./ctest_${F}.c ${srcdir}/ref_ctest_${F}.c
 done
 }
 

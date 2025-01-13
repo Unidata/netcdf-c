@@ -74,7 +74,7 @@ ncz_open_file(const char *path, int mode, NClist* controls, int ncid)
     LOG((3, "%s: path %s mode %d", __func__, path, mode));
     assert(path);
 
-    ZTRACE(2,"path=%s,mode=%d,ncid=%d,controls=%s)",path,mode,ncid,(controls?nczprint_envv(controls):"null"));
+    ZTRACE(2,"path=%s,mode=%d,ncid=%d,controls=%s)",path,mode,ncid,(controls?nczprint_envlist(controls):"null"));
 
     /* Convert ncid to an NC* structure pointer */
     if((stat = NC_check_id(ncid,&nc))) goto exit;
@@ -99,16 +99,9 @@ ncz_open_file(const char *path, int mode, NClist* controls, int ncid)
     if((stat = ncz_open_dataset(h5,controls)))
 	goto exit;
 
-    /* Now read in all the metadata. Some types
-     * information may be difficult to resolve here, if, for example, a
-     * dataset of user-defined type is encountered before the
-     * definition of that type. */
-    if((stat = ncz_read_file(h5)))
-       goto exit;
-
     /* We must read in the attributes of the root group to get
        e.g. provenance and classic model attribute */
-    if((stat = ncz_read_atts(h5,(NC_OBJ*)h5->root_grp))) goto exit;
+    if((stat = ncz_getattlist(h5->root_grp,NC_GLOBAL,NULL,NULL))) goto exit;
 
     /* Check for classic model attribute. */
     if ((stat = check_for_classic_model(h5->root_grp, &is_classic)))
@@ -150,6 +143,9 @@ NCZ_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 {
     int stat = NC_NOERR;
     NCURI* uri = NULL;
+
+    NC_UNUSED(basepe);
+    NC_UNUSED(chunksizehintp);
 
     ZTRACE(0,"path=%s,mode=%d,ncid=%d)",path,mode,ncid);
 

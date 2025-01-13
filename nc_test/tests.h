@@ -197,8 +197,7 @@ extern size_t numTypes;  /* number of netCDF data types to test */
 extern "C" {
 #endif
 
-
-    /* Non-standard internal types */
+/* Non-standard internal types */
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>

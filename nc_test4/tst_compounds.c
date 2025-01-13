@@ -621,7 +621,7 @@ main(int argc, char **argv)
 #define DIM6_LEN 3
 #define VAR6_NAME "obs"
 #define VAR6_RANK 1
-#define ATT6_NAME "_FillValue"
+#define ATT6_NAME NC_FillValue
 #define ATT6_LEN  1
       int ncid;
       int dimid, varid;

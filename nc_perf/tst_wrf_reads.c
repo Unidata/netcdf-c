@@ -22876,7 +22876,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, BASEFLOW_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, BASEFLOW_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -22939,7 +22939,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, ECHANGE_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, ECHANGE_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23002,7 +23002,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, EVLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, EVLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23065,7 +23065,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, EVPINTR_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, EVPINTR_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23128,7 +23128,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, EVPSBLN_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, EVPSBLN_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23191,7 +23191,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, EVPSOIL_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, EVPSOIL_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23254,7 +23254,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, EVPTRNS_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, EVPTRNS_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23317,7 +23317,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, FRSAT_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, FRSAT_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23380,7 +23380,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, FRSNO_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, FRSNO_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23443,7 +23443,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, FRUNST_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, FRUNST_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23506,7 +23506,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, FRWLT_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, FRWLT_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23569,7 +23569,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, GHLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, GHLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23632,7 +23632,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, GRN_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, GRN_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23695,7 +23695,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, GWETPROF_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, GWETPROF_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23758,7 +23758,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, GWETROOT_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, GWETROOT_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23821,7 +23821,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, GWETTOP_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, GWETTOP_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23884,7 +23884,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, LAI_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, LAI_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -23947,7 +23947,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, LHLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, LHLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24010,7 +24010,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, LWLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, LWLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24073,7 +24073,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, PARDFLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, PARDFLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24136,7 +24136,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, PARDRLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, PARDRLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24199,7 +24199,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, PRECSNOLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, PRECSNOLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24262,7 +24262,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, PRECTOTLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, PRECTOTLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24325,7 +24325,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, PRMC_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, PRMC_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24388,7 +24388,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, QINFIL_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, QINFIL_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24451,7 +24451,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, RUNOFF_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, RUNOFF_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24514,7 +24514,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, RZMC_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, RZMC_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24577,7 +24577,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, SFMC_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, SFMC_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24640,7 +24640,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, SHLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, SHLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24703,7 +24703,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, SMLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, SMLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24766,7 +24766,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, SNODP_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, SNODP_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24829,7 +24829,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, SNOMAS_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, SNOMAS_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24892,7 +24892,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, SPLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, SPLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -24955,7 +24955,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, SPSNOW_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, SPSNOW_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25018,7 +25018,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, SPWATR_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, SPWATR_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25081,7 +25081,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, SWLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, SWLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25144,7 +25144,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TELAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TELAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25207,7 +25207,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TPSNOW_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TPSNOW_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25270,7 +25270,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TSAT_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TSAT_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25333,7 +25333,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TSOIL1_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TSOIL1_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25396,7 +25396,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TSOIL2_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TSOIL2_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25459,7 +25459,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TSOIL3_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TSOIL3_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25522,7 +25522,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TSOIL4_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TSOIL4_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25585,7 +25585,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TSOIL5_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TSOIL5_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25648,7 +25648,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TSOIL6_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TSOIL6_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25711,7 +25711,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TSURF_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TSURF_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25774,7 +25774,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TUNST_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TUNST_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25837,7 +25837,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TWLAND_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TWLAND_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25900,7 +25900,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, TWLT_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, TWLT_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 
@@ -25963,7 +25963,7 @@ create_merr_file(char *file_name, int cmode) {/* create MERR.nc4.ncdumphs.nc */
 
     {
     static const float _FillValue_att[1] = {((float)9.9999999e+14)} ;
-    stat = nc_put_att_float(MERR_grp, WCHANGE_id, "_FillValue", NC_FLOAT, 1, _FillValue_att);
+    stat = nc_put_att_float(MERR_grp, WCHANGE_id, NC_FillValue, NC_FLOAT, 1, _FillValue_att);
     check_err(stat,__LINE__,__FILE__);
     }
 

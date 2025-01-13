@@ -1,0 +1,16 @@
+netcdf ref_tst_nans {
+dimensions:
+	dim = 3 ;
+variables:
+	double dvar(dim) ;
+		dvar:_FillValue = NaN ;
+		dvar:datt = -Infinity, NaN, Infinity ;
+	float fvar(dim) ;
+		fvar:_FillValue = NaNf ;
+		fvar:fatt = -Infinityf, NaNf, Infinityf ;
+data:
+
+ dvar = -Infinity, _, Infinity ;
+
+ fvar = -Infinityf, _, Infinityf ;
+}

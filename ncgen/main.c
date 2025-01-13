@@ -474,7 +474,7 @@ main(
 
     /* Compute the k_flag (1st pass) using rules in the man page (ncgen.1).*/
 
-#ifndef NETCDF_ENABLE_CDF5
+#ifndef ENABLE_CDF5
     if(k_flag == NC_FORMAT_CDF5) {
       derror("Output format CDF5 requested, but netcdf was built without cdf5 support.");
       return 0;
