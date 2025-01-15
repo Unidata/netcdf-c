@@ -893,7 +893,7 @@ decodeEconst(NCD4meta* builder, NCD4node* enumtype, const char* nameorval, union
 {
     size_t i;
     int ret = NC_NOERR;
-    union ATOMICS number;
+    union ATOMICS number = {0};
     NCD4node* match = NULL;
 
     /* First, see if the value is an econst name */
@@ -902,7 +902,7 @@ decodeEconst(NCD4meta* builder, NCD4node* enumtype, const char* nameorval, union
         if(strcmp(ec->name,nameorval)==0) {match = ec; break;}
     }
     /* If no match, try to invert as a number to see if there is a matching econst */
-    if(!match) {
+    if(!match && enumtype->en.econsts) {
         /* get the incoming value as number */
         if((ret=convertString(&number,enumtype->basetype,nameorval)))
             goto done;
