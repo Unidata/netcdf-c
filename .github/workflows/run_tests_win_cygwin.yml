@@ -91,10 +91,10 @@ jobs:
       - name: Upload autoconf test results
         uses: actions/upload-artifact@v4
         with:
-          name: cygwin-autotools-test-logs
+          name: cygwin-autotools-test-logs-${{ github.run_id }}
           path: |
-            */*.log
-            */*.trs
+        */*.log
+        */*.trs
   
   build-and-test-cmake:
     name: Cygwin-based CMake tests
