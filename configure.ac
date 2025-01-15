@@ -226,8 +226,6 @@ AC_MSG_RESULT($enable_dap)
 if test "x$enable_remote_functionality" = xno ; then
   AC_MSG_WARN([All network access is disabled => DAP support disabled.])
   enable_dap=no
-  AC_MSG_WARN([All network access is disabled => NCZARR support disabled.])
-  enable_nczarr=no
 fi
 
 AC_MSG_CHECKING([whether netcdf zarr storage format should be disabled])
