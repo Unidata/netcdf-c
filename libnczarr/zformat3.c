@@ -436,7 +436,7 @@ ZF3_decode_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, struct ZOBJ* zobj, NCli
 	    if((stat=NCZ_decodesizet64vec(jvalue, &zarr_rank, shapes))) goto done;	
 	}
 	/* Set the rank of the variable */
-	if((stat = nc4_var_set_ndims(var, zarr_rank))) goto done;
+	if((stat = nc4_var_set_ndims(var, (int)zarr_rank))) goto done;
     }
 
     /* Process dimrefs (might be NULL) */
@@ -513,11 +513,9 @@ ZF3_decode_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, struct ZOBJ* zobj, NCli
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
     if((stat = NCZ_filter_initialize())) goto done;
 #endif
-    {
-	NCJcheck(NCJdictget(jvar,"codecs",(NCjson**)&jcodecs));
-	if(jcodecs == NULL || NCJsort(jcodecs) != NCJ_ARRAY || NCJarraylength(jcodecs) == 0)
-	    {stat = NC_ENOTZARR; goto done;}
-	/* Get endianess from the first codec */
+    NCJcheck(NCJdictget(jvar,"codecs",(NCjson**)&jcodecs));
+    if(jcodecs == NULL || NCJarraylength(jcodecs) == 0) {stat = NC_ENOTZARR; goto done;}
+    {	/* Get endianess from the first codec */
 	jendian = NCJith(jcodecs,0);
 	NCJcheck(NCJdictget(jendian,"name",(NCjson**)&jvalue));
 	if(strcmp("bytes",NCJstring(jvalue))!=0) {stat = NC_ENOTZARR; goto done;}
@@ -525,15 +523,16 @@ ZF3_decode_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, struct ZOBJ* zobj, NCli
 	NCJcheck(NCJdictget(jendian,"configuration",(NCjson**)&jvalue));
 	if(NCJsort(jvalue) != NCJ_DICT) {stat = NC_ENOTZARR; goto done;}
 	/* Get the endianness */
-	NCJcheck(NCJdictget(jvalue,"endian",(NCjson**)&jendian));
-	if(jendian == NULL)  {stat = NC_ENOTZARR; goto done;}
-	if(strcmp("big",NCJstring(jendian))==0) endianness = NC_ENDIAN_BIG;
-	else if(strcmp("little",NCJstring(jendian))==0) endianness = NC_ENDIAN_LITTLE;
+	NCJcheck(NCJdictget(jvalue,"endian",(NCjson**)&jvalue));
+	if(jvalue == NULL)  {stat = NC_ENOTZARR; goto done;}
+	if(strcmp("big",NCJstring(jvalue))==0) endianness = NC_ENDIAN_BIG;
+	else if(strcmp("little",NCJstring(jvalue))==0) endianness = NC_ENDIAN_LITTLE;
 	else  {stat = NC_ENOTZARR; goto done;}
 	if(endianness != NC_ENDIAN_NATIVE) {
 	    var->endianness = endianness;
 	    var->type_info->endianness = var->endianness; /* Propagate */
 	}	
+	/* bytes filter is never actually invoked; it just records variable's endianness */
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
 	{
 	size_t k;
@@ -1094,6 +1093,7 @@ ZF3_encode_filter(NC_FILE_INFO_T* file, NCZ_Filter* filter, NCjson** jfilterp)
 {
     int stat = NC_NOERR;
     NCjson* jfilter = NULL;
+    char* codec = NULL;
     
     NC_UNUSED(file);
 
@@ -1107,20 +1107,17 @@ ZF3_encode_filter(NC_FILE_INFO_T* file, NCZ_Filter* filter, NCjson** jfilterp)
     assert((filter->flags & (FLAG_VISIBLE | FLAG_WORKING)) == (FLAG_VISIBLE | FLAG_WORKING));
 
     /* Convert the visible parameters back to codec */
-    /* Clear any previous codec */
-    nullfree(filter->codec.id); filter->codec.id = NULL;
-    nullfree(filter->codec.codec); filter->codec.codec = NULL;
-    filter->codec.id = strdup(filter->plugin->codec.codec->codecid);
     if(filter->plugin->codec.codec->NCZ_hdf5_to_codec) {
-	if((stat = filter->plugin->codec.codec->NCZ_hdf5_to_codec(NCplistzarrv3,filter->hdf5.id,filter->hdf5.visible.nparams,filter->hdf5.visible.params,&filter->codec.codec))) goto done;
+	if((stat = filter->plugin->codec.codec->NCZ_hdf5_to_codec(NCplistzarrv3,filter->hdf5.id,filter->hdf5.visible.nparams,filter->hdf5.visible.params,&codec))) goto done;
     } else
 	{stat = NC_EFILTER; goto done;}
 
     /* Parse the codec as the return */
-    NCJcheck(NCJparse(filter->codec.codec,0,&jfilter));
+    NCJcheck(NCJparse(codec,0,&jfilter));
     if(jfilterp) {*jfilterp = jfilter; jfilter = NULL;}
 
 done:
+    nullfree(codec);
     NCJreclaim(jfilter);
     return THROW(stat);
 }
