@@ -269,13 +269,13 @@ blosc_filter(unsigned flags, size_t cd_nelmts,
   /* We're compressing */
   if (!(flags & H5Z_FLAG_REVERSE)) {
 
-    /* Allocate an output buffer exactly as long as the input data; if
-       the result is larger, we simply return 0.  The filter is flagged
-       as optional, so HDF5 marks the chunk as uncompressed and
-       proceeds.
+    /* Allocate an output buffer exactly as long as the input data + blocs overhead.
+       This should be sufficient to work even if the buffer is uncompressable.
     */
 
-    outbuf_size = (*buf_size);
+    assert(nbytes <= (*buf_size));
+
+    outbuf_size = (*buf_size) + BLOSC_MAX_OVERHEAD;
 
 #ifdef BLOSC_DEBUG
     fprintf(stderr, "Blosc: Compress %zd chunk w/chunksize %zd\n",
@@ -290,11 +290,11 @@ blosc_filter(unsigned flags, size_t cd_nelmts,
     }
 
 #ifdef BLOSCCTX
-    bloscsize = blosc_compress_ctx(clevel, doshuffle, typesize, nbytes, *buf, outbut, nbytes,
+    bloscsize = blosc_compress_ctx(clevel, doshuffle, typesize, nbytes, *buf, outbut, nbytes + BLOSC_MAX_OVERHEAD,
                                 compname, /*blocksize*/0, /*no. thredds*/0);
 #else
     blosc_set_compressor(compname);
-    bloscsize = blosc_compress(clevel, doshuffle, typesize, nbytes, *buf, outbuf, nbytes);
+    bloscsize = blosc_compress(clevel, doshuffle, typesize, nbytes, *buf, outbuf, nbytes + BLOSC_MAX_OVERHEAD);
 #endif
     if(bloscsize == 0) {
         fprintf(stderr,"Blosc_Filter Error: blosc_filter: Buffer is uncompressible.\n");
