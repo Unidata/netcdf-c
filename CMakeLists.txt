@@ -1672,10 +1672,6 @@ install(FILES ${netCDF_BINARY_DIR}/netcdf.pc
 ##
 print_conf_summary()
 
-# Enable Makedist files.
-ADD_MAKEDIST()
-ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.cmake.in configure configure.ac install-sh config.h.in config.sub CTestConfig.cmake.in)
-
 #####
 # Configure and print the libnetcdf.settings file.
 #####

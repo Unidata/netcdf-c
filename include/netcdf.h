@@ -545,6 +545,11 @@ by the desired type. */
 
 #define NC4_LAST_ERROR   (-144)    /**< @internal All netCDF errors > this. */
 
+/*
+ * Don't forget to update docs/all-error-codes.md if adding new error codes here!
+ *
+ */
+
 /* Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
 #define NC_EURL         (NC_EDAPURL)   /**< Malformed URL */
 #define NC_ECONSTRAINT  (NC_EDAPCONSTRAINT)   /**< Malformed Constraint*/

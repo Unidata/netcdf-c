@@ -116,6 +116,15 @@ were added for new errors unique to netCDF-4.
 #define NC_ERCFILE       (-133)    // RC file failure
 #define NC_ENULLPAD      (-134)    // Header Bytes not Null-Byte padded
 #define NC_EINMEMORY     (-135)    // In-memory file error
+#define NC_ENOFILTER     (-136)    // Filter not defined on variable.
+#define NC_ENCZARR       (-137)    // Error at NCZarr layer.
+#define NC_ES3           (-138)    // Generic S3 error
+#define NC_EEMPTY        (-139)    // Attempt to read empty NCZarr map key
+#define NC_EOBJECT       (-140)    // Some object exists when it should not
+#define NC_ENOOBJECT     (-141)    // Some object not found
+#define NC_EPLUGIN       (-142)    // Unclassified failure in accessing a dynamically loaded plugin
+
+
 ~~~~
 
 # PnetCDF Error Codes {#pnetcdf-error-codes}
