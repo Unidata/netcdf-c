@@ -108,9 +108,14 @@ See the document "quickstart_paths" for details about
 using URLs.
 
 There are, however, some details that are important.
-- Protocol: this should be _https_ or _s3_,or _file_.
-  The _s3_ scheme is equivalent to "https" plus setting "mode=s3".
-  Specifying "file" is for directory tree or zipfile format storage, and also for testing.
+Several URL protocols are semantically meaningfull for the NCZarr implementation.
+* _http_ or _https_ -- this just signals that we have a URL; the actual storage type is inferred from the _mode_ flag or by probing the object to which the URL refers.
+* _file_ -- The _file_ scheme is equivalent to "mode=...,file,..."
+* _s3_ -- The _s3_ scheme is equivalent to "https" plus setting "mode=...,s3,..." plus using an elided host.
+* _gs3_ -- The _gs3_ scheme is equivalent to "https" plus setting "mode=...,gs3,...", and using the google-specific host.
+* _zoh_ -- The _zoh_ scheme is equivalent to "http" plus setting "mode=...,zoh,...", plus using a host that leads to a server supporting the ZoH REST API.
+
+Note that currently there is no "zip:" protocol so it must be inferred or specified by a _mode_ tag. 
 
 ## Client Parameters
 
@@ -127,8 +132,8 @@ Additional pairs are provided to specify the Zarr version.
 
 Obviously, _v2_ implies using the Zarr Version 2 format; similarly for _v3_.
 
-Additional pairs are provided to specify the storage medium: Amazon S3 vs File tree vs Zip file.
-- mode=file|zip|s3
+Additional pairs are provided to specify the storage medium: Amazon S3 vs File vs, etc.
+- mode=file|zip|s3|gs3|zoh
 
 The modes imply use of a specific driver:
 * The _s3_ driver stores data using Amazon S3 or some equivalent.
@@ -345,16 +350,16 @@ The reason for this is that the bucket name forms the initial segment in the key
 The NCZarr storage format is almost identical to that of the the standard Zarr format.
 The data model differs as follows.
 
-1. Zarr only supports anonymous dimensions -- NCZarr supports only shared (named) dimensions, but can read anonymous dimensions by assigning special names to the anonymous dimensions.
+1. Zarr only supports anonymous dimensions (plus a limited set of names via _\_ARRAY_ATTRIBUTES_) -- NCZarr supports only shared (named) dimensions, but can read anonymous dimensions by assigning special names to the anonymous dimensions.
 2. Zarr attributes are untyped -- or perhaps more correctly characterized as of type string (in "JSON" format). NCZarr supports typing of attributes.
-3. Zarr does not explicitly support unlimited dimensions -- NCZarr does support them.
+3. Zarr might not explicitly support unlimited dimensions (the documentation is unclear) -- NCZarr does support them.
 
 ## Storage Medium
 
 Consider both NCZarr and Zarr, and assume S3 notions of bucket and object.
 In both systems, Groups and Variables (aka Arrays in Zarr) map to S3 objects.
 Containment is modeled using the fact that the dataset's key is a prefix of the variable's key.
-So for example, if variable _v1_ is contained in top level group g1 -- _/g1 -- then the key for _v1_ is _/g1/v_.
+So for example, if variable _v1_ is contained in top level group _g1_ (i.e. _/g1_)  -- then the key for _v1_ is _/g1/v1_.
 Additional meta-data information is stored in special objects whose name start with ".z" (V2) or "zarr.json" (V3).
 
 In Zarr Version 2, the following special objects exist.
@@ -365,6 +370,7 @@ so for example the object _/g1/v1/.zarray_.
 3. Group-level attributes and variable-level attributes are stored in a special object named _.zattr_;
 so for example the objects _/g1/.zattr_ and _/g1/v1/.zattr_.
 4. Chunk data is stored in objects named "\<n1\>.\<n2\>...,\<nr\>" where the ni are positive integers representing the chunk index for the ith dimension.
+Note that the character '/' can substiture for the '.' character in the chunk name.
 
 The first three contain meta-data objects in the form of a string representing a JSON-formatted dictionary. 
 The NCZarr format uses the same objects as Zarr, but inserts NCZarr
@@ -411,10 +417,12 @@ zarr attributes.
 
 The former case -- nczarr reading zarr -- is possible if the nczarr code can simulate or infer the contents of the missing _\_nczarr\_xxx_ attributes.
 As a rule this can be done as follows.
-1. _\_nczarr_group\__ -- The list of contained variables and sub-groups can be computed using the search API to list the keys "contained" in the key for a group.
-For V2, the search looks for occurrences of _.zgroup_, _.zattr_, _.zarray_ to infer the keys for the contained groups, attribute sets, and arrays (variables).
-For V2, the search looks for occurrences of _zarr.jsson_.
-Constructing the set of "shared dimensions" is carried out
+1. _\_nczarr_group\__ -- The list of contained variables and sub-groups can be computed using the search API to list the keys "contained" in the key for a group. Alternatively, the root group may contain a _.zmetadata_ object that can be used to determine the lists of variables and subgroups.
+
+    For V2, the search looks for occurrences of _.zmetadata_, _.zgroup_, _.zattr_, _.zarray_ to infer the keys for the contained groups, attribute sets, and arrays (variables).
+For V3, the search looks for occurrences of _zarr.json_.
+
+    Constructing the set of "shared dimensions" is carried out
 by walking all the variables in the whole dataset and collecting
 the set of unique integer shapes for the variables.
 For each such dimension length, a dimension is created in the root group
@@ -493,11 +501,11 @@ Here are a couple of examples using the _ncgen_ and _ncdump_ utilities.
     ```
 3. Create an nczarr file using S3 as storage.
     ```
-    ncgen -4 -lb -o "s3://s3.us-west-1.amazonaws.com/datasetbucket" dataset.cdl
+    ncgen -4 -lb -o "s3://datasetbucket/" dataset.cdl
     ```
 4. Create an nczarr file using S3 as storage and keeping to the pure zarr format.
     ```
-    ncgen -4 -lb -o 's3://s3.uswest-1.amazonaws.com/datasetbucket\#mode=zarr dataset.cdl
+    ncgen -4 -lb -o 'https://s3.uswest-1.amazonaws.com/datasetbucket\#mode=zarr,s3 dataset.cdl
     ```
 5. Create an nczarr file using the s3 protocol with a specific profile
     ```
@@ -553,6 +561,7 @@ The relevant ./configure options are as follows.
 The relevant CMake flags are as follows.
 
 1. *-DNETCDF_ENABLE_NCZARR=off* -- equivalent to the Automake *--disable-nczarr* option.
+
 ## Testing NCZarr S3 Support {#nczarr_testing_S3_support}
 
 The relevant tests for S3 support are in the _nczarr_test_ directory.
@@ -743,12 +752,14 @@ would be handled by Zarr as a string of length 1.
 For Zarr version 3, the added NCZarr specific metadata is stored 
 as attributes pretty much the same as for Version 2.
 Specifically, the following Netcdf-4 meta-data information needs to be captured by NCZarr:
+
     1. Shared dimensions: name and size.
     2. Unlimited dimensions: which dimensions are unlimited.
     3. Attribute types.
     4. Netcdf types not included in Zarr: currently "char" and "string".
     5. Zarr types not included in Netcdf: currently only "complex(32|64)"
-This extra netcdfd-4 meta-data is stored as attributes with special names so as to not interfere with existing implementations.
+
+This extra netcdf-4 meta-data is stored as attributes with special names so as to not interfere with existing implementations.
 
 ## Supported Types
 Zarr version 3 supports the following "atomic" types:
@@ -806,7 +817,7 @@ The relevant attribute has the following format:
 ````
 Its purpose is two-fold:
 1. record the objects immediately within that group
-2. define netcdf-4 dimenension objects within that group.
+2. define netcdf-4 dimension objects within that group.
 
 ## Array Annotations
 In order to support Netcdf concepts in Zarr, it may be necessary
@@ -878,8 +889,7 @@ There is one entry for every attribute (including itself) giving the type
 of that attribute.
 It should be noted that Zarr allows the value of an attribute to be an arbitrary
 JSON-encoded structure. In order to support this in netcdf-4, is such a structure
-is encountered as an attribute value, then it typed as *json* (see previously
-described table).
+is encountered as an attribute value, then it has the type alias *json* (see previously described table).
 
 ## Codec Specification
 The Zarr version 3 representation of codecs is slightly different
@@ -900,6 +910,9 @@ Note, this log was only started as of 8/11/2022 and is not
 intended to be a detailed chronology. Rather, it provides highlights
 that will be of interest to NCZarr users. In order to see exact changes,
 It is necessary to use the 'git diff' command.
+
+## 01/16/2025
+1. Document the addition of .zmetadata support.
 
 ## 03/31/2024
 1. Document the change to V2 to using attributes to hold NCZarr metadata.
@@ -926,4 +939,4 @@ include arbitrary JSON expressions; see Appendix D for more details.
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 4/10/2020<br>
-__Last Revised__: 6/07/2024
+__Last Revised__: 1/16/2025
