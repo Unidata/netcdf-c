@@ -71,8 +71,8 @@ This appendix list known keys, although it may be somewhat out-of-date.
 The current set of keys used in the netcdf-c library is as follows.
 * _mode_ -- A special key that is used to provide single values for controlling the netcdf-c library. It consists of a comma separated sequence of values
 primarily used to control the file format.
-The *mode* key supports the following values
-    - _dap2_ -- Specifies that the URL accesses a resource using the DAP2 protocol
+The *mode* key currently supports the following values
+    - _dap2_ -- Specifies that the URL accesses a resource using the DAP2 protocol (default if no mode is specified)
     - _dap4_ -- Specifies that the URL accesses a resource using the DAP4 protocol
     - _netcdf-3_ -- Specifies that a file is a netcdf-classic file
     - _classic_ -- Alias for _netcdf-3_
@@ -88,6 +88,7 @@ The *mode* key supports the following values
     - _file_ --Specifies that the file is an NCZarr/Zarr file stored as a file tree
     - _zip_ --Specifies that the file is an NCZarr/Zarr file stored as a zip file
     - _bytes_ -- Specifies that the file is remote and is to be read using byte-range support
+    - _zoh_ --Specifies that the file is remote and supports the [GWDG ZoH](https://pad.gwdg.de/DtHGRP38Sw2YQDAAjPuP2Q) (Zarr-over-HTTP) protocol
  in NCZarr format
 * _dap2_ -- equivalent to "mode=dap2"
 * _dap4_ -- equivalent to "mode=dap4"
@@ -99,8 +100,8 @@ The *mode* key supports the following values
 A URL path is required for accessing datasets on the Amazon S3 storage cloud.
 Unfortunately S3 URLs are complicated.
 They can have the following forms:
-* _Virtual_: the host starts with the bucket name; e.g. __bucket.s3.&lt;region&gt;.amazonaws.com__ | __bucket.s3.amazonaws.com__
-* _Path_: the host does not include the bucket name, but rather the bucket name is the first segment of the path. For example __s3.&lt;region&gt;.amazonaws.com/bucket__ or __s3.amazonaws.com/bucket__
+* _Virtual_: the protocol is "http:" or "https:", the mode specifies "s3", and the host starts with the bucket name; e.g. __bucket.s3.&lt;region&gt;.amazonaws.com__  or  __bucket.s3.amazonaws.com__
+* _Path_: the protocol is "http:" or "https:", the mode specifies "s3", and the host does not include the bucket name, but rather the bucket name is the first segment of the path. For example __s3.&lt;region&gt;.amazonaws.com/bucket__ or __s3.amazonaws.com/bucket__
 * _Protocol_: the protocol is "s3:" and if the host is a single name, then it is interpreted as the bucket. The region is determined using an algorithm defined in the nczarr documentation.
 
 For all of the above URL forms, there are two additional pieces.
@@ -108,11 +109,9 @@ For all of the above URL forms, there are two additional pieces.
 * Fragment: the fragment is of the form _key=value&key=value&..._. Depending on the key, the _value_ part may be left out and some default value will be used. The exact set of possible keys is defined in the nczarr documentation.
 
 ## Addendum C. Google Storage Specific URLS {#nc_paths_google_urls}
-Google provides an interface to its storage that is compatible with
-the Amazon S3 REST API.
+Google provides an interface to its storage that is compatible with the Amazon S3 REST API.
 A URL path is required for accessing datasets on the Google storage cloud.
-Note that the Google host is always "storage.googleapis.com"
-and has no concept of region.
+Note that the Google host is always "storage.googleapis.com" and has no concept of region.
 It has the following forms.
 * _Path_: the bucket name is the first segment of the path.
 For example __storage.googleapis.com/bucket__.
@@ -123,9 +122,25 @@ For all of the above URL forms, there are two additional pieces.
 * Query: currently not used.
 * Fragment: the fragment is of the form _key=value&key=value&..._. Depending on the key, the _value_ part may be left out and some default value will be used. The exact set of possible keys is defined in the nczarr documentation.
 
+## Addendum D. Zarr-Over-HTTP (ZoH) Protocol Specific URLS {#nc_paths_zoh_urls}
+The [GWDG ZoH](https://pad.gwdg.de/DtHGRP38Sw2YQDAAjPuP2Q) (Zarr-over-HTTP) protocol provides an interface to any server supporting the ZoH REST API.
+The URLs for this API are very similar to the S3 or Google URLs.
+Note the _virtual_ URL format is not currently supported.
+A ZoH URL has one of the following forms.
+* _Path_: the protocol is "http:" or "https:", the host is any standard host (including an optional port number), and the bucket name is the first segment of the path.
+For example __http://zoh.gwdg.de/&lt;bucket&gt;/&lt;key&gt;__.
+* _Protocol_: the protocol is "zoh:" and a complete host must be specified.
+The URL path part is the key to be interpreted by the ZoH server
+as it wishes.
+
+For all of the above URL forms, there are two additional pieces.
+* Query: currently not used.
+* Fragment: the fragment is of the form _key=value&key=value&..._. Depending on the key, the _value_ part may be left out and some default value will be used. The exact set of possible keys is defined in the nczarr documentation.
+
 ## Point of Contact {#nc_paths_poc}
 
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 4/10/2020<br>
-__Last Revised__: 11/01/2023
+__Last Revised__: 1/16/2025
+
