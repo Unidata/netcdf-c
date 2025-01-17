@@ -422,7 +422,7 @@ AC_MSG_CHECKING([whether a default cache size was specified])
 AC_ARG_WITH([default-chunk-cache-size],
               [AS_HELP_STRING([--with-default-chunk-cache-size=<integer>],
                               [Specify default size (in bytes) for chunk cache.])],
-            [DEFAULT_CHUNK_CACHE_SIZE=$with_default_chunk_cache_size], [DEFAULT_CHUNK_CACHE_SIZE=16777216U])
+            [DEFAULT_CHUNK_CACHE_SIZE=$with_default_chunk_cache_size], [DEFAULT_CHUNK_CACHE_SIZE=67108864U])
 AC_MSG_RESULT([$DEFAULT_CHUNK_CACHE_SIZE])
 AC_DEFINE_UNQUOTED([DEFAULT_CHUNK_CACHE_SIZE], [$DEFAULT_CHUNK_CACHE_SIZE], [default size of the chunk cache.])
 
