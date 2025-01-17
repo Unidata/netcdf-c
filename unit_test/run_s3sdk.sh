@@ -7,7 +7,7 @@ set -e
 
 #CMD="valgrind --leak-check=full"
 
-URL="https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}"
+URL="https://${S3ENDPOINT}/${S3TESTBUCKET}"
 
 isolate "testdir_uts3sdk"
 
