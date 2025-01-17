@@ -262,6 +262,12 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     NClist* modelist = nclistnew();
     size64_t noflags = 0; /* track non-default negative flags */
 
+    /* Track http: vs https: */
+    if(strncmp("http://",zinfo->common.file->hdr.name,7) == 0 ||
+       strncmp("https://",zinfo->common.file->hdr.name,8) == 0 ){
+	zinfo->mapimpl = NCZM_ZOH;
+    }
+
     /* Apply controls from URL mode=... */
     if((value = controllookup(zinfo->urlcontrols,"mode")) != NULL) {
 	if((stat = NCZ_comma_parse(value,modelist))) goto done;

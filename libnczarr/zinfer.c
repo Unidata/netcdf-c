@@ -344,7 +344,8 @@ Read:
 2.3 Otherwise fail with NC_ENOTZARR.
 3. If the url protocol is "http" or "https" then:
 3.1 Apply the function NC_iss3 and if it succeeds, the store type is s3|gs3.
-3.2 If the mode contains "file", then storetype is file -- meaning REST API to a file store.
+3.2 Apply the function NC_iszoh and if it succeeds, the store type is Zarr-Over-HTTP.
+3.3 If the mode contains "file", then storetype is file -- meaning REST API to a file store.
 */
 
 static int
@@ -362,8 +363,11 @@ NCZ_infer_storage_type(NC_FILE_INFO_T* file, NCURI* url, NCZM_IMPL* implp)
 
     /* mode storetype overrides all else */
     if(NC_testmode(url, "file")) impl = NCZM_FILE;
+#ifdef NETCDF_ENABLE_S3
     else if(NC_testmode(url, "s3")) impl = NCZM_S3;
     else if(NC_testmode(url, "gs3")) impl = NCZM_GS3;
+    else if(NC_testmode(url, "zoh")) impl = NCZM_ZOH;
+#endif
 #ifdef NETCDF_ENABLE_NCZARR_ZIP
     else if(NC_testmode(url, "zip")) impl = NCZM_ZIP;
 #endif
@@ -434,6 +438,11 @@ NCZ_get_map(NC_FILE_INFO_T* file, NCURI* url, mode_t mode, size64_t constraints,
 	    {if((stat = nczmap_create(impl,path,mode,constraints,params,&map))) goto done;}
 	else
     	    {if((stat = nczmap_open(impl,path,mode,constraints,params,&map))) goto done;}
+	break;
+    case NCZM_ZOH:
+	if(create) {stat = NC_ENOTZARR; goto done;}
+	constraints |= FLAG_ZOH;
+	if((stat = nczmap_open(impl,path,mode,constraints,params,&map))) goto done;
 	break;
     case NCZM_UNDEF:
 	stat = NC_EURL;

@@ -278,12 +278,13 @@ typedef struct NCZ_FILE_INFO {
     size_t default_maxstrlen; /* default max str size for variables of type string */
     NClist* urlcontrols; /* controls specified by the file url fragment */
     size64_t flags;
-#		define FLAG_PUREZARR       1
-#		define FLAG_SHOWFETCH      2
-#		define FLAG_LOGGING        4
-#		define FLAG_XARRAYDIMS     8
-#		define FLAG_NCZARR_KEY	  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
-#		define FLAG_NOCONSOLIDATED  32 /*  Suppress consolidated metadata */
+#		define FLAG_PUREZARR         1	/* NCZarr metadata, if present, should be suppressed */
+#		define FLAG_SHOWFETCH        2	/* [show=fetch] debug output requested */
+#		define FLAG_LOGGING          4	/* [log] debug output requested */
+#		define FLAG_XARRAYDIMS       8	/* Utilize the xarray _ARRAY_DIMENSIONS attribute */
+#		define FLAG_NCZARR_KEY	    16	/* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
+#		define FLAG_NOCONSOLIDATED  32	/* Suppress consolidated metadata */
+#		define FLAG_ZOH		    32	/* Usind ZoH Protocol */
     NCZM_IMPL mapimpl;
     struct NCZ_Formatter* dispatcher;
     struct NCZ_META_HDR* metastate; /* Hold per-format state */

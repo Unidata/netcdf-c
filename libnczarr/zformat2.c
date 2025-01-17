@@ -474,7 +474,7 @@ ZF2_decode_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, struct ZOBJ* zobj, NCli
 	else
 	    netcdf_rank = nclistlength(dimrefs);
 	/* Set the rank of the variable */
-	if((stat = nc4_var_set_ndims(var, netcdf_rank))) goto done;
+	if((stat = nc4_var_set_ndims(var, (int)netcdf_rank))) goto done;
     }
 
     /* Capture dimension_separator (must precede chunk cache creation) */
