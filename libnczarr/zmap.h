@@ -161,6 +161,7 @@ NCZM_FILE=1,	/* File system directory-based implementation */
 NCZM_ZIP=2,	/* Zip-file based implementation */
 NCZM_S3=3,	/* Amazon S3 implementation */
 NCZM_GS3=4,	/* Google S3 implementation */
+NCZM_ZOH=5,	/* Zarr-Over-HTTP server; piggybacks on S3 implementation */
 } NCZM_IMPL;
 
 /* Define the default map implementation */
@@ -236,6 +237,7 @@ extern NCZMAP_DS_API zmap_zip;
 #endif
 #ifdef NETCDF_ENABLE_S3
 extern NCZMAP_DS_API zmap_s3sdk;
+extern NCZMAP_DS_API zmap_zoh;
 #endif
 
 #ifdef __cplusplus

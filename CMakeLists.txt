@@ -357,7 +357,7 @@ endif()
 
 # Default Cache variables.
 set(DEFAULT_CHUNK_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
-set(DEFAULT_CHUNK_CACHE_SIZE 16777216U CACHE STRING "Default Chunk Cache Size.")
+set(DEFAULT_CHUNK_CACHE_SIZE 67108864U CACHE STRING "Default Chunk Cache Size.")
 set(DEFAULT_CHUNKS_IN_CACHE 1000 CACHE STRING "Default number of chunks in cache.")
 set(DEFAULT_CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy (a number between 0 and 1, inclusive).")
 
@@ -1671,10 +1671,6 @@ install(FILES ${netCDF_BINARY_DIR}/netcdf.pc
 # Print the configuration summary
 ##
 print_conf_summary()
-
-# Enable Makedist files.
-ADD_MAKEDIST()
-ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.cmake.in configure configure.ac install-sh config.h.in config.sub CTestConfig.cmake.in)
 
 #####
 # Configure and print the libnetcdf.settings file.

@@ -113,27 +113,28 @@ zs3create(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMA
     char* prefix = NULL;
     char* truekey = NULL;
 	
-    NC_UNUSED(flags);
     NC_UNUSED(parameters);
 
     ZTRACE(6,"path=%s mode=%d flag=%llu",path,mode,flags);
 
     if(!zs3initialized) zs3initialize();
 
-    /* Build the z3 state */
-    if((z3map = (ZS3MAP*)calloc(1,sizeof(ZS3MAP))) == NULL)
-	{stat = NC_ENOMEM; goto done;}
-
-    z3map->map.format = NCZM_S3;
-    z3map->map.url = strdup(path);
-    z3map->map.mode = mode;
-    z3map->map.flags = flags;
-    z3map->map.api = (NCZMAP_API*)&nczs3sdkapi;
+    if(flags & FLAG_ZOH) {stat = NC_EZARR; goto done;}
 
     /* Parse the URL */
     ncuriparse(path,&url);
     if(url == NULL)
         {stat = NC_EURL; goto done;}
+   
+    /* Build the z3 state */
+    if((z3map = (ZS3MAP*)calloc(1,sizeof(ZS3MAP))) == NULL)
+	{stat = NC_ENOMEM; goto done;}
+
+    z3map->map.format = NCZM_S3; /* Even if NCZM_GS3 or NCZM_ZOH */
+    z3map->map.url = strdup(path);
+    z3map->map.mode = mode;
+    z3map->map.flags = flags;
+    z3map->map.api = (NCZMAP_API*)&nczs3sdkapi;
 
     /* Convert to canonical path-style */
     if((stat = NC_s3urlprocess(url,&z3map->s3,NULL))) goto done;
@@ -183,7 +184,14 @@ done:
 /* The problem with open is that there
 no obvious way to test for existence.
 So, we assume that the dataset must have
-some content. We look for that */
+some content. We look for that
+@param path Dataset URL
+@param mode Mode flags from nc_open
+@param flags Other flags (currently unused)
+@param parameters (currently unused)
+@param mapp Return the created map
+@result NC_NOERR|NC_EXXX
+*/
 static int
 zs3open(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP** mapp)
 {
@@ -193,27 +201,26 @@ zs3open(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP*
     NClist* content = NULL;
     size_t nkeys = 0;
 
-    NC_UNUSED(flags);
     NC_UNUSED(parameters);
 
     ZTRACE(6,"path=%s mode=%d flags=%llu",path,mode,flags);
 
     if(!zs3initialized) zs3initialize();
 
-    /* Build the z3 state */
-    if((z3map = (ZS3MAP*)calloc(1,sizeof(ZS3MAP))) == NULL)
-	{stat = NC_ENOMEM; goto done;}
-
-    z3map->map.format = NCZM_S3;
-    z3map->map.url = strdup(path);
-    z3map->map.mode = mode;
-    z3map->map.flags = flags;
-    z3map->map.api = (NCZMAP_API*)&nczs3sdkapi;
-
     /* Parse the URL */
     if((stat = ncuriparse(path,&url))) goto done;
     if(url == NULL)
         {stat = NC_EURL; goto done;}
+
+    /* Build the z3 state */
+    if((z3map = (ZS3MAP*)calloc(1,sizeof(ZS3MAP))) == NULL)
+	{stat = NC_ENOMEM; goto done;}
+
+    z3map->map.format = ((flags & FLAG_ZOH)?NCZM_ZOH:NCZM_S3);
+    z3map->map.url = strdup(path);
+    z3map->map.mode = mode;
+    z3map->map.flags = flags;
+    z3map->map.api = (NCZMAP_API*)&nczs3sdkapi;
 
     /* Convert to canonical path-style */
     if((stat = NC_s3urlprocess(url,&z3map->s3,NULL))) goto done;
@@ -223,15 +230,17 @@ zs3open(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP*
 
     z3map->s3client = NC_s3sdkcreateclient(&z3map->s3);
 
-    /* Search the root for content */
-    content = nclistnew();
-    if((stat = NC_s3sdklist(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
-	goto done;
-    if(nkeys == 0) {
-	/* dataset does not actually exist; we choose to return ENOOBJECT instead of EEMPTY */
-	stat = NC_ENOOBJECT;
-	goto done;
+    if(!flags & FLAG_ZOH) {
+        content = nclistnew();
+        if((stat = NC_s3sdklist(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
+	    goto done;
+        if(nkeys == 0) {
+            /* dataset does not actually exist; we choose to return ENOOBJECT instead of EEMPTY */
+            stat = NC_ENOOBJECT;
+            goto done;
+        }
     }
+
     if(mapp) *mapp = (NCZMAP*)z3map;    
 
 done:
@@ -657,8 +666,38 @@ freevector(size_t nkeys, char** list)
 }
 
 /**************************************************/
+/* no-op functions for ZOH
+
+
+static int
+zs3create(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP** mapp)
+{
+    return NC_EZARR;
+}
+
+static int
+zohtruncate(const char *s3url)
+{
+    return NC_EZARR;
+}
+
+static int
+zohlist(NCZMAP* map, const char* prefix, NClist* matches)
+{
+    return NC_EZARR;
+}
+
+static int
+zohlistall(NCZMAP* map, const char* prefix, NClist* matches)
+{
+    return NC_EZARR;
+}
+
+/**************************************************/
+
 /* External API objects */
 
+/* Dispatcher for S3/GS3 */
 NCZMAP_DS_API zmap_s3sdk;
 NCZMAP_DS_API zmap_s3sdk = {
     NCZM_S3SDK_V1,
@@ -678,4 +717,26 @@ nczs3sdkapi = {
     zs3write,
     zs3list,
     zs3listall
+};
+
+/* Dispatcher for ZOH */
+NCZMAP_DS_API zmap_zoh;
+NCZMAP_DS_API zmap_zoh = {
+    NCZM_ZOH_V1,
+    ZOH_PROPERTIES,
+    zohcreate,
+    zs3open,
+    zohtruncate,
+};
+
+static NCZMAP_API
+nczzohapi = {
+    NCZM_ZOH_V1,
+    zs3close,
+    zs3exists,
+    zs3len,
+    zs3read,
+    zohwrite,
+    zohlist,
+    zohlistall,
 };
