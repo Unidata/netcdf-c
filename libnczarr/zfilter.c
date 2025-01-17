@@ -87,7 +87,9 @@ NCZ_hdf5_empty(void)
 /* WARNING: GLOBAL DATA */
 /* TODO: move to common global state */
 
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 static int NCZ_filter_initialized = 0;
+#endif
 
 /**************************************************/
 
@@ -161,6 +163,7 @@ printfilter(const NCZ_Filter* f)
 #endif
 
 
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 /* Forward */
 static int NCZ_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, NCZ_Filter** specp);
 static int ensure_working(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NCZ_Filter* filter);
@@ -169,8 +172,10 @@ static int paramnczclone(NCZ_Params* dst, const NCZ_Params* src);
 static int NCZ_filter_freelist1(NClist* filters);
 static int NCZ_overwrite_filter(NC_FILE_INFO_T* file, NCZ_Filter* src, NCZ_Filter* dst);
 static int checkfilterconflicts(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, unsigned id, size_t nparams, const unsigned int* params);
+#endif
 
 /**************************************************/
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 /**
  * @file
  * @internal
@@ -303,6 +308,7 @@ NCZ_plugin_lookup(const char* codecid, NCZ_Plugin** pluginp)
     if(pluginp) *pluginp = plugin;
     return stat;
 }
+#endif /*NETCDF_ENABLE_NCZARR_FILTERS*/
 
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
 int
@@ -582,11 +588,47 @@ done:
     return THROW(stat);
 }
 
+#else /*!NETCDF_ENABLE_NCZARR_FILTERS*/
+
+int
+NCZ_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
+                   const unsigned int* params)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(id);
+    NC_UNUSED(nparams);
+    NC_UNUSED(params);
+    return NC_ENOTBUILT;
+}
+
+int
+NCZ_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int* ids)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(nfiltersp);
+    NC_UNUSED(ids);
+    return NC_ENOTBUILT;
+}
+
+int
+NCZ_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, unsigned int* params)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(id);
+    NC_UNUSED(nparamsp);
+    NC_UNUSED(params);
+    return NC_ENOTBUILT;
+}
+
 #endif /*NETCDF_ENABLE_NCZARR_FILTERS*/
 
 /**************************************************/
 /* Filter application functions */
 
+#ifdef NETCDF_ENABLE_NCZARR_FILTERS
 int
 NCZ_filter_initialize(void)
 {
@@ -597,9 +639,7 @@ NCZ_filter_initialize(void)
 
     NCZ_filter_initialized = 1;
 
-#ifdef NETCDF_ENABLE_NCZARR_FILTERS
     if((stat = NCZ_load_all_plugins())) goto done;
-#endif
 done:
     return ZUNTRACE(stat);
 }
@@ -615,6 +655,7 @@ NCZ_filter_finalize(void)
 done:
     return ZUNTRACE(stat);
 }
+
 int
 NCZ_applyfilterchain(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NClist* chain, size_t inlen, void* indata, size_t* outlenp, void** outdatap, int encode)
 {
@@ -868,3 +909,6 @@ ncz_codec_clear(NCZ_Codec* c)
     nullfree(c->codec);
     *c = NCZ_codec_empty();
 }
+
+#else
+#endif
