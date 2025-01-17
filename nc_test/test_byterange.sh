@@ -7,6 +7,8 @@ set -e
 
 # Note: thredds-test is currently down and the URLs need to be replaced
 
+KEYPREFIX="${S3TESTSUBTREE}/byterangefiles"
+
 # Test Urls
 if test "x$FEATURE_THREDDSTEST" = x1 ; then
 URL3="https://thredds-test.unidata.ucar.edu/thredds/fileServer/pointData/cf_dsg/example/point.nc#mode=bytes"
@@ -19,10 +21,10 @@ URL4c="https://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadF/2022/001/18/OR_ABI-L1b-
 URL4e="s3://noaa-goes16/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes"
 fi
 if test "x$FEATURE_S3TESTS" = xyes ; then
+# Does not require auth
+URL3b="s3://${S3TESTBUCKET}/${KEYPREFIX}/upload3.nc#bytes"
 # Requires auth
-URL3b="s3://${S3TESTBUCKET}/byterangefiles/upload3.nc#bytes"
-# Requires auth
-URL4d="s3://${S3TESTBUCKET}/byterangefiles/upload4.nc#bytes&aws.profile=unidata"
+URL4d="s3://${S3TESTBUCKET}/${KEYPREFIX}/upload4.nc#bytes&aws.profile=unidata"
 fi
 URL4f="https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT.4.6.0.0.median.nc#mode=bytes"
 
@@ -37,14 +39,14 @@ testsetup() {
 U=$1
 # Create and upload test files
 rm -f upload4.nc upload3.nc
-${execdir}/../nczarr_test/s3util -u ${U} -k /byterangefiles clear
+${execdir}/../nczarr_test/s3util -u ${U} -k "/${KEYPREFIX}" clear
 ${NCGEN} -lb -3 ${srcdir}/nc_enddef.cdl
 mv nc_enddef.nc upload3.nc
-${execdir}/../nczarr_test/s3util -u ${U} -k /byterangefiles/upload3.nc -f upload3.nc upload
+${execdir}/../nczarr_test/s3util -u ${U} -k /${KEYPREFIX}/upload3.nc -f upload3.nc upload
 if test "x$FEATURE_HDF5" = xyes ; then
 ${NCGEN} -lb -4 ${srcdir}/nc_enddef.cdl
 mv nc_enddef.nc upload4.nc
-${execdir}/../nczarr_test/s3util -u ${U} -k /byterangefiles/upload4.nc -f upload4.nc upload
+${execdir}/../nczarr_test/s3util -u ${U} -k /${KEYPREFIX}/upload4.nc -f upload4.nc upload
 fi
 rm -f tst_http_nc3.cdl tst_http_nc4?.cdl 
 }
@@ -52,7 +54,7 @@ rm -f tst_http_nc3.cdl tst_http_nc4?.cdl
 testcleanup() {
 U=$1
 rm -f upload4.nc upload3.nc
-${execdir}/../nczarr_test/s3util -u ${U} -k /byterangefiles clear
+${execdir}/../nczarr_test/s3util -u ${U} -k /${KEYPREFIX} clear
 }
 
 testbytes() {
@@ -80,8 +82,8 @@ if test "x$K" != "x$EXPECTED" ; then
    echo "test_http: -k flag mismatch: expected=$EXPECTED have=$K"
    exit 1
 fi
-rm -f tmp_${TAG}.cdl
 # Now test the reading of at least the metadata
+rm -f tmp_${TAG}.cdl
 ${NCDUMP} -n nc_enddef "$U" >tmp_${TAG}.cdl
 # compare
 diff -wb tmp_$TAG.cdl ${srcdir}/nc_enddef.cdl 

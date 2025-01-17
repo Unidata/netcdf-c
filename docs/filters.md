@@ -700,9 +700,7 @@ one less than the number of significant bunary figures:
  artifacts in multipoint  statistics introduced by BitGroom 
  (see https://doi.org/10.5194/gmd-14-377-2021).
 
-
 # Debugging {#filters_debug}
-
 
 Depending on the debugger one uses, debugging plugins can be very difficult.
 It may be necessary to use the old printf approach for debugging the filter itself.
@@ -993,11 +991,11 @@ typedef struct NCZ_codec_t {
                  Currently always NCZ_CODEC_HDF5 */
     const char* codecid;            /* The name/id of the codec */
     unsigned int hdf5id; /* corresponding hdf5 id */
-    void (*NCZ_codec_initialize)(void);
-    void (*NCZ_codec_finalize)(void);
-    int (*NCZ_codec_to_hdf5)(const char* codec, int* nparamsp, unsigned** paramsp);
-    int (*NCZ_hdf5_to_codec)(size_t nparams, const unsigned* params, char** codecp);
-    int (*NCZ_modify_parameters)(int ncid, int varid, size_t* vnparamsp, unsigned** vparamsp, size_t* nparamsp, unsigned** paramsp);
+    void (*NCZ_codec_initialize)(NCproplist* env);
+    void (*NCZ_codec_finalize)(NCproplist* env);
+    int (*NCZ_codec_to_hdf5)(NCproplist* env, const char* codec, int* h5idp, int* nparamsp, unsigned** paramsp);
+    int (*NCZ_hdf5_to_codec)(NCproplist* env, int h5id, size_t nparams, const unsigned* params, char** codecp);
+    int (*NCZ_modify_parameters)(NCproplist* env, int* h5idp, size_t* vnparamsp, unsigned** vparamsp, size_t* nparamsp, unsigned** paramsp);
 } NCZ_codec_t;
 ````
 
@@ -1015,12 +1013,14 @@ visible parameters.
 
 ##### Signature
 ````
-    int NCZ_codec_to_hdf(const char* codec, int* nparamsp, unsigned** paramsp);
+    int NCZ_codec_to_hdf(NCproplist* env, const char* codec, int* h5idp, int* nparamsp, unsigned** paramsp);
 ````
 ##### Arguments
-1. codec &mdash; (in) ptr to JSON string representing the codec.
-2. nparamsp &mdash; (out) store the length of the converted HDF5 unsigned vector
-3. paramsp &mdash; (out) store a pointer to the converted HDF5 unsigned vector; caller must free the returned vector. Note the double indirection.
+1. env $mdash; (in) ptr to a property list of key+value pairs.
+2. codec &mdash; (in) ptr to JSON string representing the codec.
+3. h5idp &mdash; (in/out) the hdf5 filter id.
+4. nparamsp &mdash; (out) store the length of the converted HDF5 unsigned vector
+5. paramsp &mdash; (out) store a pointer to the converted HDF5 unsigned vector; caller must free the returned vector. Note the double indirection.
 
 Return Value: a netcdf-c error code.
 
@@ -1031,12 +1031,12 @@ return a corresponding JSON codec representation of those visible parameters.
 
 ##### Signature
 ````
-    int NCZ_hdf5_to_codec)(int ncid, int varid, size_t nparams, const unsigned* params, char** codecp);
+    int NCZ_hdf5_to_codec)(NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
 ````
 ##### Arguments
 
-1. ncid    &mdash; the variables' containing group
-2. varid   &mdash; the containing variable
+1. env &mdash; property list of key+value pairs.
+2. id &mdash; the hdf5 id.
 3. nparams &mdash; (in) the length of the HDF5 visible parameters vector
 4. params &mdash; (in) pointer to the HDF5 visible parameters vector.
 5. codecp &mdash; (out) store the string representation of the codec; caller must free.
@@ -1050,12 +1050,12 @@ to a set of working parameters; also provide option to modify visible parameters
 
 ##### Signature
 ````
-    int NCZ_modify_parameters(int ncid, int varid, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
+    int NCZ_modify_parameters(NCproplist* env, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
 ````
 ##### Arguments
 
-1. ncid &mdash; (in) group id containing the variable.
-2. varid &mdash; (in) the id of the variable to which this filter is being attached.
+1. env &mdash; (in) property list of key+value pairs.
+2. idp &mdash; (in/out) the hdf5 id.
 3. vnparamsp &mdash; (in/out) the count of visible parameters
 4. vparamsp &mdash; (in/out) the set of visible parameters
 5. wnparamsp &mdash; (out) the count of working parameters
@@ -1070,8 +1070,12 @@ This function is called as soon as a shared library is loaded and matched with a
 
 ##### Signature
 ````
-    int NCZ_codec_initialize)(void);
+    int NCZ_codec_initialize)(NCproplist* env);
 ````
+##### Arguments
+
+1. env &mdash; (in) property list of key+value pairs.
+
 Return Value: a netcdf-c error code.
 
 #### NCZ\_codec\_finalize
@@ -1082,8 +1086,12 @@ If the client code does not invoke *nc\_finalize* then memory checkers may compl
 
 ##### Signature
 ````
-    int NCZ_codec_finalize)(void);
+    int NCZ_codec_finalize)(NCproplist* env);
 ````
+##### Arguments
+
+1. env &mdash; (in) property list of key+value pairs.
+
 Return Value: a netcdf-c error code.
 
 ### Multi-Codec API
@@ -1106,7 +1114,26 @@ The list of returned items are used to try to provide defaults
 for any HDF5 filters that have no corresponding Codec.
 This is for internal use only.
 
-## Appendix F. Standard Filters  {#filters_appendixf}
+## Appendix F. Default HDF5 Filter Codecs  {#filters_appendixf}
+
+It is recognized that it will be a while (if ever) until
+HDF5 filters also specify the necessary codec information.
+In order to provide some support for filters that do not have
+corresponding codec support, a "_hdf5raw_" codec manager is provided.
+
+This hdf5raw codec manager encodes the parameters of the HDF5 filter
+into one of these two codec forms:
+
+* Zarr Version 2
+    ````{"id": "_hdf5raw_", "hdf5id": "&lt;hdf5-id&gt;, "nparams": &lt;uint&gt;, "0": &lt;uint&gt;...,"&lt;N&gt;": &lt;uint&gt;}````
+* Zarr Version 3
+    ````{"name": "_hdf5raw_", "configuration": {"hdf5id": &lt;uint&gt;, "nparams": &lt;uint&gt;, "0": &lt;uint&gt;...,"&lt;N&gt;": &lt;uint&gt;}}````
+
+There are couple things to note about hdf5raw:
+1. this cannot be used if a modify_parameters function is required.
+2. this representation will not be usable by other Zarr implementations, unless of course they choose to implement it.
+
+## Appendix G. Standard Filters  {#filters_appendixg}
 
 Support for a select set of standard filters is built into the NetCDF API.
 Generally, they are accessed using the following generic API, where XXXX is
@@ -1136,10 +1163,10 @@ Consider the zstandard compressor, which is one of the supported standard filter
 When installing the netcdf library, the following other libraries must be installed.
 
 1. *libzstd.so* | *zstd.dll* | *libzstd.dylib* -- The actual zstandard compressor library; typically installed by using your platform specific package manager.
-2. The HDF5 wrapper for *libzstd.so* -- There are several options for obtaining this (see [Appendix G](#filters_appendixg).)
+2. The HDF5 wrapper for *libzstd.so* -- There are several options for obtaining this (see [Appendix H](#filters_appendixh).)
 3. (Optional) The Zarr wrapper for *libzstd.so* -- you need this if you intend to read/write Zarr datasets that were compressed using zstandard; again see [Appendix G](#filters_appendixg).
 
-## Appendix G. Finding Filter Implementations {#filters_appendixg}
+## Appendix H. Finding Filter Implementations {#filters_appendixh}
 
 A major problem for filter users is finding an implementation of an HDF5 filter wrapper and (optionally)
 its corresponding NCZarr wrapper. There are several ways to do this.
@@ -1160,7 +1187,7 @@ You can install this library to get access to these supported filters.
 It does not currently include the required NCZarr Codec API,
 so they are only usable with netcdf-4. This will change in the future.
 
-## Appendix H. Auto-Install of Filter Wrappers {#filters_appendixh}
+## Appendix I. Auto-Install of Filter Wrappers {#filters_appendixi}
 
 As part of the overall build process, a number of filter wrappers are built as shared libraries in the "plugins" directory.
 These wrappers can be installed as part of the overall netcdf-c installation process.
@@ -1185,7 +1212,7 @@ provided by the *lib__nczh5filters.so* shared library.  Note also that
 if you disable HDF5 support, but leave NCZarr support enabled,
 then all of the above filters should continue to work.
 
-## Appendix I. A Warning on Backward Compatibility {#filters_appendixi}
+## Appendix J. A Warning on Backward Compatibility {#filters_appendixj}
 
 The API defined in this document should accurately reflect the
 current state of filters in the netCDF-c library.  Be aware that
@@ -1212,4 +1239,4 @@ For additional information, see [Appendix B](#filters_appendixb).
 *Author*: Dennis Heimbigner<br>
 *Email*: dennis.heimbigner@gmail.com<br>
 *Initial Version*: 1/10/2018<br>
-*Last Revised*: 5/18/2022
+*Last Revised*: 10/18/2023

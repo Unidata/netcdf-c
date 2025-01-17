@@ -53,8 +53,8 @@ typedef struct Odom {
     size_t* count;
 } Odom;
 
-#ifdef IGNORE
-static float threeD_data[X*Y*Z];
+#ifdef NOCODE
+static float threeD_data[X][Y][Z];
 static int dims[RANK] = {X,Y,Z};
 #endif
 static float threeD[X][Y][Z];
@@ -219,7 +219,7 @@ static size_t odom_count(Odom* odom)
     return offset;
 }
 
-#ifdef IGNORE
+#ifdef NOCODE
 static float threeD_data[X][Y][Z] = {
   1, 0.999950000416665, 0.999800006666578, 0.999550033748988,
     0.999200106660978, 0.998750260394966, 0.998200539935204,

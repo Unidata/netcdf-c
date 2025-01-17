@@ -952,6 +952,8 @@ This function is just a wrapper around nc_dump__data.
 @return error code
 */
 
+EXTERNL int nc_dump_data(int ncid, nc_type xtype, void* memory, size_t count, char** bufp);
+
 EXTERNL int
 ncaux_dump_data(int ncid, int xtype, void* memory, size_t count, char** bufp)
 {

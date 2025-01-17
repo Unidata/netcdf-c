@@ -266,18 +266,17 @@ main(int argc, char** argv)
     if (argc > 1)
        usage("more than one path specified");
 
-    /* translate blanks */
-    inpath = (char*)malloc(strlen(argv[0])+1);
+    if(argv[0] == NULL) {
+	inpath = strdup("");
+    } else {
+        inpath = strdup(argv[0]);
+    }
     if(inpath == NULL) usage("Out of memory");
-    {
-	const char* p = argv[0];
-	char* q = inpath;
+    { /* translate blanks */
+	char* p = inpath;
 	for(;*p;p++) {
-	    char c = *p;
-	    if(c == cvtoptions.blank) c = ' ';
-	    *q++ = c;
+	    if(*p == cvtoptions.blank) *p = ' ';
 	}
-	*q = '\0';
     } 
 
     if(cvtoptions.pathkind) {

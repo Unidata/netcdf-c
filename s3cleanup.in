@@ -67,7 +67,11 @@ if test "x$VERBOSE" = x1 ; then set +x; fi
 for key in $ALLKEYS ; do
     for uid in $UIDS ; do
         case "$key" in
-            "$S3TESTSUBTREE/testset_${uid}"*)
+            "$S3TESTSUBTREE/nczarr_test_${uid}"*)
+               # capture the key'
+               MATCHKEYS="$MATCHKEYS $key"
+               ;;
+            "$S3TESTSUBTREE/v3_nczarr_test_${uid}"*)
                 # capture the key'
                 MATCHKEYS="$MATCHKEYS $key"
                 ;;

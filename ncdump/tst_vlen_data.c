@@ -24,7 +24,7 @@ The leak may be in HDF5.
 #define DIM5_LEN 5
 #define VAR5_NAME "ragged_array"
 #define VAR5_RANK 1
-#define ATT5_NAME "_FillValue"
+#define ATT5_NAME NC_FillValue
 #define ATT5_LEN  1
 #define NROWS 5
 
