@@ -588,41 +588,6 @@ done:
     return THROW(stat);
 }
 
-#else /*!NETCDF_ENABLE_NCZARR_FILTERS*/
-
-int
-NCZ_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
-                   const unsigned int* params)
-{
-    NC_UNUSED(ncid);
-    NC_UNUSED(varid);
-    NC_UNUSED(id);
-    NC_UNUSED(nparams);
-    NC_UNUSED(params);
-    return NC_ENOTBUILT;
-}
-
-int
-NCZ_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int* ids)
-{
-    NC_UNUSED(ncid);
-    NC_UNUSED(varid);
-    NC_UNUSED(nfiltersp);
-    NC_UNUSED(ids);
-    return NC_ENOTBUILT;
-}
-
-int
-NCZ_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, unsigned int* params)
-{
-    NC_UNUSED(ncid);
-    NC_UNUSED(varid);
-    NC_UNUSED(id);
-    NC_UNUSED(nparamsp);
-    NC_UNUSED(params);
-    return NC_ENOTBUILT;
-}
-
 #endif /*NETCDF_ENABLE_NCZARR_FILTERS*/
 
 /**************************************************/
