@@ -20,7 +20,7 @@
 #define DIM_LEN 3
 #define VAR_NAME "obs"
 #define VAR_RANK 1
-#define ATT_NAME "_FillValue"
+#define ATT_NAME NC_FillValue
 #define ATT_LEN  1
 
 int

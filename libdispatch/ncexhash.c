@@ -364,6 +364,8 @@ exhashsplit(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf* leaf)
     NCexleaf entries;
     int i, index;
 
+    NC_UNUSED(hkey);
+
     TRACE("exhashsplit");
 
     if(map->iterator.walking) {stat = NC_EPERM; goto done;}
@@ -739,6 +741,7 @@ void
 ncexhashprint(NCexhashmap* hm)
 {
     int index;
+    size_t dirindex;
 
     if(hm == NULL) {fprintf(stderr,"NULL"); fflush(stderr); return;}
     fprintf(stderr,"{depth=%u leaflen=%u",hm->depth,hm->leaflen);
@@ -747,7 +750,7 @@ ncexhashprint(NCexhashmap* hm)
 		hm->iterator.leaf,hm->iterator.index);
     }
     fprintf(stderr,"\n");
-    for(size_t dirindex=0;dirindex<(1<<hm->depth);dirindex++) {
+    for(dirindex=0;dirindex<(size_t)(1<<hm->depth);dirindex++) {
 	NCexleaf* leaf = hm->directory[dirindex];
 	fprintf(stderr,"\tdirectory[%03zu|%sb]=(%04x)[(%u)^%d|%d|",
 		dirindex,ncexbinstr(dirindex,hm->depth),
@@ -778,9 +781,10 @@ ncexhashprint(NCexhashmap* hm)
 void
 ncexhashprintdir(NCexhashmap* map, NCexleaf** dir)
 {
-    for(unsigned long long dirindex=0;dirindex<(1<<map->depth);dirindex++) {
+    size_t dirindex;
+    for(dirindex=0;dirindex<(size_t)(1<<map->depth);dirindex++) {
 	NCexleaf* leaf = dir[dirindex];
-	fprintf(stderr,"\tdirectory[%03llu|%sb]=%d/%p\n",
+	fprintf(stderr,"\tdirectory[%03zu|%sb]=%d/%p\n",
 		dirindex,ncexbinstr(dirindex,map->depth),leaf->uid,leaf);
     }
     fflush(stderr);
@@ -812,7 +816,7 @@ ncexhashprintleaf(NCexhashmap* map, NCexleaf* leaf)
 void
 ncexhashprintentry(NCexhashmap* map, NCexentry* entry)
 {
-
+    NC_UNUSED(map);
     fprintf(stderr,"{0x%llx,%llu)",(unsigned long long)entry->hashkey,(unsigned long long)entry->data);
 }
 

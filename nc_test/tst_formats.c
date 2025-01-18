@@ -226,7 +226,7 @@ main(int argc, char **argv)
                     }
                     else
                     {
-                        ret = nc_put_att_int(ncid, varid, "_FillValue", NC_INT, 1,
+                        ret = nc_put_att_int(ncid, varid, NC_FillValue, NC_INT, 1,
                                              &fill_value);
                     }
 

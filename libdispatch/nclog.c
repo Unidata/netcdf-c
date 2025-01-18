@@ -286,6 +286,8 @@ done:
 int
 ncthrow(int err,const char* file,int line)
 {
+    NC_UNUSED(file);
+    NC_UNUSED(line);
     if(err == 0) return err;
     return ncbreakpoint(err);
 }

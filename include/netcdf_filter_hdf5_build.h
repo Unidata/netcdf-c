@@ -39,16 +39,14 @@
 #include <hdf5.h>
 /* Older versions of the hdf library may define H5PL_type_t here */
 #include <H5PLextern.h>
-
 #else /*!USE_HDF5*/ /* Provide replacement definitions */
-
 /* WARNING: In order make NCZARR independent of HDF5,
    while still using HDF5-style filters, some HDF5
    declarations need to be duplicated here with
    different names. Watch out for changes in
    the underlying HDF5 declarations.
 
-   See the file H5Zpublic.h for more detailed descriptions.
+   See the file H5Zpublic.h or H5Zdevelop.h for more detailed descriptions.
 
    Note that these declarations are always enabled because
    HDF5-style filters may have been created with these definitions
@@ -61,8 +59,9 @@
 /* H5Z_FILTER_RESERVED => H5Z_FILTER_RESERVED */
 #define H5Z_FILTER_RESERVED 256 /*filter ids below this value are reserved for library use */
 
-/* H5Z_FILTER_MAX => H5Z_FILTER_MAX */
+#ifndef H5Z_FILTER_MAX
 #define H5Z_FILTER_MAX 65535 /*maximum filter id */
+#endif
 
 /* Only a limited set of definition and invocation flags are allowed */
 #define H5Z_FLAG_MANDATORY      0x0000  /*filter is mandatory		*/

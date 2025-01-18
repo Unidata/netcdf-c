@@ -45,7 +45,6 @@ set(PACKAGE "netCDF" CACHE STRING "")
 include(netcdf_functions_macros)
 include(deprecated)
 
-
 # Backport of built-in `PROJECT_IS_TOP_LEVEL` from CMake 3.21
 if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
   set(NETCDF_IS_TOP_LEVEL OFF)
@@ -440,18 +439,18 @@ endif()
 # Format Option checks
 ################################
 
-# As a long term goal, and because it is now the case that
-# NETCDF_ENABLE_NCZARR => USE_NETCDF4, so make the external options
-# NETCDF_ENABLE_NETCDF_4 and NETCDF_ENABLE_NETCDF4 obsolete
-# in favor of NETCDF_ENABLE_HDF5.
+# As a long term goal, and because it is now the case that --enable-nczarr
+# => USE_NETCDF4, make the external options --enable-netcdf-4 and
+# --enable-netcdf4 obsolete in favor of --enable-hdf5
 # We will do the following for one more release cycle.
-# 1. Make NETCDF_ENABLE_NETCDF_4 be an alias for NETCDF_ENABLE_NETCDF4.
-# 2. Make NETCDF_ENABLE_NETCDF4 an alias for NETCDF_ENABLE_HDF5.
-# 3. Internally, convert most (but not all) uses of USE_NETCDF_4 and USE_NETCDF4 to USE_HDF5.
+# 1. Make --enable-netcdf-4 be an alias for --enable-netcdf4.
+# 2. Make --enable-netcdf4 an alias for --enable-hdf5.
+# 3. Internally, convert most uses of USE_NETCDF_4 ad USE_NETCDF4 to USE_HDF5
 
-# Collect the values of NETCDF_ENABLE_NETCDF_4, NETCDF_ENABLE_NETCDF4, and NETCDF_ENABLE_HDF5.
+# Collect the values of -DNETCDF_ENABLE_NETCDF-4, -DNETCDF_ENABLE_NETCDF4, and -DNETCDF_ENABLE_HDF5.
+# Also determine which have been explicitly set on the command line.
 
-# Figure out which options are defined and process options
+# Figure out which options are defined
 if(DEFINED NETCDF_ENABLE_NETCDF_4)
     set(UNDEF_NETCDF_4 OFF CACHE BOOL "") 
     option(NETCDF_ENABLE_NETCDF_4 "" ON)
@@ -493,8 +492,11 @@ if(UNDEF_HDF5)
 set(NETCDF_ENABLE_HDF5 ON CACHE BOOL "" FORCE) 
 endif()
 
-# Turn off NETCDF_ENABLE_NETCDF4 because it will be used
-# as a shorthand for NETCDF_ENABLE_HDF5|NETCDF_ENABLE_HDF4|NETCDF_ENABLE_NCZARR
+# Turn off enable_netcdf_4 because it is no longer needed
+set(NETCDF_ENABLE_NETCDF_4 OFF CACHE BOOL "" FORCE)
+
+# Turn off enable_netcdf4 because it will be used
+# as a shorthand for ENABLE_HDF5|ENABLE_HDF4|ENABLE_NCZARR
 set(NETCDF_ENABLE_NETCDF4 OFF CACHE BOOL "" FORCE)
 option(NETCDF_ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 option(NETCDF_ENABLE_NCZARR "Enable NCZarr Client." ON)
@@ -507,10 +509,28 @@ if(NETCDF_ENABLE_HDF4)
   set(USE_HDF4 ON)
 endif()
 
+# Decide default Zarr Format for creation
+OPTION(NETCDF_ENABLE_DEFAULT_ZARR_FORMAT_V3 "Specify the default Zarr format is V3" OFF)
+if(NETCDF_ENABLE_DEFAULT_ZARR_FORMAT_V3)
+SET(DFALTZARRFORMAT 3 CACHE STRING "")
+ELSE()
+SET(DFALTZARRFORMAT 2 CACHE STRING "")
+ENDIF()
+
+IF(NETCDF_ENABLE_NCZARR)
+  SET(NETCDF_ENABLE_NCZARR_V3 ON CACHE BOOL "Enable Zarr V3" FORCE)
+  # V3 is enabled if NCzarr is enabled
+ELSE()
+  SET(NETCDF_ENABLE_NCZARR_V3 OFF CACHE BOOL "Enable Zarr V3" FORCE)
+ENDIF()
+
 # Netcdf-4 support (i.e. libsrc4) is required by more than just HDF5 (e.g. NCZarr)
 # So depending on what above formats are enabled, enable netcdf-4
+# as a short-hand for this boolean expression
 if(NETCDF_ENABLE_HDF5 OR NETCDF_ENABLE_HDF4 OR NETCDF_ENABLE_NCZARR)
   set(NETCDF_ENABLE_NETCDF4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
+  # For convenience, define USE_NETCDF4
+  set(USE_NETCDF4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
 endif()
 
 # enable|disable all forms of network access
@@ -534,10 +554,7 @@ endif()
 # Did the user specify a default minimum blocksize for posixio?
 set(NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic and 64-bit offset format files.")
 
-if(NETCDF_ENABLE_NETCDF4)
-  set(USE_NETCDF4 ON CACHE BOOL "")
-  set(NETCDF_ENABLE_NETCDF4 ON CACHE BOOL "")
-else()
+if(NOT USE_NETCDF4)
   set(USE_HDF4_FILE_TESTS OFF)
   set(USE_HDF4 OFF)
   set(NETCDF_ENABLE_HDF4_FILE_TESTS OFF)
@@ -993,7 +1010,7 @@ endif(NETCDF_ENABLE_ERANGE_FILL)
 # Now NETCDF_ENABLE_ERANGE_FILL is either AUTO, ON, or OFF
 
 # More relaxed coordinate check is now mandatory for all builds.
-set(ENABLE_ZERO_LENGTH_COORD_BOUND ON)
+set(NETCDF_ENABLE_ZERO_LENGTH_COORD_BOUND ON)
 
 # check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
 if(USE_PNETCDF)
@@ -1016,7 +1033,7 @@ if(NETCDF_ENABLE_ERANGE_FILL)
   set(M4FLAGS "-DERANGE_FILL" CACHE STRING "")
 endif()
 
-if(ENABLE_ZERO_LENGTH_COORD_BOUND)
+if(NETCDF_ENABLE_ZERO_LENGTH_COORD_BOUND)
   message(STATUS "Enabling a more relaxed check for NC_EINVALCOORDS")
   target_compile_definitions(netcdf PRIVATE RELAX_COORD_BOUND)
 endif()
@@ -1540,6 +1557,12 @@ if(NETCDF_ENABLE_TESTS)
   if(NETCDF_ENABLE_NCZARR)
     include_directories(nczarr_test)
     add_subdirectory(nczarr_test)
+    if(NOT ISCMAKE)
+      # Cannot create target because another target with
+      # the same name already exists.
+      # See documentation for policy CMP0002 for more details.
+      add_subdirectory(v3_nczarr_test)
+     endif()
   endif()
 endif()
 
@@ -1673,10 +1696,10 @@ is_disabled(BUILD_SHARED_LIBS enable_static)
 is_enabled(BUILD_SHARED_LIBS enable_shared)
 
 is_enabled(NETCDF_ENABLE_V2_API HAS_NC2)
-is_enabled(NETCDF_ENABLE_NETCDF4 HAS_NC4)
 is_enabled(NETCDF_ENABLE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
+is_enabled(USE_NETCDF4 HAS_NC4)
 is_enabled(OFF HAS_BENCHMARKS)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
@@ -1734,6 +1757,10 @@ endif()
 # The Unidata testing S3 bucket
 # WARNING: this must match the value in configure.ac
 set(S3TESTBUCKET "unidata-zarr-test-data" CACHE STRING "S3 test bucket")
+
+# Additional S3 Test Endpoing
+set(S3ENDPOINT "s3.us-east-1.amazonaws.com" CACHE STRING "S3 endpoint")
+
 
 # The working S3 path tree within the Unidata bucket.
 # WARNING: this must match the value in configure.ac
@@ -1849,7 +1876,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/s3cleanup.in ${CMAKE_CURRENT_BINARY_D
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/s3gc.in ${CMAKE_CURRENT_BINARY_DIR}/s3gc.sh @ONLY NEWLINE_STYLE LF)
 
 #####
-# Build and copy nc_test4/findplugin.sh to various places
+# Transfer files from a single source to directories that use it.
 #####
 foreach(CC nc_test4 nczarr_test v3_nczarr_test plugins h5_test examples/C)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/${CC}/findplugin.sh @ONLY NEWLINE_STYLE LF)

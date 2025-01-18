@@ -36,7 +36,6 @@
 #include "rnd.h"
 #include <stddef.h> /* size_t */
 #include <errno.h>
-#include <sys/types.h> /* off_t */
 #include "ncdispatch.h"
 
 #if defined(_CRAY) && !defined(_CRAYIEEE) && !defined(__crayx1)

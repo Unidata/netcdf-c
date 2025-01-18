@@ -108,7 +108,7 @@ genbin_netcdf(void)
             if (vsym->typ.dimset.ndims > 0) {   /* a dimensioned variable */
                 /* construct a vector of dimension ids*/
                 int dimids[NC_MAX_VAR_DIMS];
-                for(idim=0;idim<vsym->typ.dimset.ndims;idim++)
+                for(idim=0;idim<(size_t)vsym->typ.dimset.ndims;idim++)
                     dimids[idim] = vsym->typ.dimset.dimsyms[idim]->nc_id;
                 stat = nc_def_var(vsym->container->nc_id,
                                   vsym->name,
@@ -242,7 +242,7 @@ genbin_definespecialattributes(Symbol* var)
         CHECK_ERR(stat);
     }
     if(special->flags & _FILTER_FLAG) {
-	int k;
+	size_t k;
 	for(k=0;k<special->nfilters;k++) {
 	    NC_H5_Filterspec* nfs = special->_Filters[k];
 	    /* See if the filter is available */
@@ -438,8 +438,8 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
 #endif
 
     if(rank == 0) {
-        size_t count[1] = {1};
-        stat = nc_put_var1(vsym->container->nc_id, vsym->nc_id, count, data);
+        size_t index[1] = {0};
+        stat = nc_put_var1(vsym->container->nc_id, vsym->nc_id, index, data);
     } else {
         stat = nc_put_vara(vsym->container->nc_id, vsym->nc_id, start, count, data);
     }

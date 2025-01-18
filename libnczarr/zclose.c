@@ -38,7 +38,7 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 
     if(!abort) {
         /* Flush | create all chunks for all vars */
-        if((stat=zwrite_vars(file->root_grp))) goto done;
+	        if((stat=zwrite_vars(file->root_grp))) goto done;
     }
 
     /* Internal close to reclaim zarr annotations */
@@ -47,10 +47,16 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 
     zinfo = file->format_file_info;
 
-    if((stat = nczmap_close(zinfo->map,(abort && zinfo->creating)?1:0)))
-	goto done;
-    nclistfreeall(zinfo->controllist);
+    /* Reclaim the metadata handler contents */
+    if(NCZMD_is_metadata_consolidated(file) == NC_NOERR)
+	NCZMD_close(file);
+
+    /* Release the zmap handler */
+    if((stat = nczmap_close(zinfo->map,(abort && zinfo->creating)?1:0))) goto done;
+
+    nclistfreeall(zinfo->urlcontrols);
     NC_authfree(zinfo->auth);
+
     nullfree(zinfo);
 
 done:
@@ -100,12 +106,8 @@ zclose_group(NC_GRP_INFO_T *grp)
     if ((stat = zclose_types(grp)))
         goto done;
 
-    /* Close the zgroup. */
+    /* Close the zarr.json. */
     zgrp = grp->format_grp_info;
-    LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
-    nullfree(zgrp->zgroup.prefix);
-    NCJreclaim(zgrp->zgroup.obj);
-    NCJreclaim(zgrp->zgroup.atts);
     nullfree(zgrp);
     grp->format_grp_info = NULL; /* avoid memory errors */
 
@@ -127,6 +129,7 @@ zclose_gatts(NC_GRP_INFO_T* grp)
     int stat = NC_NOERR;
     NC_ATT_INFO_T *att;
     size_t a;
+    
     for(a = 0; a < ncindexsize(grp->att); a++) {
         NCZ_ATT_INFO_T* zatt = NULL;
         att = (NC_ATT_INFO_T* )ncindexith(grp->att, a);
@@ -168,18 +171,17 @@ NCZ_zclose_var1(NC_VAR_INFO_T* var)
     if(var->filters != NULL) {
 	(void)NCZ_filter_freelists(var);
     }
-    var->filters = NULL;
 #endif
+    var->filters = NULL;
     /* Reclaim the type */
     if(var->type_info) (void)zclose_type(var->type_info);
     /* reclaim dispatch info */
     zvar = var->format_var_info;;
     if(zvar->cache) NCZ_free_chunk_cache(zvar->cache);
     /* reclaim xarray */
-    if(zvar->xarray) nclistfreeall(zvar->xarray);
-    nullfree(zvar->zarray.prefix);
-    NCJreclaim(zvar->zarray.obj);
-    NCJreclaim(zvar->zarray.atts);
+    if(zvar->dimension_names) nclistfreeall(zvar->dimension_names);
+
+    /* Reclaim the zvar object */
     nullfree(zvar);
     var->format_var_info = NULL; /* avoid memory errors */
     return stat;
@@ -304,7 +306,7 @@ zwrite_vars(NC_GRP_INFO_T *grp)
     /* Write all vars for this group breadth first */
     for(i = 0; i < ncindexsize(grp->vars); i++) {
         NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)ncindexith(grp->vars, i);
-	if((stat = ncz_write_var(var))) goto done;
+	if((stat = NCZ_write_var_data(grp->nc4_info, var))) goto done;
     }
 
     /* Recursively call this function for each child group, if any, stopping

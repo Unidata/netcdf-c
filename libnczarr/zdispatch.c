@@ -128,6 +128,7 @@ NCZ_initialize(void)
     if (!ncz_initialized)
         NCZ_initialize_internal();
     stat = NCZ_provenance_init();
+    if(!stat) NCZF_initialize();
     if(stat) ncz_initialized = 1;
     return stat;
 }
@@ -141,6 +142,7 @@ NCZ_initialize(void)
 int
 NCZ_finalize(void)
 {
+    NCZF_finalize();
     NCZ_finalize_internal();
     NCZ_provenance_finalize();
     return NC_NOERR;
@@ -149,12 +151,16 @@ NCZ_finalize(void)
 static int
 NCZ_var_par_access(int ncid, int varid, int par_access)
 {
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(par_access);
     return NC_NOERR; /* no-op */
 }
 
 static int
 NCZ_show_metadata(int ncid)
 {
+    NC_UNUSED(ncid);
     return NC_NOERR;
 }
 

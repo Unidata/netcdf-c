@@ -419,7 +419,7 @@ main(int argc, char **argv)
       }
       { /* _FillValue */
 	 static const float pr_FillValue_att[1] = {1e+20f} ;
-	 stat = nc_put_att_float(root_grp, pr_id, "_FillValue", NC_FLOAT, 1, pr_FillValue_att);
+	 stat = nc_put_att_float(root_grp, pr_id, NC_FillValue, NC_FLOAT, 1, pr_FillValue_att);
 	 check_err(stat,__LINE__,__FILE__);
       }
       { /* cell_methods */

@@ -6,10 +6,10 @@
 # Ed Hartnett, Ward Fisher, Dennis Heimbigner
 
 # Un comment to use a more verbose test driver
-#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT = export SETX=1;
+SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+TESTS_ENVIRONMENT = export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -36,7 +36,7 @@ simple_xy_nc4_rd
 TESTS += run_examples4.sh
 
 if NETCDF_BUILD_UTILITIES
-if NETCDF_ENABLE_FILTER_TESTING
+if NETCDF_ENABLE_NCZARR_FILTERS
 # filter_example.c should be same as nc_test4/test_filter.c
 check_PROGRAMS += filter_example
 TESTS += run_filter.sh

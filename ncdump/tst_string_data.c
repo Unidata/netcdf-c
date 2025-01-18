@@ -16,7 +16,7 @@
 #define DIM4_LEN 5
 #define VAR4_NAME "description"
 #define VAR4_RANK 1
-#define ATT4_NAME "_FillValue"
+#define ATT4_NAME NC_FillValue
 #define ATT4_LEN  1
 
 int
