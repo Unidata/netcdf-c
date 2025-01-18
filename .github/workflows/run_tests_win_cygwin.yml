@@ -17,7 +17,7 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        shell: C:/cygwin/bin/bash.exe -eo pipefail -o igncr "{0}"
+        shell: bash -eo pipefail -o igncr "{0}"
 
     name: Cygwin-based Autotools tests
     
@@ -101,9 +101,7 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        shell: /usr/bin/bash.exe -eo pipefail -o igncr "{0}"
-
-#        shell: C:/cygwin/bin/bash.exe -eo pipefail -o igncr "{0}"
+        shell: bash -eo pipefail -o igncr "{0}"
 
     steps:
 
