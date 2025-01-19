@@ -5,8 +5,10 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.9.4 - TBD
-* Cleanup various warnings for selected modules. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+## 4.9.4 - TBD./unit_test/test_pathcvt.c
+* Refactor some algorithms to improve efficiency and/or cleanup various issues. See [Github #3078](https://github.com/Unidata/netcdf-c/pull/3078).
+
+* Cleanup various warnings for selected modules. See [Github #3071](https://github.com/Unidata/netcdf-c/pull/3071).
 
 * Add experimental support for Zarr consolidated metadata for Zarr Version 2 and Version 3 storage format. See [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068).
 
