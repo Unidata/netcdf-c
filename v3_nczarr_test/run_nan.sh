@@ -15,7 +15,6 @@ s3isolate "testdir_nan"
 THISDIR=`pwd`
 cd $ISOPATH
 
-set -x
 set -e
 
 # Functions

@@ -275,6 +275,7 @@ ncproplistclone(const NCproplist* src, NCproplist* clone)
 	    break;
 	}	
     }
+    clone->count = src->count;
 done:
     return stat;
 }

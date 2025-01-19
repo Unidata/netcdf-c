@@ -92,7 +92,7 @@ static void reset(void);
 static void odom_reset(void);
 static int odom_more(void);
 static int odom_next(void);
-static int odom_offset(void);
+static size_t odom_offset(void);
 static float expectedvalue(void);
 static void verifyparams(void);
 
@@ -156,7 +156,7 @@ create(void)
         snprintf(dimname,sizeof(dimname),"dim%zu",i);
         CHECK(nc_def_dim(ncid, dimname, dimsize[i], &dimids[i]));
     }
-    CHECK(nc_def_var(ncid, "var", NC_FLOAT, ndims, dimids, &varid));
+    CHECK(nc_def_var(ncid, "var", NC_FLOAT, (int)ndims, dimids, &varid));
     return NC_NOERR;
 }
 
@@ -249,7 +249,7 @@ fill(void)
    {
 	odom_reset();
 	while(odom_more()) {
-            int offset = odom_offset();
+            size_t offset = odom_offset();
             float expect = expectedvalue();
             expected[offset] = expect;
             odom_next();
@@ -281,7 +281,7 @@ compare(void)
    {
        odom_reset();
        while(odom_more()) {
-            int offset = odom_offset();
+            size_t offset = odom_offset();
             float expect = expectedvalue();
             if(array[offset] != expect) {
                 fprintf(stderr,"data mismatch: array[%d]=%f expected=%f\n",
@@ -521,7 +521,7 @@ odom_next(void)
     return 1;
 }
 
-static int
+static size_t
 odom_offset(void)
 {
     size_t i;

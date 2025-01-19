@@ -96,7 +96,7 @@ typedef int H5Z_filter_t;
  */
 typedef struct H5Z_class2_t {
     int version;                    /* Version number of the struct; should be H5Z_FILTER_CLASS_VER */
-    H5Z_filter_t id;		            /* Filter ID number                             */
+    H5Z_filter_t id;		    /* Filter ID number                             */
     unsigned encoder_present;       /* Does this filter have an encoder?            */
     unsigned decoder_present;       /* Does this filter have a decoder?             */
     const char *name;               /* Comment for debugging                        */

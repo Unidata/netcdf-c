@@ -28,11 +28,17 @@
 #include "nclog.h"
 #include "ncrc.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
 
 #define NC_MAX_PATH 4096
 #ifndef nulldup
  #define nulldup(x) ((x)?strdup(x):(x))
 #endif
+
+
+/* Forward */
+static int lexical_compare(const void* arg1, const void* arg2);
+
 /**************************************************/
 /** \internal
  * Provide a hidden interface to allow utilities
@@ -199,19 +205,17 @@ NC_shellUnescape(const char* esc)
 }
 
 /** \internal
-Wrap mktmp and return the generated path,
+Wrap mktmp and return the generated path
 or null if failed.
-Base is the base file path. XXXXX is appended
-to allow mktmp add its unique id.
-Return the generated path.
+@param base is the base file path. XXXXX is appended to allow mktmp add its unique id.
+@param tmpfile store the generated string in this.
+@return NC_NOERR|NC_EXXX
 */
-
-char*
-NC_mktmp(const char* base)
+int
+NC_mktmp(const char* base, char** tmpfile)
 {
     int fd = -1;
-    char* tmp = NULL;
-    size_t len;
+    char tmp[8192];
 #ifndef HAVE_MKSTEMP
     int tries;
 #define MAXTRIES 4
@@ -219,12 +223,8 @@ NC_mktmp(const char* base)
     mode_t mask;
 #endif
 
-    len = strlen(base)+6+1;
-    if((tmp = (char*)calloc(1,len))==NULL)
-        goto done;
 #ifdef HAVE_MKSTEMP
-    strlcat(tmp,base,len);
-    strlcat(tmp, "XXXXXX", len);
+    snprintf(tmp,sizeof(tmp),"%sXXXXXX",base);
     mask=umask(0077);
     fd = NCmkstemp(tmp);
     (void)umask(mask);
@@ -234,10 +234,8 @@ NC_mktmp(const char* base)
 	int rno = rand();
 	char spid[7];
 	if(rno < 0) rno = -rno;
-	tmp[0] = '\0';
-        strlcat(tmp,base,len);
         snprintf(spid,sizeof(spid),"%06d",rno);
-        strlcat(tmp,spid,len);
+	snprintf(tmp,sizeof(tmp),"%s%s",base,spid);
         fd=NCopen3(tmp,O_RDWR|O_CREAT, _S_IREAD|_S_IWRITE);
 	if(fd >= 0) break; /* sucess */
 	fd = -1; /* try again */
@@ -245,13 +243,12 @@ NC_mktmp(const char* base)
 #endif /* !HAVE_MKSTEMP */
     if(fd < 0) {
         nclog(NCLOGERR, "Could not create temp file: %s",tmp);
-        nullfree(tmp);
-	tmp = NULL;
-        goto done;
+	return NC_EINVAL;
+    } else {
+	if(fd >= 0) close(fd);
+	if(tmpfile) {*tmpfile = strdup(tmp);}
+	return NC_NOERR;
     }
-done:
-    if(fd >= 0) close(fd);
-    return tmp;
 }
 
 /** \internal */
@@ -437,6 +434,7 @@ done:
 #if defined __APPLE__ 
 /** \internal */
 
+#if 0
 #if ! defined HAVE_DECL_ISINF
 
 int isinf(double x)
@@ -460,7 +458,7 @@ int isnan(double x)
 }
 
 #endif /* HAVE_DECL_ISNAN */
-
+#endif
 #endif /*APPLE*/
 #endif /*!_INTEL_COMPILER*/
 
@@ -582,4 +580,29 @@ NC_freeenvv(size_t nkeys, char** keys)
     for(i=0;i<nkeys;i++)
 	nullfree(keys[i]);
     nullfree(keys);
+}
+
+int
+NC_swapatomicdata(size_t datalen, void* data, int typesize)
+{
+    int stat = NC_NOERR;
+    size_t i;
+
+    assert(datalen % (size_t)typesize == 0);
+
+    if(typesize == 1) goto done;
+
+    /*(typesize > 1)*/
+    for(i=0;i<datalen;) {
+	char* p = ((char*)data) + i;
+        switch (typesize) {
+        case 2: swapinline16(p); break;
+        case 4: swapinline32(p); break;
+        case 8: swapinline64(p); break;
+        default: break;
+	}
+	i += (size_t)typesize;
+    }
+done:
+    return stat;
 }

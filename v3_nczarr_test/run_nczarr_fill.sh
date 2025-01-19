@@ -9,7 +9,6 @@ s3isolate "testdir_nczarr_fill"
 THISDIR=`pwd`
 cd $ISOPATH
 
-set -x
 set -e
 
 echo "*** Test: Github issues #2063, #2062, #2059"

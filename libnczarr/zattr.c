@@ -154,7 +154,6 @@ ncz_get_att_special(NC_FILE_INFO_T* h5, NC_VAR_INFO_T* var, const char* name,
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
         if(strcmp(name,NC_ATT_CODECS)==0) {     
             NClist* filters = (NClist*)var->filters;
-
             if(mem_type == NC_NAT) mem_type = NC_CHAR;
             if(mem_type != NC_CHAR)
                 {stat = NC_ECHAR; goto done;}

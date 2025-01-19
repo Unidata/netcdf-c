@@ -97,13 +97,17 @@ NCZ_get_create_formatter(NC_FILE_INFO_T* file, const NCZ_Formatter** formatterp)
     if(nczarr_format != 0) {
         switch(nczarr_format) {
         case 2: formatter = NCZ_formatter2; break;
+#ifdef NETCDF_ENABLE_NCZARR_V3
         case 3: formatter = NCZ_formatter3; break;
+#endif
         default: stat = NC_ENCZARR; goto done;
         }
     } else { /* Decide based on zarr format plus the fact that it is pure zarr */
         switch(zarr_format) {
         case 2: formatter = NCZ_formatter2; break;
-        case 3: formatter = NCZ_formatter3; break;
+#ifdef NETCDF_ENABLE_NCZARR_V3
+	case 3: formatter = NCZ_formatter3; break;
+#endif
         default: stat = NC_ENCZARR; goto done;
         }
     }
@@ -170,13 +174,17 @@ NCZ_get_open_formatter(NC_FILE_INFO_T* file, const NCZ_Formatter** formatterp)
     if(nczarr_format != 0) {
         switch(nczarr_format) {
         case 2: formatter = NCZ_formatter2; break;
+#ifdef NETCDF_ENABLE_NCZARR_V3
         case 3: formatter = NCZ_formatter3; break;
+#endif
         default: stat = NC_ENCZARR; goto done;
         }
     } else { /* Decide based on zarr format plus the fact that it is pure zarr */
         switch(zarr_format) {
         case 2: formatter = NCZ_formatter2; break;
-        case 3: formatter = NCZ_formatter3; break;
+#ifdef NETCDF_ENABLE_NCZARR_V3
+	case 3: formatter = NCZ_formatter3; break;
+#endif
         default: stat = NC_ENCZARR; goto done;
         }
     }

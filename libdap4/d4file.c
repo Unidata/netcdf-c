@@ -301,28 +301,21 @@ set_curl_properties(NCD4INFO* d4info)
 
     if(d4info->auth->curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
-        char* path = NULL;
-        char* newpath = NULL;
-        size_t len;
+	int stat = NC_NOERR;
+        char basepath[8192];
+        char* tmppath = NULL;
 	errno = 0;
 	NCglobalstate* globalstate = NC_getglobalstate();
 
 	/* Create the unique cookie file name */
-        len =
-	  strlen(globalstate->tempdir)
-	  + 1 /* '/' */
-	  + strlen("ncd4cookies");
-        path = (char*)malloc(len+1);
-        if(path == NULL) return NC_ENOMEM;
-	snprintf(path,len,"%s/nc4cookies",globalstate->tempdir);
-	/* Create the unique cookie file name */
-        newpath = NC_mktmp(path);
-        free(path);
-	if(newpath == NULL) {
-	    fprintf(stderr,"Cannot create cookie file\n");
-	    goto fail;
-	}
-	d4info->auth->curlflags.cookiejar = newpath;
+	snprintf(basepath,sizeof(basepath),"%s/nc4cookies",globalstate->tempdir);
+	tmppath = NULL;
+	if((stat = NC_mktmp(basepath,&tmppath))) goto fail;
+        if (stat != NC_NOERR && errno != EEXIST) {
+            fprintf(stderr, "Cannot create cookie file\n");
+            goto fail;
+        }
+	d4info->auth->curlflags.cookiejar = tmppath; tmppath = NULL;
 	d4info->auth->curlflags.cookiejarcreated = 1;
 	errno = 0;
     }
@@ -568,7 +561,7 @@ NCD4_reclaimInfo(NCD4INFO* d4info)
     nullfree(d4info->fileproto.filename);
     NCD4_resetInfoForRead(d4info);
     nullfree(d4info->substrate.filename); /* always reclaim */
-    NC_authfree(d4info->auth);
+    NC_authfree(d4info->auth); d4info->auth = NULL;
     nclistfree(d4info->blobs);
     /* Reclaim dmr node tree */
     NCD4_reclaimMeta(d4info->dmrmetadata);

@@ -56,7 +56,7 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 
     nclistfreeall(zinfo->urlcontrols);
     NC_authfree(zinfo->auth);
-
+    zinfo->auth = NULL;
     nullfree(zinfo);
 
 done:

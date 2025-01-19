@@ -9,7 +9,6 @@ isolate "testdir_nccopy4"
 THISDIR=`pwd`
 cd $ISOPATH
 
-set -x
 set -e
 
 # For a netCDF-4 build, test nccopy on netCDF files in this directory

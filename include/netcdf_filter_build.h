@@ -104,7 +104,7 @@ void (*NCZ_codec_finalize)(struct NCproplist*);
 * Convert a JSON representation to an HDF5 representation. Invoked when a NumCodec JSON Codec is extracted
 from Zarr metadata.
 
-int (*NCZ_codec_to_hdf5)(struct NCproplist* env, const char* codec, unsigned int* idp, size_t* nparamsp, unsigned** paramsp);
+int (*NCZ_codec_to_hdf5)(struct NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
 
 @param env -- (in) extra environmental information
 @param codec   -- (in) ptr to JSON string representing the codec.
@@ -117,7 +117,7 @@ int (*NCZ_codec_to_hdf5)(struct NCproplist* env, const char* codec, unsigned int
 
 * Convert an HDF5 vector of visible parameters to a JSON representation.
 
-int (*NCZ_hdf5_to_codec)(struct NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp);
+int (*NCZ_hdf5_to_codec)(struct NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
 
 @param env -- (in) extra environmental information
 @param id -- the hdf5 filter id number;
@@ -129,7 +129,7 @@ int (*NCZ_hdf5_to_codec)(struct NCproplist* env, unsigned id, size_t nparams, co
 * Convert a set of visible parameters to a set of working parameters using extra environmental information.
 Also allows for changes to the visible parameters. Invoked before filter is actually used.
 
-int (*NCZ_modify_parameters)(const struct NCproplist* env, unsigned* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
+int (*NCZ_modify_parameters)(const struct NCproplist* env, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
 
 @param env -- (in) properties, including file ncid and the variable varid
 @param idp -- (in/out) the hdf5 filter id number;
@@ -141,7 +141,7 @@ int (*NCZ_modify_parameters)(const struct NCproplist* env, unsigned* idp, size_t
 
 * Convert an HDF5 vector of visible parameters to a JSON representation.
 
--int (*NCZ_hdf5_to_codec)(const struct NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp);
+-int (*NCZ_hdf5_to_codec)(const struct NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
 
 @param env -- (in) extra environmental information
 @param id -- (in) the hdf5 filter id number;
@@ -178,12 +178,12 @@ typedef struct NCZ_codec_t {
     int sort; /* Format of remainder of the struct;
                  Currently always NCZ_CODEC_HDF5 */
     const char* codecid;            /* The name/id of the codec */
-    unsigned hdf5id; /* corresponding hdf5 id */
+    int hdf5id; /* corresponding hdf5 id */
     void (*NCZ_codec_initialize)(const struct NCproplist* env);
     void (*NCZ_codec_finalize)(const struct NCproplist* env);
-    int (*NCZ_codec_to_hdf5)(const struct NCproplist* env, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-    int (*NCZ_hdf5_to_codec)(const struct NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp);
-    int (*NCZ_modify_parameters)(const struct NCproplist* env, unsigned* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
+    int (*NCZ_codec_to_hdf5)(const struct NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+    int (*NCZ_hdf5_to_codec)(const struct NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
+    int (*NCZ_modify_parameters)(const struct NCproplist* env, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
 } NCZ_codec_t;
 
 #ifndef NC_UNUSED

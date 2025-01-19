@@ -10,6 +10,7 @@
 
 #undef ZDEBUG /* general debug */
 #undef ZDEBUG1 /* detailed debug */
+#undef ZDEBUGF /* filter/plugin debug */
 
 #include "ncexternl.h"
 #include "nclog.h"
@@ -77,5 +78,26 @@ struct ZUTEST {
     void (*print)(int sort,...);
 };
 EXTERNL struct ZUTEST* zutest;
+
+#ifdef ZDEBUGF
+struct NCZ_Filter;
+struct NCZ_Plugin;
+struct NCZ_Codec;
+struct NCZ_HDF5;
+struct NCZP_Params;
+struct H5Z_class_t;
+struct NCZ_codec_t;
+struct CodecAPI;
+const char* printfilter(const struct NCZ_Filter* f);
+const char* printplugin(const struct NCZ_Plugin* plugin);
+const char* printcodec(const struct NCZ_Codec* c);
+const char* printhdf5(const struct NCZ_HDF5* h);
+const char* printparams(size_t nparams, const unsigned* params);
+const char* printnczparams(const struct NCZ_Params* p);
+const char* printhdf5class(const struct H5Z_class2_t* hdf5);
+const char* printcodecclass(const struct NCZ_codec_t* codec);
+const char* printcodecapi(const struct CodecAPI* ca);
+const char* printloadedplugins(void);
+#endif /*ZDEBUGF*/
 
 #endif /*ZDEBUG_H*/

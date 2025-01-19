@@ -54,8 +54,6 @@ zodom.c \
 zopen.c \
 zprov.c \
 ztype.c \
-zfilter.c \
-zplugins.c \
 zutil.c \
 zvar.c \
 zformat.c \
@@ -74,14 +72,19 @@ zinternal.h \
 zmap.h \
 zodom.h \
 zprovenance.h \
-zplugins.h \
-zfilter.h \
+zutil.h \
 znc4.h \
+zfilter.h \
+zplugins.h \
 zdebug.h
 
-#ifdef NETCDF_ENABLE_NCZARR_V3 
+if NETCDF_ENABLE_PLUGINS
+libnczarr_la_SOURCES += zplugins.c zfilter.c
+endif
+
+if NETCDF_ENABLE_NCZARR_V3 
 libnczarr_la_SOURCES += zmetadata3.c zformat3.c
-#endif
+endif
 
 if NETCDF_ENABLE_NCZARR_ZIP
 libnczarr_la_SOURCES += zmap_zip.c 

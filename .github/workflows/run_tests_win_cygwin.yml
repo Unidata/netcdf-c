@@ -2,8 +2,8 @@ name: Run Cygwin-based tests
 
 on: [pull_request,workflow_dispatch]
 
-concurrency:  
-  group: ${{ github.workflow}}-${{ github.head_ref }}  
+concurrency:
+  group: ${{ github.workflow}}-${{ github.head_ref }}
   cancel-in-progress: true
 
 env:
@@ -20,7 +20,7 @@ jobs:
         shell: bash -eo pipefail -o igncr "{0}"
 
     name: Cygwin-based Autotools tests
-    
+
     strategy:
       matrix:
         plugin_dir_option: ["", "--without-plugin-dir"]
@@ -95,7 +95,7 @@ jobs:
           path: |
             */*.log
             */*.trs
-  
+
   build-and-test-cmake:
     name: Cygwin-based CMake tests
     runs-on: windows-latest

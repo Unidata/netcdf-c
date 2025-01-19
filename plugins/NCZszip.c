@@ -143,7 +143,7 @@ NCZ_szip_modify_parameters(const NCZproplist* env, size_t* vnparamsp, unsigned**
     vparams = *vparamsp;
 
     ncproplistget(env,"zarrformat",&zarrformat,NULL);
-    ncproplistget(env,"fileid",&ncid,NULL);
+    ncproplistget(env,"ncid",&ncid,NULL);
     ncproplistget(env,"varid",&varid,NULL);
 
     /* Get variable info */

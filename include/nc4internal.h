@@ -462,38 +462,21 @@ extern int nc_get_alignment(int* thresholdp, int* alignmentp);
 /**************************************************/
 /* Begin to collect global state info in one place (more to do) */
 
-#ifdef WATCH
-extern NClist* pluginpaths;
-extern NClist* zpluginpaths;
-#define PLUGINPATHS pluginpaths
-#define ZPLUGINPATHS zpluginpaths
-#else
-#define PLUGINPATHS gs->pluginpaths
-#define ZPLUGINPATHS gs->zarr.pluginpaths
-#endif
-
 typedef struct NCglobalstate {
     int initialized;
     char* tempdir; /* track a usable temp dir */
     char* home; /* track $HOME */
     char* cwd; /* track getcwd */
     struct NCRCinfo* rcinfo; /* Currently only one rc file per session */
-#ifndef WATCH
     NClist* pluginpaths; /* Global Plugin State */
-#endif
     struct GlobalZarr { /* Zarr specific parameters */
 	char dimension_separator;
 	int default_zarrformat;
-#ifndef WATCH
 	NClist* pluginpaths; /* NCZarr mirror of plugin paths */
-#endif
 	NClist* codec_defaults; /* NClist<struct CodecAPI*> */
 	NClist* default_libs; /* NClist<NCPSharedLib**> */
-	/* All possible HDF5 filter plugins (except hdf5raw */
-	/* Consider converting to linked list or hash table or
-	   equivalent since very sparse */
-	struct NCZ_Plugin** loaded_plugins; //[H5Z_FILTER_MAX+1];
-	size_t loaded_plugins_max; /* plugin filter id index. 0<loaded_plugins_max<=H5Z_FILTER_MAX */
+	/* All possible HDF5 filter plugins */
+	NClist* loaded_plugins; /* NClist<NCZ_Plugin*> sorted by filter id */
 	struct CodecAPI* hdf5raw; /* Used when an HDF5 filter has no corresponding codec */
     } zarr;
     struct GlobalAWS { /* AWS S3 specific parameters/defaults */

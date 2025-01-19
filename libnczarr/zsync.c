@@ -178,10 +178,6 @@ ncz_encode_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
     if((stat = NCZ_adjust_var_cache(var))) goto done;
     /* rebuild the fill chunk */
     if((stat = NCZ_ensure_fill_chunk(zvar->cache))) goto done;
-#ifdef NETCDF_ENABLE_NCZARR_FILTERS
-    /* Build the filter working parameters for any filters */
-    if((stat = NCZ_filter_setup(file,var))) goto done;
-#endif
 
     /* There is a sort of cycle between _nczarr_array and the attributes in that
        the attributes must contain _nczarr_array as an attribute and _nczar_array
@@ -718,8 +714,8 @@ ncz_decode_filters(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const NClist* filte
 	    assert(jfilter != NULL);
 	    if((filter = (NCZ_Filter*)calloc(1,sizeof(NCZ_Filter)))==NULL) {stat = NC_ENOMEM; goto done;}
 	    if((stat = NCZF_decode_filter(file,var,jfilter,filter))) goto done;
-	    if((stat=NCZ_addfilter(file,var,&filter))) goto done; /* addfilter will take control of filter object */
-	    NCZ_filter_free(filter); filter = NULL;
+	    if((stat = NCZ_complete_filter(file,var,filter))) goto done;
+	    callref(filter,NCZ_addfilter(file,var,ref)); /* addfilter will control filter memory */
 	}
     }
 done:

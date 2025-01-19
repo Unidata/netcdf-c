@@ -3,6 +3,8 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 #include "zincludes.h"
+#include "zplugins.h"
+#include "netcdf_filter_build.h"
 
 /* Mnemonic */
 #define RAW 1
@@ -409,3 +411,138 @@ zdumpcommon(const struct Common* c)
         fprintf(stderr,"\t\t[%zd] %s\n",r,nczprint_sliceprojectionsx(c->allprojections[r],RAW));
     fflush(stderr);
 }
+
+/**************************************************/
+/* Filter/Plugin debug */
+
+#if defined(ZDEBUGF) || defined(ZTRACING)
+const char*
+printfilter(const NCZ_Filter* f)
+{
+    static char pfbuf[4096];
+
+    if(f == NULL) return "NULL";
+    snprintf(pfbuf,sizeof(pfbuf),"{flags=%d hdf5=%s codec=%s plugin=%p}",
+		f->flags, printhdf5(&f->hdf5),printcodec(&f->codec),f->plugin);
+    return pfbuf;
+}
+
+const char*
+printplugin(const NCZ_Plugin* plugin)
+{
+    static char plbuf[4096];
+    char plbuf2[2000];
+    char plbuf1[2000];
+
+    if(plugin == NULL) return "plugin=NULL";
+    plbuf2[0] = '\0'; plbuf1[0] = '\0';
+    if(plugin->hdf5.filter)
+        snprintf(plbuf1,sizeof(plbuf1),"hdf5={id=%u name=%s}",plugin->hdf5.filter->id,plugin->hdf5.filter->name);
+    if(plugin->codec.codec)
+        snprintf(plbuf2,sizeof(plbuf2),"codec={codecid=%s hdf5id=%u}",plugin->codec.codec->codecid,plugin->codec.codec->hdf5id);
+    snprintf(plbuf,4096,"plugin={%sid=%d %s %s}",plugin->incomplete?"?":"",plugin->hdf5id,plbuf1,plbuf2);
+    return plbuf;
+}
+
+const char*
+printcodec(const NCZ_Codec* c)
+{
+    static char pcbuf[4096];
+    snprintf(pcbuf,sizeof(pcbuf),"{id=%s codec=%s}",c->id,(c->codec==NULL?"null":c->codec));
+    return pcbuf;
+}
+
+const char*
+printhdf5(const NCZ_HDF5* h)
+{
+    static char phbuf[4096];
+    snprintf(phbuf,sizeof(phbuf),"{id=%u visible=%s working=%s}",
+    		h->id, printnczparams(&h->visible), printnczparams(&h->working));
+    return phbuf;
+}
+
+const char*
+printhdf5class(const H5Z_class2_t* hdf5)
+{
+    static char buf[4096];
+    snprintf(buf,sizeof(buf),"hdf5_t{ver=%d,id=%d,name=%s}",
+    		hdf5->version,hdf5->id,hdf5->name);
+    return buf;
+}
+
+const char*
+printcodecclass(const NCZ_codec_t* codec)
+{
+    static char buf[4096];
+    snprintf(buf,sizeof(buf),"codec_t{ver=%d,sort=%d,codecid=%s,hdf5id=%d}",
+    		codec->version,codec->sort,codec->codecid,codec->hdf5id);
+    return buf;
+}
+
+const char*
+printcodecapi(const struct CodecAPI* ca)
+{
+    static char pcbuf[4096];
+    snprintf(pcbuf,sizeof(pcbuf),"CodecAPI{defaulted=%d,ishdf5raw=%d,codec=%s}",ca->defaulted,ca->ishdf5raw,printcodecclass(ca->codec));
+    return pcbuf;
+}
+
+const char*
+printloadedplugins(void)
+{
+    static char pcbuf[4096*4];
+    struct NCglobalstate* gs = NC_getglobalstate();
+    NClist* pluginlist = gs->zarr.loaded_plugins;
+    size_t i,nplugins;
+    const NCZ_Plugin** plugins;
+    NCbytes* buf = ncbytesnew();
+
+    ncbytessetcontents(buf,pcbuf,sizeof(pcbuf));
+    ncbytessetlength(buf,0);
+    nplugins = nclistlength(pluginlist);
+    plugins = (const NCZ_Plugin**)nclistcontents(pluginlist);
+    for(i=0;i<nplugins;i++) {
+	const char* tmp;
+	tmp = printplugin(plugins[i]);
+        ncbytescat(buf,tmp);
+	ncbytescat(buf,"\n");
+    }
+    (void)ncbytescontents(buf);
+    ncbytesfree(buf);
+    return pcbuf;
+}
+
+const char*
+printparams(size_t nparams, const unsigned* params)
+{
+    static char ppbuf[4096];
+    if(nparams == 0)
+        snprintf(ppbuf,4096,"{0,%p}",params);
+    else 
+        snprintf(ppbuf,4096,"{%u %s}",(unsigned)nparams,nczprint_paramvector(nparams,params));
+    return ppbuf;
+}
+
+const char*
+printnczparams(const NCZ_Params* p)
+{
+    return printparams(p->nparams,p->params);
+}
+
+/* Suppress selected unused static functions */
+static void
+debugf_unused(void)
+{
+    void* p = NULL;
+    (void)p;
+    p = debugf_unused;
+(void)printfilter;
+(void)printplugin;
+(void)printcodec;
+(void)printhdf5;
+(void)printparams;
+(void)printnczparams;
+(void)printhdf5class;
+(void)printcodecclass;
+}
+#endif /*ZDEBUGF*/

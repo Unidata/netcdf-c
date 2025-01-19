@@ -31,7 +31,9 @@ NCZF_initialize(void)
 {
     int stat = NC_NOERR;
     if((stat=NCZF2_initialize())) goto done;
+#ifdef NETCDF_ENABLE_NZARR_V3
     if((stat=NCZF3_initialize())) goto done;
+#endif
 done:
     return THROW(stat);
 }
@@ -41,7 +43,9 @@ NCZF_finalize(void)
 {
     int stat = NC_NOERR;
     if((stat=NCZF2_finalize())) goto done;
+#ifdef NETCDF_ENABLE_NCZARR_V3
     if((stat=NCZF3_finalize())) goto done;
+#endif
 done:
     return THROW(stat);
 }

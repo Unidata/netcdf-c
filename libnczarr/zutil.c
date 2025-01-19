@@ -545,71 +545,6 @@ done:
     return stat;
 }
 
-/**************************************************/
-/* Endianness support */
-/* signature: void swapinline16(void* ip) */
-#define swapinline16(ip) \
-{ \
-    union {char b[2]; unsigned short i;} u; \
-    char* src = (char*)(ip); \
-    u.b[0] = src[1]; \
-    u.b[1] = src[0]; \
-    *((unsigned short*)ip) = u.i; \
-}
-
-/* signature: void swapinline32(void* ip) */
-#define swapinline32(ip) \
-{ \
-    union {char b[4]; unsigned int i;} u; \
-    char* src = (char*)(ip); \
-    u.b[0] = src[3]; \
-    u.b[1] = src[2]; \
-    u.b[2] = src[1]; \
-    u.b[3] = src[0]; \
-    *((unsigned int*)ip) = u.i; \
-}
-
-/* signature: void swapinline64(void* ip) */
-#define swapinline64(ip) \
-{ \
-    union {char b[8]; unsigned long long i;} u; \
-    char* src = (char*)(ip); \
-    u.b[0] = src[7]; \
-    u.b[1] = src[6]; \
-    u.b[2] = src[5]; \
-    u.b[3] = src[4]; \
-    u.b[4] = src[3]; \
-    u.b[5] = src[2]; \
-    u.b[6] = src[1]; \
-    u.b[7] = src[0]; \
-    *((unsigned long long*)ip) = u.i; \
-}
-
-int
-NCZ_swapatomicdata(size_t datalen, void* data, int typesize)
-{
-    int stat = NC_NOERR;
-    size_t i;
-
-    assert(datalen % (size_t)typesize == 0);
-
-    if(typesize == 1) goto done;
-
-    /*(typesize > 1)*/
-    for(i=0;i<datalen;) {
-	char* p = ((char*)data) + i;
-        switch (typesize) {
-        case 2: swapinline16(p); break;
-        case 4: swapinline32(p); break;
-        case 8: swapinline64(p); break;
-        default: break;
-	}
-	i += (size_t)typesize;
-    }
-done:
-    return THROW(stat);
-}
-
 char**
 NCZ_clonestringvec(size_t len, const char** vec)
 {
@@ -1572,4 +1507,32 @@ NCZ_isnaninfstring(const char* val)
     assert(naninfsorted);
     match = (struct NANINF*)bsearch((void*)val,(void*)naninfnames,NNANINF,sizeof(struct NANINF),nicmp);
     return (match == NULL ? NULL : &match->dvalue);
+}
+
+/* Clone proper proplist based on zarr format */
+int
+NCZ_zarrproplist(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NCproplist** clonep)
+{
+    int stat = NC_NOERR;
+    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
+    NCproplist* clone = NULL;
+    NC_GRP_INFO_T* grp = NULL;
+    unsigned grpid,ncid,fileid;
+
+    clone = ncproplistnew();
+    if((stat=ncproplistclone(zfile->zarr.zarr_format==2?NCplistzarrv2:NCplistzarrv3,clone))) goto done;
+    if(var != NULL) {
+        ncproplistadd(clone,"varid",(uintptr_t)var->hdr.id);
+	grp = var->container;
+    } else
+	grp = file->root_grp; /* default */
+    assert(grp != NULL);
+    fileid = (unsigned)file->hdr.id;
+    grpid = (unsigned)grp->hdr.id;
+    ncid = (fileid | grpid);
+    ncproplistadd(clone,"ncid",(uintptr_t)ncid);
+    if(clonep) {*clonep = clone; clone = NULL;}
+done:
+    ncproplistfree(clone);
+    return stat;
 }

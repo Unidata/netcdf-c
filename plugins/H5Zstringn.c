@@ -9,10 +9,6 @@
 
 #include "netcdf_filter_build.h"
 
-#ifndef H5Z_FILTER_STRINGN
-#define H5Z_FILTER_STRINGN      (H5Z_FILTER_MAX - 1)
-#endif
-
 static size_t H5Z__filter_stringn(unsigned flags, size_t cd_nelmts,
     const unsigned cd_values[], size_t nbytes, size_t *buf_size, void **buf);
 
@@ -22,7 +18,7 @@ const H5Z_class2_t H5Z_STRINGN[1] = {{
     H5Z_FILTER_STRINGN,		/* Filter id number		*/
     1,                          /* encoder_present flag (set to true) */
     1,                          /* decoder_present flag (set to true) */
-    "fixedsizestrings",			/* Filter name for debugging	*/
+    H5Z_CODEC_STRINGN,		/* Filter name for debugging	*/
     NULL,                       /* The "can apply" callback     */
     NULL,
     H5Z__filter_stringn,	/* The actual filter function	*/
@@ -130,14 +126,14 @@ done:
 /* Codec Interface */
 
 /* Forward */
-static int NCZ_stringn_codec_to_hdf5(const NCproplist* env, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_stringn_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_stringn_codec_to_hdf5(const NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_stringn_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
 
 /* Structure for NCZ_PLUGIN_CODEC */
 static NCZ_codec_t NCZ_stringn_codec = {/* NCZ_codec_t  codec fields */ 
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
-  "fixedsizestrings",   /* Standard name/id of the codec */
+  H5Z_CODEC_STRINGN,   /* Standard name/id of the codec */
   H5Z_FILTER_STRINGN,   /* HDF5 alias for stringn */
   NULL, /*NCZ_stringn_codec_initialize*/
   NULL, /*NCZ_stringn_codec_finalize*/
@@ -157,7 +153,7 @@ NCZ_get_codec_info(void)
 /* NCZarr Interface Functions */
 
 static int
-NCZ_stringn_codec_to_hdf5(const NCproplist* env, const char* codec_json, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_stringn_codec_to_hdf5(const NCproplist* env, const char* codec_json, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
@@ -209,7 +205,7 @@ done:
 }
 
 static int
-NCZ_stringn_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_stringn_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     char json[8192];

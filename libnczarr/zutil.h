@@ -9,41 +9,9 @@
  * @author Dennis Heimbigner
  */
 
-#ifndef ZARR_H
-#define ZARR_H
+#ifndef ZUTIL_H
+#define ZUTIL_H
 
-/* Opaque */
-struct ChunkKey;
-struct S3credentials;
-struct ZOBJ;
-
-/* zarr.c */
-EXTERNL int ncz_create_dataset(NC_FILE_INFO_T*, NC_GRP_INFO_T*, NClist* controls);
-EXTERNL int ncz_open_dataset(NC_FILE_INFO_T*, NClist* controls);
-
-
-/* HDF5 Mimics */
-EXTERNL int NCZ_isnetcdf4(struct NC_FILE_INFO*);
-EXTERNL int NCZ_get_libversion(unsigned long* majorp, unsigned long* minorp,unsigned long* releasep);
-EXTERNL int NCZ_get_superblock(NC_FILE_INFO_T* file, int* superblockp);
-
-EXTERNL int ncz_unload_jatts(NCZ_FILE_INFO_T*, NC_OBJ* container, NCjson* jattrs, NCjson* jtypes);
-
-/* zclose.c */
-EXTERNL int ncz_close_file(NC_FILE_INFO_T* file, int abort);
-
-/* zcvt.c */
-EXTERNL int NCZ_json2cvt(const NCjson* jsrc, struct ZCVT* zcvt, nc_type* typeidp);
-EXTERNL int NCZ_convert1(const NCjson* jsrc, nc_type, NCbytes*);
-EXTERNL int NCZ_stringconvert1(nc_type typid, char* src, NCjson* jvalue);
-EXTERNL int NCZ_stringconvert(nc_type typid, size_t len, void* data0, NCjson** jdatap);
-
-/* zsync.c */
-EXTERNL int ncz_insert_attr(NCjson* jatts, NCjson* jtypes, const char* aname, NCjson** javaluep, const char* atype);
-EXTERNL int ncz_encode_file(NC_FILE_INFO_T* file, int isclose);
-EXTERNL int ncz_decode_file(NC_FILE_INFO_T* file);
-
-/* zutil.c */
 EXTERNL int NCZ_grpkey(const NC_GRP_INFO_T* grp, char** pathp);
 EXTERNL int NCZ_varkey(const NC_VAR_INFO_T* var, char** pathp);
 EXTERNL int NCZ_dimkey(const NC_DIM_INFO_T* dim, char** pathp);
@@ -95,7 +63,4 @@ EXTERNL char NCZ_get_dimsep(NC_VAR_INFO_T* var);
 EXTERNL double* NCZ_isnaninfstring(const char* val);
 EXTERNL int NCZ_zarrproplist(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NCproplist** clonep);
 
-/* zwalk.c */
-EXTERNL int NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata);
-
-#endif /*ZARR_H*/
+#endif /*ZUTIL_H*/

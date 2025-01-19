@@ -31,6 +31,7 @@ See COPYRIGHT for license information.
 #include "ncrc.h"
 #include "netcdf_filter.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
 
 struct NCAUX_FIELD {
     char* name;

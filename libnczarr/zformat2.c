@@ -1170,6 +1170,7 @@ ZF2_encode_filter(NC_FILE_INFO_T* file, NCZ_Filter* filter, NCjson** jfilterp)
 {
     int stat = NC_NOERR;
     NCjson* jfilter = NULL;
+    char* codec = NULL;
 
     NC_UNUSED(file);
 
@@ -1183,20 +1184,17 @@ ZF2_encode_filter(NC_FILE_INFO_T* file, NCZ_Filter* filter, NCjson** jfilterp)
     assert((filter->flags & (FLAG_VISIBLE | FLAG_WORKING)) == (FLAG_VISIBLE | FLAG_WORKING));
 
     /* Convert the visible parameters back to codec */
-    /* Clear any previous codec */
-    nullfree(filter->codec.id); filter->codec.id = NULL;
-    nullfree(filter->codec.codec); filter->codec.codec = NULL;
-    filter->codec.id = strdup(filter->plugin->codec.codec->codecid);
     if(filter->plugin->codec.codec->NCZ_hdf5_to_codec) {
-	if((stat = filter->plugin->codec.codec->NCZ_hdf5_to_codec(NCplistzarrv2,filter->hdf5.id,filter->hdf5.visible.nparams,filter->hdf5.visible.params,&filter->codec.codec))) goto done;
+	if((stat = filter->plugin->codec.codec->NCZ_hdf5_to_codec(NCplistzarrv2,filter->hdf5.id,filter->hdf5.visible.nparams,filter->hdf5.visible.params,&codec))) goto done;
     } else
         {stat = NC_EFILTER; goto done;}
 
     /* Parse the codec as the return */
-    NCJcheck(NCJparse(filter->codec.codec,0,&jfilter));
+    NCJcheck(NCJparse(codec,0,&jfilter));
     if(jfilterp) {*jfilterp = jfilter; jfilter = NULL;}
 
 done:
+    nullfree(codec);
     NCJreclaim(jfilter);
     return THROW(stat);
 }

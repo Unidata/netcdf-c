@@ -365,13 +365,47 @@ struct NCZ_AttrInfo {
     void* data;
 };
 
-EXTERNL struct NCZ_AttrInfo NC_emptyAttrInfo();
+/* Intermediate JSON results */
+struct ZCVT {
+    signed long long int64v;
+    unsigned long long uint64v;
+    double float64v;
+    char* strv; /* null terminated utf-8 */
+};
+#define zcvt_empty {0,0,0.0,NULL}
+
+/* In a number of places, it is desirable
+   to -- in effect -- pass a pointer variable by reference
+   so that the called function can manage the memory
+   contained in that variable (i.e. reclaim it
+   and ensure the variable is empty.
+   To mark this situation, we define a struct
+   containing a pointer to the pointer variable
+   and pass an instance of that struct to the called
+   function. Using this method is more or less
+   equivalent to making an argument be in+out
+   as opposed to out only.
+*/
+typedef struct NCREF {void* *ref;} NCREF;
+
+/* Invoke a function with a single ref argument */
+#define callref(var,expr) { \
+	NCREF ref = {(void**)&var}; \
+	stat = (expr);      \
+        assert(var == NULL);\
+	if(stat) goto done;}
+
+/* Take control of the contents of the ref'd variable */
+#define xferref(var,r,type) {var = *((type**)(r).ref); *((r).ref) = NULL;}
 
 /**************************************************/
+/* Constants */
 
 /* Common property lists */
 EXTERNL const struct NCproplist* NCplistzarrv2;
 EXTERNL const struct NCproplist* NCplistzarrv3;
+
+EXTERNL struct NCZ_AttrInfo NC_emptyAttrInfo();
 
 /**************************************************/
 

@@ -119,14 +119,14 @@ main(int argc, char **argv)
 	size_t start[2] = {0,0};
 	size_t count[2];
 	for(i=0;i<nvals;i++) {
-	    ivar_data[i] = i;	   
+	    ivar_data[i] = (int)i;
 	}
 	count[0] = UNLIM_SIZE;	
 	count[1] = dim_lens[0];
 	if (nc_put_vara(ncid, ivarid, start, count, ivar_data)) LERR;
     } else {
 	for(i=0; i < NVALS; i++) {
-	    ivar_data[i] = i;
+	    ivar_data[i] = (int)i;
 	}
 	if (nc_put_var(ncid, ivarid, ivar_data)) LERR;
     }

@@ -359,9 +359,11 @@ NCZMD_set_metadata_handler(NC_FILE_INFO_T *file)
 	case 2:
 	    zmd_dispatcher = NCZ_csl_metadata_handler2;
 	    break;
+#ifdef NETCDF_ENABLE_NCZARR_V3
 	case 3:
 	    zmd_dispatcher = NCZ_csl_metadata_handler3;
 	    break;
+#endif
 	default:
 	    zmd_dispatcher = NCZ_metadata_handler;
 	    break;

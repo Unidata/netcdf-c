@@ -868,7 +868,6 @@ if test "x$enable_filter_zstd" = "xyes" ; then
    if test "x$have_zstd" = "xyes" ; then
       AC_SEARCH_LIBS([ZSTD_compress],[zstd zstd.dll cygzstd.dll], [], [])
       AC_DEFINE([HAVE_ZSTD], [1], [if true, zstd library is available])
-
    fi
    AC_MSG_CHECKING([whether libzstd library is available])
    AC_MSG_RESULT([${have_zstd}])
@@ -884,7 +883,6 @@ if test "x$enable_filter_zstd" = "xyes" ; then
             have_zstd=no
       fi
    fi
-
 else
    have_zstd=no
 fi
@@ -2229,12 +2227,6 @@ AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory
               [Install selected standard filters in specified or default directory])],
 	      [],[with_plugin_dir=no])
 AC_MSG_RESULT([$with_plugin_dir])
-
-# Using selected filter options forces installation
-if test "x$have_zstd" = xyes; then
-    AC_MSG_WARN([--enable_filter-zstd => --enable-plugins.])
-    enable_plugins=yes
-fi
 
 # Note: the term PLATFORMDEFAULT stands for:
 # -- /usr/loca/hdf5/lib/plugin If on a *nix* machine

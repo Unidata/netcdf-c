@@ -39,8 +39,6 @@ zutil.c
 zvar.c
 zwalk.c
 znc4.c
-zfilter.c
-zplugins.c
 zdebug.c
 zmetadata.h
 zformat.h
@@ -54,11 +52,14 @@ zinternal.h
 zmap.h
 zodom.h
 zprovenance.h
-zplugins.h
-zfilter.h
+zutil.h
 znc4.h
 zdebug.h
 )
+
+if(NETCDF_ENABLE_PLUGINS)
+    set(libnczarr_SOURCES ${libnczarr_SOURCES} zplugins.c zfilter.c)
+endif()
 
 if(NETCDF_ENABLE_NCZARR_ZIP)
     SET(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)

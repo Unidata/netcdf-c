@@ -36,24 +36,24 @@ Author: Dennis Heimbigner
 
 /* Forward */
 
-static int NCZ_raw_codec_to_hdf5(const NCproplist*, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_raw_hdf5_to_codec(const NCproplist*, unsigned id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_raw_codec_to_hdf5(const NCproplist*, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_raw_hdf5_to_codec(const NCproplist*, int id, size_t nparams, const unsigned* params, char** codecp);
 
-static int NCZ_shuffle_codec_to_hdf5(const NCproplist*, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_shuffle_hdf5_to_codec(const NCproplist*, unsigned id, size_t nparams, const unsigned* params, char** codecp);
-static int NCZ_shuffle_modify_parameters(const NCproplist*, unsigned* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
+static int NCZ_shuffle_codec_to_hdf5(const NCproplist*, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_shuffle_hdf5_to_codec(const NCproplist*, int id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_shuffle_modify_parameters(const NCproplist*, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
 
-static int NCZ_fletcher32_codec_to_hdf5(const NCproplist*, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_fletcher32_hdf5_to_codec(const NCproplist*, unsigned id, size_t nparams, const unsigned* params, char** codecp);
-static int NCZ_fletcher32_modify_parameters(const NCproplist*, unsigned* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
+static int NCZ_fletcher32_codec_to_hdf5(const NCproplist*, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_fletcher32_hdf5_to_codec(const NCproplist*, int id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_fletcher32_modify_parameters(const NCproplist*, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
 
-static int NCZ_deflate_codec_to_hdf5(const NCproplist*, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_deflate_hdf5_to_codec(const NCproplist*, unsigned id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_deflate_codec_to_hdf5(const NCproplist*, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_deflate_hdf5_to_codec(const NCproplist*, int id, size_t nparams, const unsigned* params, char** codecp);
 
 #ifdef HAVE_SZ
-static int NCZ_szip_codec_to_hdf5(const NCproplist*, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_szip_hdf5_to_codec(const NCproplist*, unsigned id, size_t nparams, const unsigned* params, char** codecp);
-static int NCZ_szip_modify_parameters(const NCproplist*, unsigned* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
+static int NCZ_szip_codec_to_hdf5(const NCproplist*, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_szip_hdf5_to_codec(const NCproplist*, int id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_szip_modify_parameters(const NCproplist*, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
 #endif
 
 /**************************************************/
@@ -80,7 +80,7 @@ static NCZ_codec_t NCZ_hdf5_raw_codec = {
 };
 
 static int
-NCZ_raw_codec_to_hdf5(const NCproplist* env, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_raw_codec_to_hdf5(const NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
@@ -88,7 +88,7 @@ NCZ_raw_codec_to_hdf5(const NCproplist* env, const char* codec, unsigned* idp, s
     const NCjson* jdict = NULL;
     const char* name = NULL;
     uintptr_t zarrformat = 0;
-    unsigned hdf5id = 0;
+    int hdf5id = 0;
     size_t nparams = 0;
     unsigned* params = NULL;
   
@@ -134,7 +134,7 @@ done:
 }
 
 static int
-NCZ_raw_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_raw_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     char* jsonstr = NULL;
@@ -185,7 +185,7 @@ static NCZ_codec_t NCZ_shuffle_codec = {
 };
 
 static int
-NCZ_shuffle_codec_to_hdf5(const NCproplist* env, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_shuffle_codec_to_hdf5(const NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
 
@@ -203,7 +203,7 @@ done:
 }
 
 static int
-NCZ_shuffle_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_shuffle_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     char json[1024];
@@ -230,7 +230,7 @@ done:
 }
 
 static int
-NCZ_shuffle_modify_parameters(const NCproplist* env, unsigned* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp)
+NCZ_shuffle_modify_parameters(const NCproplist* env, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp)
 {
     int stat = NC_NOERR;
     nc_type vtype;
@@ -247,7 +247,7 @@ NCZ_shuffle_modify_parameters(const NCproplist* env, unsigned* idp, size_t* vnpa
 
     if(!wnparamsp || !wparamsp) {stat = NC_EINTERNAL; goto done;}
 
-    ncproplistget(env,"fileid",&ncid,NULL);
+    ncproplistget(env,"ncid",&ncid,NULL);
     ncproplistget(env,"varid",&varid,NULL);
 
     /* Get variable info */
@@ -286,7 +286,7 @@ static NCZ_codec_t NCZ_fletcher32_codec = {/* NCZ_codec_t  codec fields */
 };
 
 static int
-NCZ_fletcher32_codec_to_hdf5(const NCproplist* env, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_fletcher32_codec_to_hdf5(const NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
 
@@ -304,7 +304,7 @@ done:
 }
 
 static int
-NCZ_fletcher32_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_fletcher32_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     char json[1024];
@@ -331,7 +331,7 @@ done:
 }
 
 static int
-NCZ_fletcher32_modify_parameters(const NCproplist* env, unsigned* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp)
+NCZ_fletcher32_modify_parameters(const NCproplist* env, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp)
 {
     int stat = NC_NOERR;
 
@@ -367,7 +367,7 @@ static NCZ_codec_t NCZ_zlib_codec = {/* NCZ_codec_t  codec fields */
 };
 
 static int
-NCZ_deflate_codec_to_hdf5(const NCproplist* env, const char* codec_json, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_deflate_codec_to_hdf5(const NCproplist* env, const char* codec_json, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
@@ -420,7 +420,7 @@ done:
 }
 
 static int
-NCZ_deflate_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_deflate_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     unsigned level = 0;
@@ -466,7 +466,7 @@ static NCZ_codec_t NCZ_szip_codec = {
 };
 
 static int
-NCZ_szip_codec_to_hdf5(const NCproplist* env, const char* codec_json, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_szip_codec_to_hdf5(const NCproplist* env, const char* codec_json, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     unsigned* params = NULL;
@@ -513,7 +513,7 @@ done:
 }
 
 static int
-NCZ_szip_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_szip_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     char json[2048];
@@ -545,7 +545,7 @@ done:
 }
 
 static int
-NCZ_szip_modify_parameters(const NCproplist* env, unsigned* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp)
+NCZ_szip_modify_parameters(const NCproplist* env, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp)
 {
     int i,ret_value = NC_NOERR;
     nc_type vtype;
@@ -570,7 +570,7 @@ NCZ_szip_modify_parameters(const NCproplist* env, unsigned* idp, size_t* vnparam
 
     vparams = *vparamsp;
 
-    ncproplistget(env,"fileid",&ncid,NULL);
+    ncproplistget(env,"ncid",&ncid,NULL);
     ncproplistget(env,"varid",&varid,NULL);
 
     /* Get variable info */

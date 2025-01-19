@@ -47,6 +47,7 @@ extern "C" {
 #include "ncindex.h"
 #include "ncjson.h"
 #include "ncproplist.h"
+#include "ncutil.h"
 
 #include "zmap.h"
 #include "zmetadata.h"
@@ -60,6 +61,7 @@ extern "C" {
 #include "zcache.h"
 #include "zarr.h"
 #include "zdebug.h"
+#include "zutil.h"
 
 #ifdef __cplusplus
 }

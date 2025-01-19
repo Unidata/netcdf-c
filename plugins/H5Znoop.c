@@ -143,8 +143,8 @@ Test the use of hdf5raw plugin (see H5Zutil.c).
 */
 
 /* Forward */
-static int NCZ_noop_codec_to_hdf5(const NCproplist* env, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_noop_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_noop_codec_to_hdf5(const NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_noop_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
 
 /* Structure for NCZ_PLUGIN_CODEC */
 static NCZ_codec_t NCZ_noop_codec = {/* NCZ_codec_t  codec fields */ 
@@ -175,7 +175,7 @@ NCZ_get_codec_info(void)
 /* NCZarr Interface Functions */
 
 static int
-NCZ_noop_codec_to_hdf5(const NCproplist* env, const char* codec_json, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_noop_codec_to_hdf5(const NCproplist* env, const char* codec_json, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
@@ -206,7 +206,7 @@ NCZ_noop_codec_to_hdf5(const NCproplist* env, const char* codec_json, unsigned* 
     }
     if(nparamsp) *nparamsp = nparams;
     if(paramsp) {*paramsp = params; params = NULL;}
-    if(idp) *idp = (unsigned)(H5Z_FILTER_NOOP + instance[0]);
+    if(idp) *idp = (int)(H5Z_FILTER_NOOP + instance[0]);
 
 done:
     if(params) free(params);
@@ -215,7 +215,7 @@ done:
 }
 
 static int
-NCZ_noop_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_noop_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     char* jsonstr = NULL;

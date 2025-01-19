@@ -223,7 +223,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
     ncurifree(hdf5_info->uri);
 #ifdef NETCDF_ENABLE_S3
     /* Free the http info */
-    NC_authfree(hdf5_info->auth);
+    NC_authfree(hdf5_info->auth); hdf5_info->auth = NULL;
 #endif
 
     /* Close hdf file. It may not be open, since this function is also

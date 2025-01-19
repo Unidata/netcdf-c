@@ -30,46 +30,6 @@ typedef struct D4blob {d4size_t size; void* memory;} D4blob;
 (offset)->offset = (offset)->base; \
 } while(0)
 
-/**************************************************/
-
-/* signature: void swapinline16(void* ip) */
-#define swapinline16(ip) \
-{ \
-    char b[2]; \
-    char* src = (char*)(ip); \
-    b[0] = src[1]; \
-    b[1] = src[0]; \
-    memcpy(ip, b, 2); \
-}
-
-/* signature: void swapinline32(void* ip) */
-#define swapinline32(ip) \
-{ \
-    char b[4]; \
-    char* src = (char*)(ip); \
-    b[0] = src[3]; \
-    b[1] = src[2]; \
-    b[2] = src[1]; \
-    b[3] = src[0]; \
-    memcpy(ip, b, 4); \
-}
-
-/* signature: void swapinline64(void* ip) */
-#define swapinline64(ip) \
-{ \
-    char b[8]; \
-    char* src = (char*)(ip); \
-    b[0] = src[7]; \
-    b[1] = src[6]; \
-    b[2] = src[5]; \
-    b[3] = src[4]; \
-    b[4] = src[3]; \
-    b[5] = src[2]; \
-    b[6] = src[1]; \
-    b[7] = src[0]; \
-    memcpy(ip, b, 8); \
-}
-
 /***************************************************/
 /* Define the NCD4node.data.flags */
 

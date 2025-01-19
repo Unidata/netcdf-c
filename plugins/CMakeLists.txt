@@ -122,6 +122,10 @@ endif()
 set(h5stringn_SOURCES H5Zstringn.c)
 buildplugin(h5stringn "h5stringn")
 
+# Zarr Version 3 filters
+set(h5endian_SOURCES H5Zendian.c)
+buildplugin(h5endian "h5endian" netcdf)
+
 # Installation
 if(NETCDF_ENABLE_PLUGIN_INSTALL)
 

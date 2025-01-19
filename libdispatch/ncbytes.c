@@ -53,7 +53,6 @@ ncbytessetalloc(NCbytes* bb, unsigned long sz)
 {
   char* newcontent;
   if(bb == NULL) return ncbytesfail();
-  if(bb->nonextendible) return ncbytesfail();
 //  if(sz == 0) {sz = (bb->alloc?2*bb->alloc:DEFAULTALLOC);} /* Default the size */
   if(sz == 0) return TRUE;
   /* We always guarantee that bb->content is not NULL */
@@ -61,6 +60,7 @@ ncbytessetalloc(NCbytes* bb, unsigned long sz)
     assert(bb->content != NULL);
     return TRUE;
   }
+  if(bb->nonextendible) return ncbytesfail();
   newcontent=(char*)calloc(sz,sizeof(char));
   if(newcontent == NULL) ncbytesfail();
   if(bb->length > 0 && bb->content != NULL) {

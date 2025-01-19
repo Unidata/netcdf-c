@@ -11,7 +11,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 echo "*** Running filter example for netCDF-4."
 
-set -x
 set -e
 
 echo "*** running test_filter example..."

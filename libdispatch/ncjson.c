@@ -892,7 +892,8 @@ NCJclone(const NCjson* json, NCjson** clonep)
     case NCJ_BOOLEAN:
     case NCJ_STRING:
 	if((stat=NCJnew(NCJsort(json),&clone))==NCJ_ERR) goto done;
-	if((NCJstring(clone) = strdup(NCJstring(json))) == NULL)
+	NCJsetstring(clone,strdup(NCJstring(json)));
+	if(NCJstring(clone)==NULL)
 	    {stat = NCJTHROW(NCJ_ERR); goto done;}
 	break;
     case NCJ_NULL:

@@ -38,18 +38,18 @@ Author: Dennis Heimbigner
 
 /* Forward */
 
-static int NCZ_bzip2_codec_to_hdf5(const NCproplist* env, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_bzip2_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_bzip2_codec_to_hdf5(const NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_bzip2_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
 
 #ifdef HAVE_ZSTD
-static int NCZ_zstd_codec_to_hdf5(const struct NCproplist* env, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_zstd_hdf5_to_codec(const struct NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_zstd_codec_to_hdf5(const struct NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_zstd_hdf5_to_codec(const struct NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
 #endif
 
 #ifdef HAVE_BLOSC
-static int NCZ_blosc_codec_to_hdf5(const NCproplist* env, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_blosc_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp);
-static int NCZ_blosc_modify_parameters(const NCproplist* env, unsigned* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
+static int NCZ_blosc_codec_to_hdf5(const NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_blosc_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_blosc_modify_parameters(const NCproplist* env, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
 static void NCZ_blosc_codec_finalize(const NCproplist*);
 #endif
 
@@ -77,7 +77,7 @@ NCZ_get_codec_info(void)
 }
 
 static int
-NCZ_bzip2_codec_to_hdf5(const NCproplist* env, const char* codec_json, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_bzip2_codec_to_hdf5(const NCproplist* env, const char* codec_json, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
@@ -126,7 +126,7 @@ done:
 }
 
 static int
-NCZ_bzip2_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_bzip2_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     unsigned level = 0;
@@ -171,7 +171,7 @@ static NCZ_codec_t NCZ_zstd_codec = {/* NCZ_codec_t  codec fields */
 };
 
 static int
-NCZ_zstd_codec_to_hdf5(const NCproplist* env, const char* codec_json, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_zstd_codec_to_hdf5(const NCproplist* env, const char* codec_json, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
@@ -221,7 +221,7 @@ done:
 }
 
 static int
-NCZ_zstd_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_zstd_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     unsigned level = 0;
@@ -304,7 +304,7 @@ NCZ_blosc_codec_finalize(const NCproplist* env)
 }
 
 static int
-NCZ_blosc_modify_parameters(const NCproplist* env, unsigned* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp)
+NCZ_blosc_modify_parameters(const NCproplist* env, int* idp, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp)
 {
     int i,stat = NC_NOERR;
     nc_type vtype;
@@ -330,7 +330,7 @@ NCZ_blosc_modify_parameters(const NCproplist* env, unsigned* idp, size_t* vnpara
     if(wnparamsp == NULL || wparamsp == NULL)
         {stat = NC_EFILTER; goto done;}
 
-    ncproplistget(env,"fileid",&ncid,NULL);
+    ncproplistget(env,"ncid",&ncid,NULL);
     ncproplistget(env,"varid",&varid,NULL);
 
     vnparams = *vnparamsp;
@@ -375,7 +375,7 @@ done:
 }
 
 static int
-NCZ_blosc_codec_to_hdf5(const NCproplist* env, const char* codec_json, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_blosc_codec_to_hdf5(const NCproplist* env, const char* codec_json, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
@@ -458,7 +458,7 @@ done:
 }
 
 static int
-NCZ_blosc_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_blosc_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     char json[1024];

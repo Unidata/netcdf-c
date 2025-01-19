@@ -70,8 +70,8 @@ static const char* fields[14] = {
 };
 
 /* Forward */
-static int NCZ_misc_codec_to_hdf5(const NCproplist* env, const char* codec, unsigned* idp, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_misc_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_misc_codec_to_hdf5(const NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_misc_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
 
 /* Structure for NCZ_PLUGIN_CODEC */
 static NCZ_codec_t NCZ_misc_codec = {/* NCZ_codec_t  codec fields */ 
@@ -97,7 +97,7 @@ NCZ_get_codec_info(void)
 /* NCZarr Interface Functions */
 
 static int
-NCZ_misc_codec_to_hdf5(const NCproplist* env, const char* codec_json, unsigned* idp, size_t* nparamsp, unsigned** paramsp)
+NCZ_misc_codec_to_hdf5(const NCproplist* env, const char* codec_json, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
@@ -166,7 +166,7 @@ done:
 }
 
 static int
-NCZ_misc_hdf5_to_codec(const NCproplist* env, unsigned id, size_t nparams, const unsigned* params, char** codecp)
+NCZ_misc_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int i,stat = NC_NOERR;
     char json[4096];

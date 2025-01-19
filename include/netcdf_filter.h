@@ -65,9 +65,27 @@ BLOSC_BITSHUFFLE=2  /* bit-wise shuffle */
 enum BLOSC_SUBCOMPRESSORS {BLOSC_LZ=0, BLOSC_LZ4=1, BLOSC_LZ4HC=2, BLOSC_SNAPPY=3, BLOSC_ZLIB=4, BLOSC_ZSTD=5};
 #endif
 
-/* Codecs for hdf5 filters that do not have a codec */
-#define H5Z_FILTER_RAW ((unsigned int)((int)-1)) /* Fake filter id */
+
+/* Non-Standard or Internal Filters */
+
+/**
+HDF5 allows (https://github.com/HDFGroup/hdf5_plugins/blob/master/docs/RegisteredFilterPlugins.md)
+for internal filter ids in the range: 32,768-65,535 with this note:
+"Filter values in this range are designated for internal company use or application testing when assessing a feature.
+The HDF Group does not track or document the use of filters within this range."
+*/
+
+/* Codec for hdf5 filters that do not have a codec */
+#define H5Z_FILTER_RAW (65535) /* filter id */
 #define H5Z_CODEC_RAW "_hdf5raw_"
+
+/* Codec for implementing endianness; see Zarr Version 3 specification */
+#define H5Z_FILTER_BYTES (65534) /* filter id */
+#define H5Z_CODEC_BYTES "bytes"
+
+/* Codec for implementing fixed length strings */
+#define H5Z_FILTER_STRINGN (65533) /* filter id */
+#define H5Z_CODEC_STRINGN "fixedsizestrings"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -76,13 +94,15 @@ extern "C" {
 /**************************************************/
 /* HDF5 Format filter functions */
 
+/* Note: For historical reasons id is an unsigned int here rather than int, which is what HDF5 uses. */
+
 /*Define a filter for a variable */
 EXTERNL int
-nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms);
+nc_def_var_filter(int ncid, int varid, unsigned id, size_t nparams, const unsigned int* parms);
 
 /* Learn about the first defined filter filter on a variable */
 EXTERNL int
-nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsigned int* params);
+nc_inq_var_filter(int ncid, int varid, unsigned* idp, size_t* nparams, unsigned int* params);
 
 /* Support inquiry about all the filters associated with a variable */
 /* As is usual, it is expected that this will be called twice: 
@@ -90,7 +110,7 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsig
 EXTERNL int nc_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids);
 
 /* Learn about the filter with specified id wrt a variable */
-EXTERNL int nc_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
+EXTERNL int nc_inq_var_filter_info(int ncid, int varid, unsigned id, size_t* nparams, unsigned int* params);
 
 /* End HDF5 Format Declarations */
 
