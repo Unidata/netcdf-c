@@ -49,6 +49,9 @@ H5PLget_plugin_info(void)
 static htri_t
 H5Z_unknown_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id)
 {
+    NC_UNUSED(dcpl_id);
+    NC_UNUSED(type_id);
+    NC_UNUSED(space_id);
     return 1; /* Assume it can always apply */
 }
 
@@ -59,6 +62,10 @@ H5Z_filter_unknown(unsigned int flags, size_t cd_nelmts,
 {
     void* newbuf;
     
+    NC_UNUSED(cd_nelmts);
+    NC_UNUSED(cd_values);
+    NC_UNUSED(nbytes);
+
     if (flags & H5Z_FLAG_REVERSE) {
         /* Replace buffer */
         newbuf = H5allocate_memory(*buf_size,0);
@@ -76,7 +83,6 @@ H5Z_filter_unknown(unsigned int flags, size_t cd_nelmts,
 	/* reclaim old buffer */
         H5free_memory(*buf);
         *buf = newbuf;
-
     }
     return *buf_size;
 }
@@ -85,14 +91,13 @@ H5Z_filter_unknown(unsigned int flags, size_t cd_nelmts,
 /* NCZarr Codec API */
 
 /* Codec Format
-{
-"id": "unknown",
-}
+V2: {"id": "unknown"}
+V3: {"name": "unknown"}
 */
 
 /* Forward */
-static int NCZ_unknown_codec_to_hdf5(const char* codec, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_unknown_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp);
+static int NCZ_unknown_codec_to_hdf5(const NCproplist* env, const char* codec, int* idp, size_t* nparamsp, unsigned** paramsp);
+static int NCZ_unknown_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp);
 
 /* Structure for NCZ_PLUGIN_CODEC */
 static NCZ_codec_t NCZ_unknown_codec = {/* NCZ_codec_t  codec fields */ 
@@ -118,26 +123,40 @@ NCZ_get_codec_info(void)
 /* NCZarr Interface Functions */
 
 static int
-NCZ_unknown_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** paramsp)
+NCZ_unknown_codec_to_hdf5(const NCproplist* env, const char* codec_json, int* idp, size_t* nparamsp, unsigned** paramsp)
 {
     int stat = NC_NOERR;
 
+    NC_UNUSED(env);
+    NC_UNUSED(codec_json);
+    
     *nparamsp = 0;
     *paramsp = NULL;
+    if(idp) *idp = H5Z_FILTER_UNKNOWN;
     
     return stat;
 }
 
 static int
-NCZ_unknown_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
+NCZ_unknown_hdf5_to_codec(const NCproplist* env, int id, size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     char json[8192];
+    uintptr_t zarrformat = 0;
 
+    NC_UNUSED(id);
+    
     if(nparams != 0 || params != NULL)
         {stat = NC_EINVAL; goto done;}
+  
+    ncproplistget(env,"zarrformat",&zarrformat,NULL);
 
-    snprintf(json,sizeof(json),"{\"id\": \"%s\"}",NCZ_unknown_codec.codecid);
+    if(zarrformat == 3) {
+        snprintf(json,sizeof(json),"{\"name\": \"%s\"}",NCZ_unknown_codec.codecid);
+    } else {
+        snprintf(json,sizeof(json),"{\"id\": \"%s\"}",NCZ_unknown_codec.codecid);
+    }
+
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }

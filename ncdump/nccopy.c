@@ -154,6 +154,8 @@ static char** option_lvars = 0;		/* list of variable names specified with -v
 static bool_t option_varstruct = false;	  /* if -v set, copy structure for non-selected vars */
 static int option_compute_chunkcaches = 0; /* default, don't try still flaky estimate of
 					    * chunk cache for each variable */
+static int option_global_fill = 0; /* turn on global fill using nc_set_fill */
+
 /* get group id in output corresponding to group igrp in input,
  * given parent group id (or root group id) parid in output. */
 static int
@@ -2095,8 +2097,11 @@ copy(char* infile, char* outfile)
 	break;
     }
     NC_CHECK(nc_create(outfile, create_mode, &ogrp));
-    NC_CHECK(nc_set_fill(ogrp, NC_NOFILL, NULL));
-
+    if(option_global_fill) {
+	NC_CHECK(nc_set_fill(ogrp, NC_FILL, NULL));
+    } else {
+	NC_CHECK(nc_set_fill(ogrp, NC_NOFILL, NULL));
+    }
 #ifdef USE_NETCDF4
     /* Because types in one group may depend on types in a different
      * group, need to create all groups before defining types */
@@ -2208,6 +2213,9 @@ usage(void)
   [-F filterspec] specify a compression algorithm to apply to an output variable (may be repeated).\n\
   [-Ln]     set log level to n (>= 0); ignored if logging isn't enabled.\n\
   [-Mn]     set minimum chunk size to n bytes (n >= 0)\n\
+  [-X<flag><arg> flag overflow for uncommon flags.\n\
+                 flag == 'f' forces enabling global fill flag  (nc_set_fill)\n\
+		 Use multiple times to set several flags.\n\
   infile    name of netCDF input file\n\
   outfile   name for netCDF output file\n"
 
@@ -2239,7 +2247,7 @@ main(int argc, char**argv)
     }
 
     opterr = 1;
-    while ((c = getopt(argc, argv, "k:3467d:sum:c:h:e:rwxg:G:v:V:F:L:M:")) != -1) {
+    while ((c = getopt(argc, argv, "k:3467d:sum:c:h:e:rwxg:G:v:V:F:L:M:X:")) != -1) {
 	switch(c) {
         case 'k': /* for specifying variant of netCDF format to be generated
                      Format names:
@@ -2394,7 +2402,15 @@ main(int argc, char**argv)
 #else
 	    error("-M requires netcdf-4");
 #endif
-
+	case 'X': /* uncommon flags */
+	    switch (optarg[0]) {
+	    case 'f': /* turn on global fill */
+		option_global_fill = 1;
+	        break;
+	    case '\0': break;
+	    default: error("-X unknown sub-flag");
+	    }
+	    break;
 	default:
 	    usage();
         }

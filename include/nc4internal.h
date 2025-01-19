@@ -43,7 +43,7 @@
 
 /* typedef enum {GET, PUT} NC_PG_T; */
 /** These are the different objects that can be in our hash-lists. */
-typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
+typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFILE} NC_SORT;
 
 /** The netCDF V2 error code. */
 #define NC_V2_ERR (-1)
@@ -100,6 +100,8 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 #   define VIRTUALFLAG 8
     /** Per-variable attribute, as opposed to global */
 #   define VARFLAG 16
+    /** If written via NCZarr, then is a complex json attribute */
+#   define COMPLEXJSON 32
 
 /** Boolean type, to make the code easier to read. */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
@@ -471,13 +473,11 @@ typedef struct NCglobalstate {
 	char dimension_separator;
 	int default_zarrformat;
 	NClist* pluginpaths; /* NCZarr mirror of plugin paths */
-	NClist* codec_defaults;
-	NClist* default_libs;
+	NClist* codec_defaults; /* NClist<struct CodecAPI*> */
+	NClist* default_libs; /* NClist<NCPSharedLib**> */
 	/* All possible HDF5 filter plugins */
-	/* Consider onverting to linked list or hash table or
-	   equivalent since very sparse */
-	struct NCZ_Plugin** loaded_plugins; //[H5Z_FILTER_MAX+1];
-	size_t loaded_plugins_max; /* plugin filter id index. 0<loaded_plugins_max<=H5Z_FILTER_MAX */
+	NClist* loaded_plugins; /* NClist<NCZ_Plugin*> sorted by filter id */
+	struct CodecAPI* hdf5raw; /* Used when an HDF5 filter has no corresponding codec */
     } zarr;
     struct GlobalAWS { /* AWS S3 specific parameters/defaults */
 	char* default_region;
@@ -498,6 +498,12 @@ extern struct NCglobalstate* NC_getglobalstate(void);
 extern void NC_freeglobalstate(void);
 
 /**************************************************/
+/* Searcher for quantization attributes */
+
+extern const char* NC_findquantizeattname(int mode);
+extern int NC_isquantizeattname(const char* name);
+
+/**************************************************/
 /* Binary searcher for reserved attributes */
 extern const NC_reservedatt* NC_findreserved(const char* name);
 /* reserved attribute initializer */
@@ -511,15 +517,19 @@ extern void NC_initialize_reserved(void);
 #define NC_ATT_COORDINATES "_Netcdf4Coordinates" /*see hdf5internal.h:COORDINATES*/
 #define NC_ATT_FORMAT "_Format"
 #define NC_ATT_DIMID_NAME "_Netcdf4Dimid"
-#define NC_ATT_FILLVALUE "_FillValue"
+#define NC_ATT_FILLVALUE NC_FillValue
 #define NC_ATT_NC3_STRICT_NAME "_nc3_strict"
 #define NC_XARRAY_DIMS "_ARRAY_DIMENSIONS"
 #define NC_ATT_CODECS "_Codecs"
 
-/* Must match values in libnczarr/zinternal.h */
-#define NC_NCZARR_SUPERBLOCK "_nczarr_superblock"
-#define NC_NCZARR_GROUP "_nczarr_group"
-#define NC_NCZARR_ARRAY "_nczarr_array"
-#define NC_NCZARR_ATTR "_nczarr_attr"
-
+/* Must match values in libsrc4/nc4internal.c and libnczarr/zinternal.h */
+#define NC_NCZARR_SUPERBLOCK_ATTR "_nczarr_superblock"
+#define NC_NCZARR_GROUP_ATTR "_nczarr_group"
+#define NC_NCZARR_ARRAY_ATTR "_nczarr_array"
+#define NC_NCZARR_ATTRS_ATTR "_nczarr_attrs"
+#define NC_NCZARR_ATTR_ATTR "_nczarr_attr"
+#define NC_NCZARR_MAXSTRLEN_ATTR "_nczarr_maxstrlen"
+#define NC_NCZARR_DFALT_MAXSTRLEN_ATTR "_nczarr_default_maxstrlen"
+#define NC_NCZARR_SEPARATOR_ATTR "_nczarr_separator"
+#define NC_NCZARR_DFALT_SEPARATOR_ATTR "_nczarr_default_separator"
 #endif /* _NC4INTERNAL_ */

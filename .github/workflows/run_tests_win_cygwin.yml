@@ -2,25 +2,25 @@ name: Run Cygwin-based tests
 
 on: [pull_request,workflow_dispatch]
 
-concurrency:  
-  group: ${{ github.workflow}}-${{ github.head_ref }}  
+concurrency:
+  group: ${{ github.workflow}}-${{ github.head_ref }}
   cancel-in-progress: true
 
 env:
   SHELLOPTS: igncr
   CHERE_INVOKING: 1
   CYGWIN_NOWINPATH: 1
-  REMOTETESTDOWN: ${{ vars.REMOTETESTDOWN }}
+  REMOTETESTDOWN: no
 
 jobs:
   build-and-test-autotools:
     runs-on: windows-latest
     defaults:
       run:
-        shell: C:/cygwin/bin/bash.exe -eo pipefail -o igncr "{0}"
+        shell: bash -eo pipefail -o igncr "{0}"
 
     name: Cygwin-based Autotools tests
-    
+
     strategy:
       matrix:
         plugin_dir_option: ["", "--without-plugin-dir"]
@@ -55,7 +55,7 @@ jobs:
           /bin/dash ./configure --enable-hdf5 --enable-shared
           --disable-static --enable-dap --disable-dap-remote-tests
           --enable-plugins ${{ matrix.plugin_dir_option }}
-          --disable-nczarr --disable-nczarr-filters
+          --disable-nczarr #--disable-nczarr-filters
           --disable-s3 --with-s3-testing=no
 
 
@@ -95,13 +95,13 @@ jobs:
           path: |
             */*.log
             */*.trs
-  
+
   build-and-test-cmake:
     name: Cygwin-based CMake tests
     runs-on: windows-latest
     defaults:
       run:
-        shell: C:/cygwin/bin/bash.exe -eo pipefail -o igncr "{0}"
+        shell: bash -eo pipefail -o igncr "{0}"
 
     steps:
 

@@ -11,6 +11,8 @@ plugin_version_info = -version-info 0:0:0
 
 AM_LDFLAGS += -module -avoid-version -shared -export-dynamic $(NOUNDEFINED)
 
+DISTCLEANFILES =
+
 # Create an alternate directory if not installing.
 ALTPLUGINDIR = ${abs_top_builddir}/plugins/plugindir
 
@@ -45,16 +47,18 @@ EXTRA_DIST = CMakeLists.txt findplugin.in
 EXTRA_DIST += \
 	H5Ztemplate.c H5Zmisc.c H5Zutil.c H5Znoop.c h5noop.h NCZmisc.c \
 	H5Zshuffle.c H5Zdeflate.c H5Zszip.c H5Zszip.h \
-        H5Zbzip2.c h5bzip2.h H5Zblosc.c H5Zblosc.h H5Zzstd.c H5Zzstd.h
+        H5Zbzip2.c h5bzip2.h H5Zblosc.c H5Zblosc.h H5Zzstd.c H5Zzstd.h \
+	H5Zendian.c
 
 # The Codec filter wrappers
 EXTRA_DIST += NCZhdf5filters.c NCZstdfilters.c
 # The Filter implementations
 EXTRA_DIST += H5checksum.c
 
-plugins_to_install += lib__nch5fletcher32.la lib__nch5shuffle.la 
+plugins_to_install += lib__nch5fletcher32.la lib__nch5shuffle.la
 lib__nch5shuffle_la_SOURCES = H5Zshuffle.c
 lib__nch5fletcher32_la_SOURCES = H5Zfletcher32.c H5checksum.c
+
 if HAVE_DEFLATE
 plugins_to_install += lib__nch5deflate.la
 lib__nch5deflate_la_SOURCES = H5Zdeflate.c
@@ -80,12 +84,17 @@ if NETCDF_ENABLE_NCZARR_FILTERS
 # The NCZarr codec libraries (they need libnetcdf)
 lib__nczstdfilters_la_SOURCES = NCZstdfilters.c
 lib__nczstdfilters_la_LIBADD = $(LIBADD)  $(top_builddir)/liblib/libnetcdf.la
-lib__nczhdf5filters_la_SOURCES = NCZhdf5filters.c
+lib__nczhdf5filters_la_SOURCES = NCZhdf5filters.c H5Zutil.c
 lib__nczhdf5filters_la_LIBADD = $(LIBADD) $(top_builddir)/liblib/libnetcdf.la
 
 plugins_to_install += lib__nczhdf5filters.la
 plugins_to_install += lib__nczstdfilters.la
 endif
+
+# Zarr Version 3 Filters
+plugins_to_install += lib__nch5endian.la
+lib__nch5endian_la_SOURCES = H5Zendian.c
+lib__nch5endian_la_LIBADD = $(LIBADD)  $(top_builddir)/liblib/libnetcdf.la
 
 # The noop filter is to allow testing of multifilters and filter order
 # Need two distinct instances
@@ -119,13 +128,18 @@ lib__nch5bzip2_la_SOURCES += ${BZIP2SRC}
 endif
 plugins_to_install += lib__nch5bzip2.la
 
+lib__nch5stringn_la_SOURCES = H5Zstringn.c
+EXTRA_DIST += H5Zstringn.c
+plugins_to_install += lib__nch5stringn.la
+
 if ENABLE_PLUGIN_DIR
 plugin_LTLIBRARIES += $(plugins_to_install)
 else
 check_LTLIBRARIES += $(plugins_to_install)
 endif
 
-DISTCLEANFILES = H5Znoop1.c H5Znoop2.c ncjson.h findplugin.sh
+DISTCLEANFILES += findplugin.sh
+DISTCLEANFILES += H5Znoop1.c H5Znoop2.c ncjson.h
 
 BUILT_SOURCES = H5Znoop1.c
 H5Znoop1.c: Makefile H5Znoop.c

@@ -33,8 +33,9 @@
 #include "ncbytes.h"
 #include "nclist.h"
 #include "nclog.h"
-#include "ncrc.h"
+#include "ncutil.h"
 #include "nchttp.h"
+#include "ncutil.h"
 #ifdef NETCDF_ENABLE_S3
 #include "ncs3sdk.h"
 #endif
@@ -127,7 +128,7 @@ static struct FORMATMODES {
 {"udf1",NC_FORMATX_UDF1,0},
 {"nczarr",NC_FORMATX_NCZARR,NC_FORMAT_NETCDF4},
 {"zarr",NC_FORMATX_NCZARR,NC_FORMAT_NETCDF4},
-{"bytes",NC_FORMATX_NC4,NC_FORMAT_NETCDF4}, /* temporary until 3 vs 4 is determined */
+{"bytes",NC_FORMATX_NC4,NC_FORMAT_NETCDF4}, /* temporary until netcdf-3 vs netcdf-4 is determined */
 {NULL,0},
 };
 
@@ -137,15 +138,13 @@ static const struct MACRODEF {
     char* defkey;
     char* defvalues[4];
 } macrodefs[] = {
-{"zarr","mode",{"nczarr","zarr",NULL}},
+{"zarr","mode",{"zarr",NULL}},
+{"nczarr","mode",{"nczarr",NULL}},
 {"dap2","mode",{"dap2",NULL}},
 {"dap4","mode",{"dap4",NULL}},
-{"s3","mode",{"s3","nczarr",NULL}},
+{"s3","mode",{"s3",NULL}},
+{"gs3","mode",{"gs3",NULL}}, /* Google S3 API */
 {"bytes","mode",{"bytes",NULL}},
-{"xarray","mode",{"zarr", NULL}},
-{"noxarray","mode",{"nczarr", "noxarray", NULL}},
-{"zarr","mode",{"nczarr","zarr", NULL}},
-{"gs3","mode",{"gs3","nczarr",NULL}}, /* Google S3 API */
 {NULL,NULL,{NULL}}
 };
 
@@ -162,10 +161,8 @@ static const struct MODEINFER {
     char* key;
     char* inference;
 } modeinferences[] = {
-{"zarr","nczarr"},
 {"xarray","zarr"},
 {"noxarray","nczarr"},
-{"noxarray","zarr"},
 {NULL,NULL}
 };
 
@@ -174,6 +171,7 @@ static const struct MODEINFER modenegations[] = {
 {"bytes","nczarr"}, /* bytes negates (nc)zarr */
 {"bytes","zarr"},
 {"noxarray","xarray"},
+{"nozmetadata","zmetadata"},
 {NULL,NULL}
 };
 
@@ -413,6 +411,7 @@ envvlist2string(NClist* envv, const char* delim)
     NCbytes* buf = NULL;
     char* result = NULL;
 
+    NC_UNUSED(delim);
     if(envv == NULL || nclistlength(envv) == 0) return NULL;
     buf = ncbytesnew();
     for(i=0;i<nclistlength(envv);i+=2) {
@@ -723,6 +722,9 @@ done:
 static int
 processfragmentkeys(const char* key, const char* value, NCmodel* model)
 {
+    NC_UNUSED(key);
+    NC_UNUSED(value);
+    NC_UNUSED(model);
     return NC_NOERR;
 }
 
@@ -901,7 +903,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	printlist(fraglenv,"cleanfragments");
 #endif
 
-        /* Phase 4: Rebuild the url fragment and rebuilt the url */
+        /* Phase 4: Rebuild the url fragment and rebuild the url */
         sfrag = envvlist2string(fraglenv,"&");
         nclistfreeall(fraglenv); fraglenv = NULL;
 #ifdef DEBUG

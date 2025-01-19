@@ -12,15 +12,12 @@
 #include "nc_logging.h"
 #include "nclist.h"
 
+/* Forward */
 static int NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2);
-
 #ifdef USE_NETCDF4
-
 static int searchgroup(int ncid1, int tid1, int grp, int* tid2);
 static int searchgrouptree(int ncid1, int tid1, int grp, int* tid2);
-
-#endif /*USE_NETCDF4*/
-
+#endif
 
 #ifdef USE_NETCDF4
 /**
@@ -59,8 +56,8 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
    }
    else
    {
-      size_t i;
       int ret, equal1;
+      size_t i;
       char name1[NC_MAX_NAME];
       char name2[NC_MAX_NAME];
       size_t size1, size2;
@@ -112,9 +109,9 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
 
 	    for(i = 0; i < nelems1; i++)
 	    {
-	       if ((ret = nc_inq_enum_member(ncid1, typeid1, i, name1,
+	       if ((ret = nc_inq_enum_member(ncid1, typeid1, (int)i, name1,
 					     value1)) ||
-		   (ret = nc_inq_enum_member(ncid2, typeid2, i, name2,
+		   (ret = nc_inq_enum_member(ncid2, typeid2, (int)i, name2,
 					     value2)) ||
 		   strcmp(name1, name2) != 0 || memcmp(value1, value2, size1) != 0)
 	       {
@@ -134,10 +131,10 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
 	    for(i = 0; i < nelems1; i++)
 	    {
 	       int j;
-	       if ((ret = nc_inq_compound_field(ncid1, typeid1, i, name1, &offset1,
+	       if ((ret = nc_inq_compound_field(ncid1, typeid1, (int)i, name1, &offset1,
 						&ftype1, &ndims1, dimsizes1)))
 		  return ret;
-	       if ((ret = nc_inq_compound_field(ncid2, typeid2, i, name2, &offset2,
+	       if ((ret = nc_inq_compound_field(ncid2, typeid2, (int)i, name2, &offset2,
 						&ftype2, &ndims2, dimsizes2)))
 		  return ret;
 	       if(ndims1 != ndims2)
@@ -211,44 +208,6 @@ done:
 }
 
 #endif /* USE_NETCDF4 */
-
-/**
- * @internal Given a type in one file, find its equal (if any) in
- * another file. It sounds so simple, but it's a real pain!
- *
- * @param ncid1 File ID.
- * @param xtype1 Type ID.
- * @param ncid2 File ID.
- * @param xtype2 Pointer that gets type ID of equal type.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
-*/
-static int
-NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2)
-{
-   int ret = NC_NOERR;
-
-   /* Check input */
-   if(xtype1 <= NC_NAT)
-      return NC_EINVAL;
-
-   /* Handle atomic types. */
-   if (xtype1 <= NC_MAX_ATOMIC_TYPE)
-   {
-      if(xtype2)
-	 *xtype2 = xtype1;
-      return NC_NOERR;
-   }
-
-#ifdef USE_NETCDF4
-   /* Recursively search group ncid2 and its children
-      to find a type that is equal (using compare_type)
-      to xtype1. */
-   ret = NC_rec_find_nc_type(ncid1, xtype1 , ncid2, xtype2);
-#endif /* USE_NETCDF4 */
-   return ret;
-}
 
 /**
  * This will copy a variable that is an array of primitive type and
@@ -737,5 +696,45 @@ done:
     return ret;
 }
 
-#endif /* USE_NETCDF4 */
+#endif
 
+/**
+ * @internal Given a type in one file, find its equal (if any) in
+ * another file. It sounds so simple, but it's a real pain!
+ *
+ * @param ncid1 File ID.
+ * @param xtype1 Type ID.
+ * @param ncid2 File ID.
+ * @param xtype2 Pointer that gets type ID of equal type.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADTYPE
+ * @author Ed Hartnett
+*/
+static int
+NC_find_equal_type(int ncid1, nc_type xtype1, int ncid2, nc_type *xtype2)
+{
+   int ret = NC_NOERR;
+
+   /* Check input */
+   if(xtype1 <= NC_NAT)
+      return NC_EINVAL;
+
+   /* Handle atomic types. */
+   if (xtype1 <= NC_MAX_ATOMIC_TYPE)
+   {
+      if(xtype2)
+	 *xtype2 = xtype1;
+      return NC_NOERR;
+   }
+
+#ifdef USE_NETCDF4
+   /* Recursively search group ncid2 and its children
+      to find a type that is equal (using compare_type)
+      to xtype1. */
+   ret = NC_rec_find_nc_type(ncid1, xtype1 , ncid2, xtype2);
+#else
+   ret = NC_EBADTYPE;
+#endif
+   return ret;
+}

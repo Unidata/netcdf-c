@@ -40,7 +40,7 @@ set(h5fletcher32_SOURCES H5Zfletcher32.c H5checksum.c)
 set(h5deflate_SOURCES H5Zdeflate.c)
 
 set(nczmisc_SOURCES NCZmisc.c)
-set(nczhdf5filters_SOURCES NCZhdf5filters.c)
+set(nczhdf5filters_SOURCES NCZhdf5filters.c H5Zutil.c)
 set(nczstdfilters_SOURCES NCZstdfilters.c)
 
 if(NETCDF_ENABLE_PLUGINS)
@@ -59,6 +59,7 @@ macro(buildplugin TARGET TARGETLIB)
     set_target_properties(${TARGET} PROPERTIES PREFIX "") # Critical that this be set to ""
     set_target_properties(${TARGET} PROPERTIES SUFFIX ".${PLUGINEXT}")
     target_link_libraries(${TARGET} PUBLIC ${ALL_TLL_LIBS};${ARGN})
+    target_include_directories(${TARGET} PUBLIC .)
   if(MSVC)
     target_compile_options(${TARGET} PRIVATE /Zi)
     # Tell linker to include symbol data
@@ -118,8 +119,15 @@ else()
   buildplugin(h5bzip2 "h5bzip2" ${Bzip2_LIBRARIES})
 endif()
 
+set(h5stringn_SOURCES H5Zstringn.c)
+buildplugin(h5stringn "h5stringn")
+
+# Zarr Version 3 filters
+set(h5endian_SOURCES H5Zendian.c)
+buildplugin(h5endian "h5endian" netcdf)
+
 # Installation
-if(ENABLE_PLUGIN_INSTALL)
+if(NETCDF_ENABLE_PLUGIN_INSTALL)
 
 macro(installplugin PLUG)
   set(INSTALLED_PLUGIN_LIB "${PLUGINPRE}${PLUG}.${PLUGINEXT}")
@@ -155,5 +163,5 @@ if(MSVC)
   file(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
 endif()
 
-endif(ENABLE_PLUGIN_INSTALL)
+endif(NETCDF_ENABLE_PLUGIN_INSTALL)
 endif(NETCDF_ENABLE_PLUGINS)

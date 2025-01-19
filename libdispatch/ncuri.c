@@ -837,7 +837,7 @@ ncfind(NClist* params, const char* key)
     if(params == NULL) return -1;
     for(i=0;i<nclistlength(params);i+=2) {
         char* p=nclistget(params,(size_t)i);
-	if(strcasecmp(key,p)==0) return i;
+	if(strcasecmp(key,p)==0) return (int)i;
     }
     return -1;
 }

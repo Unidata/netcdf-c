@@ -70,7 +70,7 @@ FP_PLUGINS=`pwd`
 cd ${CURWD}
 
 # Case 1: Cmake with Visual Studio
-if test "x$FP_ISCMAKE" != x -a "x${FP_ISMSVC}" != x ; then
+if test "x$FP_ISCMAKE" != x && test "x${FP_ISMSVC}" != x ; then
     # Case 1a: ignore the build type directory
     if test -e "${FP_PLUGINS}/${FP_PLUGIN_LIB}" ; then
       FP_PLUGIN_DIR="${FP_PLUGINS}"

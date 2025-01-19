@@ -86,13 +86,13 @@ ncindexith(NCindex* index, size_t i)
 int
 ncindexfind(NCindex* index, NC_OBJ* nco)
 {
-    int i;
+    size_t i;
     NClist* list;
     if(index == NULL || nco == NULL) return -1;
     list = index->list;
     for(i=0;i<nclistlength(list);i++) {
         NC_OBJ* o = (NC_OBJ*)list->content[i];
-        if(nco == o) return i;
+        if(nco == o) return (int)i;
     }
     return -1;
 }

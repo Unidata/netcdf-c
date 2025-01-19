@@ -12,7 +12,6 @@
 #ifndef ZPLUGIN_H
 #define ZPLUGIN_H
 
-
 /* zplugin.c */
 
 /* Pluginlist management */
@@ -24,22 +23,25 @@ struct NCPSharedLib;
 
 /* Hold the loaded filter plugin information */
 typedef struct NCZ_Plugin {
+    int hdf5id; /* From either hdf5.filter->id or codec.codec->hdf5id */
     int incomplete;
     struct HDF5API {
         const struct H5Z_class2_t* filter;
-        struct NCPSharedLib* hdf5lib; /* source of the filter */
+	struct NCPSharedLib* hdf5lib; /* source of the filter */
     } hdf5;
     struct CodecAPI {
 	int defaulted; /* codeclib was a defaulting library */
-	int ishdf5raw; /* The codec is the hdf5raw codec */
+	int ishdf5raw; /* The codec uses the hdf5raw format */
 	const struct NCZ_codec_t* codec;
 	struct NCPSharedLib* codeclib; /* of the codec; null if same as hdf5 */
     } codec;
 } NCZ_Plugin;
 
 int NCZ_load_all_plugins(void);
-int NCZ_plugin_loaded(size_t filterid, NCZ_Plugin** pp);
+int NCZ_plugin_loaded(int filterid, NCZ_Plugin** pp);
 int NCZ_plugin_loaded_byname(const char* name, NCZ_Plugin** pp);
+
+int NCZ_plugin_index(int id, size_t* indexp);
 
 #endif /*ZPLUGIN_H*/
 

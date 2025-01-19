@@ -55,45 +55,6 @@
     * XDRUNIT))
 #endif
 
-/* signature: void swapinline16(unsigned short* sp) */
-#define swapinline16(ip) \
-{ \
-    char dst[2]; \
-    char* src = (char*)(sp); \
-    dst[0] = src[1]; \
-    dst[1] = src[0]; \
-    *(sp) = *((unsigned short*)dst); \
-}
-
-/* signature: void swapinline32(unsigned int* ip) */
-#define swapinline32(ip) \
-{ \
-    char dst[4]; \
-    char* src = (char*)(ip); \
-    dst[0] = src[3]; \
-    dst[1] = src[2]; \
-    dst[2] = src[1]; \
-    dst[3] = src[0]; \
-    *(ip) = *((unsigned int*)dst); \
-}
-
-/* signature: void swapinline64(unsigned long long* ip) */
-#define swapinline64(ip) \
-{ \
-    char dst[8]; \
-    char* src = (char*)(ip); \
-    dst[0] = src[7]; \
-    dst[1] = src[6]; \
-    dst[2] = src[5]; \
-    dst[3] = src[4]; \
-    dst[4] = src[3]; \
-    dst[5] = src[2]; \
-    dst[6] = src[1]; \
-    dst[7] = src[0]; \
-    *ip = *((unsigned long long*)dst); \
-}
-
-
 #ifdef OCIGNORE
 /* Warning dst and src should not be the same memory (assert &iswap != &i) */
 #define xxdrntoh(dst,src) if(xxdr_network_order){dst=src;}else{swapinline32(dst,src);}
