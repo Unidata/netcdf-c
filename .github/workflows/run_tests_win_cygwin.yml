@@ -27,6 +27,7 @@ jobs:
 
     steps:
       - name: Set safe directory for Git
+        shell: pwsh 
         run: git config --global --add safe.directory /cygdrive/d/a/netcdf-c/netcdf-c
       
       - name: Fix line endings
@@ -110,6 +111,7 @@ jobs:
 
     steps:
       - name: Set safe directory for Git
+        shell: pwsh
         run: git config --global --add safe.directory /cygdrive/d/a/netcdf-c/netcdf-c
       
       - run: git config --global core.autocrlf input
