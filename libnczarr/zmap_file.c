@@ -536,8 +536,10 @@ zfilelistall(NCZMAP* map, const char* prefixkey, NClist* matches)
 
     /* prime the key tracker */
     /* Ensure leading '/' */
+#ifndef _MSC_VER
     if(fullpath[0] != '/')
         ncbytescat(path,"/");
+#endif
     ncbytescat(path,fullpath);
     ncbytescat(path,prefixkey);
     /* Ensure no trailing '/' */
