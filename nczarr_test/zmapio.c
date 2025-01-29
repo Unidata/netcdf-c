@@ -79,6 +79,7 @@ static struct Type {
 struct Dumpptions {
     int debug;
     int meta_only;
+    int noobjectsize;
     Mapop mop;
     char infile[4096];
     NCZM_IMPL impl;    
@@ -114,7 +115,7 @@ static void nccheck(int stat, int line)
 static void
 zmapusage(void)
 {
-    fprintf(stderr,"usage: zmapio [-2|-3][-t <type>][-d][-v][-h][-x] <file>\n");
+    fprintf(stderr,"usage: zmapio [-2|-3][-t <type>][-d][-v][-h][-x][-F<format>][-N][-T<tracelevel>][-Xm] <file>\n");
     exit(1);
 }
 
@@ -156,7 +157,7 @@ main(int argc, char** argv)
     /* Init options */
     memset((void*)&dumpoptions,0,sizeof(dumpoptions));
 
-    while ((c = getopt(argc, argv, "23dhvx:t:F:T:X:")) != EOF) {
+    while ((c = getopt(argc, argv, "23dhvx:t:F:NT:X:")) != EOF) {
 	switch(c) {
 	case '2':
 	    dumpoptions.zarrformat = 2;
@@ -183,6 +184,9 @@ main(int argc, char** argv)
 	    goto done;
 	case 'F': 
 	    strcpy(dumpoptions.format,optarg);
+	    break;
+	case 'N':
+	    dumpoptions.noobjectsize = 1; /* suppress the objectsize */
 	    break;
 	case 'T':
 	    nctracelevel(atoi(optarg));
@@ -365,7 +369,11 @@ objdump(void)
 	    assert(content != NULL);
 	    if(kind == OK_CHUNK)
 		len = ceildiv(len,dumpoptions.nctype->typesize);
-	    printf("[%zu] %s : (%llu)",depth,obj,len);
+  	    printf("[%zu] %s : ",depth,obj);
+	    if(dumpoptions.noobjectsize)
+		printf("()");
+	    else
+		printf("(%llu)",len);
 	    if(kind == OK_CHUNK &&  dumpoptions.nctype->nctype != NC_STRING)
 		printf(" (%s)",dumpoptions.nctype->typename);
 	    printf(" |");
