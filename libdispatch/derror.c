@@ -100,7 +100,7 @@ const char *nc_strerror(int ncerr1)
    {
       case NC_NOERR:
 	 return "No error";
-      case NC_ERR:
+      case NC_ERROR:
          return "Non-specific error";
       case NC_EBADID:
 	 return "NetCDF: Not a valid ID";
