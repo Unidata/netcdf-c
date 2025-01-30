@@ -340,7 +340,9 @@ impl2kind(NCZM_IMPL impl)
     case NCZM_GS3: return "gs3";
     case NCZM_FILE: return "file";
     case NCZM_ZIP: return "zip";
+#ifdef NETCDF_ENABLE_ZOH
     case NCZM_ZOH: return "zoh";
+#endif
     case NCZM_UNDEF: break;
     }
     return NULL;
