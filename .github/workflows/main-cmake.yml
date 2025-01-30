@@ -181,4 +181,6 @@ jobs:
           run: |
             cd build
             PATH=~/tmp/bin:$PATH ctest . --rerun-failed --output-on-failure -VV
+            df -h
+            pwd
           if: ${{ failure() }}    

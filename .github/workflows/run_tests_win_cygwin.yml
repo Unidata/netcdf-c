@@ -26,6 +26,10 @@ jobs:
         plugin_dir_option: ["", "--without-plugin-dir"]
 
     steps:
+      - name: Set safe directory for Git
+        shell: pwsh 
+        run: git config --global --add safe.directory /cygdrive/d/a/netcdf-c/netcdf-c
+      
       - name: Fix line endings
         shell: pwsh
         run: git config --global core.autocrlf input
@@ -101,10 +105,15 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        shell: bash -eo pipefail -o igncr "{0}"
+        shell: C:/cygwin/bin/bash.exe -eo pipefail -o igncr "{0}"
+
+#        shell: C:/cygwin/bin/bash.exe -eo pipefail -o igncr "{0}"
 
     steps:
-
+      - name: Set safe directory for Git
+        shell: pwsh
+        run: git config --global --add safe.directory /cygdrive/d/a/netcdf-c/netcdf-c
+      
       - run: git config --global core.autocrlf input
         shell: pwsh
       - uses: actions/checkout@v4

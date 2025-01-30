@@ -374,7 +374,9 @@ NCZ_infer_storage_type(NC_FILE_INFO_T* file, NCURI* url, NCZM_IMPL* implp)
 #ifdef NETCDF_ENABLE_S3
     else if(NC_testmode(url, "s3")) impl = NCZM_S3;
     else if(NC_testmode(url, "gs3")) impl = NCZM_GS3;
+#ifdef NETCDF_ENABLE_ZOH
     else if(NC_testmode(url, "zoh")) impl = NCZM_ZOH;
+#endif
 #endif
 #ifdef NETCDF_ENABLE_NCZARR_ZIP
     else if(NC_testmode(url, "zip")) impl = NCZM_ZIP;
@@ -447,11 +449,13 @@ NCZ_get_map(NC_FILE_INFO_T* file, NCURI* url, mode_t mode, size64_t constraints,
 	else
     	    {if((stat = nczmap_open(impl,path,mode,constraints,params,&map))) goto done;}
 	break;
+#ifdef NETCDF_ENABLE_ZOH
     case NCZM_ZOH:
 	if(create) {stat = NC_ENOTZARR; goto done;}
 	constraints |= FLAG_ZOH;
 	if((stat = nczmap_open(impl,path,mode,constraints,params,&map))) goto done;
 	break;
+#endif
     case NCZM_UNDEF:
 	stat = NC_EURL;
 	goto done;

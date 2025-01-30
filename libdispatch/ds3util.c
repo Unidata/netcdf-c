@@ -384,7 +384,9 @@ NC_iss3(NCURI* uri, NCS3SVC* svcp)
     /* is the protocol "s3" or "gs3" or "zoh" ? */
     if(strcasecmp(uri->protocol,"s3")==0) {iss3 = 1; svc = NCS3; goto done;}
     if(strcasecmp(uri->protocol,"gs3")==0) {iss3 = 1; svc = NCS3GS; goto done;}
+#ifdef NETCDF_ENABLE_ZOH
     if(strcasecmp(uri->protocol,"zoh")==0) {iss3 = 1; svc = NCS3ZOH; goto done;}
+#endif
     /* Is "s3" or "gs3" in the mode list? */
     if(NC_testmode(uri,"s3")) {iss3 = 1; svc = NCS3; goto done;}
     if(NC_testmode(uri,"gs3")) {iss3 = 1; svc = NCS3GS; goto done;}    

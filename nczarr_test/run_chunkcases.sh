@@ -22,7 +22,7 @@ THISDIR=`pwd`
 cd $ISOPATH
 
 TC="${execdir}/test_chunkcases -4"
-ZM="${execdir}/zmapio -t int"
+ZMD="${ZMD} -t int"
 
 remfile() {
   case "$zext" in
