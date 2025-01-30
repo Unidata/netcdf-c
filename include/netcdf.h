@@ -384,7 +384,7 @@ there. */
 /* This is unused, so re-purpose it to generic error */
 #define NC2_ERR         (-1)       /**< Returned for all errors in the v2 API. */
 #else
-#define NC_ERR         (-1)       /**< Returned for generic errors */
+#define NC_ERROR        (-1)       /**< Returned for generic errors */
 #endif
 
 /** Not a netcdf id.

@@ -158,7 +158,7 @@ struct NCjson;
 
 /* Test if JSON dict is in raw format.
 @param jraw to test
-@return NCJ_OK if in raw format; NCJ_ERR/NC_ERR otherwise.
+@return NCJ_OK if in raw format; NCJ_ERR/NC_ERROR otherwise.
 */
 #ifndef NCraw_test
 #define NC_RAWTAG "hdf5raw"

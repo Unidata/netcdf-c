@@ -21,7 +21,7 @@
 
 /* Return codes */
 #define NCJ_OK 0 /* must equal NC_NOERR in netcdf.h */
-#define NCJ_ERR (-1) /* must equal NC_ERR in netcdf.h */
+#define NCJ_ERR (-1) /* must equal NC_ERROR in netcdf.h */
 
 /* Json object sorts (note use of term sort rather than e.g. type or discriminant) */
 #define NCJ_UNDEF    0
