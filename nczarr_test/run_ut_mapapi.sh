@@ -7,6 +7,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 #TR="-T10"
 
+set -x
 set -e
 
 s3isolate "testdir_mapapi"
