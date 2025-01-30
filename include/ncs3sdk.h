@@ -16,7 +16,9 @@
 typedef enum NCS3SVC {NCS3UNK=0, /* unknown */
 	NCS3=1,     /* s3.amazon.aws */
 	NCS3GS=2,   /* storage.googleapis.com */
+#ifdef NETCDF_ENABLE_ZOH
 	NCS3ZOH=4,  /* ZoH Server */
+#endif
 } NCS3SVC;
 
 /* Opaque Handles */
