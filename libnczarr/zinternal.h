@@ -284,7 +284,9 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_XARRAYDIMS       8	/* Utilize the xarray _ARRAY_DIMENSIONS attribute */
 #		define FLAG_NCZARR_KEY	    16	/* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
 #		define FLAG_NOCONSOLIDATED  32	/* Suppress consolidated metadata */
+#ifdef NETCDF_ENABLE_ZOH
 #		define FLAG_ZOH		    32	/* Usind ZoH Protocol */
+#endif
     NCZM_IMPL mapimpl;
     struct NCZ_Formatter* dispatcher;
     struct NCZ_META_HDR* metastate; /* Hold per-format state */

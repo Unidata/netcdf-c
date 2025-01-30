@@ -119,7 +119,9 @@ zs3create(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMA
 
     if(!zs3initialized) zs3initialize();
 
+#ifdef NETCDF_ENABLE_ZOH
     if(flags & FLAG_ZOH) {stat = NC_EZARR; goto done;}
+#endif
 
     /* Parse the URL */
     ncuriparse(path,&url);
@@ -216,7 +218,11 @@ zs3open(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP*
     if((z3map = (ZS3MAP*)calloc(1,sizeof(ZS3MAP))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
 
+#ifdef NETCDF_ENABLE_ZOH
     z3map->map.format = ((flags & FLAG_ZOH)?NCZM_ZOH:NCZM_S3);
+#else
+    z3map->map.format = NCZM_S3;
+#endif
     z3map->map.url = strdup(path);
     z3map->map.mode = mode;
     z3map->map.flags = flags;
@@ -230,7 +236,10 @@ zs3open(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP*
 
     z3map->s3client = NC_s3sdkcreateclient(&z3map->s3);
 
-    if(!flags & FLAG_ZOH) {
+#ifdef NETCDF_ENABLE_ZOH
+    if(!flags & FLAG_ZOH)
+#endif
+    {
         content = nclistnew();
         if((stat = NC_s3sdklist(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
 	    goto done;
@@ -668,6 +677,7 @@ freevector(size_t nkeys, char** list)
 /**************************************************/
 /* no-op functions for ZOH
 
+#ifdef NETCDF_ENABLE_ZOH
 
 static int
 zs3create(const char *path, mode_t mode, size64_t flags, void* parameters, NCZMAP** mapp)
@@ -693,6 +703,7 @@ zohlistall(NCZMAP* map, const char* prefix, NClist* matches)
     return NC_EZARR;
 }
 
+#endif
 /**************************************************/
 
 /* External API objects */
@@ -719,6 +730,7 @@ nczs3sdkapi = {
     zs3listall
 };
 
+#ifdef NETCDF_ENABLE_ZOH
 /* Dispatcher for ZOH */
 NCZMAP_DS_API zmap_zoh;
 NCZMAP_DS_API zmap_zoh = {
@@ -740,3 +752,4 @@ nczzohapi = {
     zohlist,
     zohlistall,
 };
+#endif
