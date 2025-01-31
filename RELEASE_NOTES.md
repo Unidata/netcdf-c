@@ -5,15 +5,16 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.9.3 - TBD
-
-* Extend the netcdf API to support programmatic changes to the plugin search path. See [Github #3034](https://github.com/Unidata/netcdf-c/pull/3034) for more information.
+## 4.9.3 - January 31, 2025
 
 ## Known Issue
 
 > Parallel operation using `mpich 4.2.0` (the default on `Ubuntu 24.04`) results in 'unexpected results' when running `nc_test4/run_par_test.sh`.  This can be fixed by removing `mpich` and associated libraries and development packages and installing `mpich 4.2.2` by hand, or by using `openmpi` provided via `apt`.
 
 ## Release Notes
+
+* Extend the netcdf API to support programmatic changes to the plugin search path. See [Github #3034](https://github.com/Unidata/netcdf-c/pull/3034) for more information.
+
 
 ### Release Candidate 2 - December 6, 2024
 
