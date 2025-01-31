@@ -79,7 +79,6 @@ struct ZUTEST {
 };
 EXTERNL struct ZUTEST* zutest;
 
-#ifdef ZDEBUGF
 struct NCZ_Filter;
 struct NCZ_Plugin;
 struct NCZ_Codec;
@@ -98,6 +97,5 @@ const char* printhdf5class(const struct H5Z_class2_t* hdf5);
 const char* printcodecclass(const struct NCZ_codec_t* codec);
 const char* printcodecapi(const struct CodecAPI* ca);
 const char* printloadedplugins(void);
-#endif /*ZDEBUGF*/
 
 #endif /*ZDEBUG_H*/

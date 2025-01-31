@@ -415,7 +415,6 @@ zdumpcommon(const struct Common* c)
 /**************************************************/
 /* Filter/Plugin debug */
 
-#if defined(ZDEBUGF) || defined(ZTRACING)
 const char*
 printfilter(const NCZ_Filter* f)
 {
@@ -545,4 +544,3 @@ debugf_unused(void)
 (void)printhdf5class;
 (void)printcodecclass;
 }
-#endif /*ZDEBUGF*/
