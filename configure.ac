@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF],[4.10.0-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
+AC_INIT([netCDF],[4.9.3],[support-netcdf@unidata.ucar.edu],[netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -20,9 +20,9 @@ AC_INIT([netCDF],[4.10.0-development],[support-netcdf@unidata.ucar.edu],[netcdf-
 : ${CFLAGS=""}
 
 AC_SUBST([netCDF_VERSION_MAJOR]) netCDF_VERSION_MAJOR=4
-AC_SUBST([netCDF_VERSION_MINOR]) netCDF_VERSION_MINOR=10
-AC_SUBST([netCDF_VERSION_PATCH]) netCDF_VERSION_PATCH=0
-AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
+AC_SUBST([netCDF_VERSION_MINOR]) netCDF_VERSION_MINOR=9
+AC_SUBST([netCDF_VERSION_PATCH]) netCDF_VERSION_PATCH=3
+AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE=""
 
 ##
 # These linker flags specify libtool version info.
