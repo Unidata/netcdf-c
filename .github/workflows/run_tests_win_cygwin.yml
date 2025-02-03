@@ -93,8 +93,8 @@ jobs:
         with:
           name: cygwin-autotools-test-logs-${{ github.run_id }}
           path: |
-        */*.log
-        */*.trs
+            */*.log
+            */*.trs
   
   build-and-test-cmake:
     name: Cygwin-based CMake tests
