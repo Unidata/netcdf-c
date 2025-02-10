@@ -427,15 +427,15 @@ json2vector(const NCjson* jarray, size_t* np, unsigned** valuesp)
 
     if(NCJsort(jarray) != NCJ_ARRAY)
         {stat = NC_EINVAL; goto done;}
-    if(NCJlength(jarray) > 0 && NCJcontents(jarray) != NULL) {
-	if((values = (unsigned*)malloc(sizeof(unsigned)*NCJlength(jarray)))==NULL)
+    if(NCJarraylength(jarray) > 0 && NCJcontents(jarray) != NULL) {
+	if((values = (unsigned*)malloc(sizeof(unsigned)*NCJarraylength(jarray)))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
-	for(i=0;i<NCJlength(jarray);i++) {
+	for(i=0;i<NCJarraylength(jarray);i++) {
 	    if((stat=NCJcvt(NCJith(jarray,i),NCJ_INT,&con))) goto done;
 	    values[i] = (unsigned)con.ival;
 	}
     }
-    if(np) *np = NCJlength(jarray);
+    if(np) *np = NCJarraylength(jarray);
     if(valuesp) {*valuesp = values; values = NULL;}
 done:
     nullfree(values);

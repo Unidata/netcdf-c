@@ -27,7 +27,15 @@
 #endif
 
 /**************************************************/
-			
+/* Hide everything for plugins */
+#ifdef NETCDF_PROPLIST_H
+#define OPTSTATIC static
+#else /*!NETCDF_PROPLIST_H*/
+#define OPTSTATIC
+#endif /*NETCDF_PROPLIST_H*/
+
+/**************************************************/
+
 #define MINPROPS 2
 #define EXPANDFACTOR 1
 
@@ -49,7 +57,7 @@ static int ncproplistfree(NCproplist* plist);
 static int ncproplistadd(NCproplist* plist, const char* key, uintptr_t value);
 static int ncproplistaddbytes(NCproplist* plist, const char* key, void* value, uintptr_t size);
 static int ncproplistaddstring(NCproplist* plist, const char* key, const char* str);
-static int ncproplistaddx(NCproplist* plist, const char* key, void* value, uintptr_t size, uintptr_t userdata, NCPreclaimfcn fcn);
+static int ncproplistaddx(NCproplist* plist, const char* key, void* value, uintptr_t size, uintptr_t userdata, NCPtypefcn fcn);
 static int ncproplistclone(const NCproplist* src, NCproplist* clone);
 static int ncproplistget(const NCproplist* plist, const char* key, uintptr_t* valuep, uintptr_t* sizep);
 static int ncproplistith(const NCproplist* plist, size_t i, char* const * keyp, uintptr_t const * valuep, uintptr_t* sizep);
@@ -59,7 +67,7 @@ static int ncproplistith(const NCproplist* plist, size_t i, char* const * keyp, 
 
 
 /**
- * Create new property list
+ * Create new empty property list
  * @return pointer to the created property list.
  */
 OPTSTATIC NCproplist*
@@ -73,151 +81,175 @@ ncproplistnew(void)
 }
 
 /**
- * Reclaim memory used by a property list
- * @param plist to reclaim
- * @return NC_NOERR if succeed, NC_EXXX otherwise.
+ * Reclaim property pairs used by a property list
+ * @param plist to clear
+ * @return >= 0 if succeed, < 0 if fail
  */
-OPTSTATIC int
-ncproplistfree(NCproplist* plist)
+static int
+ncproplistclear(NCproplist* plist)
 {
-    int stat = NC_NOERR;
+    int stat = 0;
     size_t i;
     if(plist == NULL) goto done;
     if(plist->properties != NULL) {
         for(i=0;i<plist->count;i++) {
-            NCProperty* prop = &plist->properties[i];
-	    void* ptr = (void*)prop->value; /* convert to ptr */
-	    assert(prop->flags & (NCPF_SIMPLE|NCPF_BYTES|NCPF_COMPLEX));
-	    if(prop->flags & NCPF_SIMPLE) continue; /* no reclaim needed */
-    	    if(prop->flags & NCPF_BYTES) {
+            NCPproperty* prop = &plist->properties[i];
+	    void* ptr = (void*)prop->pair.value; /* convert to ptr */
+	    switch (prop->pair.sort) {
+	    case NCP_CONST: /* value need not be free'd */
+		break;
+	    case NCP_BYTES: /* simple free of the value */
 		if(ptr != NULL) free(ptr);
-	    } else { /* (prop->flags & NCPF_COMPLEX) */
-		int ok;
-		assert(prop->reclaim != NULL);
-		ok = prop->reclaim(prop->userdata, prop->key, ptr, prop->size);
-		if(!ok && stat == NC_NOERR) stat = NC_EINVAL;
+		break;
+	    case NCP_COMPLEX: /* Need the typeop fcn */
+		assert(prop->typefcn != NULL);
+		stat = prop->typefcn(NCP_RECLAIM,&prop->pair,NULL);
+		if(stat < 0) goto done;
+		break;
 	    }	
 	}
-	free(plist->properties);
     }
+    plist->count = 0;
+done:
+    return stat;
+}
+
+/**
+ * Reclaim memory used by a property list
+ * @param plist to reclaim
+ * @return >= 0 if succeed, < 0 if fail
+ */
+OPTSTATIC int
+ncproplistfree(NCproplist* plist)
+{
+    int stat = 0;
+    if(plist == NULL) goto done;
+    if((stat = ncproplistclear(plist))<0) goto done;
+    free(plist->properties);
     free(plist);
 done:
     return stat;
 }
 
 /**
- * Add a non-reclaimable entry to the property list
+ * Add an NCP_CONST  entry to the property list
  * @param plist into which the value is be inserted.
  * @param key
  * @param value
- * @return NC_NOERR if succeed, NC_EXXX otherwise.
+ * @return >= 0 if succeed, < 0 if fail
  */
 OPTSTATIC int
 ncproplistadd(NCproplist* plist, const char* key, uintptr_t value)
 {
     int stat = NC_NOERR;
-    NCProperty* prop = NULL;
+    NCPproperty* prop = NULL;
     size_t keylen;
     if(plist == NULL) goto done;
     if(!hasspace(plist,1)) {if((stat = extendplist(plist,(plist->count+1)*EXPANDFACTOR))) goto done;} /* extra space */
     prop = &plist->properties[plist->count];
     keylen = strlen(key);
     if(keylen > NCPROPSMAXKEY) keylen = NCPROPSMAXKEY; /* truncate */
-    memcpy(prop->key,key,keylen);
-    prop->key[keylen] = '\0';
-    prop->value = value;
-    prop->flags = NCPF_SIMPLE;
+    memcpy(prop->pair.key,key,keylen);
+    prop->pair.key[keylen] = '\0';
+    prop->pair.value = value;
+    prop->pair.sort = NCP_CONST;
     plist->count++;
 done:
     return stat;
 }
-
+	
 /**
- * Add a reclaimable entry to the property list, where the value
- * can be reclaimed using a simple free();
+ * Add a byte string to the property list.
+ * The proplist takes control of the value => do not free.
  * @param plist into which the value is be inserted.
  * @param key
  * @param value ptr to memory chunk
- * @param size |*value|
- * @return NC_NOERR if succeed, NC_EXXX otherwise.
+ * @param size |value|
+ * @return >= 0 if succeed, < 0 if fail
  */
 OPTSTATIC int
 ncproplistaddbytes(NCproplist* plist, const char* key, void* value, uintptr_t size)
 {
     int stat = NC_NOERR;
-    NCProperty* prop = NULL;
+    NCPproperty* prop = NULL;
     size_t keylen;
+
+    NC_UNUSED(size);
     if(plist == NULL) goto done;
     if(!hasspace(plist,1)) {if((stat = extendplist(plist,(plist->count+1)*EXPANDFACTOR))) goto done;} /* extra space */
     prop = &plist->properties[plist->count];
     keylen = strlen(key);
     if(keylen > NCPROPSMAXKEY) keylen = NCPROPSMAXKEY; /* truncate */
-    memcpy(prop->key,key,keylen);
-    prop->key[keylen] = '\0';
-    prop->value = (uintptr_t)value;
-    prop->flags = NCPF_BYTES;
+    memcpy(prop->pair.key,key,keylen);
+    prop->pair.key[keylen] = '\0';
+    prop->pair.value = (uintptr_t)value;
+    prop->pair.sort = NCP_BYTES;
     plist->count++;
 done:
     return stat;
 }
 
 /**
- * Add a reclaimable entry to the property list, where the value
- * can be reclaimed using a simple free();
+ * Add a  nul terminated string to the property list.
+ * Wraps ncproplistaddbytes.
+ * The proplist takes control of the value => do not free.
  * @param plist into which the value is be inserted.
  * @param key
- * @param value ptr to memory chunk
- * @param size |*value|
- * @return NC_NOERR if succeed, NC_EXXX otherwise.
+ * @param value ptr to char* string
+ * @param size strlen(value)+1
+ * @return >= 0 if succeed, < 0 if fail.
  */
 OPTSTATIC int
 ncproplistaddstring(NCproplist* plist, const char* key, const char* str)
 {
     uintptr_t size = 0;
-    if(str) size = (uintptr_t)strlen(str);
+    if(str) size = (uintptr_t)(strlen(str)+1);
     return ncproplistaddbytes(plist,key,(void*)str,size);
 }
 
 /**
  * Most general case for adding a property.
+ * The value is always a ptr to some arbitrary complex structure.
+ * The proplist takes control of the value => do not free.
  * @param plist into which the value is be inserted.
  * @param key
  * @param value
  * @param size
  * @param userdata extra environment data for the reclaim function.
- * @param fcn the reclaim function
- * @return NC_NOERR if succeed, NC_EXXX otherwise.
+ * @param fcn the type operations function
+ * @return >= 0 if succeed, < 0 otherwise.
  */
 OPTSTATIC int
-ncproplistaddx(NCproplist* plist, const char* key, void* value, uintptr_t size, uintptr_t userdata, NCPreclaimfcn fcn)
+ncproplistaddx(NCproplist* plist, const char* key, void* value, uintptr_t size, uintptr_t userdata, NCPtypefcn fcn)
 {
     int stat = NC_NOERR;
-    NCProperty* prop = NULL;
+    NCPproperty* prop = NULL;
     size_t keylen;
     if(plist == NULL) goto done;
     if(!hasspace(plist,1)) {if((stat = extendplist(plist,(plist->count+1)*EXPANDFACTOR))) goto done;} /* extra space */
     prop = &plist->properties[plist->count];
     keylen = strlen(key);
     if(keylen > NCPROPSMAXKEY) keylen = NCPROPSMAXKEY; /* truncate */
-    memcpy(prop->key,key,keylen);
-    prop->key[keylen] = '\0';
-    prop->value = (uintptr_t)value;
-    prop->size = size;
-    prop->reclaim = fcn;
+    memcpy(prop->pair.key,key,keylen);
+    prop->pair.key[keylen] = '\0';
+    prop->pair.value = (uintptr_t)value;
+    prop->pair.size = size;
+    prop->typefcn = fcn;
     prop->userdata = userdata;
-    prop->flags = NCPF_COMPLEX;
+    prop->pair.sort = NCP_COMPLEX;
     plist->count++;
 done:
     return stat;
 }
 
+/* Clone using the NCtypefcn to copy values */
 OPTSTATIC int
 ncproplistclone(const NCproplist* src, NCproplist* clone)
 {
     int stat = NC_NOERR;
     size_t i;
-    NCProperty* srcprops;
-    NCProperty* cloneprops;
+    NCPproperty* srcprops;
+    NCPproperty* cloneprops;
 
     if(src == NULL || clone == NULL) {stat = NC_EINVAL; goto done;}
     if((stat=ncproplistinit(clone))) goto done;
@@ -225,16 +257,25 @@ ncproplistclone(const NCproplist* src, NCproplist* clone)
     srcprops = src->properties;
     cloneprops = clone->properties;
     for(i=0;i<src->count;i++) {
-	cloneprops[i] = srcprops[i];
-	strncpy(cloneprops[i].key,srcprops[i].key,sizeof(cloneprops[i].key));
-#if 0
-	cloneprops[i]->flags = srcprops[i]->flags;
-	cloneprops[i]->value = srcprops[i]->value;
-	cloneprops[i]->size = srcprops[i]->size;
-	cloneprops[i]->userdata = srcprops[i]->userdata;
-	cloneprops[i]->reclaim = srcprops->reclaim;
-#endif
+	NCPproperty* sp = &srcprops[i];
+	NCPproperty* cp = &cloneprops[i];
+	void* p = NULL;
+	*cp = *sp; /* Do a mass copy of the property and then fixup as needed */
+        switch (sp->pair.sort) {
+	case NCP_CONST:
+	    break;
+	case NCP_BYTES:
+	    p = malloc(cp->pair.size);
+	    memcpy(p,(void*)sp->pair.value,sp->pair.size);
+	    cp->pair.value = (uintptr_t)p;
+	    break;
+	case NCP_COMPLEX: /* Need the typeop fcn */
+	    stat = sp->typefcn(NCP_COPY,&sp->pair,&cp->pair);
+	    if(stat < 0) goto done;
+	    break;
+	}	
     }
+    clone->count = src->count;
 done:
     return stat;
 }
@@ -245,10 +286,10 @@ extendplist(NCproplist* plist, size_t nprops)
 {
     int stat = NC_NOERR;
     size_t newsize = plist->count + nprops;
-    NCProperty* newlist = NULL;
+    NCPproperty* newlist = NULL;
     if((plist->alloc >= newsize) || (nprops == 0))
 	goto done; /* Already enough space */
-    newlist = realloc(plist->properties,newsize*sizeof(NCProperty));
+    newlist = realloc(plist->properties,newsize*sizeof(NCPproperty));
     if(newlist == NULL) {stat = NC_ENOMEM; goto done;}
     plist->properties = newlist; newlist = NULL;    
     plist->alloc = newsize;
@@ -269,14 +310,14 @@ ncproplistget(const NCproplist* plist, const char* key, uintptr_t* valuep, uintp
 {
     int stat = NC_ENOOBJECT; /* assume not found til proven otherwise */
     size_t i;
-    NCProperty* props;
+    NCPproperty* props;
     uintptr_t value = 0;
     uintptr_t size = 0;
     if(plist == NULL || key == NULL) goto done;
     for(i=0,props=plist->properties;i<plist->count;i++,props++) {
-	if(strcmp(props->key,key)==0) {
-	    value = props->value;
-	    size = props->size;	    
+	if(strcmp(props->pair.key,key)==0) {
+	    value = props->pair.value;
+	    size = props->pair.size;	    
 	    stat = NC_NOERR; /* found */
 	    break;
 	}
@@ -302,13 +343,13 @@ OPTSTATIC int
 ncproplistith(const NCproplist* plist, size_t i, char* const * keyp, uintptr_t const * valuep, uintptr_t* sizep)
 {
     int stat = NC_NOERR;
-    NCProperty* prop = NULL;    
+    NCPproperty* prop = NULL;    
     if(plist == NULL) goto done;
     if(i >= plist->count) {stat = NC_EINVAL; goto done;}
     prop = &plist->properties[i];
-    if(keyp) *((char**)keyp) = (char*)prop->key;
-    if(valuep) *((uintptr_t*)valuep) = (uintptr_t)prop->value;
-    if(sizep) *sizep = prop->size;
+    if(keyp) *((char**)keyp) = (char*)prop->pair.key;
+    if(valuep) *((uintptr_t*)valuep) = (uintptr_t)prop->pair.value;
+    if(sizep) *sizep = prop->pair.size;
 done:
     return stat;
 }
@@ -322,11 +363,17 @@ done:
 static int
 ncproplistinit(NCproplist* plist)
 {
-   /* Assume property list will hold at lease MINPROPS properties */
-   plist->alloc = MINPROPS;
-   plist->count = 0;
-   plist->properties = (NCProperty*)calloc(MINPROPS,sizeof(NCProperty));
-   return (plist->properties?NC_NOERR:NC_ENOMEM);
+    int stat = 0;
+    /* Assume property list will hold at lease MINPROPS properties */
+    if(plist->alloc == 0) {
+	plist->alloc = MINPROPS;
+	plist->properties = (NCPproperty*)calloc(plist->alloc,sizeof(NCPproperty));
+        plist->count = 0;
+    } else {
+	if((stat = ncproplistclear(plist))<0) goto done;
+    }
+done:
+    return stat;
 }
 
 /* Suppress unused statics warning */
@@ -347,4 +394,3 @@ ncproplist_unused(void)
     unused = (void*)ncproplistith;
     unused = unused;
 }
-

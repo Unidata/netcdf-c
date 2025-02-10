@@ -908,12 +908,14 @@ zcharify(const NCjson* src, NCbytes* buf)
 {
     int stat = NC_NOERR;
     size_t i;
-    struct NCJconst jstr = NCJconst_empty;
+    struct NCJconst jstr;
+
+    memset(&jstr,0,sizeof(jstr));
 
     if(NCJsort(src) != NCJ_ARRAY) { /* singleton */
         if((stat = NCJcvt(src, NCJ_STRING, &jstr))<0) {stat = NC_EINVAL; goto done;}
         ncbytescat(buf,jstr.sval);
-    } else for(i=0;i<NCJlength(src);i++) {
+    } else for(i=0;i<NCJarraylength(src);i++) {
 	NCjson* value = NCJith(src,i);
 	if((stat = NCJcvt(value, NCJ_STRING, &jstr))<0) {stat = NC_EINVAL; goto done;}
 	ncbytescat(buf,jstr.sval);
@@ -951,7 +953,7 @@ zconvert(const NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes
 	    if((stat = zcharify(src,dst))) goto done;
 	    count = ncbyteslength(dst);
         } else {
-	    count = NCJlength(src);
+	    count = NCJarraylength(src);
 	    for(i=0;i<count;i++) {
 	        NCjson* value = NCJith(src,i);
                 if((stat = NCZ_convert1(value, typeid, dst))) goto done;
@@ -998,7 +1000,7 @@ computeattrinfo(const char* name, const NCjson* jtypes, nc_type typehint, int pu
     /* Get type info for the given att */
     typeid = NC_NAT;
     for(i=0;i<NCJdictlength(jtypes);i++) {
-	NCjson* akey = NCJdictith(jtypes,i);
+	NCjson* akey = NCJdictkey(jtypes,i);
 	if(strcmp(NCJstring(akey),name)==0) {
 	    const NCjson* avalue = NULL;
 	    NCJdictget(jtypes,NCJstring(akey),&avalue);
@@ -1248,9 +1250,9 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
     if(jattrs != NULL) {
 	/* Iterate over the attributes to create the in-memory attributes */
 	/* Watch for special cases: _FillValue and  _ARRAY_DIMENSIONS (xarray), etc. */
-	for(i=0;i<NCJlength(jattrs);i+=2) {
-	    NCjson* key = NCJith(jattrs,i);
-	    NCjson* value = NCJith(jattrs,i+1);
+	for(i=0;i<NCJdictlength(jattrs);i++) {
+	    NCjson* key = NCJdictkey(jattrs,i);
+	    NCjson* value = NCJdictvalue(jattrs,i);
 	    const NC_reservedatt* ra = NULL;
 	    int isfillvalue = 0;
     	    int isdfaltmaxstrlen = 0;
@@ -1281,7 +1283,7 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 		    assert(NCJsort(value) == NCJ_ARRAY);
 		    if((zvar->xarray = nclistnew())==NULL)
 		        {stat = NC_ENOMEM; goto done;}
-		    for(i=0;i<NCJlength(value);i++) {
+		    for(i=0;i<NCJarraylength(value);i++) {
 			const NCjson* k = NCJith(value,i);
 			assert(k != NULL && NCJsort(k) == NCJ_STRING);
 			nclistpush(zvar->xarray,strdup(NCJstring(k)));
@@ -1517,9 +1519,9 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	if(jdimrefs != NULL) { /* Extract the dimref names */
 	    assert((NCJsort(jdimrefs) == NCJ_ARRAY));
 	    if(zvar->scalar) {
-		assert(NCJlength(jdimrefs) == 0);	       
+		assert(NCJarraylength(jdimrefs) == 0);	       
 	    } else {
-		rank = NCJlength(jdimrefs);
+		rank = NCJarraylength(jdimrefs);
 		for(j=0;j<rank;j++) {
 		    const NCjson* dimpath = NCJith(jdimrefs,j);
 		    assert(NCJsort(dimpath) == NCJ_STRING);
@@ -1571,7 +1573,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	if(NCJsort(jvalue) != NCJ_ARRAY) {stat = (THROW(NC_ENCZARR)); goto done;}
 	
 	/* Process the rank */
-	zarr_rank = NCJlength(jvalue);
+	zarr_rank = NCJarraylength(jvalue);
 	if(zarr_rank == 0) {
 	    /* suppress variable */
 	    ZLOG(NCLOGWARN,"Empty shape for variable %s suppressed",var->hdr.name);
@@ -1583,7 +1585,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	    rank = 0;
 	    zarr_rank = 1; /* Zarr does not support scalars */
 	} else 
-	    rank = (zarr_rank = NCJlength(jvalue));
+	    rank = (zarr_rank = NCJarraylength(jvalue));
 
 	if(zarr_rank > 0) {
 	    /* Save the rank of the variable */
@@ -1890,9 +1892,9 @@ parse_group_content(const NCjson* jcontent, NClist* dimdefs, NClist* varnames, N
     if(jvalue != NULL) {
 	if(NCJsort(jvalue) != NCJ_DICT) {stat = (THROW(NC_ENCZARR)); goto done;}
 	/* Extract the dimensions defined in this group */
-	for(i=0;i<NCJlength(jvalue);i+=2) {
-	    const NCjson* jname = NCJith(jvalue,i);
-	    const NCjson* jleninfo = NCJith(jvalue,i+1);
+	for(i=0;i<NCJdictlength(jvalue);i++) {
+	    const NCjson* jname = NCJdictkey(jvalue,i);
+	    const NCjson* jleninfo = NCJdictvalue(jvalue,i);
     	    const NCjson* jtmp = NULL;
        	    const char* slen = "0";
        	    const char* sunlim = "0";
@@ -1922,7 +1924,7 @@ parse_group_content(const NCjson* jcontent, NClist* dimdefs, NClist* varnames, N
     if((stat=dictgetalt(jcontent,"arrays","vars",&jvalue))) goto done;
     if(jvalue != NULL) {
 	/* Extract the variable names in this group */
-	for(i=0;i<NCJlength(jvalue);i++) {
+	for(i=0;i<NCJarraylength(jvalue);i++) {
 	    NCjson* jname = NCJith(jvalue,i);
 	    char norm_name[NC_MAX_NAME + 1];
 	    /* Verify name legality */
@@ -1935,7 +1937,7 @@ parse_group_content(const NCjson* jcontent, NClist* dimdefs, NClist* varnames, N
     if((stat = NCJdictget(jcontent,"groups",&jvalue))<0) {stat = NC_EINVAL; goto done;}
     if(jvalue != NULL) {
 	/* Extract the subgroup names in this group */
-	for(i=0;i<NCJlength(jvalue);i++) {
+	for(i=0;i<NCJarraylength(jvalue);i++) {
 	    NCjson* jname = NCJith(jvalue,i);
 	    char norm_name[NC_MAX_NAME + 1];
 	    /* Verify name legality */
@@ -2043,7 +2045,7 @@ decodeints(const NCjson* jshape, size64_t* shapes)
     int stat = NC_NOERR;
     size_t i;
 
-    for(i=0;i<NCJlength(jshape);i++) {
+    for(i=0;i<NCJarraylength(jshape);i++) {
 	struct ZCVT zcvt;
 	nc_type typeid = NC_NAT;
 	NCjson* jv = NCJith(jshape,i);
@@ -2345,9 +2347,9 @@ jtypes2atypes(NCjson* jtypes, NClist* atypes)
 {
     int stat = NC_NOERR;
     size_t i;
-    for(i=0;i<NCJlength(jtypes);i+=2) {
-	const NCjson* key = NCJith(jtypes,i);
-	const NCjson* value = NCJith(jtypes,i+1);
+    for(i=0;i<NCJdictlength(jtypes);i++) {
+	const NCjson* key = NCJdictkey(jtypes,i);
+	const NCjson* value = NCJdictvalue(jtypes,i);
 	if(NCJsort(key) != NCJ_STRING) {stat = (THROW(NC_ENCZARR)); goto done;}
 	if(NCJsort(value) != NCJ_STRING) {stat = (THROW(NC_ENCZARR)); goto done;}
 	nclistpush(atypes,strdup(NCJstring(key)));
