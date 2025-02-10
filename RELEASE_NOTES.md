@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.4 - TBD
 
+* Extend the netcdf API to support programmatic changes to the plugin search path. See [Github #3034](https://github.com/Unidata/netcdf-c/pull/3034) for more information.
+
 ## 4.9.3 - February 7, 2025
 
 ## Known Issues
