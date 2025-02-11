@@ -13,6 +13,7 @@
 #define ZINTERNAL_H
 
 #define ZARRVERSION "2"
+#define ZARRFORMAT2 2
 
 /* NCZARRVERSION is independent of Zarr version,
    but NCZARRVERSION => ZARRVERSION */
@@ -38,11 +39,12 @@
 #  endif
 #endif
 
-#define ZMETAROOT "/.zgroup"
-#define ZMETAATTR "/.zattrs"
-#define ZGROUP ".zgroup"
-#define ZATTRS ".zattrs"
-#define ZARRAY ".zarray"
+/* V2 Reserved Objects */
+#define Z2METAROOT "/.zgroup"
+#define Z2ATTSROOT "/.zattrs"
+#define Z2GROUP ".zgroup"
+#define Z2ATTRS ".zattrs"
+#define Z2ARRAY ".zarray"
 
 /* V2 Reserved Attributes */
 /*
@@ -143,6 +145,7 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_NCZARR_KEY  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
 	NCZM_IMPL mapimpl;
     } controls;
+    struct NCZ_Metadata * metadata_handler;
     int default_maxstrlen; /* default max str size for variables of type string */
 } NCZ_FILE_INFO_T;
 

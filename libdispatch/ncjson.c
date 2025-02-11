@@ -898,15 +898,26 @@ done:
 OPTSTATIC int
 NCJinsert(NCjson* object, const char* key, NCjson* jvalue)
 {
-    int stat = NCJ_OK;
-    NCjson* jkey = NULL;
-    if(object == NULL || object->sort != NCJ_DICT || key == NULL || jvalue == NULL)
-	{stat = NCJTHROW(NCJ_ERR); goto done;}
-    if((stat = NCJnewstring(NCJ_STRING,key,&jkey))==NCJ_ERR) goto done;
-    if((stat = NCJappend(object,jkey))==NCJ_ERR) goto done;
-    if((stat = NCJappend(object,jvalue))==NCJ_ERR) goto done;
+	int stat = NCJ_OK;
+	NCjson *jkey = NULL;
+	if (object == NULL || object->sort != NCJ_DICT || key == NULL || jvalue == NULL) {
+		stat = NCJTHROW(NCJ_ERR);
+		goto done;
+	}
+	for (size_t i = 0; i < NCJlength(object); i += 2) {
+		jkey = NCJith(object, i);
+		if (jkey->string != NULL && strcmp(jkey->string, key) == 0) {
+			// replace existing values for new key
+			NCJreclaim(object->list.contents[i + 1]); // free old value
+			object->list.contents[i + 1] = jvalue;
+			goto done;
+		}
+	}
+	if ((stat = NCJnewstring(NCJ_STRING, key, &jkey)) == NCJ_ERR) goto done;
+	if ((stat = NCJappend(object, jkey)) == NCJ_ERR) goto done;
+	if ((stat = NCJappend(object, jvalue)) == NCJ_ERR) goto done;
 done:
-    return NCJTHROW(stat);
+	return NCJTHROW(stat);
 }
 
 /* Insert key-value pair as strings into a dict object.
