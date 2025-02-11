@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.4 - TBD
 
-* Step 2 in splitting PR [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068). Fix a namespace problem in tinyxml2.cpp. Note that this is a visual studio problem hence use of _MSC_VER. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????) for more information.
+* Step 2 in splitting PR [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068). Fix a namespace problem in tinyxml2.cpp. Note that this is a visual studio problem hence use of _MSC_VER. See [Github #3089](https://github.com/Unidata/netcdf-c/pull/3089) for more information.
 
 ## 4.9.3 - February 7, 2025
 
