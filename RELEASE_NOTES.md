@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.4 - TBD
 
-* Provide an auxilliary function that allows users to parse the _NCProperties attribute. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????) for more information.
+* Provide an auxilliary function that allows users to parse the _NCProperties attribute. See [Github #3088](https://github.com/Unidata/netcdf-c/pull/3088) for more information.
 
 ## 4.9.3 - February 7, 2025
 
