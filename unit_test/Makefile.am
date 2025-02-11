@@ -60,10 +60,16 @@ check_PROGRAMS += aws_config
 TESTS += run_aws_config.sh
 endif
 
+# Test misc. netcdf_aux functions
+check_PROGRAMS += test_auxmisc
+TESTS += run_auxmisc.sh
+
 EXTRA_DIST = CMakeLists.txt run_s3sdk.sh run_reclaim_tests.sh run_aws_config.sh run_pluginpaths.sh run_dfaltpluginpath.sh
+EXTRA_DIST += run_auxmisc.sh
 EXTRA_DIST += nctest_netcdf4_classic.nc reclaim_tests.cdl
 EXTRA_DIST += ref_get.txt ref_set.txt
 EXTRA_DIST += ref_xget.txt ref_xset.txt
+EXTRA_DIST += ref_provparse.txt
 
 CLEANFILES = reclaim_tests*.txt reclaim_tests.nc tmp_*.txt
 
