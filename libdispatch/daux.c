@@ -31,6 +31,7 @@ See COPYRIGHT for license information.
 #include "ncrc.h"
 #include "netcdf_filter.h"
 #include "ncpathmgr.h"
+#include "nclist.h"
 
 struct NCAUX_FIELD {
     char* name;
@@ -1272,5 +1273,131 @@ ncaux_plugin_path_stringset(int pathlen, const char* path)
 
 done:
     if(npl.dirs != NULL) {(void)ncaux_plugin_path_clear(&npl);}
+    return stat;
+}
+
+/**************************************************/
+
+/* De-escape a string */
+static char*
+deescape(const char* s)
+{
+    char* des = strdup(s);
+    char* p = NULL;
+    char* q = NULL;
+    if(s == NULL) return NULL;
+    for(p=des,q=des;*p;) {
+	switch (*p) {
+	case '\\':
+	    p++;
+	    if(*p == '\0') {*q++ = '\\';} break; /* edge case */
+	    /* fall thru */
+	default:
+	    *q++ = *p++;
+	    break;
+	}
+    }
+    *q = '\0';
+    return des;
+}
+
+/**
+ * @internal
+ *
+ * Construct the parsed provenance information
+ * Provide a parser for _NCProperties attribute.
+ * @param ncprop the contents of the _NCProperties attribute.
+ * @param pairsp allocate and return a pointer to a NULL terminated vector of (key,value) pairs.
+ * @return NC_NOERR | NC_EXXX
+ */
+int
+ncaux_parse_provenance(const char* ncprop0, char*** pairsp)
+{
+    int stat = NC_NOERR;
+    NClist* pairs = NULL;
+    char* ncprop = NULL;
+    size_t ncproplen = 0;
+    char* thispair = NULL;
+    char* p = NULL;
+    int i,count = 0;
+    int endinner;
+    
+    if(pairsp == NULL) goto done;
+    *pairsp = NULL;
+    ncproplen = nulllen(ncprop0);
+
+    if(ncproplen == 0) goto done;
+    
+    ncprop = (char*)malloc(ncproplen+1+1); /* double nul term */
+    strcpy(ncprop,ncprop0); /* Make modifiable copy */
+    ncprop[ncproplen] = '\0'; /* double nul term */
+    ncprop[ncproplen+1] = '\0'; /* double nul term */
+    pairs = nclistnew();
+
+    /* delimit the key,value pairs */
+    thispair = ncprop;
+    count = 0;
+    p = thispair;
+    endinner = 0;
+    do {
+	switch (*p) {
+	case '\0':
+	    if(strlen(thispair)==0) {stat = NC_EINVAL; goto done;} /* Has to be a non-null key */
+	    endinner = 1; /* terminate loop */
+	    break;
+	case ',': case '|': /* '|' is version one pair separator */
+	    *p++ = '\0'; /* terminate this pair */
+	    if(strlen(thispair)==0) {stat = NC_EINVAL; goto done;} /* Has to be a non-null key */
+	    thispair = p;
+	    count++;
+	    break;
+	case '\\': 
+	    p++; /* skip the escape and escaped char */
+	    /* fall thru */
+	default:
+	    p++;
+	    break;
+	}
+    } while(!endinner);
+    count++;
+    /* Split and store the pairs */
+    thispair = ncprop;
+    for(i=0;i<count;i++) {
+	char* key = thispair;
+	char* value = NULL;
+	char* nextpair = (thispair + strlen(thispair) + 1);
+	/* Find the '=' separator for each pair */
+	p = thispair;
+	endinner = 0;
+	do {
+	    switch (*p) {
+	    case '\0': /* Key has no value */
+	        value = p;
+		endinner = 1; /* => leave loop */
+		break;
+	    case '=':
+		*p++ = '\0'; /* split this pair */
+		value = p;
+		endinner = 1;
+		break;
+	    case '\\': 
+	        p++; /* skip the escape + escaped char */
+		/* fall thru */
+	    default:
+	        p++;
+		break;
+	    }
+	} while(!endinner);
+	/* setup next iteration */
+        nclistpush(pairs,deescape(key));
+        nclistpush(pairs,deescape(value));
+	thispair = nextpair;
+    }
+    /* terminate the list with (NULL,NULL) key value pair*/
+    nclistpush(pairs,NULL); nclistpush(pairs,NULL);
+    *pairsp = (char**)nclistextract(pairs);
+done:
+    nullfree(ncprop);
+    nclistfreeall(pairs);
     return stat;
 }
