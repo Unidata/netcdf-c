@@ -47,7 +47,7 @@ if NETCDF_ENABLE_DAP_REMOTE_TESTS
 
 TESTS += test_remote.sh
 TESTS += test_constraints.sh
-TESTS += test_hyrax.sh
+#Suppress until reconciled with hyrax: TESTS += test_hyrax.sh
 TESTS += test_dap4url.sh
 
 # The following test can only be run by hand.
