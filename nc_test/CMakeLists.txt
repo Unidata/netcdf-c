@@ -21,16 +21,15 @@ SET (nc_test_SRC
   util.c
   )
 
-
-SET (nc_test_m4_SOURCES test_get test_put test_read test_write)
-FOREACH (F ${nc_test_m4_SOURCES})
+set(nc_test_m4_SOURCES test_get test_put test_read test_write)
+foreach (F ${nc_test_m4_SOURCES})
   GEN_m4(${F} dest)
-  LIST(APPEND nc_test_SRC ${dest})
-ENDFOREACH()
+  list(APPEND nc_test_SRC ${dest})
+endforeach()
 
-ADD_EXECUTABLE(nc_test ${nc_test_SRC})
-TARGET_INCLUDE_DIRECTORIES(nc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-TARGET_LINK_LIBRARIES(nc_test
+add_executable(nc_test ${nc_test_SRC})
+target_include_directories(nc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(nc_test
   netcdf
   ${HAVE_LIBM}
   ${ALL_TLL_LIBS}

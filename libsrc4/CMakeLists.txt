@@ -9,6 +9,19 @@
 set(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4grp.c
 nc4internal.c nc4type.c nc4var.c ncfunc.c ncindex.c nc4cache.c)
 
+## 
+# Turn off inclusion of particular files when using the cmake-native
+# option to turn on Unity Builds.  
+#
+# For more information, see:
+#  * https://github.com/Unidata/netcdf-c/pull/2839/
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD_MODE.html#prop_tgt:UNITY_BUILD_MODE
+##
+set_property(SOURCE nc4dispatch.c
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)
+
 add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
 
 if (NETCDF_ENABLE_DLL)

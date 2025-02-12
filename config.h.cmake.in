@@ -106,6 +106,9 @@ are set when opening a binary file on Windows. */
 /* default chunk size in bytes */
 #cmakedefine DEFAULT_CHUNK_SIZE ${DEFAULT_CHUNK_SIZE}
 
+/* default zarr format*/
+#cmakedefine DFALTZARRFORMAT ${DFALTZARRFORMAT}
+
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_EXPORT 1
 
@@ -154,11 +157,17 @@ are set when opening a binary file on Windows. */
 /* if true, enable NCZARR */
 #cmakedefine NETCDF_ENABLE_NCZARR 1
 
+/* if true, enable NCZARR Version 3*/
+#cmakedefine NETCDF_ENABLE_NCZARR_V3 1
+
 /* if true, enable nczarr filter support */
 #cmakedefine NETCDF_ENABLE_NCZARR_FILTERS 1
 
 /* if true, enable nczarr zip support */
 #cmakedefine NETCDF_ENABLE_NCZARR_ZIP 1
+
+/* if true, enable nczarr V3 support */
+#cmakedefine NETCDF_ENABLE_NCZARR_V3 1
 
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine NETCDF_ENABLE_PLUGINS 1
@@ -186,6 +195,11 @@ are set when opening a binary file on Windows. */
 
 /* S3 Working subtree path prefix*/
 #define S3TESTSUBTREE "${S3TESTSUBTREE}"
+
+/* S3 Test endpoint */
+#define S3ENDPOINT "${S3ENDPOINT}"
+
+/* S3 Test Bucket */
 
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
@@ -517,7 +531,7 @@ with zip */
 #cmakedefine VALGRIND_TESTS 1
 #cmakedefine NETCDF_ENABLE_CDMREMOTE 1
 #cmakedefine USE_HDF5 1
-#cmakedefine ENABLE_FILEINFO 1
+#cmakedefine NETCDF_ENABLE_FILEINFO 1
 #cmakedefine TEST_PARALLEL ${TEST_PARALLEL}
 #cmakedefine BUILD_RPC 1
 #cmakedefine USE_X_GETOPT 1

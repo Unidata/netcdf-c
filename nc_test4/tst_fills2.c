@@ -103,12 +103,12 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, "sentence", NC_UNLIMITED, &dimid)) ERR;
       if (nc_def_var(ncid, STRING_VAR_NAME, NC_STRING, NDIMS_STRING,
 		     &dimid, &varid)) ERR;
-      if (nc_put_att_string(ncid, varid, "_FillValue", FILLVALUE_LEN,
+      if (nc_put_att_string(ncid, varid, NC_FillValue, FILLVALUE_LEN,
 	missing_val)) ERR;
 
       /* Check it out. */
       if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
-      if (nc_get_att_string(ncid, varid_in, "_FillValue",
+      if (nc_get_att_string(ncid, varid_in, NC_FillValue,
       			    (char **)missing_val_in)) ERR;
       if (strcmp(missing_val[0], missing_val_in[0])) ERR;
       if (nc_free_string(FILLVALUE_LEN, (char **)missing_val_in)) ERR;
@@ -139,7 +139,7 @@ main(int argc, char **argv)
       /* Now re-open file, read data, and check values again. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
-      if (nc_get_att_string(ncid, varid_in, "_FillValue",
+      if (nc_get_att_string(ncid, varid_in, NC_FillValue,
       			    (char **)missing_val_in)) ERR;
       if (strcmp(missing_val[0], missing_val_in[0])) ERR;
       if (nc_free_string(FILLVALUE_LEN, (char **)missing_val_in)) ERR;
@@ -194,11 +194,11 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, "rec", NC_UNLIMITED, &dimid)) ERR;
       if (nc_def_var(ncid, STRING_VAR_NAME, NC_STRING, NDIMS_STRING, &dimid, &varid)) ERR;
-      if (nc_put_att_string(ncid, varid, "_FillValue", FILLVALUE_LEN, missing_val)) ERR;
+      if (nc_put_att_string(ncid, varid, NC_FillValue, FILLVALUE_LEN, missing_val)) ERR;
 
       /* Check it out. */
       if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
-      if (nc_get_att_string(ncid, varid_in, "_FillValue", (char **)missing_val_in)) ERR;
+      if (nc_get_att_string(ncid, varid_in, NC_FillValue, (char **)missing_val_in)) ERR;
       if (missing_val[0] !=  missing_val_in[0]) ERR;
 
       /* Write one string, leaving some blank records which will then
@@ -222,7 +222,7 @@ main(int argc, char **argv)
       /* Now re-open file, read data, and check values again. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
-      if (nc_get_att_string(ncid, varid_in, "_FillValue", (char **)missing_val_in)) ERR;
+      if (nc_get_att_string(ncid, varid_in, NC_FillValue, (char **)missing_val_in)) ERR;
       if (NULL != missing_val_in[0]) ERR;
       if (nc_free_string(FILLVALUE_LEN, (char **)missing_val_in)) ERR;
 
@@ -262,11 +262,11 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, "rec", NC_UNLIMITED, &dimid)) ERR;
       if (nc_def_var(ncid, STRING_VAR_NAME2, NC_STRING, NDIMS_STRING, &dimid, &varid)) ERR;
-      if (nc_put_att_string(ncid, varid, "_FillValue", FILLVALUE_LEN2, missing_val)) ERR;
+      if (nc_put_att_string(ncid, varid, NC_FillValue, FILLVALUE_LEN2, missing_val)) ERR;
 
       /* Check it out. */
       if (nc_inq_varid(ncid, STRING_VAR_NAME2, &varid_in)) ERR;
-      if (nc_get_att_string(ncid, varid_in, "_FillValue", (char **)missing_val_in)) ERR;
+      if (nc_get_att_string(ncid, varid_in, NC_FillValue, (char **)missing_val_in)) ERR;
       if (strcmp(missing_val[0], missing_val_in[0])) ERR;
       if (nc_free_string(FILLVALUE_LEN2, (char **)missing_val_in)) ERR;
 
@@ -291,7 +291,7 @@ main(int argc, char **argv)
       /* Now re-open file, read data, and check values again. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_varid(ncid, STRING_VAR_NAME2, &varid_in)) ERR;
-      if (nc_get_att_string(ncid, varid_in, "_FillValue", (char **)missing_val_in)) ERR;
+      if (nc_get_att_string(ncid, varid_in, NC_FillValue, (char **)missing_val_in)) ERR;
       if (strcmp(missing_val[0], missing_val_in[0])) ERR;
       if (nc_free_string(FILLVALUE_LEN2, (char **)missing_val_in)) ERR;
 
@@ -335,12 +335,12 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, "Lunar_Years", NC_UNLIMITED, &dimid)) ERR;
       if (nc_def_var(ncid, STRING_VAR_NAME, NC_STRING, NDIMS_STRING,
 		     &dimid, &varid)) ERR;
-      if (nc_put_att_string(ncid, varid, "_FillValue", FILLVALUE_LEN,
+      if (nc_put_att_string(ncid, varid, NC_FillValue, FILLVALUE_LEN,
 			    missing_val)) ERR;
 
       /* Check it out. */
       if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
-      if (nc_get_att_string(ncid, varid_in, "_FillValue", &missing_val_in)) ERR;
+      if (nc_get_att_string(ncid, varid_in, NC_FillValue, &missing_val_in)) ERR;
       if (strcmp(missing_val[0], missing_val_in)) ERR;
       if (nc_free_string(FILLVALUE_LEN, &missing_val_in)) ERR;
 
@@ -353,7 +353,7 @@ main(int argc, char **argv)
       /* Now re-open file, and check again. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
-      if (nc_get_att_string(ncid, varid_in, "_FillValue", &missing_val_in)) ERR;
+      if (nc_get_att_string(ncid, varid_in, NC_FillValue, &missing_val_in)) ERR;
       if (strcmp(missing_val[0], missing_val_in)) ERR;
       if (nc_free_string(FILLVALUE_LEN, &missing_val_in)) ERR;
 
@@ -374,7 +374,7 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_dim(ncid, "x", 182, &dimids[0])) ERR;
       if (nc_def_var(ncid, "u_obs", NC_FLOAT, 1, dimids, &varid)) ERR;
-      if (nc_put_att_double (ncid, varid, "_FillValue", NC_FLOAT, 1, &fillval)) ERR;
+      if (nc_put_att_double (ncid, varid, NC_FillValue, NC_FLOAT, 1, &fillval)) ERR;
       if (nc_close(ncid)) ERR;
       SUMMARIZE_ERR;
    }

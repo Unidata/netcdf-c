@@ -539,3 +539,47 @@ done:
     ncbytesfree(buf);
     return stat;
 }
+
+static int
+lexical_compare(const void* arg1, const void* arg2)
+{
+    char* s1 = *((char**)arg1);
+    char* s2 = *((char**)arg2);
+    size_t slen1 = nulllen(s1);
+    size_t slen2 = nulllen(s2);
+    if(slen1 != slen2) return (slen1 - slen2);
+    return strcmp(s1,s2);
+}
+
+/**
+Sort a vector of strings.
+@param n Number of strings to sort
+@param env vector of strings to sort
+*/
+void
+NC_sortenvv(size_t n, char** envv)
+{
+    if(n <= 1) return;
+    qsort(envv, (int)n, sizeof(char*), lexical_compare);
+}
+
+/**
+Sort a nclist of strings.
+@param l NClist of strings
+*/
+void
+NC_sortlist(NClist* l)
+{
+    if(l == NULL || nclistlength(l) == 0) return;
+    NC_sortenvv(nclistlength(l),(char**)nclistcontents(l));
+}
+
+/* Free up a vector of strings */
+void
+NC_freeenvv(size_t nkeys, char** keys)
+{
+    size_t i;
+    for(i=0;i<nkeys;i++)
+	nullfree(keys[i]);
+    nullfree(keys);
+}

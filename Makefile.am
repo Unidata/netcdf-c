@@ -110,8 +110,11 @@ endif
 
 # Build Cloud Storage if desired.
 if NETCDF_ENABLE_NCZARR
-ZARR_TEST_DIRS = nczarr_test
 ZARR = libnczarr
+ZARR_TEST_DIRS = nczarr_test
+if NETCDF_ENABLE_NCZARR_V3
+ZARR_TEST_DIRS += v3_nczarr_test
+endif
 endif
 
 # Optionally build test plugins
@@ -217,6 +220,9 @@ if NETCDF_ENABLE_S3_TESTALL
 	rm -f ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 	mv ${abs_top_builddir}/tmp_@PLATFORMUID@.uids ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 endif
+
+clean-local:
+	rm -fr alltests_*
 
 if NETCDF_ENABLE_S3_TESTALL
 distclean-local:

@@ -4,123 +4,302 @@
  *********************************************************************/
 
 /**
-Test the NCpathcvt
+Test ncbytes.h
 */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "netcdf.h"
-#include "ncpathmgr.h"
+#include "ncbytes.h"
 
 #define DEBUG
 
-#define NKINDS 4
-static const int kinds[NKINDS] = {NCPD_NIX,NCPD_MSYS,NCPD_CYGWIN,NCPD_WIN};
+#define BUFSIZE 4096
+#define MAXSTR 2048
 
 typedef struct Test {
     char* test;
-    char* expected[NKINDS];
+    char* expected;
 } Test;
 
-/* Path conversion tests */
-static Test PATHTESTS[] = {
-{"/xxx/a/b",{
-	"/xxx/a/b",		/*NCPD_LINUX*/
-	"c:\\xxx\\a\\b",	/*NCPD_MSYS*/
-	"/cygdrive/c/xxx/a/b",	/*NCPD_CYGWIN*/
-	"c:\\xxx\\a\\b"		/*NCPD_WIN*/
-	}},
-{"d:/x/y",{
-	 "/d/x/y",		/*NCPD_LINUX*/
-	"d:\\x\\y",		/*NCPD_MSYS*/
-	 "/cygdrive/d/x/y",	/*NCPD_CYGWIN*/
-	 "d:\\x\\y"		/*NCPD_WIN*/
-	}},
-{"d:\\x\\y",{
-	 "/d/x/y",		/*NCPD_LINUX*/
-	"d:\\x\\y",		/*NCPD_MSYS*/
-	 "/cygdrive/d/x/y",	/*NCPD_CYGWIN*/
-	 "d:\\x\\y"		/*NCPD_WIN*/
-	}},
-{"/cygdrive/d/x/y",{
-	"/d/x/y",		/*NCPD_LINUX*/
-	"d:\\x\\y",		/*NCPD_MSYS*/
-	"/cygdrive/d/x/y",	/*NCPD_CYGWIN*/
-	 "d:\\x\\y"		/*NCPD_WIN*/
-	}},
-{"/d/x/y",{
-	 "/d/x/y",		/*NCPD_LINUX*/
-	"d:\\x\\y",		/*NCPD_MSYS*/
-	 "/cygdrive/c/d/x/y",	/*NCPD_CYGWIN*/
-	 "d:\\x\\y"		/*NCPD_WIN*/
-	}},
-{"/cygdrive/d",{
-	 "/d",			/*NCPD_LINUX*/
-	"d:",			/*NCPD_MSYS*/
-	 "/cygdrive/d",		/*NCPD_CYGWIN*/
-	 "d:"			/*NCPD_WIN*/
-	}},
-{"/d", {
-	"/d",			/*NCPD_LINUX*/
-	"d:",			/*NCPD_MSYS*/
-	 "/cygdrive/c/d",	/*NCPD_CYGWIN*/
-	 "d:"			/*NCPD_WIN*/
-	}},
-{"/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",{
-    "/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",		/*NCPD_LINUX*/
-    "d:\\git\\netcdf-c\\dap4_test\\test_anon_dim.2.syn",	/*NCPD_MSYS*/
-    "/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",	/*NCPD_CYGWIN*/
-    "d:\\git\\netcdf-c\\dap4_test\\test_anon_dim.2.syn"		/*NCPD_WIN*/
-    }},
-/* Test relative path */
-{"x/y",{
-	 "x/y",	/*NCPD_LINUX*/
-	"x\\y",	/*NCPD_MSYS*/
-	"x/y",	/*NCPD_CYGWIN*/
-	 "x\\y"	/*NCPD_WIN*/
-	}},
-{"x\\y",{
-	 "x/y",/*NCPD_LINUX*/
-	"x\\y",	/*NCPD_MSYS*/
-	"x/y",	/*NCPD_CYGWIN*/
-	 "x\\y"	/*NCPD_WIN*/
-	}},
-#ifndef _WIN32X
-/* Test utf8 path */
-{"/海/海",{
-	 "/海/海",		/*NCPD_LINUX*/
-	"c:\\海\\海",		/*NCPD_MSYS*/
-	"/cygdrive/c/海/海",	/*NCPD_CYGWIN*/
-	 "c:\\海\\海"		/*NCPD_WIN*/
-	}},
-/* Test network path */
-{"//git/netcdf-c/dap4_test",{
-    NULL /*meaningless*/,		/*NCPD_LINUX*/
-    "\\\\git\\netcdf-c\\dap4_test",	/*NCPD_MSYS*/
-    NULL /*meaningless*/,		/*NCPD_CYGWIN*/
-    "\\\\git\\netcdf-c\\dap4_test"	/*NCPD_WIN*/
-    }},
-#endif
-{NULL, {NULL, NULL, NULL, NULL}}
+typedef enum Operand {OR_NULL=0,OR_INT=1,OR_CHR=2,OR_STR=3} Operand;
+typedef struct Arg {
+    Operand sort;
+    union {
+        size_t i;
+	char c;
+	char s[MAXSTR];
+    } u;
+} Arg;
+
+typedef struct Inst {
+    char op;
+    Arg args[3];
+} Inst;
+
+static const char* code2txt[] = {
+"0 free",
+"1 new",
+NULL
 };
 
-char* macros[128];
+static void
+reclaiminst(Inst* inst)
+{
+    size_t i;
+    for(i=0;i<3;i++) {
+	if(inst->args[i].sort == OR_STR || inst->args[i].u.s != NULL) free(inst->args[i].u.s);
+    }
+}
 
-/*Forward */
-static char* expand(const char* s);
-static void setmacros(void);
-static void reclaimmacros(void);
-#ifdef DEBUG
-static const char* kind2string(int kind);
-#endif
+static void
+reclaimprog(Inst* prog)
+{
+    size_t i;
+    for(i=0;;i++) {
+	reclaiminst(&prog[i]);
+    }
+}
+
+static size_t
+decodearg(const char* code, size_t ap, Arg* arg)
+{
+    char c;
+    int count;
+
+    /* Discriminate argument type */
+    c = code[ap];
+    if(strchr("0123456789",c)!=NULL) {
+	arg->sort = OR_INT;
+	count = -1;
+	sscanf(&code[ap],"%zu%n",&arg->u.i,&count);
+	assert(count > 0);
+	ap += (size_t)count;
+	goto done;
+    } else if(c == '\'') {
+	arg->sort = OR_CHR;
+	ap++;
+	c = code[ap];
+	assert(c != '\0');
+	arg->u.c = c;	
+	ap++;
+	goto done;
+    } else if(c == '|') {
+	char* p;
+	ptrdiff_t slen;
+	arg->sort = OR_STR;
+	ap++;
+	p = strchr(&code[ap],'|');
+	assert(p != NULL);
+	slen = (p - &code[ap]);
+	assert(slen >= 0);
+	assert(slen < MAXSTR);
+	memcpy(arg->u.s,&code[ap],(size_t)slen);
+	arg->u.s[slen] = '\0';
+	ap += (size_t)slen;
+	goto done;
+    } else
+	{abort();}
+done:
+    return ap;
+}
+
+static int
+parseprog(const char* code, Inst** progp)
+{
+    int stat = NC_NOERR;
+    size_t i,n,ap,ip;
+    Inst* prog = NULL;
+
+    if(code == NULL) return NC_EINVAL;
+    n = strlen(code);      
+    if((prog = calloc(n,sizeof(Inst)))==NULL) return NC_ENOMEM;
+    ap = code; ip = prog;
+    for(ap=0;ap<n;ap++) {
+	char op = code[ap];
+	prog[ip].op = op;
+	
+	/* Zero arg instructions */
+	case '0':
+	case '1':
+	case 'd':
+	case 'e':
+	case 'n':
+	case 'C':
+	case 'D':
+	case 'X':
+	    break;
+	
+	/* One arg instructions */
+	case 'a':
+	case 'c':
+	case 'f':
+	case 'g':
+	case 'r':
+	case 'v':
+	case 'x':
+	case 'A':
+	case 'L':
+	    ap = decodearg(code,ap,&prog[ip].arg[0];
+	    break;
+	
+	/* Two arg instructions */
+	case 's':
+	case 'S':
+	    ap = decodearg(code,ap,&prog[ip].arg[0];
+    	    ap = decodearg(code,ap,&prog[ip].arg[1];
+	    break;
+
+	/* Three arg instructions */
+	case 'i':
+	    ap = decodearg(code,ap,&prog[ip].arg[0];
+    	    ap = decodearg(code,ap,&prog[ip].arg[1];
+       	    ap = decodearg(code,ap,&prog[ip].arg[2];
+	    break;
+
+	default:
+	    fprintf("Illegal operator[%zu] '%c'\n",ap,c); 
+	    stat = NCEINTERNAL;
+	    goto done;
+	}
+
+    }
+}
+
+
+
+
+
+
+
+static size_t
+contentize(const char* s, char* buf)
+{
+    size_t used = blen;
+    size_t slen, blen;
+    int elided = 0;
+    char* p = buf;
+
+    if(s == NULL) return used;
+    slen = strlen(s);
+    if(slen > MAXSTR) {slen = (MAXSTR - strlen("...")); elided = 1;}
+
+    blen = strlen(buf);
+    b = &buf[blen];
+    memcpy(b,s,slen);
+    b += slen;
+    blen += slen;
+    if(elided) {
+        memcpy(b,"...",3);
+	b += 3;
+	blen += 3;
+    }
+    return blen;
+}
+
+static const char*
+ncbytesdump(NCbyte* bb)
+{
+static char* buf[BUFSIZE];
+static const char* template1 = "{extendible=%c alloc=%zu len=%zu content=|";
+static const char* template2 = "|}";
+    size_t blen;
+
+    sprintf(buf,sizeof(buf),template1,
+    		(bb->extendible?"1":"0"),
+		bb->alloc,
+		bb->length);
+    blen = contentize(bb->content,buf);
+    memcpy(&buf[blen],template2,sizeof(template2));
+    blen += sizeof(template2);
+    buf[blen++] = '\0';
+    assert(blen <= BUFSIZE);
+    return buf;
+}
+
+static int
+interpret(const char* prog, char** resultp)
+{
+    int stat = NC_NOERR;
+    size_t ap, progsize
+    NCbytes* bb = NULL;
+
+    progsize = strlen(prog);
+    for(ap=0;ap<=progsize;ap++) {
+	const char c = prog[ap];
+	switch (c) {
+
+	case '1':
+	    assert(bb == NULL);
+	    bb = ncbytesnew();
+	    printf("[%zu] %c: %s\n",ap,c,ncbytesdump(bb));
+	    break;
+	case '0':
+	    ncbytesfree(bb); bb = NULL;
+	    printf("[%zu] %c\n",ap,c);
+	    break;
+	case 'A':
+	    assert(bb != NULL);
+	    ncbytessetalloc(bb = ncbytesnew();
+	    printf("[%zu] %c: %s\n",ap,c,ncbytesdump(bb));
+	    break;
+EXTERNL int ncbytessetalloc(NCbytes*,unsigned long);
+case 'L':
+EXTERNL int ncbytessetlength(NCbytes*,unsigned long);
+case 'f':
+EXTERNL int ncbytesfill(NCbytes*, char fill);
+case 'd':
+EXTERNL char* ncbytesdup(NCbytes*);
+case 'e':
+EXTERNL char* ncbytesextract(NCbytes*);
+case 'g':
+EXTERNL int ncbytesget(NCbytes*,unsigned long);
+case 's':
+EXTERNL int ncbytesset(NCbytes*,unsigned long,char);
+case 'a':
+EXTERNL int ncbytesappend(NCbytes*,char); /* Add at Tail */
+EXTERNL int ncbytesappendn(NCbytes*,const void*,unsigned long); /* Add at Tail */
+case 'n':
+EXTERNL int ncbytesnull(NCbytes*);
+case 'r':
+EXTERNL int ncbytesremove(NCbytes*,unsigned long);
+case 'c':
+EXTERNL int ncbytescat(NCbytes*,const char*);
+case 'i':
+EXTERNL int ncbytesinsert(NCbytes*,size_t pos, size_t n, const char*);
+case 'S':
+EXTERNL int ncbytessetcontents(NCbytes*, void*, unsigned long);
+case 'C':
+#define ncbytescontents(bb) (((bb)!=NULL && (bb)->content!=NULL)?(bb)->content:(char*)"")
+case 'x':
+#define ncbytesextend(bb,len) ncbytessetalloc((bb),(len)+(bb->alloc))
+case 'D':
+#define ncbytesclear(bb) ((bb)!=NULL?(bb)->length=0:0)
+case 'V':
+#define ncbytesavail(bb,n) ((bb)!=NULL?((bb)->alloc - (bb)->length) >= (n):0)
+case 'X':
+#define ncbytesextendible(bb) ((bb)!=NULL?((bb)->nonextendible?0:1):0)
+
+	default:
+	    fprintf("Illegal code[%zu] 'c'\n",ap,c); 
+	    stat = NCEINTERNAL;
+	    goto done;
+	}
+
+
+    }
+}
+
+
+
 
 int
 main(int argc, char** argv)
 {
     Test* test;
     int failcount = 0;
-    char* cvt = NULL;
     char* unescaped = NULL;
     char* expanded = NULL;
     int k;
@@ -192,68 +371,3 @@ main(int argc, char** argv)
     return (failcount > 0 ? 1 : 0);
 }
 
-#ifdef DEBUG
-static const char*
-kind2string(int kind)
-{
-    switch(kind) {
-    case NCPD_NIX:
-	return "Linux";
-    case NCPD_MSYS:
-	return "MSYS";
-    case NCPD_CYGWIN:
-	return "Cygwin";
-    case NCPD_WIN:
-	return "Windows";
-    case NCPD_REL:
-	return "Relative";
-    default: break;
-    }
-    return "Unknown";
-}
-#endif
-
-static char*
-expand(const char* s)
-{
-    const char *p;
-    char expanded[8192];
-    char q[2];
-
-    q[1] = '\0';
-    expanded[0] = '\0';
-    for(p=s;*p;p++) {
-	char c = *p;
-	if(c == '%') {
-	    p++;
-	    c = *p;
-	    if(macros[(int)c] != NULL)
-	        strlcat(expanded,macros[(int)c],sizeof(expanded));
-	} else {
-	    q[0] = c;
-	    strlcat(expanded,q,sizeof(expanded));
-	}
-    }
-    return strdup(expanded);
-}
-
-static void
-setmacros(void)
-{
-    int i;
-    const char* m;
-    for(i=0;i<128;i++) macros[i] = NULL;
-    if((m=getenv("MSYS2_PREFIX"))) {
-	macros['m'] = strdup(m);    
-    }
-}
-
-static void
-reclaimmacros(void)
-{
-    int i;
-    for(i=0;i<128;i++) {
-	if(macros[i]) free(macros[i]);
-	macros[i] = NULL;
-    }
-}

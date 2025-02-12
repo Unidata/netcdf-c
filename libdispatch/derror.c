@@ -100,6 +100,8 @@ const char *nc_strerror(int ncerr1)
    {
       case NC_NOERR:
 	 return "No error";
+      case NC_ERROR:
+         return "Non-specific error";
       case NC_EBADID:
 	 return "NetCDF: Not a valid ID";
       case NC_ENFILE:
@@ -283,7 +285,11 @@ const char *nc_strerror(int ncerr1)
 	 return "NetCDF: Some object not found";
       case NC_EPLUGIN:
 	 return "NetCDF: Unclassified failure in accessing a dynamically loaded plugin";
-     default:
+      case NC_ENOTZARR:
+	 return "Malformed (NC)Zarr file";
+      case NC_EZARRMETA:
+         return "Malformed (NC)Zarr file consolidated metadata";
+      default:
 #ifdef USE_PNETCDF
         /* The behavior of ncmpi_strerror here is to return
            NULL, not a string.  This causes problems in (at least)

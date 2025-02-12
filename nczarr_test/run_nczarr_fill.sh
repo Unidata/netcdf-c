@@ -3,7 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "$srcdir/test_nczarr.sh"
+. "${srcdir}/test_nczarr.sh"
 
 s3isolate "testdir_nczarr_fill"
 THISDIR=`pwd`
@@ -21,8 +21,8 @@ deletemap $zext $file
 ${NCCOPY} ${srcdir}/ref_groups.h5 "$fileurl"
 rm -f tmp_nczfill.cdl
 ${ZMD} -h "$fileurl"
-${NCDUMP} -s -n tmp_groups_regular "$fileurl" > tmp_nczfill.cdl
-sclean tmp_nczfill.cdl tmp_groups_regular_$zext.cdl
+${NCDUMP} -s -n tmp_groups_regular "$fileurl" > tmp_groups_regular_$zext.cdl
+sclean tmp_groups_regular_$zext.cdl
 diff -wb ${srcdir}/ref_groups_regular.cdl tmp_groups_regular_$zext.cdl
 }
 
@@ -33,8 +33,8 @@ rm -fr ref_byte.zarr
 unzip ref_byte.zarr.zip >> tmp_ignore.txt
 rm -fr tmp_nczfill.cdl
 ${ZMD} -h "file://ref_byte.zarr#mode=zarr,$zext"
-${NCDUMP} -s "file://ref_byte.zarr#mode=zarr,$zext" > tmp_nczfill.cdl
-sclean tmp_nczfill.cdl tmp_byte_$zext.cdl
+${NCDUMP} -s "file://ref_byte.zarr#mode=zarr,$zext" > tmp_byte_$zext.cdl
+sclean tmp_byte_$zext.cdl
 diff -wb ${srcdir}/ref_byte.cdl tmp_byte_$zext.cdl
 rm -fr ref_byte.zarr
 }
@@ -46,8 +46,8 @@ rm -fr ref_byte_fill_value_null.zarr
 unzip ref_byte_fill_value_null.zarr.zip >> tmp_ignore.txt
 rm -fr tmp_nczfill.cdl
 ${ZMD} -h "file://ref_byte_fill_value_null.zarr#mode=zarr,$zext"
-${NCDUMP} -s "file://ref_byte_fill_value_null.zarr#mode=zarr,$zext" > tmp_nczfill.cdl
-sclean tmp_nczfill.cdl tmp_byte_fill_value_null_$zext.cdl
+${NCDUMP} -s "file://ref_byte_fill_value_null.zarr#mode=zarr,$zext" > tmp_byte_fill_value_null_$zext.cdl
+sclean tmp_byte_fill_value_null_$zext.cdl
 diff -wb ${srcdir}/ref_byte_fill_value_null.cdl tmp_byte_fill_value_null_$zext.cdl
 rm -fr ref_byte_fill_value_null.zarr
 }

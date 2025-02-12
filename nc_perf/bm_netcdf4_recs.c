@@ -70,7 +70,7 @@ int main(int argc, char **argv)
       /* assign per-variable attributes */
       if (nc_put_att_text(ncid, temperature_2m_id, "long_name", 36, "Air temperature 2m above the surface")) ERR;
       if (nc_put_att_text(ncid, temperature_2m_id, "units", 1, "K")) ERR;
-      if (nc_put_att_float(ncid, temperature_2m_id, "_FillValue", NC_FLOAT, 1, temperature_2m_FillValue_att)) ERR;
+      if (nc_put_att_float(ncid, temperature_2m_id, NC_FillValue, NC_FLOAT, 1, temperature_2m_FillValue_att)) ERR;
       if (nc_put_att_float(ncid, temperature_2m_id, "missing_value", NC_FLOAT, 1, temperature_2m_missing_value_att)) ERR;
       if (nc_put_att_float(ncid, temperature_2m_id, "valid_min", NC_FLOAT, 1, temperature_2m_valid_min_att)) ERR;
       if (nc_put_att_float(ncid, temperature_2m_id, "valid_max", NC_FLOAT, 1, temperature_2m_valid_max_att)) ERR;

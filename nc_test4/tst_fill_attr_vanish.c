@@ -90,7 +90,7 @@ int main()
   }
 
   printf("**** Expecting NC_ELATEFILL when adding _FillValue attribute if variable exists.\n");
-  status = nc_put_att_int(ncid, test_id, "_FillValue", NC_INT, 1, test_fill_val);
+  status = nc_put_att_int(ncid, test_id, NC_FillValue, NC_INT, 1, test_fill_val);
   if (status != NC_ELATEFILL) {
       fflush(stdout); /* Make sure our stdout is synced with stderr. */
       err++;

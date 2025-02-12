@@ -171,7 +171,7 @@ main(int argc, char **argv)
 #define DIM2_LEN 5
 #define VAR2_NAME "primary_cloud"
 #define VAR2_RANK 1
-#define ATT2_NAME "_FillValue"
+#define ATT2_NAME NC_FillValue
 #define ATT2_LEN  1
 
    printf("*** testing enum fill value ...");

@@ -1,0 +1,12 @@
+netcdf ref_nulls {
+variables:
+	int test;
+		test:nul_sng = '\0';
+		test:empty_sng = "";
+	        test:space_sng = " ";
+		test:zero_sng = "0";
+		test:nul0 = '\0' ;
+data:
+
+ test = 1;
+}

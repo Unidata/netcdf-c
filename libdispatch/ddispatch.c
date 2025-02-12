@@ -4,6 +4,18 @@ See LICENSE.txt for license information.
 */
 
 #include "config.h"
+
+/* Required for getcwd, other functions. */
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+/* Required for getcwd, other functions. */
+#ifdef _WIN32
+#include <direct.h>
+#endif
+#include <stdio.h>
+
+#include "netcdf.h"
 #include "ncdispatch.h"
 #include "ncuri.h"
 #include "nclog.h"
@@ -14,16 +26,6 @@ See LICENSE.txt for license information.
 #include "ncxml.h"
 #include "nc4internal.h"
 
-/* Required for getcwd, other functions. */
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-/* Required for getcwd, other functions. */
-#ifdef _WIN32
-#include <direct.h>
-#endif
-
 #if defined(NETCDF_ENABLE_BYTERANGE) || defined(NETCDF_ENABLE_DAP) || defined(NETCDF_ENABLE_DAP4)
 #include <curl/curl.h>
 #endif
@@ -32,7 +34,13 @@ See LICENSE.txt for license information.
 #include "ncs3sdk.h"
 #endif
 
+/**************************************************/
+/* Global State constants and state */
+
 #define MAXPATH 1024
+
+/* The singleton global state object */
+static NCglobalstate* nc_globalstate = NULL;
 
 /* Define vectors of zeros and ones for use with various nc_get_varX functions */
 /* Note, this form of initialization fails under Cygwin */
@@ -40,10 +48,38 @@ size_t NC_coord_zero[NC_MAX_VAR_DIMS] = {0};
 size_t NC_coord_one[NC_MAX_VAR_DIMS] = {1};
 ptrdiff_t NC_stride_one[NC_MAX_VAR_DIMS] = {1};
 
-/*
-static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
-static nc_type ulongtype = (sizeof(unsigned long) == sizeof(unsigned int)?NC_UINT:NC_UINT64);
-*/
+/**************************************************/
+/* Atomic type constants */
+
+/* The sizes of types may vary from platform to platform, but within
+ * netCDF files, type sizes are fixed. */
+#define NC_CHAR_LEN sizeof(char)      /**< @internal Size of char. */
+#define NC_STRING_LEN sizeof(char *)  /**< @internal Size of char *. */
+#define NC_BYTE_LEN 1     /**< @internal Size of byte. */
+#define NC_SHORT_LEN 2    /**< @internal Size of short. */
+#define NC_INT_LEN 4      /**< @internal Size of int. */
+#define NC_FLOAT_LEN 4    /**< @internal Size of float. */
+#define NC_DOUBLE_LEN 8   /**< @internal Size of double. */
+#define NC_INT64_LEN 8    /**< @internal Size of int64. */
+
+/** @internal Names of atomic types. */
+const char* nc4_atomic_name[NUM_ATOMIC_TYPES] = {"none", "byte", "char",
+                                           "short", "int", "float",
+                                           "double", "ubyte",
+                                           "ushort", "uint",
+                                           "int64", "uint64", "string"};
+static const size_t nc4_atomic_size[NUM_ATOMIC_TYPES] = {0, NC_BYTE_LEN, NC_CHAR_LEN, NC_SHORT_LEN,
+                                                      NC_INT_LEN, NC_FLOAT_LEN, NC_DOUBLE_LEN,
+                                                      NC_BYTE_LEN, NC_SHORT_LEN, NC_INT_LEN, NC_INT64_LEN,
+                                                      NC_INT64_LEN, NC_STRING_LEN};
+
+/**************************************************/
+/* Forward */
+static int NC_createglobalstate(void);
+
+/**************************************************/ 
+/** \defgroup dispatch_initialize functions. */
+/** \{ */
 
 /* Allow dispatch to do general initialization and finalization */
 int
@@ -141,16 +177,9 @@ NCDISPATCH_finalize(void)
     NC_freeglobalstate(); /* should be one of the last things done */
     return status;
 }
+/** \} */
 
 /**************************************************/
-/* Global State constants and state */
-
-/* The singleton global state object */
-static NCglobalstate* nc_globalstate = NULL;
-
-/* Forward */
-static int NC_createglobalstate(void);
-
 /** \defgroup global_state Global state functions. */
 /** \{
 
@@ -225,33 +254,12 @@ NC_freeglobalstate(void)
 /** \} */
 
 /**************************************************/
-/** \defgroup atomic_types Atomic Type functions */
+/** \defgroup atomic_types Atomic Type functions, where
+    atomic does not include NC_STRING. */
 /** \{
 
 \ingroup atomic_types
 */
-
-/* The sizes of types may vary from platform to platform, but within
- * netCDF files, type sizes are fixed. */
-#define NC_CHAR_LEN sizeof(char)      /**< @internal Size of char. */
-#define NC_STRING_LEN sizeof(char *)  /**< @internal Size of char *. */
-#define NC_BYTE_LEN 1     /**< @internal Size of byte. */
-#define NC_SHORT_LEN 2    /**< @internal Size of short. */
-#define NC_INT_LEN 4      /**< @internal Size of int. */
-#define NC_FLOAT_LEN 4    /**< @internal Size of float. */
-#define NC_DOUBLE_LEN 8   /**< @internal Size of double. */
-#define NC_INT64_LEN 8    /**< @internal Size of int64. */
-
-/** @internal Names of atomic types. */
-const char* nc4_atomic_name[NUM_ATOMIC_TYPES] = {"none", "byte", "char",
-                                           "short", "int", "float",
-                                           "double", "ubyte",
-                                           "ushort", "uint",
-                                           "int64", "uint64", "string"};
-static const size_t nc4_atomic_size[NUM_ATOMIC_TYPES] = {0, NC_BYTE_LEN, NC_CHAR_LEN, NC_SHORT_LEN,
-                                                      NC_INT_LEN, NC_FLOAT_LEN, NC_DOUBLE_LEN,
-                                                      NC_BYTE_LEN, NC_SHORT_LEN, NC_INT_LEN, NC_INT64_LEN,
-                                                      NC_INT64_LEN, NC_STRING_LEN};
 
 /**
  * @internal Get the name and size of an atomic type. For strings, 1 is

@@ -29,6 +29,7 @@ echo "*** creating test1_offset.nc from test1_offset.cdl..."
 ${NCGEN} -b -k2 -o test1_offset.nc test1_offset.cdl
 echo "*** creating test2_offset.cdl from test1.nc..."
 ${NCDUMP} test1_offset.nc > test2_offset.cdl
+# Bit-b-bit compare is problematic
 cmp test1_offset.cdl test2_offset.cdl
 echo "*** All ncgen and ncdump with 64-bit offset format tests passed!"
 
@@ -45,6 +46,7 @@ echo "*** creating test1_cdf5.nc from test1_cdf5.cdl..."
 ${NCGEN} -b -k5 -o test1_cdf5.nc test1_cdf5.cdl
 echo "*** creating test2_cdf5.cdl from test1_cdf5.nc..."
 ${NCDUMP} test1_cdf5.nc > test2_cdf5.cdl
+# Bit-b-bit compare is problematic
 cmp test1_cdf5.cdl test2_cdf5.cdl
 echo "*** All ncgen and ncdump with CDF5 format tests passed!"
 fi

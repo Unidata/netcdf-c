@@ -6,7 +6,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 
 if test "x$TESTNCZARR" = x1 ; then
-. "$srcdir/test_nczarr.sh"
+. ${builddir}/test_nczarr.sh
 s3isolate "testdir_nccopy5"
 else
 isolate testdir_ncccopy5
@@ -125,6 +125,7 @@ BASELINE='ivar:_ChunkSizes = 7, 1, 2, 1, 5, 1, 9 ;'
 verifychunkline "$TESTLINE" "$BASELINE"
 # Make sure that fvar was not chunked
 checkfvar tmp_chunking.cdl
+cd ..
 } # T1
 
 testcase2() {
@@ -155,7 +156,7 @@ BASELINE='ivar:_ChunkSizes = 4, 1, 2, 1, 5, 2, 3 ;'
 verifychunkline "$TESTLINE" "$BASELINE"
 # Make sure that fvar was not chunked
 checkfvar tmp_chunking.cdl
-
+cd ..
 } # T2
 
 testcase3() {
@@ -185,7 +186,7 @@ BASELINE='ivar:_ChunkSizes = 4, 1, 2, 1, 5, 2, 3 ;'
 verifychunkline "$TESTLINE" "$BASELINE"
 # Make sure that fvar was not chunked
 checkfvar tmp_chunking.cdl
-
+cd ..
 } #T3
 
 testcase4() {
@@ -217,7 +218,7 @@ verifychunkline "$TESTLINE" "$BASELINE"
 
 # Make sure that fvar was not chunked
 checkfvar tmp_chunking.cdl
-
+cd ..
 } # T4
 
 testcase5() {
@@ -248,7 +249,7 @@ verifychunkline "$TESTLINE" "$BASELINE"
 
 # Make sure that fvar was not chunked
 checkfvar tmp_chunking_omit.cdl
-
+cd ..
 } # T5
 
 testcases() {

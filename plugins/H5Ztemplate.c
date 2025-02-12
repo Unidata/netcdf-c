@@ -174,12 +174,12 @@ NCZ_xxxx_codec_to_hdf5(const char* codec_json, int* nparamsp, unsigned** paramsp
     if((stat = NCJparse(codec_json,0,&jcodec))) goto done;
     if(NCJsort(jcodec) != NCJ_DICT) {stat = NC_EPLUGIN; goto done;}
     /* Verify the codec ID */
-    if((stat = NCJdictget(jcodec,"id",&jtmp))) goto done;
+    if((stat = NCJdictget(jcodec,"id",(NCjson**)&jtmp))) goto done;
     if(jtmp == NULL || !NCJisatomic(jtmp)) {stat = NC_EINVAL; goto done;}
     if(strcmp(NCJstring(jtmp),NCZ_xxxx_codec.codecid)!=0) {stat = NC_EINVAL; goto done;}
 
     /* Get unsigned integer param */
-    if((stat = NCJdictget(jcodec,"param0",&jtmp))) goto done;
+    if((stat = NCJdictget(jcodec,"param0",(NCjson**)&jtmp))) goto done;
     if((stat = NCJcvt(jtmp,NCJ_INT,&jc))) goto done;
     if(jc.ival < 0 || jc.ival > NC_MAX_UINT) {stat = NC_EINVAL; goto done;}
     params[i] = (unsigned)jc.ival;

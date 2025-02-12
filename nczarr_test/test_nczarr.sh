@@ -1,28 +1,54 @@
 #!/bin/sh
 
+# This file must kept in sync with
+#	nczarr_test/test_nczarr.sh
+# and
+#	v3_nczarr_test/test_nczarr.sh
+
 # Load only once
 if test "x$TEST_NCZARR_SH" = x ; then
 export TEST_NCZARR_SH=1
 
 if test "x$SETX" != x; then set -x; fi
 
+# Get the directory in which we are running
+TMP=`pwd`
+NCZARRDIR=`basename $TMP`
+if test "x$NCZARRDIR" = xnczarr_test ; then
+    export NCZARRFORMAT=2; export NCNOZMETADATA=1
+elif test "x$NCZARRDIR" = x3_nczarr_test ; then
+    export NCZARRFORMAT=3; export NCNOZMETADATA=1
+else
+    unset NCZARRFORMAT; unset NCNOZMETADATA
+fi
+echo "@@@ NCZARRFORMAT=$NCZARRFORMAT NCNOZMETADATA=$NCNOZMETADATA"
+
 # Figure out which cloud repo to use
 if test "x$NCZARR_S3_TEST_HOST" = x ; then
 #    export NCZARR_S3_TEST_HOST=stratus.ucar.edu
-    export NCZARR_S3_TEST_HOST=s3.us-east-1.amazonaws.com
+    export NCZARR_S3_TEST_HOST="${S3ENDPOINT:-s3.us-east-1.amazonaws.com}"
 fi
 if test "x$NCZARR_S3_TEST_BUCKET" = x ; then
     export NCZARR_S3_TEST_BUCKET="${S3TESTBUCKET}"
 fi
 export NCZARR_S3_TEST_URL="https://${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
 
-if test "x$VALGRIND" != x ; then
-    ZMD="valgrind --leak-check=full ${execdir}/zmapio"
-    S3UTIL="valgrind --leak-check=full ${execdir}/s3util"
+# TAG for zarr format to use; uses the environment variable NCZARRFORMAT
+if test "x${NCZARRFORMAT}" = x3 ; then
+    export ZDF="_v3"
 else
-    ZMD="${execdir}/zmapio"
-    S3UTIL="${execdir}/s3util"
+    export ZDF=""
 fi
+
+# Fix execdir
+NCZARRDIR="${execdir}/../nczarr_test"
+
+ZMD="${NCZARRDIR}/${DL}zmapio"
+S3UTIL="${NCZARRDIR}/${DL}s3util"
+ZS3PARSE="${NCZARRDIR}/${DL}zs3parse"
+NCDUMPCHUNKS="${NCZARRDIR}/${DL}ncdumpchunks"
+ZHEX="${NCZARRDIR}/${DL}zhex"
+ZISJSON="${NCZARRDIR}/${DL}zisjson"
 
 # Check settings
 checksetting() {
@@ -66,14 +92,14 @@ deletemap() {
     case "$1" in
     file) rm -fr $2;;
     zip) rm -f $2;;
-    s3) S3KEY=`${execdir}/zs3parse -k $2`; s3sdkdelete $S3KEY ;;
+    s3) S3KEY=`${ZS3PARSE} -k $2`; s3sdkdelete $S3KEY ;;
     *) echo "unknown kind: $1" ; exit 1;;
     esac
 }
 
 mapstillexists() {
     mapstillexists=0
-    if "${execdir}/zmapio $fileurl" &> /dev/null ; then
+    if "${ZMD} $fileurl" &> /dev/null ; then
       echo "delete failed: $1"
       mapstillexists=1
     fi
@@ -88,9 +114,9 @@ fileargs() {
     S3PATH="${NCZARR_S3_TEST_URL}/${S3ISOPATH}"
     fileurl="${S3PATH}/${f}#${frag}"
     file=$fileurl
-    S3HOST=`${execdir}/zs3parse -h $S3PATH`
-    S3BUCKET=`${execdir}/zs3parse -b $S3PATH`
-    S3PREFIX=`${execdir}/zs3parse -k $S3PATH`
+    S3HOST=`${ZS3PARSE} -h $S3PATH`
+    S3BUCKET=`${ZS3PARSE} -b $S3PATH`
+    S3PREFIX=`${ZS3PARSE} -k $S3PATH`
     ;;
   *)
     file="${f}.$zext"
@@ -103,18 +129,32 @@ dumpmap() {
     zext=$1
     zbase=`basename $2 ".$zext"`
     fileargs $zbase
-    ${execdir}/zmapio -t int -x objdump $fileurl > $3
+    ${ZMD} -t int -x objdump $fileurl > $3
 }
 
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent
 sclean() {
-    cat $1 \
- 	| sed -e '/:_IsNetcdf4/d' \
-	| sed -e '/:_Endianness/d' \
-	| sed -e '/_NCProperties/d' \
-	| sed -e '/_SuperblockVersion/d' \
-	| cat > $2
+sed -i.bak -e '/:_IsNetcdf4/d' $1
+sed -i.bak -e '/:_Endianness/d' $1
+sed -i.bak -e '/_NCProperties/d' $1
+sed -i.bak -e '/_SuperblockVersion/d' $1
+}
+
+# s3clean plus remove additional lines
+scleanplus() {
+sclean $1
+sed -i.bak -e '/_Format/d' $1
+sed -i.bak -e '/_global attributes:/d' $1 
+}
+
+# Function to rewrite selected key values in a zmapio output.
+# because these values might be platform dependent
+zmapclean() {
+sed -i.bak -e 's|^\([^(]*\)([0-9][0-9]*)|\1()|' $1
+sed -i.bak -e 's/"_NCProperties":[ ]*"version=\([0-9]\),[^"]*"/"_NCProperties": "version=\1,netcdf=0.0.0,nczarr=0.0.0"/g' $1
+sed -i.bak -e 's/"_nczarr_superblock":[ ]*{[^}]*}/"_nczarr_superblock": {"version": "0.0.0", "format": 2}/g' $1
+sed -i.bak -e 's/"_nczarr_superblock":[ ]*{[^}]*}/"_nczarr_superblock": {"version": "0.0.0", "format": 2}/g' $1
 }
 
 # Make sure execdir and srcdir absolute paths are available
@@ -136,7 +176,7 @@ echo "findplugin.sh loaded"
 # Locate the plugin path and the library names; argument order is critical
 # Find misc in order to determine HDF5_PLUGIN+PATH.
 # Assume all test filters are in same plugin dir
-findplugin h5misc
+if ! findplugin h5misc ; then exit 0; fi
 
 echo "final HDF5_PLUGIN_DIR=${HDF5_PLUGIN_DIR}"
 export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_DIR}"
@@ -153,7 +193,7 @@ resetrc() {
 }
 
 s3sdkdelete() {
-if test -f ${execdir}/s3util ; then
+if test -f ${S3UTIL} ; then
   ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
 elif which aws ; then
   aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
@@ -163,7 +203,7 @@ fi
 }
 
 s3sdkcleanup() {
-if test -f ${execdir}/s3util ; then
+if test -f ${S3UTIL} ; then
   ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
 elif which aws ; then
   aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
@@ -174,12 +214,12 @@ fi
 
 # Create an isolation path for S3; build on the isolation directory
 s3isolate() {
-  if test "x$S3ISOPATH" = x ; then
-    if test "x$ISOPATH" = x ; then isolate "$1"; fi
-    S3ISODIR="$ISODIR"
-    S3ISOTESTSET="${S3TESTSUBTREE}/testset_"
-    if test "x$NOISOPATH" = x ; then S3ISOTESTSET="${S3ISOTESTSET}${TESTUID}"; fi    
-    S3ISOPATH="${S3ISOTESTSET}/$S3ISODIR"
+  if test "x${S3ISOPATH}" = x ; then
+    if test "x${ISOPATH}" = x ; then isolate "$1"; fi
+    # Need isolation path to include the test directory
+    BNAME=`basename $srcdir`
+    S3ISODIR="${BNAME}_${TESTUID}/${ISODIR}"
+    S3ISOPATH="${S3TESTSUBTREE}/${S3ISODIR}"
   fi
 }
 

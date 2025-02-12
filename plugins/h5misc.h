@@ -12,7 +12,6 @@
 #endif
 
 #include "netcdf_filter_build.h"
-#include "netcdf_filter_hdf5_build.h"
 
 /* use an integer greater than 256 to be id of the registered filter. */
 #define H5Z_FILTER_TEST 32768
@@ -40,23 +39,8 @@ struct All {
     unsigned long long tuint64;
     double tfloat64;
 };
-
 /* number of 32 bit unsigned value needed to hold fields of struct All */
 #define NPARAMS (10 + 1/*int64*/ + 1/*uint64*/ + 1/*double*/ + 1/*test case number*/)
-
-/* Test values */
-static struct All spec = {
-(char)-17,		/* signed byte */
-(unsigned char)23,	/* unsigned byte */
-(signed short)-25,			/* signed short */
-(unsigned short)27U,			/* unsigned short */
-77,			/* signed int */
-93U,			/* unsigned int */
-789.0f,			/* float */
--9223372036854775807LL,	/* signed int64 */
-18446744073709551615ULL,/* unsigned int64 */
-(double)12345678.12345678/* double */
-};
 
 /* declare the hdf5 interface */
 DECLSPEC H5PL_type_t H5PLget_plugin_type(void);
@@ -72,7 +56,9 @@ DECLSPEC size_t H5Z_filter_test(unsigned flags,size_t cd_nelmts,const unsigned c
 
 DECLSPEC void NC_h5filterspec_fix8(void* mem0, int decode);
 
-/* Shutup compiler */
-void* NC_unused_h5misc() {return (void*)&spec;}
+/* Raw encode/decode */
+struct NCjson; /*Opaque*/
+DECLSPEC int NCraw_encode(size_t nparams, const unsigned* params, struct NCjson** jparamsp);
+DECLSPEC int NCraw_decode(const NCjson* jraw, size_t* nparamsp, unsigned** paramsp);
 
 #endif /*H5MISC_H*/

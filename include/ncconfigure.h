@@ -23,6 +23,28 @@
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef __APPLE__ /* GCC strikes again */
+#ifndef uint
+typedef unsigned int uint;
+#endif
+#ifndef ushort
+typedef unsigned short ushort;
+#endif
+#endif /*__APPLE__*/
+
+#include <errno.h>
+#include <assert.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#endif
 
 /*
 This is included in bottom
@@ -49,7 +71,7 @@ typedef int mode_t;
 #define F_OK 00
 #endif
 
-#endif
+#endif /*_WIN32*/
 
 /*Warning: Cygwin with -ansi does not define these functions
   in its headers.*/
@@ -134,6 +156,9 @@ unsigned long long int strtoull(const char*, char**, int);
 #endif /*_WIN32*/
 
 #ifndef nulldup
+#ifndef _WIN32
+#pragma GCC diagnostic ignored "-Wnonnull"
+#endif
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
 #endif
 
@@ -170,14 +195,12 @@ typedef unsigned long long uint64;
 typedef unsigned long long uint64_t;
 #endif
 
-#ifndef _WIN32
 #ifndef HAVE_UINTPTR_T
 #ifndef uintptr_t
 #if SIZEOF_VOIDP == 8
 #define uintptr_t unsigned long
 #else
 #define uintptr_t unsigned int
-#endif
 #endif
 #endif
 #endif

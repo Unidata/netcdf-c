@@ -110,6 +110,7 @@ nc_plugin_path_initialize(void)
 	assert(dst != NULL);
 	for(i=0;i<dirs.ndirs;i++)
 	    dst[i] = strdup(dirs.dirs[i]);
+if(dst[0] < (char*)1000) abort();
     }
 done:
     ncaux_plugin_path_clear(&dirs);

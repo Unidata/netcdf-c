@@ -20,6 +20,7 @@ Currently two operations are defined:
 #include "nc4dispatch.h"
 #include "ncoffsets.h"
 #include "ncbytes.h"
+#include "nclog.h"
 
 #undef REPORT
 #undef DEBUG
@@ -76,8 +77,11 @@ NC_reclaim_data(NC* nc, nc_type xtype, void* memory, size_t count)
     NC_TYPE_INFO_T* utype = NULL;
 
     assert(nc != NULL);
-    assert((memory == NULL && count == 0) || (memory != NULL || count > 0));
+    /* If memory is NULL, ignore count */
+    assert(memory == NULL || (memory != NULL && count > 0));
 
+    if(memory == NULL) goto done;
+    
     /* Process atomic types */
 
     /* Optimize: Vector of fixed size atomic types (always the case for netcdf-3)*/
@@ -88,7 +92,7 @@ NC_reclaim_data(NC* nc, nc_type xtype, void* memory, size_t count)
     if(xtype == NC_STRING) {
 	char** ss = (char**)memory;
         for(i=0;i<count;i++) {
-	    nullfree(ss[i]);
+	    nullfree(ss[i]); ss[i] = NULL;
 	}
         goto done;
     }
@@ -118,7 +122,7 @@ NC_reclaim_data(NC* nc, nc_type xtype, void* memory, size_t count)
 #endif
 
 done:
-    return stat;
+    return NCTHROW(stat);
 }
 
 #ifdef USE_NETCDF4
@@ -128,7 +132,8 @@ done:
 static int
 reclaim_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position instance)
 {
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
+    int i;
     nc_type basetypeid;
     NC_TYPE_INFO_T* basetype = NULL;
     size_t nfields;
@@ -154,7 +159,7 @@ reclaim_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position instance)
 	if(basetypeid == NC_STRING) {
             if(vlen->len > 0 && vlen->p != NULL) {
 	        char** slist = (char**)vlen->p; /* vlen instance is a vector of string pointers */
-		for(i=0;i<vlen->len;i++) {if(slist[i] != NULL) free(slist[i]);}
+		for(i=0;i<(int)vlen->len;i++) {if(slist[i] != NULL) {free(slist[i]);slist[i] = NULL;}}
 	    }
 	    goto out;
 	}
@@ -167,12 +172,12 @@ reclaim_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position instance)
         if((stat = NC_type_alignment_internal(file,basetypeid,basetype,&alignment))) goto done;;
         vinstance.memory = (char*)vlen->p; /* use char* so we can do pointer arithmetic */
         vinstance.memory = (void*)NC_read_align((uintptr_t)vinstance.memory,alignment);
-        for(i=0;i<vlen->len;i++) {
+        for(i=0;i<(int)vlen->len;i++) {
             if((stat=reclaim_datar(file,basetype,vinstance))) goto done; /* reclaim one basetype instance */
 	    vinstance.memory += basetype->size; /* move to next base instance */
         }
 out:
-        if(vlen->len > 0 && vlen->p != NULL) {free(vlen->p);}
+        if(vlen->len > 0 && vlen->p != NULL) {free(vlen->p); vlen->p = NULL;}
         goto done;	
     } else if(utype->nc_type_class == NC_COMPOUND) {    
 	Position finstance;  /* mark the fields's instance */
@@ -198,7 +203,7 @@ out:
 	    if(field->nc_typeid == NC_STRING) {
 	        char** strvec = (char**)finstance.memory;
 		for(i=0;i<arraycount;i++) {
-		    if(strvec[i] != NULL) free(strvec[i]);
+		    if(strvec[i] != NULL) {free(strvec[i]); strvec[i] = NULL;}
 		}
 		continue; /* do next field */
 	    }
@@ -217,7 +222,7 @@ out:
     } else {stat = NC_EBADTYPE; goto done;}
 
 done:
-    return stat;
+    return NCTHROW(stat);
 }
 #endif
 
@@ -323,7 +328,7 @@ NC_copy_data(NC* nc, nc_type xtype, const void* memory, size_t count, void* copy
 #endif
 
 done:
-    return stat;
+    return NCTHROW(stat);
 }
 
 #ifdef USE_NETCDF4
@@ -380,7 +385,7 @@ copy_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position src, Position d
     	    char** dststrvec = NULL;
 	    if((dststrvec = (void*)malloc(copycount))==NULL) {stat = NC_ENOMEM; goto done;}
     	    dstvlens->p = (void*)dststrvec;
-	    for(i=0;i<srcvlens->len;i++) {
+	    for(i=0;i<(int)srcvlens->len;i++) {
 		if((dststrvec[i] = strdup(srcstrvec[i]))==NULL) {stat = NC_ENOMEM; goto done;}
 	    }
 	    goto done;
@@ -406,7 +411,7 @@ copy_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position src, Position d
         dstvlens->p = vdst.memory; /* don't lose it */
         vsrc.memory = (void*)NC_read_align((uintptr_t)vsrc.memory,alignment);
 	vdst.memory = (void*)NC_read_align((uintptr_t)vdst.memory,alignment);
-        for(i=0;i<srcvlens->len;i++) {
+        for(i=0;i<(int)srcvlens->len;i++) {
             if((stat=copy_datar(file,basetype,vsrc,vdst))) goto done;
 	    vsrc.memory += basetype->size;
 	    vdst.memory += basetype->size;
@@ -441,7 +446,7 @@ copy_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position src, Position d
 	    if(field->nc_typeid == NC_STRING) {
 	        char** srcstrvec = (char**)src.memory;
 	        char** dststrvec = (char**)dst.memory;
-		for(i=0;i<arraycount;i++) 
+		for(i=0;i<(int)arraycount;i++) 
 		    {if(srcstrvec[i] != NULL) {dststrvec[i] = strdup(srcstrvec[i]);} else {dststrvec[i] = NULL;}}
 		continue; /* move to next field */
 	    }
@@ -454,7 +459,7 @@ copy_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position src, Position d
 	    }
 
 	    /* Remaining case; field type is variable type */
-            for(i=0;i<arraycount;i++) {
+            for(i=0;i<(int)arraycount;i++) {
                 if((stat = copy_datar(file, basetype, fsrc, fdst))) goto done;
 		fsrc.memory += basetype->size;
 		fdst.memory += basetype->size;
@@ -465,7 +470,7 @@ copy_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position src, Position d
     } else {stat = NC_EBADTYPE; goto done;}
 
 done:
-    return stat;
+    return NCTHROW(stat);
 }
 #endif
 
@@ -531,7 +536,7 @@ done:
 Why was this here?
     if(stat == NC_NOERR && align == 0) stat = NC_EINVAL;
 #endif
-    return stat;
+    return NCTHROW(stat);
 }
 #endif
 
@@ -546,11 +551,15 @@ NC_reclaim_data_all(NC* nc, nc_type xtypeid, void* memory, size_t count)
     int stat = NC_NOERR;
 
     assert(nc != NULL);
+    /* If memory is NULL, ignore count */
+    assert(memory == NULL || (memory != NULL && count > 0));
 
+    if(memory == NULL) goto done;
     stat = NC_reclaim_data(nc,xtypeid,memory,count);
     if(stat == NC_NOERR && memory != NULL)
-        free(memory);
-    return stat;
+        {free(memory); memory = NULL;}
+done:
+    return NCTHROW(stat);
 }
 
 /* Alternate entry point: includes recovering the top-level memory */
@@ -597,7 +606,7 @@ NC_copy_data_all(NC* nc, nc_type xtype, const void* memory, size_t count, void**
 #endif
     if(copyp) {*copyp = copy; copy = NULL;}
 done:
-    return stat;
+    return NCTHROW(stat);
 }
 
 /* Alternate entry point: includes recovering the top-level memory */

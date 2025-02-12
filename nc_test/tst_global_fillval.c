@@ -61,7 +61,7 @@ main(int argc, char **argv)
       int ncid, cmode, fillv = 9;
       cmode = NC_CLOBBER | formats[i];
       if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
-      if (nc_put_att_int(ncid, NC_GLOBAL, "_FillValue", NC_INT, 1, &fillv)) ERR;
+      if (nc_put_att_int(ncid, NC_GLOBAL, NC_FillValue, NC_INT, 1, &fillv)) ERR;
       if (nc_close(ncid)) ERR;
 
 	}

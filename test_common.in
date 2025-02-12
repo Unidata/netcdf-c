@@ -45,6 +45,7 @@ FEATURE_NCZARR=@HAS_NCZARR@
 FEATURE_S3TESTS=@NETCDF_ENABLE_S3_TESTING@
 FEATURE_NCZARR_ZIP=@HAS_NCZARR_ZIP@
 FEATURE_LARGE_TESTS=@DO_LARGE_TESTS@
+FEATURE_ZARRDFALTFORMAT=@NCZARR_DEFAULT_FORMAT@
 
 FEATURE_PLUGIN_INSTALL_DIR="@NETCDF_PLUGIN_INSTALL_DIR@"
 FEATURE_PLUGIN_SEARCH_PATH="@NETCDF_PLUGIN_SEARCH_PATH@"
@@ -59,6 +60,9 @@ S3TESTBUCKET=@S3TESTBUCKET@
 # This is the s3 path within the Unidata bucket;
 # All S3 tests should use this to store intermediate results.
 S3TESTSUBTREE=@S3TESTSUBTREE@
+
+# Additional S3 test endpoint
+S3ENDPOINT=@S3ENDPOINT@
 
 TESTUID=@TESTUID@
 
@@ -178,6 +182,7 @@ fi
 # capture absolute paths, and make visible
 export NCDUMP="${abs_top_builddir}/ncdump${VS}/${DL}ncdump${ext}"
 export NCCOPY="${abs_top_builddir}/ncdump${VS}/${DL}nccopy${ext}"
+export NCVALID="${abs_top_builddir}/ncdump${VS}/${DL}ncvalidator${ext}"
 export NCGEN="${abs_top_builddir}/ncgen${VS}/${DL}ncgen${ext}"
 export NCGEN3="${abs_top_builddir}/ncgen3${VS}/${DL}ncgen3${ext}"
 export NCPATHCVT="${abs_top_builddir}/ncdump${VS}/${DL}ncpathcvt${ext}"
@@ -215,19 +220,26 @@ cd $builddir
 # Parallel make can cause inter-test interference (mostly because of historical naming issues).
 # As a protection against this, the isolate() function supports the creation of an
 # isolation directory in which created products are stored.
-# Cleanup can be accomplished by deleting the whole isolation directory.
-# The name of the isolation directory is by convention "testdir_<random>".
 # The isolation dir is created within the ${builddir} directory.
 # The <random> is a generated 32 bit unsigned random integer to make the chance
 # of collision very small.
 # Process ID was not used because of the small but real chance of collision.
+# Within the top-level isolation directory, each test directory creates its own
+# isolation directory. So, for example, the "nczarr_test" test directory
+# create a directory "nczarr_test" under the top-level isolation directory.
+# Thus it creates a directory whose path is "testdir_<random>/nczarr_test".
+# Finally, note that cleanup can be accomplished by deleting the
+# whole isolation directory: testdir_<random>.
 
 isolate() {
-  if test "x$ISOPATH" = x ; then
-      ISOTESTSET="${builddir}/testset_"
-      if test "x$NOISOPATH" = x ; then ISOTESTSET="${ISOTESTSET}${TESTUID}"; fi    
+  if test "x${ISOPATH}" = x ; then
+      # Get the root directory for these tests
+      ISOTESTDIR=`pwd`
+      ISOTESTDIR=`basename ${ISOTESTDIR}`
+      if test "x$NOISOPATH" = x ; then ISOUID="${TESTUID}"; else ISOUID="0"; fi    
+      ISOPATH="${top_builddir}/alltests_${ISOUID}/${ISOTESTDIR}"
       ISODIR="$1"
-      ISOPATH="${ISOTESTSET}/$ISODIR"
+      ISOPATH="${ISOPATH}/$ISODIR"
       rm -fr $ISOPATH
       mkdir -p $ISOPATH
   fi

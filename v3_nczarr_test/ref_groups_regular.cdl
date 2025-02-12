@@ -1,0 +1,47 @@
+netcdf tmp_groups_regular {
+
+// global attributes:
+		:_Format = "netCDF-4" ;
+
+group: MyGroup {
+  dimensions:
+  	phony_dim_2 = 3 ;
+  	phony_dim_3 = 3 ;
+  variables:
+  	int dset1(phony_dim_2, phony_dim_3) ;
+  		dset1:_Storage = "chunked" ;
+  		dset1:_ChunkSizes = 3, 3 ;
+  		dset1:_NoFill = "true" ;
+
+  // group attributes:
+  data:
+
+   dset1 =
+  1, 2, 3,
+  1, 2, 3,
+  1, 2, 3 ;
+
+  group: Group_A {
+    dimensions:
+    	phony_dim_0 = 2 ;
+    	phony_dim_1 = 10 ;
+    variables:
+    	int dset2(phony_dim_0, phony_dim_1) ;
+    		dset2:_Storage = "chunked" ;
+    		dset2:_ChunkSizes = 2, 10 ;
+    		dset2:_NoFill = "true" ;
+
+    // group attributes:
+    data:
+
+     dset2 =
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ;
+    } // group Group_A
+
+  group: Group_B {
+
+    // group attributes:
+    } // group Group_B
+  } // group MyGroup
+}
