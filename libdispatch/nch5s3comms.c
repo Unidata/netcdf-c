@@ -92,7 +92,7 @@
 
 #include "netcdf.h"
 #include "ncuri.h"
-#include "ncutil.h"
+#include "netcdf_vutils.h"
 
 /*****************/
 
@@ -292,7 +292,6 @@ static int build_range(size_t offset, size_t len, char** rangep);
 static const char* verbtext(HTTPVerb verb);
 static int trace(CURL* curl, int onoff);
 static int sortheaders(VList* headers);
-static int httptonc(long httpcode);
 static void hrb_node_free(hrb_node_t *node);
 
 #if S3COMMS_DEBUG_HRB
@@ -789,7 +788,7 @@ done:
  *----------------------------------------------------------------------------
  */
 int
-NCH5_s3comms_s3r_getsize(s3r_t *handle, const char* url, long long* sizep)
+NCH5_s3comms_s3r_getsize(s3r_t *handle, const char* url, long long* sizep, long* httpcodep)
 {
     int ret_value      = SUCCEED;
     char* contentlength = NULL;
@@ -806,7 +805,8 @@ NCH5_s3comms_s3r_getsize(s3r_t *handle, const char* url, long long* sizep)
     if((ret_value = NCH5_s3comms_s3r_head(handle, url, "Content-Length", NULL, &httpcode, &contentlength)))
         HGOTO_ERROR(H5E_ARGS, ret_value, FAIL, "NCH5_s3comms_s3r_head failed.");
 
-    if((ret_value = httptonc(httpcode))) goto done;
+    /* Content-Length will not be defined if object does not exist */
+    if(httpcode == 404) goto done;
 
     /******************
      * PARSE RESPONSE *
@@ -816,7 +816,7 @@ NCH5_s3comms_s3r_getsize(s3r_t *handle, const char* url, long long* sizep)
     if(value == NULL)
         HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "could not find content length value");
     value++;
-    content_length = strtoumax(value, NULL, 0);
+    content_length = (long long)strtoumax(value, NULL, 0);
     if (UINTMAX_MAX > SIZE_MAX && content_length > SIZE_MAX)
         HGOTO_ERROR(H5E_ARGS, NC_ERANGE, FAIL, "content_length overflows size_t");
 
@@ -825,9 +825,9 @@ NCH5_s3comms_s3r_getsize(s3r_t *handle, const char* url, long long* sizep)
                     "could not convert found \"Content-Length\" response (\"%s\")",
                     contentlength); /* range is null-terminated, remember */
 
-    if(sizep) {*sizep = (long long)content_length;}
-
 done:
+    if(sizep) {*sizep = (long long)content_length;}
+    if(httpcodep) *httpcodep = httpcode;    
     nullfree(contentlength);
     return UNTRACEX(ret_value,"size=%lld",(sizep?-1:*sizep));
 } /* NCH5_s3comms_s3r_getsize */
@@ -859,17 +859,13 @@ NCH5_s3comms_s3r_deletekey(s3r_t *handle, const char* url, long* httpcodep)
 
     if((ret_value = NCH5_s3comms_s3r_execute(handle, url, HTTPDELETE, NULL, NULL, NULL, &httpcode, data)))
         HGOTO_ERROR(H5E_ARGS, ret_value, FAIL, "execute failed.");
-
-    /******************
-     * RESPONSE *
-     ******************/
-    if((ret_value = httptonc(httpcode))) goto done;
-    if(httpcode != 204) 
-        HGOTO_ERROR(H5E_ARGS, NC_ECANTREMOVE, FAIL, "deletekey failed.");     
+    
+    /* Apparently, aws delivers a 204 response if it successfully deletes the key */
+    if(httpcode == 204) httpcode = 200; /* treat 204 as success */
 
 done:
-    vsfree(data);
     if(httpcodep) *httpcodep = httpcode;
+    vsfree(data);
     return UNTRACEX(ret_value,"httpcode=%d",INULL(httpcodep));
 } /* NCH5_s3comms_s3r_getsize */
 
@@ -911,12 +907,8 @@ NCH5_s3comms_s3r_head(s3r_t *handle, const char* url, const char* header, const 
     if (SUCCEED != NCH5_s3comms_s3r_execute(handle, url, HTTPHEAD, NULL, header, NULL, &httpcode, data))
         HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "problem in reading during getsize.");
 
-    if((ret_value = httptonc(httpcode))) goto done;
-
     if(header != NULL) {
-        if(vslength(data) == 0)
-            HGOTO_ERRORVA(H5E_ARGS, NC_EINVAL, FAIL, "HTTP metadata: header=%s; not found",header);
-        else if (vslength(data) > CURL_MAX_HTTP_HEADER)
+        if (vslength(data) > CURL_MAX_HTTP_HEADER)
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "HTTP metadata buffer overrun");
 #if S3COMMS_DEBUG
         else
@@ -930,7 +922,7 @@ NCH5_s3comms_s3r_head(s3r_t *handle, const char* url, const char* header, const 
 
     if(header != NULL) {
         char* content;
-	content = vsextract(data);
+	content = vsextract(data); /* guaranteed to exist */
         if(valuep) {*valuep = content;}
     }
 
@@ -1222,7 +1214,7 @@ done:
  *----------------------------------------------------------------------------
  */
 int
-NCH5_s3comms_s3r_read(s3r_t *handle, const char* url, size_t offset, size_t len, s3r_buf_t* dest)
+NCH5_s3comms_s3r_read(s3r_t *handle, const char* url, size_t offset, size_t len, s3r_buf_t* dest, long* httpcodep)
 {
     char              *rangebytesstr = NULL;
     int                ret_value = SUCCEED;
@@ -1251,9 +1243,9 @@ NCH5_s3comms_s3r_read(s3r_t *handle, const char* url, size_t offset, size_t len,
 
     if((ret_value = NCH5_s3comms_s3r_execute(handle, url, HTTPGET, rangebytesstr, NULL, NULL, &httpcode, wrap)))
         HGOTO_ERROR(H5E_ARGS, ret_value, FAIL, "execute failed.");
-    if((ret_value = httptonc(httpcode))) goto done;
 
 done:
+    if(httpcodep) *httpcodep = httpcode;
     (void)vsextract(wrap);
     vsfree(wrap);
     /* clean any malloc'd resources */
@@ -1271,7 +1263,7 @@ done:
  *----------------------------------------------------------------------------
  */
 int
-NCH5_s3comms_s3r_write(s3r_t *handle, const char* url, const s3r_buf_t* data)
+NCH5_s3comms_s3r_write(s3r_t *handle, const char* url, const s3r_buf_t* data, long* httpcodep)
 {
     int ret_value = SUCCEED;
     VList* otherheaders = vlistnew();
@@ -1301,9 +1293,10 @@ NCH5_s3comms_s3r_write(s3r_t *handle, const char* url, const s3r_buf_t* data)
     vssetlength(wrap,data->count);
     if((ret_value = NCH5_s3comms_s3r_execute(handle, url, HTTPPUT, NULL, NULL, (const char**)vlistcontents(otherheaders), &httpcode, wrap)))
         HGOTO_ERROR(H5E_ARGS, ret_value, FAIL, "execute failed.");
-    if((ret_value = httptonc(httpcode))) goto done;
+
     
 done:
+    if(httpcodep) *httpcodep = httpcode;
     (void)vsextract(wrap);
     vsfree(wrap);
     /* clean any malloc'd resources */
@@ -1321,7 +1314,7 @@ done:
  *----------------------------------------------------------------------------
  */
 int
-NCH5_s3comms_s3r_getkeys(s3r_t *handle, const char* url, s3r_buf_t* response)
+NCH5_s3comms_s3r_getkeys(s3r_t *handle, const char* url, s3r_buf_t* response, long* httpcodep)
 {
     int ret_value = SUCCEED;
     const char* otherheaders[3] = {"Content-Type", "application/xml", NULL};
@@ -1340,13 +1333,13 @@ NCH5_s3comms_s3r_getkeys(s3r_t *handle, const char* url, s3r_buf_t* response)
 
     if((SUCCEED != NCH5_s3comms_s3r_execute(handle, url, HTTPGET, NULL, NULL, otherheaders, &httpcode, content)))
         HGOTO_ERROR(H5E_ARGS, ret_value, FAIL, "execute failed.");
-    if((ret_value = httptonc(httpcode))) goto done;
     if(response) {
 	response->count = vslength(content);
 	response->content = vsextract(content);
     }
 
 done:
+    if(httpcodep) *httpcodep = httpcode;
     vsfree(content);
     /* clean any malloc'd resources */
     curl_reset(handle);
@@ -1421,7 +1414,7 @@ NCH5_s3comms_aws_canonical_request(VString* canonical_request_dest, VString* sig
 {
     hrb_node_t *node         = NULL;
     int      ret_value    = SUCCEED;
-    int i;
+    size_t i;
     
     const char* sverb = verbtext(verb);
     const char* query_params = (query?query:"");
@@ -1568,7 +1561,7 @@ NCH5_s3comms_HMAC_SHA256(const unsigned char *key, size_t key_len, const char *m
 #else
     if(CURLE_OK != Curl_hmacit(Curl_HMAC_SHA256,
                      key, key_len,
-                     msg, msg_len,
+                     (const unsigned char*)msg, msg_len,
                      md))
         HGOTO_ERROR(H5E_ARGS, NC_EINTERNAL, FAIL, "Curl_hmacit failure.");
 #endif
@@ -2052,7 +2045,7 @@ NCH5_s3comms_signing_key(unsigned char **mdp, const char *secret, const char *re
     HMAC(EVP_sha256(), (const unsigned char *)dateregionservicekey, SHA256_DIGEST_LENGTH,
          (const unsigned char *)"aws4_request", 12, md, NULL);
 #else
-    Curl_hmacit(Curl_HMAC_SHA256, (const unsigned char *)AWS4_secret, (int)nulllen(AWS4_secret),
+    Curl_hmacit(Curl_HMAC_SHA256, (const unsigned char *)AWS4_secret, nulllen(AWS4_secret),
          (const unsigned char *)iso8601now, 8, /* 8 --> length of 8 --> "yyyyMMDD"  */
          datekey);
     Curl_hmacit(Curl_HMAC_SHA256, (const unsigned char *)datekey, SHA256_DIGEST_LENGTH, (const unsigned char *)region,
@@ -2390,7 +2383,8 @@ build_request(s3r_t* handle, NCURI* purl,
               VString* payload,
               HTTPVerb verb)
 {
-    int i,ret_value = SUCCEED;
+    int ret_value = SUCCEED;
+    size_t i;
     struct curl_slist *curlheaders   = NULL;
     hrb_node_t        *node          = NULL;
     hrb_t             *request       = NULL;
@@ -2786,32 +2780,6 @@ sortheaders(VList* headers)
     /* sort */
     qsort(listcontents, nnodes, sizeof(hrb_node_t*), hdrcompare);
     return (ret_value);
-}
-
-static int
-httptonc(long httpcode)
-{
-    int stat = NC_NOERR;
-    if(httpcode <= 99) stat = NC_EINTERNAL; /* should never happen */
-    else if(httpcode <= 199)
-        stat = NC_NOERR; /* I guess */
-    else if(httpcode <= 299) {
-        switch (httpcode) {
-        default: stat = NC_NOERR; break;
-        }
-    } else if(httpcode <= 399)
-        stat = NC_NOERR; /* ? */
-    else if(httpcode <= 499) {
-        switch (httpcode) {
-        case 400: stat = NC_EINVAL; break;
-        case 401: case 402: case 403:
-            stat = NC_EAUTH; break;
-        case 404: stat = NC_EEMPTY; break;
-        default: stat = NC_EINVAL; break;
-        }
-    } else
-        stat = NC_ES3;
-    return stat;
 }
 
 /**************************************************/
