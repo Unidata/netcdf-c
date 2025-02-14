@@ -5,9 +5,9 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.9.4 - TBD
+## 4.10.0 - TBD
 
-* Provide an auxilliary function that allows users to parse the _NCProperties attribute. See [Github #3088](https://github.com/Unidata/netcdf-c/pull/3088) for more information.
+* Provide an auxilliary function, `ncaux_parse_provenance()`, that allows users to parse the _NCProperties attribute into a collection of character pointers. See [Github #3088](https://github.com/Unidata/netcdf-c/pull/3088) for more information.
 
 ## 4.9.3 - February 7, 2025
 
