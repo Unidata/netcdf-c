@@ -5,6 +5,10 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
+## 4.9.4 - TBD
+
+* Clean up minor problems with DAP2/DAP4 code. Part of the splitting of PR [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068). See [Github #????](https://github.com/Unidata/netcdf-c/pull/????) for more information.
+
 ## 4.9.3 - February 7, 2025
 
 ## Known Issues
