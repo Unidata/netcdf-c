@@ -245,6 +245,13 @@ EXTERNL int ncaux_plugin_path_stringget(int pathlen, char* path);
 */
 EXTERNL int ncaux_plugin_path_stringset(int pathlen, const char* path);
 
+/* Provide a parser for _NCProperties attribute.
+ * @param ncprop the contents of the _NCProperties attribute.
+ * @param pairsp allocate and return a pointer to a NULL terminated vector of (key,value) pairs.
+ * @return NC_NOERR | NC_EXXX
+ */
+EXTERNL int ncaux_parse_provenance(const char* ncprop, char*** pairsp);
+
 #if defined(__cplusplus)
 }
 #endif
