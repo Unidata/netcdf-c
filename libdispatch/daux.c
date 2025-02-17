@@ -32,6 +32,7 @@ See COPYRIGHT for license information.
 #include "netcdf_filter.h"
 #include "ncpathmgr.h"
 #include "nclist.h"
+#include "ncutil.h"
 
 struct NCAUX_FIELD {
     char* name;
@@ -953,6 +954,8 @@ This function is just a wrapper around nc_dump__data.
 @return error code
 */
 
+EXTERNL int nc_dump_data(int ncid, nc_type xtype, void* memory, size_t count, char** bufp);
+
 EXTERNL int
 ncaux_dump_data(int ncid, int xtype, void* memory, size_t count, char** bufp)
 {
@@ -1209,7 +1212,7 @@ ncaux_plugin_path_stringlen(void)
     if((stat = nc_plugin_path_get(&npl))) goto done;
     /* Convert to a string path separated by ';' */
     if((stat = ncaux_plugin_path_tostring(&npl,';',&buf))) goto done;
-    len = nulllen(buf);
+    len = (int)nulllen(buf);
 
 done:
     if(npl.dirs != NULL) {(void)ncaux_plugin_path_clear(&npl);}
