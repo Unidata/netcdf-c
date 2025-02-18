@@ -1557,15 +1557,20 @@ endif()
 # in the libdir.
 ##
 if(MSVC)
+
+  if(NOT CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "")
+    set(CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
+  endif()
+  
   foreach(CPP ${CMAKE_PREFIX_PATH})
-    file(GLOB COPY_FILES ${CPP}/lib/*.lib)
+    file(GLOB COPY_FILES ${CPP}/*.lib ${CPP}/lib/*.lib)
   endforeach()
   install(FILES ${COPY_FILES}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
   COMPONENT dependencies)
 
   foreach(CPP ${CMAKE_PREFIX_PATH})
-    file(GLOB COPY_FILES ${CPP}/bin/*.dll)
+    file(GLOB COPY_FILES ${CPP}/*.dll)
   endforeach()
   string(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
   install(FILES ${COPY_FILES}
