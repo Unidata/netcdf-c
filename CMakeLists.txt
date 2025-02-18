@@ -13,7 +13,7 @@ project(netCDF
   LANGUAGES C CXX
   HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
   DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
-  VERSION 4.9.4
+  VERSION 4.10.0
 )
 
 #####
@@ -358,7 +358,7 @@ endif()
 
 # Default Cache variables.
 set(DEFAULT_CHUNK_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
-set(DEFAULT_CHUNK_CACHE_SIZE 16777216U CACHE STRING "Default Chunk Cache Size.")
+set(DEFAULT_CHUNK_CACHE_SIZE 67108864U CACHE STRING "Default Chunk Cache Size.")
 set(DEFAULT_CHUNKS_IN_CACHE 1000 CACHE STRING "Default number of chunks in cache.")
 set(DEFAULT_CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy (a number between 0 and 1, inclusive).")
 
@@ -1557,15 +1557,20 @@ endif()
 # in the libdir.
 ##
 if(MSVC)
+
+  if(NOT CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "")
+    set(CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
+  endif()
+  
   foreach(CPP ${CMAKE_PREFIX_PATH})
-    file(GLOB COPY_FILES ${CPP}/lib/*.lib)
+    file(GLOB COPY_FILES ${CPP}/*.lib ${CPP}/lib/*.lib)
   endforeach()
   install(FILES ${COPY_FILES}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
   COMPONENT dependencies)
 
   foreach(CPP ${CMAKE_PREFIX_PATH})
-    file(GLOB COPY_FILES ${CPP}/bin/*.dll)
+    file(GLOB COPY_FILES ${CPP}/*.dll)
   endforeach()
   string(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
   install(FILES ${COPY_FILES}
