@@ -1563,20 +1563,30 @@ if(MSVC)
   endif()
   
   foreach(CPP ${CMAKE_PREFIX_PATH})
+    
+    CMAKE_PATH(CONVERT ${CPP} TO_CMAKE_PATH_LIST CPP)
+
     file(GLOB COPY_FILES ${CPP}/*.lib ${CPP}/lib/*.lib)
+    if(COPY_FILES)
+      install(FILES ${COPY_FILES}
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT dependencies)
+    endif()
   endforeach()
-  install(FILES ${COPY_FILES}
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  COMPONENT dependencies)
-
+  
   foreach(CPP ${CMAKE_PREFIX_PATH})
-    file(GLOB COPY_FILES ${CPP}/*.dll)
-  endforeach()
-  string(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
-  install(FILES ${COPY_FILES}
-  DESTINATION ${CMAKE_INSTALL_BINDIR}
-  COMPONENT dependencies)
 
+    CMAKE_PATH(CONVERT ${CPP} TO_CMAKE_PATH_LIST CPP)
+
+    file(GLOB COPY_FILES ${CPP}/*.dll ${CPP}/bin/*.dll)
+    if(COPY_FILES)
+      string(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
+      install(FILES ${COPY_FILES}
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT dependencies)
+    endif()
+  endforeach()
+  
 endif()
 
 # Subdirectory CMakeLists.txt files should specify their own
