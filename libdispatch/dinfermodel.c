@@ -1342,7 +1342,7 @@ openmagic(struct MagicFile* file)
 	/* Construct a URL minus any fragment */
         file->curlurl = ncuribuild(file->uri,NULL,NULL,NCURISVC);
 	/* Open the curl handle */
-        if((status=nc_http_open(file->curlurl, &file->state))) goto done;
+        if((status=nc_http_open(file->path, &file->state))) goto done;
 	if((status=nc_http_size(file->state,&file->filelen))) goto done;
 #else /*!BYTERANGE*/
 	{status = NC_ENOTBUILT;}
