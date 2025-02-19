@@ -517,7 +517,7 @@ transfern(const struct Common* common, unsigned char* slpptr, unsigned char* mem
 	    }
 	}
         if(common->swap && xtype < NC_STRING)
-            NCZ_swapatomicdata(len,memptr,common->typesize);
+            NC_swapatomicdata(len,memptr,common->typesize);
     } else { /*writing*/
 unsigned char* srcbase = (common->reading?chunkdata:common->memory);
 unsigned srcoff = (unsigned)(memptr - srcbase);
@@ -534,7 +534,7 @@ unsigned srcidx = srcoff / sizeof(unsigned); (void)srcidx;
 	    }
 	}
         if(common->swap && xtype < NC_STRING)
-            NCZ_swapatomicdata(len,slpptr,common->typesize);
+            NC_swapatomicdata(len,slpptr,common->typesize);
     }
 done:
     return THROW(stat);
