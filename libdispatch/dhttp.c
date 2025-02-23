@@ -96,9 +96,12 @@ nc_http_open_verbose(const char* path, int verbose, NC_HTTP_STATE** statep)
     ncuriparse(path,&uri);
     if(uri == NULL) {stat = NCTHROW(NC_EURL); goto done;}
 
+    char *cleanpath = ncuribuild(uri, NULL, NULL, NCURISVC);
+    if(cleanpath == NULL) {stat = NCTHROW(NC_EURL); goto done;}
+
     if((state = calloc(1,sizeof(NC_HTTP_STATE))) == NULL)
         {stat = NCTHROW(NC_ENOMEM); goto done;}
-    state->path = strdup(path);
+    state->path = cleanpath;
     state->url = uri; uri = NULL;    
 #ifdef NETCDF_ENABLE_S3
     state->format = (NC_iss3(state->url,NULL)?HTTPS3:HTTPCURL);
