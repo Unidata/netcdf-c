@@ -1429,7 +1429,7 @@ configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
 
 add_definitions(-DHAVE_CONFIG_H)
 
-include_directories(${netCDF_BINARY_DIR})
+include_directories(BEFORE ${netCDF_BINARY_DIR})
 # End autotools-style checks for config.h
 
 #####
