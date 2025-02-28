@@ -33,7 +33,7 @@
 #include "ncbytes.h"
 #include "nclist.h"
 #include "nclog.h"
-#include "ncrc.h"
+#include "ncutil.h"
 #include "nchttp.h"
 #ifdef NETCDF_ENABLE_S3
 #include "ncs3sdk.h"

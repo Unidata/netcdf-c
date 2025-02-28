@@ -18,6 +18,7 @@ redistribution conditions.
 #include "netcdf_mem.h"
 #include "ncbytes.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
 #include "nc_tests.h"
 #include "err_macros.h"
 

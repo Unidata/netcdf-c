@@ -770,6 +770,7 @@ done:
 }
 
 /**************************************************/
+#if 0
 /* Endianness support */
 /* signature: void swapinline16(void* ip) */
 #define swapinline16(ip) \
@@ -833,6 +834,7 @@ NCZ_swapatomicdata(size_t datalen, void* data, int typesize)
 done:
     return THROW(stat);
 }
+#endif /*0*/
 
 char**
 NCZ_clonestringvec(size_t len, const char** vec)

@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.10.0 - TBD
 
+* Refactor drc.c to move many of its purely utility functions into dutil.c. Also change the NC_mktmp signature. Change other files to match. See [Github #3094](https://github.com/Unidata/netcdf-c/pull/3094) for more information.
+
 * Provide an auxilliary function, `ncaux_parse_provenance()`, that allows users to parse the _NCProperties attribute into a collection of character pointers. See [Github #3088](https://github.com/Unidata/netcdf-c/pull/3088) for more information.
 
 ## 4.9.3 - February 7, 2025
