@@ -221,6 +221,9 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
         {stat = NC_EURL; goto done;}
 
     z3map->s3client = NC_s3sdkcreateclient(&z3map->s3);
+    if(z3map->s3client == NULL) {
+        stat = NC_ES3; goto done;
+    }
 
     /* Search the root for content */
     content = nclistnew();
