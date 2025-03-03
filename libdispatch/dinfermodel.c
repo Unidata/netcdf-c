@@ -1099,7 +1099,7 @@ nc__testurl(const char* path0, char** basenamep)
     if(!ncuriparse(path0,&uri)) {
 	char* p;
 	char* q;
-	path = strdup(uri->path);
+	path = nulldup(uri->path);
 	if(path == NULL||strlen(path)==0) goto done;
         p = strrchr(path, '/');
 	if(p == NULL) p = path; else p++;
