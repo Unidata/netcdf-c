@@ -1566,9 +1566,13 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	zarr_rank = NCJarraylength(jvalue);
 	if(zarr_rank == 0) {
 	    /* suppress variable */
-	    ZLOG(NCLOGWARN,"Empty shape for variable %s suppressed",var->hdr.name);
-	    suppress = 1;
-	    goto suppressvar;
+	    if(NC_NOERR == (stat = NCJdictget(jvar,"chunks",&jvalue)) && jvalue && NCJsort(jvalue) == NCJ_ARRAY && NCJlength(jvalue) == 0) {
+            zvar->scalar = 1;
+        }else{
+            ZLOG(NCLOGWARN,"Empty shape for variable %s suppressed",var->hdr.name);
+            suppress = 1;
+            goto suppressvar;
+        }
 	}
 
 	if(zvar->scalar) {
