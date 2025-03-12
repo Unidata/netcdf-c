@@ -1565,14 +1565,24 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	/* Process the rank */
 	zarr_rank = NCJarraylength(jvalue);
 	if(zarr_rank == 0) {
+	    // No shape, no chunks, no (xarray) dimensions => scalar
+	    if(zvar->xarray == NULL) {
+			// get xarray attributes
+			if((stat = ncz_read_atts(file,(NC_OBJ*)var))) goto done;
+	    }
+	    if(NC_NOERR == (stat = NCJdictget(jvar,"chunks",&jvalue)) && \
+			jvalue && NCJsort(jvalue) == NCJ_ARRAY && NCJlength(jvalue) == 0 && \
+			xarray && nclistlength(zvar->xarray) == 0) {
+			zvar->scalar = 1;
+			/* Save the rank of the variable */
+			if ((stat = nc4_var_set_ndims(var,1)))
+				goto done;
+	    }else{
 	    /* suppress variable */
-	    if(NC_NOERR == (stat = NCJdictget(jvar,"chunks",&jvalue)) && jvalue && NCJsort(jvalue) == NCJ_ARRAY && NCJlength(jvalue) == 0) {
-            zvar->scalar = 1;
-        }else{
-            ZLOG(NCLOGWARN,"Empty shape for variable %s suppressed",var->hdr.name);
-            suppress = 1;
-            goto suppressvar;
-        }
+	    ZLOG(NCLOGWARN,"Empty shape for variable %s suppressed",var->hdr.name);
+	    suppress = 1;
+	    goto suppressvar;
+	    }
 	}
 
 	if(zvar->scalar) {
