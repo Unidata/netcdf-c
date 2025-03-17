@@ -1,0 +1,4 @@
+abc=2\|z\=17,yyy=|zzz ->  (/abc/,/2|z=17/) (/yyy/,//) (/zzz/,//)
+version=2,netcdf=4.7.4-development,hdf5=1.10.4 ->  (/version/,/2/) (/netcdf/,/4.7.4-development/) (/hdf5/,/1.10.4/)
+version=2,netcdf=4.6.2-development,hdf5=1.10.1 ->  (/version/,/2/) (/netcdf/,/4.6.2-development/) (/hdf5/,/1.10.1/)
+version=1|netcdf=4.6.2-development|hdf5=1.8.1 ->  (/version/,/1/) (/netcdf/,/4.6.2-development/) (/hdf5/,/1.8.1/)
