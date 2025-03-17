@@ -284,6 +284,7 @@ done:
 @param xtype type id
 @param memory ptr to top-level memory to dump
 @param count number of instances of the type in memory block
+@param bufp return ptr to a buffer of dump'd data
 @return error code
 */
 

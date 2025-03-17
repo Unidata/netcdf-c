@@ -439,8 +439,8 @@ copy_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position src, Position d
 
 	    /* optimize: string field type */
 	    if(field->nc_typeid == NC_STRING) {
-	        char** srcstrvec = (char**)src.memory;
-	        char** dststrvec = (char**)dst.memory;
+	        char** srcstrvec = (char**)fsrc.memory;
+	        char** dststrvec = (char**)fdst.memory;
 		for(i=0;i<arraycount;i++) 
 		    {if(srcstrvec[i] != NULL) {dststrvec[i] = strdup(srcstrvec[i]);} else {dststrvec[i] = NULL;}}
 		continue; /* move to next field */
