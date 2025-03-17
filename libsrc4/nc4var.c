@@ -492,9 +492,10 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
     double mnt; /* [frc] Mantissa, 0.5 <= mnt < 1.0 */
     double mnt_fabs; /* [frc] fabs(mantissa) */
     double mnt_log10_fabs; /* [frc] log10(fabs(mantissa))) */
-    double val; /* [frc] Copy of input value to avoid indirection */
     double mss_val_cmp_dbl; /* Missing value for comparison to double precision values */
+    double val_dbl; /* [frc] Copy of input value to avoid indirection */
     float mss_val_cmp_flt; /* Missing value for comparison to single precision values */
+    float val_flt; /* [frc] Copy of input value to avoid indirection */
     int bit_xpl_nbr_zro; /* [nbr] Number of explicit bits to zero */
     int dgt_nbr; /* [nbr] Number of digits before decimal point */
     int qnt_pwr; /* [nbr] Power of two in quantization mask: qnt_msk = 2^qnt_pwr */
@@ -1390,11 +1391,12 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             /* BitGroom: alternately shave and set LSBs */
             op1.fp = (float *)dest;
             u32_ptr = op1.ui32p;
+	    /* Do not quantize _FillValue, +/- zero, or NaN */
             for (idx = 0L; idx < len; idx += 2L)
-                if (op1.fp[idx] != mss_val_cmp_flt)
+	        if ((val_flt=op1.fp[idx]) != mss_val_cmp_flt && val_flt != 0.0f && !isnan(val_flt))
                     u32_ptr[idx] &= msk_f32_u32_zro;
             for (idx = 1L; idx < len; idx += 2L)
-                if (op1.fp[idx] != mss_val_cmp_flt && u32_ptr[idx] != 0U) /* Never quantize upwards floating point values of zero */
+	        if ((val_flt=op1.fp[idx]) != mss_val_cmp_flt && val_flt != 0.0f && !isnan(val_flt))
                     u32_ptr[idx] |= msk_f32_u32_one;
         }
         else
@@ -1402,11 +1404,12 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             /* BitGroom: alternately shave and set LSBs. */
             op1.dp = (double *)dest;
             u64_ptr = op1.ui64p;
+	    /* Do not quantize _FillValue, +/- zero, or NaN */
             for (idx = 0L; idx < len; idx += 2L)
-                if (op1.dp[idx] != mss_val_cmp_dbl)
+	        if ((val_dbl=op1.dp[idx]) != mss_val_cmp_dbl && val_dbl != 0.0 && !isnan(val_dbl))
                     u64_ptr[idx] &= msk_f64_u64_zro;
             for (idx = 1L; idx < len; idx += 2L)
-                if (op1.dp[idx] != mss_val_cmp_dbl && u64_ptr[idx] != 0ULL) /* Never quantize upwards floating point values of zero */
+	        if ((val_dbl=op1.dp[idx]) != mss_val_cmp_dbl && val_dbl != 0.0 && !isnan(val_dbl))
                     u64_ptr[idx] |= msk_f64_u64_one;
         }
     } /* endif BitGroom */
@@ -1419,7 +1422,8 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             op1.fp = (float *)dest;
             u32_ptr = op1.ui32p;
             for (idx = 0L; idx < len; idx++){
-	      if (op1.fp[idx] != mss_val_cmp_flt){
+	      /* Do not quantize _FillValue, +/- zero, or NaN */
+	      if ((val_flt=op1.fp[idx]) != mss_val_cmp_flt && val_flt != 0.0f && !isnan(val_flt)){
 		u32_ptr[idx] += msk_f32_u32_hshv; /* Add 1 to the MSB of LSBs, carry 1 to mantissa or even exponent */
 		u32_ptr[idx] &= msk_f32_u32_zro; /* Shave it */
 	      }
@@ -1431,7 +1435,8 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             op1.dp = (double *)dest;
             u64_ptr = op1.ui64p;
             for (idx = 0L; idx < len; idx++){
-	      if (op1.dp[idx] != mss_val_cmp_dbl){
+	      /* Do not quantize _FillValue, +/- zero, or NaN */
+	      if ((val_dbl=op1.dp[idx]) != mss_val_cmp_dbl && val_dbl != 0.0 && !isnan(val_dbl)){
 		u64_ptr[idx] += msk_f64_u64_hshv; /* Add 1 to the MSB of LSBs, carry 1 to mantissa or even exponent */
 		u64_ptr[idx] &= msk_f64_u64_zro; /* Shave it */
 	      }
@@ -1448,10 +1453,10 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             u32_ptr = op1.ui32p;
             for (idx = 0L; idx < len; idx++)
 	      {
-	      
-		if((val = op1.fp[idx]) != mss_val_cmp_flt && u32_ptr[idx] != 0U)
+		/* Do not quantize _FillValue, +/- zero, or NaN */
+		if((val_dbl=op1.fp[idx]) != mss_val_cmp_flt && val_dbl != 0.0 && !isnan(val_dbl))
 		  {
-		    mnt = frexp(val, &xpn_bs2); /* DGG19 p. 4102 (8) */
+		    mnt = frexp(val_dbl, &xpn_bs2); /* DGG19 p. 4102 (8) */
 		    mnt_fabs = fabs(mnt);
 		    mnt_log10_fabs = log10(mnt_fabs);
 		    /* 20211003 Continuous determination of dgt_nbr improves CR by ~10% */
@@ -1482,10 +1487,10 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             u64_ptr = op1.ui64p;
             for (idx = 0L; idx < len; idx++)
 	      {
-
-		if((val = op1.dp[idx]) != mss_val_cmp_dbl && u64_ptr[idx] != 0ULL)
+		/* Do not quantize _FillValue, +/- zero, or NaN */
+		if((val_dbl=op1.dp[idx]) != mss_val_cmp_dbl && val_dbl != 0.0 && !isnan(val_dbl))
 		  {
-		    mnt = frexp(val, &xpn_bs2); /* DGG19 p. 4102 (8) */
+		    mnt = frexp(val_dbl, &xpn_bs2); /* DGG19 p. 4102 (8) */
 		    mnt_fabs = fabs(mnt);
 		    mnt_log10_fabs = log10(mnt_fabs);
 		    /* 20211003 Continuous determination of dgt_nbr improves CR by ~10% */
