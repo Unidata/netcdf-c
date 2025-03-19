@@ -121,7 +121,7 @@ NCZ_misc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
   
     /* The codec will have (2*14 + 1) +1 = 29 dict entries + id*/
     nparams = (2*14 + 1) + 1;
-    if(NCJlength(jcodec) != nparams) {
+    if(NCJarraylength(jcodec) != nparams) {
 	fprintf(stderr,"Incorrect no. of codec parameters: need=29 sent=%ld\n",(unsigned long)(nparams-1));
 	stat = NC_EINVAL;
 	goto done;
