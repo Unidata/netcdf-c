@@ -35,7 +35,6 @@ jobs:
           hdf5-version: '${{ matrix.h5ver }}'
           ctest-repeat: 3
           c-compiler: '${{ matrix.c-compiler }}'
-          c-branch: '${{ matrix.c-branch }}'
           run-fortran: 'TRUE'
           fortran-branch: '${{ matrix.fortran-branch }}'
 
@@ -64,7 +63,6 @@ jobs:
           hdf5-version: '${{ matrix.h5ver }}'
           ctest-repeat: 3
           c-compiler: '${{ matrix.c-compiler }}'
-          c-branch: '${{ matrix.c-branch }}'
           run-fortran: 'TRUE'
           fortran-branch: '${{ matrix.fortran-branch }}'
 
