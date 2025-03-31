@@ -49,6 +49,7 @@ jobs:
         repo-type: [ 'c' ]
         h5ver: [ '1.14.6' ]
         c-compiler: [ 'mpicc' ]
+        mpich-version: [ 'default' ]
         fortran-branch: [ 'v4.6.2', 'main' ]
         buildsystem: [ 'cmake', 'autotools' ]
 
@@ -63,6 +64,7 @@ jobs:
           hdf5-version: '${{ matrix.h5ver }}'
           ctest-repeat: 3
           c-compiler: '${{ matrix.c-compiler }}'
+          mpich-version: '${{ matrix.mpich-version }}'
           run-fortran: 'TRUE'
           fortran-branch: '${{ matrix.fortran-branch }}'
 
