@@ -12,6 +12,10 @@ concurrency:
 
 permissions: {} 
 
+
+####
+# Serial Testing
+###
 jobs:  
   netcdf-tests-serial:
     name: Docker-Based NetCDF-C, Fortran Regression Testing (Serial)
@@ -38,6 +42,9 @@ jobs:
           run-fortran: 'TRUE'
           fortran-branch: '${{ matrix.fortran-branch }}'
 
+###
+# Parallel Testing
+###          
   netcdf-tests-parallel:
 
     needs: netcdf-tests-serial
@@ -68,3 +75,34 @@ jobs:
           run-fortran: 'TRUE'
           fortran-branch: '${{ matrix.fortran-branch }}'
 
+###
+# Test with Java
+###
+  netcdf-tests-java:
+    needs: netcdf-tests-serial
+
+    name: Docker-Based NetCDF-C, Java Regression Testing (Serial, Java Only)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo-type: [ 'c' ]
+        c-compiler: [ 'gcc' ]
+        h5ver: [ '1.14.6' ]
+        build-system: [ 'cmake', 'autotools' ]
+        run-java: [ 'TRUE' ]
+        java-branch: [ 'maint-5.x' ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull and Run netCDF Regression Tests
+        uses: WardF/netcdf-test-action@v1
+        with:
+          repo-type: '${{ matrix.repo-type }}'
+          run-c: 'FALSE'
+          run-fortran: 'FALSE'
+          build-system: '${{ matrix.build-system }}'
+          hdf5-version: '${{ matrix.h5ver }}'
+          ctest-repeat: 3
+          c-compiler: '${{ matrix.c-compiler }}'
+          run-java: '${{ matrix.run-java }}'
+          java-branch: '${{ matrix.java-branch }}'
