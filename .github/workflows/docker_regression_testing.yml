@@ -37,7 +37,7 @@ jobs:
           c-compiler: '${{ matrix.c-compiler }}'
           c-branch: '${{ matrix.c-branch }}'
           run-fortran: 'TRUE'
-          fortran-branch: '{{ matrix.fortran-branch }}'
+          fortran-branch: '${{ matrix.fortran-branch }}'
 
   netcdf-tests-parallel:
 
@@ -66,5 +66,5 @@ jobs:
           c-compiler: '${{ matrix.c-compiler }}'
           c-branch: '${{ matrix.c-branch }}'
           run-fortran: 'TRUE'
-          fortran-branch: '{{ matrix.fortran-branch }}'
+          fortran-branch: '${{ matrix.fortran-branch }}'
 
