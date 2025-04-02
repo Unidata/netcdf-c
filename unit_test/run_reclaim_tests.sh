@@ -13,7 +13,7 @@ sed -e '/^(c)/p' -ed reclaim_tests.txt | sed -e 's/^(c) //' > reclaim_tests_c.tx
 diff reclaim_tests_o.txt reclaim_tests_c.txt
 # Also test using ncdump 
 ${NCDUMP} reclaim_tests.nc > reclaim_tests.dmp
-diff reclaim_tests.dmp ${srcdir}/reclaim_tests.baseline
+diff -b reclaim_tests.dmp ${srcdir}/reclaim_tests.baseline
 
 
     
