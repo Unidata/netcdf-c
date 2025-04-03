@@ -1,0 +1,19 @@
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zarr-python-testing-tools"
+version = "0.1.0"
+description = "Script to create Zarr datasets using zarr-python"
+authors = [{name = "Your Name", email = "your.email@example.com"}]
+license = {text = "MIT"}
+dependencies = [
+    "zarr<3",
+    "xarray",
+]
+
+[tool.setuptools]
+packages = ["pythontools"]
+
+[project.scripts]
+testing-tools = "pythontools.main:run"

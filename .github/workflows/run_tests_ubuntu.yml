@@ -4,7 +4,7 @@
 
 name: Run Ubuntu/Linux netCDF Tests
 
-on: [workflow_dispatch]
+on: [pull_request,workflow_dispatch]
 
 env:
   REMOTETESTDOWN: ${{ vars.REMOTETESTDOWN }}
@@ -14,7 +14,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
- 
+  
+  build-python-tools:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - uses: astral-sh/setup-uv@v5 
+
+      - name: Install Python tools
+        run: |
+          uv pip install . --system
+          uv run testing-tools
+
   build-deps-serial:
 
     strategy:
@@ -243,7 +259,9 @@ jobs:
   ## Serial, Static
   nc-ac-tests-oneoff-serial-static:
 
-    needs: build-deps-serial
+    needs:
+      - build-deps-serial
+      - build-python-tools
 
     strategy:
       matrix:
@@ -314,7 +332,7 @@ jobs:
         shell: bash -l {0}
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check TESTS="" -j
         if: ${{ success() }}
-
+      
       - name: Run Tests
         shell: bash -l {0}
         run: |
@@ -332,7 +350,10 @@ jobs:
   ##
   nc-ac-tests-oneoff-parallel:
 
-    needs: build-deps-parallel
+    needs: 
+      - build-deps-parallel
+      - build-python-tools
+
     runs-on: ubuntu-22.04
 
     strategy:
@@ -488,7 +509,7 @@ jobs:
         if: ${{ failure() }}
 
  ##
-  # Serial, Shared
+  # Serial, Static
   ##
   nc-cmake-tests-oneoff-serial-static:
 
