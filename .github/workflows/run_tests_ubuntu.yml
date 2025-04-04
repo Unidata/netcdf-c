@@ -24,12 +24,6 @@ jobs:
         with:
           python-version: '3.12'
       
-      - uses: astral-sh/setup-uv@v5 
-
-      - name: Install Python tools
-        run: |
-          uv pip install . --system
-
   build-deps-serial:
 
     strategy:
