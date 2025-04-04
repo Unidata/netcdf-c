@@ -29,7 +29,6 @@ jobs:
       - name: Install Python tools
         run: |
           uv pip install . --system
-          uv run testing-tools
 
   build-deps-serial:
 
