@@ -35,8 +35,8 @@ testxarray() {
   # Create files
   testing-tools create xarray $1 
 
-  ncdump -n same ${PWD}/xarray-$1.nc > nc.out
-  ncdump -n same file://${PWD}/xarray-$1.zarr/#mode=zarr,file > zarr.out
+  ${NCDUMP} -n same ${PWD}/xarray-$1.nc > nc.out
+  ${NCDUMP} -n same file://${PWD}/xarray-$1.zarr/#mode=zarr,file > zarr.out
   diff -b nc.out zarr.out
 }
 
