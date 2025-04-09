@@ -7,7 +7,7 @@ version = "0.1.0"
 description = "Script to create Zarr datasets using zarr-python"
 authors = [{name = "Your Name", email = "your.email@example.com"}]
 license = {text = "MIT"}
-requires-python = "==3.10.12"
+requires-python = ">= 3.10"
 dependencies = [
     "argparse",
     "zarr==2.18.2",
