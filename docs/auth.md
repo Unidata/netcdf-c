@@ -1,21 +1,18 @@
 NetCDF Authorization Support
-======================================
+====================================
 
 <!-- double header is needed to workaround doxygen bug -->
 
-NetCDF Authorization Support {#auth}
-====================================
-
 [TOC]
 
-## Introduction {#auth_intro}
+## Introduction {#auth}
 
 netCDF can support user authorization using the facilities provided by the curl
 library. This includes basic password authentication as well as
 certificate-based authorization.
 At the moment, this document only applies to DAP2 and DAP4 access.
 
-With some exceptions (e.g. see the section on <a href="#REDIR">redirection</a>)
+With some exceptions (e.g. see the section on <a href="#auth_redir">redirection</a>)
 The libcurl authorization mechanisms can be accessed in two ways
 
 1. Inserting the username and password into the url, or
@@ -33,7 +30,7 @@ This username and password will be used if the server asks for
 authentication. Note that only simple password authentication
 is supported in this format.
 
-Specifically note that [redirection-based](#REDIR)
+Specifically note that [redirection-based](#auth_redir)
 authorization may work with this but it is a security risk.
 This is because the username and password
 may be sent to each server in the redirection chain.
@@ -44,67 +41,12 @@ how to properly escape the user and password.
 
 ## RC File Authentication {#auth_dodsrc}
 The netcdf library supports an _rc_ file mechanism to allow the passing
-of a number of parameters to libnetcdf and libcurl.
-Locating the _rc_ file is a multi-step process.
-
-### Search Order
-
-The netcdf-c library searches for, and loads from, the following files,
-in this order:
-1. $HOME/.ncrc
-2. $HOME/.dodsrc
-3. $CWD/.ncrc
-4. $CWD/.dodsrc
-
-*$HOME* is the user's home directory and *$CWD* is the current working directory. Entries in later files override any of the earlier files
-
-It is strongly suggested that you pick a uniform location and a uniform name
-and use them always. Otherwise you may observe unexpected results
-when the netcdf-c library loads an rc file you did not expect.
-
-### RC File Format
-
-The rc file format is a series of lines of the general form:
-
-    [<host:port>]<key>=<value>
-
-where the bracket-enclosed host:port is optional.
-
-### URL Constrained RC File Entries
-
-Each line of the rc file can begin with a host+port enclosed in
-square brackets.  The form is "host:port".  If the port is not
-specified then the form is just "host".  The reason that more of
-the url is not used is that libcurl's authorization grain is not
-any finer than host level.
-
-Here are some examples.
-````
-    [remotetest.unidata.ucar.edu]HTTP.VERBOSE=1
-or
-    [fake.ucar.edu:9090]HTTP.VERBOSE=0
-````
-If the url request from, say, the _netcdf_open_ method
-has a host+port matching one of the prefixes in the rc file, then
-the corresponding entry will be used, otherwise ignored.
-This means that an entry with a matching host+port will take
-precedence over an entry without a host+port.
-
-For example, the URL
-````
-    http://remotetest.unidata.ucar.edu/thredds/dodsC/testdata/testData.nc
-````
-will have HTTP.VERBOSE set to 1 because its host matches the example above.
-
-Similarly,
-````
-    http://fake.ucar.edu:9090/dts/test.01
-````
-will have HTTP.VERBOSE set to 0 because its host+port matches the example above.
+of a number of run-time parameters to libnetcdf and libcurl.
+This is described in the file "quickstart_env.md". 
 
 ## Authorization-Related Keys {#auth_keys}
 
-The currently defined set of authorization-related keys are as follows.
+The currently defined set of authorization-related keys recognized in .netrc are as follows.
 The second column is the affected curl_easy_setopt option(s), if any
 (see reference #1).
 <table>
@@ -137,7 +79,7 @@ This is an alternative to setting it in the url.
 The value must be of the form "username:password".
 See the <a href="#USERPWDESCAPE">password escaping</a> section
 to see how this value must escape certain characters.
-Also see <a href="#REDIR">redirection authorization</a>
+Also see <a href="#auth_redir">redirection authorization</a>
 for important additional information.
 
 The pair of keys
@@ -146,7 +88,7 @@ can be used as an alternative to HTTP.CREDENTIALS.USERPASSWORD
 to set the simple password authentication.
 If present, they take precedence over HTTP.CREDENTIALS.USERPASSWORD.
 The values do not need to be escaped.
-See <a href="#REDIR">redirection authorization</a>
+See <a href="#auth_redir">redirection authorization</a>
 for important additional information.
 
 ### Cookie Jar
@@ -157,7 +99,7 @@ to read cookies (CURLOPT_COOKIEJAR) and also
 the file into which to store cookies (CURLOPT_COOKIEFILE).
 The same value is used for both CURLOPT values.
 It defaults to in-memory storage.
-See [redirection authorization](#REDIR)
+See [redirection authorization](#auth_redir)
 for important additional information.
 
 ### Certificate Authentication
@@ -191,7 +133,7 @@ deprecated; use HTTP.PROXY.SERVER
 HTTP.NETRC
 specifies the absolute path of the .netrc file,
 and causes it to be used instead of username and password.
-See [redirection authorization](#REDIR)
+See [redirection authorization](#auth_redir)
 for information about using *.netrc*.
 
 ## Password Escaping {#auth_userpwdescape}
@@ -289,7 +231,7 @@ machine urs.earthdata.nasa.gov login <user> password <password>
 
 Some systems, notably ESG (Earth System Grid), requires
 the use of client-side certificates, as well as being
-[re-direction based](#REDIR).
+[re-direction based](#auth_redir).
 This requires setting the following entries:
 
 - HTTP.COOKIEJAR &mdash; a file path for storing cookies across re-direction.
@@ -306,7 +248,7 @@ Note that the first two are there to support re-direction based authentication.
 1. https://curl.haxx.se/libcurl/c/curl_easy_setopt.html
 2. https://curl.haxx.se/docs/ssl-compared.html
 
-## Appendix A. All RC-File Keys {#auth_allkeys}
+## Authorization Appendix A. All RC-File Keys {#auth_allkeys}
 
 For completeness, this is the list of all rc-file keys.
 If this documentation is out of date with respect to the actual code,
@@ -333,21 +275,21 @@ the code is definitive.
 <tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC,CURLOPT_NETRC_FILE</td>
 </table>
 
-## Appendix B. URS Access in Detail {#auth_ursdetail}
+## Authorization Appendix B. URS Access in Detail {#auth_ursdetail}
 
 It is possible to use the NASA Earthdata Login System (URS)
 with netcdf by using using the process specified in the
-[redirection based authorization section](#REDIR).
+[redirection based authorization section](#auth_redir).
 In order to access URS controlled datasets, however, it is necessary to
 register as a user with NASA at this website (subject to change):
 
     https://uat.urs.earthdata.nasa.gov/
 
-## Appendix C. ESG Access in Detail {#auth_esgdetail}
+## Authorization Appendix C. ESG Access in Detail {#auth_esgdetail}
 
 It is possible to access Earth Systems Grid (ESG) datasets
 from ESG servers through the netCDF API using the techniques
-described in the section on [Client-Side Certificates](#CLIENTCERTS).
+described in the section on [Client-Side Certificates](#auth_clientcerts).
 
 In order to access ESG datasets, however, it is necessary to
 register as a user with ESG and to setup your environment
@@ -430,7 +372,7 @@ named "truststore"
 
 ### Running the C Client
 
-Refer to the section on [Client-Side Certificates](#CLIENTCERTS).
+Refer to the section on [Client-Side Certificates](#auth_clientcerts).
 The keys specified there  must be set in the rc file to support ESG access.
 
 - HTTP.COOKIEJAR=~/.dods_cookies

@@ -1,5 +1,7 @@
-Appendix D.2. Specifying Paths for NetCDF-C {#nc_paths_quickstart}
+Appendix F. Specifying Paths for NetCDF-C QuickStart {#nc_paths_quickstart}
 ==============================
+
+[TOC]
 
 A key concept in netcdf-c is the notion of a "path".
 A path specifies some dataset that is of interest to a user.
@@ -13,10 +15,10 @@ for using the NetCDF-C library.
 ## Classification of Paths {#nc_paths_kinds}
 
 Basically, there are two kinds of paths:
-1. File system paths, and
-2. Uniform Resource Locator (URL) paths.
+1. <a href="#qpaths_filesystem">File system paths</a>, and
+2. <a href="#qpaths_url">Uniform Resource Locator (URL) paths</a>.
 
-### File System Paths
+### File System Paths {#qpaths_filesystem}
 
 The most common form of path accepted by the NetCDF-C library is a file system path.
 Every user of some computer operating system is familiar with the idea of a file system path.
@@ -37,7 +39,7 @@ Windows has a notion of a drive ("d:") and each drive serves as the root
 of its own file system. Windows uses "\\" as its file separator, although
 many programs also accept "/".
 
-## Uniform Resource Locator (URL) Paths
+## Uniform Resource Locator (URL) Paths {#qpaths_url}
 
 The NetCDF-C library can access datasets that reside on remote computers,
 Hence NetCDF-C now also accepts URLs to specify those remote datasets.

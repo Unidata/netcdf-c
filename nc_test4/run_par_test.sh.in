@@ -10,6 +10,18 @@ set -e
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+if test "x@HAS_ZSTD@" = "xyes" ; then
+  # Load the findplugins function
+  . ${builddir}/findplugin.sh
+  echo "findplugin.sh loaded"
+  echo "${HDF5_PLUGIN_DIR}"
+
+  # Find zstd plugin.
+  findplugin h5zstd
+  export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_DIR}"
+  echo "HDF5_PLUGIN_PATH=$HDF5_PLUGIN_PATH"
+fi
+
 echo
 echo "Testing MPI parallel I/O with various other mode flags..."
 @MPIEXEC@ -n 1 ./tst_mode

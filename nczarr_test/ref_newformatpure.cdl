@@ -1,10 +1,9 @@
 netcdf ref_oldformat {
 dimensions:
-	lat = 8 ;
-	_zdim_8 = 8 ;
-	_zdim_10 = 10 ;
+	_Anonymous_Dim_8 = 8 ;
+	_Anonymous_Dim_10 = 10 ;
 variables:
-	int lat(lat) ;
+	int lat(_Anonymous_Dim_8) ;
 		lat:_FillValue = -1 ;
 		string lat:lat_attr = "latitude" ;
 data:
@@ -13,7 +12,7 @@ data:
 
 group: g1 {
   variables:
-  	int pos(_zdim_8, _zdim_10) ;
+  	int pos(_Anonymous_Dim_8, _Anonymous_Dim_10) ;
   		pos:_FillValue = -1 ;
   		string pos:pos_attr = "latXlon" ;
 

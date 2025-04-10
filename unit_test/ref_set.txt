@@ -1,0 +1,6 @@
+testset(global): before: /zero;/one;/two;/three;/four
+testset(global): after: /zero;/one;/mod;/two;/three;/four
+testset(hdf5): before: /zero;/one;/two;/three;/four
+testset(hdf5): after: /zero;/one;/mod;/two;/three;/four
+testset(nczarr): before: /zero;/one;/two;/three;/four
+testset(nczarr): after: /zero;/one;/mod;/two;/three;/four

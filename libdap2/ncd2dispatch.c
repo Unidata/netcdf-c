@@ -384,7 +384,7 @@ NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
 	    nc_set_default_format(old,&new); /* restore */
 	    dapcomm->substrate.realfile = ((ncflags & NC_DISKLESS) != 0);
 	    dapcomm->substrate.filename = strdup(tmpname);
-	    if(tmpname == NULL) ncstat = NC_ENOMEM;
+	    if(dapcomm->substrate.filename == NULL) ncstat = NC_ENOMEM;
 	    dapcomm->substrate.nc3id = nc3id;
 	}
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
@@ -645,7 +645,6 @@ done:
 static NCerror
 builddims(NCDAPCOMMON* dapcomm)
 {
-    int i;
     NCerror ncstat = NC_NOERR;
     int dimid;
     NClist* dimset = NULL;
@@ -657,12 +656,13 @@ builddims(NCDAPCOMMON* dapcomm)
 
     /* Sort by fullname just for the fun of it */
     for(;;) {
-	int last = nclistlength(dimset) - 1;
+	const size_t last = nclistlength(dimset);
+	if (last == 0) break;
 	int swap = 0;
-        for(i=0;i<last;i++) {
+	for(size_t i=0;i<last-1;i++) {
 	    CDFnode* dim1 = (CDFnode*)nclistget(dimset,i);
 	    CDFnode* dim2 = (CDFnode*)nclistget(dimset,i+1);
-   	    if(strcmp(dim1->ncfullname,dim2->ncfullname) > 0) {
+	    if(strcmp(dim1->ncfullname,dim2->ncfullname) > 0) {
 		nclistset(dimset,i,(void*)dim2);
 		nclistset(dimset,i+1,(void*)dim1);
 		swap = 1;
@@ -695,7 +695,7 @@ builddims(NCDAPCOMMON* dapcomm)
 
     }
 
-    for(i=0;i<nclistlength(dimset);i++) {
+    for(size_t i=0;i<nclistlength(dimset);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
         if(dim->dim.basedim != NULL) continue; /* handle below */
 	if(DIMFLAG(dim,CDFDIMRECORD)) continue; /* defined above */
@@ -713,7 +713,7 @@ fprintf(stderr,"define: dim: %s=%ld\n",dim->ncfullname,(long)dim->dim.declsize);
 
     /* Make all duplicate dims have same dimid as basedim*/
     /* (see computecdfdimnames)*/
-    for(i=0;i<nclistlength(dimset);i++) {
+    for(size_t i=0;i<nclistlength(dimset);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
         if(dim->dim.basedim != NULL) {
 	    dim->ncid = dim->dim.basedim->ncid;
@@ -1242,9 +1242,9 @@ static NCerror
 applyclientparams(NCDAPCOMMON* nccomm)
 {
     size_t i;
-    int len;
-    int dfaltstrlen = DEFAULTSTRINGLENGTH;
-    int dfaltseqlim = DEFAULTSEQLIMIT;
+    unsigned int len;
+    unsigned int dfaltstrlen = DEFAULTSTRINGLENGTH;
+    unsigned int dfaltseqlim = DEFAULTSEQLIMIT;
     const char* value;
     char tmpname[NC_MAX_NAME+32];
     char* pathstr = NULL;
@@ -1287,7 +1287,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	dfaltseqlim = 0;
     value = paramlookup(nccomm,"limit");
     if(value != NULL && strlen(value) != 0) {
-        if(sscanf(value,"%d",&len) && len > 0) dfaltseqlim = len;
+        if(sscanf(value,"%u",&len) && len > 0) dfaltseqlim = len;
     }
     nccomm->cdf.defaultsequencelimit = dfaltseqlim;
 
@@ -1296,7 +1296,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
     if(value == NULL) 
         value = paramlookup(nccomm,"maxstrlen");
     if(value != NULL && strlen(value) != 0) {
-        if(sscanf(value,"%d",&len) && len > 0) dfaltstrlen = len;
+        if(sscanf(value,"%u",&len) && len > 0) dfaltstrlen = len;
     } 
     nccomm->cdf.defaultstringlength = dfaltstrlen;
 
@@ -1720,7 +1720,6 @@ countsequence(NCDAPCOMMON* dapcomm, CDFnode* xseq, size_t* sizep)
 {
     unsigned int i;
     NClist* path = nclistnew();
-    int index;
     OCerror ocstat = OC_NOERR;
     NCerror ncstat = NC_NOERR;
     OClink conn = dapcomm->oc.conn;
@@ -1761,7 +1760,7 @@ countsequence(NCDAPCOMMON* dapcomm, CDFnode* xseq, size_t* sizep)
 	    }
 	    /* get next node in path; structure/dataset => exists */
 	    next = (CDFnode*)nclistget(path,i+1);
-	    index = fieldindex(current,next);
+	    size_t index = fieldindex(current,next);
             /* Move to appropriate field */
 	    ocstat = oc_data_ithfield(conn,data,index,&nextdata);
 	    if(ocstat) goto done;
@@ -2146,7 +2145,7 @@ fail:
 static NCerror
 suppressunusablevars(NCDAPCOMMON* dapcomm)
 {
-    size_t i,j;
+    size_t i;
     int found = 1;
     NClist* path = nclistnew();
 
@@ -2158,7 +2157,7 @@ suppressunusablevars(NCDAPCOMMON* dapcomm)
 	    /* See if this var is under an unusable sequence */
 	    nclistclear(path);
 	    collectnodepath(var,path,WITHOUTDATASET);
-	    for(j=0;j<nclistlength(path);j++) {
+	    for(size_t j=0;j<nclistlength(path);j++) {
 		CDFnode* node = (CDFnode*)nclistget(path,j);
 		if(node->nctype == NC_Sequence
 		   && !node->usesequence) {

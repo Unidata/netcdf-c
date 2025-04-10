@@ -124,6 +124,22 @@ done:
     return NC_NOERR;
 }
 
+/**
+ * Add filter to netCDF's list of filters for a variable.
+ * @internal
+ *
+ * This function handles necessary filter ordering for shuffle and
+ * fletcher32 filters.
+ *
+ * @param var Pointer to the NC_VAR_INFO_T for a variable.
+ * @param id HDF5 filter ID.
+ * @param nparams Number of parameters in filter parameter list.
+ * @param params Array that holds nparams unsigned ints - the filter parameters.
+ * @param flags NetCDF flags about the filter.
+ *
+ * @return ::NC_NOERR on success, error code otherwise.
+ * @author Dennis Heimbigner
+ */
 int
 NC4_hdf5_addfilter(NC_VAR_INFO_T* var, unsigned int id, size_t nparams, const unsigned int* params, int flags)
 {
@@ -180,6 +196,16 @@ done:
     return THROW(stat);
 }
 
+/**
+ * @internal
+ * Remove a filter from netCDF's list of filters for a variable.
+ *
+ * @param var Pointer to the NC_VAR_INFO_T for a variable.
+ * @param id HDF5 filter ID.
+ *
+ * @return ::NC_NOERR on success, error code otherwise.
+ * @author Dennis Heimbigner
+ */
 int
 NC4_hdf5_filter_remove(NC_VAR_INFO_T* var, unsigned int id)
 {
@@ -203,6 +229,17 @@ fprintf(stderr,"\tid=%s\n",id);
     return NC_ENOFILTER;
 }
 
+/**
+ * @internal
+ * Find a filter in netCDF's list of filters for a variable.
+ *
+ * @param var Pointer to the NC_VAR_INFO_T for a variable.
+ * @param id HDF5 filter ID.
+ * @param specp Filter specification.
+ *
+ * @return ::NC_NOERR on success, error code otherwise.
+ * @author Dennis Heimbigner
+ */
 int
 NC4_hdf5_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, struct NC_HDF5_Filter** specp)
 {
@@ -224,6 +261,19 @@ NC4_hdf5_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, struct NC_HDF5_Filte
     return NC_ENOFILTER;
 }
 
+/**
+ * @internal
+ * Add a filter for a variable in a netCDF/HDF5 file.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param id HDF5 filter ID.
+ * @param nparams Number of parameters in filter parameter list.
+ * @param params Array that holds nparams unsigned ints - the filter parameters.
+ *
+ * @return ::NC_NOERR on success, error code otherwise.
+ * @author Dennis Heimbigner
+ */
 int
 NC4_hdf5_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
                    const unsigned int* params)
@@ -365,6 +415,18 @@ done:
     return stat;
 }
 
+/**
+ * @internal
+ * Inquire about a variable's filters in a netCDF/HDF5 file.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param nfiltersp A pointer that gets the number of filters for the variable.
+ * @param ids A pointer that gets the ids of the filters.
+ *
+ * @return ::NC_NOERR on success, error code otherwise.
+ * @author Dennis Heimbigner
+ */
 int
 NC4_hdf5_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int* ids)
 {
@@ -404,6 +466,19 @@ done:
 
 }
 
+/**
+ * @internal
+ * Inquire about a filter for a variable in a netCDF/HDF5 file.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param id The HDF5 filter ID.
+ * @param nparamsp A pointer that gets the number of parameters for the filter.
+ * @param params A pointer that gets nparamsp parameters for the filter.
+ *
+ * @return ::NC_NOERR on success, error code otherwise.
+ * @author Dennis Heimbigner
+ */
 int
 NC4_hdf5_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, unsigned int* params)
 {
@@ -465,7 +540,16 @@ NC4_hdf5_filter_finalize(void)
     return NC_NOERR;
 }
 
-/* Test if filter available */
+/**
+ * @internal
+ * Test if a filter is available in HDF5.
+ *
+ * @param ncid File ID (ignored).
+ * @param id The HDF5 filter ID.
+ *
+ * @return ::NC_NOERR on success, error code otherwise.
+ * @author Dennis Heimbigner
+ */
 int
 NC4_hdf5_inq_filter_avail(int ncid, unsigned id)
 {

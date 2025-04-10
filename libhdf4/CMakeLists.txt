@@ -22,5 +22,7 @@ if (NETCDF_ENABLE_DLL)
     target_compile_definitions(netcdfhdf4 PRIVATE DLL_NETCDF DLL_EXPORT)
 endif()
 
+target_link_libraries(netcdfhdf4 PUBLIC ${HDF4_LIBRARIES})
+
 # Remember to package this file for CMake builds.
 ADD_EXTRA_DIST(${libhdf4_SOURCES} CMakeLists.txt)

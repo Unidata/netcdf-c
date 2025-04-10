@@ -13,7 +13,6 @@
 Dapodometer*
 dapodom_fromsegment(DCEsegment* segment, size_t startindex, size_t stopindex)
 {
-    int i;
     Dapodometer* odom;
 
     assert(stopindex > startindex);
@@ -21,7 +20,7 @@ dapodom_fromsegment(DCEsegment* segment, size_t startindex, size_t stopindex)
     odom = (Dapodometer*)calloc(1,sizeof(Dapodometer));
     MEMCHECK(odom,NULL);
     odom->rank = (stopindex - startindex);
-    for(i=0;i<odom->rank;i++) {
+    for(size_t i=0;i<odom->rank;i++) {
 	odom->start[i] = segment->slices[i+startindex].first;
 	odom->stride[i] = segment->slices[i+startindex].stride;
 	odom->stop[i] = (segment->slices[i+startindex].last + 1);
@@ -49,10 +48,9 @@ dapodom_new(size_t rank,
     assert(odom->rank <= NC_MAX_VAR_DIMS);
     for(i=0;i<odom->rank;i++) {
 	size_t istart,icount,istop,ideclsize;
-	ptrdiff_t istride;
 	istart = (start != NULL ? start[i] : 0);
 	icount = (count != NULL ? count[i] : (size != NULL ? size[i] : 1));
-	istride = (size_t)(stride != NULL ? stride[i] : 1);
+	size_t istride = (size_t)(stride != NULL ? stride[i] : 1);
 	istop = istart + icount*istride;
 	ideclsize = (size != NULL ? size[i]: (istop - istart));
 	odom->start[i] = istart;
@@ -99,14 +97,13 @@ dapodom_more(Dapodometer* odom)
 }
 
 /* Convert current dapodometer settings to a single integer count*/
-off_t
+size_t
 dapodom_count(Dapodometer* odom)
 {
-    int i;
-    off_t offset = 0;
-    for(i=0;i<odom->rank;i++) {
-	offset *= odom->declsize[i];
-	offset += odom->index[i];
+    size_t offset = 0;
+    for(size_t i=0;i<odom->rank;i++) {
+        offset *= odom->declsize[i];
+        offset += odom->index[i];
     } 
     return offset;
 }
@@ -135,7 +132,7 @@ dapodom_varmcount(Dapodometer* odom, const ptrdiff_t* steps, const size_t* decls
 	tmp = odom->index[i];
 	tmp = tmp - odom->start[i];
 	tmp = tmp / odom->stride[i];
-	tmp = tmp * steps[i];
+	tmp = tmp * (size_t)steps[i];
 	offset += tmp;
     } 
     return offset;

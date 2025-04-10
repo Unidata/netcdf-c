@@ -130,7 +130,7 @@ IF(NETCDF_ENABLE_TESTS)
   ENDIF()
 
   # Helper programs for testing
-  BUILD_BIN_TEST(zhex)
+  build_bin_test(zhex)
   build_bin_test_with_util_lib(zisjson ut_util)
   TARGET_INCLUDE_DIRECTORIES(zisjson PUBLIC ../libnczarr)
   build_bin_test_with_util_lib(zs3parse ut_util)
@@ -175,7 +175,7 @@ IF(NETCDF_ENABLE_TESTS)
     if(LARGE_FILE_TESTS)
       BUILD_BIN_TEST(test_readcaching)
       BUILD_BIN_TEST(test_writecaching)
-      BUILD_BIN_TEST(test_chunkcases ${TSTCOMMONSRC})
+      build_bin_test_with_util_lib(test_chunkcases test_utils)
       add_sh_test(nczarr_test run_cachetest)
       add_sh_test(nczarr_test run_chunkcases)
     ENDIF()
@@ -190,6 +190,9 @@ IF(NETCDF_ENABLE_TESTS)
     add_sh_test(nczarr_test run_external)
     add_sh_test(nczarr_test run_quantize)
     add_sh_test(nczarr_test run_notzarr)
+
+    # Test back compatibility of old key format
+    add_sh_test(nczarr_test run_oldkeys)
 
     # This has timeout under CMake
 #    if(NOT ISCMAKE)
@@ -226,7 +229,7 @@ IF(NETCDF_ENABLE_TESTS)
   if(NETCDF_ENABLE_NCZARR_ZIP)
       add_sh_test(nczarr_test run_newformat)
       # Test various corrupted files
-      ADD_SH_TEST(nczarr_test run_corrupt.sh)
+      ADD_SH_TEST(nczarr_test run_corrupt)
   endif()
 
   IF(FALSE) # Obsolete tests

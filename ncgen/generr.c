@@ -82,8 +82,10 @@ void
 markcdf4(const char* msg)
 {
     enhanced_flag = 1;
-    if(markcdf4_msg == NULL)
+
+    if(markcdf4_msg == NULL) {
         markcdf4_msg = (char*)msg;
+    }
 }
 
 char*

@@ -15,7 +15,8 @@ This page contains references to various other NetCDF background and tutorial pa
 - \subpage tutorial_ncids
 - \subpage creating
 - \subpage reading_known
-- \subpage reading_unknown
+- \subpage reading_unknown_classic
+- \subpage reading_unknown_nc4
 - \subpage accessing_subsets
 
 \subsection background_further_reading Background and Further Reading
@@ -894,7 +895,7 @@ interest.
 
 Use ncdump to learn the structure of a file (use the -h option).
 
-\page reading_unknown Reading NetCDF Files of Unknown Structure
+\page reading_unknown_classic Reading Classic Format NetCDF Files of Unknown Structure
 
 Perhaps you would like to write your software to handle more general
 cases, so that you don't have to adjust your source every time the
@@ -945,6 +946,42 @@ num attributes.
 - nc_inq_varid() Find variable ID from its name.
 - nc_inq_format() Find file format: classic CDF-1, 64-bit offset CDF-2, or 64-bit data CDF-5
 - nc_inq_libvers() Find the netCDF library version.
+
+\page reading_unknown_nc4 Reading NetCDF/HDF5 Format NetCDF Files of Unknown Structure
+
+When using netCDF/HDF5 files (i.e. NC_NETCDF4 without
+NC_CLASSIC_MODEL), reading an unknown file is more complex, because
+groups and multiple unilimited dimensions are permitted. User defined
+types may also be present.
+
+To read an unknown netCDF/HDF5 file, start at the root group and then
+read each group recursively. Within each group, start by scanning for
+user-defined types.
+
+The follow additional inquiry functions support netCDF/HDF5 files.
+
+Files and Groups:
+- nc_inq_ncid()
+- nc_inq_grps()
+- nc_inq_grpname()
+- nc_inq_grpname_full()
+- nc_inq_grpname_len()
+- nc_inq_grp_parent()
+- nc_inq_grp_ncid()
+- nc_inq_grp_full_ncid()
+- nc_inq_unlimdims()
+
+User Defined Types:
+- nc_inq_type_equal()
+- nc_inq_type()
+- nc_inq_user_type()
+- nc_inq_typeid()
+- nc_inq_compound()
+- nc_inq_compound_field()
+- nc_inq_vlen()
+- nc_inq_enum()
+- nc_inq_enum_member()
+- nc_inq_opaque()
 
 \page accessing_subsets Reading and Writing Subsets of Data
 

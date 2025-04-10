@@ -13,45 +13,8 @@ project(netCDF
   LANGUAGES C CXX
   HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
   DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
-  VERSION 4.9.3
+  VERSION 4.10.0
 )
-
-#Add custom CMake Module
-
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/;${PROJECT_SOURCE_DIR}/cmake"
-  CACHE INTERNAL "Location of our custom CMake modules.")
-
-set(PACKAGE "netCDF" CACHE STRING "")
-
-include(netcdf_functions_macros)
-include(deprecated)
-
-
-# Backport of built-in `PROJECT_IS_TOP_LEVEL` from CMake 3.21
-if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
-  set(NETCDF_IS_TOP_LEVEL OFF)
-  if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    set(NETCDF_IS_TOP_LEVEL ON)
-  endif ()
-endif ()
-
-
-################################
-# The target
-################################
-
-##
-# Default building shared libraries.
-# BUILD_SHARED_LIBS is provided by/used by
-# CMake directly.
-##
-option(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
-if(BUILD_SHARED_LIBS)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
-
-add_library(netcdf)
-add_library(netCDF::netcdf ALIAS netcdf)
 
 #####
 # Version Info:
@@ -71,8 +34,42 @@ set(NC_VERSION ${netCDF_VERSION})
 set(PACKAGE_VERSION ${VERSION})
 
 # These values should match those in configure.ac
-set(netCDF_LIB_VERSION 19)
-set(netCDF_SO_VERSION 19)
+set(netCDF_LIB_VERSION 22)
+set(netCDF_SO_VERSION 22)
+
+#Add custom CMake Module
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" "${PROJECT_SOURCE_DIR}/cmake")
+
+set(PACKAGE "netCDF" CACHE STRING "")
+
+include(netcdf_functions_macros)
+include(deprecated)
+
+
+# Backport of built-in `PROJECT_IS_TOP_LEVEL` from CMake 3.21
+if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
+  set(NETCDF_IS_TOP_LEVEL OFF)
+  if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(NETCDF_IS_TOP_LEVEL ON)
+  endif ()
+endif ()
+
+################################
+# The target
+################################
+
+##
+# Default building shared libraries.
+# BUILD_SHARED_LIBS is provided by/used by
+# CMake directly.
+##
+option(BUILD_SHARED_LIBS "Configure netCDF as a shared library." ON)
+if(BUILD_SHARED_LIBS)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
+add_library(netcdf)
+add_library(netCDF::netcdf ALIAS netcdf)
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
@@ -87,6 +84,11 @@ if(UNAME)
   getuname(cpu    -m)
   getuname(host   -n)
   set(TMP_BUILDNAME "${osname}-${osrel}-${cpu}")
+endif()
+
+find_program(GETFATTR NAMES getfattr)
+if(GETFATTR)
+  set(HAVE_GETFATTR TRUE)
 endif()
 
 # Define some Platforms
@@ -226,6 +228,12 @@ include(GenerateExportHeader)
 # Compiler and Linker Configuration
 ################################
 
+# Set in support of https://github.com/Unidata/netcdf-c/issues/2700
+if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fhonor-infinities")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fhonor-infinities")
+endif()
+
 option(NETCDF_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
 
 ##
@@ -350,14 +358,14 @@ endif()
 
 # Default Cache variables.
 set(DEFAULT_CHUNK_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
-set(DEFAULT_CHUNK_CACHE_SIZE 16777216U CACHE STRING "Default Chunk Cache Size.")
+set(DEFAULT_CHUNK_CACHE_SIZE 67108864U CACHE STRING "Default Chunk Cache Size.")
 set(DEFAULT_CHUNKS_IN_CACHE 1000 CACHE STRING "Default number of chunks in cache.")
-set(DEFAULT_CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy (a number between 0 and 1, inclusive.")
+set(DEFAULT_CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy (a number between 0 and 1, inclusive).")
 
 # HDF5 default cache size values
 set(CHUNK_CACHE_SIZE ${DEFAULT_CHUNK_CACHE_SIZE} CACHE STRING "Default HDF5 Chunk Cache Size.")
 set(CHUNK_CACHE_NELEMS ${DEFAULT_CHUNKS_IN_CACHE} CACHE STRING "Default maximum number of elements in cache.")
-set(CHUNK_CACHE_PREEMPTION ${DEFAULT_CHUNK_CACHE_PREEMPTION} CACHE STRING "Default file chunk cache preemption policy for HDf5 files(a number between 0 and 1, inclusive.")
+set(CHUNK_CACHE_PREEMPTION ${DEFAULT_CHUNK_CACHE_PREEMPTION} CACHE STRING "Default file chunk cache preemption policy for HDf5 files(a number between 0 and 1, inclusive.)")
 
 set(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 set(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
@@ -412,7 +420,7 @@ if(NC_EXTRA_DEPS)
   foreach(_DEP ${DEPS_LIST})
     string(REGEX REPLACE "^-l" "" _LIB ${_DEP})
     FIND_LIBRARY("${_LIB}_DEP" NAMES "${_LIB}" "lib${_LIB}")
-    message(${${_LIB}_DEP})
+    message(STATUS ${${_LIB}_DEP})
     if("${${_LIB}_DEP}" STREQUAL "${_LIB}_DEP-NOTFOUND")
       message(FATAL_ERROR "Error finding ${_LIB}.")
     else()
@@ -420,7 +428,7 @@ if(NC_EXTRA_DEPS)
     endif()
     set(EXTRA_DEPS ${EXTRA_DEPS} "${${_LIB}_DEP}")
   endforeach()
-  message("Extra deps: ${EXTRA_DEPS}")
+  message(STATUS "Extra deps: ${EXTRA_DEPS}")
   list(REMOVE_DUPLICATES EXTRA_DEPS)
   set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${EXTRA_DEPS})
 endif()
@@ -433,15 +441,15 @@ endif()
 ################################
 
 # As a long term goal, and because it is now the case that
-# -DNETCDF_ENABLE_NCZARR => USE_NETCDF4, so make the external options
-# -DNETCDF_ENABLE-NETCDF-4 and _DNETCDF_ENABLE-NETCDF4 obsolete
-# in favor of --NETCDF_ENABLE-HDF5.
+# NETCDF_ENABLE_NCZARR => USE_NETCDF4, so make the external options
+# NETCDF_ENABLE_NETCDF_4 and NETCDF_ENABLE_NETCDF4 obsolete
+# in favor of NETCDF_ENABLE_HDF5.
 # We will do the following for one more release cycle.
-# 1. Make --NETCDF_ENABLE-NETCDF-4 be an alias for --NETCDF_ENABLE-NETCDF4.
-# 2. Make --NETCDF_ENABLE-NETCDF4 an alias for --NETCDF_ENABLE-HDF5.
+# 1. Make NETCDF_ENABLE_NETCDF_4 be an alias for NETCDF_ENABLE_NETCDF4.
+# 2. Make NETCDF_ENABLE_NETCDF4 an alias for NETCDF_ENABLE_HDF5.
 # 3. Internally, convert most (but not all) uses of USE_NETCDF_4 and USE_NETCDF4 to USE_HDF5.
 
-# Collect the values of -DNETCDF_ENABLE-NETCDF-4, -DNETCDF_ENABLE-NETCDF4, and -DNETCDF_ENABLE-HDF5.
+# Collect the values of NETCDF_ENABLE_NETCDF_4, NETCDF_ENABLE_NETCDF4, and NETCDF_ENABLE_HDF5.
 
 # Figure out which options are defined and process options
 if(DEFINED NETCDF_ENABLE_NETCDF_4)
@@ -485,15 +493,19 @@ if(UNDEF_HDF5)
 set(NETCDF_ENABLE_HDF5 ON CACHE BOOL "" FORCE) 
 endif()
 
-# Turn off enable_netcdf4 because it will be used
-# as a shorthand for ENABLE_HDF5|ENABLE_HDF4|ENABLE_NCZARR
+# Turn off NETCDF_ENABLE_NETCDF4 because it will be used
+# as a shorthand for NETCDF_ENABLE_HDF5|NETCDF_ENABLE_HDF4|NETCDF_ENABLE_NCZARR
 set(NETCDF_ENABLE_NETCDF4 OFF CACHE BOOL "" FORCE)
-
 option(NETCDF_ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 option(NETCDF_ENABLE_NCZARR "Enable NCZarr Client." ON)
 option(NETCDF_ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
 set(NETCDF_ENABLE_CDF5 AUTO CACHE STRING "AUTO")
 option(NETCDF_ENABLE_CDF5 "Enable CDF5 support" ON)
+option(NETCDF_ENABLE_HDF4 "Enable HDF4 Read Support" OFF)
+option(NETCDF_ENABLE_HDF4_FILE_TESTS "Enable HDF4 File Tests" ${NETCDF_ENABLE_HDF4})
+if(NETCDF_ENABLE_HDF4)
+  set(USE_HDF4 ON)
+endif()
 
 # Netcdf-4 support (i.e. libsrc4) is required by more than just HDF5 (e.g. NCZarr)
 # So depending on what above formats are enabled, enable netcdf-4
@@ -503,7 +515,7 @@ endif()
 
 # enable|disable all forms of network access
 option(NETCDF_ENABLE_REMOTE_FUNCTIONALITY "Enable|disable all forms remote data access (DAP, S3, etc)" ON)
-if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
+if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY AND NETCDF_ENABLE_DAP)
 message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP[4]=NO")
 set(NETCDF_ENABLE_DAP OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP=NO" FORCE)
 set(NETCDF_ENABLE_DAP2 OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_DAP2=NO" FORCE)
@@ -532,21 +544,19 @@ else()
   set(NETCDF_ENABLE_HDF4 OFF)
 endif()
 
-# Option Logging, only valid for netcdf4.
+# Option legacy  macros 
+# Do we want to enable unsafe macros, e.g. _FillValue in addition to NC_FillValue.
+# See https://github.com/Unidata/netcdf-c/issues/3029
+option(NETCDF_ENABLE_LEGACY_MACROS "Enable legacy macros for backwards compatibility. Use with Caution." ON)
+
+# Option Logging, only valid for netcdf4 dispatchers.
 option(NETCDF_ENABLE_LOGGING "Enable Logging." OFF)
 if(NOT NETCDF_ENABLE_NETCDF4)
-set(NETCDF_ENABLE_LOGGING OFF)
+  set(NETCDF_ENABLE_LOGGING OFF)
 endif()
-if(NETCDF_ENABLE_LOGGING)
-  target_compile_definitions(netcdf PRIVATE LOGGING NETCDF_ENABLE_SET_LOG_LEVEL)
-  set(LOGGING ON)
-  set(NETCDF_ENABLE_SET_LOG_LEVEL ON)
-endif()
-option(NETCDF_ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
-if(NETCDF_ENABLE_NETCDF4 AND NOT NETCDF_ENABLE_LOGGING AND NETCDF_ENABLE_SET_LOG_LEVEL_FUNC)
-  target_compile_definitions(netcdf PRIVATE -DNETCDF_ENABLE_SET_LOG_LEVEL)
-  set(NETCDF_ENABLE_SET_LOG_LEVEL ON)
-endif()
+
+set(LOGGING ${NETCDF_ENABLE_LOGGING})
+set(NETCDF_ENABLE_SET_LOG_LEVEL ${NETCDF_ENABLE_LOGGING})
 
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
@@ -584,7 +594,7 @@ endif()
 
 # Option to support byte-range reading of remote datasets
 option(NETCDF_ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ${NETCDF_ENABLE_DAP})
-if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
+if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY AND NETCDF_ENABLE_BYTERANGE)
 message(WARNING "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_BYTERANGE=NO")
 set(NETCDF_ENABLE_BYTERANGE OFF CACHE BOOL "NETCDF_ENABLE_REMOTE_FUNCTIONALITY=NO => NETCDF_ENABLE_BYTERANGE=NO" FORCE)
 endif()
@@ -601,7 +611,7 @@ set(NETCDF_ENABLE_DAP_LONG_TESTS OFF CACHE BOOL "" FORCE)
 endif()
 
 # Provide a global control for remotetest.
-if ("$ENV{REMOTETESTDOWN}" STREQUAL "yes")
+if ("$ENV{REMOTETESTDOWN}" STREQUAL "yes" AND NETCDF_ENABLE_DAP_REMOTE_TESTS)
 message(WARNING "ENV(REMOTETESTDOWN) => NETCDF_ENABLE_DAP_REMOTE_TESTS == OFF")
 set(NETCDF_ENABLE_DAP_REMOTE_TESTS OFF CACHE BOOL "" FORCE)
 endif()
@@ -610,75 +620,75 @@ set(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers t
 set(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # Locate some compressors
+option(NETCDF_ENABLE_PLUGINS "Enable netCDF Plugins." ON)
 option(NETCDF_ENABLE_FILTER_SZIP  "Enable use of Szip compression library if it is available. Required if NETCDF_ENABLE_NCZARR is true." ON)
 option(NETCDF_ENABLE_FILTER_BZ2   "Enable use of Bz2 compression library if it is available." ON)
 option(NETCDF_ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it is available." ON)
 option(NETCDF_ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
 
-# If user wants, then install selected plugins (default on)
-set(PLUGIN_INSTALL_DIR "NO" CACHE STRING "Whether and where we should install plugins; defaults to yes")
+# If user wants, then install selected plugins (default off)
+option(NETCDF_PLUGIN_INSTALL "Enable plugin installation" NO)
 
-# This is ugly, but seems necessary because of CMake's boolean structure
-set(boolval FALSE)
-if(DEFINED PLUGIN_INSTALL_DIR)
-  booleanize(${PLUGIN_INSTALL_DIR} boolval)
-  if(boolval)
-    set(ENABLE_PLUGIN_INSTALL YES)
-    # No actual value was specified
-    unset(PLUGIN_INSTALL_DIR CACHE)
-  else()
-    if(boolval STREQUAL "NOTFOUND")
-      # Must be an actual value
-      set(ENABLE_PLUGIN_INSTALL YES)
-    else()
-      set(ENABLE_PLUGIN_INSTALL NO)
-    endif()
-  endif()
+# Note: the term PLATFORMDEFAULT stands for:
+# -- /usr/loca/hdf5/lib/plugin If on a *nix* machine
+# -- %ALLUSERSPROFILE%/hdf5/lib/plugins If on a windows or Mingw platform
+if(ISMSVC OR ISMINGW)
+    set(PLATFORMDEFAULT "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
+    set(PLATFORMSEP ";")
 else()
-  set(ENABLE_PLUGIN_INSTALL NO)
+    set(PLATFORMDEFAULT "/usr/local/hdf5/lib/plugin")
+    set(PLATFORMSEP ":")
 endif()
 
-# Ensure no defined plugin dir if not enabled
-if(NOT ENABLE_PLUGIN_INSTALL)
-    unset(PLUGIN_INSTALL_DIR CACHE)
+# Internally, the variable DEFAULT_PLUGIN_INSTALL_DIR is the default
+# directory into which plugins are installed; this may be undefined if
+# plugin installation is disabled (the usual case). It is exported as
+# NETCDF_DEFAULT_PLUGIN_INSTALL_DIR.
+#
+# Similarly the variable DEFAULT_PLUGIN_SEARCH_PATH is the default list
+# of directories to search to locate plugins.
+#
+# See configure.ac to see a table defining the rules for computing these two variables.
+
+# Inferences about plugins
+
+if(NETCDF_WITH_PLUGIN_DIR)
+set(NETCDF_ENABLE_PLUGINS yes)
+endif()
+# canonical form is all forward slashes
+string(REPLACE "\\" "/" DEFAULT_PLUGIN_INSTALL_DIR "${DEFAULT_PLUGIN_INSTALL_DIR}")
+string(REPLACE "\\" "/" DEFAULT_PLUGIN_SEARCH_PATH "${DEFAULT_PLUGIN_SEARCH_PATH}")
+
+if(NOT NETCDF_ENABLE_PLUGINS)
+  unset(NETCDF_PLUGIN_INSTALL)
+  unset(NETCDF_WITH_PLUGIN_DIR)
 endif()
 
-if(ENABLE_PLUGIN_INSTALL)
-    if(NOT DEFINED PLUGIN_INSTALL_DIR)
-      # Default to HDF5_PLUGIN_PATH or its default directories
-      if(DEFINED ENV{HDF5_PLUGIN_PATH})
-        set(PLUGIN_INSTALL_DIR "$ENV{HDF5_PLUGIN_PATH}")
-      else()
-        if(ISMSVC OR ISMINGW)
-	  set(PLUGIN_INSTALL_DIR "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
-	else()
-	  set(PLUGIN_INSTALL_DIR "/usr/local/hdf5/lib/plugin")
-	endif()
-      endif()
-        message("Defaulting to -DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
-    endif()
+if (DEFINED NETCDF_WITH_PLUGIN_DIR) # Table row 3
+    set(DEFAULT_PLUGIN_INSTALL_DIR "${NETCDF_WITH_PLUGIN_DIR}")
+    set(DEFAULT_PLUGIN_SEARCH_PATH "${NETCDF_WITH_PLUGIN_DIR}${PLATFORMSEP}${PLATFORMDEFAULT}")
+elseif (DEFINED CMAKE_INSTALL_PREFIX) # Table row 2
+    set(DEFAULT_PLUGIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/hdf5/lib/plugin")
+    set(DEFAULT_PLUGIN_SEARCH_PATH "${DEFAULT_PLUGIN_INSTALL_DIR}${PLATFORMSEP}${PLATFORMDEFAULT}")
+else() # Table row 1
+    unset(DEFAULT_PLUGIN_INSTALL_DIR)
+    set(DEFAULT_PLUGIN_SEARCH_PATH "${PLATFORMDEFAULT}")
 endif()
+# canonical form is all forward slashes
+string(REPLACE "\\" "/" DEFAULT_PLUGIN_INSTALL_DIR "${DEFAULT_PLUGIN_INSTALL_DIR}")
+string(REPLACE "\\" "/" DEFAULT_PLUGIN_SEARCH_PATH "${DEFAULT_PLUGIN_SEARCH_PATH}")
 
-if(ENABLE_PLUGIN_INSTALL)
-  # Use the lowest priority dir in the path
-  if(NOT ISMSVC AND NOT ISMINGW)
-    string(REPLACE ":" ";" PATH_LIST ${PLUGIN_INSTALL_DIR})
-  else()
-    set(PATH_LIST ${PLUGIN_INSTALL_DIR})
-  endif()
-
-  # Get last element
-  list(GET PATH_LIST -1 PLUGIN_INSTALL_DIR)
-  set(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
-  message("Final value of-DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
-else() # No option specified
-    unset(PLUGIN_INSTALL_DIR)
-    unset(PLUGIN_INSTALL_DIR CACHE)
-    set(PLUGIN_INSTALL_DIR_SETTING "N.A.")
+# Inferences
+if (DEFINED DEFAULT_PLUGIN_INSTALL_DIR)
+    set(ENABLE_PLUGIN_DIR yes)
+else()
+    set(ENABLE_PLUGIN_DIR no)
 endif()
+set(NETCDF_PLUGIN_INSTALL_DIR "${DEFAULT_PLUGIN_INSTALL_DIR}")
+set(NETCDF_PLUGIN_SEARCH_PATH "${DEFAULT_PLUGIN_SEARCH_PATH}")
 
 # Try to enable NCZarr zip support
-option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
+option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ${NETCDF_ENABLE_NCZARR})
 
 include(CMakeDependentOption)
 
@@ -730,13 +740,18 @@ if(NOT WIN32)
 endif()
 
 # Options for S3 Support
-option(NETCDF_ENABLE_S3 "Enable S3 support." OFF)
+option(NETCDF_ENABLE_S3_AWS "Enable S3 support via AWS-CPP-SDK" OFF)
 option(NETCDF_ENABLE_S3_INTERNAL "Enable S3 Internal support." OFF)
-option(NETCDF_ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of NETCDF_ENABLE_S3" OFF)
+
+#option(NETCDF_ENABLE_S3 "Enable S3 support." OFF)
+cmake_dependent_option(NETCDF_ENABLE_S3 "Enable S3 Support" ON "NETCDF_ENABLE_S3_AWS OR NETCDF_ENABLE_S3_INTERNAL" OFF)
+
+option(NETCDF_ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of NETCDF_ENABLE_S3" ${NETCDF_ENABLE_S3})
 
 if(NOT NETCDF_ENABLE_REMOTE_FUNCTIONALITY)
   set(NETCDF_ENABLE_S3 OFF CACHE BOOL "" FORCE)
   set(NETCDF_ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
+  set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "" FORCE)
   set(NETCDF_ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
 endif()
 
@@ -849,7 +864,7 @@ if(NETCDF_ENABLE_TESTS)
   # See https://github.com/Unidata/netcdf-c/issues/2627 for more information.
   ###
   option(NETCDF_ENABLE_BENCHMARKS "Run benchmark Tests." OFF)
-
+  set(BUILD_BENCHMARKS ${NETCDF_ENABLE_BENCHMARKS} CACHE BOOL "alias for NETCDF_ENABLE_BENCHMARKS")
 
   ###
   # End known-failures.
@@ -915,6 +930,7 @@ include(cmake/dependencies.cmake)
 set(STATUS_PARALLEL "OFF")
 set(IMPORT_MPI "")
 option(NETCDF_ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
+option(NETCDF_MPIEXEC "Command to use instead of mpiexec to launch parallel I/O tests" OFF)
 if(NETCDF_ENABLE_PARALLEL4 AND NETCDF_ENABLE_HDF5)
   if(NOT HDF5_PARALLEL)
     set(USE_PARALLEL OFF CACHE BOOL "")
@@ -924,9 +940,18 @@ if(NETCDF_ENABLE_PARALLEL4 AND NETCDF_ENABLE_HDF5)
     set(USE_PARALLEL ON CACHE BOOL "")
     set(USE_PARALLEL4 ON CACHE BOOL "")
     set(STATUS_PARALLEL "ON")
+    if(NETCDF_MPIEXEC)
+      set(MPIEXEC "${NETCDF_MPIEXEC}")
+    endif()
+    message(STATUS "MPIEXEC command will be ${MPIEXEC}")
     configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test.sh.in"
       "${netCDF_BINARY_DIR}/tmp/run_par_test.sh" @ONLY NEWLINE_STYLE LF)
     file(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test.sh"
+      DESTINATION ${netCDF_BINARY_DIR}/nc_test4
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_warn_test.sh.in"
+      "${netCDF_BINARY_DIR}/tmp/run_par_warn_test.sh" @ONLY NEWLINE_STYLE LF)
+    file(COPY "${netCDF_BINARY_DIR}/tmp/run_par_warn_test.sh"
       DESTINATION ${netCDF_BINARY_DIR}/nc_test4
       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
     configure_file("${netCDF_SOURCE_DIR}/h5_test/run_par_tests.sh.in"
@@ -1032,8 +1057,8 @@ if (NOT NETCDF_ENABLE_PLUGINS AND NETCDF_ENABLE_NCZARR_FILTERS)
   set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 endif()
 
-IF (NOT NETCDF_ENABLE_NCZARR)
-  message(WARNING "NETCDF_ENABLE_NCZARR==NO => NETCDF_ENABLE_NCZARR_FILTERS==NO")
+IF (NOT NETCDF_ENABLE_NCZARR AND NETCDF_ENABLE_NCZARR_FILTERS) 
+    message(WARNING "NETCDF_ENABLE_NCZARR==NO => NETCDF_ENABLE_NCZARR_FILTERS==NO")
   set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Disable NCZARR_FILTERS" FORCE)
 endif()
 
@@ -1150,6 +1175,7 @@ CHECK_INCLUDE_file("io.h"      HAVE_IO_H)
 endif(MSVC)
 CHECK_INCLUDE_file("stdlib.h"  HAVE_STDLIB_H)
 CHECK_INCLUDE_file("ctype.h"   HAVE_CTYPE_H)
+CHECK_INCLUDE_file("sys/xattr_h" HAVE_SYS_XATTR_H)
 CHECK_INCLUDE_file("stdarg.h"    HAVE_STDARG_H)
 CHECK_INCLUDE_file("strings.h"   HAVE_STRINGS_H)
 CHECK_INCLUDE_file("signal.h"    HAVE_SIGNAL_H)
@@ -1301,6 +1327,7 @@ CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
 CHECK_FUNCTION_EXISTS(fileno HAVE_FILENO)
+CHECK_FUNCTION_EXISTS(H5Literate2 HAVE_H5LITERATE2)
 
 CHECK_FUNCTION_EXISTS(clock_gettime  HAVE_CLOCK_GETTIME)
 CHECK_SYMBOL_EXISTS("struct timespec" "time.h" HAVE_STRUCT_TIMESPEC)
@@ -1340,8 +1367,8 @@ endif(NETCDF_ENABLE_MMAP)
 # Used in the `configure_file` calls below
 set(ISCMAKE "yes")
 if(MSVC)
-  set(ISMSVC ON CACHE BOOL "" FORCE)
-  set(REGEDIT ON CACHE BOOL "" FORCE)
+  set(ISMSVC yes CACHE BOOL "" FORCE)
+  set(REGEDIT yes CACHE BOOL "" FORCE)
   # Get windows major version and build number
   execute_process(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
   if(WININFO STREQUAL "")
@@ -1402,7 +1429,7 @@ configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
 
 add_definitions(-DHAVE_CONFIG_H)
 
-include_directories(${netCDF_BINARY_DIR})
+include_directories(BEFORE ${netCDF_BINARY_DIR})
 # End autotools-style checks for config.h
 
 #####
@@ -1427,7 +1454,6 @@ endif(USE_HDF5)
 
 if(USE_HDF4)
   add_subdirectory(libhdf4)
-  add_subdirectory(hdf4_test)
 endif(USE_HDF4)
 
 if(NETCDF_ENABLE_DAP2)
@@ -1466,6 +1492,8 @@ if(NETCDF_ENABLE_NCZARR)
        DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
 endif()
 
+# Tests and files which depend on libnetcdf must be included
+# *after* this line.
 add_subdirectory(liblib)
 
 if(NETCDF_ENABLE_PLUGINS)
@@ -1486,6 +1514,9 @@ if(NETCDF_ENABLE_TESTS)
     add_subdirectory(nctest)
   endif()
   add_subdirectory(nc_test)
+  if(USE_HDF4)
+    add_subdirectory(hdf4_test)
+  endif()
   if(USE_HDF5)
     include_directories(h5_test)
     add_subdirectory(nc_test4)
@@ -1520,32 +1551,42 @@ endif()
 # STATIC_DEFINE netcdf_BUILT_AS_STATIC
 #)
 
-#####
-# Build doxygen documentation, if need be.
-#####
-add_subdirectory(docs)
-
 ##
 # Brute force, grab all of the dlls from the dependency directory,
 # install them in the binary dir. Grab all of the .libs, put them
 # in the libdir.
 ##
 if(MSVC)
-  foreach(CPP ${CMAKE_PREFIX_PATH})
-    file(GLOB COPY_FILES ${CPP}/lib/*.lib)
-  endforeach()
-  install(FILES ${COPY_FILES}
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  COMPONENT dependencies)
 
+  if(NOT CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "")
+    set(CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
+  endif()
+  
   foreach(CPP ${CMAKE_PREFIX_PATH})
-    file(GLOB COPY_FILES ${CPP}/bin/*.dll)
-  endforeach()
-  string(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
-  install(FILES ${COPY_FILES}
-  DESTINATION ${CMAKE_INSTALL_BINDIR}
-  COMPONENT dependencies)
+    
+    CMAKE_PATH(CONVERT ${CPP} TO_CMAKE_PATH_LIST CPP)
 
+    file(GLOB COPY_FILES ${CPP}/*.lib ${CPP}/lib/*.lib)
+    if(COPY_FILES)
+      install(FILES ${COPY_FILES}
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT dependencies)
+    endif()
+  endforeach()
+  
+  foreach(CPP ${CMAKE_PREFIX_PATH})
+
+    CMAKE_PATH(CONVERT ${CPP} TO_CMAKE_PATH_LIST CPP)
+
+    file(GLOB COPY_FILES ${CPP}/*.dll ${CPP}/bin/*.dll)
+    if(COPY_FILES)
+      string(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
+      install(FILES ${COPY_FILES}
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT dependencies)
+    endif()
+  endforeach()
+  
 endif()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -1610,33 +1651,18 @@ if(NOT IS_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
   file(MAKE_DIRECTORY ${netCDF_BINARY_DIR}/tmp)
 endif()
 
-configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
-  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
-  NEWLINE_STYLE LF)
-file(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
-  DESTINATION ${netCDF_BINARY_DIR}/
-  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-
 install(FILES ${netCDF_BINARY_DIR}/netcdf.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   COMPONENT utilities)
 
-install(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
-  DESTINATION ${CMAKE_INSTALL_BINDIR}
-  COMPONENT utilities)
-
 ###
-# End pkgconfig, nc-config file creation.
+# End pkgconfig file creation.
 ###
 
 ##
 # Print the configuration summary
 ##
 print_conf_summary()
-
-# Enable Makedist files.
-ADD_MAKEDIST()
-ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.cmake.in configure configure.ac install-sh config.h.in config.sub CTestConfig.cmake.in)
 
 #####
 # Configure and print the libnetcdf.settings file.
@@ -1664,6 +1690,7 @@ is_enabled(BUILD_SHARED_LIBS enable_shared)
 is_enabled(NETCDF_ENABLE_V2_API HAS_NC2)
 is_enabled(NETCDF_ENABLE_NETCDF4 HAS_NC4)
 is_enabled(NETCDF_ENABLE_HDF4 HAS_HDF4)
+is_enabled(USE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
 is_enabled(OFF HAS_BENCHMARKS)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
@@ -1672,6 +1699,7 @@ is_enabled(NETCDF_ENABLE_PARALLEL4 HAS_PARALLEL4)
 is_enabled(NETCDF_ENABLE_DAP HAS_DAP)
 is_enabled(NETCDF_ENABLE_DAP2 HAS_DAP2)
 is_enabled(NETCDF_ENABLE_DAP4 HAS_DAP4)
+is_enabled(NETCDF_ENABLE_LEGACY_MACROS HAS_LEGACY_MACROS)
 is_enabled(NETCDF_ENABLE_BYTERANGE HAS_BYTERANGE)
 is_enabled(NETCDF_ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
@@ -1685,6 +1713,7 @@ is_enabled(NETCDF_ENABLE_S3_INTERNAL HAS_S3_INTERNAL)
 is_enabled(HAS_HDF5_ROS3 HAS_HDF5_ROS3)
 is_enabled(NETCDF_ENABLE_NCZARR HAS_NCZARR)
 is_enabled(NETCDF_ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
+is_enabled(NETCDF_ENABLE_PLUGINS HAS_PLUGINS)
 is_enabled(NETCDF_ENABLE_QUANTIZE HAS_QUANTIZE)
 is_enabled(NETCDF_ENABLE_LOGGING HAS_LOGGING)
 is_enabled(NETCDF_ENABLE_FILTER_TESTING DO_FILTER_TESTS)
@@ -1733,10 +1762,27 @@ endif()
 # Copy the CTest customization file into binary directory, as required.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake")
 
+message(STATUS "STD_FILTERS: ${STD_FILTERS}")
+
 # Generate file from template.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
   "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
   @ONLY)
+
+if(NETCDF_ENABLE_PARALLEL4 AND NETCDF_ENABLE_HDF5)
+  if(HDF5_PARALLEL)
+    configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test.sh.in"
+      "${netCDF_BINARY_DIR}/tmp/run_par_test.sh" @ONLY NEWLINE_STYLE LF)
+    file(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test.sh"
+      DESTINATION ${netCDF_BINARY_DIR}/nc_test4
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    configure_file("${netCDF_SOURCE_DIR}/h5_test/run_par_tests.sh.in"
+      "${netCDF_BINARY_DIR}/tmp/run_par_tests.sh" @ONLY NEWLINE_STYLE LF)
+    file(COPY "${netCDF_BINARY_DIR}/tmp/run_par_tests.sh"
+      DESTINATION ${netCDF_BINARY_DIR}/h5_test
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+  endif()
+endif()
 
 # Read in settings file, print out.
 # Avoid using system-specific calls so that this
@@ -1765,6 +1811,20 @@ install(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 #####
 
 #####
+# Create 'nc-config' file.
+#####
+configure_file("${netCDF_SOURCE_DIR}/nc-config.cmake.in"
+  "${netCDF_BINARY_DIR}/tmp/nc-config" @ONLY
+  NEWLINE_STYLE LF)
+file(COPY "${netCDF_BINARY_DIR}/tmp/nc-config"
+  DESTINATION ${netCDF_BINARY_DIR}/
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+install(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
+  COMPONENT utilities)
+
+#####
 # Create 'netcdf_meta.h' include file.
 #####
 configure_file(
@@ -1788,6 +1848,12 @@ set(abs_top_builddir "${CMAKE_CURRENT_BINARY_DIR}")
 set(abs_top_srcdir "${CMAKE_CURRENT_SOURCE_DIR}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
+#####
+# Build doxygen documentation, if need be.
+# This must come after setting top_builddir, etc.
+#####
+add_subdirectory(docs)
+
 ####
 # Build s3cleanup.sh and s3gc.sh
 #####
@@ -1800,7 +1866,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/s3gc.in ${CMAKE_CURRENT_BINARY_DIR}/s
 #####
 # Build and copy nc_test4/findplugin.sh to various places
 #####
-foreach(CC nc_test4 nczarr_test v3_nczarr_test plugins examples/C)
+foreach(CC nc_test4 nczarr_test v3_nczarr_test plugins h5_test examples/C)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/${CC}/findplugin.sh @ONLY NEWLINE_STYLE LF)
 endforeach()
 

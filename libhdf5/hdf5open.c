@@ -2675,7 +2675,7 @@ oinfo_list_add(user_data_t *udata, const hdf5_obj_info_t *oinfo)
  */
 static int
 read_hdf5_obj(hid_t grpid, const char *name,
-#if defined(H5Lget_info_vers) && H5Lget_info_vers == 2
+#if (defined(H5Lget_info_vers) && H5Lget_info_vers == 2) || defined(HAVE_H5LITERATE2)
 	      const H5L_info2_t *info,
 #else
 	      const H5L_info_t *info,
@@ -2857,9 +2857,15 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
      * passed as a parameter to the callback function
      * read_hdf5_obj(). (I have also tried H5Oiterate(), but it is much
      * slower iterating over the same file - Ed.) */
+#ifdef HAVE_H5LITERATE2
+    if (H5Literate2(hdf5_grp->hdf_grpid, iter_index, H5_ITER_INC, &idx,
+                   read_hdf5_obj, (void *)&udata) < 0)
+        BAIL(NC_EHDFERR);
+#else
     if (H5Literate(hdf5_grp->hdf_grpid, iter_index, H5_ITER_INC, &idx,
                    read_hdf5_obj, (void *)&udata) < 0)
         BAIL(NC_EHDFERR);
+#endif
 
     /* Process the child groups found. (Deferred until now, so that the
      * types in the current group get processed and are available for

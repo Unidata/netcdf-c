@@ -15,8 +15,8 @@ obsolete/fan_utils.html indexing.dox inmemory.md FAQ.md			\
 known_problems.md COPYRIGHT.md inmeminternal.dox testserver.dox		\
 byterange.md nczarr.md quantize.md all-error-codes.md                   \
 quickstart_paths.md cloud.md header.html attribute_conventions.md \
-file_format_specifications.md quickstart_filters.md \
-doxygen-awesome-css netcdf-50x50.png
+file_format_specifications.md quickstart_filters.md quickstart_env.md \
+doxygen-awesome-css netcdf-50x50.png pluginpath.md
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
@@ -56,7 +56,11 @@ endif
 # includes them in the documentation.
 
 doxyfile.stamp:
-	$(DOXYGEN) Doxyfile && cp $(top_srcdir)/docs/auth.md $(top_srcdir)/docs/obsolete/fan_utils.html html
+	$(DOXYGEN) -u $(top_builddir)/docs/Doxyfile && \
+	$(DOXYGEN) -w html $(top_builddir)/docs/header.html \
+		$(top_builddir)/docs/footer.html $(top_builddir)/docs/custom_style.css $(top_builddir)/docs/Doxyfile && \
+	$(DOXYGEN) $(top_builddir)/docs/Doxyfile && \
+	cp $(top_srcdir)/docs/auth.md $(top_srcdir)/docs/obsolete/fan_utils.html html
 
 CLEANFILES = doxyfile.stamp
 

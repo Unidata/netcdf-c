@@ -109,7 +109,15 @@ extern "C" {
  * different value than the above defaults, create an attribute with
  * the same type as the variable and this reserved name. The value you
  * give the attribute will be used as the fill value for that
- * variable. */
+ * variable. 
+ * Refactored to NC_FillValue in support of 
+ * https://github.com/Unidata/netcdf-c/issues/2858, and parameterized
+ * behind an unsafe macros option as part of 
+ * https://github.com/Unidata/netcdf-c/issues/3029
+ */
+#ifdef NETCDF_ENABLE_LEGACY_MACROS
+#define _FillValue      "_FillValue"
+#endif
 #define NC_FillValue      "_FillValue"
 #define NC_FILL         0       /**< Argument to nc_set_fill() to clear NC_NOFILL */
 #define NC_NOFILL       0x100   /**< Argument to nc_set_fill() to turn off filling of data. */
@@ -223,7 +231,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_DAP4      (6)
 #define NC_FORMATX_UDF0      (8)
 #define NC_FORMATX_UDF1      (9)
-#define NC_FORMATX_NCZARR    (10)
+#define NC_FORMATX_NCZARR    (10) /**< Added in version 4.8.0 */
 #define NC_FORMATX_UNDEFINED (0)
 
   /* To avoid breaking compatibility (such as in the python library),
@@ -239,6 +247,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMAT_DAP2      NC_FORMATX_DAP2 /**< \deprecated As of 4.4.0, use NC_FORMATX_DAP2 */
 #define NC_FORMAT_DAP4      NC_FORMATX_DAP4 /**< \deprecated As of 4.4.0, use NC_FORMATX_DAP4 */
 #define NC_FORMAT_UNDEFINED NC_FORMATX_UNDEFINED /**< \deprecated As of 4.4.0, use NC_FORMATX_UNDEFINED */
+#define NC_FORMATX_ZARR     NC_FORMATX_NCZARR /**< \deprecated as of 4.8.0, use NC_FORMATX_NCZARR */
 
 /**@}*/
 
@@ -524,6 +533,11 @@ by the desired type. */
 #define NC_EPLUGIN       (-142)    /**< Unclassified failure in accessing a dynamically loaded plugin> */
 
 #define NC4_LAST_ERROR   (-142)    /**< @internal All netCDF errors > this. */
+
+/*
+ * Don't forget to update docs/all-error-codes.md if adding new error codes here!
+ *
+ */
 
 /* Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
 #define NC_EURL         (NC_EDAPURL)   /**< Malformed URL */

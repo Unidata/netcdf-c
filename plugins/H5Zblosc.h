@@ -36,7 +36,7 @@ extern "C" {
   #ifdef DLL_EXPORT /* define when building the library */
     #define DECLSPEC __declspec(dllexport)
   #else
-    #define DECLSPEC __declspec(dllimport)
+    #define DECLSPEC __declspec(dllimport) 
   #endif
 #else
   #define DECLSPEC extern

@@ -159,10 +159,11 @@ done:
 static int
 cloneArray(NCjson* array, NCjson** clonep)
 {
-    int i, stat=NC_NOERR;
+    int stat=NC_NOERR;
+    size_t i;
     NCjson* clone = NULL;
     if((stat=NCJnew(NCJ_ARRAY,&clone))) goto done;
-    for(i=0;i<NCJlength(array);i++) {
+    for(i=0;i<NCJarraylength(array);i++) {
 	NCjson* elem = NCJith(array,i);
 	NCjson* elemclone = NULL;
 	if((stat=jclone(elem,&elemclone))) goto done;
@@ -276,7 +277,8 @@ dump(NCjson* json)
 static void
 dumpR(NCjson* json, int depth)
 {
-    int ok, count, i;
+    int ok, count;
+    size_t i;
     long long int64v;
     double float64v;
 
@@ -285,12 +287,12 @@ dumpR(NCjson* json, int depth)
     case NCJ_STRING: printf("\"%s\"",NCJstring(json)); break;
     case NCJ_INT:
 	ok = sscanf(NCJstring(json),"%lld%n",&int64v,&count);
-	if(ok != 1 || count != strlen(NCJstring(json))) goto fail;
+	if(ok != 1 || count != (int)strlen(NCJstring(json))) goto fail;
 	printf("%lld",int64v);
 	break;
     case NCJ_DOUBLE: 
 	ok = sscanf(NCJstring(json),"%lg%n",&float64v,&count);
-	if(ok != 1 || count != strlen(NCJstring(json))) goto fail;
+	if(ok != 1 || count != (int)strlen(NCJstring(json))) goto fail;
 	printf("%lg",float64v);
 	break;
     case NCJ_BOOLEAN: 
@@ -302,17 +304,17 @@ dumpR(NCjson* json, int depth)
 	printf("null");
 	break;
     case NCJ_DICT: 
-	if(NCJlength(json) == 0) {
+	if(NCJarraylength(json) == 0) {
 	    printf("{}");
 	} else {
 	    printf("\n");
-	    for(i=0;i<NCJlength(json);i+=2) {
+	    for(i=0;i<NCJarraylength(json);i+=2) {
 		NCjson* j = NULL;
 		j = (NCjson*)NCJith(json,i);
 		assert(NCJsort(j) == NCJ_STRING);
 	        printf("{%d} ",depth+1);
 	        printf("\"%s\" => ",NCJstring(j));
-		if(i+1 >= NCJlength(json)) {/* malformed */
+		if(i+1 >= NCJarraylength(json)) {/* malformed */
 		    printf("<malformed>");
 		} else
 	            dumpR((NCjson*)NCJith(json,i+1),depth+1);
@@ -320,11 +322,11 @@ dumpR(NCjson* json, int depth)
 	}
 	break;
     case NCJ_ARRAY: 
-	if(NCJlength(json) == 0) {
+	if(NCJarraylength(json) == 0) {
 	    printf("[]");
 	} else {
 	    printf("\n");
-	    for(i=0;i<NCJlength(json);i++) {
+	    for(i=0;i<NCJarraylength(json);i++) {
 	        printf("[%d] ",depth+1);
 	        dumpR((NCjson*)NCJith(json,i),depth+1);
 	    }

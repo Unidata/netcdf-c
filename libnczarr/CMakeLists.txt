@@ -19,7 +19,6 @@ zcvt.c
 zdim.c
 zdispatch.c
 zfile.c
-zfilter.c
 zgrp.c
 zinternal.c
 zmap.c
@@ -42,12 +41,17 @@ zinternal.h
 zmap.h
 zodom.h
 zprovenance.h
+zplugins.h
 zfilter.h
 zdebug.h
 )
 
 if(NETCDF_ENABLE_NCZARR_ZIP)
     set(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
+endif()
+
+if(NETCDF_ENABLE_NCZARR_FILTERS)
+set(libnczarr_SOURCES ${libnczarr_SOURCES} zfilter.c zplugins.c)
 endif()
 
 if(NETCDF_ENABLE_S3) 
@@ -64,6 +68,10 @@ target_include_directories(nczarr PUBLIC ../libncpoco)
 if (USE_HDF5)
     target_link_libraries(nczarr PRIVATE HDF5::HDF5)
 endif(USE_HDF5)
+
+if(NETCDF_ENABLE_NCZARR_ZIP)
+   target_include_directories(nczarr PRIVATE ${Zip_INCLUDE_DIRS})
+endif(NETCDF_ENABLE_NCZARR_ZIP)
 
 if(STATUS_PARALLEL)
     target_link_libraries(nczarr PUBLIC MPI::MPI_C)

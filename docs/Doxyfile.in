@@ -945,6 +945,7 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
                          @abs_top_srcdir@/docs/windows-binaries.md \
                          @abs_top_srcdir@/docs/inmemory.md \
                          @abs_top_srcdir@/docs/byterange.md \
+                         @abs_top_srcdir@/docs/auth.md \
                          @abs_top_srcdir@/docs/nczarr.md \
                          @abs_top_srcdir@/docs/cloud.md \
                          @abs_top_srcdir@/docs/notes.md \
@@ -964,7 +965,9 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
                          @abs_top_srcdir@/docs/all-error-codes.md \
                          @abs_top_srcdir@/docs/filters.md \
                          @abs_top_srcdir@/docs/quickstart_filters.md \
+                         @abs_top_srcdir@/docs/pluginpath.md \
                          @abs_top_srcdir@/docs/quickstart_paths.md \
+                         @abs_top_srcdir@/docs/quickstart_env.md \
                          @abs_top_srcdir@/include/netcdf.h \
                          @abs_top_srcdir@/include/netcdf_mem.h \
                          @abs_top_srcdir@/include/netcdf_par.h \
@@ -1352,7 +1355,7 @@ HTML_FILE_EXTENSION    = .html
 # of the possible markers and block names see the documentation.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_HEADER            = @abs_top_srcdir@/docs/header.html
+HTML_HEADER            = @abs_top_builddir@/docs/header.html
 
 # The HTML_FOOTER tag can be used to specify a user-defined HTML footer for each
 # generated HTML page. If the tag is left blank doxygen will generate a standard
@@ -1362,7 +1365,7 @@ HTML_HEADER            = @abs_top_srcdir@/docs/header.html
 # that doxygen normally uses.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_FOOTER            = @abs_top_srcdir@/docs/footer.html
+HTML_FOOTER            = @abs_top_builddir@/docs/footer.html
 
 # The HTML_STYLESHEET tag can be used to specify a user-defined cascading style
 # sheet that is used by each HTML page. It can be used to fine-tune the look of

@@ -959,11 +959,12 @@ s3objectsinfo(NClist* contents, NClist* keys, NClist* lengths)
     for(i=0;i<nclistlength(contents);i++) {
         struct Object* s3_object = (struct Object*)nclistget(contents,i);
         if((stat = s3objectinfo1(s3_object,&key,&length))) goto done;
-	nclistpush(keys,key); key = NULL;
-	nclistpush(lengths,(void*)length);	
+	if(keys != NULL) {nclistpush(keys,key);} else {nullfree(key);}
+	key = NULL;
+	if(lengths != NULL) nclistpush(lengths,(void*)length);	
     }
-    nclistnull(keys);
-    nclistnull(lengths);
+    if(keys != NULL) nclistnull(keys);
+    if(lengths != NULL) nclistnull(lengths);
 done:
     nullfree(key); /* avoid mem leak */
     return NCTHROW(stat);

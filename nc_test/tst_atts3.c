@@ -189,7 +189,7 @@ main(int argc, char **argv)
         size_t att_len;
         int i;
 
-        char *speech_in;
+        char *speech_in = NULL;
 
         /* This won't work, because classic files can't create these types. */
 #ifdef TEST_PNETCDF

@@ -8,7 +8,10 @@ set(CMAKE_BUILD_TYPE "")
 
 if(WIN32)
   set(PLUGINEXT "dll")
-  set(PLUGINPRE "__nc") 
+  set(PLUGINPRE "__nc")
+elseif(CYGWIN)
+  set(PLUGINEXT "dll")
+  set(PLUGINPRE "cyg__nc")
 else()
    set(PLUGINPRE "lib__nc")
    if(APPLE)
@@ -87,16 +90,18 @@ buildplugin(h5deflate "h5deflate")
 
 buildplugin(nczmisc "zmisc")
 buildplugin(nczhdf5filters "zhdf5filters" netcdf)
-buildplugin(nczstdfilters "zstdfilters" netcdf)
 
 if(NETCDF_ENABLE_BLOSC)
   set(h5blosc_SOURCES H5Zblosc.c)
-  buildplugin(h5blosc "h5blosc" netcdf;${Blosc_LIBRARIES})
+  buildplugin(h5blosc "h5blosc" ${Blosc_LIBRARIES})
+  buildplugin(nczstdfilters "zstdfilters" netcdf;${Blosc_LIBRARIES})
+else()
+  buildplugin(nczstdfilters "zstdfilters" netcdf)
 endif()
 
 if(NETCDF_ENABLE_ZSTD)
   set(h5zstd_SOURCES H5Zzstd.c H5Zzstd.h)
-  buildplugin(h5zstd "h5zstd" netcdf;${Zstd_LIBRARIES})
+  buildplugin(h5zstd "h5zstd" ${Zstd_LIBRARIES})
 endif()
 
 # Need our version of szip if libsz available and we are not using HDF5
@@ -113,17 +118,16 @@ else()
   buildplugin(h5bzip2 "h5bzip2" ${Bzip2_LIBRARIES})
 endif()
 
-
 # Installation
 if(ENABLE_PLUGIN_INSTALL)
 
 macro(installplugin PLUG)
   set(INSTALLED_PLUGIN_LIB "${PLUGINPRE}${PLUG}.${PLUGINEXT}")
-  message(STATUS "Installing: ${INSTALLED_PLUGIN_LIB} into ${PLUGIN_INSTALL_DIR}")
-  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${INSTALLED_PLUGIN_LIB} DESTINATION ${PLUGIN_INSTALL_DIR})
+  message(STATUS "Installing: ${INSTALLED_PLUGIN_LIB} into ${NETCDF_PLUGIN_INSTALL_DIR}")
+  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${INSTALLED_PLUGIN_LIB} DESTINATION ${NETCDF_PLUGIN_INSTALL_DIR})
 endmacro()
 
-install(DIRECTORY DESTINATION ${PLUGIN_INSTALL_DIR})
+install(DIRECTORY DESTINATION ${NETCDF_PLUGIN_INSTALL_DIR})
 if(Bzip2_FOUND OR Bz2_FOUND)
   installplugin(h5bzip2)
 endif()
@@ -133,23 +137,23 @@ endif()
 if(Blosc_FOUND)
   installplugin(h5blosc)
 endif()
-if(NETCDF_ENABLE_NCZARR)
-  installplugin(h5fletcher32)
+
   installplugin(h5shuffle)
+  installplugin(h5fletcher32)
   installplugin(h5deflate)
+
   installplugin(zhdf5filters)
   installplugin(zstdfilters)
+  
   if(Szip_FOUND)
     installplugin(h5szip)
   endif()
-endif()
-
-endif(ENABLE_PLUGIN_INSTALL)
-
-endif(NETCDF_ENABLE_PLUGINS)
 
 # Copy some test files from current source dir to out-of-tree build dir.
 file(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 if(MSVC)
   file(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
 endif()
+
+endif(ENABLE_PLUGIN_INSTALL)
+endif(NETCDF_ENABLE_PLUGINS)

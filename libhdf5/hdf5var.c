@@ -1365,8 +1365,10 @@ NC4_rename_var(int ncid, int varid, const char *name)
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indices.
- * @param countp Array of counts.
+ * @param startp Array of start indices. This array must be same size
+ * as variable's number of dimensions.
+ * @param countp Array of counts. This array must be same size as
+ * variable's number of dimensions.
  * @param op pointer that gets the data.
  * @param memtype The type of these data in memory.
  *
@@ -1387,11 +1389,12 @@ NC4_put_vara(int ncid, int varid, const size_t *startp,
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indices.
+ * @param startp Array of start indices. This array must be same size
+ * as variable's number of dimensions.
  * @param countp Array of counts.
  * @param ip pointer that gets the data.
  * @param memtype The type of these data after it is read into memory.
-
+ *
  * @returns ::NC_NOERR for success
  * @author Ed Hartnett, Dennis Heimbigner
  */
@@ -1512,11 +1515,13 @@ set_par_access(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
  * @param ncid File ID.
  * @param varid Variable ID.
  * @param startp Array of start indices. Must always be provided by
- * caller for non-scalar vars.
+ * caller for non-scalar vars. This array must be same size
+ * as variable's number of dimensions.
  * @param countp Array of counts. Will default to counts of full
- * dimension size if NULL.
+ * dimension size if NULL. This array must be same size
+ * as variable's number of dimensions.
  * @param stridep Array of strides. Will default to strides of 1 if
- * NULL.
+ * NULL. This array must be same size as variable's number of dimensions.
  * @param data The data to be written.
  * @param mem_nc_type The type of the data in memory.
  *
@@ -1848,11 +1853,13 @@ exit:
  * @param ncid File ID.
  * @param varid Variable ID.
  * @param startp Array of start indices. Must be provided for
- * non-scalar vars.
+ * non-scalar vars. This array must be same size as variable's number
+ * of dimensions.
  * @param countp Array of counts. Will default to counts of extent of
- * dimension if NULL.
+ * dimension if NULL. This array must be same size as variable's
+ * number of dimensions.
  * @param stridep Array of strides. Will default to strides of 1 if
- * NULL.
+ * NULL. This array must be same size as variable's number of dimensions.
  * @param data The data to be written.
  * @param mem_nc_type The type of the data in memory. (Convert to this
  * type from file type.)

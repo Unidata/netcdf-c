@@ -23,11 +23,11 @@ struct NCMEMORY {
 /* Forward:*/
 static NCerror moveto(NCDAPCOMMON*, Getvara*, CDFnode* dataroot, void* memory);
 static NCerror movetor(NCDAPCOMMON*, OCdatanode currentcontent,
-		   NClist* path, int depth,
+		   NClist* path, size_t depth,
 		   Getvara*, size_t dimindex,
 		   struct NCMEMORY*, NClist* segments);
 static NCerror movetofield(NCDAPCOMMON*, OCdatanode,
-			   NClist*, int depth,
+			   NClist*, size_t depth,
 		   	   Getvara*, size_t dimindex,
 		   	   struct NCMEMORY*, NClist* segments);
 
@@ -195,7 +195,7 @@ fprintf(stderr,"\n");
 	goto fail;
       }
       if(startp[i] >= dim->dim.declsize
-	 || startp[i]+(stridep[i]*(countp[i]-1)) >= dim->dim.declsize) {
+	 || startp[i]+((size_t)stridep[i]*(countp[i]-1)) >= dim->dim.declsize) {
 	ncstat = NC_EINVALCOORDS;
 	goto fail;
       }
@@ -479,7 +479,7 @@ static NCerror
 movetor(NCDAPCOMMON* nccomm,
 	OCdatanode currentcontent,
 	NClist* path,
-        int depth, /* depth is position in segment list*/
+        size_t depth, /* depth is position in segment list*/
 	Getvara* xgetvar,
         size_t dimindex, /* dimindex is position in xgetvar->slices*/
 	struct NCMEMORY* memory,
@@ -596,10 +596,10 @@ fprintf(stderr," segment=%s hasstringdim=%d\n",
     case NC_Atomic:
 
         if(hasstringdim)
-	    ncstat = extractstring(nccomm, xgetvar, xnode, segment, dimindex, conn, currentcontent, memory);
-	else
-	    ncstat = extract(nccomm, xgetvar, xnode, segment, dimindex, conn, currentcontent, memory);
-	break;
+            ncstat = extractstring(nccomm, xgetvar, xnode, segment, dimindex, conn, currentcontent, memory);
+        else
+            ncstat = extract(nccomm, xgetvar, xnode, segment, dimindex, conn, currentcontent, memory);
+        break;
 
     }
 
@@ -615,7 +615,7 @@ static NCerror
 movetofield(NCDAPCOMMON* nccomm,
 	OCdatanode currentcontent,
 	NClist* path,
-        int depth, /* depth is position in segment list*/
+        size_t depth, /* depth is position in segment list*/
 	Getvara* xgetvar,
         size_t dimindex, /* dimindex is position in xgetvar->slices*/
 	struct NCMEMORY* memory,
@@ -628,7 +628,7 @@ movetofield(NCDAPCOMMON* nccomm,
     CDFnode* xnode = (CDFnode*)nclistget(path,depth);
     OCdatanode fieldcontent = NULL;
     CDFnode* xnext;
-    int newdepth;
+    size_t newdepth;
     int ffield;
 
     /* currentcontent points to the grid/dataset/structure/record instance */
@@ -806,8 +806,8 @@ fprintf(stderr,"\n");
 	      => we have to use odometer on leading prefix.
            If conversion required, then read one-by-one
 	*/
-	int safeindex = dcesafeindex(segment,0,rank0);
-	assert(safeindex >= 0 && safeindex <= rank0);
+	size_t safeindex = dcesafeindex(segment,0,rank0);
+	assert(safeindex <= rank0);
 
 	if(!requireconversion && safeindex == 0) { /* can read whole thing */
             size_t internlen;
@@ -883,7 +883,6 @@ static NCerror
 slicestring(OClink conn, char* stringmem, DCEslice* slice, struct NCMEMORY* memory)
 {
     size_t stringlen;
-    unsigned int i;
     NCerror ncstat = NC_NOERR;
     char* lastchar;
     size_t charcount; /* number of characters inserted into memory */
@@ -903,7 +902,7 @@ slice->first,slice->stride,slice->last,slice->declsize);
 
     /* Stride across string; if we go past end of string, then pad*/
     charcount = 0;
-    for(i=slice->first;i<slice->length;i+=slice->stride) {
+    for(size_t i=slice->first;i<slice->length;i+=slice->stride) {
         if(i < stringlen)
             *memory->next = stringmem[i];
         else /* i >= stringlen*/

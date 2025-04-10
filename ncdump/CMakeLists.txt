@@ -23,7 +23,8 @@ set(printfqn_FILES printfqn.c ${XGETOPTSRC})
 set(ncpathcvt_FILES ncpathcvt.c ${XGETOPTSRC})
 set(ncfilteravail_FILES ncfilteravail.c ${XGETOPTSRC})
 set(nchdf5version_FILES nchdf5version.c)
- 
+set(echon_FILES echon.c ${XGETOPTSRC})
+
 ## 
 # Turn off inclusion of particular files when using the cmake-native
 # option to turn on Unity Builds.  
@@ -42,6 +43,7 @@ add_executable(nccopy ${nccopy_FILES})
 add_executable(ncvalidator ${ncvalidator_FILES})
 add_executable(ncpathcvt ${ncpathcvt_FILES})
 add_executable(ncfilteravail ${ncfilteravail_FILES})
+add_executable(echon ${echon_FILES})
 
 if(USE_HDF5)
   add_executable(nc4print nc4print.c nc4printer.c)
@@ -63,6 +65,7 @@ target_link_libraries(nccopy netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncvalidator netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncpathcvt netcdf ${ALL_TLL_LIBS})
 target_link_libraries(ncfilteravail netcdf ${ALL_TLL_LIBS})
+target_link_libraries(echon netcdf ${ALL_TLL_LIBS})
 
 if(NETCDF_ENABLE_DAP)
   target_link_libraries(ocprint netcdf ${ALL_TLL_LIBS})
@@ -90,6 +93,7 @@ if(WIN32)
   setbinprops(ncvalidator)
   setbinprops(ncpathcvt)
   setbinprops(ncfilteravail)
+  setbinprops(echon)
 
   if(USE_HDF5)
     setbinprops(printfqn)
@@ -250,7 +254,8 @@ endif()
     endif()
 
     set_tests_properties(ncdump_tst_nccopy3 PROPERTIES DEPENDS
-        "ncdump_tst_calendars;ncdump_run_utf8_tests;ncdump_tst_output;ncdump_tst_64bit;ncdump_run_tests;ncdump_tst_lengths")
+      "ncdump_tst_calendars;ncdump_run_utf8_tests;ncdump_tst_output;ncdump_tst_64bit;ncdump_run_tests;ncdump_tst_lengths")
+    set_tests_properties(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
 
   endif()
 
@@ -260,7 +265,6 @@ endif()
     add_sh_test(ncdump_shell tst_h_scalar)
     add_sh_test(ncdump tst_mud)
     add_sh_test(ncdump tst_grp_spec)
-    add_sh_test(ncdump tst_nccopy5)
     add_sh_test(ncdump tst_inttags4)
     add_sh_test(ncdump run_utf8_nc4_tests)
     add_sh_test(ncdump tst_fileinfo)
@@ -271,9 +275,11 @@ endif()
     add_sh_test(ncdump tst_ncgen4)
     add_sh_test(ncdump tst_netcdf4_4)
     add_sh_test(ncdump tst_nccopy4)
+    set_tests_properties(ncdump_tst_nccopy4 PROPERTIES DEPENDS
+      "ncdump_ncgen_tests;ncdump_tst_ncgen4;ncdump_tst_fillbug;ncdump_tst_netcdf4_4;ncdump_tst_h_scalar;ncdump_tst_netcdf4;ncdump_run_ncgen_tests;ncdump_tst_output;ncdump_tst_ncgen4;ncdump_sh_tst_fillbug;tst_comp;tst_comp2;tst_nans;tst_opaque_data;tst_create_files;tst_special_atts;ncdump_tst_nccopy3")
+    set_tests_properties(ncdump_tst_nccopy4 PROPERTIES RUN_SERIAL TRUE)
     add_sh_test(ncdump tst_calendars_nc4)
-
-    set_tests_properties(ncdump_tst_nccopy4 PROPERTIES DEPENDS "ncdump_run_ncgen_tests;ncdump_tst_output;ncdump_tst_ncgen4;ncdump_sh_tst_fillbug;ncdump_tst_netcdf4_4;ncdump_tst_h_scalar;tst_comp;tst_comp2;tst_nans;tst_opaque_data;tst_create_files;tst_special_atts")
+    add_sh_test(ncdump tst_nccopy5)
     set_tests_properties(ncdump_tst_nccopy5 PROPERTIES DEPENDS "ncdump_tst_nccopy4")
 
   endif(USE_HDF5)

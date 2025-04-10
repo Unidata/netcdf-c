@@ -1,15 +1,15 @@
 netcdf tmp_groups_regular {
 dimensions:
-	_zdim_3 = 3 ;
-	_zdim_2 = 2 ;
-	_zdim_10 = 10 ;
+	_Anonymous_Dim_3 = 3 ;
+	_Anonymous_Dim_2 = 2 ;
+	_Anonymous_Dim_10 = 10 ;
 
 // global attributes:
 		:_Format = "netCDF-4" ;
 
 group: MyGroup {
   variables:
-  	int dset1(_zdim_3, _zdim_3) ;
+  	int dset1(_Anonymous_Dim_3, _Anonymous_Dim_3) ;
   		dset1:_Storage = "chunked" ;
   		dset1:_ChunkSizes = 3, 3 ;
   		dset1:_NoFill = "true" ;
@@ -24,7 +24,7 @@ group: MyGroup {
 
   group: Group_A {
     variables:
-    	int dset2(_zdim_2, _zdim_10) ;
+    	int dset2(_Anonymous_Dim_2, _Anonymous_Dim_10) ;
     		dset2:_Storage = "chunked" ;
     		dset2:_ChunkSizes = 2, 10 ;
     		dset2:_NoFill = "true" ;

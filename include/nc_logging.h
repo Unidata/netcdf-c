@@ -52,12 +52,10 @@ void nc_log(int severity, const char *fmt, ...);
 
 #define BAIL_QUIET BAIL
 
-#ifdef USE_NETCDF4
-#ifndef ENABLE_SET_LOG_LEVEL
+#ifndef NETCDF_ENABLE_SET_LOG_LEVEL
 /* Define away any calls to nc_set_log_level(), if its not enabled. */
 #define nc_set_log_level(e)
-#endif /* ENABLE_SET_LOG_LEVEL */
-#endif
+#endif /* NETCDF_ENABLE_SET_LOG_LEVEL */
 
 #endif /* LOGGING */
 

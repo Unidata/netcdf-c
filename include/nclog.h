@@ -8,6 +8,7 @@
 #define NCLOG_H
 
 #include <stdarg.h>
+#include <stdio.h>
 #include "ncexternl.h"
 
 #undef NCCATCH

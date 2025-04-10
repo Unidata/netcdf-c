@@ -4,7 +4,7 @@
 
 name: Run Ubuntu/Linux netCDF Tests
 
-on: [pull_request,workflow_dispatch]
+on: [workflow_dispatch]
 
 env:
   REMOTETESTDOWN: ${{ vars.REMOTETESTDOWN }}
@@ -14,14 +14,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
+ 
   build-deps-serial:
-
-    runs-on: ubuntu-latest
 
     strategy:
       matrix:
         hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
+        runs-on: [ ubuntu-22.04 ]
+
+    runs-on: ${{ matrix.runs-on }}
 
     steps:
       - uses: actions/checkout@v4
@@ -38,14 +39,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
 
       - name: Build libhdf5-${{ matrix.hdf5 }}
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
-
           wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
           tar -jxf hdf-4.2.15.tar.bz2
           pushd hdf-4.2.15
@@ -53,19 +53,28 @@ jobs:
           make -j
           make install -j
           popd
-
-          wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
-          tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+    
+          if [ "${{ matrix.hdf5 }}" = "1.14.5" ]; then
+            wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.5.tar.gz
+            tar -zxf hdf5_1.14.5.tar.gz
+            mv hdf5_1.14.5 hdf5-1.14.5
+          else
+            wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
+            tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+          fi
           pushd hdf5-${{ matrix.hdf5 }}
           ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
           make -j
           make install -j
           popd
-          
+
+      - name: Check libhdf5-serial-${{ matrix.hdf5}}
+        run: |
+          ls ${HOME}/environments/**
 
   build-deps-parallel:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -87,8 +96,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
-
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Build libhdf5-${{ matrix.hdf5 }}-pnetcdf-1.12.3
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
@@ -102,9 +110,15 @@ jobs:
           make -j
           make install -j
           popd
+          if [ "${{ matrix.hdf5 }}" = "1.14.5" ]; then
+            wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.5.tar.gz
+            tar -zxf hdf5_1.14.5.tar.gz
+            mv hdf5_1.14.5 hdf5-1.14.5
+          else
+            wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
+            tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+          fi
 
-          wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
-          tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
           CC=mpicc ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib --enable-parallel
           make -j
@@ -117,6 +131,12 @@ jobs:
           make -j
           make install -j
           popd
+
+      - name: Check libhdf5-parallel-${{ matrix.hdf5}}
+        run: |
+          ls ${HOME}/environments/**
+          echo ""
+          mpicc -v
           
   #####
   # One-Off Autotools-based tests.
@@ -127,11 +147,13 @@ jobs:
   nc-ac-tests-oneoff-serial-shared:
 
     needs: build-deps-serial
-    runs-on: ubuntu-latest
 
     strategy:
       matrix:
         hdf5: [ 1.14.3 ]
+        runs-on: [ ubuntu-22.04 ]
+
+    runs-on: ${{ matrix.runs-on }}
     steps:
 
       - uses: actions/checkout@v4
@@ -158,7 +180,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -208,9 +230,9 @@ jobs:
         if: ${{ success() }}
         run: make dist -j
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: netcdf-c-autotools-source-distribution
+          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}
           path: |
             *.tar*
             *.zip
@@ -222,11 +244,13 @@ jobs:
   nc-ac-tests-oneoff-serial-static:
 
     needs: build-deps-serial
-    runs-on: ubuntu-latest
 
     strategy:
       matrix:
         hdf5: [ 1.14.3 ]
+        runs-on: [ ubuntu-22.04 ]
+
+    runs-on: ${{ matrix.runs-on }}
     steps:
 
       - uses: actions/checkout@v4
@@ -253,7 +277,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -303,22 +327,13 @@ jobs:
         if: ${{ success() }}
         run: make dist -j
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: netcdf-c-autotools-source-distribution
-          path: |
-            *.tar*
-            *.zip
-            *.tgz
-
-
   ##
   # Parallel
   ##
   nc-ac-tests-oneoff-parallel:
 
     needs: build-deps-parallel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -344,7 +359,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -375,17 +390,17 @@ jobs:
 
       - name: Build Library and Utilities
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make -j
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make -j 4
         if: ${{ success() }}
 
       - name: Build Tests
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make check TESTS="" -j
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make check TESTS="" -j 4
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make check -j
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make check -j 4
         if: ${{ success() }}
 
 
@@ -398,7 +413,7 @@ jobs:
   nc-cmake-tests-oneoff-serial-shared:
 
     needs: build-deps-serial
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -428,7 +443,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -462,14 +477,14 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 4 .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 4 --rerun-failed --output-on-failure -VV
         if: ${{ failure() }}
 
  ##
@@ -478,7 +493,7 @@ jobs:
   nc-cmake-tests-oneoff-serial-static:
 
     needs: build-deps-serial
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -509,7 +524,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -560,7 +575,7 @@ jobs:
   nc-cmake-tests-oneoff-parallel:
 
     needs: build-deps-parallel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -590,7 +605,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -637,7 +652,7 @@ jobs:
   nc-autotools:
 
     needs: [ nc-cmake-tests-oneoff-serial-shared, nc-cmake-tests-oneoff-serial-static, nc-ac-tests-oneoff-serial-shared, nc-ac-tests-oneoff-serial-static, nc-cmake-tests-oneoff-parallel, nc-ac-tests-oneoff-parallel ]
-    runs-on: ubuntu-latest
+
 
     strategy:
       matrix:
@@ -645,11 +660,14 @@ jobs:
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
+        runs-on: [ ubuntu-22.04 ]
+
+    runs-on: ${{ matrix.runs-on }}
     steps:
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: netcdf-c-autotools-source-distribution
+          name: netcdf-c-autotools-source-distribution-${{ matrix.runs-on }}
 
       - name: Unpack source distribution
         shell: bash -l {0}
@@ -705,7 +723,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}
@@ -801,7 +819,7 @@ jobs:
   nc-cmake:
 
     needs: [ nc-cmake-tests-oneoff-serial-shared, nc-cmake-tests-oneoff-serial-static, nc-ac-tests-oneoff-serial-shared, nc-ac-tests-oneoff-serial-static, nc-cmake-tests-oneoff-parallel, nc-ac-tests-oneoff-parallel ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -848,7 +866,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}-ubuntu-22.04
 
       - name: Check Cache
         shell: bash -l {0}

@@ -17,13 +17,9 @@ THISDIR=`pwd`
 cd $ISOPATH
 fi
 
-if test "x$TESTNCZARR" = x1 ; then
 BLOSCARGS="32001,0,0,0,256,5,1,1"
+BLOSCARGSALT="32001,0,0,4,256,5,1,1"
 BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
-else
-BLOSCARGS="32001,0,0,4,256,5,1,1"
-BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
-fi
 
 # Load the findplugins function
 . ${builddir}/findplugin.sh
@@ -157,6 +153,10 @@ testblosc() {
   zext=$1
   if ! avail blosc; then return 0; fi
   runfilter $zext blosc $BLOSCARGS "$BLOSCCODEC"
+  # Need to ignore the first three parameters by setting them to 0
+  rm -f tmp.dump
+  sed -e "s|${BLOSCARGSALT}|${BLOSCARGS}|" < tmp_filt_blosc.dump > tmp.dump
+  mv -f tmp.dump tmp_filt_blosc.dump
   diff -b -w "tmp_filt_blosc.cdl" "tmp_filt_blosc.dump"
 }
 

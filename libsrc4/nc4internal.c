@@ -49,13 +49,15 @@ static NC_reservedatt NC_reserved[] = {
     {NC_ATT_FORMAT, READONLYFLAG},					/*_Format*/
     {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG|VIRTUALFLAG},		/*_IsNetcdf4*/
     {NCPROPS,READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},			/*_NCProperties*/
-    {NC_NCZARR_ATTR_UC, READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},	/*_NCZARR_ATTR */
     {NC_ATT_COORDINATES, READONLYFLAG|HIDDENATTRFLAG},			/*_Netcdf4Coordinates*/
     {NC_ATT_DIMID_NAME, READONLYFLAG|HIDDENATTRFLAG},			/*_Netcdf4Dimid*/
     {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG|VIRTUALFLAG},		/*_SuperblockVersion*/
     {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
     {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
     {NC_NCZARR_ATTR, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_attr */
+    {NC_NCZARR_GROUP, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_group */
+    {NC_NCZARR_ARRAY, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_array */
+    {NC_NCZARR_SUPERBLOCK, READONLYFLAG|HIDDENATTRFLAG},		/*_nczarr_superblock */
 };
 #define NRESERVED (sizeof(NC_reserved) / sizeof(NC_reservedatt))  /*|NC_reservedatt*/
 
@@ -1711,7 +1713,7 @@ nc4_normalize_name(const char *name, char *norm_name)
     return NC_NOERR;
 }
 
-#ifdef ENABLE_SET_LOG_LEVEL
+#ifdef NETCDF_ENABLE_SET_LOG_LEVEL
 
 /**
  * Initialize parallel I/O logging. For parallel I/O builds, open log
@@ -1812,7 +1814,7 @@ nc_set_log_level(int new_level)
     
     return NC_NOERR;
 }
-#endif /* ENABLE_SET_LOG_LEVEL */
+#endif /* NETCDF_ENABLE_SET_LOG_LEVEL */
 
 #if LOGGING
 #define MAX_NESTS 10

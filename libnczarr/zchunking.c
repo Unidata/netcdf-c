@@ -258,7 +258,7 @@ NCZ_compute_all_slice_projections(
         NCZSliceProjections* results)
 {
     int stat = NC_NOERR;
-    size64_t r; 
+    int r; 
 
     for(r=0;r<common->rank;r++) {
 	/* Compute each of the rank SliceProjections instances */

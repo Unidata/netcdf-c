@@ -34,7 +34,9 @@ IF(NETCDF_ENABLE_DOXYGEN)
 
   # Generate User Documentation
   ADD_CUSTOM_TARGET(doc_all ALL
-    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    COMMAND ${DOXYGEN_EXECUTABLE} -u ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    COMMAND ${DOXYGEN_EXECUTABLE} -w html ${CMAKE_CURRENT_BINARY_DIR}/header.html ${CMAKE_CURRENT_BINARY_DIR}/footer.html ${CMAKE_CURRENT_BINARY_DIR}/custom_stylesheet.html ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile  
+    COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
     COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/auth.html ${CMAKE_CURRENT_BINARY_DIR}/html
     COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/obsolete/fan_utils.html ${CMAKE_CURRENT_BINARY_DIR}/html
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -96,6 +98,6 @@ inmemory.md DAP2.dox FAQ.md
 known_problems.md
 COPYRIGHT.dox user_defined_formats.md DAP4.md DAP4.dox
 testserver.dox byterange.md filters.md nczarr.md auth.md quantize.md
-quickstart_paths.md cloud.md)
+quickstart_paths.md quickstart_filters.md quickstart_env.md cloud.md)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

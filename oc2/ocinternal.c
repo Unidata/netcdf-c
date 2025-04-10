@@ -86,6 +86,9 @@ ocinternalinitialize(void)
     /* Compute some xdr related flags */
     xxdr_init();
 
+    if(getenv("OCDEBUG") != NULL)
+        ocdebug = atoi(getenv("OCDEBUG"));
+
     return OCTHROW(stat);
 }
 

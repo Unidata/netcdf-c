@@ -49,7 +49,7 @@ utility programs, is available from [the NetCDF Downloads
 page](https://downloads.unidata.ucar.edu/netcdf-c). Separate source distributions for
 the Java library, Fortran libraries, and C++ libraries are also
 available there. Installation instructions are available with the
-distribution or [online](https://docs.unidata.ucar.edu/netcdf-c/current/building.html).
+distribution or [online](https://docs.unidata.ucar.edu/netcdf-c/current/netCDF-CMake.html).
 
 Binary distributions of netCDF are available for various platforms from
 package management systems such as dpkg, RPM, fink, MacPorts, Homebrew,

@@ -226,8 +226,9 @@ ncz_splitkey(const char* key, NClist* segments)
 @internal Down load a .z... structure into memory
 @param zmap - [in] controlling zarr map
 @param key - [in] .z... object to load
-@param jsonp - [out] root of the loaded json
+@param jsonp - [out] root of the loaded json (NULL if key does not exist)
 @return NC_NOERR
+@return NC_EXXX
 @author Dennis Heimbigner
 */
 int
@@ -238,17 +239,22 @@ NCZ_downloadjson(NCZMAP* zmap, const char* key, NCjson** jsonp)
     char* content = NULL;
     NCjson* json = NULL;
 
-    if((stat = nczmap_len(zmap, key, &len)))
-	goto done;
+    switch(stat = nczmap_len(zmap, key, &len)) {
+    case NC_NOERR: break;
+    case NC_ENOOBJECT: case NC_EEMPTY:
+        stat = NC_NOERR;
+        goto exit;
+    default: goto done;
+    }
     if((content = malloc(len+1)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     if((stat = nczmap_read(zmap, key, 0, len, (void*)content)))
 	goto done;
     content[len] = '\0';
-
     if((stat = NCJparse(content,0,&json)) < 0)
 	{stat = NC_ENCZARR; goto done;}
 
+exit:
     if(jsonp) {*jsonp = json; json = NULL;}
 
 done:
@@ -310,13 +316,9 @@ NCZ_createdict(NCZMAP* zmap, const char* key, NCjson** jsonp)
     NCjson* json = NULL;
 
     /* See if it already exists */
-    stat = NCZ_downloadjson(zmap,key,&json);
-    if(stat != NC_NOERR) {
-	if(stat == NC_EEMPTY) {/* create it */
-	    if((stat = nczmap_def(zmap,key,NCZ_ISMETA)))
-		goto done;	    
-        } else
-	    goto done;
+    if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
+    ifjson == NULL) {
+	if((stat = nczmap_def(zmap,key,NCZ_ISMETA))) goto done;	    
     } else {
 	/* Already exists, fail */
 	stat = NC_EINVAL;
@@ -346,18 +348,14 @@ NCZ_createarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
     int stat = NC_NOERR;
     NCjson* json = NULL;
 
-    stat = NCZ_downloadjson(zmap,key,&json);
-    if(stat != NC_NOERR) {
-	if(stat == NC_EEMPTY) {/* create it */
-	    if((stat = nczmap_def(zmap,key,NCZ_ISMETA)))
-		goto done;	    
-	    /* Create the initial array */
-	    if((stat = NCJnew(NCJ_ARRAY,&json)))
-		goto done;
-        } else {
-	    stat = NC_EINVAL;
-	    goto done;
-	}
+    if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
+    if(json == NULL) { /* create it */
+	if((stat = nczmap_def(zmap,key,NCZ_ISMETA))) goto done;	    
+        /* Create the initial array */
+	if((stat = NCJnew(NCJ_ARRAY,&json))) goto done;
+    } else {
+	 stat = NC_EINVAL;
+	goto done;
     }
     if(json->sort != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
     if(jsonp) {*jsonp = json; json = NULL;}
@@ -366,54 +364,6 @@ done:
     return stat;
 }
 #endif /*0*/
-
-/**
-@internal Get contents of a meta object; fail it it does not exist
-@param zmap - [in] map
-@param key - [in] key of the object
-@param jsonp - [out] return parsed json
-@return NC_NOERR
-@return NC_EEMPTY [object did not exist]
-@author Dennis Heimbigner
-*/
-int
-NCZ_readdict(NCZMAP* zmap, const char* key, NCjson** jsonp)
-{
-    int stat = NC_NOERR;
-    NCjson* json = NULL;
-
-    if((stat = NCZ_downloadjson(zmap,key,&json)))
-	goto done;
-    if(NCJsort(json) != NCJ_DICT) {stat = NC_ENCZARR; goto done;}
-    if(jsonp) {*jsonp = json; json = NULL;}
-done:
-    NCJreclaim(json);
-    return stat;
-}
-
-/**
-@internal Get contents of a meta object; fail it it does not exist
-@param zmap - [in] map
-@param key - [in] key of the object
-@param jsonp - [out] return parsed json
-@return NC_NOERR
-@return NC_EEMPTY [object did not exist]
-@author Dennis Heimbigner
-*/
-int
-NCZ_readarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
-{
-    int stat = NC_NOERR;
-    NCjson* json = NULL;
-
-    if((stat = NCZ_downloadjson(zmap,key,&json)))
-	goto done;
-    if(NCJsort(json) != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
-    if(jsonp) {*jsonp = json; json = NULL;}
-done:
-    NCJreclaim(json);
-    return stat;
-}
 
 #if 0
 /**
@@ -664,7 +614,7 @@ primarily on the first atomic value encountered
 recursively.
 */
 int
-NCZ_inferattrtype(NCjson* value, nc_type typehint, nc_type* typeidp)
+NCZ_inferattrtype(const NCjson* value, nc_type typehint, nc_type* typeidp)
 {
     int i,stat = NC_NOERR;
     nc_type typeid;
@@ -673,7 +623,7 @@ NCZ_inferattrtype(NCjson* value, nc_type typehint, nc_type* typeidp)
     long long i64;
     int negative = 0;
 
-    if(NCJsort(value) == NCJ_ARRAY && NCJlength(value) == 0)
+    if(NCJsort(value) == NCJ_ARRAY && NCJarraylength(value) == 0)
         {typeid = NC_NAT; goto done;} /* Empty array is illegal */
 
     if(NCJsort(value) == NCJ_NULL)
@@ -684,7 +634,7 @@ NCZ_inferattrtype(NCjson* value, nc_type typehint, nc_type* typeidp)
 
     /* If an array, make sure all the elements are simple */
     if(value->sort == NCJ_ARRAY) {
-	for(i=0;i<NCJlength(value);i++) {
+	for(i=0;i<NCJarraylength(value);i++) {
 	    j=NCJith(value,i);
 	    if(!NCJisatomic(j))
 	        {typeid = NC_NAT; goto done;}
@@ -1076,7 +1026,7 @@ checksimplejson(NCjson* json, int depth)
     switch (NCJsort(json)) {
     case NCJ_ARRAY:
 	if(depth > 0) return 0;  /* e.g. [...,[...],...]  or [...,{...},...] */
-	for(i=0;i < NCJlength(json);i++) {
+	for(i=0;i < NCJarraylength(json);i++) {
 	    NCjson* j = NCJith(json,i);
 	    if(!checksimplejson(j,depth+1)) return 0;
         }
@@ -1093,7 +1043,7 @@ checksimplejson(NCjson* json, int depth)
 
 /* Return 1 if the attribute will be stored as a complex JSON valued attribute; return 0 otherwise */
 int
-NCZ_iscomplexjson(NCjson* json, nc_type typehint)
+NCZ_iscomplexjson(const NCjson* json, nc_type typehint)
 {
     int i, stat = 0;
 
@@ -1102,7 +1052,7 @@ NCZ_iscomplexjson(NCjson* json, nc_type typehint)
 	/* If the typehint is NC_CHAR, then always treat it as complex */
 	if(typehint == NC_CHAR) {stat = 1; goto done;}
 	/* Otherwise see if it is a simple vector of atomic values */
-	for(i=0;i < NCJlength(json);i++) {
+	for(i=0;i < NCJarraylength(json);i++) {
 	    NCjson* j = NCJith(json,i);
 	    if(!NCJisatomic(j)) {stat = 1; goto done;}
         }

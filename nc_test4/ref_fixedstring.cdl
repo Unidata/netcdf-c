@@ -1,9 +1,16 @@
 netcdf ref_fixedstring {
 dimensions:
-	phony_dim_0 = 3 ;
+	phony_dim_0 = 4 ;
 variables:
-	string test(phony_dim_0) ;
+	string v1 ;
+	string vn(phony_dim_0) ;
+
+// global attributes:
+		:att1 = "abcd" ;
+		string :attn = "abcd", "efgh", "ijkl", "mnop" ;
 data:
 
- test = "foo", "bar", "baz" ;
+ v1 = "abcd" ;
+
+ vn = "abcd", "efgh", "ijkl", "mnop" ;
 }

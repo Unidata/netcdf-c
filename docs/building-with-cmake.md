@@ -5,9 +5,16 @@ Build Instructions for NetCDF-C using CMake {#netCDF-CMake}
 
 # Overview {#cmake_overview}
 
-Starting with netCDF-C 4.3.0, we are happy to announce the inclusion of CMake support.  CMake will allow for building netCDF on a wider range of platforms, include Microsoft Windows with Visual Studio.  CMake support also provides robust unit and regression testing tools.  We will also maintain the standard autotools-based build system in parallel.
+Starting with netCDF-C 4.3.0, we are happy to announce the inclusion
+of CMake support.  CMake will allow for building netCDF on a wider
+range of platforms, include Microsoft Windows with Visual Studio.
+CMake support also provides robust unit and regression testing tools.
+We will also maintain the standard autotools-based build system in
+parallel.
 
-In addition to providing new build options for netCDF-C, we will also provide pre-built binary downloads for the shared versions of netCDF for use with Visual Studio.  
+In addition to providing new build options for netCDF-C, we will also
+provide pre-built binary downloads for the shared versions of netCDF
+for use with Visual Studio.
 
 		
 # Requirements {#cmake_requirements}
@@ -66,6 +73,24 @@ The easiest configuration case would be one in which all of the dependent librar
 If you have libraries installed in a custom directory, you may need to specify the **CMAKE\_PREFIX_PATH** variable to tell cmake where the libraries are installed. For example:
 
 > $ cmake [Source Directory] -DCMAKE\_PREFIX\_PATH=/usr/custom_libraries/
+
+#### Building with Parallel I/O. {#cmake_parallel_io}
+
+NetCDF will build with parallel I/O if the C compiler is an MPI
+compiler, and HDF5 was built for parallel I/O. To build netcdf-c for
+parallel I/O, first build HDF5 for parallel I/O, then build netcdf-c
+like this:
+
+> $ CC=mpicc cmake [Source Directory] -DNETCDF\_ENABLE\_PARALLEL_TESTS=ON
+
+The parallel I/O tests will only run if the additional configure
+option is used: NETCDF_ENABLE_PARALLEL_TESTS. Those tests run (by default)
+with mpiexec, on 4, 16, or 32 processors. If mpiexec cannot be used on
+your login-nodes, a different command can be used to launch the
+parallel I/O tests. Used the NETCDF_MPIEXEC option to set a
+different parallel I/O job launcher:
+
+> $ CC=mpicc cmake [Source Directory] -DNETCDF\_ENABLE\_PARALLEL_TESTS=ON -DNETCDF\_MPIEXEC='srun -A account'
 
 ## Building {#cmake_building}
 

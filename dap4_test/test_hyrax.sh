@@ -3,6 +3,7 @@
 if test "x$srcdir" = "x"; then srcdir=`dirname $0`; fi
 export srcdir;
 
+
 . ../test_common.sh
 
 . ${srcdir}/d4test_common.sh
@@ -61,7 +62,8 @@ hyraxsplit() {
     PREFIX=`dirname $P`
 }
 
-if test "x${RESET}" = x1 ; then rm -fr ${BASELINEHY}/*.hyrax ; fi
+# Turn on only if regenerating test baseline
+#if test "x${RESET}" = x1 ; then rm -fr ${BASELINEHY}/*.hyrax ; fi
 for f in $F ; do
   hyraxsplit $f
   makehyraxurl

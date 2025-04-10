@@ -125,6 +125,9 @@ are set when opening a binary file on Windows. */
 #endif
 
 /* if true, use hdf5 S3 virtual file reader */
+#cmakedefine NETCDF_ENABLE_HDF5 1
+
+/* if true, use hdf5 S3 virtual file reader */
 #cmakedefine NETCDF_ENABLE_HDF5_ROS3 1
 
 /* if true, enable CDF5 Support */
@@ -159,6 +162,12 @@ are set when opening a binary file on Windows. */
 
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine NETCDF_ENABLE_PLUGINS 1
+
+/* Define the plugin install dir */
+#cmakedefine NETCDF_PLUGIN_INSTALL_DIR "${NETCDF_PLUGIN_INSTALL_DIR}"
+
+/* Define the plugin search path */
+#cmakedefine NETCDF_PLUGIN_SEARCH_PATH "${NETCDF_PLUGIN_SEARCH_PATH}"
 
 /* if true, enable S3 support */
 #cmakedefine NETCDF_ENABLE_S3 1
@@ -261,6 +270,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `fileno' function. */
 #cmakedefine HAVE_FILENO 1
+
+/* Define to 1 if you have the `H5Literate2' function. */
+#cmakedefine HAVE_H5LITERATE2
 
 /* Define to 1 if you have the `fsync' function. */
 #cmakedefine HAVE_FSYNC 1
@@ -373,6 +385,12 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the <ctype.h> header file. */
 #cmakedefine HAVE_CTYPE_H 1
 
+/* Define to 1 if you have the getfattr command line utility. */
+#cmakedefine HAVE_GETFATTR 1
+
+/* Define to 1 if you have the <sys/xattr.h> header file. */
+#cmakedefine HAVE_SYS_XATTR_H
+
 /* Define to 1 if you have the <strings.h> header file. */
 #cmakedefine HAVE_STRINGS_H 1
 
@@ -475,10 +493,8 @@ with zip */
 #cmakedefine LOGGING 1
 
 /* If true, define nc_set_log_level. */
-#cmakedefine ENABLE_SET_LOG_LEVEL 1
-
-/* If true, define nc_set_log_level_func */
-#cmakedefine NETCDF_ENABLE_SET_LOG_LEVEL_FUNC 1
+#cmakedefine NETCDF_ENABLE_LOGGING 1
+#cmakedefine NETCDF_ENABLE_SET_LOG_LEVEL 1
 
 /* min blocksize for posixio. */
 #cmakedefine NCIO_MINBLOCKSIZE ${NCIO_MINBLOCKSIZE}
@@ -488,6 +504,9 @@ with zip */
 
 /* Idspatch table version */
 #cmakedefine NC_DISPATCH_VERSION ${NC_DISPATCH_VERSION}
+
+/* Enable Legacy, potential-conflict Macro _FillValue */
+#cmakedefine NETCDF_ENABLE_LEGACY_MACROS
 
 /* no IEEE float on this platform */
 #cmakedefine NO_IEEE_FLOAT 1

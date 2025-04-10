@@ -29,17 +29,13 @@ IF(Szip_INCLUDE_DIRS)
     GET_FILENAME_COMPONENT(Szip_LIBRARY_DIRS ${Szip_LIBRARY_DIRS} PATH)
   ENDIF("${Szip_LIBRARY_DIRS}" MATCHES "/include$")
 
-  IF(EXISTS "${Szip_LIBRARY_DIRS}/lib")
-    SET(Szip_LIBRARY_DIRS ${Szip_LIBRARY_DIRS}/lib)
-  ENDIF(EXISTS "${Szip_LIBRARY_DIRS}/lib")
-
   # Find Szip libraries
   FIND_LIBRARY(Szip_DEBUG_LIBRARY NAMES szipd szip_d libszipd libszip_d szip libszip sz2 libsz2
                PATH_SUFFIXES Debug ${CMAKE_LIBRARY_ARCHITECTURE} ${CMAKE_LIBRARY_ARCHITECTURE}/Debug
-               PATHS ${Szip_LIBRARY_DIRS} NO_DEFAULT_PATH)
+               PATHS ${Szip_LIBRARY_DIRS} ${Szip_LIBRARY_DIRS}/lib ${Szip_LIBRARY_DIRS}/lib64 NO_DEFAULT_PATH)
   FIND_LIBRARY(Szip_RELEASE_LIBRARY NAMES szip libszip sz libsz sz2 libsz2
                PATH_SUFFIXES Release ${CMAKE_LIBRARY_ARCHITECTURE} ${CMAKE_LIBRARY_ARCHITECTURE}/Release
-               PATHS ${Szip_LIBRARY_DIRS} NO_DEFAULT_PATH)
+               PATHS ${Szip_LIBRARY_DIRS} ${Szip_LIBRARY_DIRS}/lib ${Szip_LIBRARY_DIRS}/lib64 NO_DEFAULT_PATH)
 
   SET(Szip_LIBRARIES)
   SET(Szip_LIBRARY)

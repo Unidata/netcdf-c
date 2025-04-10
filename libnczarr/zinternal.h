@@ -22,7 +22,6 @@
 #define NCZ_CHUNKSIZE_FACTOR (10)
 #define NCZ_MIN_CHUNK_SIZE (2)
 
-
 /**************************************************/
 /* Constants */
 
@@ -39,56 +38,43 @@
 #  endif
 #endif
 
-/* V1 reserved objects */
-#define NCZMETAROOT "/.nczarr"
-#define NCZGROUP ".nczgroup"
-#define NCZARRAY ".nczarray"
-#define NCZATTRS ".nczattrs"
-/* Deprecated */
-#define NCZVARDEP ".nczvar"
-#define NCZATTRDEP ".nczattr"
-
 #define ZMETAROOT "/.zgroup"
+#define ZMETAATTR "/.zattrs"
 #define ZGROUP ".zgroup"
 #define ZATTRS ".zattrs"
 #define ZARRAY ".zarray"
 
-/* Pure Zarr pseudo names */
-#define ZDIMANON "_zdim"
-
 /* V2 Reserved Attributes */
 /*
-Inserted into /.zgroup
+For nczarr version 2.x.x, the following (key,value)
+pairs are stored in .zgroup and/or .zarray.
+
+Inserted into /.zattrs in root group
 _nczarr_superblock: {"version": "2.0.0"}
-Inserted into any .zgroup
+
+Inserted into any group level .zattrs 
 "_nczarr_group": "{
-\"dimensions\": {\"d1\": \"1\", \"d2\": \"1\",...}
-\"variables\": [\"v1\", \"v2\", ...]
+\"dimensions\": [{name: <dimname>, size: <integer>, unlimited: 1|0},...],
+\"arrays\": [\"v1\", \"v2\", ...]
 \"groups\": [\"g1\", \"g2\", ...]
 }"
-Inserted into any .zarray
+
+Inserted into any array level .zattrs
 "_nczarr_array": "{
-\"dimensions\": [\"/g1/g2/d1\", \"/d2\",...]
-\"storage\": \"scalar\"|\"contiguous\"|\"compact\"|\"chunked\"
+\"dimension_references\": [\"/g1/g2/d1\", \"/d2\",...]
+\"storage\": \"scalar\"|\"contiguous\"|\"chunked\"
 }"
-Inserted into any .zattrs ? or should it go into the container?
+
+Inserted into any .zattrs
 "_nczarr_attr": "{
 \"types\": {\"attr1\": \"<i4\", \"attr2\": \"<i1\",...}
 }
-+
-+Note: _nczarr_attr type include non-standard use of a zarr type "|U1" => NC_CHAR.
-+
 */
 
 #define NCZ_V2_SUPERBLOCK "_nczarr_superblock"
 #define NCZ_V2_GROUP   "_nczarr_group"
 #define NCZ_V2_ARRAY   "_nczarr_array"
-#define NCZ_V2_ATTR    NC_NCZARR_ATTR
-
-#define NCZ_V2_SUPERBLOCK_UC "_NCZARR_SUPERBLOCK"
-#define NCZ_V2_GROUP_UC   "_NCZARR_GROUP"
-#define NCZ_V2_ARRAY_UC   "_NCZARR_ARRAY"
-#define NCZ_V2_ATTR_UC    NC_NCZARR_ATTR_UC
+#define NCZ_V2_ATTR    "_nczarr_attr" /* Must match value in include/nc4internal.h */
 
 #define NCZARRCONTROL "nczarr"
 #define PUREZARRCONTROL "zarr"
@@ -154,7 +140,7 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_SHOWFETCH   2
 #		define FLAG_LOGGING     4
 #		define FLAG_XARRAYDIMS  8
-#		define FLAG_NCZARR_V1   16
+#		define FLAG_NCZARR_KEY  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
 	NCZM_IMPL mapimpl;
     } controls;
     int default_maxstrlen; /* default max str size for variables of type string */
@@ -173,18 +159,13 @@ typedef struct  NCZ_ATT_INFO {
 /* Struct to hold ZARR-specific info for a group. */
 typedef struct NCZ_GRP_INFO {
     NCZcommon common;
-#if 0
-    /* The jcontent field stores the following:
-	1. List of (name,length) for dims in the group
-	2. List of (name,type) for user-defined types in the group
-	3. List of var names in the group
-	4. List of subgroups names in the group
-    */
-    NClist* dims;
-    NClist* types; /* currently not used */
-    NClist* vars;
-    NClist* grps;
-#endif
+    /* Read .zgroup and .zattrs once */
+    struct ZARROBJ {
+	char* prefix; /* prefix of .zgroup and .zattrs */
+	NCjson* obj; /* .zgroup|.zarray */
+	NCjson* atts;
+        int nczv1;   /* 1 => _nczarr_xxx are in obj and not attributes */
+    } zgroup;
 } NCZ_GRP_INFO_T;
 
 /* Struct to hold ZARR-specific info for a variable. */
@@ -199,6 +180,9 @@ typedef struct NCZ_VAR_INFO {
     char dimension_separator; /* '.' | '/' */
     NClist* incompletefilters;
     int maxstrlen; /* max length of strings for this variable */
+    /* Read .zarray and .zattrs once */
+    struct ZARROBJ zarray;
+    struct ZARROBJ zattrs;
 } NCZ_VAR_INFO_T;
 
 /* Struct to hold ZARR-specific info for a field. */

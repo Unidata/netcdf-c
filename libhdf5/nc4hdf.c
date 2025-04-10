@@ -1449,7 +1449,9 @@ attach_dimscales(NC_GRP_INFO_T *grp)
                         dsid = ((NC_HDF5_VAR_INFO_T *)(var->dim[d]->coord_var->format_var_info))->hdf_datasetid;
                     else
                         dsid = ((NC_HDF5_DIM_INFO_T *)var->dim[d]->format_dim_info)->hdf_dimscaleid;
-                    assert(dsid > 0);
+
+                    if (dsid <= 0)
+                        return NC_EDIMSCALE;
 
                     /* Attach the scale. */
                     if (H5DSattach_scale(hdf5_var->hdf_datasetid, dsid, d) < 0)

@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#include <netcdf_json.h>
-
+#include "netcdf_json.h"
 #include "netcdf_filter_build.h"
 
 #ifndef NOOP_INSTANCE
@@ -182,7 +181,7 @@ NCZ_noop_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
 {
     int stat = NC_NOERR;
     NCjson* jcodec = NULL;
-    NCjson* jtmp = NULL;
+    const NCjson* jtmp = NULL;
     int i,nparams = 0;
     unsigned* params = NULL;
     char field[1024];
@@ -198,7 +197,7 @@ NCZ_noop_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
     if(jtmp == NULL || !NCJisatomic(jtmp)) {stat = NC_EINVAL; goto done;}
     if(strcmp(NCJstring(jtmp),NCZ_noop_codec.codecid)!=0) {stat = NC_EINVAL; goto done;}
   
-    nparams = (NCJlength(jcodec) - 1) / 2; /* -1 for id each param is key+value */
+    nparams = (NCJarraylength(jcodec) - 1) / 2; /* -1 for id each param is key+value */
 
     if((params = (unsigned*)calloc(nparams,sizeof(unsigned)))== NULL)
         {stat = NC_ENOMEM; goto done;}
