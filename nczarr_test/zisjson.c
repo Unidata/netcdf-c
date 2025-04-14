@@ -73,14 +73,14 @@ jsontrace(NCjson* json, int depth)
 	break;
     case NCJ_ARRAY:
 	printf("\n");
-	for(i=0;i<NCJlength(json);i++)
+	for(i=0;i<NCJarraylength(json);i++)
 	    jsontrace(NCJith(json,i),depth+1);
 	break;
     case NCJ_DICT:
 	printf("\n");
-	for(i=0;i<NCJlength(json);i+=2) {
-	    jsontrace(NCJith(json,i),depth+1);
-	    jsontrace(NCJith(json,i+1),depth+1);
+	for(i=0;i<NCJdictlength(json);i++) {
+	    jsontrace(NCJdictkey(json,i),depth+1);
+	    jsontrace(NCJdictvalue(json,i),depth+1);
 	} break;
     default: break;
     }
