@@ -1429,7 +1429,7 @@ configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
 
 add_definitions(-DHAVE_CONFIG_H)
 
-include_directories(${netCDF_BINARY_DIR})
+include_directories(BEFORE ${netCDF_BINARY_DIR})
 # End autotools-style checks for config.h
 
 #####
@@ -1557,21 +1557,36 @@ endif()
 # in the libdir.
 ##
 if(MSVC)
-  foreach(CPP ${CMAKE_PREFIX_PATH})
-    file(GLOB COPY_FILES ${CPP}/lib/*.lib)
-  endforeach()
-  install(FILES ${COPY_FILES}
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  COMPONENT dependencies)
 
+  if(NOT CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "")
+    set(CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
+  endif()
+  
   foreach(CPP ${CMAKE_PREFIX_PATH})
-    file(GLOB COPY_FILES ${CPP}/bin/*.dll)
-  endforeach()
-  string(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
-  install(FILES ${COPY_FILES}
-  DESTINATION ${CMAKE_INSTALL_BINDIR}
-  COMPONENT dependencies)
+    
+    CMAKE_PATH(CONVERT ${CPP} TO_CMAKE_PATH_LIST CPP)
 
+    file(GLOB COPY_FILES ${CPP}/*.lib ${CPP}/lib/*.lib)
+    if(COPY_FILES)
+      install(FILES ${COPY_FILES}
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT dependencies)
+    endif()
+  endforeach()
+  
+  foreach(CPP ${CMAKE_PREFIX_PATH})
+
+    CMAKE_PATH(CONVERT ${CPP} TO_CMAKE_PATH_LIST CPP)
+
+    file(GLOB COPY_FILES ${CPP}/*.dll ${CPP}/bin/*.dll)
+    if(COPY_FILES)
+      string(REGEX REPLACE "msv[.*].dll" "" COPY_FILES "${COPY_FILES}")
+      install(FILES ${COPY_FILES}
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT dependencies)
+    endif()
+  endforeach()
+  
 endif()
 
 # Subdirectory CMakeLists.txt files should specify their own
