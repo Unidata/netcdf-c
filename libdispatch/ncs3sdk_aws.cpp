@@ -646,7 +646,7 @@ Return a list of full keys  of legal objects immediately below a specified key.
 Not necessarily sorted.
 */
 EXTERNL int
-NC_s3sdkgetkeys(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
+NC_s3sdklist(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     return getkeys(s3client0, bucket, prefixkey0, "/", nkeysp, keysp, errmsgp);
 }
