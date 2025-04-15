@@ -227,7 +227,7 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
 
     /* Search the root for content */
     content = nclistnew();
-    if((stat = NC_s3sdkgetkeys(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
+    if((stat = NC_s3sdklist(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
 	goto done;
     if(nkeys == 0) {
 	/* dataset does not actually exist; we choose to return ENOOBJECT instead of EEMPTY */
@@ -443,7 +443,7 @@ zs3search(NCZMAP* map, const char* prefix, NClist* matches)
     if((stat = maketruekey(z3map->s3.rootkey,prefix,&trueprefix))) goto done;
     
     if(*trueprefix != '/') return NC_EINTERNAL;
-    if((stat = NC_s3sdkgetkeys(z3map->s3client,z3map->s3.bucket,trueprefix,&nkeys,&list,&z3map->errmsg)))
+    if((stat = NC_s3sdklist(z3map->s3client,z3map->s3.bucket,trueprefix,&nkeys,&list,&z3map->errmsg)))
         goto done;
     if(nkeys > 0) {
 	size_t tplen = strlen(trueprefix);
@@ -505,7 +505,7 @@ s3clear(void* s3client, const char* bucket, const char* rootkey)
     size_t nkeys = 0;
 
     if(s3client && bucket && rootkey) {
-        if((stat = NC_s3sdksearch(s3client, bucket, rootkey, &nkeys, &list, NULL)))
+        if((stat = NC_s3sdklistall(s3client, bucket, rootkey, &nkeys, &list, NULL)))
             goto done;
         if(list != NULL) {
 	    size_t i;
