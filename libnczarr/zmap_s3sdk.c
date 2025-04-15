@@ -261,7 +261,7 @@ zs3truncate(const char *s3url)
     if((s3client = NC_s3sdkcreateclient(&info))==NULL) {stat = NC_ES3; goto done;}
     if((stat = s3clear(s3client,info.bucket,info.rootkey))) goto done;
 done:
-    if(s3client) {stat=NC_s3sdkclose(s3client,&info,1,NULL);}
+    if(s3client) {stat=NC_s3sdkclose(s3client,NULL);}
     ncurifree(url);
     ncurifree(purl);
     (void)NC_s3clear(&info);
@@ -407,7 +407,7 @@ zs3close(NCZMAP* map, int deleteit)
     if(deleteit) 
         s3clear(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey);
      if(z3map->s3client && z3map->s3.bucket && z3map->s3.rootkey) {
-        NC_s3sdkclose(z3map->s3client, &z3map->s3, deleteit, &z3map->errmsg);
+        NC_s3sdkclose(z3map->s3client, &z3map->errmsg);
     }
     reporterr(z3map);
     z3map->s3client = NULL;
