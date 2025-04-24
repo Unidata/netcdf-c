@@ -44,6 +44,10 @@
  * file must follow strict netCDF classic format rules. */
 #define NC3_STRICT_ATT_NAME NC_ATT_NC3_STRICT_NAME
 
+/* An attribute in the HDF5 root group of this name provides
+ * provenance information for Netcdf-4 files. */
+#define NC_STRICT_ATT_NAME NC_ATT_NC3_STRICT_NAME
+
 /* If this attribute is present on a dimscale variable, use the value
  * as the netCDF dimid. */
 #define NC_DIMID_ATT_NAME NC_ATT_DIMID_NAME /*See nc4internal.h*/
