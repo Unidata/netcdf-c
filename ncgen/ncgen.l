@@ -36,7 +36,7 @@
    definition of FILL_STRING in ../ncdump/vardata.h */
 
 #include "ncgen.h"
-#include "ncgeny.h"
+#include "ncgen.tab.h"
 #include "isnan.h"
 
 #define FILL_STRING "_"
@@ -916,7 +916,7 @@ identcheck(int token)
 	}
 	break;
     default:
-         break;    
+         break;
     }
     return token;
 }
