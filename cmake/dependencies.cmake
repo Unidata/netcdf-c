@@ -510,3 +510,10 @@ endif()
 if (NETCDF_PACKAGE)
   find_program(NC_DPKG NAMES dpkg)
 endif()
+
+################################
+# Python for testing tools
+################################ 
+if (NETCDF_ENABLE_NCZARR AND NETCDF_ENABLE_TESTS)
+  find_package (Python COMPONENTS Interpreter)
+endif()
