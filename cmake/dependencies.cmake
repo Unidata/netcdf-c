@@ -156,16 +156,22 @@ if(USE_HDF5)
   # need to know whether to add "-lz" to the symbol
   # tests below.
   include(check_hdf5)
-  if(NOT ZLIB_LIBRARY)
-    find_package(ZLIB)
-    if(ZLIB_FOUND)
-      set(ZLIB_LIBRARY ${ZLIB_LIBRARIES} )
-    else()
-      message(FATAL_ERROR "HDF5 Requires ZLIB, but cannot find libz.")
+  check_hdf5_feature(HAVE_HDF5_ZLIB H5_HAVE_ZLIB_H)
+  if(NOT HAVE_HDF5_ZLIB)
+    message(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
+  else()
+    # If user has specified the `ZLIB_LIBRARY`, use it; otherwise try to find...
+    if(NOT ZLIB_LIBRARY)
+      find_package(ZLIB)
+      if(ZLIB_FOUND)
+        set(ZLIB_LIBRARY ${ZLIB_LIBRARIES} )
+      else()
+        message(FATAL_ERROR "HDF5 Requires ZLIB, but cannot find libz.")
+      endif()
     endif()
+    set(CMAKE_REQUIRED_LIBRARIES ${ZLIB_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES} )
+    message(STATUS "HDF5 has zlib.")
   endif()
-  set(CMAKE_REQUIRED_LIBRARIES ${ZLIB_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES} )
-  message(STATUS "HDF5 has zlib.")
 
 
   # Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
