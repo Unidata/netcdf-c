@@ -53,7 +53,6 @@ static NC_reservedatt NC_reserved[] = {
     {NC_ATT_DIMID_NAME, READONLYFLAG|HIDDENATTRFLAG},			/*_Netcdf4Dimid*/
     {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG|VIRTUALFLAG},		/*_SuperblockVersion*/
     {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
-    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
     {NC_NCZARR_ATTR, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_attr */
     {NC_NCZARR_GROUP, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_group */
     {NC_NCZARR_ARRAY, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_array */

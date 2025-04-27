@@ -2470,7 +2470,7 @@ done:
     return stat;
 }
 
-static int NC4_strict_att_exists(NC_FILE_INFO_T*);
+static int NC4_root_att_exists(NC_FILE_INFO_T*, const char* aname);
 static int NC4_walk(hid_t, int*);
 
 /**
@@ -2507,9 +2507,13 @@ NC4_isnetcdf4(struct NC_FILE_INFO* h5)
     int count;
 
     /* Look for NC3_STRICT_ATT_NAME */
-    exists = NC4_strict_att_exists(h5);
+    exists = NC4_root_att_exists(h5,NC3_STRICT_ATT_NAME);
     if(exists)
-        goto done;
+        {isnc4 = 1; goto done;}
+    /* Look for _NCProperties */
+    exists = NC4_root_att_exists(h5,NCPROPS);
+    if(exists)
+        {isnc4 = 1; goto done;}
     /* attribute did not exist */
     /* => last resort: walk the HDF5 file looking for markers */
     count = 0;
@@ -2525,15 +2529,16 @@ done:
 }
 
 /**
- * @internal See if the NC3 strict attribute exists.
+ * @internal See if the named root attribute exists.
  *
  * @param h5 Pointer to HDF5 file info struct.
+ * @param aname attribute name for which to look.
  *
- * @returns 1 if error || exists; 0 otherwise
+ * @returns -1 if error || 1 if exists || 0 otherwise
  * @author Dennis Heimbigner.
  */
 static int
-NC4_strict_att_exists(NC_FILE_INFO_T *h5)
+NC4_root_att_exists(NC_FILE_INFO_T *h5, const char* aname)
 {
     hid_t grpid = -1;
     htri_t attr_exists;
@@ -2542,8 +2547,8 @@ NC4_strict_att_exists(NC_FILE_INFO_T *h5)
     grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 
     /* See if the NC3_STRICT_ATT_NAME attribute exists */
-    if ((attr_exists = H5Aexists(grpid, NC3_STRICT_ATT_NAME)) < 0)
-        return 1;
+    if ((attr_exists = H5Aexists(grpid, aname))<0)
+        return -1;
     return (attr_exists?1:0);
 }
 

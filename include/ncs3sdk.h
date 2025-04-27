@@ -78,6 +78,7 @@ EXTERNL const char* NC_s3dumps3info(NCS3INFO* info);
 EXTERNL void NC_s3freeprofilelist(struct NClist* profiles);
 EXTERNL int NC_getactives3profile(NCURI* uri, const char** profilep);
 EXTERNL int NC_s3profilelookup(const char* profile, const char* key, const char** valuep);
+EXTERNL void NC_s3getcredentials(const char *profile, const char **region, const char **accessid, const char **accesskey);
 EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
 EXTERNL int NC_iss3(NCURI* uri, enum NCS3SVC*);
 EXTERNL int NC_s3urlrebuild(NCURI* url, struct NCS3INFO* s3, NCURI** newurlp);

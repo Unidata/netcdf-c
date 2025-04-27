@@ -649,6 +649,34 @@ NC_s3profilelookup(const char* profile, const char* key, const char** valuep)
     if(valuep) *valuep = value;
     return stat;
 }
+/**
+ * Get the credentials for a given profile or load them from environment.
+ @param profile name to use to look for credentials
+ @param region return region from profile or env
+ @param accessid return accessid from progile or env
+ @param accesskey return accesskey from profile or env
+ */
+void NC_s3getcredentials(const char *profile, const char **region, const char** accessid, const char** accesskey) {
+    if(profile != NULL && strcmp(profile,"no") != 0) {
+        NC_s3profilelookup(profile, "aws_access_key_id", accessid);
+        NC_s3profilelookup(profile, "aws_secret_access_key", accesskey);
+        NC_s3profilelookup(profile, "region", region);
+    }
+    else
+    { // We load from env if not in profile
+        NCglobalstate* gstate = NC_getglobalstate();
+        if(gstate->aws.access_key_id != NULL && accessid){
+            *accessid = gstate->aws.access_key_id;
+        }
+        if (gstate->aws.secret_access_key != NULL && accesskey){
+            *accesskey = gstate->aws.secret_access_key;
+        }
+        if(gstate->aws.default_region != NULL && region){
+            *region = gstate->aws.default_region;
+        }
+    }
+}
+
 
 /**************************************************/
 /*
