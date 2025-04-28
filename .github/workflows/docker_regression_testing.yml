@@ -1,0 +1,108 @@
+###
+# Run a docker-based test of tests.
+#
+# See https://github.com/Unidata/docker-nctests
+# How    https://github.com/WardF/netcdf-test-action
+name: Run Docker-Based Regression Testing
+on: [pull_request,workflow_dispatch]
+
+concurrency:  
+  group: ${{ github.workflow}}-${{ github.head_ref }}  
+  cancel-in-progress: true
+
+permissions: {} 
+
+
+####
+# Serial Testing
+###
+jobs:  
+  netcdf-tests-serial:
+    name: Docker-Based NetCDF-C, Fortran Regression Testing (Serial)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo-type: [ 'c' ]
+        c-compiler: [ 'gcc', 'clang' ]
+        h5ver: [ '1.12.1', '1.14.6' ]
+        fortran-branch: [ 'v4.6.2', 'main' ]
+        buildsystem: [ 'both' ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull and Run netCDF Regression Tests
+        uses: WardF/netcdf-test-action@v1
+        with:
+          repo-type: '${{ matrix.repo-type }}'
+          run-c: 'TRUE'
+          build-system: '${{ matrix.buildsystem }}'
+          hdf5-version: '${{ matrix.h5ver }}'
+          ctest-repeat: 3
+          c-compiler: '${{ matrix.c-compiler }}'
+          run-fortran: 'TRUE'
+          fortran-branch: '${{ matrix.fortran-branch }}'
+
+###
+# Parallel Testing
+###          
+  netcdf-tests-parallel:
+
+    needs: netcdf-tests-serial
+
+    name: Docker-Based NetCDF-C, Fortran Regression Testing (Parallel)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo-type: [ 'c' ]
+        h5ver: [ '1.14.6' ]
+        c-compiler: [ 'mpicc' ]
+        mpich-version: [ 'default' ]
+        fortran-branch: [ 'v4.6.2', 'main' ]
+        buildsystem: [ 'cmake', 'autotools' ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull and Run netCDF Regression Tests
+        uses: WardF/netcdf-test-action@v1
+        with:
+          repo-type: '${{ matrix.repo-type }}'
+          run-c: 'TRUE'
+          build-system: '${{ matrix.buildsystem }}'
+          hdf5-version: '${{ matrix.h5ver }}'
+          ctest-repeat: 3
+          c-compiler: '${{ matrix.c-compiler }}'
+          mpich-version: '${{ matrix.mpich-version }}'
+          run-fortran: 'TRUE'
+          fortran-branch: '${{ matrix.fortran-branch }}'
+
+###
+# Test with Java
+###
+  netcdf-tests-java:
+    needs: netcdf-tests-serial
+
+    name: Docker-Based NetCDF-C, Java Regression Testing (Serial, Java Only)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo-type: [ 'c' ]
+        c-compiler: [ 'gcc' ]
+        h5ver: [ '1.14.6' ]
+        build-system: [ 'cmake', 'autotools' ]
+        run-java: [ 'TRUE' ]
+        java-branch: [ 'maint-5.x' ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull and Run netCDF Regression Tests
+        uses: WardF/netcdf-test-action@v1
+        with:
+          repo-type: '${{ matrix.repo-type }}'
+          run-c: 'FALSE'
+          run-fortran: 'FALSE'
+          build-system: '${{ matrix.build-system }}'
+          hdf5-version: '${{ matrix.h5ver }}'
+          ctest-repeat: 3
+          c-compiler: '${{ matrix.c-compiler }}'
+          run-java: '${{ matrix.run-java }}'
+          java-branch: '${{ matrix.java-branch }}'

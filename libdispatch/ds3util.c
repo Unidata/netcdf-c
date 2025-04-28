@@ -25,6 +25,7 @@
 #include "nc4internal.h"
 #include "ncuri.h"
 #include "nclist.h"
+#include "ncbytes.h"
 #include "ncrc.h"
 #include "nclog.h"
 #include "ncs3sdk.h"
@@ -33,9 +34,6 @@
 
 /* Alternate .aws directory location */
 #define NC_TEST_AWS_DIR "NC_TEST_AWS_DIR"
-
-#define AWSHOST ".amazonaws.com"
-#define GOOGLEHOST "storage.googleapis.com"
 
 enum URLFORMAT {UF_NONE=0, UF_VIRTUAL=1, UF_PATH=2, UF_S3=3, UF_OTHER=4};
 
@@ -47,6 +45,7 @@ static const char* awsconfigfiles[] = {".aws/config",".aws/credentials",NULL};
 /* Forward */
 
 static int endswith(const char* s, const char* suffix);
+static void freeprofile(struct AWSprofile* profile);
 static void freeentry(struct AWSentry* e);
 static int awsparse(const char* text, NClist* profiles);
 
@@ -78,9 +77,9 @@ NC_s3sdkenvironment(void)
 /*
 Rebuild an S3 url into a canonical path-style url.
 If region is not in the host, then use specified region
-if provided, otherwise leave blank and let the S3 server deal with it.
-@param url (in) the current url
-@param s3	(in/out) NCS3INFO structure
+if provided, otherwise us-east-1.
+@param url      (in) the current url
+@param s3       (in/out) NCS3INFO structure
 @param pathurlp (out) the resulting pathified url string
 */
 
@@ -309,7 +308,13 @@ NC_s3urlprocess(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
 
     /* Rebuild the URL to path format and get a usable region and optional bucket*/
     if((stat = NC_s3urlrebuild(url,s3,&url2))) goto done;
-    s3->host = strdup(url2->host);
+    if(url2->port){
+	char hostport[8192];
+	snprintf(hostport,sizeof(hostport),"%s:%s",url2->host,url2->port);
+	s3->host = strdup(hostport);
+    }else{
+        s3->host = strdup(url2->host);
+    }
     /* construct the rootkey minus the leading bucket */
     pathsegments = nclistnew();
     if((stat = NC_split_delim(url2->path,'/',pathsegments))) goto done;
@@ -358,19 +363,29 @@ NC_s3clear(NCS3INFO* s3)
 }
 
 /*
-Check if a url has indicators that signal an S3 or Google S3 url.
+Check if a url has indicators that signal an S3 or Google S3 url or ZoH S3 url.
+The rules are as follows:
+1. If the protocol is "s3" or "gs3" or "zoh", then return (true,s3|gs3|zoh).
+2. If the mode contains "s3" or "gs3" or "zoh", then return (true,s3|gs3|zoh).
+3. Check the host name:
+3.1 If the host ends with ".amazonaws.com", then return (true,s3).
+3.1 If the host is "storage.googleapis.com", then return (true,gs3).
+4. Otherwise return (false,unknown).
 */
 
 int
-NC_iss3(NCURI* uri, enum NCS3SVC* svcp)
+NC_iss3(NCURI* uri, NCS3SVC* svcp)
 {
     int iss3 = 0;
     NCS3SVC svc = NCS3UNK;
 
     if(uri == NULL) goto done; /* not a uri */
-    /* is the protocol "s3" or "gs3" ? */
+    /* is the protocol "s3" or "gs3" or "zoh" ? */
     if(strcasecmp(uri->protocol,"s3")==0) {iss3 = 1; svc = NCS3; goto done;}
     if(strcasecmp(uri->protocol,"gs3")==0) {iss3 = 1; svc = NCS3GS; goto done;}
+#ifdef NETCDF_ENABLE_ZOH
+    if(strcasecmp(uri->protocol,"zoh")==0) {iss3 = 1; svc = NCS3ZOH; goto done;}
+#endif
     /* Is "s3" or "gs3" in the mode list? */
     if(NC_testmode(uri,"s3")) {iss3 = 1; svc = NCS3; goto done;}
     if(NC_testmode(uri,"gs3")) {iss3 = 1; svc = NCS3GS; goto done;}    
@@ -384,18 +399,71 @@ done:
     return iss3;
 }
 
-const char*
-NC_s3dumps3info(NCS3INFO* info)
+/**************************************************/
+/**
+The .aws/config and .aws/credentials files
+are in INI format (https://en.wikipedia.org/wiki/INI_file).
+This format is not well defined, so the grammar used
+here is restrictive. Here, the term "profile" is the same
+as the INI term "section".
+
+The grammar used is as follows:
+
+Grammar:
+
+inifile: profilelist ;
+profilelist: profile | profilelist profile ;
+profile: '[' profilename ']' EOL entries ;
+entries: empty | entries entry ;
+entry:  WORD = WORD EOL ;
+profilename: WORD ;
+Lexical:
+WORD    sequence of printable characters - [ \[\]=]+
+EOL	'\n' | ';'
+
+Note:
+1. The semicolon at beginning of a line signals a comment.
+2. # comments are not allowed
+3. Duplicate profiles or keys are ignored.
+4. Escape characters are not supported.
+*/
+
+#define AWS_EOF (-1)
+#define AWS_ERR (0)
+#define AWS_WORD (0x10001)
+#define AWS_EOL (0x10002)
+
+typedef struct AWSparser {
+    char* text;
+    char* pos;
+    size_t yylen; /* |yytext| */
+    NCbytes* yytext;
+    int token; /* last token found */
+    int pushback; /* allow 1-token pushback */
+} AWSparser;
+
+#ifdef LEXDEBUG
+static const char*
+tokenname(int token)
 {
-    static char text[8192];
-    snprintf(text,sizeof(text),"host=%s region=%s bucket=%s rootkey=%s profile=%s",
-		(info->host?info->host:"null"),
-		(info->region?info->region:"null"),
-		(info->bucket?info->bucket:"null"),
-		(info->rootkey?info->rootkey:"null"),
-		(info->profile?info->profile:"null"));
-    return text;
+    static char num[32];
+    switch(token) {
+    case AWS_EOF: return "EOF";
+    case AWS_ERR: return "ERR";
+    case AWS_WORD: return "WORD";
+    default: snprintf(num,sizeof(num),"%d",token); return num;
+    }
+    return "UNKNOWN";
 }
+#endif
+
+/*
+@param text of the aws credentials file
+@param profiles list of form struct AWSprofile (see ncauth.h)
+*/
+
+#define LBR '['
+#define RBR ']'
 
 static void
 freeprofile(struct AWSprofile* profile)
@@ -424,6 +492,19 @@ NC_s3freeprofilelist(NClist* profiles)
 	}
 	nclistfree(profiles);
     }
+}
+
+const char*
+NC_s3dumps3info(NCS3INFO* info)
+{
+    static char text[8192];
+    snprintf(text,sizeof(text),"host=%s region=%s bucket=%s rootkey=%s profile=%s",
+		(info->host?info->host:"null"),
+		(info->region?info->region:"null"),
+		(info->bucket?info->bucket:"null"),
+		(info->rootkey?info->rootkey:"null"),
+		(info->profile?info->profile:"null"));
+    return text;
 }
 
 /* Find, load, and parse the aws config &/or credentials file */
@@ -568,6 +649,34 @@ NC_s3profilelookup(const char* profile, const char* key, const char** valuep)
     if(valuep) *valuep = value;
     return stat;
 }
+/**
+ * Get the credentials for a given profile or load them from environment.
+ @param profile name to use to look for credentials
+ @param region return region from profile or env
+ @param accessid return accessid from progile or env
+ @param accesskey return accesskey from profile or env
+ */
+void NC_s3getcredentials(const char *profile, const char **region, const char** accessid, const char** accesskey) {
+    if(profile != NULL && strcmp(profile,"no") != 0) {
+        NC_s3profilelookup(profile, "aws_access_key_id", accessid);
+        NC_s3profilelookup(profile, "aws_secret_access_key", accesskey);
+        NC_s3profilelookup(profile, "region", region);
+    }
+    else
+    { // We load from env if not in profile
+        NCglobalstate* gstate = NC_getglobalstate();
+        if(gstate->aws.access_key_id != NULL && accessid){
+            *accessid = gstate->aws.access_key_id;
+        }
+        if (gstate->aws.secret_access_key != NULL && accesskey){
+            *accesskey = gstate->aws.secret_access_key;
+        }
+        if(gstate->aws.default_region != NULL && region){
+            *region = gstate->aws.default_region;
+        }
+    }
+}
+
 
 /**************************************************/
 /*
@@ -706,15 +815,6 @@ tokenname(int token)
     return "UNKNOWN";
 }
 #endif
-
-typedef struct AWSparser {
-    char* text;
-    char* pos;
-    size_t yylen; /* |yytext| */
-    NCbytes* yytext;
-    int token; /* last token found */
-    int pushback; /* allow 1-token pushback */
-} AWSparser;
 
 static int
 awslex(AWSparser* parser)

@@ -423,6 +423,7 @@ NCfopen(const char* path, const char* flags)
 done:
     nullfree(cvtpath);
     nullfree(path8);
+    nullfree(bflags8);
     nullfree(wpath);
     nullfree(wflags);
     return f;

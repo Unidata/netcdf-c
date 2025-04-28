@@ -7,14 +7,14 @@ set -e
 
 #CMD="valgrind --leak-check=full"
 
-URL="https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}"
+URL="https://${S3ENDPOINT}/${S3TESTBUCKET}"
 
 isolate "testdir_uts3sdk"
 
 # Create an isolation path for S3; build on the isolation directory
 S3ISODIR="$ISODIR"
 S3ISOPATH="/${S3TESTSUBTREE}"
-S3ISOPATH="/${S3ISOPATH}/$S3ISODIR"
+S3ISOPATH="${S3ISOPATH}/$S3ISODIR"
 
 test_cleanup() {
 ${CMD} ${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
@@ -47,11 +47,15 @@ ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                list
 echo "Status: $?"
 
 echo -e "\to Checking search command for ${URL}"
-${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                search
+${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "/object_store"               listall
 echo "Status: $?"
 
 echo -e "\to Checking delete command for ${URL}/test_s3sdk.txt"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" delete
+echo "Status: $?"
+
+echo -e "\to Checking delete command for non-existent ${URL}/test_s3sdk_x.txt"
+${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk_x.txt" delete
 echo "Status: $?"
 
 if test "x$FEATURE_LARGE_TESTS" = xyes ; then
@@ -62,7 +66,6 @@ fi
 
 echo -e "Finished"
 
-exit
 if test "x$GITHUB_ACTIONS" = xtrue; then
 # Cleanup on exit
 test_cleanup

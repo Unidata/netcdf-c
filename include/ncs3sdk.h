@@ -14,9 +14,15 @@
 
 /* Track the server type, if known */
 typedef enum NCS3SVC {NCS3UNK=0, /* unknown */
-                 NCS3=1,    /* s3.amazon.aws */
-		 NCS3GS=2   /* storage.googleapis.com */
+	NCS3=1,     /* s3.amazon.aws */
+	NCS3GS=2,   /* storage.googleapis.com */
+#ifdef NETCDF_ENABLE_ZOH
+	NCS3ZOH=4,  /* ZoH Server */
+#endif
 } NCS3SVC;
+
+/* Opaque Handles */
+struct NClist;
 
 typedef struct NCS3INFO {
     char* host; /* non-null if other*/
@@ -55,9 +61,10 @@ EXTERNL int NC_s3sdkbucketdelete(void* s3client, NCS3INFO* info, char** errmsgp)
 EXTERNL int NC_s3sdkinfo(void* client0, const char* bucket, const char* pathkey, unsigned long long* lenp, char** errmsgp);
 EXTERNL int NC_s3sdkread(void* client0, const char* bucket, const char* pathkey, unsigned long long start, unsigned long long count, void* content, char** errmsgp);
 EXTERNL int NC_s3sdkwriteobject(void* client0, const char* bucket, const char* pathkey, unsigned long long count, const void* content, char** errmsgp);
-EXTERNL int NC_s3sdkclose(void* s3client0, NCS3INFO* info, int deleteit, char** errmsgp);
-EXTERNL int NC_s3sdkgetkeys(void* s3client0, const char* bucket, const char* prefix, size_t* nkeysp, char*** keysp, char** errmsgp);
-EXTERNL int NC_s3sdksearch(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp);
+EXTERNL int NC_s3sdkclose(void* s3client0, char** errmsgp);
+EXTERNL int NC_s3sdktruncate(void* s3client0, const char* bucket, const char* prefix, char** errmsgp);
+EXTERNL int NC_s3sdklist(void* s3client0, const char* bucket, const char* prefix, size_t* nkeysp, char*** keysp, char** errmsgp);
+EXTERNL int NC_s3sdklistall(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp);
 EXTERNL int NC_s3sdkdeletekey(void* client0, const char* bucket, const char* pathkey, char** errmsgp);
 
 /* From ds3util.c */
@@ -71,6 +78,7 @@ EXTERNL const char* NC_s3dumps3info(NCS3INFO* info);
 EXTERNL void NC_s3freeprofilelist(struct NClist* profiles);
 EXTERNL int NC_getactives3profile(NCURI* uri, const char** profilep);
 EXTERNL int NC_s3profilelookup(const char* profile, const char* key, const char** valuep);
+EXTERNL void NC_s3getcredentials(const char *profile, const char **region, const char **accessid, const char **accesskey);
 EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
 EXTERNL int NC_iss3(NCURI* uri, enum NCS3SVC*);
 EXTERNL int NC_s3urlrebuild(NCURI* url, struct NCS3INFO* s3, NCURI** newurlp);
