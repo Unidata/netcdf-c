@@ -232,7 +232,7 @@ endif(USE_HDF5)
 # and byterange support
 ################################
 
-if( NETCDF_ENABLE_DAP2 OR NETCDF_ENABLE_DAP4 OR NETCDF_ENABLE_BYTERANGE_SUPPORT OR NETCDF_ENABLE_NCZARR_S3)
+if( NETCDF_ENABLE_DAP2 OR NETCDF_ENABLE_DAP4 OR NETCDF_ENABLE_BYTERANGE OR NETCDF_ENABLE_NCZARR_S3)
   # See if we have libcurl
   find_package(CURL)
   #target_compile_options(netcdf
