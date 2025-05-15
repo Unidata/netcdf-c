@@ -5,6 +5,7 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 add_library(dispatch OBJECT)
+target_include_directories(dispatch PUBLIC ${CURL_INCLUDE_DIRS})
 
 target_sources(dispatch 
   PRIVATE
