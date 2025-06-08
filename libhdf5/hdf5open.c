@@ -19,7 +19,7 @@
 #include "ncmodel.h"
 #include "ncpathmgr.h"
 #include <stddef.h>
-#include "hdf5_ros3_path.h"
+
 #ifdef NETCDF_ENABLE_BYTERANGE
 #include "H5FDhttp.h"
 #endif
@@ -27,6 +27,12 @@
 #ifdef NETCDF_ENABLE_HDF5_ROS3
 #include <H5FDros3.h>
 #include "ncs3sdk.h"
+#endif
+
+#ifdef S3_UTIL
+#include "s3util.h"
+#else
+#define is_s3_link(val) 0
 #endif
 
 /*Nemonic */
@@ -884,92 +890,97 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	    char* newpath = NULL;
 #ifdef NETCDF_ENABLE_HDF5_ROS3
 	    H5FD_ros3_fapl_t fa;
-        char aws_region[128];
 	    const char* awsaccessid0 = NULL;
 	    const char* awssecretkey0 = NULL;
 	    const char* profile0 = NULL;
 	    int iss3 = NC_iss3(h5->uri,NULL);
-	    iss3 |= is_s3_link(path);
-            fa.version = H5FD_CURR_ROS3_FAPL_T_VERSION;
+	    
+        fa.version = H5FD_CURR_ROS3_FAPL_T_VERSION;
 	    fa.authenticate = (hbool_t)0;
 	    fa.aws_region[0] = '\0';
 	    fa.secret_id[0] = '\0';
 	    fa.secret_key[0] = '\0';
-	    if(iss3) {
+        // store region for s3util
+        char aws_region[128];
+        aws_region[0] = '\0';
+        // test s3util reader first:
+        int status = 1;
+#ifdef S3_UTIL
+        if (is_s3_link(path)) {
+            char aws_config_file[128];
+            char *accessKey = NULL;
+            char *secretKey = NULL;
+            char *sessionToken = NULL;
+            char *region = NULL;
+            snprintf(aws_config_file, sizeof(aws_config_file), "%s/.aws/config", getenv("HOME"));
+            status = find_profile(path, &accessKey, &secretKey, &sessionToken, &region, aws_config_file);
+            if (status == 0) {
+                strncpy(fa.aws_region, region, sizeof(fa.aws_region) - 1);
+                strncpy(fa.secret_id, accessKey, sizeof(fa.secret_id) - 1);
+                strncpy(fa.secret_key, secretKey, sizeof(fa.secret_key) - 1);
+                strncpy(aws_region, region, sizeof(aws_region) - 1);
+                fa.authenticate = true;
+                fa.version = 1;
+                if (H5Pset_fapl_ros3(fapl_id, &fa) < 0)
+                    BAIL(NC_EHDFERR);
+                if (sessionToken) {
+                    status = H5Pset_fapl_ros3_token(fapl_id, sessionToken);
+                    if (status < 0) {
+                        fprintf(stderr, "-E-: setting AWS Token %s. See %s:%d\n", sessionToken, __FILE__,
+                                __LINE__);
+                        free(sessionToken);
+                        return 1;
+                    }
+                    else{
+                        free(sessionToken);
+                    }
+                }
+                free(accessKey);
+                free(secretKey);
+                free(region);
+            } else {
+                fprintf(stderr, "-E-: No valid AWS credentials found for %s. See %s:%d\n", path, __FILE__,
+                        __LINE__);
+                return 1;
+            }
+        }
+#endif
+
+	    if(iss3 && status) {
 	        NCS3INFO s3;
 		NCURI* newuri = NULL;
 	        /* Rebuild the URL */
 	        memset(&s3,0,sizeof(s3));
-        // NC_s3urlrebuild needs to USE AWS C++ SDK kit actually
-        // It doesn't handle url like this "s3://ob-cumulus-prod-public/PACE_OCI.20250411T112259.L1B.V3.nc"
-            if (strstr(path, "s3://") == NULL)
-            {
-                if ((retval = NC_s3urlrebuild(h5->uri, &s3, &newuri)))
-                    goto exit;
-                if ((newpath = ncuribuild(newuri, NULL, NULL, NCURISVC)) == NULL)
-                {
-                    retval = NC_EURL;
-                    goto exit;
-                }
-                ncurifree(h5->uri);
-                h5->uri = newuri;
-                if ((retval = NC_getactives3profile(h5->uri, &profile0)))
-                    BAIL(retval);
-                if ((retval = NC_s3profilelookup(profile0, AWS_ACCESS_KEY_ID, &awsaccessid0)))
-                    BAIL(retval);
-                if ((retval = NC_s3profilelookup(profile0, AWS_SECRET_ACCESS_KEY, &awssecretkey0)))
-                    BAIL(retval);
-                if (s3.region == NULL)
-                    s3.region = strdup(AWS_GLOBAL_DEFAULT_REGION);
-                if (awsaccessid0 == NULL || awssecretkey0 == NULL)
-                {
-                    /* default, non-authenticating, "anonymous" fapl configuration */
-                    fa.authenticate = (hbool_t)0;
-                }
-                else
-                {
-                    fa.authenticate = (hbool_t)1;
-                    assert(s3.region != NULL && strlen(s3.region) > 0);
-                }
-                if (awsaccessid0 != NULL && awssecretkey0 != NULL)
-                {
-                    assert(strlen(awsaccessid0) > 0);
-                    assert(strlen(awssecretkey0) > 0);
-                    strlcat(fa.aws_region, s3.region, H5FD_ROS3_MAX_REGION_LEN);
-                    strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
+		if((retval = NC_s3urlrebuild(h5->uri,&s3,&newuri))) goto exit;
+		if((newpath = ncuribuild(newuri,NULL,NULL,NCURISVC))==NULL)
+		    {retval = NC_EURL; goto exit;}
+		ncurifree(h5->uri);
+		h5->uri = newuri;
+	        if((retval = NC_getactives3profile(h5->uri,&profile0)))
+		    BAIL(retval);
+   	        if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
+		    BAIL(retval);		
+		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
+		    BAIL(retval);		
+		if(s3.region == NULL)
+		    s3.region = strdup(AWS_GLOBAL_DEFAULT_REGION);
+	        if(awsaccessid0 == NULL || awssecretkey0 == NULL ) {
+		    /* default, non-authenticating, "anonymous" fapl configuration */
+		    fa.authenticate = (hbool_t)0;
+	        } else {
+		    fa.authenticate = (hbool_t)1;
+	  	    assert(s3.region != NULL && strlen(s3.region) > 0);
+		    assert(awsaccessid0 != NULL && strlen(awsaccessid0) > 0);
+		    assert(awssecretkey0 != NULL && strlen(awssecretkey0) > 0);
+		    strlcat(fa.aws_region,s3.region,H5FD_ROS3_MAX_REGION_LEN);
+		    strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
                     strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
-                    strncpy(aws_region, s3.region, strlen(aws_region) - 1);
-                }
-            }
-            NC_s3clear(&s3);
-            // read enviromental variables
-            const char *accessKey = getenv("AWS_ACCESS_KEY_ID");
-            const char *secretKey = getenv("AWS_SECRET_ACCESS_KEY");
-            const char *sessionToken = getenv("AWS_SESSION_TOKEN");
-            const char *region = getenv("AWS_REGION");
-            strncpy(aws_region, region, sizeof(aws_region) - 1);
-            if (accessKey && secretKey && region)
-            {
-                strncpy(fa.aws_region, region, sizeof(fa.aws_region));
-                strncpy(fa.secret_id, accessKey, sizeof(fa.secret_id));
-                strncpy(fa.secret_key, secretKey, sizeof(fa.secret_key));
-                fa.authenticate = true;
-                fa.version = 1;
+	        }
+		NC_s3clear(&s3);
                 /* create and set fapl entry */
-                if (H5Pset_fapl_ros3(fapl_id, &fa) < 0)
+                if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
                     BAIL(NC_EHDFERR);
-                if (sessionToken)
-                {
-                    int status = H5Pset_fapl_ros3_token(fapl_id, sessionToken);
-                    if (status < 0)
-                    {
-                        fprintf(stderr, "Error setting AWS Token %s\n", sessionToken);
-                        return 1;
-                    }
-                }
-        }
-        }
-        else
+	    } else if(status)
 #endif /*NETCDF_ENABLE_ROS3*/
 	    {/* Configure FAPL to use our byte-range file driver */
                 if (H5Pset_fapl_http(fapl_id) < 0)
@@ -978,22 +989,23 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
         /* Open the HDF5 file. */
         if (is_s3_link(path))
         {
+#ifdef S3_UTIL
             char s3_hdf5_url[512];
-            int status = get_hdf5_ros3_link(path,s3_hdf5_url,aws_region);
+            int status = get_https_s3_link(path,s3_hdf5_url,aws_region);
             if(status!=0)
             {
-                fprintf(stderr,"S3 Link conversion failed");
+                fprintf(stderr,"S3 Link conversion failed. See %s:%d",__FILE__,__LINE__);
                 exit(1);
             }
             if ((h5->hdfid = nc4_H5Fopen(s3_hdf5_url, flags, fapl_id)) < 0)
                 BAIL(NC_EHDFERR);
+#endif           
         }
         else
-        {
-            if ((h5->hdfid = nc4_H5Fopen((newpath ? newpath : path), flags, fapl_id)) < 0)
-                BAIL(NC_EHDFERR);
+        {        if ((h5->hdfid = nc4_H5Fopen((newpath?newpath:path), flags, fapl_id)) < 0)
+            BAIL(NC_EHDFERR);
         }
-        nullfree(newpath);
+	    nullfree(newpath);
         }
 #endif
         else {
@@ -2981,6 +2993,7 @@ nc4_H5Fopen(const char *filename0, unsigned flags, hid_t fapl_id)
     hid_t hid;
     char* localname = NULL;
     char* filename = NULL;
+#ifdef S3_UTIL
     char original_path[512];
     strncpy(original_path,filename0,sizeof(original_path)-1);
     if (is_s3_link(original_path))
@@ -2989,6 +3002,7 @@ nc4_H5Fopen(const char *filename0, unsigned flags, hid_t fapl_id)
         hid = H5Fopen(original_path, flags, fapl_id);
         goto done;
     }
+#endif
 #ifdef HDF5_UTF8_PATHS
     NCpath2utf8(filename0,&filename);
 #else    

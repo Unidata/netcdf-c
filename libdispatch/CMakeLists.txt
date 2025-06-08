@@ -100,6 +100,11 @@ if(NETCDF_ENABLE_S3)
   endif()
 endif()
 
+if(NETCDF_ENABLE_HDF5_ROS3)
+    target_include_directories(dispatch PRIVATE ../libs3util)
+endif()
+
+
 if(NETCDF_ENABLE_TESTS)
     BUILD_BIN_TEST(ncrandom)
 endif()

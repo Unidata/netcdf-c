@@ -37,17 +37,16 @@
 #include "netcdf_mem.h"
 #include "ncpathmgr.h"
 #include "fbits.h"
+
 #undef DEBUG
 
 #ifndef nulldup
  #define nulldup(s) ((s)?strdup(s):NULL)
 #endif
 
-
-//check for s3 link
-
-extern int is_s3_link(const char* link);
-extern int remove_mode(char * link);
+#ifdef S3_UTIL
+#include "s3util.h"
+#endif
 
 /* User-defined formats. */
 NC_Dispatch *UDF0_dispatch_table = NULL;
@@ -2167,15 +2166,17 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
         }
     }
 
-
-    /* If we can't figure out what dispatch table to use, give up. */
-    if (!dispatcher) {stat = NC_ENOTNC; goto done;}
     // if s3 link, set the dispatcher to hdf5
     if (is_s3_link(path))
     {
         dispatcher = HDF5_dispatch_table;
         remove_mode(path);
     }
+    
+
+    /* If we can't figure out what dispatch table to use, give up. */
+    if (!dispatcher) {stat = NC_ENOTNC; goto done;}
+
     /* Create the NC* instance and insert its dispatcher */
     if((stat = new_NC(dispatcher,path,omode,&ncp))) goto done;
 
