@@ -110,10 +110,6 @@ unsigned long long int strtoull(const char*, char**, int);
 #define strlcat(d,s,n) strcat_s((d),(n),(s))
 #endif
 
-#ifndef HAVE_STRLCPY
-#define strlcpy(d,s,n) strcpy_s((d),(n),(s))
-#endif
-
 #ifndef __MINGW32__
 #ifndef strcasecmp
 #define strcasecmp _stricmp
