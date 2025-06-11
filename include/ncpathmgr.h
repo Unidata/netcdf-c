@@ -90,9 +90,17 @@ Notes:
 */
 
 #ifndef WINPATH
-#if defined _WIN32 || defined __MINGW32__
+#if defined _WIN32 && defined __MINGW32__
+#define WINPATH 1
+#elif defined _WIN64 && defined __MINGW32__
 #define WINPATH 1
 #endif
+#endif
+
+#ifdef _WIN64
+#define STAT struct _stat64 *
+#else
+#define STAT struct _stat *
 #endif
 
 /* Define wrapper constants for use with NCaccess */
@@ -190,7 +198,7 @@ EXTERNL char* NCgetcwd(char* cwdbuf, size_t len);
 EXTERNL int NCmkstemp(char* buf);
 
 #ifdef HAVE_SYS_STAT_H
-EXTERNL int NCstat(const char* path, struct stat* buf);
+EXTERNL int NCstat(const char* path, STAT buf);
 #endif
 #ifdef HAVE_DIRENT_H
 EXTERNL DIR* NCopendir(const char* path);
