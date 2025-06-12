@@ -58,8 +58,9 @@ defined here, including function-like #defines.
 #ifndef nullfree
 #define nullfree(m) ((m)==NULL?NULL:(free(m),NULL))
 #endif
+#ifndef nulldup 
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
-
+#endif
 /**************************************************/
 /* DSP API wrappers */
 

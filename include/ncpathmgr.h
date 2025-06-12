@@ -90,9 +90,7 @@ Notes:
 */
 
 #ifndef WINPATH
-#if defined _WIN32 && defined __MINGW32__
-#define WINPATH 1
-#elif defined _WIN64 && defined __MINGW32__
+#if defined _WIN32 || defined __MINGW32__
 #define WINPATH 1
 #endif
 #endif
