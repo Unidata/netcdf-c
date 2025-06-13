@@ -1,13 +1,12 @@
 /* Copyright 2018-2018 University Corporation for Atmospheric  Research/Unidata. */
 
 #include <stddef.h>
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 #include <string.h>
 #include <libxml2/libxml/parser.h>
 #include <libxml/tree.h>
 #include "ncxml.h"
+
 
 #ifndef nulldup
 #define nulldup(s) ((s)?strdup(s):NULL)
