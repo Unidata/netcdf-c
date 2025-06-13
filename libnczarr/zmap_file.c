@@ -685,8 +685,12 @@ static int
 platformtestcontentbearing(const char* canonpath)
 {
     int ret = 0;
-    struct stat buf;
-    
+    #ifdef _WIN64
+        struct _stat64 buf;
+    #else
+        struct stat buf;
+    #endif
+
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
     errno = 0;
@@ -1166,7 +1170,11 @@ static int
 verify(const char* path, int isdir)
 {
     int ret = 0;
-    struct stat buf;
+    #ifdef _WIN64
+        struct _stat64 buf;
+    #else
+        struct stat buf;
+    #endif 
 
     ret = NCaccess(path,ACCESS_MODE_EXISTS);
     if(ret < 0)
@@ -1182,7 +1190,11 @@ static int
 verifykey(const char* key, int isdir)
 {
     int ret = 0;
-    struct stat buf;
+    #ifdef _WIN64
+        struct _stat64 buf;
+    #else
+        struct stat buf;
+    #endif 
 
     if(key[0] == '/') key++; /* Want relative name */
 
