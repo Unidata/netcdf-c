@@ -95,6 +95,12 @@ Notes:
 #endif
 #endif
 
+#ifdef _WIN64
+#define STAT struct _stat64 *
+#else
+#define STAT struct _stat *
+#endif
+
 /* Define wrapper constants for use with NCaccess */
 /* Define wrapper constants for use with NCaccess */
 #ifdef _WIN32
@@ -190,7 +196,7 @@ EXTERNL char* NCgetcwd(char* cwdbuf, size_t len);
 EXTERNL int NCmkstemp(char* buf);
 
 #ifdef HAVE_SYS_STAT_H
-EXTERNL int NCstat(const char* path, struct stat* buf);
+EXTERNL int NCstat(const char* path, STAT buf);
 #endif
 #ifdef HAVE_DIRENT_H
 EXTERNL DIR* NCopendir(const char* path);
