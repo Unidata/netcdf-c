@@ -77,7 +77,7 @@ main(int argc, char **argv)
 
 #if H5_VERSION_GE(2,0,0)
     size_t data_size = sizeof(data);
-    if(H5Dread_chunk2(datasetid, dxpl_id, hoffset, &filter_mask, data, data_size) < 0) ERR;
+    if(H5Dread_chunk2(datasetid, dxpl_id, hoffset, &filter_mask, data, &data_size) < 0) ERR;
 #else
     if(H5Dread_chunk(datasetid, dxpl_id, hoffset, &filter_mask, data) < 0) ERR;
 #endif
