@@ -68,6 +68,7 @@ macro(buildplugin TARGET TARGETLIB)
     if(MPI_C_INCLUDE_PATH)
       target_include_directories(${TARGET} PRIVATE ${MPI_C_INCLUDE_PATH})
     endif(MPI_C_INCLUDE_PATH)
+    target_include_directories(${TARGET} PRIVATE ${ZLIB_INCLUDE_DIRS})
   endif()
 
   if(STATUS_PARALLEL)

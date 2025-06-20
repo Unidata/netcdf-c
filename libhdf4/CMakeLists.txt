@@ -9,6 +9,7 @@
 # Build the HDF4 dispatch layer as a library that will be included in
 # the netCDF library.
 add_library(netcdfhdf4 OBJECT ${libhdf4_SOURCES})
+target_include_directories(netcdfhdf4 PUBLIC ${MFHDF_H_INCLUDE_DIR})
 
 target_sources(netcdfhdf4
     PRIVATE
