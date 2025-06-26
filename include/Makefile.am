@@ -10,7 +10,7 @@
 
 include_HEADERS = netcdf.h netcdf_meta.h netcdf_mem.h netcdf_aux.h	\
 netcdf_filter.h netcdf_filter_build.h netcdf_filter_hdf5_build.h 	\
-netcdf_dispatch.h
+netcdf_dispatch.h netcdf_vutils.h
 
 include_HEADERS += netcdf_json.h netcdf_proplist.h
 
