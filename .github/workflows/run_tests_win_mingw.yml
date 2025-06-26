@@ -24,6 +24,7 @@ jobs:
     strategy:
       matrix:
         msystem: [ MINGW64, UCRT64] #, CLANG64 ]
+        use_nczarr_and_s3: ["nczarr_off", "nczarr_on", "nczarr_on_s3_on" ]
     defaults:
       run:
         shell: msys2 {0}
@@ -39,14 +40,30 @@ jobs:
           install: diffutils m4 git unzip
 
 ###
+# Setup environment variables
+###
+      - run: echo "NETCDF_ENABLE_NCZARR=--disable-nczarr" >> $GITHUB_ENV
+        if: matrix.use_nczarr_and_s3 == 'nczarr_off'
+      - run: echo "NETCDF_ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
+        if: matrix.use_nczarr_and_s3 == 'nczarr_on'
+      - run: |
+          echo "NETCDF_ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_S3=--enable-s3" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_S3_INTERNAL=--enable-s3-internal" >> $GITHUB_ENV
+        if: matrix.use_nczarr_and_s3 == 'nczarr_on_s3_on'
+
+###
 # Configure and build
 ###
 
       - name: (Autotools) Run autoconf
         run: autoreconf -if
-
       - name: (Autotools) Configure Build
-        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-byterange --disable-dap-remote-tests --disable-logging --enable-plugins --disable-nczarr-filters --disable-s3
+        run: >-
+          ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests 
+          --disable-static --disable-byterange --disable-dap-remote-tests 
+          --disable-logging --enable-plugins ${NETCDF_ENABLE_NCZARR} 
+          ${NETCDF_ENABLE_S3} ${NETCDF_ENABLE_S3_INTERNAL}
         if: ${{ success() }}
 
       - name: (Autotools) Look at config.log if error
@@ -84,6 +101,7 @@ jobs:
     strategy:
       matrix:
         msystem: [ MINGW64, UCRT64] #, CLANG64 ]
+        use_s3: [ "s3_off", "s3_on" ]
     defaults:
       run:
         shell: msys2 {0}
@@ -120,6 +138,8 @@ jobs:
           -DNETCDF_ENABLE_NCZARR=TRUE \
           -DNETCDF_ENABLE_DAP_LONG_TESTS=TRUE \
           -DNETCDF_ENABLE_PLUGINS=ON
+          -DNETCDF_ENABLE_S3=${{ matrix.use_s3 }}\
+          -DNETCDF_ENABLE_S3_INTERNAL=${{ matrix.use_s3}} \
         if: ${{ success() }}
 
       - name: (CMake) Look at CMakeCache.txt if error
