@@ -418,9 +418,6 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `strlcat' function. */
 #cmakedefine HAVE_STRLCAT 1
 
-/* Define to 1 if you have the `strlcpy' function. */
-#cmakedefine HAVE_STRLCPY 1
-
 /* Define to 1 if you have the `strlen' function. */
 #cmakedefine HAVE_STRLEN 1
 

@@ -1388,7 +1388,7 @@ AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
                 strdup strtoll strtoull \
 		mkstemp mktemp random \
 		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c \
-		strncasecmp strlcpy])
+		strncasecmp])
 
 # See if clock_gettime is available and its arg types.
 AC_CHECK_FUNCS([clock_gettime])
@@ -1689,7 +1689,10 @@ if test "x$enable_hdf5" = xyes; then
    AC_MSG_RESULT([$hdf5_parallel])
 
    # See if H5Dread_chunk is available
-   AC_SEARCH_LIBS([H5Dread_chunk],[hdf5_hldll hdf5_hl], [has_readchunks=yes], [has_readdhunks=no])
+   AC_SEARCH_LIBS([H5Dread_chunk],[hdf5_hldll hdf5_hl], [has_readchunks=yes], [has_readchunks=no])
+   if test "x$has_readchunks" = xno; then
+    AC_SEARCH_LIBS([H5Dread_chunk2],[hdf5_hldll hdf5_hl], [has_readchunks=yes], [has_readchunks=no])
+   fi
 
    # See if hdf5 library supports Read-Only S3 (byte-range) driver
    AC_SEARCH_LIBS([H5Pset_fapl_ros3],[hdf5_hldll hdf5_hl], [has_hdf5_ros3=yes], [has_hdf5_ros3=no])

@@ -225,9 +225,9 @@ validated:
     if(varp) *varp = var;
 done:
     if(dapmeta) NCD4_reclaimMeta(dapmeta);
-    ncurifree(ceuri);
     if(dapresp != NULL && dapresp->error.message != NULL)
-	NCD4_reporterror(dapresp,ceuri);    /* Make sure the user sees this */
+    	NCD4_reporterror(dapresp,ceuri);    /* Make sure the user sees this */
+    ncurifree(ceuri);
     return THROW(ret);    
 }
 

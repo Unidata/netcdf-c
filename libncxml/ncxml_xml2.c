@@ -7,6 +7,7 @@
 #include <libxml/tree.h>
 #include "ncxml.h"
 
+
 #ifndef nulldup
 #define nulldup(s) ((s)?strdup(s):NULL)
 #endif

@@ -201,6 +201,9 @@ if(USE_HDF5)
 
   # Check to see if H5Dread_chunk is available
   check_symbol_exists(H5Dread_chunk "hdf5.h" HAS_READCHUNKS)
+  if(NOT HAS_READCHUNKS)
+    check_symbol_exists(H5Dread_chunk2 "hdf5.h" HAS_READCHUNKS)
+  endif()
 
   # Check to see if H5Pset_fapl_ros3 is available
   check_symbol_exists(H5Pset_fapl_ros3 "hdf5.h" HAS_HDF5_ROS3)

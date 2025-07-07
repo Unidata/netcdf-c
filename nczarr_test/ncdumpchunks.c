@@ -411,8 +411,13 @@ dump(Format* format)
         switch (format->format) {
 #ifdef H5
 	case NC_FORMATX_NC_HDF5: {
-	    for(i=0;i<format->rank;i++) hoffset[i] = (hsize_t)offset[i];
+            for(i=0;i<format->rank;i++) hoffset[i] = (hsize_t)offset[i];
+#if H5_VERSION_GE(2,0,0)
+            size_t chunkdata_size = sizeof(chunkdata);
+            if(H5Dread_chunk2(datasetid, dxpl_id, hoffset, &filter_mask, chunkdata, &chunkdata_size) < 0)
+#else
 	    if(H5Dread_chunk(datasetid, dxpl_id, hoffset, &filter_mask, chunkdata) < 0)
+#endif
 	        holechunk = 1;
 	} break;
 #endif
