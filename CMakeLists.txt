@@ -1306,7 +1306,6 @@ endif()
 # Check for various functions.
 CHECK_FUNCTION_EXISTS(fsync HAVE_FSYNC)
 CHECK_FUNCTION_EXISTS(strlcat   HAVE_STRLCAT)
-CHECK_FUNCTION_EXISTS(strlcpy  HAVE_STRLCPY)
 CHECK_FUNCTION_EXISTS(strdup  HAVE_STRDUP)
 CHECK_FUNCTION_EXISTS(strndup HAVE_STRNDUP)
 CHECK_FUNCTION_EXISTS(strlen  HAVE_STRLEN)
@@ -1476,20 +1475,6 @@ endif()
 
 if(NETCDF_ENABLE_NCZARR)
   add_subdirectory(libnczarr)
-  file(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.h
-       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-  file(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.c
-       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-  file(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter.c
-       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-  file(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_misc.c
-       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-  file(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_repeat.c
-       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-  file(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_order.c
-       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-  file(COPY ${netCDF_SOURCE_DIR}/nc_test4/tst_multifilter.c
-       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
 endif()
 
 # Tests and files which depend on libnetcdf must be included
@@ -1538,6 +1523,20 @@ if(NETCDF_ENABLE_TESTS)
     add_subdirectory(unit_test)
   endif(NETCDF_ENABLE_UNIT_TESTS)
   if(NETCDF_ENABLE_NCZARR)
+    file(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.h
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+    file(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.c
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+    file(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter.c
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+    file(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_misc.c
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+    file(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_repeat.c
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+    file(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_order.c
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+    file(COPY ${netCDF_SOURCE_DIR}/nc_test4/tst_multifilter.c
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
     include_directories(nczarr_test)
     add_subdirectory(nczarr_test)
   endif()
