@@ -5,6 +5,7 @@
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "ocdump.h"
+#include "ncutil.h"
 
 /* Forward*/
 static OCerror ocread(OCdata*, XXDR*, char*, size_t, size_t, size_t);

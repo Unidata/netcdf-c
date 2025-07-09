@@ -27,6 +27,7 @@
 #include "ocread.h"
 #include "occurlfunctions.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
 
 /*Forward*/
 static int readpacket(OCstate* state, NCURI*, NCbytes*, OCdxd, OCflags, long*);

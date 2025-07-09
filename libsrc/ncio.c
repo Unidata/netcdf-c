@@ -14,6 +14,7 @@
 #include "fbits.h"
 #include "ncuri.h"
 #include "ncrc.h"
+#include "ncutil.h"
 
 /* With the advent of diskless io, we need to provide
    for multiple ncio packages at the same time,

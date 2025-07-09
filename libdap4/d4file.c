@@ -9,6 +9,7 @@
 #include "d4includes.h"
 #include "d4curlfunctions.h"
 #include <stddef.h>
+#include "ncutil.h"
 
 #ifdef _MSC_VER
 #include <process.h>
@@ -316,7 +317,7 @@ set_curl_properties(NCD4INFO* d4info)
         if(path == NULL) return NC_ENOMEM;
 	snprintf(path,len,"%s/nc4cookies",globalstate->tempdir);
 	/* Create the unique cookie file name */
-        newpath = NC_mktmp(path);
+        if((ret=NC_mktmp(path,&newpath))) goto fail;
         free(path);
 	if(newpath == NULL) {
 	    fprintf(stderr,"Cannot create cookie file\n");

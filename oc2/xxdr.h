@@ -55,6 +55,7 @@
     * XDRUNIT))
 #endif
 
+#if 0
 /* signature: void swapinline16(unsigned short* sp) */
 #define swapinline16(ip) \
 { \
@@ -92,7 +93,7 @@
     dst[7] = src[0]; \
     *ip = *((unsigned long long*)dst); \
 }
-
+#endif /*0*/
 
 #ifdef OCIGNORE
 /* Warning dst and src should not be the same memory (assert &iswap != &i) */

@@ -28,7 +28,9 @@
 #include "ncbytes.h"
 #include "ncrc.h"
 #include "nclog.h"
+#include "ncutil.h"
 #include "ncs3sdk.h"
+#include "ncutil.h"
 
 #undef AWSDEBUG
 
