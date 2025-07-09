@@ -24,7 +24,7 @@ jobs:
     strategy:
       matrix:
         plugin_dir_option: ["", "--without-plugin-dir"]
-
+        use_nczarr_and_s3: ["nczarr_off", "nczarr_on", "nczarr_on_s3_on" ]
     steps:
       - name: Fix line endings
         shell: pwsh
@@ -50,14 +50,25 @@ jobs:
           /bin/dash /usr/bin/libtoolize --force --copy --verbose
           /usr/bin/autoreconf-2.69 --force --install --verbose --debug
 
+###
+# Setup environment variables
+###
+      - run: echo "NETCDF_ENABLE_NCZARR=--disable-nczarr" >> $GITHUB_ENV
+        if: matrix.use_nczarr_and_s3 == 'nczarr_off'
+      - run: echo "NETCDF_ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
+        if: matrix.use_nczarr_and_s3 == 'nczarr_on'
+      - run: |
+          echo "NETCDF_ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_S3=--enable-s3" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_S3_INTERNAL=--enable-s3-internal" >> $GITHUB_ENV
+        if: matrix.use_nczarr_and_s3 == 'nczarr_on_s3_on'
+
       - name: (Autotools) Configure in-tree build
         run: >-
           /bin/dash ./configure --enable-hdf5 --enable-shared
           --disable-static --enable-dap --disable-dap-remote-tests
           --enable-plugins ${{ matrix.plugin_dir_option }}
-          --disable-nczarr --disable-nczarr-filters
-          --disable-s3 --with-s3-testing=no
-
+          ${NETCDF_ENABLE_NCZARR} ${NETCDF_ENABLE_S3} ${NETCDF_ENABLE_S3_INTERNAL}
 
       - name: Look at config.log if error
         if: ${{ failure() }}
@@ -102,6 +113,10 @@ jobs:
     defaults:
       run:
         shell: C:/cygwin/bin/bash.exe -eo pipefail -o igncr "{0}"
+    
+    strategy:
+      matrix:
+        enable_nczarr_and_s3: ["OFF", "ON"]      
 
     steps:
 
@@ -139,7 +154,9 @@ jobs:
           -DNETCDF_ENABLE_TESTS=ON \
           -DNETCDF_ENABLE_HDF5=ON \
           -DNETCDF_ENABLE_NCZARR=TRUE \
-          -DNETCDF_ENABLE_PLUGINS=ON
+          -DNETCDF_ENABLE_PLUGINS=ON \
+          -DNETCDF_ENABLE_S3=${{ matrix.enable_nczarr_and_s3 }} \
+          -DNETCDF_ENABLE_S3_INTERNAL=${{ matrix.enable_nczarr_and_s3 }} 
         if: ${{ success() }}
 
       - name: (CMake) Look at CMakeCache.txt if error

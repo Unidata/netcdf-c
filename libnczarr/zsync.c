@@ -6,6 +6,7 @@
 #include "zincludes.h"
 #include "zfilter.h"
 #include <stddef.h>
+#include "ncutil.h"
 
 #ifndef nulldup
 #define nulldup(x) ((x)?strdup(x):(x))

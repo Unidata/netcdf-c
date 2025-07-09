@@ -21,6 +21,7 @@ redistribution conditions.
 #include "ncutil.h"
 #include "nc_tests.h"
 #include "err_macros.h"
+#include "ncutil.h"
 
 #ifdef USE_HDF5
 #include <hdf5.h>

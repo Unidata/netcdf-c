@@ -14,6 +14,7 @@
 #include "nclog.h"
 #include "ncrc.h"
 #include "ncxml.h"
+#include "ncutil.h"
 
 #include "ncs3sdk.h"
 #include "nch5s3comms.h"
