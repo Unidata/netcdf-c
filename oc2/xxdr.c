@@ -69,6 +69,8 @@
 #include "ncexternl.h"
 #include "ncutil.h"
 #include "xxdr.h"
+#include "ncutil.h"
+
 
 int xxdr_network_order; /* network order is big endian */
 static int xxdr_big_endian; /* what is this machine? */
