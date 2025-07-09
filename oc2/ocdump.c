@@ -12,6 +12,7 @@
 
 #include "ocinternal.h"
 #include "ocdebug.h"
+#include "ncutil.h"
 
 #define MAXLEVEL 1
 

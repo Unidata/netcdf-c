@@ -31,6 +31,8 @@
 #include "ncpathmgr.h"
 #include "ncrc.h"
 #include "ncbytes.h"
+#include "ncutil.h"
+
 
 #undef DEBUG
 

@@ -19,6 +19,8 @@
 #include "ncmodel.h"
 #include "ncpathmgr.h"
 #include <stddef.h>
+#include "ncutil.h"
+
 
 #ifdef NETCDF_ENABLE_BYTERANGE
 #include "H5FDhttp.h"

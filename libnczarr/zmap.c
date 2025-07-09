@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include "ncpathmgr.h"
+#include "ncutil.h"
 
 /**************************************************/
 /* Import the current implementations */
