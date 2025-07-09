@@ -26,6 +26,7 @@ See COPYRIGHT for license information.
 #include "nc4internal.h"
 #include "ncs3sdk.h"
 #include "ncdispatch.h"
+#include "ncutil.h"
 
 #undef NOREAD
 

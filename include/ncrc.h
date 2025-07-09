@@ -46,6 +46,7 @@ typedef struct NCRCinfo {
 
 /* Opaque structures */
 struct NCS3INFO;
+enum NCS3SVC;
 
 #if defined(__cplusplus)
 extern "C" {
@@ -67,22 +68,7 @@ EXTERNL NCRCentry* NC_rcfile_ith(NCRCinfo*,size_t);
 EXTERNL void NC_rcclear(NCRCinfo* info);
 EXTERNL void NC_rcclear(NCRCinfo* info);
 
-/* From dutil.c (Might later move to e.g. nc.h */
-EXTERNL int NC__testurl(const char* path, char** basenamep);
-EXTERNL int NC_isLittleEndian(void);
-EXTERNL char* NC_entityescape(const char* s);
-EXTERNL int NC_readfile(const char* filename, NCbytes* content);
-EXTERNL int NC_readfilen(const char* filename, NCbytes* content, long long len);
-EXTERNL int NC_readfileF(FILE* fp, NCbytes* content, long long len);
-EXTERNL int NC_writefile(const char* filename, size_t size, void* content);
-EXTERNL char* NC_mktmp(const char* base);
-EXTERNL int NC_getmodelist(const char* modestr, NClist** modelistp);
-EXTERNL int NC_testmode(NCURI* uri, const char* tag);
-EXTERNL int NC_testpathmode(const char* path, const char* tag);
-EXTERNL int NC_addmodetag(NCURI* uri, const char* tag);
-EXTERNL int NC_split_delim(const char* path, char delim, NClist* segments);
-EXTERNL int NC_join(struct NClist* segments, char** pathp);
-EXTERNL int NC_joinwith(NClist* segments, const char* sep, const char* prefix, const char* suffix, char** pathp);
+
 
 #if defined(__cplusplus)
 }
