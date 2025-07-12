@@ -221,7 +221,11 @@ NCZ_load_all_plugins(void)
     int ret = NC_NOERR;
     size_t i,j;
     struct NCglobalstate* gs = NC_getglobalstate();
-    struct stat buf;
+    #ifdef _WIN64
+        struct _stat64 buf;
+    #else
+        struct stat buf;
+    #endif
     NClist* dirs = nclistnew();
     char* defaultpluginpath = NULL;
 
