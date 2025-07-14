@@ -99,6 +99,11 @@ jobs:
         timeout-minutes: 30
         run: |
           make check -j$(nproc) SHELL=/bin/dash
+ 
+      - name: (Autotools) Examine test failures.
+        run: |
+          cat $(find . -name 'test-suite.log') SHELL=/bin/dash
+        if: ${{ failure() }}
 
       - name: Upload autoconf test results
         uses: actions/upload-artifact@v4
