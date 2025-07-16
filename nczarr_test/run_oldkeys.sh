@@ -30,7 +30,7 @@ ls ${srcdir}
 echo ""
 echo "=================================="
 echo ""
-echo "unzip: $(which unzip)
+echo "unzip: $(which unzip)"
 echo ""
 echo "=================================="
 echo "End Debug Stanza"
