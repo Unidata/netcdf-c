@@ -227,7 +227,7 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
 
     /* Search the root for content */
     content = nclistnew();
-    if((stat = NC_s3sdkgetkeys(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
+    if((stat = NC_s3sdklist(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
 	goto done;
     if(nkeys == 0) {
 	/* dataset does not actually exist; we choose to return ENOOBJECT instead of EEMPTY */
@@ -261,7 +261,7 @@ zs3truncate(const char *s3url)
     if((s3client = NC_s3sdkcreateclient(&info))==NULL) {stat = NC_ES3; goto done;}
     if((stat = s3clear(s3client,info.bucket,info.rootkey))) goto done;
 done:
-    if(s3client) {stat=NC_s3sdkclose(s3client,&info,1,NULL);}
+    if(s3client) {stat=NC_s3sdkclose(s3client,NULL);}
     ncurifree(url);
     ncurifree(purl);
     (void)NC_s3clear(&info);
@@ -407,7 +407,7 @@ zs3close(NCZMAP* map, int deleteit)
     if(deleteit) 
         s3clear(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey);
      if(z3map->s3client && z3map->s3.bucket && z3map->s3.rootkey) {
-        NC_s3sdkclose(z3map->s3client, &z3map->s3, deleteit, &z3map->errmsg);
+        NC_s3sdkclose(z3map->s3client, &z3map->errmsg);
     }
     reporterr(z3map);
     z3map->s3client = NULL;
@@ -429,7 +429,8 @@ but it possible that it is not.
 static int
 zs3search(NCZMAP* map, const char* prefix, NClist* matches)
 {
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
+    size_t i;
     ZS3MAP* z3map = (ZS3MAP*)map;
     char** list = NULL;
     size_t nkeys;
@@ -443,7 +444,7 @@ zs3search(NCZMAP* map, const char* prefix, NClist* matches)
     if((stat = maketruekey(z3map->s3.rootkey,prefix,&trueprefix))) goto done;
     
     if(*trueprefix != '/') return NC_EINTERNAL;
-    if((stat = NC_s3sdkgetkeys(z3map->s3client,z3map->s3.bucket,trueprefix,&nkeys,&list,&z3map->errmsg)))
+    if((stat = NC_s3sdklist(z3map->s3client,z3map->s3.bucket,trueprefix,&nkeys,&list,&z3map->errmsg)))
         goto done;
     if(nkeys > 0) {
 	size_t tplen = strlen(trueprefix);
@@ -461,7 +462,7 @@ zs3search(NCZMAP* map, const char* prefix, NClist* matches)
         }
 	/* Now remove duplicates */
 	for(i=0;i<nclistlength(tmp);i++) {
-	    int j;
+	    size_t j;
 	    int duplicate = 0;
 	    const char* is = nclistget(tmp,i);
 	    for(j=0;j<nclistlength(matches);j++) {
@@ -505,7 +506,7 @@ s3clear(void* s3client, const char* bucket, const char* rootkey)
     size_t nkeys = 0;
 
     if(s3client && bucket && rootkey) {
-        if((stat = NC_s3sdksearch(s3client, bucket, rootkey, &nkeys, &list, NULL)))
+        if((stat = NC_s3sdklistall(s3client, bucket, rootkey, &nkeys, &list, NULL)))
             goto done;
         if(list != NULL) {
 	    size_t i;

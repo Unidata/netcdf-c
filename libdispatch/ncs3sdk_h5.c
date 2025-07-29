@@ -14,6 +14,7 @@
 #include "nclog.h"
 #include "ncrc.h"
 #include "ncxml.h"
+#include "ncutil.h"
 
 #include "ncs3sdk.h"
 #include "nch5s3comms.h"
@@ -183,8 +184,10 @@ NC_s3sdkcreateclient(NCS3INFO* info)
 
     s3client = (NCS3CLIENT*)calloc(1,sizeof(NCS3CLIENT));
     if(s3client == NULL) goto done;
-    // We load credentials from env if not in profile
-    NC_s3getcredentials(info->profile, NULL, &accessid, &accesskey);
+    if(info->profile != NULL) {
+        if((stat = NC_s3profilelookup(info->profile, "aws_access_key_id", &accessid))) goto done;
+        if((stat = NC_s3profilelookup(info->profile, "aws_secret_access_key", &accesskey))) goto done;
+    }
     if((s3client->rooturl = makes3rooturl(info))==NULL) {stat = NC_ENOMEM; goto done;}
     s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->svc,info->region,accessid,accesskey);
     if(s3client->h5s3client == NULL) {stat = NC_ES3; goto done;}
@@ -267,6 +270,8 @@ NC_s3sdkinfo(void* s3client0, const char* bucket, const char* pathkey, size64_t*
     long long len = -1;
     long httpcode = 0;
 
+    NC_UNUSED(errmsgp);
+
     NCTRACE(11,"bucket=%s pathkey=%s",bucket,pathkey);
 
     if((stat = makes3fullpath(s3client->rooturl,bucket,pathkey,NULL,url))) goto done;
@@ -292,6 +297,8 @@ NC_s3sdkread(void* s3client0, const char* bucket, const char* pathkey, size64_t 
     NCbytes* url = ncbytesnew();
     struct s3r_buf_t data = {0,NULL};
     long httpcode = 0;
+
+    NC_UNUSED(errmsgp);
 
     NCTRACE(11,"bucket=%s pathkey=%s start=%llu count=%llu content=%p",bucket,pathkey,start,count,content);
 
@@ -320,6 +327,8 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
     s3r_buf_t data;
     long httpcode = 0;
 
+    NC_UNUSED(errmsgp);
+
     NCTRACE(11,"bucket=%s pathkey=%s count=%llu content=%p",bucket,pathkey,count,content);
 
     if((stat = makes3fullpath(s3client->rooturl,bucket,pathkey,NULL,url))) goto done;
@@ -341,6 +350,7 @@ NC_s3sdkclose(void* s3client0, char** errmsgp)
     int stat = NC_NOERR;
     NCS3CLIENT* s3client = (NCS3CLIENT*)s3client0;
 
+    NC_UNUSED(errmsgp);
     NCTRACE(11,"");
     s3client_destroy(s3client);
     return NCUNTRACE(stat);
@@ -354,6 +364,8 @@ NC_s3sdktruncate(void* s3client0, const char* bucket, const char* prefix, char**
     size_t nkeys;
     char** keys = NULL;
     NCS3CLIENT* s3client = (NCS3CLIENT*)s3client0;
+
+    NC_UNUSED(errmsgp);
 
     NCTRACE(11,"bucket=%s prefix=%s",bucket,prefix);
 
@@ -398,6 +410,8 @@ getkeys(void* s3client0, const char* bucket, const char* prefixkey0, const char*
     char* continuetoken = NULL;
     s3r_buf_t response = {0,NULL};
     long httpcode = 0;
+
+    NC_UNUSED(errmsgp);
 
     NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
     
@@ -484,6 +498,8 @@ NC_s3sdkdeletekey(void* s3client0, const char* bucket, const char* pathkey, char
     NCbytes* url = ncbytesnew();
     long httpcode = 0;
     
+    NC_UNUSED(errmsgp);
+
     NCTRACE(11,"s3client0=%p bucket=%s pathkey=%s",s3client0,bucket,pathkey);
 
     if((stat = makes3fullpath(s3client->rooturl,bucket,pathkey,NULL,url))) goto done;
@@ -606,7 +622,7 @@ static int
 mergekeysets(NClist* keys1, NClist* keys2, NClist* merge)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     size_t nkeys1 = nclistlength(keys1);
     size_t nkeys2 = nclistlength(keys2);
     for(i=0;i<nkeys1;i++) nclistpush(merge,nclistremove(keys1,0));		
@@ -895,7 +911,7 @@ allocobject(void)
 static void
 reclaim_listobjectsv2(struct LISTOBJECTSV2* lo)
 {
-    int i;
+    size_t i;
     if(lo == NULL) return;
     nullfree(lo->istruncated);
     for(i=0;i<nclistlength(lo->contents);i++)
@@ -943,7 +959,8 @@ trim(char* s, int reclaim)
     for(p=s+(strlen(s)-1);p >= s;p--) {
 	if(*p > ' ') {last = (p - s); break;}
     }
-    len = (last - first) + 1;
+    assert(last >= first);
+    len = (size_t)((last - first) + 1);
     if((t = (char*)malloc(len+1))==NULL) return t;
     memcpy(t,s+first,len);
     t[len] = '\0';
@@ -1008,7 +1025,7 @@ static int
 s3commonprefixes(NClist* list, NClist* keys)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
 
     for (i=0;i<nclistlength(list);i++) {
 	char* p;
@@ -1080,16 +1097,19 @@ queryend(NClist* query, char** querystring)
 static int 
 queryinsert(NClist* list, char* ekey, char* evalue)
 {
-    int pos,i,stat = NC_NOERR;
+    int stat = NC_NOERR;
+    size_t i;
+    int pos;
     for(pos=-1,i=0;i<nclistlength(list);i+=2) {
 	const char* key = (const char*)nclistget(list,i);
 	int cmp = strcmp(key,ekey);
 	if(cmp == 0) {stat = NC_EINVAL; goto done;} /* duplicate keys */
-	if(cmp > 0) {pos = i; break;} /* key > ekey => insert ekey before key */
+	if(cmp > 0) {pos = (int)i; break;} /* key > ekey => insert ekey before key */
     }
-    if(pos < 0) pos = nclistlength(list); /* insert at end; also works if |list|==0 */
-    nclistinsert(list,pos,evalue);
-    nclistinsert(list,pos,ekey);
+    if(pos < 0) pos = (int)nclistlength(list); /* insert at end; also works if |list|==0 */
+    assert(pos >= 0);
+    nclistinsert(list,(size_t)pos,evalue);
+    nclistinsert(list,(size_t)pos,ekey);
 done:
     return NCTHROW(stat);
 }

@@ -25,7 +25,7 @@
 #define NCLOGDEBUG (4)	/* Everything */
 
 /* Support ptr valued arguments that are used to store results */
-#define PTRVAL(t,p,d) ((t)((p) == NULL ? (d) : *(p)))
+#define PTRVAL(t,p,d) ((t)((p) == NULL ? (t)(d) : (t)*(p)))
 
 #if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
 extern "C" {

@@ -12,10 +12,10 @@ and accessing rc files (e.g. .daprc).
 #define NCRC_H
 
 /* Need these support includes */
+#include <stdio.h>
 #include "ncuri.h"
 #include "nclist.h"
 #include "ncbytes.h"
-#include <stdio.h>
 
 /* getenv() keys */
 #define NCRCENVIGNORE "NCRCENV_IGNORE"
@@ -46,10 +46,7 @@ typedef struct NCRCinfo {
 
 /* Opaque structures */
 struct NCS3INFO;
-typedef struct NCMATCHER NCMATCHER;
-
-/**************************************************/
-
+enum NCS3SVC;
 
 #if defined(__cplusplus)
 extern "C" {
@@ -61,12 +58,6 @@ EXTERNL int NC_rcfile_insert(const char* key, const char* hostport, const char* 
 EXTERNL char* NC_rclookup(const char* key, const char* hostport, const char* path);
 EXTERNL char* NC_rclookupx(NCURI* uri, const char* key);
 
-/* From dglob.c */
-EXTERNL int NC_rcnewglobmatcher(const char* patstr, int sep, NCMATCHER** matcherp);
-EXTERNL void NC_rcfreematcher(NCMATCHER* matcher);
-EXTERNL int NC_rcglobmatch(NCMATCHER* pattern, const char* s);
-EXTERNL NCList* NC_rcglobmatches(NCMATCHER* pattern);
-
 /* Following are primarily for debugging */
 /* Obtain the count of number of entries */
 EXTERNL size_t NC_rcfile_length(NCRCinfo*);
@@ -76,23 +67,6 @@ EXTERNL NCRCentry* NC_rcfile_ith(NCRCinfo*,size_t);
 /* For internal use */
 EXTERNL void NC_rcclear(NCRCinfo* info);
 EXTERNL void NC_rcclear(NCRCinfo* info);
-
-/* From dutil.c (Might later move to e.g. nc.h */
-EXTERNL int NC__testurl(const char* path, char** basenamep);
-EXTERNL int NC_isLittleEndian(void);
-EXTERNL char* NC_entityescape(const char* s);
-EXTERNL int NC_readfile(const char* filename, NCbytes* content);
-EXTERNL int NC_readfilen(const char* filename, NCbytes* content, long long len);
-EXTERNL int NC_readfileF(FILE* fp, NCbytes* content, long long len);
-EXTERNL int NC_writefile(const char* filename, size_t size, void* content);
-EXTERNL char* NC_mktmp(const char* base);
-EXTERNL int NC_getmodelist(const char* modestr, NClist** modelistp);
-EXTERNL int NC_testmode(NCURI* uri, const char* tag);
-EXTERNL int NC_testpathmode(const char* path, const char* tag);
-EXTERNL int NC_addmodetag(NCURI* uri, const char* tag);
-EXTERNL int NC_split_delim(const char* path, char delim, NClist* segments);
-EXTERNL int NC_join(struct NClist* segments, char** pathp);
-EXTERNL int NC_joinwith(NClist* segments, const char* sep, const char* prefix, const char* suffix, char** pathp);
 
 #if defined(__cplusplus)
 }

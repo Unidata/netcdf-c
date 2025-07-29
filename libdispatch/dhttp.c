@@ -96,12 +96,9 @@ nc_http_open_verbose(const char* path, int verbose, NC_HTTP_STATE** statep)
     ncuriparse(path,&uri);
     if(uri == NULL) {stat = NCTHROW(NC_EURL); goto done;}
 
-    char *cleanpath = ncuribuild(uri, NULL, NULL, NCURISVC);
-    if(cleanpath == NULL) {stat = NCTHROW(NC_EURL); goto done;}
-
     if((state = calloc(1,sizeof(NC_HTTP_STATE))) == NULL)
         {stat = NCTHROW(NC_ENOMEM); goto done;}
-    state->path = cleanpath;
+    state->path = strdup(path);
     state->url = uri; uri = NULL;    
 #ifdef NETCDF_ENABLE_S3
     state->format = (NC_iss3(state->url,NULL)?HTTPS3:HTTPCURL);
@@ -164,7 +161,7 @@ nc_http_close(NC_HTTP_STATE* state)
 #ifdef NETCDF_ENABLE_S3
     case HTTPS3: {
 	if(state->s3.s3client)
-            NC_s3sdkclose(state->s3.s3client, state->s3.info, 0, NULL);
+            NC_s3sdkclose(state->s3.s3client, NULL);
         NC_s3clear(state->s3.info);
 	nullfree(state->s3.info);
 	state->s3.s3client = NULL;
@@ -364,7 +361,7 @@ nc_http_size(NC_HTTP_STATE* state, long long* sizep)
     case HTTPS3: {
 	size64_t len = 0;
 	if((stat = NC_s3sdkinfo(state->s3.s3client,state->s3.info->bucket,state->s3.info->rootkey,&len,&state->errmsg))) goto done;
-	if(sizep) *sizep = len;
+	if(sizep) *sizep = (long long)len;
         } break;
 #endif
     default: stat = NCTHROW(NC_ENOTBUILT); goto done;

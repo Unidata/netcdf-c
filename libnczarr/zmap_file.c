@@ -129,10 +129,10 @@ static void zfrelease(ZFMAP* zfmap, FD* fd);
 static void zfunlink(const char* canonpath);
 
 static int platformerr(int err);
-static int platformcreatefile(mode_t mode, const char* truepath,FD*);
-static int platformcreatedir(mode_t mode, const char* truepath);
-static int platformopenfile(mode_t mode, const char* truepath, FD* fd);
-static int platformopendir(mode_t mode, const char* truepath);
+static int platformcreatefile(int mode, const char* truepath,FD*);
+static int platformcreatedir(int, const char* truepath);
+static int platformopenfile(int mode, const char* truepath, FD* fd);
+static int platformopendir(int mode, const char* truepath);
 static int platformdircontent(const char* path, NClist* contents);
 static int platformdelete(const char* path, int delroot);
 static int platformseek(FD* fd, int pos, size64_t* offset);
@@ -531,7 +531,7 @@ zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
 {
     int stat = NC_NOERR;
     size_t i;
-    int len;
+    size_t len;
     char* fullpath = NULL;
     NCbytes* path = ncbytesnew();
     NClist* segments = nclistnew();
@@ -540,7 +540,10 @@ zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
     if((stat=nczm_split(key,segments)))
 	goto done;    
     len = nclistlength(segments);
-    len -= nskip; /* leave off last nskip segments */
+    if(len >= (size_t)nskip)
+	len -= (size_t)nskip; /* leave off last nskip segments */
+    else
+        len = 0;
     ncbytescat(path,zfmap->root); /* We need path to be absolute */
     for(i=0;i<len;i++) {
 	const char* seg = nclistget(segments,i);
@@ -708,7 +711,7 @@ platformtestcontentbearing(const char* canonpath)
 
 /* Create a file */
 static int
-platformcreatefile(mode_t mode, const char* canonpath, FD* fd)
+platformcreatefile(int mode, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
@@ -718,7 +721,7 @@ platformcreatefile(mode_t mode, const char* canonpath, FD* fd)
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
     
     errno = 0;
-    if(!fIsSet(mode, NC_WRITE))
+    if(!fIsSet((mode_t)mode, NC_WRITE))
         ioflags |= (O_RDONLY);
     else {
         ioflags |= (O_RDWR);
@@ -749,7 +752,7 @@ done:
 
 /* Open a file; fail if it does not exist */
 static int
-platformopenfile(mode_t mode, const char* canonpath, FD* fd)
+platformopenfile(int mode, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
@@ -785,7 +788,7 @@ done:
 
 /* Create a dir */
 static int
-platformcreatedir(mode_t mode, const char* canonpath)
+platformcreatedir(int mode, const char* canonpath)
 {
     int ret = NC_NOERR;
 
@@ -798,7 +801,7 @@ platformcreatedir(mode_t mode, const char* canonpath)
 	if(fIsSet(mode,NC_WRITE)) {
 	    /* Try to create it */
             /* Create the directory using mkdir */
-   	    if(NCmkdir(canonpath,NC_DEFAULT_DIR_PERMS) < 0)
+   	    if(NCmkdir(canonpath,(mode_t)NC_DEFAULT_DIR_PERMS) < 0)
 	        {ret = platformerr(errno); goto done;}
 	    /* try to access again */
 	    ret = NCaccess(canonpath,ACCESS_MODE_EXISTS);
@@ -815,7 +818,7 @@ done:
 
 /* Open a dir; fail if it does not exist */
 static int
-platformopendir(mode_t mode, const char* canonpath)
+platformopendir(int mode, const char* canonpath)
 {
     int ret = NC_NOERR;
 
@@ -1059,7 +1062,7 @@ static int
 platformseek(FD* fd, int pos, size64_t* sizep)
 {
     int ret = NC_NOERR;
-    off_t size, newsize;
+    size64_t size, newsize;
     struct stat statbuf;    
     
     assert(fd && fd->fd >= 0);
@@ -1071,7 +1074,7 @@ platformseek(FD* fd, int pos, size64_t* sizep)
     if(ret < 0)
 	{ret = platformerr(errno); goto done;}
     if(sizep) size = *sizep; else size = 0;
-    newsize = lseek(fd->fd,size,pos);
+    newsize = (size64_t)lseek(fd->fd,(off_t)size,pos);
     if(sizep) *sizep = newsize;
 done:
     errno = 0;
