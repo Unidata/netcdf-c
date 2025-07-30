@@ -54,6 +54,7 @@ typedef struct NCS3CLIENT {
 
 struct Object {
     NClist* checksumalgorithms; /* NClist<char*> */
+    NClist* checksumtypes; /* NClist<char*> */
     char* etag;
     char* key;
     char* lastmodified;
@@ -92,6 +93,7 @@ static int parse_object(ncxml_t root, NClist* objects);
 static int parse_owner(ncxml_t root, struct Owner* ownerp);
 static int parse_prefix(ncxml_t root, NClist* prefixes);
 static int parse_checksumalgorithm(ncxml_t root, NClist* algorithms);
+static int parse_checksumtype(ncxml_t root, NClist* algorithms);
 static struct LISTOBJECTSV2* alloclistobjectsv2(void);
 static struct Object* allocobject(void);
 static void reclaim_listobjectsv2(struct LISTOBJECTSV2* lo);
@@ -190,7 +192,7 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     }
     if((s3client->rooturl = makes3rooturl(info))==NULL) {stat = NC_ENOMEM; goto done;}
     s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->svc,info->region,accessid,accesskey);
-    if(s3client->h5s3client == NULL) {stat = NC_ES3; goto done;}
+    if(s3client->h5s3client == NULL) {stat = NCTHROW(NC_ES3); goto done;}
 
 done:
     nullfree(urlroot);
@@ -664,6 +666,7 @@ HTTP/1.1 200
       <Size>integer</Size>
       <StorageClass>string</StorageClass>
       <ChecksumAlgorithm>string</ChecksumAlgorithm>
+      <ChecksumType>string</ChecksumType>
       <Owner>
          <DisplayName>string</DisplayName>
          <ID>string</ID>
@@ -700,13 +703,13 @@ parse_listbucketresult(char* xml, unsigned long long xmllen, struct LISTOBJECTSV
 #endif
 
     doc = ncxml_parse(xml,xmllen);
-    if(doc == NULL) {stat = NC_ES3; goto done;}
+    if(doc == NULL) {stat = NCTHROW(NC_ES3); goto done;}
     ncxml_t dom = ncxml_root(doc);
 
     /* Verify top level element */
     if(strcmp(ncxml_name(dom),"ListBucketResult")!=0) {
 	nclog(NCLOGERR,"Expected: <ListBucketResult> actual: <%s>",ncxml_name(dom));
-	stat = NC_ES3;
+	stat = NCTHROW(NC_ES3);
 	goto done;
     }
     if((result = alloclistobjectsv2())==NULL) {stat = NC_ENOMEM; goto done;}
@@ -742,7 +745,7 @@ parse_listbucketresult(char* xml, unsigned long long xmllen, struct LISTOBJECTSV
 	    result->startafter = trim(ncxml_text(x),RECLAIM);
 	} else {
 	    nclog(NCLOGERR,"Unexpected Element: <%s>",elem);
-	    stat = NC_ES3;
+	    stat = NCTHROW(NC_ES3);
 	    goto done;
 	}
     }
@@ -764,7 +767,7 @@ parse_object(ncxml_t root, NClist* objects)
     /* Verify top level element */
     if(strcmp(ncxml_name(root),"Contents")!=0) {
 	nclog(NCLOGERR,"Expected: <Contents> actual: <%s>",ncxml_name(root));
-	stat = NC_ES3;
+	stat = NCTHROW(NC_ES3);
 	goto done;
     }
 
@@ -774,8 +777,10 @@ parse_object(ncxml_t root, NClist* objects)
 	const char* elem = ncxml_name(x);
 	if(strcmp(elem,"ChecksumAlgorithm")==0) {
 	    if((stat = parse_checksumalgorithm(x,object->checksumalgorithms))) goto done;
+	} else if(strcmp(elem,"ChecksumType")==0) {
+	    if((stat = parse_checksumtype(x,object->checksumtypes))) goto done;
 	} else if(strcmp(elem,"ETag")==0) {
-	    object->etag = trim(ncxml_text(x),RECLAIM);
+	    object->etag = trim(ncxml_text(x),RECLAIM);	
 	} else if(strcmp(elem,"Key")==0) {
 	    object->key = trim(ncxml_text(x),RECLAIM);
 	} else if(strcmp(elem,"LastModified")==0) {
@@ -792,7 +797,7 @@ parse_object(ncxml_t root, NClist* objects)
 	    /* Ignore */
 	} else {
 	    nclog(NCLOGERR,"Unexpected Element: <%s>",elem);
-	    stat = NC_ES3;
+	    stat = NCTHROW(NC_ES3);
 	    goto done;
 	}
     }
@@ -813,7 +818,7 @@ parse_owner(ncxml_t root, struct Owner* owner)
     /* Verify top level element */
     if(strcmp(ncxml_name(root),"Owner")!=0) {
 	nclog(NCLOGERR,"Expected: <Owner> actual: <%s>",ncxml_name(root));
-	stat = NC_ES3;
+	stat = NCTHROW(NC_ES3);
 	goto done;
     }
 
@@ -825,7 +830,7 @@ parse_owner(ncxml_t root, struct Owner* owner)
 	    owner->id = trim(ncxml_text(x),RECLAIM);
 	} else {
 	    nclog(NCLOGERR,"Unexpected Element: <%s>",elem);
-	    stat = NC_ES3;
+	    stat = NCTHROW(NC_ES3);
 	    goto done;
 	}
     }
@@ -844,7 +849,7 @@ parse_prefix(ncxml_t root, NClist* prefixes)
     /* Verify top level element */
     if(strcmp(ncxml_name(root),"CommonPrefixes")!=0) {
 	nclog(NCLOGERR,"Expected: <CommonPrefixes> actual: <%s>",ncxml_name(root));
-	stat = NC_ES3;
+	stat = NCTHROW(NC_ES3);
 	goto done;
     }
 
@@ -856,7 +861,7 @@ parse_prefix(ncxml_t root, NClist* prefixes)
 	    prefix = NULL;
 	} else {
 	    nclog(NCLOGERR,"Unexpected Element: <%s>",elem);
-	    stat = NC_ES3;
+	    stat = NCTHROW(NC_ES3);
 	    goto done;
 	}
     }
@@ -875,7 +880,7 @@ parse_checksumalgorithm(ncxml_t root, NClist* algorithms)
     /* Verify top level element */
     if(strcmp(ncxml_name(root),"ChecksumAlgorithm")!=0) {
 	nclog(NCLOGERR,"Expected: <ChecksumAlgorithm> actual: <%s>",ncxml_name(root));
-	stat = NC_ES3;
+	stat = NCTHROW(NC_ES3);
 	goto done;
     }
     alg = trim(ncxml_text(root),RECLAIM);
@@ -884,6 +889,27 @@ parse_checksumalgorithm(ncxml_t root, NClist* algorithms)
 
 done:
     nullfree(alg);
+    return NCTHROW(stat);
+}
+
+static int
+parse_checksumtype(ncxml_t root, NClist* types)
+{
+    int stat = NC_NOERR;
+    char* typ = NULL;
+
+    /* Verify top level element */
+    if(strcmp(ncxml_name(root),"ChecksumType")!=0) {
+	nclog(NCLOGERR,"Expected: <ChecksumType> actual: <%s>",ncxml_name(root));
+	stat = NCTHROW(NC_ES3);
+	goto done;
+    }
+    typ = trim(ncxml_text(root),RECLAIM);
+    nclistpush(types,typ);
+    typ = NULL;
+
+done:
+    nullfree(typ);
     return NCTHROW(stat);
 }
 
@@ -905,6 +931,7 @@ allocobject(void)
     if((obj = calloc(1,sizeof(struct Object))) == NULL)
 	return obj;
     obj->checksumalgorithms = nclistnew();
+    obj->checksumtypes = nclistnew();
     return obj;
 }
 
@@ -935,6 +962,7 @@ reclaim_object(struct Object* o)
 {
     if(o == NULL) return;
     nclistfreeall(o->checksumalgorithms);
+    nclistfreeall(o->checksumtypes);
     nullfree(o->etag);
     nullfree(o->key);
     nullfree(o->lastmodified);
@@ -1141,6 +1169,6 @@ httptonc(long httpcode)
         default: stat = NC_EINVAL; break;
         }
     } else
-        stat = NC_ES3;
+        stat = NCTHROW(NC_ES3);
     return stat;
 }

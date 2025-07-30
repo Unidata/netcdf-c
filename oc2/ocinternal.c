@@ -34,6 +34,7 @@
 #include "ocread.h"
 #include "dapparselex.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
 
 #define DATADDSFILE "datadds"
 
@@ -337,9 +338,9 @@ createtempfile(OCstate* state, OCtree* tree)
     strncpy(path,globalstate->tempdir,len);
     strlcat(path,"/",len);
     strlcat(path,DATADDSFILE,len);
-    tmppath = NC_mktmp(path);
+    stat = NC_mktmp(path,&tmppath);
     free(path);
-    if(tmppath == NULL) {stat = OC_EACCESS; goto fail;}
+    if(stat || tmppath == NULL) {stat = OC_EACCESS; goto fail;}
 #ifdef OCDEBUG
     nclog(NCLOGNOTE,"oc_open: creating tmp file: %s",tmppath);
 #endif
@@ -568,11 +569,9 @@ ocset_curlproperties(OCstate* state)
 	strncpy(path,globalstate->tempdir,len);
 	strlcat(path,"/",len);
 	strlcat(path,"occookies",len);
-        tmppath = NC_mktmp(path);
-if(tmppath == NULL) {
-        tmppath = NC_mktmp(path);
-}
+        stat = NC_mktmp(path,&tmppath);
         free(path);
+	if(stat || tmppath == NULL) {stat = OC_EACCESS; goto fail;}
         state->auth->curlflags.cookiejar = tmppath;
         state->auth->curlflags.cookiejarcreated = 1;
         if (stat != OC_NOERR && errno != EEXIST) {
