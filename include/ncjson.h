@@ -147,7 +147,7 @@ OPTEXPORT void NCJdictsort(NCjson* jdict);
 #define NCJstring(x) ((x)==NULL?(char*)(x):(x)->string)
 #define NCJarraylength(x) ((x)==NULL ? 0 : (x)->list.len)
 #define NCJdictlength(x) ((x)==NULL ? 0 : ((x)->list.len) / 2)
-#define NCJcontents(x) ((x)==NULL?(x):(x)->list.contents)
+#define NCJcontents(x) ((x)==NULL?(struct NCjson**)(x):(x)->list.contents)
 #define NCJith(x,i) ((x)->list.contents[i])
 #define NCJdictkey(x,i) ((x)->list.contents[(i)*2])
 #define NCJdictvalue(x,i) ((x)->list.contents[((i)*2)+1])
