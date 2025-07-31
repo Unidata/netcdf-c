@@ -3,11 +3,9 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "config.h"
-#include "ncutil.h"
+#include "d4includes.h"
 #include "ncdispatch.h"
 #include "ncd4dispatch.h"
-#include "d4includes.h"
 #include "d4curlfunctions.h"
 #include <stddef.h>
 
