@@ -18,6 +18,8 @@
 #include "ncauth.h"
 #include "ncmodel.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
+
 #include <stddef.h>
 
 #ifdef NETCDF_ENABLE_BYTERANGE
