@@ -20,6 +20,10 @@
 #include <streambuf>
 #include "netcdf.h"
 #include "ncrc.h"
+#include "ncutil.h"
+
+#include "ncs3sdk.h"
+#include "nch5s3comms.h"
 
 #ifdef TRANSFER
 #include <aws/core/utils/memory/AWSMemory.h>
@@ -28,8 +32,6 @@
 #include <aws/transfer/TransferManager.h>
 #include <aws/transfer/TransferHandle.h>
 #endif
-
-#include "ncs3sdk.h"
 
 #undef NCTRACING
 #ifdef NCTRACING
@@ -127,7 +129,7 @@ NCS3_dumps3info(NCS3INFO* info)
     return text;
 }
 
-EXTERNL int
+/*EXTERNL*/ int
 NC_s3sdkinitialize(void)
 {
     if(!ncs3_initialized) {
@@ -150,7 +152,7 @@ NC_s3sdkinitialize(void)
     return NCUNTRACE(NC_NOERR);
 }
 
-EXTERNL int
+/*EXTERNL*/ int
 NC_s3sdkfinalize(void)
 {
     if(!ncs3_finalized) {
@@ -232,7 +234,7 @@ buildclient(Aws::Client::ClientConfiguration* config, Aws::Auth::AWSCredentials*
     return s3client;
 }
 
-EXTERNL void*
+/*EXTERNL*/ void*
 NC_s3sdkcreateclient(NCS3INFO* info)
 {
     NCTRACE(11,NULL);
@@ -254,7 +256,7 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     return (void*)s3client;
 }
 
-EXTERNL int
+/*EXTERNL*/ int
 NC_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -289,7 +291,7 @@ NC_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** e
     return NCUNTRACEX(stat,"exists=%d",*existsp);
 }
 
-EXTERNL int
+/*EXTERNL*/ int
 NC_s3sdkbucketcreate(void* s3client0, const char* region, const char* bucket, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -323,7 +325,7 @@ NC_s3sdkbucketcreate(void* s3client0, const char* region, const char* bucket, ch
     return NCUNTRACE(stat);    
 }
 
-EXTERNL int
+/*EXTERNL*/ int
 NC_s3sdkbucketdelete(void* s3client0, NCS3INFO* info, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -362,7 +364,7 @@ NC_s3sdkbucketdelete(void* s3client0, NCS3INFO* info, char** errmsgp)
 @return NC_EEMPTY if object at key has no content.
 @return NC_EXXX return true error
 */
-EXTERNL int
+/*EXTERNL*/ int
 NC_s3sdkinfo(void* s3client0, const char* bucket, const char* pathkey, size64_t* lenp, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -427,7 +429,7 @@ class UpLoadStream : public Aws::IOStream
 @return NC_NOERR if success
 @return NC_EXXX if fail
 */
-EXTERNL int
+/*EXTERNL*/ int
 NC_s3sdkread(void* s3client0, const char* bucket, const char* pathkey, size64_t start, size64_t count, void* content, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -496,7 +498,7 @@ NC_s3sdkread(void* s3client0, const char* bucket, const char* pathkey, size64_t 
 For S3, I can see no way to do a byterange write;
 so we are effectively writing the whole object
 */
-EXTERNL int
+/*EXTERNL*/ int
 NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  size64_t count, const void* content, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -547,14 +549,15 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
     return NCUNTRACE(stat);
 }
 
-EXTERNL int
-NC_s3sdkclose(void* s3client0, NCS3INFO* info, int deleteit, char** errmsgp)
+/*EXTERNL*/ int
+NC_s3sdkclose(void* s3client0, char** errmsgp)
 {
     int stat = NC_NOERR;
+    AWSS3CLIENT s3client = (AWSS3CLIENT)s3client0;
 
     NCTRACE(11,"info=%s rootkey=%s deleteit=%d",dumps3info(info),deleteit);
     
-    AWSS3CLIENT s3client = (AWSS3CLIENT)s3client0;
+#if 0
     if(deleteit) {
         /* Delete the root key; ok it if does not exist */
         switch (stat = NC_s3sdkdeletekey(s3client0,info->bucket,info->rootkey,errmsgp)) {
@@ -563,6 +566,7 @@ NC_s3sdkclose(void* s3client0, NCS3INFO* info, int deleteit, char** errmsgp)
         default: break;
         }
     }
+#endif /*0*/
 #ifdef TRANSFER
     delete s3client;
 #else
@@ -571,8 +575,38 @@ NC_s3sdkclose(void* s3client0, NCS3INFO* info, int deleteit, char** errmsgp)
     return NCUNTRACE(stat);
 }
 
+/*EXTERNL*/ int
+NC_s3sdktruncate(void* s3client0, const char* bucket, const char* prefix, char** errmsgp)
+{
+    int stat = NC_NOERR;
+    char* errmsg = NULL;
+    size_t nkeys;
+    char** keys = NULL;
+
+    NCTRACE(11,"bucket=%s prefix=%s",bucket,prefix);
+
+    if((stat = NC_s3sdklistall(s3client0,bucket,prefix,&nkeys,&keys,&errmsg))) goto done;
+
+    if(nkeys > 0 && keys != NULL) {
+	size_t i;
+	/* Sort the list -- shortest first */
+	NC_sortenvv(nkeys,keys);
+	for(i=0;i<nkeys;i++) {
+	    if((stat = NC_s3sdkdeletekey(s3client0, bucket, keys[i], NULL))) goto done;
+        }
+    }
+
+    if(errmsgp) {*errmsgp = errmsg; errmsg = NULL;}
+
+done:
+    if(errmsg) free(errmsg);
+    NC_freeenvv(nkeys,keys);    
+    return NCUNTRACE(stat);
+}
+
 /*
-Return a list of names of legal objects immediately below a specified key.
+Common code for list and listall.
+Return a list of names of legal objects immediately or anywhere below a specified key.
 In theory, the returned list should be sorted in lexical order,
 but it possible that it is not.
 */
@@ -653,23 +687,23 @@ done:
 Return a list of full keys  of legal objects immediately below a specified key.
 Not necessarily sorted.
 */
-EXTERNL int
-NC_s3sdkgetkeys(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
+/*EXTERNL*/ int
+NC_s3sdklist(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     return getkeys(s3client0, bucket, prefixkey0, "/", nkeysp, keysp, errmsgp);
 }
 
 /*
-Return a list of full keys  of legal objects immediately below a specified key.
+Return a list of full keys  of legal objects anywhere below a specified key.
 Not necessarily sorted.
 */
-EXTERNL int
-NC_s3sdksearch(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
+/*EXTERNL*/ int
+NC_s3sdklistall(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     return getkeys(s3client0, bucket, prefixkey0, NULL, nkeysp, keysp, errmsgp);
 }
 
-EXTERNL int
+/*EXTERNL*/ int
 NC_s3sdkdeletekey(void* s3client0, const char* bucket, const char* pathkey, char** errmsgp)
 {
     int stat = NC_NOERR;
