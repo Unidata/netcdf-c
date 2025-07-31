@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "config.h"
+#include "ncutil.h"
 #include "ncdispatch.h"
 #include "ncd4dispatch.h"
 #include "d4includes.h"
