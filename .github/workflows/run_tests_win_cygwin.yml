@@ -108,7 +108,7 @@ jobs:
       - name: Upload autoconf test results
         uses: actions/upload-artifact@v4
         with:
-          name: cygwin-autotools-test-logs-${{ matrix.plugin_dir_option }}
+          name: cygwin-autotools-test-logs-${{ matrix.plugin_dir_option }}-${{ matrix.use_nczarr_and_s3 }}
           path: |
             */*.log
             */*.trs
