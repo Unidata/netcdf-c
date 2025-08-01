@@ -34,6 +34,7 @@
 #include "ocread.h"
 #include "dapparselex.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
 
 #define DATADDSFILE "datadds"
 
@@ -322,24 +323,19 @@ static OCerror
 createtempfile(OCstate* state, OCtree* tree)
 {
     int stat = OC_NOERR;
-    char* path = NULL;
+    char basepath[8192];
     char* tmppath = NULL;
     size_t len;
     NCglobalstate* globalstate = NC_getglobalstate();
 
-    len =
-	  strlen(globalstate->tempdir)
-	  + 1 /* '/' */
-	  + strlen(DATADDSFILE)
-	  + 1; /* nul term */
-    path = (char*)malloc(len);
-    if(path == NULL) return OC_ENOMEM;
-    strncpy(path,globalstate->tempdir,len);
-    strlcat(path,"/",len);
-    strlcat(path,DATADDSFILE,len);
-    tmppath = NC_mktmp(path);
-    free(path);
-    if(tmppath == NULL) {stat = OC_EACCESS; goto fail;}
+    snprintf(basepath,sizeof(basepath),"%s/%s",globalstate->tempdir,DATADDSFILE);
+    tmppath = NULL;
+    if((stat = NC_mktmp(basepath,&tmppath))) goto fail;
+    if (stat != OC_NOERR && errno != EEXIST) {
+        fprintf(stderr, "Cannot create %sfile\n",DATADDSFILE);
+	stat = OC_EACCESS;
+        goto fail;
+    }
 #ifdef OCDEBUG
     nclog(NCLOGNOTE,"oc_open: creating tmp file: %s",tmppath);
 #endif
@@ -381,6 +377,7 @@ occlose(OCstate* state)
     ocfree(state->error.message);
     if(state->curl != NULL) occurlclose(state->curl);
     NC_authfree(state->auth);
+    state->auth = NULL;
     ocfree(state);
 }
 
@@ -553,41 +550,29 @@ ocset_curlproperties(OCstate* state)
     if (state->auth->curlflags.cookiejar == NULL) {
         /* If no cookie file was defined, define a default */
         int stat = NC_NOERR;
-        char* path = NULL;
+        char basepath[8192];
         char* tmppath = NULL;
-        size_t len;
         errno = 0;
+	NCglobalstate* globalstate = NC_getglobalstate();
+
         /* Create the unique cookie file name */
-        len =
-            strlen(globalstate->tempdir)
-            + 1 /* '/' */
-            + strlen("occookies")
-	    + 1;
-        path = (char*)calloc(1, len);
-        if (path == NULL) return OC_ENOMEM;
-	strncpy(path,globalstate->tempdir,len);
-	strlcat(path,"/",len);
-	strlcat(path,"occookies",len);
-        tmppath = NC_mktmp(path);
-if(tmppath == NULL) {
-        tmppath = NC_mktmp(path);
-}
-        free(path);
-        state->auth->curlflags.cookiejar = tmppath;
-        state->auth->curlflags.cookiejarcreated = 1;
+	snprintf(basepath,sizeof(basepath),"%s/occookies",globalstate->tempdir);
+	tmppath = NULL;
+	if((stat = NC_mktmp(basepath,&tmppath))) goto fail;
         if (stat != OC_NOERR && errno != EEXIST) {
             fprintf(stderr, "Cannot create cookie file\n");
             goto fail;
         }
+        state->auth->curlflags.cookiejar = tmppath; tmppath = NULL;
+        state->auth->curlflags.cookiejarcreated = 1;
         errno = 0;
     }
-    
     OCASSERT(state->auth->curlflags.cookiejar != NULL);
 
     /* Make sure the cookie jar exists and can be read and written */
     {
 	FILE* f = NULL;
-	char* fname = state->auth->curlflags.cookiejar;
+	const char* fname = state->auth->curlflags.cookiejar;
 	/* See if the file exists already */
         f = NCfopen(fname,"r");
 	if(f == NULL) {

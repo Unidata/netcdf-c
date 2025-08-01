@@ -548,21 +548,13 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
 }
 
 EXTERNL int
-NC_s3sdkclose(void* s3client0, NCS3INFO* info, int deleteit, char** errmsgp)
+NC_s3sdkclose(void* s3client0, char** errmsgp)
 {
     int stat = NC_NOERR;
 
-    NCTRACE(11,"info=%s rootkey=%s deleteit=%d",dumps3info(info),deleteit);
-    
     AWSS3CLIENT s3client = (AWSS3CLIENT)s3client0;
-    if(deleteit) {
-        /* Delete the root key; ok it if does not exist */
-        switch (stat = NC_s3sdkdeletekey(s3client0,info->bucket,info->rootkey,errmsgp)) {
-        case NC_NOERR: break;
-        case NC_EEMPTY: case NC_ENOTFOUND: stat = NC_NOERR; break;
-        default: break;
-        }
-    }
+    NCTRACE(11,"info=%s y=%s deleteit=%d",s3client.);
+    
 #ifdef TRANSFER
     delete s3client;
 #else
@@ -654,7 +646,7 @@ Return a list of full keys  of legal objects immediately below a specified key.
 Not necessarily sorted.
 */
 EXTERNL int
-NC_s3sdkgetkeys(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
+NC_s3sdklist(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     return getkeys(s3client0, bucket, prefixkey0, "/", nkeysp, keysp, errmsgp);
 }
