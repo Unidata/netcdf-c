@@ -31,11 +31,11 @@ INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_filter_build.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT headers)
 
-INSTALL(FILES ${netCDF_BINARY_DIR}/include/netcdf_dispatch.h
+INSTALL(FILES ${netCDF_SOURCE_DIR}/include/netcdf_vutils.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT headers)
 
-INSTALL(FILES ${netCDF_BINARY_DIR}/include/netcdf_vutils.h
+INSTALL(FILES ${netCDF_BINARY_DIR}/include/netcdf_dispatch.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT headers)
 

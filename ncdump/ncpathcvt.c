@@ -32,13 +32,13 @@
 #include "ncbytes.h"
 
 static const char* USAGE =
-"ncpathcvt [-c|-m|-u|-w] [-e] [-h] [-k] [-p] [-x] [-F] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
+"ncpathcvt [-c|-m|-u|-w] [-e] [-h] [-k] [-p] [-x] [-F<w|m|u>] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
 "Options\n"
 "  -h help"
 "  -e add backslash escapes to '\' and ' '\n"
 "  -B <char> convert occurrences of <char> to blank\n"
 "  -D <driveletter> use driveletter when needed; defaults to 'c'\n"
-"  -F convert occurrences of '\\' to '/'"
+"  -F[\|/] '\\' => '/' to '\\'; '/' => '\\' to '/';\n"
 "  -S <char> use <char> as path separator when parsing;\n"
 "     currently limited to ';' or ':' but defaults to ';'\n"
 "Output type options:\n"
@@ -61,7 +61,8 @@ struct Options {
     int drive;
     int debug;
     int blank;
-    int slash;
+    int slashfrom;
+    int slashto;
     int pathkind;
     int sep;
 } cvtoptions;
@@ -108,12 +109,12 @@ slash(const char* path)
     char* epath = NULL;
 
     epath = (char*)malloc(slen + 1);
-    if(epath == NULL) usage("out of memtory");
+    if(epath == NULL) usage("out of memory");
     p = path;
     q = epath;
     for(;*p;p++) {
-	if(*p == '\\')
-	    *q++ = '/';
+	if(*p == cvtoptions.slashfrom)
+	    *q++ = cvtoptions.slashto;
         else *q++ = *p;
     }
     *q = '\0';
@@ -206,8 +207,9 @@ processdir(const char* indir, char** cvtdirp)
         cvtdir = escape(dir);
 	free(dir);
     }
-    if(cvtdir && cvtoptions.slash) {
-	char* dir = cvtdir; cvtdir = NULL;
+    if(cvtdir && cvtoptions.slashfrom) {
+	char* dir = NULL;
+	dir = cvtdir; cvtdir = NULL;
         cvtdir = slash(dir);
 	free(dir);
     }
@@ -224,6 +226,7 @@ main(int argc, char** argv)
     int c;
     char* inpath  = NULL;
     NCPluginList indirs = {0,NULL};
+    char* indir = NULL;
     NCbytes* outpath = ncbytesnew();
     int stat = NC_NOERR;
     size_t i;
@@ -248,7 +251,7 @@ main(int argc, char** argv)
 		usage("Bad -B argument");
 	    break;
 	case 'D': cvtoptions.drive = optarg[0]; break;
-	case 'F': cvtoptions.slash = 1; break;
+	case 'F': cvtoptions.slashfrom = optarg[0]; break;
 	case 'S': cvtoptions.sep = optarg[0]; break;
 	case 'X': printenv(); break;
 	case '?':
@@ -265,6 +268,17 @@ main(int argc, char** argv)
        usage("no path specified");
     if (argc > 1)
        usage("more than one path specified");
+
+    /* Complete slashing */
+    switch (cvtoptions.slashfrom) {
+    case 'w': case 'm':
+	cvtoptions.slashfrom = '/'; cvtoptions.slashto = '\\'
+	break;
+    case 'u':
+	cvtoptions.slashfrom = '\\'; cvtoptions.slashto = '/'
+	break;
+    default: usage("Illegal -F argument");
+    }
 
     /* translate blanks */
     inpath = (char*)malloc(strlen(argv[0])+1);
@@ -288,19 +302,25 @@ main(int argc, char** argv)
     /* Break using the path separator */
     if((stat = ncaux_plugin_path_parse(inpath,cvtoptions.sep,&indirs)))
 	{usage(nc_strerror(stat));}
-    for(i=0;i<indirs.ndirs;i++) {
+    if (indirs.ndirs == 0)
+       usage("no path specified");
+    if (indirs.ndirs > 1)
+       usage("more than one path specified");
+    indir = strdup(indirs.dirs[0]);
+    {
 	char* outdir = NULL;
-	if((stat = processdir(indirs.dirs[i],&outdir))) 
+	if((stat = processdir(indir,&outdir))) 
 	    {usage(nc_strerror(stat));}
 	if(i > 0) ncbytesappend(outpath,cvtoptions.sep);
 	ncbytescat(outpath,outdir);
 	nullfree(outdir);
     }
-    printf("%s",ncbytescontents(outpath));
+    printf("%s",ncbytescontents(outpath)); fflush(stdout):
 
 done:
     if(inpath) free(inpath);
     ncaux_plugin_path_clear(&indirs);
+    if(indir) free(indir);
     ncbytesfree(outpath);
     return 0;
 }
