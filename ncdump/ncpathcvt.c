@@ -38,7 +38,7 @@ static const char* USAGE =
 "  -e add backslash escapes to '\' and ' '\n"
 "  -B <char> convert occurrences of <char> to blank\n"
 "  -D <driveletter> use driveletter when needed; defaults to 'c'\n"
-"  -F[\|/] '\\' => '/' to '\\'; '/' => '\\' to '/';\n"
+"  -F w|m|u w|m => cvt '/' to '\\'; u => cvt '\\' to '/';\n"
 "  -S <char> use <char> as path separator when parsing;\n"
 "     currently limited to ';' or ':' but defaults to ';'\n"
 "Output type options:\n"
@@ -235,7 +235,7 @@ main(int argc, char** argv)
     cvtoptions.drive = 'c';
     cvtoptions.sep = ';';
 
-    while ((c = getopt(argc, argv, "B:D:FS:Xchkmpuwx")) != EOF) {
+    while ((c = getopt(argc, argv, "B:D:F:S:Xchkmpuwx")) != EOF) {
 	switch(c) {
 	case 'c': cvtoptions.target = NCPD_CYGWIN; break;
 	case 'h': usage(NULL); break;
@@ -272,10 +272,10 @@ main(int argc, char** argv)
     /* Complete slashing */
     switch (cvtoptions.slashfrom) {
     case 'w': case 'm':
-	cvtoptions.slashfrom = '/'; cvtoptions.slashto = '\\'
+	cvtoptions.slashfrom = '/'; cvtoptions.slashto = '\\';
 	break;
     case 'u':
-	cvtoptions.slashfrom = '\\'; cvtoptions.slashto = '/'
+	cvtoptions.slashfrom = '\\'; cvtoptions.slashto = '/';
 	break;
     default: usage("Illegal -F argument");
     }
@@ -315,7 +315,7 @@ main(int argc, char** argv)
 	ncbytescat(outpath,outdir);
 	nullfree(outdir);
     }
-    printf("%s",ncbytescontents(outpath)); fflush(stdout):
+    printf("%s",ncbytescontents(outpath)); fflush(stdout);
 
 done:
     if(inpath) free(inpath);
