@@ -26,6 +26,7 @@ See COPYRIGHT for license information.
 #include "nc4internal.h"
 #include "ncs3sdk.h"
 #include "ncdispatch.h"
+#include "ncutil.h"
 
 #undef NOREAD
 
@@ -136,15 +137,13 @@ This is set by the environment variable NC_TEST_AWS_DIR.
 void
 ncrc_initialize(void)
 {
-    int stat = NC_NOERR;
-    NCglobalstate* ncg = NULL;
-
     if(NCRCinitialized) return;
     NCRCinitialized = 1; /* prevent recursion */
 
-    ncg = NC_getglobalstate();
-
 #ifndef NOREAD
+    {
+    int stat = NC_NOERR;
+    NCglobalstate* ncg = NC_getglobalstate();
     /* Load entrys */
     if((stat = NC_rcload())) {
         nclog(NCLOGWARN,".rc loading failed");
@@ -152,6 +151,7 @@ ncrc_initialize(void)
     /* Load .aws/config &/ credentials */
     if((stat = NC_aws_load_credentials(ncg))) {
         nclog(NCLOGWARN,"AWS config file not loaded");
+    }
     }
 #endif
 }
@@ -180,7 +180,6 @@ NC_rcclear(NCRCinfo* info)
     nullfree(info->rchome);
     rcfreeentries(info->entries);
     NC_s3freeprofilelist(info->s3profiles);
-
 }
 
 static void
@@ -329,7 +328,7 @@ NC_set_rcfile(const char* rcfile)
         goto done;
     }
     fclose(f);
-    nullfree(globalstate->rcinfo->rcfile);
+    NC_rcclear(globalstate->rcinfo);
     globalstate->rcinfo->rcfile = strdup(rcfile);
     /* Clear globalstate->rcinfo */
     NC_rcclear(&globalstate->rcinfo);
