@@ -236,7 +236,7 @@ main(int argc, char** argv)
     cvtoptions.drive = 'c';
     cvtoptions.sep = ';';
 
-    while ((c = getopt(argc, argv, "B:D:F:S:Xchkmpuwx")) != EOF) {
+    while ((c = getopt(argc, argv, "B:D:FS:Xchkmpuwx")) != EOF) {
 	switch(c) {
 	case 'c': cvtoptions.target = NCPD_CYGWIN; break;
 	case 'h': usage(NULL); break;
