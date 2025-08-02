@@ -502,47 +502,10 @@ done:
     return THROW(stat);    
 }
 
-/* bubble sort a list of strings */
-void
-nczm_sortlist(NClist* l)
-{
-    nczm_sortenvv(nclistlength(l),(char**)nclistcontents(l));
-}
-
 static int
 nczm_compare(const void* arg1, const void* arg2)
 {
     char* n1 = *((char**)arg1);
     char* n2 = *((char**)arg2);
     return strcmp(n1,n2);
-}
-
-/* quick sort a list of strings */
-void
-nczm_sortenvv(size_t n, char** envv)
-{
-    if(n <= 1) return;
-    qsort(envv, n, sizeof(char*), nczm_compare);
-#if 0
-{int i;
-for(i=0;i<n;i++)
-fprintf(stderr,">>> sorted: [%d] %s\n",i,(const char*)envv[i]);
-}
-#endif
-}
-
-void
-NCZ_freeenvv(int n, char** envv)
-{
-    int i;
-    char** p;
-    if(envv == NULL) return;
-    if(n < 0)
-       {for(n=0, p = envv; *p; n++) {}; /* count number of strings */}
-    for(i=0;i<n;i++) {
-        if(envv[i]) {
-	    free(envv[i]);
-	}
-    }
-    free(envv);    
 }

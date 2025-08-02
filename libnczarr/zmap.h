@@ -368,11 +368,6 @@ EXTERNL int nczm_basename(const char* path, char** basep);
 EXTERNL int nczm_segment1(const char* path, char** seg1p);
 EXTERNL int nczm_lastsegment(const char* path, char** lastp);
 
-/* bubble sorts (note arguments) */
-EXTERNL void nczm_sortlist(struct NClist* l);
-EXTERNL void nczm_sortenvv(size_t n, char** envv);
-EXTERNL void NCZ_freeenvv(int n, char** envv);
-
 #ifdef __cplusplus
 }
 #endif

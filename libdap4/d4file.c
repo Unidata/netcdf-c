@@ -4,11 +4,10 @@
  *********************************************************************/
 
 #include "d4includes.h"
+#include <stddef.h>
 #include "ncdispatch.h"
 #include "ncd4dispatch.h"
 #include "d4curlfunctions.h"
-#include <stddef.h>
-#include "ncutil.h"
 
 #ifdef _MSC_VER
 #include <process.h>
