@@ -969,13 +969,13 @@ else
 
    # Set enable_s3 instead of enable_nczarr_s3
    if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes ; then
-   enable_s3=yes # back compatibility
+      enable_s3=yes # back compatibility
    fi
    unset enable_nczarr_s3
 
    if test "x$enable_remote_functionality" = xno ; then
    AC_MSG_WARN([--disable-remote-functionality => --disable-s3])
-   enable_s3=no
+      enable_s3=no
    fi
 
    # Note we check for the library after checking for enable_s3
