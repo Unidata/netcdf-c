@@ -236,7 +236,7 @@ main(int argc, char** argv)
     cvtoptions.drive = 'c';
     cvtoptions.sep = ';';
 
-    while ((c = getopt(argc, argv, "B:D:FS:Xchkmpuwx")) != EOF) {
+    while ((c = getopt(argc, argv, "B:D:F:S:Xchkmpuwx")) != EOF) {
 	switch(c) {
 	case 'c': cvtoptions.target = NCPD_CYGWIN; break;
 	case 'h': usage(NULL); break;
@@ -314,7 +314,7 @@ main(int argc, char** argv)
 	ncbytescat(outpath,outdir);
 	nullfree(outdir);
     }
-    printf("%s",ncbytescontents(outpath));
+    printf("%s",ncbytescontents(outpath)); fflush(stdout);
 
 done:
     if(inpath) free(inpath);
