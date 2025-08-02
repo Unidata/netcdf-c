@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -32,13 +33,13 @@
 #include "ncbytes.h"
 
 static const char* USAGE =
-"ncpathcvt [-c|-m|-u|-w] [-e] [-h] [-k] [-p] [-x] [-F<w|m|u>] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
+"ncpathcvt [-c|-m|-u|-w] [-e] [-h] [-k] [-p] [-x] [-F] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
 "Options\n"
 "  -h help"
 "  -e add backslash escapes to '\' and ' '\n"
 "  -B <char> convert occurrences of <char> to blank\n"
 "  -D <driveletter> use driveletter when needed; defaults to 'c'\n"
-"  -F[\|/] '\\' => '/' to '\\'; '/' => '\\' to '/';\n"
+"  -F convert occurrences of '\\' to '/' when -c|-u; convert occurrences of '/' to '\\' when -w|-m\n"
 "  -S <char> use <char> as path separator when parsing;\n"
 "     currently limited to ';' or ':' but defaults to ';'\n"
 "Output type options:\n"
@@ -61,10 +62,10 @@ struct Options {
     int drive;
     int debug;
     int blank;
-    int slashfrom;
-    int slashto;
     int pathkind;
     int sep;
+    int slashfrom; /* -F: translate slashfrom char to slashto char; do nothing if slashfrom is nul */
+    int slashto;
 } cvtoptions;
 
 static char* escape(const char* path);
@@ -108,8 +109,9 @@ slash(const char* path)
     char* q;
     char* epath = NULL;
 
+    assert(cvtoptions.slashfrom != '\0');
     epath = (char*)malloc(slen + 1);
-    if(epath == NULL) usage("out of memory");
+    if(epath == NULL) usage("out of memtory");
     p = path;
     q = epath;
     for(;*p;p++) {
@@ -208,8 +210,7 @@ processdir(const char* indir, char** cvtdirp)
 	free(dir);
     }
     if(cvtdir && cvtoptions.slashfrom) {
-	char* dir = NULL;
-	dir = cvtdir; cvtdir = NULL;
+	char* dir = cvtdir; cvtdir = NULL;
         cvtdir = slash(dir);
 	free(dir);
     }
@@ -226,10 +227,10 @@ main(int argc, char** argv)
     int c;
     char* inpath  = NULL;
     NCPluginList indirs = {0,NULL};
-    char* indir = NULL;
     NCbytes* outpath = ncbytesnew();
     int stat = NC_NOERR;
     size_t i;
+    int cvtslash = 0;
     
     memset((void*)&cvtoptions,0,sizeof(cvtoptions));
     cvtoptions.drive = 'c';
@@ -251,7 +252,7 @@ main(int argc, char** argv)
 		usage("Bad -B argument");
 	    break;
 	case 'D': cvtoptions.drive = optarg[0]; break;
-	case 'F': cvtoptions.slashfrom = optarg[0]; break;
+	case 'F': cvtslash = 1; break;
 	case 'S': cvtoptions.sep = optarg[0]; break;
 	case 'X': printenv(); break;
 	case '?':
@@ -270,14 +271,17 @@ main(int argc, char** argv)
        usage("more than one path specified");
 
     /* Complete slashing */
-    switch (cvtoptions.slashfrom) {
-    case 'w': case 'm':
-	cvtoptions.slashfrom = '/'; cvtoptions.slashto = '\\'
-	break;
-    case 'u':
-	cvtoptions.slashfrom = '\\'; cvtoptions.slashto = '/'
-	break;
-    default: usage("Illegal -F argument");
+    cvtoptions.slashfrom = '\0'; /* default is to do nothing */
+    if(cvtslash) {
+        switch (cvtoptions.target) {
+	case NCPD_NIX: case NCPD_CYGWIN:
+	    cvtoptions.slashfrom = '\\'; cvtoptions.slashto = '/';
+	    break;
+	case NCPD_WIN: case NCPD_MSYS:
+	    cvtoptions.slashfrom = '/'; cvtoptions.slashto = '\\';
+	    break;
+	default: break; /* ignore */
+	}
     }
 
     /* translate blanks */
@@ -302,25 +306,19 @@ main(int argc, char** argv)
     /* Break using the path separator */
     if((stat = ncaux_plugin_path_parse(inpath,cvtoptions.sep,&indirs)))
 	{usage(nc_strerror(stat));}
-    if (indirs.ndirs == 0)
-       usage("no path specified");
-    if (indirs.ndirs > 1)
-       usage("more than one path specified");
-    indir = strdup(indirs.dirs[0]);
-    {
+    for(i=0;i<indirs.ndirs;i++) {
 	char* outdir = NULL;
-	if((stat = processdir(indir,&outdir))) 
+	if((stat = processdir(indirs.dirs[i],&outdir))) 
 	    {usage(nc_strerror(stat));}
 	if(i > 0) ncbytesappend(outpath,cvtoptions.sep);
 	ncbytescat(outpath,outdir);
 	nullfree(outdir);
     }
-    printf("%s",ncbytescontents(outpath)); fflush(stdout):
+    printf("%s",ncbytescontents(outpath));
 
 done:
     if(inpath) free(inpath);
     ncaux_plugin_path_clear(&indirs);
-    if(indir) free(indir);
     ncbytesfree(outpath);
     return 0;
 }

@@ -84,8 +84,8 @@ sclean ./tmp_known_$zext.txt tmp_known_$zext.dump
 rm -fr  ${UNKNOWNDIR}/save
 mkdir -p  ${UNKNOWNDIR}/save
 # Figure out all matching libs; make sure to remove .so, so.0, etc
-LSRC=`${execdir}/../ncdump/ncpathcvt -Fu "${UNKNOWNDIR}"`
-LDST=`${execdir}/../ncdump/ncpathcvt -Fu ${UNKNOWNDIR}/save`
+LSRC=`${execdir}/../ncdump/ncpathcvt -F "${UNKNOWNDIR}"`
+LDST=`${execdir}/../ncdump/ncpathcvt -F ${UNKNOWNDIR}/save`
 mv ${LSRC}/*unknown* ${LDST}
 # Verify that the filter is no longer defined
 # Try to read the data; should xfail
