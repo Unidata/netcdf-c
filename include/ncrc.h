@@ -45,6 +45,8 @@ typedef struct NCRCinfo {
 } NCRCinfo;
 
 /* Opaque structures */
+struct NCS3INFO;
+enum NCS3SVC;
 
 #if defined(__cplusplus)
 extern "C" {
@@ -55,12 +57,6 @@ EXTERNL void ncrc_initialize(void);
 EXTERNL int NC_rcfile_insert(const char* key, const char* hostport, const char* path, const char* value);
 EXTERNL char* NC_rclookup(const char* key, const char* hostport, const char* path);
 EXTERNL char* NC_rclookupx(NCURI* uri, const char* key);
-
-/* From dglob.c */
-EXTERNL int NC_rcnewglobmatcher(const char* patstr, int sep, NCMATCHER** matcherp);
-EXTERNL void NC_rcfreematcher(NCMATCHER* matcher);
-EXTERNL int NC_rcglobmatch(NCMATCHER* pattern, const char* s);
-EXTERNL NCList* NC_rcglobmatches(NCMATCHER* pattern);
 
 /* Following are primarily for debugging */
 /* Obtain the count of number of entries */
