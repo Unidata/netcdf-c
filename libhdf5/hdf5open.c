@@ -10,6 +10,7 @@
  */
 
 #include "config.h"
+#include <stddef.h>
 #include "hdf5internal.h"
 #include "hdf5err.h"
 #include "hdf5debug.h"
@@ -19,6 +20,8 @@
 #include "ncmodel.h"
 #include "ncpathmgr.h"
 #include <stddef.h>
+#include "ncutil.h"
+
 
 #ifdef NETCDF_ENABLE_BYTERANGE
 #include "H5FDhttp.h"

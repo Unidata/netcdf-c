@@ -70,6 +70,7 @@ jobs:
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
+        use_s3: [ s3_off, s3_on ]
     steps:
 
       - uses: actions/checkout@v4
@@ -97,6 +98,12 @@ jobs:
         if: matrix.use_nczarr == 'nczarr_off'
       - run: echo "NETCDF_ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_on'
+      - run: echo "NETCDF_ENABLE_NCZARR=--disable-s3" >> $GITHUB_ENV
+        if: matrix.use_s3 == 's3_off'
+      - run: |
+          echo "NETCDF_ENABLE_NCZARR=--enable-s3" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_NCZARR=--enable-s3-internal" >> $GITHUB_ENV
+        if: matrix.use_s3 == 's3_on'
 
       ###
       # Fetch Cache
@@ -176,6 +183,7 @@ jobs:
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
+        use_s3: [ s3_off, s3_on ]
     steps:
 
       - uses: actions/checkout@v4
@@ -202,6 +210,12 @@ jobs:
         if: matrix.use_nczarr == 'nczarr_off'
       - run: echo "NETCDF_ENABLE_NCZARR=ON" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_on'
+      - run: echo "NETCDF_ENABLE_S3=OFF" >> $GITHUB_ENV
+        if: matrix.use_s3 == 's3_off'
+      - run: |
+          echo "NETCDF_ENABLE_S3=ON" >> $GITHUB_ENV
+          echo "NETCDF_ENABLE_S3_INTERNAL=ON" >> $GITHUB_ENV
+        if: matrix.use_s3 == 's3_on'
       - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
 
     ###

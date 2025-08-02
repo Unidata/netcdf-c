@@ -20,6 +20,7 @@ Author: Dennis Heimbigner
 #include "netcdf_filter.h"
 #include "netcdf_filter_build.h"
 #include "netcdf_json.h"
+#include "netcdf_vutils.h"
 
 #ifdef HAVE_SZ
 #include <szlib.h>
