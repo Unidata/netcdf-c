@@ -154,7 +154,7 @@ zs3create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 	}
 	/* The root object may or may not already exist */
         switch (stat = NC_s3sdkinfo(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,NULL,&z3map->errmsg)) {
-	case NC_ENOOBJECT: /* no such object */
+	case NC_EEMPTY: case NC_ENOOBJECT: /* no such object */
 	    stat = NC_NOERR;  /* which is what we want */
 	    errclear(z3map);
 	    break;
@@ -305,7 +305,7 @@ zs3len(NCZMAP* map, const char* key, size64_t* lenp)
 
     switch (stat = NC_s3sdkinfo(z3map->s3client,z3map->s3.bucket,truekey,lenp,&z3map->errmsg)) {
     case NC_NOERR: break;
-    case NC_ENOOBJECT:
+    case NC_EEMPTY: case NC_ENOOBJECT:
 	if(lenp) *lenp = 0;
 	goto done;
     default:
@@ -336,7 +336,7 @@ zs3read(NCZMAP* map, const char* key, size64_t start, size64_t count, void* cont
     
     switch (stat=NC_s3sdkinfo(z3map->s3client, z3map->s3.bucket, truekey, &size, &z3map->errmsg)) {
     case NC_NOERR: break;
-    case NC_ENOOBJECT: goto done;
+    case NC_EEMPTY: case NC_ENOOBJECT: goto done;
     default: goto done; 	
     }
     /* Sanity checks */
@@ -375,7 +375,7 @@ zs3write(NCZMAP* map, const char* key, size64_t count, const void* content)
     switch (stat=NC_s3sdkinfo(z3map->s3client, z3map->s3.bucket, truekey, &objsize, &z3map->errmsg)) {
     case NC_NOERR: /* Figure out the new size of the object */
         break;
-    case NC_ENOOBJECT:
+    case NC_EEMPTY: case NC_ENOOBJECT:
 	stat = NC_NOERR; /* reset */
         break;
     default: reporterr(z3map); goto done;
