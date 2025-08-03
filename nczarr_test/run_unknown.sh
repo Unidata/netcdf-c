@@ -1,7 +1,6 @@
 #!/bin/bash
-
-# Test derived from nc_test4/tst_unknown.sh 
 TESTNCZARR=1
+#!/bin/bash
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -11,7 +10,7 @@ THISDIR=`pwd`
 cd $ISOPATH
 
 if test "x$TESTNCZARR" = x1 ; then
-. ${srcdir}/test_nczarr.sh
+. "$srcdir/test_nczarr.sh"
 s3isolate
 fi
 
@@ -56,7 +55,7 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 # Locate the plugin path and the library names; argument order is critical
 
 # Find noop and capture
-if ! findplugin h5unknown ; then exit 0; fi
+findplugin h5unknown
 UNKNOWNDIR="${HDF5_PLUGIN_DIR}"
 UNKNOWNLIB="${HDF5_PLUGIN_LIB}"
 UNKNOWNFILTER="${HDF5_PLUGIN_DIR}/${UNKNOWNLIB}"

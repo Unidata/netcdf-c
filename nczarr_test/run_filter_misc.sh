@@ -1,13 +1,12 @@
 #!/bin/bash
-
-# This file is derived from ncdump/tst_filter_misc.sh
 TESTNCZARR=1
+#!/bin/bash 
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 if test "x$TESTNCZARR" = x1; then
-. ${srcdir}/test_nczarr.sh
+. $srcdir/test_nczarr.sh
 fi
 
 set -e

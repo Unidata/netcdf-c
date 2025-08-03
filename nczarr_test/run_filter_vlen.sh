@@ -1,7 +1,6 @@
 #!/bin/bash
-
-# Test derived from nc_test4/tst_filter_vlen.sh
 TESTNCZARR=1
+#!/bin/bash 
 
 # Test filters on non-fixed size variables.
 
@@ -9,7 +8,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 if test "x$TESTNCZARR" = x1; then
-. ${srcdir}/test_nczarr.sh
+. $srcdir/test_nczarr.sh
 fi
 
 set -e
@@ -18,7 +17,7 @@ set -e
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
 
-if ! findplugin h5deflate ; then exit 0; fi
+findplugin h5deflate
 echo "HDF5_PLUGIN_DIR=$HDF5_PLUGIN_DIR"
 
 isolate "testdir_filter_vlen"

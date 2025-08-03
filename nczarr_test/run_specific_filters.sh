@@ -1,7 +1,6 @@
 #!/bin/bash
-
-# Test derived from nc_test4/tst_specific_filters.sh
 TESTNCZARR=1
+#!/bin/bash 
 
 # Test the implementations of specific filters
 # Also test nc_inq_filter_avail
@@ -14,44 +13,15 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 
 if test "x$TESTNCZARR" = x1 ; then
-. ${srcdir}/test_nczarr.sh
+. "$srcdir/test_nczarr.sh"
 s3isolate "testdir_specific_filters"
 THISDIR=`pwd`
 cd $ISOPATH
 fi
 
-zarrfilt() {
-XCODEC="[{"
-if test "x$TESTNCZARR" = x1 && test "x$NCZARRFORMAT" = x3 ; then
-  XCODEC="${XCODEC}\"name\": \"$1\", \"configuration\": {"
-else
-  XCODEC="${XCODEC}\"id\": \"$1\","
-fi
-shift
-blank=
-while test 0 -lt $#; do
-    key=`echon "$1" | cut -d: -f1`
-    val=`echon "$1" | cut -d: -f2`
-    XCODEC="${XCODEC}${blank}\"$key\": $val"
-    shift
-    blank=", "
-done
-if test "x$TESTNCZARR" = x1 && test "x$NCZARRFORMAT" = x3 ; then
-XCODEC="${XCODEC}}}]"
-else
-XCODEC="${XCODEC}}]"
-fi
-}
-
-if test "x$TESTNCZARR" = x1 ; then
-  BLOSCARGS="32001,0,0,0,256,5,1,1"
-  zarrfilt blosc clevel:5 blocksize:256 cname:\"lz4\" shuffle:1  
-  BLOSCCODEC="$XCODEC"
-else
-  BLOSCARGS="32001,0,0,4,256,5,1,1"
-  zarrfilt blosc clevel:5 blocksize:256 cname:\"lz4\" shuffle:1  
-  BLOSCCODEC="$XCODEC"
-fi
+BLOSCARGS="32001,0,0,0,256,5,1,1"
+BLOSCARGSALT="32001,0,0,4,256,5,1,1"
+BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
 
 # Load the findplugins function
 . ${builddir}/findplugin.sh
@@ -60,7 +30,7 @@ echo "findplugin.sh loaded"
 # Locate the plugin path and the library names; argument order is critical
 # Find bzip2 and capture
 # Assume all test filters are in same plugin dir
-if ! findplugin h5bzip2 ; then exit 0 ; fi
+findplugin h5bzip2
 
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent
@@ -160,16 +130,16 @@ testshuffle() {
 testdeflate() {
   zext=$1
   if ! avail deflate; then return 0; fi
-  zarrfilt zlib level:9
-  runfilter $zext deflate '1,9' "$XCODEC"
+  runfilter $zext deflate '1,9' '[{\"id\": \"zlib\",\"level\": \"9\"}]'
+  # need to replace _DeflateLevel
+#  sed -e 's/_DeflateLevel = 9/_Filter = "1,9"/' < tmp_filt_deflate.dump > tmp_filt_deflatex.dump
   diff -b -w "tmp_filt_deflate.cdl" "tmp_filt_deflate.dump"
 }
 
 testbzip2() {
   zext=$1
   if ! avail bzip2; then return 0; fi
-  zarrfilt bz2 level:9
-  runfilter $zext bzip2 '307,9' "$XCODEC"
+  runfilter $zext bzip2 '307,9' '[{\"id\": \"bz2\",\"level\": \"9\"}]'
   diff -b -w "tmp_filt_bzip2.cdl" "tmp_filt_bzip2.dump"
 }
 
@@ -177,8 +147,7 @@ testszip() {
   zext=$1
   if ! avail szip; then return 0; fi
 #  H5_SZIP_NN_OPTION_MASK=32;  H5_SZIP_MAX_PIXELS_PER_BLOCK_IN=32
-  zarrfilt szip mask:32 pixels-per-block:32
-  runfilter $zext szip '4,32,32' "$XCODEC"
+  runfilter $zext szip '4,32,32' '[{\"id\": \"szip\",\"mask\": 32,\"pixels-per-block\": 32}]'
   diff -b -w "tmp_filt_szip.cdl" "tmp_filt_szip.dump"
 }
 
@@ -186,14 +155,17 @@ testblosc() {
   zext=$1
   if ! avail blosc; then return 0; fi
   runfilter $zext blosc $BLOSCARGS "$BLOSCCODEC"
+  # Need to ignore the first three parameters by setting them to 0
+  rm -f tmp.dump
+  sed -e "s|${BLOSCARGSALT}|${BLOSCARGS}|" < tmp_filt_blosc.dump > tmp.dump
+  mv -f tmp.dump tmp_filt_blosc.dump
   diff -b -w "tmp_filt_blosc.cdl" "tmp_filt_blosc.dump"
 }
 
 testzstd() {
   zext=$1
   if ! avail zstd; then return 0; fi
-  zarrfilt zstd level:1
-  runfilter $zext zstd '32015,1' "$XCODEC"
+  runfilter $zext zstd '32015,1' '[{\"id\": \"zstd\",\"level\": \"1\"}]'
   diff -b -w "tmp_filt_zstd.cdl" "tmp_filt_zstd.dump"
 }
 
