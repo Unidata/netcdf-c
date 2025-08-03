@@ -30,7 +30,7 @@ cd $ISOPATH
 echo "Running S3 AWSSDK Unit Tests."
 
 echo "	o Checking ${URL} exists"
-${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}"				 exists
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}"		     exists
 
 echo "	o Checking write to ${URL}$S3ISOPATH/test_s3sdk.txt"
 ${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}" -k "/test_s3sdk.txt" write
@@ -45,11 +45,11 @@ ${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}" -k "/test_s3sdk.txt" si
 echo "Status: $?"
 		
 echo "	o Checking list command for ${URL}"
-${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}" -k ""                list
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}"		      list
 echo "Status: $?"
 
 echo "	o Checking listall command for ${URL}"
-${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}" -k ""               listall
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}"                      listall
 echo "Status: $?"
 
 echo "	o Checking delete command for ${URL}$S3ISOPATH/test_s3sdk.txt"
@@ -62,7 +62,7 @@ echo "Status: $?"
 
 if test "x$FEATURE_LARGE_TESTS" = xyes ; then
     echo "	o Checking longlist command for ${URL}"
-    ${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}" -k ""                longlist
+    ${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}"                    longlist
     echo "Status: $?"
 fi
 

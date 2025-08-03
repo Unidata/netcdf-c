@@ -54,6 +54,7 @@ typedef struct NCS3CLIENT {
 
 struct Object {
     NClist* checksumalgorithms; /* NClist<char*> */
+    NClist* checksumtypes; /* NClist<char*> */
     char* etag;
     char* key;
     char* lastmodified;
@@ -92,6 +93,7 @@ static int parse_object(ncxml_t root, NClist* objects);
 static int parse_owner(ncxml_t root, struct Owner* ownerp);
 static int parse_prefix(ncxml_t root, NClist* prefixes);
 static int parse_checksumalgorithm(ncxml_t root, NClist* algorithms);
+static int parse_checksumtypes(ncxml_t root, NClist* types);
 static struct LISTOBJECTSV2* alloclistobjectsv2(void);
 static struct Object* allocobject(void);
 static void reclaim_listobjectsv2(struct LISTOBJECTSV2* lo);
@@ -651,6 +653,7 @@ HTTP/1.1 200
       <Size>integer</Size>
       <StorageClass>string</StorageClass>
       <ChecksumAlgorithm>string</ChecksumAlgorithm>
+      <ChecksumType>string</ChecksumType>
       <Owner>
          <DisplayName>string</DisplayName>
          <ID>string</ID>
@@ -761,6 +764,8 @@ parse_object(ncxml_t root, NClist* objects)
 	const char* elem = ncxml_name(x);
 	if(strcmp(elem,"ChecksumAlgorithm")==0) {
 	    if((stat = parse_checksumalgorithm(x,object->checksumalgorithms))) goto done;
+	} else if(strcmp(elem,"ChecksumType")==0) {
+	    if((stat = parse_checksumtypes(x,object->checksumtypes))) goto done;
 	} else if(strcmp(elem,"ETag")==0) {
 	    object->etag = trim(ncxml_text(x),RECLAIM);
 	} else if(strcmp(elem,"Key")==0) {
@@ -874,6 +879,27 @@ done:
     return NCTHROW(stat);
 }
 
+static int
+parse_checksumtypes(ncxml_t root, NClist* types)
+{
+    int stat = NC_NOERR;
+    char* typ = NULL;
+
+    /* Verify top level element */
+    if(strcmp(ncxml_name(root),"ChecksumType")!=0) {
+	nclog(NCLOGERR,"Expected: <ChecksumType> actual: <%s>",ncxml_name(root));
+	stat = NC_ES3;
+	goto done;
+    }
+    typ = trim(ncxml_text(root),RECLAIM);
+    nclistpush(types,typ);
+    typ = NULL;
+
+done:
+    nullfree(typ);
+    return NCTHROW(stat);
+}
+
 static struct LISTOBJECTSV2*
 alloclistobjectsv2(void)
 {
@@ -892,6 +918,7 @@ allocobject(void)
     if((obj = calloc(1,sizeof(struct Object))) == NULL)
 	return obj;
     obj->checksumalgorithms = nclistnew();
+    obj->checksumtypes = nclistnew();
     return obj;
 }
 
@@ -922,6 +949,7 @@ reclaim_object(struct Object* o)
 {
     if(o == NULL) return;
     nclistfreeall(o->checksumalgorithms);
+    nclistfreeall(o->checksumtypes);
     nullfree(o->etag);
     nullfree(o->key);
     nullfree(o->lastmodified);

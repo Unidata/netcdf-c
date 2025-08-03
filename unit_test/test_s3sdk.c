@@ -542,11 +542,29 @@ main(int argc, char** argv)
 
         dumpoptions.action = actionfor(argv[0]);
 
-        if(dumpoptions.action != EXISTS_ACTION && dumpoptions.key == NULL) {
+        if(dumpoptions.key == NULL
+	   && dumpoptions.action != EXISTS_ACTION
+	   && dumpoptions.action != LIST_ACTION
+	   && dumpoptions.action != LISTALL_ACTION
+   	   && dumpoptions.action != LONGLIST_ACTION)
+	    {
             fprintf(stderr,"no -k argument\n");
             stat = NC_EINVAL;
             goto done;
-        }
+	    }
+        if(dumpoptions.url == NULL)
+	    {
+            fprintf(stderr,"no -u argument\n");
+            stat = NC_EINVAL;
+            goto done;
+	    }
+        if(dumpoptions.prefix == NULL)
+	    {
+            fprintf(stderr,"no -P argument\n");
+            stat = NC_EINVAL;
+            goto done;
+	    }
+	   
 
         switch (dumpoptions.action) {
         case EXISTS_ACTION: stat = testbucketexists(); break;

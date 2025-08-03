@@ -17,9 +17,6 @@ typedef struct NCmode {
     int implementation; /* NC_FORMATX_XXX value */
 } NCmode;
 
-/* return 1 if path looks like a url; 0 otherwise */
-EXTERNL int NC_testurl(const char* path);
-
 /*
 Return an NC_FORMATX_... value.
 Assumes that the path is known to be a url.

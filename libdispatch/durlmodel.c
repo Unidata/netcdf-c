@@ -210,6 +210,7 @@ done:
     return stat;
 }
 
+#if 0
 /* return 1 if path looks like a url; 0 otherwise */
 int
 NC_testurl(const char* path)
@@ -235,3 +236,4 @@ NC_testurl(const char* path)
     }
     return 0;
 }
+#endif /*0*/

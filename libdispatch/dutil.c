@@ -36,8 +36,8 @@
 /** \internal
  * Provide a hidden interface to allow utilities
  * to check if a given path name is really a url.
- * If no, return null, else return basename of the url
- * minus any extension, query, and fragment in basenamep.
+ * If no, return null, else return basename of the url path
+ * minus any extension in basenamep.
  * If is a url and the protocol is file:, set isfilep.
  * @return 0 if not URL, 1 if URL
  */
@@ -45,31 +45,35 @@
 int
 NC__testurl(const char* path, char** basenamep, int* isfilep)
 {
+    int stat = NC_NOERR;
     NCURI* uri = NULL;
     int isurl = 1;
     int isfile = 0;
+    const char* uripath = NULL;
     char* slash = NULL;
     char* dot = NULL;
 
     /* Parse url; if fails or returns null URL, then assume path is not a URL */
-    if(ncuriparse(path,&uri) != NC_NOERR || uri == NULL) {isurl = 0; goto done;}
+    stat = ncuriparse(path,&uri);
+    if(stat || uri == NULL) {isurl = 0; isfile = 0; goto done;} /* not a url */
+    isurl = 1;
     if(strcmp(uri->protocol,"file")==0) isfile = 1;
-    
     /* Extract the basename of the URL */
-    slash = (uri->path == NULL ? NULL : strrchr(uri->path, '/'));
-    if(slash == NULL) slash = (char*)path; else slash++;
-    slash = nulldup(slash);
-    if(slash == NULL)
-	dot = NULL;
+    if(uri->path == NULL)
+        uripath = "/";
     else
-	dot = strrchr(slash, '.');
+        uripath = uri->path;
+    slash = (char*)strrchr(uripath, '/');
+    if(slash == NULL) slash = (char*)uripath; else slash++;
+    slash = nulldup(slash);
+    assert(slash != NULL);
+    dot = strrchr(slash, '.');
     if(dot != NULL &&  dot != slash) *dot = '\0';
     if(basenamep)
-	*basenamep=slash;
-    else if(slash)
-	free(slash);
+	{*basenamep=slash; slash = NULL;}
 done:
     if(isfilep) *isfilep = isfile;
+    nullfree(slash);
     ncurifree(uri);
     return isurl;
 }
