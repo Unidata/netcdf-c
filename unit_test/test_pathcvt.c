@@ -12,6 +12,7 @@ Test the NCpathcvt
 #include <string.h>
 #include "netcdf.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
 
 #define DEBUG
 

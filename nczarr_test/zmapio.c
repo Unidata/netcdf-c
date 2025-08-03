@@ -261,7 +261,7 @@ implfor(const char* path)
     mode = ncurifragmentlookup(uri,"mode");
     if(mode == NULL) goto done;
     /* split on commas */
-    NCCHECK(nczm_split_delim(mode,',',segments));
+    NCCHECK(NC_split_delim(mode,',',segments));
     for(size_t i=0;i<nclistlength(segments);i++) {
         const char* value = nclistget(segments,i);
 	if(strcmp(value,"file")==0) {impl = NCZM_FILE; goto done;}
@@ -298,7 +298,7 @@ rootpathfor(const char* path)
 	p = (char*)nclistremove(segments,0);
 	nullfree(p); p = NULL;
         /* Put it back together */
-        if((stat = nczm_join(segments,&rootpath))) goto done;
+        if((stat = NC_join(segments,&rootpath))) goto done;
 	} break;
 #endif
     default:

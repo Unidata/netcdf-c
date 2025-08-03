@@ -246,10 +246,4 @@ EXTERNL const char* NCgetkindname(int kind);
 EXTERNL void printutf8hex(const char* s, char* sx);
 EXTERNL int getmountpoint(char*, size_t);
 
-/**************************************************/
-/* From dutil.c */
-EXTERNL char* NC_backslashEscape(const char* s);
-EXTERNL char* NC_backslashUnescape(const char* esc);
-EXTERNL char* NC_shellUnescape(const char* esc);
-
 #endif /* _NCPATHMGR_H_ */

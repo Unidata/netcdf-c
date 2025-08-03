@@ -26,51 +26,6 @@
 static char* backslashEscape(const char* s);
 
 /**************************************************/
-/**
- * Provide a hidden interface to allow utilities
- * to check if a given path name is really an ncdap4 url.
- * If no, return null, else return basename of the url
- * minus any extension.
- */
-
-int
-ncd4__testurl(const char* path, char** basenamep)
-{
-    NCURI* uri;
-    int ok = NC_NOERR;
-    if(ncuriparse(path,&uri))
-	ok = NC_EURL;
-    else {
-	char* slash = (uri->path == NULL ? NULL : strrchr(uri->path, '/'));
-	char* dot;
-	if(slash == NULL) slash = (char*)path; else slash++;
-        slash = nulldup(slash);
-        if(slash == NULL)
-            dot = NULL;
-        else
-            dot = strrchr(slash, '.');
-        if(dot != NULL &&  dot != slash) *dot = '\0';
-        if(basenamep)
-            *basenamep=slash;
-        else if(slash)
-            free(slash);
-    }
-    ncurifree(uri);
-    return ok;
-}
-
-/* Return 1 if this machine is little endian */
-int
-NCD4_isLittleEndian(void)
-{
-    union {
-        unsigned char bytes[SIZEOF_INT];
-	int i;
-    } u;
-    u.i = 1;
-    return (u.bytes[0] == 1 ? 1 : 0);
-}
-
 /* Compute the size of an atomic type, except opaque */
 size_t
 NCD4_typesize(nc_type tid)
@@ -296,40 +251,6 @@ NCD4_deescape(const char* esc)
     }
     *q = '\0';
     return s;
-}
-
-char*
-NCD4_entityescape(const char* s)
-{
-    const char* p;
-    char* q;
-    size_t len;
-    char* escaped = NULL;
-    const char* entity;
-
-    len = strlen(s);
-    escaped = (char*)malloc(1+(6*len)); /* 6 = |&apos;| */
-    if(escaped == NULL) return NULL;
-    for(p=s,q=escaped;*p;p++) {
-	char c = *p;
-	switch (c) {
-	case '&':  entity = "&amp;"; break;
-	case '<':  entity = "&lt;"; break;
-	case '>':  entity = "&gt;"; break;
-	case '"':  entity = "&quot;"; break;
-	case '\'': entity = "&apos;"; break;
-	default	 : entity = NULL; break;
-	}
-	if(entity == NULL)
-	    *q++ = c;
-	else {
-	    len = strlen(entity);
-	    memcpy(q,entity,len);
-	    q+=len;
-	}
-    }
-    *q = '\0';
-    return escaped;
 }
 
 /* Elide all nul characters from an XML document as a precaution*/

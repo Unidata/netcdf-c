@@ -47,6 +47,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include "ncuri.h"
 #include "nc_provenance.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
@@ -74,7 +75,6 @@ NULL
 
 /*Forward*/
 static int searchgrouptreedim(int ncid, int dimid, int* parentidp);
-extern int nc__testurl(const char*,char**);
 
 static int iskeyword(const char* kw)
 {
@@ -168,7 +168,7 @@ name_path(const char *path)
         return NULL;
 
     /* See if this is a url */
-    if(nc__testurl(cvtpath,&base))
+    if(NC__testurl(cvtpath,&base,NULL))
  	 goto done; /* Looks like a url */
     /* else fall thru and treat like a file path */
 
@@ -2449,7 +2449,7 @@ main(int argc, char *argv[])
     if (argc > 0) {
         int ncid;
 	/* If path is a URL, do some fixups */
-	if(nc__testurl(path, NULL)) {/* See if this is a url */
+	if(NC__testurl(path, NULL, NULL)) {/* See if this is a url */
 	    /*  Prefix with client-side directive to
              * make ncdump reasonably efficient */
 #ifdef USE_DAP

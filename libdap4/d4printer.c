@@ -407,7 +407,7 @@ printXMLAttributeName(D4printer* out, char* name, const char* value)
     if(value == NULL) value = "";
     CAT(" "); CAT(name); CAT("=\"");
     /* add xml entity escaping */
-    escaped = NCD4_entityescape(value);
+    escaped = NC_entityescape(value);
     CAT(escaped);
     CAT("\"");
     nullfree(escaped);
@@ -426,7 +426,7 @@ printXMLAttributeString(D4printer* out, char* name, const char* value)
     CAT("\"");
     if(value == NULL) value = "";
     /* add xml entity escaping */
-    escaped = NCD4_entityescape(value);
+    escaped = NC_entityescape(value);
     CAT(escaped);
     CAT("\"");
     nullfree(escaped);

@@ -332,12 +332,6 @@ EXTERNL void NCZ_s3finalize(void);
 /** Split a path into pieces along '/' character; elide any leading '/' */
 EXTERNL int nczm_split(const char* path, struct NClist* segments);
 
-/* Split a path into pieces along some character; elide any leading char */
-EXTERNL int nczm_split_delim(const char* path, char delim, struct NClist* segments);
-
-/* Convenience: Join all segments into a path using '/' character */
-EXTERNL int nczm_join(struct NClist* segments, char** pathp);
-
 /* Convenience: Join all segments into a path using '/' character
    but taking possible lead windows drive letter into account
 */

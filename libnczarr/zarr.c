@@ -52,7 +52,7 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* controls)
     /* Fill in NCZ_FILE_INFO_T */
     zinfo->creating = 1;
     zinfo->common.file = file;
-    zinfo->native_endianness = (NCZ_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
+    zinfo->native_endianness = (NC_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
     if((zinfo->controllist=nclistclone(controls,1)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
 
@@ -126,7 +126,7 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* controls)
     /* Fill in NCZ_FILE_INFO_T */
     zinfo->creating = 0;
     zinfo->common.file = file;
-    zinfo->native_endianness = (NCZ_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
+    zinfo->native_endianness = (NC_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
     if((zinfo->controllist=nclistclone(controls,1)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     zinfo->default_maxstrlen = NCZ_MAXSTR_DEFAULT;

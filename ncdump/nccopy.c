@@ -32,6 +32,7 @@
 #include "nccomps.h"
 #include "list.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
 
 #undef DEBUGFILTER
 #undef DEBUGCHUNK

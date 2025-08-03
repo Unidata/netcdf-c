@@ -61,7 +61,7 @@ struct NClist;
 struct NCbytes;
 struct NCURI;
 
-EXTERNL int NC__testurl(const char* path, char** basenamep);
+EXTERNL int NC__testurl(const char* path, char** basenamep, int* isfilep);
 EXTERNL int NC_isLittleEndian(void);
 EXTERNL char* NC_backslashEscape(const char* s);
 EXTERNL char* NC_backslashUnescape(const char* esc);

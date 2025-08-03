@@ -274,7 +274,7 @@ readfileDAPDMR(NCD4INFO* state, const NCURI* uri, NCbytes* packet)
 
     if(stat != NC_NOERR) goto done;
     /* Extract the DMR from the dap */
-    NCD4_getheader(ncbytescontents(packet),&hdr,NCD4_isLittleEndian());
+    NCD4_getheader(ncbytescontents(packet),&hdr,NC_isLittleEndian());
     if(hdr.count == 0 || (hdr.flags & NCD4_ERR_CHUNK))
         return THROW(NC_EDMR);
     /* patch up the packet */

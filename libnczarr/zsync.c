@@ -1482,7 +1482,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	if(endianness == NC_ENDIAN_NATIVE)
 	    endianness = zinfo->native_endianness;
 	if(endianness == NC_ENDIAN_NATIVE)
-	    endianness = (NCZ_isLittleEndian()?NC_ENDIAN_LITTLE:NC_ENDIAN_BIG);
+	    endianness = (NC_isLittleEndian()?NC_ENDIAN_LITTLE:NC_ENDIAN_BIG);
 	if(endianness == NC_ENDIAN_LITTLE || endianness == NC_ENDIAN_BIG) {
 	    var->endianness = endianness;
 	} else {stat = NC_EBADTYPE; goto done;}

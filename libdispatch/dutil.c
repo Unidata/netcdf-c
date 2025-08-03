@@ -35,35 +35,43 @@
 /**************************************************/
 /** \internal
  * Provide a hidden interface to allow utilities
- * to check if a given path name is really an ncdap4 url.
+ * to check if a given path name is really a url.
  * If no, return null, else return basename of the url
- * minus any extension.
+ * minus any extension, query, and fragment in basenamep.
+ * If is a url and the protocol is file:, set isfilep.
+ * @return 0 if not URL, 1 if URL
  */
 
 int
-NC__testurl(const char* path, char** basenamep)
+NC__testurl(const char* path, char** basenamep, int* isfilep)
 {
-    NCURI* uri;
-    int ok = NC_NOERR;
-    if(ncuriparse(path,&uri))
-	ok = NC_EURL;
-    else {
-	char* slash = (uri->path == NULL ? NULL : strrchr(uri->path, '/'));
-	char* dot;
-	if(slash == NULL) slash = (char*)path; else slash++;
-        slash = nulldup(slash);
-        if(slash == NULL)
-            dot = NULL;
-        else
-            dot = strrchr(slash, '.');
-        if(dot != NULL &&  dot != slash) *dot = '\0';
-        if(basenamep)
-            *basenamep=slash;
-        else if(slash)
-            free(slash);
-    }
+    NCURI* uri = NULL;
+    int isurl = 1;
+    int isfile = 0;
+    char* slash = NULL;
+    char* dot = NULL;
+
+    /* Parse url; if fails or returns null URL, then assume path is not a URL */
+    if(ncuriparse(path,&uri) != NC_NOERR || uri == NULL) {isurl = 0; goto done;}
+    if(strcmp(uri->protocol,"file")==0) isfile = 1;
+    
+    /* Extract the basename of the URL */
+    slash = (uri->path == NULL ? NULL : strrchr(uri->path, '/'));
+    if(slash == NULL) slash = (char*)path; else slash++;
+    slash = nulldup(slash);
+    if(slash == NULL)
+	dot = NULL;
+    else
+	dot = strrchr(slash, '.');
+    if(dot != NULL &&  dot != slash) *dot = '\0';
+    if(basenamep)
+	*basenamep=slash;
+    else if(slash)
+	free(slash);
+done:
+    if(isfilep) *isfilep = isfile;
     ncurifree(uri);
-    return ok;
+    return isurl;
 }
 
 /** \internal Return 1 if this machine is little endian */
