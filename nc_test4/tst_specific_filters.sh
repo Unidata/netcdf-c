@@ -22,7 +22,7 @@ BLOSCARGSALT="32001,0,0,4,256,5,1,1"
 BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
 
 echo "WD=$WD"
-if ls -l "$WD/../plugins ; then ignore=1 ; else ignore=0; fi
+if ls -l "$WD/../plugins" ; then ignore=1 ; else ignore=0; fi
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
