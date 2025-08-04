@@ -148,7 +148,7 @@ vlistinsert(VList* l, size_t pos, void* elem)
   assert(l != NULL);
   if(pos >= vlistlength(l)) return;
   while(l->alloc < (l->length+1)) vlistexpand(l);
-  assert(l->length = pos);
+  assert(l->length == pos);
   delta = (l->length - pos);
   memmove(l->content+pos+1,l->content+pos,sizeof(void*)*delta);
   l->length++;

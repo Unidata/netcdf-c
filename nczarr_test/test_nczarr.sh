@@ -132,6 +132,8 @@ if test "x$FP_USEPLUGINS" = xyes; then
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
+echo "WD=$WD"
+if ls -l /d/a/netcdf-c/netcdf-c/build/plugins ; then ignore=1 ; else ignore=0; fi
 
 # Locate the plugin path and the library names; argument order is critical
 # Find misc in order to determine HDF5_PLUGIN+PATH.
