@@ -450,10 +450,11 @@ if(NETCDF_ENABLE_S3)
     # Find crypto libraries required with testing with the internal s3 api.
     #find_library(SSL_LIB NAMES ssl openssl)
     find_package(OpenSSL REQUIRED)
+    findpackage(OpenSSL REQUIRED COMPONENTS Crypto ssl)
     if(NOT OpenSSL_FOUND)
       message(FATAL_ERROR "Can't find an ssl library, required by S3_INTERNAL")
     endif(NOT OpenSSL_FOUND)
-    
+target_link_libraries(project_target PRIVATE OpenSSL::SSL)    
     #find_package(Crypto REQUIRED)
     #if(NOT CRYPTO_LIB)
     #  message(FATAL_ERROR "Can't find a crypto library, required by S3_INTERNAL")
