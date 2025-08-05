@@ -18,7 +18,9 @@
 #include <stdlib.h>
 #endif
 #ifdef HAVE_STDIO_H
+#  if !defined(HAVE_SSIZE_T) && !defined(NETCDF_ENABLE_HDF5)
 #include <stdio.h>
+#  endif
 #endif
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
