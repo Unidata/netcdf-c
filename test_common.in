@@ -202,6 +202,14 @@ export HOME
 fi
 fi
 
+# Set ncpathcvt platform
+NCIPLAT="-I_"
+if test "x$FP_MINGW" != x || test "x$FP_MSYS" != x ; then
+NCIPLAT="-Im"
+elif test "x$FP_ISMSVC" == x ; then
+NCIPLAT="-Iu"
+endif
+
 # OS/X and windows apparently have no echo -n option, so fake it
 echon() {
     echo $@ | tr -d '\n'

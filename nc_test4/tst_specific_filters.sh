@@ -25,6 +25,7 @@ BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
+echo "findplugin.sh: ${FP_PLUGIN_DIR}"
 
 # Locate the plugin path and the library names; argument order is critical
 # Find bzip2 and capture

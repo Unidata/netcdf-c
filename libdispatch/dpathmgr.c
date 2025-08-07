@@ -874,11 +874,11 @@ parsepath(const char* inpath, struct Path* path)
 	path->kind = NCPD_WIN; /* Might be MINGW */
     }
     /* The /D/x/y/z MSYS paths cause much parsing confusion.
-       So only use it if the current platform is windows of mingw.
-       Otherwise use windows paths
+       So only use it if the current platform is msys and NCpathsetplatform
+       was called. Otherwise use windows paths
     */
     /* X. look for MSYS path /D/... */
-    else if((platform== NCPD_WIN || platform == NCPD_MSYS)
+    else if(platform == NCPD_MSYS
         && len >= 2
 	&& (tmp1[0] == '/')
 	&& strchr(windrive,tmp1[1]) != NULL
@@ -1194,6 +1194,19 @@ NCgetlocalpathkind(void)
 	kind = NCPD_NIX;
 #endif
     return kind;
+}
+
+/* Signal that input paths should be treated as NCPD_NIX,
+   NCPD_MSYS, or NCPD_UNKNOWN (defaulted)
+*/
+void
+NCpathsetplatform(int inputtype)
+{
+    switch (inputtype) {
+    case NCPD_NIX: platform = NCPD_NIX; break;
+    case NCPD_MSYS: platform = NCPD_MSYS; break;
+    default: platform = NCPD_UNKNOWN; break; /* reset */
+    }
 }
 
 const char*

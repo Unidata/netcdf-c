@@ -33,7 +33,7 @@
 #include "ncbytes.h"
 
 static const char* USAGE =
-"ncpathcvt [-c|-m|-u|-w] [-e] [-h] [-k] [-p] [-x] [-F] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
+"ncpathcvt [-c|-m|-u|-w] [-I m|u|_] -e] [-h] [-k] [-p] [-x] [-F] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
 "Options\n"
 "  -h help"
 "  -e add backslash escapes to '\' and ' '\n"
@@ -47,6 +47,16 @@ static const char* USAGE =
 "  -m convert to MSYS form of path: currently an alias for -w\n"
 "  -u convert to Unix form of path\n"
 "  -w convert to Windows form of path\n"
+"Output type options:\n"
+"  -c convert to Cygwin form of path\n"
+"  -m convert to MSYS form of path: currently an alias for -w\n"
+"  -u convert to Unix form of path\n"
+"  -w convert to Windows form of path\n"
+"Input type options:\n"
+"  -im treat the input path as if it was a msys path\n"
+"  -iu treat the input path as if it was a unix path\n"
+"  -i_ allow ncpathmgr to infer the path kind\n"
+"  This option is intended to deal with paths of the form '/[a-z]/...'\n"
 "Other options:\n"
 "  -k return kind of the local environment\n"
 "  -p return kind of the input path\n"
@@ -236,7 +246,7 @@ main(int argc, char** argv)
     cvtoptions.drive = 'c';
     cvtoptions.sep = ';';
 
-    while ((c = getopt(argc, argv, "B:D:FS:Xchkmpuwx")) != EOF) {
+    while ((c = getopt(argc, argv, "B:D:FI:S:Xchkmpuwx")) != EOF) {
 	switch(c) {
 	case 'c': cvtoptions.target = NCPD_CYGWIN; break;
 	case 'h': usage(NULL); break;
@@ -253,6 +263,13 @@ main(int argc, char** argv)
 	    break;
 	case 'D': cvtoptions.drive = optarg[0]; break;
 	case 'F': cvtslash = 1; break;
+	case 'I':
+	    switch (optarg[0]) {
+	    case 'm': NCpathsetplatform(NCPD_MSYS); break;
+	    case 'u': NCpathsetplatform(NCPD_NIX); break;
+	    case '_': NCpathsetplatform(NCPD_UNDEF); break;
+	    default: break;
+	    } ; break;
 	case 'S': cvtoptions.sep = optarg[0]; break;
 	case 'X': printenv(); break;
 	case '?':

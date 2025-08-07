@@ -67,6 +67,7 @@ FP_PLUGIN_DIR=
 CURWD=`pwd`
 cd ${TOPBUILDDIR}/plugins
 FP_PLUGINS=`pwd`
+FP_PLUGINS=`ncpathcvt ${NCIPLAT} "${FP_PLUGINS}"`
 cd ${CURWD}
 
 # Case 1: Cmake with Visual Studio
@@ -94,9 +95,9 @@ fi
 
 # Make local path
 if test "x$FP_ISMSVC" = xyes || test "x$FP_MINGW" = xyes; then
-TRUEPLUGINDIR=`${NCPATHCVT} -F -w $FP_PLUGIN_DIR`
+TRUEPLUGINDIR=`${NCPATHCVT} ${NCIPLAT} -F -w $FP_PLUGIN_DIR`
 else
-TRUEPLUGINDIR=`${NCPATHCVT} -F -u $FP_PLUGIN_DIR`
+TRUEPLUGINDIR=`${NCPATHCVT} ${NCIPLAT} -F -u $FP_PLUGIN_DIR`
 fi
 FP_PLUGIN_DIR="${TRUEPLUGINDIR}"
 HDF5_PLUGIN_DIR="$FP_PLUGIN_DIR"
