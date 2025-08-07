@@ -67,7 +67,7 @@ FP_PLUGIN_DIR=
 CURWD=`pwd`
 cd ${TOPBUILDDIR}/plugins
 FP_PLUGINS=`pwd`
-FP_PLUGINS=`ncpathcvt ${NCIPLAT} "${FP_PLUGINS}"`
+FP_PLUGINS=`${NCPATHCVT} ${NCIPLAT} "${FP_PLUGINS}"`
 cd ${CURWD}
 
 # Case 1: Cmake with Visual Studio
