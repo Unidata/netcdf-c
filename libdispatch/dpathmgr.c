@@ -1222,7 +1222,7 @@ NCgetkindname(int kind)
     case NCPD_REL: return "NCPD_REL";
     default: break;
     }
-    return "NCPD_UNDEF";
+    return "NCPD_UNKNOWN";
 }
 
 #ifdef WINPATH

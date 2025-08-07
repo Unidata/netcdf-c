@@ -267,7 +267,7 @@ main(int argc, char** argv)
 	    switch (optarg[0]) {
 	    case 'm': NCpathsetplatform(NCPD_MSYS); break;
 	    case 'u': NCpathsetplatform(NCPD_NIX); break;
-	    case '_': NCpathsetplatform(NCPD_UNDEF); break;
+	    case '_': NCpathsetplatform(NCPD_UNKNOWN); break;
 	    default: break;
 	    } ; break;
 	case 'S': cvtoptions.sep = optarg[0]; break;
