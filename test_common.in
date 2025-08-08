@@ -211,7 +211,6 @@ NCIPLAT="-Im"
 elif test "x$FP_ISMSVC" == x ; then
 NCIPLAT="-Iu"
 fi
-fi
 
 # OS/X and windows apparently have no echo -n option, so fake it
 echon() {
