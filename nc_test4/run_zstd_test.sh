@@ -5,11 +5,11 @@
 
 # Ed Hartnett, 8/10/24
 
-set -x
-set -e
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
+
+set -x
+set -e
 
 if test "x$TESTNCZARR" = x1 ; then
 . "$srcdir/test_nczarr.sh"

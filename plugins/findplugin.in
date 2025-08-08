@@ -94,11 +94,12 @@ if test "x$FP_PLUGIN_DIR" = x ; then
 fi
 
 # Make local path
-if test "x$FP_ISMSVC" = xyes || test "x$FP_MINGW" = xyes; then
-TRUEPLUGINDIR=`${NCPATHCVT} ${NCIPLAT} -F -w $FP_PLUGIN_DIR`
-else
-TRUEPLUGINDIR=`${NCPATHCVT} ${NCIPLAT} -F -u $FP_PLUGIN_DIR`
-fi
+TRUEPLUGINDIR=`${NCPATHCVT} ${NCIPLAT} -F $FP_PLUGIN_DIR`
+#if test "x$FP_ISMSVC" = xyes || test "x$FP_MINGW" = xyes; then
+#TRUEPLUGINDIR=`${NCPATHCVT} ${NCIPLAT} -F -w $FP_PLUGIN_DIR`
+#else
+#TRUEPLUGINDIR=`${NCPATHCVT} ${NCIPLAT} -F -u $FP_PLUGIN_DIR`
+#fi
 FP_PLUGIN_DIR="${TRUEPLUGINDIR}"
 HDF5_PLUGIN_DIR="$FP_PLUGIN_DIR"
 if test "x$HDF5_PLUGIN_PATH" = x ; then
