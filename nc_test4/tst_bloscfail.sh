@@ -40,7 +40,7 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 
 # Locate the plugin dir and the library names; argument order is critical
 # Find blosc and capture
-if ! avail blosc; then return 0; fi
+if ! avail blosc; then exit 0; fi
 findplugin h5bzip2
 BLOSCLIB="${HDF5_PLUGIN_LIB}"
 BLOSCDIR="${HDF5_PLUGIN_DIR}/${BLOSCLIB}"
