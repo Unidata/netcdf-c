@@ -8,7 +8,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -x
 set -e
 
 if test "x$TESTNCZARR" = x1 ; then
@@ -25,14 +24,6 @@ BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
-echo "findplugin.sh: ${FP_PLUGIN_DIR}"
-
-# Locate the plugin path and the library names; argument order is critical
-# Find bzip2 and capture
-# Assume all test filters are in same plugin dir
-#XWD=`pwd`
-#find ${XWD}/../ -name '*.dll'
-#findplugin h5bzip2
 
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent

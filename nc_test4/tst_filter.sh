@@ -15,6 +15,13 @@ MULTI=1
 REP=1
 ORDER=1
 
+if test "x$TESTNCZARR" = x1; then
+. $srcdir/test_nczarr.sh
+s3isolate "testdir_specific_filters"
+THISDIR=`pwd`
+cd $ISOPATH
+fi
+
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
@@ -43,14 +50,14 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 # Locate the plugin dir and the library names; argument order is critical
 # Find bzip2 and capture
 findplugin h5bzip2
-BZIP2LIB="${HDF5_PLUGIN_LIB}"
 BZIP2DIR="${HDF5_PLUGIN_DIR}/${BZIP2LIB}"
+
 # Find misc and capture
 findplugin h5misc
 MISCDIR="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
+
 # Find noop and capture
 findplugin h5noop
-NOOPLIB="${HDF5_PLUGIN_LIB}"
 NOOPDIR="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
 
 echo "final HDF5_PLUGIN_DIR=${HDF5_PLUGIN_DIR}"
