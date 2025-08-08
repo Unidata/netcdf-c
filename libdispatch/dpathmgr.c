@@ -1205,6 +1205,8 @@ NCpathsetplatform(int inputtype)
     switch (inputtype) {
     case NCPD_NIX: platform = NCPD_NIX; break;
     case NCPD_MSYS: platform = NCPD_MSYS; break;
+    case NCPD_CYGWIN: platform = NCPD_CYGWIN; break;
+    case NCPD_WIN: platform = NCPD_WIN; break;
     default: platform = NCPD_UNKNOWN; break; /* reset */
     }
 }

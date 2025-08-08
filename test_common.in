@@ -204,10 +204,11 @@ fi
 
 # Set ncpathcvt platform
 NCIPLAT="-I_"
-if test "x$FP_MINGW" != x || test "x$FP_MSYS" != x ; then
+if test "x$FP_ISCYGWIN" != x ; then
+NCIPLAT="-Ic"
+elif test "x$FP_MINGW" != x || test "x$FP_MSYS" != x ; then
 NCIPLAT="-Im"
-else
-if test "x$FP_ISMSVC" == x ; then
+elif test "x$FP_ISMSVC" == x ; then
 NCIPLAT="-Iu"
 fi
 fi

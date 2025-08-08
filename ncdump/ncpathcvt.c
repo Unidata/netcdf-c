@@ -33,7 +33,7 @@
 #include "ncbytes.h"
 
 static const char* USAGE =
-"ncpathcvt [-c|-m|-u|-w] [-I m|u|_] -e] [-h] [-k] [-p] [-x] [-F] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
+"ncpathcvt [-c|-m|-u|-w] [-I c|m|u|w|_] -e] [-h] [-k] [-p] [-x] [-F] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
 "Options\n"
 "  -h help"
 "  -e add backslash escapes to '\' and ' '\n"
@@ -53,8 +53,10 @@ static const char* USAGE =
 "  -u convert to Unix form of path\n"
 "  -w convert to Windows form of path\n"
 "Input type options:\n"
-"  -im treat the input path as if it was a msys path\n"
-"  -iu treat the input path as if it was a unix path\n"
+"  -Ic treat the input path as if it was a cygwin path\n"
+"  -Im treat the input path as if it was a msys path\n"
+"  -Iu treat the input path as if it was a unix path\n"
+"  -Iw treat the input path as if it was a windows path\n"
 "  -i_ allow ncpathmgr to infer the path kind\n"
 "  This option is intended to deal with paths of the form '/[a-z]/...'\n"
 "Other options:\n"
@@ -265,10 +267,12 @@ main(int argc, char** argv)
 	case 'F': cvtslash = 1; break;
 	case 'I':
 	    switch (optarg[0]) {
+	    case 'c': NCpathsetplatform(NCPD_CYGWIN); break;
 	    case 'm': NCpathsetplatform(NCPD_MSYS); break;
 	    case 'u': NCpathsetplatform(NCPD_NIX); break;
-	    case '_': NCpathsetplatform(NCPD_UNKNOWN); break;
-	    default: break;
+	    case 'w': NCpathsetplatform(NCPD_WIN); break;
+	    case '_':
+	    default: NCpathsetplatform(NCPD_UNKNOWN); break;
 	    } ; break;
 	case 'S': cvtoptions.sep = optarg[0]; break;
 	case 'X': printenv(); break;
