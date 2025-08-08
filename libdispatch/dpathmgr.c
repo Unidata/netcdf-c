@@ -62,6 +62,12 @@ static int pathdebug = -1;
 
 #endif
 
+#ifndef __OSX__
+#if (defined(__APPLE__) && defined(__MACH__)
+#define __OSX__ 1
+#endif
+#endif
+
 /*
 Code to provide some path conversion code so that
 paths in one format can be used on a platform that uses
@@ -1196,8 +1202,8 @@ NCgetlocalpathkind(void)
     return kind;
 }
 
-/* Signal that input paths should be treated as NCPD_NIX,
-   NCPD_MSYS, or NCPD_UNKNOWN (defaulted)
+/* Signal that input paths should be treated as inputtype.
+   NCPD_UNKNOWN resets to default.
 */
 void
 NCpathsetplatform(int inputtype)
@@ -1209,6 +1215,28 @@ NCpathsetplatform(int inputtype)
     case NCPD_WIN: platform = NCPD_WIN; break;
     default: platform = NCPD_UNKNOWN; break; /* reset */
     }
+}
+
+/* Force the platform based on various CPP flags */
+void
+NCpathforceplatform(void)
+{
+#ifdef __CYGWIN__
+    NCpathsetplatform(NCPD_CYGWIN);
+#elif defined _MSC_VER /* not _WIN32 */
+    NCpathsetplatform(NCPD_WIN);
+#elif defined __MSYS__
+    NCpathsetplatform(NCPD_MSYS);
+#elif defined __MINGW32__
+    NCpathsetplatform(NCPD_MSYS);
+#elif defined(__linux__)
+	|| defined(__unix__)
+	|| defined(__unix)
+	|| defined(__OSX__)
+    NCpathsetplatform(NCPD_NIX);
+#else
+    NCpathsetplatform(NCPD_UNKNOWN);
+#endif
 }
 
 const char*

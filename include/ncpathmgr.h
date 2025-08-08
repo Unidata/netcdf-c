@@ -180,6 +180,9 @@ EXTERNL int NCstdbinary(void);
 /* Signal that input paths should be treated as NCPD_NIX, NCPD_MSYS, or NCPD_UNKNOWN (defaulted) */
 EXTERNL void NCpathsetplatform(int inputtype);
 
+/* Force the platform based on various CPP flags */
+EXTERNL void NCpathforceplatform(void);
+
 /* Wrap various stdio and unistd IO functions.
 It is especially important to use for windows so that
 NCpathcvt (above) is invoked on the path.
