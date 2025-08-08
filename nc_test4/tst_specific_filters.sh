@@ -30,9 +30,9 @@ echo "findplugin.sh: ${FP_PLUGIN_DIR}"
 # Locate the plugin path and the library names; argument order is critical
 # Find bzip2 and capture
 # Assume all test filters are in same plugin dir
-XWD=`pwd`
-find ${XWD}/../ -name '*.dll'
-findplugin h5bzip2
+#XWD=`pwd`
+#find ${XWD}/../ -name '*.dll'
+#findplugin h5bzip2
 
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent
