@@ -63,7 +63,7 @@ static int pathdebug = -1;
 #endif
 
 #ifndef __OSX__
-#if (defined(__APPLE__) && defined(__MACH__)
+#if defined(__APPLE__) && defined(__MACH__)
 #define __OSX__ 1
 #endif
 #endif
