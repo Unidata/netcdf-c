@@ -26,7 +26,6 @@ typedef struct Test {
 
 /* Path conversion tests */
 static Test PATHTESTS[] = {
-#if 0
 {"/xxx/a/b",{
 	"/xxx/a/b",		/*NCPD_LINUX*/
 	"c:\\xxx\\a\\b",	/*NCPD_MSYS*/
@@ -51,14 +50,12 @@ static Test PATHTESTS[] = {
 	"/cygdrive/d/x/y",	/*NCPD_CYGWIN*/
 	 "d:\\x\\y"		/*NCPD_WIN*/
 	}},
-#endif
 {"/d/x/y",{
 	 "/d/x/y",		/*NCPD_LINUX*/
 	"d:\\x\\y",		/*NCPD_MSYS*/
 	 "/cygdrive/c/d/x/y",	/*NCPD_CYGWIN*/
-	 "d:\\x\\y"		/*NCPD_WIN*/
+	 "c:\\d\\x\\y"		/*NCPD_WIN*/
 	}},
-#if 0
 {"/cygdrive/d",{
 	 "/d",			/*NCPD_LINUX*/
 	"d:",			/*NCPD_MSYS*/
@@ -106,7 +103,6 @@ static Test PATHTESTS[] = {
     "\\\\git\\netcdf-c\\dap4_test"	/*NCPD_WIN*/
     }},
 #endif
-#endif /*0*/
 {NULL, {NULL, NULL, NULL, NULL}}
 };
 
