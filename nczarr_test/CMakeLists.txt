@@ -244,6 +244,7 @@ ENDIF(NETCDF_ENABLE_TESTS)
 
 # Convert nc_test4 files to nczarr_test files
 buildnczarrtest(nc_test4 filter_misc filter_vlen specific_filters unknown)
+# Convert ncdump files to nczarr_test files
 buildnczarrtest(ncdump mud nccopy5)
 
 ## Specify files to be distributed by 'make dist'
