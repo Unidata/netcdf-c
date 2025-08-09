@@ -25,6 +25,8 @@ typedef struct Test {
 } Test;
 
 /* Path conversion tests */
+/* The test path is parsed by each kind.
+   Then compar
 static Test PATHTESTS[] = {
 {"/xxx/a/b",{
 	"/xxx/a/b",		/*NCPD_LINUX*/
@@ -64,9 +66,9 @@ static Test PATHTESTS[] = {
 	}},
 {"/d", {
 	"/d",			/*NCPD_LINUX*/
-	"d:",			/*NCPD_MSYS*/
+	"c:\d",			/*NCPD_MSYS*/
 	 "/cygdrive/c/d",	/*NCPD_CYGWIN*/
-	 "d:"			/*NCPD_WIN*/
+	 "c:\d"			/*NCPD_WIN*/
 	}},
 {"/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",{
     "/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",		/*NCPD_LINUX*/
@@ -182,6 +184,7 @@ main(int argc, char** argv)
 	    nullfree(unescaped); unescaped = NULL;
 	    nullfree(expanded); expanded = NULL;
 	    nullfree(cvt); cvt = NULL;
+	    fflush(stderr); fflush(stdout);
 	}
     }
     nullfree(cvt); nullfree(unescaped);
