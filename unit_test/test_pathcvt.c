@@ -26,7 +26,8 @@ typedef struct Test {
 
 /* Path conversion tests */
 /* The test path is parsed by each kind.
-   Then compar
+   Then compared to the expected value.
+*/
 static Test PATHTESTS[] = {
 {"/xxx/a/b",{
 	"/xxx/a/b",		/*NCPD_LINUX*/
