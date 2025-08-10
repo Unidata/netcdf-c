@@ -28,7 +28,7 @@ noinst_PROGRAMS += ncpluginpath
 ncpluginpath_SOURCES = ncpluginpath.c
 
 check_PROGRAMS += tst_nclist test_ncuri test_pathcvt
-TESTS += tst_nclist test_ncuri test_pathcvt
+TESTS += tst_nclist test_ncuri run_pathcvt.sh
 
 # Performance tests
 if BUILD_BENCHMARKS
