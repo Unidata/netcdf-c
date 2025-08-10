@@ -126,14 +126,6 @@ main(int argc, char** argv)
 
     setmacros();
 
-    /* Verify some flags */
-    {
-	const char* mnp = getenv("MSYS_NO_PATHCONV");
-	if(mnp == NULL)
-	    fprintf(stderr,"Fatal: MSYS_NO_PATHCONV undefined\n");
-	    exit(1);
-    }
-
     /* Test localkind X path-kind */
     for(test=PATHTESTS;test->test;test++) {
 #ifdef DEBUG

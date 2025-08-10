@@ -6,6 +6,23 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -x
 set -e
 
+# '@' will get translated to embedded blank
+TESTPATHS1=
+TESTPATHS1="${TESTPATHS1} /xxx/x/y"
+TESTPATHS1="${TESTPATHS1} d:/x/y"
+TESTPATHS1="${TESTPATHS1} /cygdrive/d/x/y"
+TESTPATHS1="${TESTPATHS1} /d/x/y"
+TESTPATHS1="${TESTPATHS1} /cygdrive/d"
+TESTPATHS1="${TESTPATHS1} /d"
+TESTPATHS1="${TESTPATHS1} d:\\\\x\\\\y"
+TESTPATHS1="${TESTPATHS1} d:\\\\x\\\\y@w\\\\z""
+
+TESTPATHS2=
+TESTPATHS2="${TESTPATHS2} "/xxx/x/y;/cygdrive/d/x/y"
+TESTPATHS2="${TESTPATHS2} /d/x/y;/cygdrive/d"
+TESTPATHS2="${TESTPATHS2} /d/x/y;d:\\\\x\\\\y"
+TESTPATHS2="${TESTPATHS2} d:\\\\x\\\\y@w\\\\z""
+
 # We need to find the drive letter, if any
 DL=`${NCPATHCVT} -c -x / | sed -e 's|/cygdrive/\([a-zA-Z]\)/.*|\1|'`
 if test "x$DL" != x ; then
@@ -49,17 +66,12 @@ testcase2() {
     testcaseP "-m" "$1"
 }
 
-echo "@@@@ MSYS_NO_PATHCONV=${MSYS_NO_PATHCONV}"
-
 rm -f tmp_pathcvt.txt
 
-# '@' will get translated to embedded blank
-TESTPATHS1="/xxx/x/y d:/x/y /cygdrive/d/x/y /d/x/y /cygdrive/d /d d:\\\\x\\\\y d:\\\\x\\\\y@w\\\\z"
 for p in $TESTPATHS1 ; do
 testcase1 "$p"
 done
 
-TESTPATHS2="/xxx/x/y;/cygdrive/d/x/y /d/x/y;/cygdrive/d /d/x/y;d:\\\\x\\\\y d:\\\\x\\\\y@w\\\\z"
 for p in $TESTPATHS2 ; do
 testcase2 "$p"
 done
