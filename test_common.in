@@ -202,13 +202,16 @@ export HOME
 fi
 fi
 
+# Setup test environment to handle path conversions
 # Set ncpathcvt platform
 NCIPLAT="-I_"
 if test "x$FP_ISCYGWIN" != x ; then
 NCIPLAT="-Ic"
 elif test "x$FP_MINGW" != x || test "x$FP_MSYS" != x ; then
 NCIPLAT="-Im"
-elif test "x$FP_ISMSVC" == x ; then
+# Suppress converting paths of form /[a-z]/... to [a-z]:/...
+export MSYS_NO_PATHCONV=1
+welif test "x$FP_ISMSVC" == x ; then
 NCIPLAT="-Iu"
 fi
 

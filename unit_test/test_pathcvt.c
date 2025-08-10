@@ -55,7 +55,7 @@ static Test PATHTESTS[] = {
 	}},
 {"/d/x/y",{
 	 "/d/x/y",		/*NCPD_LINUX*/
-	"d:\\x\\y",		/*NCPD_MSYS*/
+	"c:\\d\\x\\y",		/*NCPD_MSYS*/
 	 "/cygdrive/c/d/x/y",	/*NCPD_CYGWIN*/
 	 "c:\\d\\x\\y"		/*NCPD_WIN*/
 	}},
@@ -67,16 +67,10 @@ static Test PATHTESTS[] = {
 	}},
 {"/d", {
 	"/d",			/*NCPD_LINUX*/
-	"c:\d",			/*NCPD_MSYS*/
+	"c:\\d",		/*NCPD_MSYS*/
 	 "/cygdrive/c/d",	/*NCPD_CYGWIN*/
-	 "c:\d"			/*NCPD_WIN*/
+	 "c:\\d"		/*NCPD_WIN*/
 	}},
-{"/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",{
-    "/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",		/*NCPD_LINUX*/
-    "d:\\git\\netcdf-c\\dap4_test\\test_anon_dim.2.syn",	/*NCPD_MSYS*/
-    "/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",	/*NCPD_CYGWIN*/
-    "d:\\git\\netcdf-c\\dap4_test\\test_anon_dim.2.syn"		/*NCPD_WIN*/
-    }},
 /* Test relative path */
 {"x/y",{
 	 "x/y",	/*NCPD_LINUX*/
@@ -90,7 +84,6 @@ static Test PATHTESTS[] = {
 	"x/y",	/*NCPD_CYGWIN*/
 	 "x\\y"	/*NCPD_WIN*/
 	}},
-#ifndef _WIN32X
 /* Test utf8 path */
 {"/海/海",{
 	 "/海/海",		/*NCPD_LINUX*/
@@ -105,7 +98,6 @@ static Test PATHTESTS[] = {
     NULL /*meaningless*/,		/*NCPD_CYGWIN*/
     "\\\\git\\netcdf-c\\dap4_test"	/*NCPD_WIN*/
     }},
-#endif
 {NULL, {NULL, NULL, NULL, NULL}}
 };
 
@@ -129,6 +121,9 @@ main(int argc, char** argv)
     char* expanded = NULL;
     int k;
     int drive = 'c';
+
+    /* Set some flags */
+    setenv("MSYS_NO_PATHCONV","1",1);
 
     nc_initialize();
 

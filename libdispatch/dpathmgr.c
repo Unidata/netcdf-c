@@ -112,6 +112,8 @@ static struct MountPoint {
 
 /* Pick the platform kind for testing */
 static int platform = 0;
+/* Do not treat /d/x as d:/x for msys */
+static int env_msys_no_pathconv = 0;
 
 static int parsepath(const char* inpath, struct Path* path);
 static int unparsepath(struct Path* p, char** pathp, int platform);
@@ -341,6 +343,13 @@ next:
 	    *q = '\0';
 	}
     }
+
+    /* Check for the MSYS_NO_PATHCONV env var */
+    {
+	const char* s = getenv("MSYS_NO_PATHCONV");
+	env_msys_no_pathconv = (s == NULL ? 0 : 1);
+    }
+
     pathinitialized = 1;
 }
 
@@ -880,16 +889,18 @@ parsepath(const char* inpath, struct Path* path)
 	path->kind = NCPD_WIN; /* Might be MINGW */
     }
     /* The /D/x/y/z MSYS paths cause much parsing confusion.
-       So only use it if the current platform is msys and NCpathsetplatform
-       was called. Otherwise use windows paths
+       So only use it if the current platform is msys and MSYS_NO_PATHCONV
+       is undefined and NCpathsetplatform was called. Otherwise use windows
+       paths.
     */
     /* X. look for MSYS path /D/... */
     else if(platform == NCPD_MSYS
+	&& !env_msys_no_pathconv
         && len >= 2
 	&& (tmp1[0] == '/')
 	&& strchr(windrive,tmp1[1]) != NULL
 	&& (tmp1[2] == '/' || tmp1[2] == '\0')) {
-	/* Assume this is an MSYS path */
+	/* Assume this is that stupid MSYS path format */
 	path->drive = tmp1[1];
 	/* Remainder */
 	if(tmp1[2] == '\0')
