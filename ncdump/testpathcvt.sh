@@ -3,7 +3,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -x
 set -e
 
 # For testing purposes: we want MSYS_NO_PATHCONV and MSYS2_ARG_CONV_EXCL set.
@@ -22,12 +21,16 @@ TESTPATHS1="${TESTPATHS1} /cygdrive/d"
 TESTPATHS1="${TESTPATHS1} /d"
 TESTPATHS1="${TESTPATHS1} d:\\\\x\\\\y"
 TESTPATHS1="${TESTPATHS1} d:\\\\x\\\\y@w\\\\z"
+# Trim
+TESTPATHS1=`echo "${TESTPATHS1}"|sed -e 's|^[ 	]\+||'`
 
 TESTPATHS2=
 TESTPATHS2="${TESTPATHS2} /xxx/x/y;/cygdrive/d/x/y"
 TESTPATHS2="${TESTPATHS2} /d/x/y;/cygdrive/d"
 TESTPATHS2="${TESTPATHS2} /d/x/y;d:\\\\x\\\\y"
-TESTPATHS2="${TESTPATHS2} d:\\\\x\\\\y@w\\\\z""
+TESTPATHS2="${TESTPATHS2} d:\\\\x\\\\y@w\\\\z"
+# Trim
+TESTPATHS2=`echo "${TESTPATHS2}"|sed -e 's|^[ 	]\+||'`
 
 # We need to find the drive letter, if any
 DL=`${NCPATHCVT} -c -x / | sed -e 's|/cygdrive/\([a-zA-Z]\)/.*|\1|'`
