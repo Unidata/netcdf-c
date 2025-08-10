@@ -3,10 +3,8 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+set -x
 set -e
-
-# Disable automatic path conversions in MINGW shell:
-export MSYS2_ARG_CONV_EXCL='*'
 
 # We need to find the drive letter, if any
 DL=`${NCPATHCVT} -c -x / | sed -e 's|/cygdrive/\([a-zA-Z]\)/.*|\1|'`
@@ -41,23 +39,25 @@ testcase1() {
     testcaseD "-u" "$1"
     testcaseD "-c" "$1"
     testcaseD "-w" "$1"
+    testcaseD "-m" "$1"
 }
 
 testcase2() {
     testcaseP "-u" "$1"
     testcaseP "-c" "$1"
     testcaseP "-w" "$1"
+    testcaseP "-m" "$1"
 }
 
 rm -f tmp_pathcvt.txt
 
 # '@' will get translated to embedded blank
-TESTPATHS1="/xxx/x/y d:/x/y /cygdrive/d/x/y /d/x/y /cygdrive/d /d /cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn d:\\\\x\\\\y d:\\\\x\\\\y@w\\\\z"
+TESTPATHS1="/xxx/x/y d:/x/y /cygdrive/d/x/y /d/x/y /cygdrive/d /d d:\\\\x\\\\y d:\\\\x\\\\y@w\\\\z"
 for p in $TESTPATHS1 ; do
 testcase1 "$p"
 done
 
-TESTPATHS2="/xxx/x/y;/cygdrive/d/x/y /d/x/y;/cygdrive/d cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn;d:\\\\x\\\\y d:\\\\x\\\\y@w\\\\z"
+TESTPATHS2="/xxx/x/y;/cygdrive/d/x/y /d/x/y;/cygdrive/d /d/x/y;d:\\\\x\\\\y d:\\\\x\\\\y@w\\\\z"
 for p in $TESTPATHS2 ; do
 testcase2 "$p"
 done
