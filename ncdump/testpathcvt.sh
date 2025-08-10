@@ -49,6 +49,8 @@ testcase2() {
     testcaseP "-m" "$1"
 }
 
+echo "@@@@ MSYS_NO_PATHCONV=${MSYS_NO_PATHCONV}"
+
 rm -f tmp_pathcvt.txt
 
 # '@' will get translated to embedded blank
