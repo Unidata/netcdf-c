@@ -122,12 +122,17 @@ main(int argc, char** argv)
     int k;
     int drive = 'c';
 
-    /* Set some flags */
-    setenv("MSYS_NO_PATHCONV","1",1);
-
     nc_initialize();
 
     setmacros();
+
+    /* Verify some flags */
+    {
+	const char* mnp = getenv("MSYS_NO_PATHCONV");
+	if(mnp == NULL)
+	    fprintf(stderr,"Fatal: MSYS_NO_PATHCONV undefined\n");
+	    exit(1);
+    }
 
     /* Test localkind X path-kind */
     for(test=PATHTESTS;test->test;test++) {
