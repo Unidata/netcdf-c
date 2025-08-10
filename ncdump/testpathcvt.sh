@@ -24,7 +24,7 @@ TESTPATHS1="${TESTPATHS1} d:\\\\x\\\\y"
 TESTPATHS1="${TESTPATHS1} d:\\\\x\\\\y@w\\\\z""
 
 TESTPATHS2=
-TESTPATHS2="${TESTPATHS2} "/xxx/x/y;/cygdrive/d/x/y"
+TESTPATHS2="${TESTPATHS2} /xxx/x/y;/cygdrive/d/x/y"
 TESTPATHS2="${TESTPATHS2} /d/x/y;/cygdrive/d"
 TESTPATHS2="${TESTPATHS2} /d/x/y;d:\\\\x\\\\y"
 TESTPATHS2="${TESTPATHS2} d:\\\\x\\\\y@w\\\\z""
