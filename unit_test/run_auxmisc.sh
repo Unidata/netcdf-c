@@ -7,7 +7,6 @@ set -x
 set -e
 
 # List of provenance strings to parse
-# Start with some edge cases
 TESTS=
 TESTS="$TESTS abc=2\|z\=17,yyy=|zzz"
 TESTS="$TESTS version=2,netcdf=4.7.4-development,hdf5=1.10.4"
@@ -19,9 +18,6 @@ testprov() {
 rm -f ${execdir}/tmp_provparse.txt
 for t in $TESTS ; do
 ${execdir}/test_auxmisc -P ${t} >> ${execdir}/tmp_provparse.txt
-ls -ld ${execdir}/tmp_provparse.txt
-done
-
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 cat ${srcdir}/ref_provparse.txt
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
@@ -29,6 +25,7 @@ cat ${execdir}/tmp_provparse.txt
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 # Verify
 diff ${srcdir}/ref_provparse.txt ${execdir}/tmp_provparse.txt
+done
 }
 
 testprov
