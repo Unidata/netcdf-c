@@ -20,6 +20,12 @@ rm -f ${execdir}/tmp_provparse.txt
 for t in $TESTS ; do
 ${execdir}/test_auxmisc -P ${t} >> ${execdir}/tmp_provparse.txt
 done
+
+echo "???? 1"
+find . -name '*.txt'
+echo "???? 2"
+find ${execdir} -name '*.txt'
+
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 cat ${srcdir}/ref_provparse.txt
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
