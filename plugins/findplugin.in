@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 # Define a function that attempts to locate a
 # plugin with a given canonical name.
 # Assumptions:
