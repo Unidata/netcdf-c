@@ -16,17 +16,17 @@ TESTS="$TESTS version=1|netcdf=4.6.2-development|hdf5=1.8.1"
 
 # Test provenance parsing
 testprov() {
-rm -f tmp_provparse.txt
+rm -f ${execdir}/tmp_provparse.txt
 for t in $TESTS ; do
-${execdir}/test_auxmisc -P ${t} >> tmp_provparse.txt
+${execdir}/test_auxmisc -P ${t} >> ${execdir}/tmp_provparse.txt
 done
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 cat ${srcdir}/ref_provparse.txt
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-cat tmp_provparse.txt
+cat ${execdir}/tmp_provparse.txt
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 # Verify
-#diff ref_provparse.txt tmp_provparse.txt
+diff ${srcdir}/ref_provparse.txt ${execdir}/tmp_provparse.txt
 }
 
 testprov
