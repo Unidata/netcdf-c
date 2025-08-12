@@ -209,10 +209,10 @@ if test "x$FP_ISCYGWIN" != x ; then
 NCIPLAT="-Ic"
 elif test "x$FP_MINGW" != x || test "x$FP_MSYS" != x ; then
 NCIPLAT="-Im"
-# Suppress converting paths of form /[a-z]/... to [a-z]:/...
-export MSYS_NO_PATHCONV=1
-# Disable automatic path conversions in MINGW shell:
-export MSYS2_ARG_CONV_EXCL='*'
+# Assume converting paths of form /[a-z]/... to [a-z]:/...
+export MSYS_NO_PATHCONV=
+# Ensable automatic path conversions in MINGW shell:
+export MSYS2_ARG_CONV_EXCL=
 elif test "x$FP_ISMSVC" == x ; then
 NCIPLAT="-Iu"
 fi

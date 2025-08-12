@@ -18,14 +18,14 @@ testprov() {
 rm -f ${execdir}/tmp_provparse.txt
 for t in $TESTS ; do
 ${execdir}/test_auxmisc -P ${t} >> ${execdir}/tmp_provparse.txt
-echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-cat ${srcdir}/ref_provparse.txt
-echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-cat ${execdir}/tmp_provparse.txt
-echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+#echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+#cat ${srcdir}/ref_provparse.txt
+#echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+#cat ${execdir}/tmp_provparse.txt
+#echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+done
 # Verify
 diff ${srcdir}/ref_provparse.txt ${execdir}/tmp_provparse.txt
-done
 }
 
 testprov
