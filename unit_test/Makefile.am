@@ -73,5 +73,9 @@ EXTRA_DIST += ref_provparse.txt
 EXTRA_DIST += reclaim_tests.baseline
 CLEANFILES = reclaim_tests*.txt reclaim_tests.nc reclaim_tests.dmp tmp_*.txt
 
+# Remove directories
+clean-local:
+	rm -fr testdir_* testset_*
+
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

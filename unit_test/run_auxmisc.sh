@@ -6,6 +6,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -x
 set -e
 
+isolate "testdir_auxmisc
+THISDIR=`pwd`
+cd $ISOPATH
+
 # List of provenance strings to parse
 TESTS=
 TESTS="$TESTS abc=2\|z\=17,yyy=|zzz"
@@ -15,19 +19,17 @@ TESTS="$TESTS version=1|netcdf=4.6.2-development|hdf5=1.8.1"
 
 # Test provenance parsing
 testprov() {
-rm -f ${execdir}/tmp_provparse.txt
+rm -f ${ISOPATH}/tmp_provparse.txt
 for t in $TESTS ; do
-${execdir}/test_auxmisc -P ${t} >> ${execdir}/tmp_provparse.txt
-ls -ld ${execdir}/tmp_provparse.txt
+${execdir}/test_auxmisc -P ${t} >> ${ISOPATH}/tmp_provparse.txt
 #echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 #cat ${srcdir}/ref_provparse.txt
 #echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-#cat ${execdir}/tmp_provparse.txt
+#cat ${ISOPATH}/tmp_provparse.txt
 #echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 done
 # Verify
-ls -ld ${execdir}/tmp_provparse.txt
-diff ${srcdir}/ref_provparse.txt ${execdir}/tmp_provparse.txt
+diff ${srcdir}/ref_provparse.txt ${ISOPATH}/tmp_provparse.txt
 }
 
 testprov
