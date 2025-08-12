@@ -6,7 +6,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -x
 set -e
 
-isolate "testdir_auxmisc
+isolate "testdir_auxmisc"
 THISDIR=`pwd`
 cd $ISOPATH
 
