@@ -51,24 +51,24 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 # Locate the plugin dir and the library names; argument order is critical
 # Find bzip2 and capture
 findplugin h5bzip2
-BZIP2DIR="${HDF5_PLUGIN_DIR}/${BZIP2LIB}"
+BZIP2PATH="${HDF5_PLUGIN_DIR}/${BZIP2LIB}"
 
 # Find misc and capture
 findplugin h5misc
-MISCDIR="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
+MISCPATH="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
 
 # Find noop and capture
 findplugin h5noop
-NOOPDIR="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
+NOOPPATH="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
 
 echo "final HDF5_PLUGIN_DIR=${HDF5_PLUGIN_DIR}"
 export HDF5_PLUGIN_DIR
 export HDF5_PLUGIN_PATH="$HDF5_PLUGIN_DIR"
 
 # Verify
-if ! test -f ${BZIP2DIR} ; then echo "Unable to locate ${BZIP2DIR}"; exit 1; fi
-if ! test -f ${MISCDIR} ; then echo "Unable to locate ${MISCDIR}"; exit 1; fi
-if ! test -f ${NOOPDIR} ; then echo "Unable to locate ${NOOPDIR}"; exit 1; fi
+if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2DIR}"; exit 1; fi
+if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCDIR}"; exit 1; fi
+if ! test -f ${NOOPPATH} ; then echo "Unable to locate ${NOOPDIR}"; exit 1; fi
 
 # See if we have szip
 if avail szip; then HAVE_SZIP=1; else HAVE_SZIP=0; fi
