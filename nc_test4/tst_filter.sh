@@ -51,7 +51,7 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 # Locate the plugin dir and the library names; argument order is critical
 # Find bzip2 and capture
 findplugin h5bzip2
-BZIP2PATH="${HDF5_PLUGIN_DIR}/${BZIP2LIB}"
+BZIP2PATH="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
 
 # Find misc and capture
 findplugin h5misc
@@ -64,8 +64,6 @@ NOOPPATH="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
 echo "final HDF5_PLUGIN_DIR=${HDF5_PLUGIN_DIR}"
 export HDF5_PLUGIN_DIR
 export HDF5_PLUGIN_PATH="$HDF5_PLUGIN_DIR"
-
-find ${HDF5_PLUGIN_PATH}
 
 # Verify
 echo "Verify BZIP2PATH"
