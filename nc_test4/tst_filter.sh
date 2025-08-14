@@ -65,9 +65,14 @@ echo "final HDF5_PLUGIN_DIR=${HDF5_PLUGIN_DIR}"
 export HDF5_PLUGIN_DIR
 export HDF5_PLUGIN_PATH="$HDF5_PLUGIN_DIR"
 
+find ${HDF5_PLUGIN_PATH}
+
 # Verify
+echo "Verify BZIP2PATH"
 if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
+echo "Verify MISCPATH"
 if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCPATH}"; exit 1; fi
+echo "Verify NOOPPATH"
 if ! test -f ${NOOPPATH} ; then echo "Unable to locate ${NOOPPATH}"; exit 1; fi
 
 # See if we have szip
