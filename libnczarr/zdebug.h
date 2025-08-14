@@ -6,7 +6,7 @@
 #define ZDEBUG_H
 
 #define ZCATCH /* Warning: significant performance impact */
-#undef ZTRACING /* Warning: significant performance impact */
+#define ZTRACING /* Warning: significant performance impact */
 
 #undef ZDEBUG /* general debug */
 #undef ZDEBUG1 /* detailed debug */
