@@ -92,7 +92,13 @@ else
 file="tmp_filt_${zfilt}.nc"
 rm -f $file
 fi
+if test "x$zfilt" == xfletcher32 ; then
+find . -name '*.cdl'
+fi
 setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
+if test "x$zfilt" == xfletcher32 ; then
+find . -name '*.cdl'
+fi
 if test "x$TESTNCZARR" = x1 ; then
 ${NCGEN} -4 -lb -o $fileurl "tmp_filt_${zfilt}.cdl"
 ${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
