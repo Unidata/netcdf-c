@@ -94,8 +94,11 @@ rm -f $file
 fi
 setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
 if test "x$TESTNCZARR" = x1 ; then
-find . -name '*.cdl'
 ${NCGEN} -4 -lb -o $fileurl "tmp_filt_${zfilt}.cdl"
+if test "x$zext" = xfile ; then
+echo "@@@"
+find .
+fi
 ${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
 else
 ${NCGEN} -4 -lb -o $file "tmp_filt_${zfilt}.cdl"
