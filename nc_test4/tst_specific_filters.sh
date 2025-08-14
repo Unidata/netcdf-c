@@ -94,10 +94,10 @@ rm -f $file
 fi
 setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
 if test "x$TESTNCZARR" = x1 ; then
-${NCGEN} -4 -lb -o $fileurl "${S3ISOPATH}tmp_filt_${zfilt}.cdl"
+${NCGEN} -4 -lb -o $fileurl "${ISOPATH}tmp_filt_${zfilt}.cdl"
 ${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
 else
-${NCGEN} -4 -lb -o $file "${S3ISOPATH}/tmp_filt_${zfilt}.cdl"
+${NCGEN} -4 -lb -o $file "${ISOPATH}/tmp_filt_${zfilt}.cdl"
 ${NCDUMP} -n $zfilt -sF $file > "tmp_filt_${zfilt}.tmp"
 fi
 sclean "tmp_filt_${zfilt}.tmp" "tmp_filt_${zfilt}.dump"
