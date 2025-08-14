@@ -59,11 +59,11 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 
 
 setfilter() {
-    FF="$1"
-    FSRC="$2"
-    FDST="$3"
-    FIH5="$4"
-    FICX="$5"
+    FF="$1"   # Filter
+    FSRC="$2" # Src file
+    FDST="$3" # Dest file
+    FIH5="$4" # Filter params
+    FICX="$5" # Filter codec
     FFH5="$6"
     FFCX="$7"
     if test "x$FFH5" = x ; then FFH5="$FIH5" ; fi
@@ -94,10 +94,10 @@ rm -f $file
 fi
 setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
 if test "x$TESTNCZARR" = x1 ; then
-${NCGEN} -4 -lb -o $fileurl "${ISOPATH}tmp_filt_${zfilt}.cdl"
+${NCGEN} -4 -lb -o $fileurl "tmp_filt_${zfilt}.cdl"
 ${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
 else
-${NCGEN} -4 -lb -o $file "${ISOPATH}/tmp_filt_${zfilt}.cdl"
+${NCGEN} -4 -lb -o $file "tmp_filt_${zfilt}.cdl"
 ${NCDUMP} -n $zfilt -sF $file > "tmp_filt_${zfilt}.tmp"
 fi
 sclean "tmp_filt_${zfilt}.tmp" "tmp_filt_${zfilt}.dump"
