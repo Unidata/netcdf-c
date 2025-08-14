@@ -94,6 +94,7 @@ rm -f $file
 fi
 setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
 if test "x$TESTNCZARR" = x1 ; then
+find . -name '*.cdl'
 ${NCGEN} -4 -lb -o $fileurl "tmp_filt_${zfilt}.cdl"
 ${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
 else
@@ -110,7 +111,6 @@ testfletcher32() {
   sed -e '/_Fletcher32 = "true"/d' -e '/_Filter = 3'/d -e '/_Codecs = \"[{\"id\": \"fletcher32\"}]\"/d' \
 	< tmp_filt_fletcher32.cdl > tmp_filt_fletcher32x.dump
 pwd
-find . -name '*.cdl'
 find . -name '*.dump'
   diff -b -w "tmp_filt_fletcher32.cdl" "tmp_filt_fletcher32x.dump"
 }
