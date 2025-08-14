@@ -1240,10 +1240,7 @@ NCpathforceplatform(void)
     NCpathsetplatform(NCPD_MSYS);
 #elif defined __MINGW32__
     NCpathsetplatform(NCPD_MSYS);
-#elif defined(__linux__)
-	|| defined(__unix__)
-	|| defined(__unix)
-	|| defined(__OSX__)
+#elif defined(__linux__) || defined(__unix__) || defined(__unix) || defined(__OSX__)
     NCpathsetplatform(NCPD_NIX);
 #else
     NCpathsetplatform(NCPD_UNKNOWN);
