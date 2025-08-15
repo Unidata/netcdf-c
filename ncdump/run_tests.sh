@@ -5,7 +5,9 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+set -x
 set -e
+
 echo ""
 echo "*** Testing ncgen and ncdump using some test CDL files."
 echo "*** creating tst_small.nc from ref_tst_small.cdl..."
