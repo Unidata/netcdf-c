@@ -16,6 +16,22 @@
 
 #define ZLOG(tag,...) nclog(tag,__VA_ARGS__)
 
+
+/* Define the possible unit tests (powers of 2) */
+#define UTEST_RANGE	 1
+#define UTEST_WALK	 2
+#define UTEST_TRANSFER	 4
+#define UTEST_WHOLECHUNK 8
+
+struct ZUTEST {
+    int tests;
+    void (*print)(int sort,...);
+};
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #ifdef ZCATCH
 /* Place breakpoint on zbreakpoint to catch errors close to where they occur*/
 /* WARNING: Do not evaluate e more than once */
@@ -65,16 +81,9 @@ EXTERNL char* nczprint_envv(const char** envv);
 
 EXTERNL void zdumpcommon(const struct Common*);
 
-/* Define the possible unit tests (powers of 2) */
-#define UTEST_RANGE	 1
-#define UTEST_WALK	 2
-#define UTEST_TRANSFER	 4
-#define UTEST_WHOLECHUNK 8
-
-struct ZUTEST {
-    int tests;
-    void (*print)(int sort,...);
-};
 EXTERNL struct ZUTEST* zutest;
 
+#if defined(__cplusplus)
+}
+#endif
 #endif /*ZDEBUG_H*/
