@@ -32,7 +32,7 @@ zext=$1
 fileargs tmp
 ${execdir}/test_zchunks3 -e ${zext}
 echo "*** Test that nccopy -c can chunk files"
-export NCTRACING=1
+export NCTRACING=10
 ${NCCOPY} -M0 tmp_chunks3.nc "$fileurl"
 unset NCTRACING
 ${NCDUMP} -n tmp -sh "$fileurl" > tmp_nccz.cdl
