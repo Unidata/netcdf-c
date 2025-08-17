@@ -213,8 +213,10 @@ NCIPLAT="-Im"
 export MSYS_NO_PATHCONV=
 # Ensable automatic path conversions in MINGW shell:
 export MSYS2_ARG_CONV_EXCL=
-elif test "x$FP_ISMSVC" == x ; then
+else
+  if test "x$FP_ISMSVC" = x ; then
 NCIPLAT="-Iu"
+  fi
 fi
 
 # OS/X and windows apparently have no echo -n option, so fake it
