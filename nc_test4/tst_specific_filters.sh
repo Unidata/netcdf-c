@@ -94,14 +94,18 @@ rm -f $file
 fi
 setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
 if test "x$TESTNCZARR" = x1 ; then
+export NCTRACING=10
 ${NCGEN} -4 -lb -o $fileurl "tmp_filt_${zfilt}.cdl"
+unset NCTRACING
 if test "x$zext" = xfile ; then
 echo "@@@"
 find .
 fi
 ${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
 else
+export NCTRACING=10
 ${NCGEN} -4 -lb -o $file "tmp_filt_${zfilt}.cdl"
+unset
 ${NCDUMP} -n $zfilt -sF $file > "tmp_filt_${zfilt}.tmp"
 fi
 sclean "tmp_filt_${zfilt}.tmp" "tmp_filt_${zfilt}.dump"
