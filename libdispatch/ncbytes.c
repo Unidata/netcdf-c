@@ -175,13 +175,13 @@ ncbytesextract(NCbytes* bb)
 }
 
 int
-ncbytessetcontents(NCbytes* bb, void* contents, unsigned long alloc)
+ncbytessetcontents(NCbytes* bb, void* contents, unsigned long alloc, unsigned long length)
 {
     if(bb == NULL) return ncbytesfail();
     ncbytesclear(bb);
     if(!bb->nonextendible && bb->content != NULL) free(bb->content);
     bb->content = (char*)contents;
-    bb->length = alloc;
+    bb->length = length;
     bb->alloc = alloc;
     bb->nonextendible = 1;
     return 1;

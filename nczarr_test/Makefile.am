@@ -13,9 +13,9 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 TESTS_ENVIRONMENT =
 TEST_EXTENSIONS = .sh
-SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TESTS_ENVIRONMENT += export SETX=1;
 #TESTS_ENVIRONMENT += export NCTRACING=1;
 

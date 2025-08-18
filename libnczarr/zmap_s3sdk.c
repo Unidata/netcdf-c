@@ -265,7 +265,7 @@ done:
     ncurifree(url);
     ncurifree(purl);
     (void)NC_s3clear(&info);
-    return stat;
+    return ZUNTRACE(stat);
 }
 
 /**************************************************/

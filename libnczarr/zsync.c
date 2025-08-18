@@ -1104,7 +1104,7 @@ ncz_read_file(NC_FILE_INFO_T* file)
 
 done:
     NCJreclaim(json);
-    return ZUNTRACE(THROW(stat));
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -1190,7 +1190,7 @@ done:
     nclistfreeall(subgrps);
     nullfree(fullpath);
     nullfree(key);
-    return ZUNTRACE(THROW(stat));
+    return ZUNTRACE(stat);
 }
 
 
@@ -1717,7 +1717,7 @@ done:
     nullfree(varpath); varpath = NULL;
     nullfree(shapes); shapes = NULL;
     nullfree(key); key = NULL;
-    return THROW(stat);
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -1747,7 +1747,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
     }
 
 done:
-    return ZUNTRACE(THROW(stat));
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -2481,7 +2481,7 @@ upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts)
     char* fullpath = NULL;
     char* key = NULL;
 
-    ZTRACE(3,"file=%s grp=%s",file->controller->path,grp->hdr.name);
+    ZTRACE(3,"file=%s grp=%s",file->controller->path,container->name);
 
     if(jatts == NULL) goto done;    
 

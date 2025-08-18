@@ -326,7 +326,7 @@ zfiletruncate(const char* surl)
     platformdelete(url->path,0); /* leave root; ignore errors */
 done:
     ncurifree(url);
-    return stat;    
+    return ZUNTRACE(stat);
 }
 
 /**************************************************/
