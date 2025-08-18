@@ -512,7 +512,7 @@ endif()
 if(NETCDF_ENABLE_HDF5 OR NETCDF_ENABLE_HDF4 OR NETCDF_ENABLE_NCZARR)
   set(NETCDF_ENABLE_NETCDF4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
 endif()
-echo "@@@ NETCDF_ENABLE_NETCDF4=${NETCDF_ENABLE_NETCDF4}"
+message("@@@ NETCDF_ENABLE_NETCDF4=${NETCDF_ENABLE_NETCDF4}")
 
 # enable|disable all forms of network access
 option(NETCDF_ENABLE_REMOTE_FUNCTIONALITY "Enable|disable all forms remote data access (DAP, S3, etc)" ON)
