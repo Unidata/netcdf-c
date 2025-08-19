@@ -69,12 +69,23 @@ setfilter() {
     if test "x$FFH5" = x ; then FFH5="$FIH5" ; fi
     if test "x$FFCX" = x ; then FFCX="$FICX" ; fi
     rm -f $FDST
+if text 1 = 0
     cat ${srcdir}/$FSRC \
 	| sed -e "s/ref_any/${FF}/" \
 	| sed -e "s/IH5/${FIH5}/" -e "s/FH5/${FFH5}/" \
 	| sed -e "s/ICX/${FICX}/" -e "s/FCX/${FFCX}/" \
 	| sed -e 's/"/\\"/g' -e 's/@/"/g' \
 	| cat > $FDST
+else
+    cat ${srcdir}/$FSRC ./tmp
+    sed -i.bak -e "s/ref_any/${FF}/" < ${srcdir}/${FSRC} ./tmp
+    sed -i.bak -e "s/IH5/${FIH5}/" -e "s/FH5/${FFH5}/" ./tmp
+    sed -i.bak -e "s/ICX/${FICX}/" -e "s/FCX/${FFCX}/" ./tmp
+    sed -i.bak -e 's/"/\\"/g' -e 's/@/"/g' ./tmp
+    if ls -l $FDST ; then x=0; else x=1; fi
+    mv ./tmp $FDST
+    rm -f tmp.bak
+fi
 }
 
 # Execute the specified tests
