@@ -77,14 +77,14 @@ if test 1 = 0 ; then
 	| sed -e 's/"/\\"/g' -e 's/@/"/g' \
 	| cat > $FDST
 else
-    cp ${srcdir}/$FSRC ./tmp
-    sed -i.bak -e "s/ref_any/${FF}/" < ${srcdir}/${FSRC} ./tmp
-    sed -i.bak -e "s/IH5/${FIH5}/" -e "s/FH5/${FFH5}/" ./tmp
-    sed -i.bak -e "s/ICX/${FICX}/" -e "s/FCX/${FFCX}/" ./tmp
-    sed -i.bak -e 's/"/\\"/g' -e 's/@/"/g' ./tmp
+    cp ${srcdir}/$FSRC ./tmp_$FF_$FF
+    sed -i.bak -e "s/ref_any/${FF}/" < ${srcdir}/${FSRC} ./tmp_$FF
+    sed -i.bak -e "s/IH5/${FIH5}/" -e "s/FH5/${FFH5}/" ./tmp_$FF
+    sed -i.bak -e "s/ICX/${FICX}/" -e "s/FCX/${FFCX}/" ./tmp_$FF
+    sed -i.bak -e 's/"/\\"/g' -e 's/@/"/g' ./tmp_$FF
     if ls -l $FDST ; then x=0; else x=1; fi
-    mv ./tmp $FDST
-    rm -f tmp.bak
+    mv ./tmp_$FF $FDST
+    rm -f tmp_$FF.bak
 fi
 }
 
