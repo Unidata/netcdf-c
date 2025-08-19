@@ -198,6 +198,21 @@ IF(NETCDF_ENABLE_TESTS)
 #    if(NOT ISCMAKE)
       add_sh_test(nczarr_test run_interop)
 #    ENDIF()
+    IF(NETCDF_ENABLE_TESTS AND NETCDF_ENABLE_NCZARR AND Python_EXECUTABLE)
+      add_custom_target(build_python_tools ALL
+          COMMAND ${Python_EXECUTABLE} -m venv ${CMAKE_BINARY_DIR}/venv
+          COMMAND ${CMAKE_BINARY_DIR}/venv/bin/pip install --upgrade pip
+          COMMAND ${CMAKE_BINARY_DIR}/venv/bin/pip install .
+          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+          COMMENT "Creating virtual environment and installing Python netcdf-c-testing-tools"
+      )
+      add_sh_test(nczarr_test run_interop_python)
+
+    ENDIF()
+    add_custom_target(clean_python_tools
+        COMMAND rm -rfv ${CMAKE_BINARY_DIR}/venv
+        COMMENT "Cleaning up Python virtual environment"
+    )
     
     IF(USE_HDF5)
     add_sh_test(nczarr_test run_fillonlyz)
