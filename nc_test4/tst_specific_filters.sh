@@ -69,7 +69,7 @@ setfilter() {
     if test "x$FFH5" = x ; then FFH5="$FIH5" ; fi
     if test "x$FFCX" = x ; then FFCX="$FICX" ; fi
     rm -f $FDST
-if text 1 = 0
+if text 1 = 0 ; then
     cat ${srcdir}/$FSRC \
 	| sed -e "s/ref_any/${FF}/" \
 	| sed -e "s/IH5/${FIH5}/" -e "s/FH5/${FFH5}/" \
