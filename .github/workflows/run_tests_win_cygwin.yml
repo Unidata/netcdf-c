@@ -187,4 +187,4 @@ jobs:
         run: >-
           PATH=$PWD/build:$PATH ctest --test-dir build --output-on-failure --rerun-failed -VV
         if: ${{ failure() }}
-#          PATH=$PWD/build:$PATH ctest --test-dir build --output-on-failure -j$(nproc) --rerun-failed -VV
+#          PATH=$PWD/build:$PATH ctest --test-dir build --output-on-failure -j$(nproc) --rerun-failed -VV  
