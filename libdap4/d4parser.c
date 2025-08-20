@@ -955,7 +955,7 @@ getValueStrings(NCD4parser* parser, NCD4node* type, ncxml_t xattr, NClist* svalu
 		if(s == NULL) s = strdup("");
 	    }
 	    /* Need to de-escape the string */
-	    es = NCD4_entityescape(s);
+	    es = NC_entityescape(s);
 	    ds = NCD4_deescape(es);
 	    PUSH(svalues,ds); ds = NULL;
 	    nullfree(es); es = NULL;

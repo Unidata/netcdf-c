@@ -3,13 +3,11 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "config.h"
+#include "d4includes.h"
+#include <stddef.h>
 #include "ncdispatch.h"
 #include "ncd4dispatch.h"
-#include "d4includes.h"
 #include "d4curlfunctions.h"
-#include <stddef.h>
-#include "ncutil.h"
 
 #ifdef _MSC_VER
 #include <process.h>
@@ -317,7 +315,7 @@ set_curl_properties(NCD4INFO* d4info)
         if(path == NULL) return NC_ENOMEM;
 	snprintf(path,len,"%s/nc4cookies",globalstate->tempdir);
 	/* Create the unique cookie file name */
-        if((ret=NC_mktmp(path,&newpath))) goto fail;
+        if((ret = NC_mktmp(path,&newpath))) goto fail;
         free(path);
 	if(newpath == NULL) {
 	    fprintf(stderr,"Cannot create cookie file\n");
@@ -547,7 +545,7 @@ NCD4_newInfo(NCD4INFO** d4infop)
     NCD4INFO* info = NULL;
     if((info = calloc(1,sizeof(NCD4INFO)))==NULL)
         {ret = NC_ENOMEM; goto done;}
-    info->platform.hostlittleendian = NCD4_isLittleEndian();
+    info->platform.hostlittleendian = NC_isLittleEndian();
     info->responses = nclistnew();
     if(d4infop) {*d4infop = info; info = NULL;}
 done:

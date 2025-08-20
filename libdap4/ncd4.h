@@ -136,14 +136,12 @@ EXTERNL int NCD4_inferChecksums(NCD4meta* meta, NCD4response* resp);
 /* From d4util.c */
 EXTERNL d4size_t NCD4_dimproduct(NCD4node* node);
 EXTERNL size_t NCD4_typesize(nc_type tid);
-EXTERNL int NCD4_isLittleEndian(void);/* Return 1 if this machine is little endian */
 EXTERNL int NCD4_errorNC(int code, const int line, const char* file);
 EXTERNL int NCD4_error(int code, const int line, const char* file, const char* fmt, ...);
 EXTERNL char* NCD4_makeFQN(NCD4node* node);
 EXTERNL char* NCD4_makeName(NCD4node*,const char* sep);
 EXTERNL int NCD4_parseFQN(const char* fqn0, NClist* pieces);
 EXTERNL char* NCD4_deescape(const char* esc);
-EXTERNL char* NCD4_entityescape(const char* s);
 EXTERNL size_t NCD4_elidenuls(char* s, size_t slen);
 EXTERNL void* NCD4_getheader(void* p, NCD4HDR* hdr, int hostlittleendian);
 EXTERNL void NCD4_reporterror(NCD4response*, NCURI* uri);

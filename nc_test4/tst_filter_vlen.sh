@@ -5,29 +5,18 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+set -e
+
 if test "x$TESTNCZARR" = x1; then
 . $srcdir/test_nczarr.sh
+s3isolate "testdir_specific_filters"
+THISDIR=`pwd`
+cd $ISOPATH
 fi
-
-set -e
 
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
-
-findplugin h5deflate
-echo "HDF5_PLUGIN_DIR=$HDF5_PLUGIN_DIR"
-
-isolate "testdir_filter_vlen"
-THISDIR=`pwd`
-cd $ISOPATH
-
-if test "x$TESTNCZARR" = x1; then
-s3isolate
-fi
-
-# Find deflate
-if avail 1 ; then HAVE_DEFLATE=1; else HAVE_DEFLATE=0; fi
 
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent

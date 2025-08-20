@@ -8,6 +8,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+set -x
 set -e
 
 if test "x$TESTNCZARR" = x1 ; then
@@ -24,11 +25,6 @@ BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
-
-# Locate the plugin path and the library names; argument order is critical
-# Find bzip2 and capture
-# Assume all test filters are in same plugin dir
-findplugin h5bzip2
 
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent
@@ -63,22 +59,33 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 
 
 setfilter() {
-    FF="$1"
-    FSRC="$2"
-    FDST="$3"
-    FIH5="$4"
-    FICX="$5"
+    FF="$1"   # Filter
+    FSRC="$2" # Src file
+    FDST="$3" # Dest file
+    FIH5="$4" # Filter params
+    FICX="$5" # Filter codec
     FFH5="$6"
     FFCX="$7"
     if test "x$FFH5" = x ; then FFH5="$FIH5" ; fi
     if test "x$FFCX" = x ; then FFCX="$FICX" ; fi
     rm -f $FDST
+if test 1 = 0 ; then
     cat ${srcdir}/$FSRC \
 	| sed -e "s/ref_any/${FF}/" \
 	| sed -e "s/IH5/${FIH5}/" -e "s/FH5/${FFH5}/" \
 	| sed -e "s/ICX/${FICX}/" -e "s/FCX/${FFCX}/" \
 	| sed -e 's/"/\\"/g' -e 's/@/"/g' \
 	| cat > $FDST
+else
+    cp ${srcdir}/$FSRC ./tmp_$FF_$FF
+    sed -i.bak -e "s/ref_any/${FF}/" < ${srcdir}/${FSRC} ./tmp_$FF
+    sed -i.bak -e "s/IH5/${FIH5}/" -e "s/FH5/${FFH5}/" ./tmp_$FF
+    sed -i.bak -e "s/ICX/${FICX}/" -e "s/FCX/${FFCX}/" ./tmp_$FF
+    sed -i.bak -e 's/"/\\"/g' -e 's/@/"/g' ./tmp_$FF
+    if ls -l $FDST ; then x=0; else x=1; fi
+    mv ./tmp_$FF $FDST
+    rm -f tmp_$FF.bak
+fi
 }
 
 # Execute the specified tests
@@ -98,10 +105,18 @@ rm -f $file
 fi
 setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
 if test "x$TESTNCZARR" = x1 ; then
+export NCTRACING=10
 ${NCGEN} -4 -lb -o $fileurl "tmp_filt_${zfilt}.cdl"
+unset NCTRACING
+if test "x$zext" = xfile ; then
+echo "@@@"
+find .
+fi
 ${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
 else
+export NCTRACING=10
 ${NCGEN} -4 -lb -o $file "tmp_filt_${zfilt}.cdl"
+unset
 ${NCDUMP} -n $zfilt -sF $file > "tmp_filt_${zfilt}.tmp"
 fi
 sclean "tmp_filt_${zfilt}.tmp" "tmp_filt_${zfilt}.dump"
@@ -113,6 +128,8 @@ testfletcher32() {
   # need to do fixup
   sed -e '/_Fletcher32 = "true"/d' -e '/_Filter = 3'/d -e '/_Codecs = \"[{\"id\": \"fletcher32\"}]\"/d' \
 	< tmp_filt_fletcher32.cdl > tmp_filt_fletcher32x.dump
+pwd
+find . -name '*.dump'
   diff -b -w "tmp_filt_fletcher32.cdl" "tmp_filt_fletcher32x.dump"
 }
 

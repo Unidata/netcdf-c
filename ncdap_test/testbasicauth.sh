@@ -240,7 +240,7 @@ if test "x$RCHOME" = x1 ; then
   show
 fi
 
-if test "x$RCSPEC" == x1 ; then
+if test "x$RCSPEC" = x1 ; then
   echo "*** Testing rc file in specified directory"
   # Create the rc file and (optional) netrc file
   reset

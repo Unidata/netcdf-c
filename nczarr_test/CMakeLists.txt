@@ -240,6 +240,13 @@ IF(NETCDF_ENABLE_TESTS)
 
 ENDIF(NETCDF_ENABLE_TESTS)
 
+# Built Files
+
+# Convert nc_test4 files to nczarr_test files
+buildnczarrtest(nc_test4 filter_misc filter_vlen specific_filters unknown)
+# Convert ncdump files to nczarr_test files
+buildnczarrtest(ncdump mud nccopy5)
+
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am zmapio.c zhex.c ncdumpchunks.c)

@@ -67,6 +67,7 @@ endif
 if NETCDF_ENABLE_DAP_LONG_TESTS
 test_manyurls_SOURCES = test_manyurls.c manyurls.h
 test_manyurls.log: tst_longremote3.log
+check_PROGRAMS += test_manyurls
 TESTS += test_manyurls
 endif
 

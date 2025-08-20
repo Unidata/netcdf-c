@@ -37,7 +37,8 @@ IF(NETCDF_ENABLE_HDF5)
 ENDIF(NETCDF_ENABLE_HDF5)
 
 # Path convert test(s)
-add_bin_test(unit_test test_pathcvt)
+build_bin_test(test_pathcvt)
+add_sh_test(unit_test run_pathcvt)
 
 IF(NETCDF_BUILD_UTILITIES)
   IF(NETCDF_ENABLE_S3 AND WITH_S3_TESTING)

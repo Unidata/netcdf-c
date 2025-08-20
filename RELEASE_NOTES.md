@@ -7,8 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.4 - TBD
 
-* Clean up the S3 API for all non-libnczarr code. This continues the splitting of PR [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068).
-See [Github #3090](https://github.com/Unidata/netcdf-c/pull/3090) for more information.
+* (Draft) Rebuild the S3-related code and other changes necessary to build cleanly on github actions. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????) for more information.
 * Step 1 in splitting PR [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068). Update ncjson.[ch] and ncproplist.[ch]. Also fix references to old API. Also fix include/netcdf_ncjson.h and include/netcdf_proplist.h builds. See [Github #3086](https://github.com/Unidata/netcdf-c/pull/3086) for more information.
 * Refactor drc.c to move many of its purely utility functions into dutil.c. Also change the NC_mktmp signature. Change other files to match. See [Github #3094](https://github.com/Unidata/netcdf-c/pull/3094) for more information.
 * Provide an auxilliary function, `ncaux_parse_provenance()`, that allows users to parse the _NCProperties attribute into a collection of character pointers. See [Github #3088](https://github.com/Unidata/netcdf-c/pull/3088) for more information.

@@ -5,8 +5,8 @@
 #ifndef ZDEBUG_H
 #define ZDEBUG_H
 
-#undef ZCATCH /* Warning: significant performance impact */
-#undef ZTRACING /* Warning: significant performance impact */
+#define ZCATCH /* Warning: significant performance impact */
+#define ZTRACING /* Warning: significant performance impact */
 
 #undef ZDEBUG /* general debug */
 #undef ZDEBUG1 /* detailed debug */
@@ -15,6 +15,22 @@
 #include "nclog.h"
 
 #define ZLOG(tag,...) nclog(tag,__VA_ARGS__)
+
+
+/* Define the possible unit tests (powers of 2) */
+#define UTEST_RANGE	 1
+#define UTEST_WALK	 2
+#define UTEST_TRANSFER	 4
+#define UTEST_WHOLECHUNK 8
+
+struct ZUTEST {
+    int tests;
+    void (*print)(int sort,...);
+};
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 #ifdef ZCATCH
 /* Place breakpoint on zbreakpoint to catch errors close to where they occur*/
@@ -61,20 +77,13 @@ EXTERNL char* nczprint_vector(size_t,const size64_t*);
 EXTERNL char* nczprint_idvector(size_t,const int*);
 EXTERNL char* nczprint_paramvector(size_t,const unsigned*);
 EXTERNL char* nczprint_sizevector(size_t,const size_t*);
-EXTERNL char* nczprint_envv(const char** envv);
+EXTERNL char* nczprint_envv(NClist*);
 
 EXTERNL void zdumpcommon(const struct Common*);
 
-/* Define the possible unit tests (powers of 2) */
-#define UTEST_RANGE	 1
-#define UTEST_WALK	 2
-#define UTEST_TRANSFER	 4
-#define UTEST_WHOLECHUNK 8
-
-struct ZUTEST {
-    int tests;
-    void (*print)(int sort,...);
-};
 EXTERNL struct ZUTEST* zutest;
 
+#if defined(__cplusplus)
+}
+#endif
 #endif /*ZDEBUG_H*/

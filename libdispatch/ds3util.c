@@ -200,7 +200,7 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
         const char* region0 = NULL;
 	/* Get default region */
 	if((stat = NC_getdefaults3region(url,&region0))) goto done;
-	region = nulldup(region0);
+	region = (char*)nulldup(region0);
     }
     if(region == NULL) {stat = NC_ES3; goto done;}
 
