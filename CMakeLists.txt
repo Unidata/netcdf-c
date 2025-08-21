@@ -806,7 +806,7 @@ if(NOT NETCDF_ENABLE_S3)
   endif()
 endif()
 
-option(NETCDF_ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." OFF)
+option(NETCDF_ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
 set(XMLPARSER "tinyxml2 (bundled)")
 
 if(NOT NETCDF_ENABLE_BYTERANGE AND NETCDF_ENABLE_HDF5_ROS3)
