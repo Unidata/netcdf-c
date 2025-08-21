@@ -467,8 +467,11 @@ endif()
 # LibXML
 ################################
 # see if we have libxml2
+message("@@@ X2=${NETCDF_ENABLE_LIBXML2}")
 if(NETCDF_ENABLE_LIBXML2)
+set(CMAKE_FIND_DEBUG_MODE ON)
   find_package(LibXml2)
+set(CMAKE_FIND_DEBUG_MODE ON)
   if(LibXml2_FOUND)
     set(HAVE_LIBXML2 TRUE)
     target_include_directories(netcdf
