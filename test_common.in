@@ -248,6 +248,7 @@ isolate() {
       if test "x$NOISOPATH" = x ; then ISOTESTSET="${ISOTESTSET}${TESTUID}"; fi    
       ISODIR="$1"
       ISOPATH="${ISOTESTSET}/$ISODIR"
+find . -name 'testset*'
 if      rm -fr $ISOPATH ; then echo "@@@ rm -fr $ISOPATH" ; else find $ISOPATH -type f; fi
       mkdir -p $ISOPATH
   fi
