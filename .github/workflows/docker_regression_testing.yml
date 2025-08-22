@@ -72,6 +72,38 @@ jobs:
             fortran-branch: '${{ matrix.fortran-branch }}'
 
 ###
+# Testing some combinatorics for various options.
+###
+  netcdf-test-matrix-oneoff:
+
+    needs: netcdf-test-matrix-serial
+
+    name: Docker-Based NetCDF-C, Fortran Regression Testing (tinyxml2-related one-off tests)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo-type: [ 'c' ]
+        h5ver: [ '1.14.6' ]
+        c-compiler: [ 'gcc' ]
+        fortran-branch: [ 'main' ]
+        buildsystem: [ 'both' ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull and Run netCDF Regression Tests
+        uses: WardF/netcdf-test-action@v1
+        with:
+          repo-type: '${{ matrix.repo-type }}'
+          run-c: 'TRUE'
+          build-system: '${{ matrix.buildsystem }}'
+          hdf5-version: '${{ matrix.h5ver }}'
+          ctest-repeat: 3
+          c-compiler: '${{ matrix.c-compiler }}'
+          run-fortran: 'TRUE'
+          fortran-branch: '${{ matrix.fortran-branch }}'
+          autotools-c-options: '--disable-dap --disable-dap4 --disable-libxml2 --disable-nczarr'
+          cmake-c-options: '-DNETCDF_ENABLE_LIBXML2=OFF -DNETCDF_ENABLE_DAP4=OFF -DNETCDF_ENABLE_NCZARR=OFF'
+### 
 # Parallel Testing
 ###          
   netcdf-test-matrix-parallel:

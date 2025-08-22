@@ -1468,11 +1468,16 @@ endif()
 
 if(NETCDF_ENABLE_DAP4)
   add_subdirectory(libdap4)
-  add_subdirectory(libncxml)
 else()
   if(NETCDF_ENABLE_S3_INTERNAL)
     add_subdirectory(libncxml)
   endif()
+endif()
+
+if (NETCDF_ENABLE_DAP4 OR NETCDF_ENABLE_S3_INTERNAL OR NETCDF_ENABLE_NCZARR OR NETCDF_ENABLE_LIBXML2)
+  add_subdirectory(libncxml)
+else()
+  set(XMLPARSER "none required")
 endif()
 
 if(NETCDF_ENABLE_PLUGINS)
