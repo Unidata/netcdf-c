@@ -78,7 +78,7 @@ jobs:
 
     needs: netcdf-test-matrix-serial
 
-    name: Docker-BAsed NetCDF-C, Fortran Regression Testing (One-Off tests)
+    name: Docker-Based NetCDF-C, Fortran Regression Testing (One-Off tests)
     runs-on: ubuntu-latest
     strategy:
       matrix:
