@@ -231,7 +231,12 @@ NC_string *
 new_NC_string(size_t slen, const char *str)
 {
 	NC_string *ncstrp;
-	size_t sz = M_RNDUP(sizeof(NC_string)) + slen + 1;
+	size_t sz;
+
+	if (slen > SIZE_MAX - M_RNDUP(sizeof(NC_string)) - 1)
+		return NULL;
+	
+	sz = M_RNDUP(sizeof(NC_string)) + slen + 1;
 
 #if 0
 	sz = _RNDUP(sz, X_ALIGN);

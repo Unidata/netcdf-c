@@ -625,48 +625,6 @@ fi
 # End libcurl-related stanza
 ###
 
-###
-# Libxml2 control block.
-###
-
-AC_MSG_CHECKING([whether to search for and use external libxml2])
-AC_ARG_ENABLE([libxml2],
-              [AS_HELP_STRING([--disable-libxml2],
-                              [disable detection and use of libxml2 in favor of the bundled xml parser])])
-test "x$enable_libxml2" = xno || enable_libxml2=yes
-AC_MSG_RESULT([$enable_libxml2])
-
-# We can optionally use libxml2 for DAP4 and nch5comms, if enabled
-have_libxml2=no
-if test "x$enable_libxml2" = xyes; then
-   AC_CHECK_PROGS([NC_XML2_CONFIG], [xml2-config])
-   if test -z "$NC_XML2_CONFIG"; then
-      AC_MSG_ERROR([Cannot find xml2-config utility. Either install the libxml2 development package, or re-run configure with --disable-libxml2 to use the bundled xml2 parser])
-   fi
-  AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
-  if test "x$have_libxml2" = "xyes" ; then
-      AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
-  fi
-  if test "x$have_libxml2" = xyes; then
-     XML2FLAGS=`xml2-config --cflags`
-     AC_SUBST([XML2FLAGS],${XML2FLAGS})
-     AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
-  fi
-fi
-
-if test "x$enable_libxml2" = xyes; then
-XMLPARSER="libxml2"
-else
-XMLPARSER="tinyxml2 (bundled)"
-fi
-
-# Need a condition and subst for this
-AM_CONDITIONAL(NETCDF_ENABLE_LIBXML2, [test "x$enable_libxml2" = xyes])
-AC_SUBST([XMLPARSER],[${XMLPARSER}])
-
-###
-# End Libxml2 block
-###
 
 ##
 # Should quantize be enabled?
@@ -786,6 +744,66 @@ if test "x$enable_nczarr" = xyes; then
    AC_SUBST(NETCDF_ENABLE_NCZARR)
 fi
 AM_CONDITIONAL(NETCDF_ENABLE_NCZARR, [test x$enable_nczarr = xyes])
+
+
+###
+# End nczarr, dap block
+###
+
+###
+# Libxml2 control block.
+###
+
+AC_MSG_CHECKING([whether to search for and use external libxml2])
+AC_ARG_ENABLE([libxml2],
+              [AS_HELP_STRING([--disable-libxml2],
+                              [disable detection and use of libxml2 in favor of the bundled xml parser])])
+test "x$enable_libxml2" = xno || enable_libxml2=yes
+AC_MSG_RESULT([$enable_libxml2])
+
+# We can optionally use libxml2 for DAP4 and nch5comms, if enabled
+have_libxml2=no
+if test "x$enable_libxml2" = xyes; then
+   AC_CHECK_PROGS([NC_XML2_CONFIG], [xml2-config])
+   if test -z "$NC_XML2_CONFIG"; then
+      AC_MSG_ERROR([Cannot find xml2-config utility. Either install the libxml2 development package, or re-run configure with --disable-libxml2 to use the bundled xml2 parser])
+   fi
+  AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
+  if test "x$have_libxml2" = "xyes" ; then
+      AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
+  fi
+  if test "x$have_libxml2" = xyes; then
+     XML2FLAGS=`xml2-config --cflags`
+     AC_SUBST([XML2FLAGS],${XML2FLAGS})
+     AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
+  fi
+fi
+
+###
+# See https://github.com/Unidata/netcdf-c/issues/2851
+# There is a condition where we can avoid compiling libxml2 *and* tinyxml2, if we don't need nczarr or DAP4.
+###
+XMLPARSER="none required"
+AM_CONDITIONAL(NETCDF_ENABLE_XML2,[test "$enable_nczarr" = yes || test "$enable_dap4" = yes || test "$enable_libxml2" = yes])
+if test "$enable_nczarr" = yes || test "$enable_dap4" = yes || test "$enable_libxml2" = yes ; then
+
+   if test "x$enable_libxml2" = xyes; then
+      XMLPARSER="libxml2"
+   else 
+      XMLPARSER="tinyxml2 (bundled)"
+   fi
+fi
+
+# Need a condition and subst for this
+AM_CONDITIONAL(NETCDF_ENABLE_LIBXML2, [test "x$enable_libxml2" = xyes])
+
+AC_SUBST([XMLPARSER],[${XMLPARSER}])
+
+###
+# End Libxml2 block
+###
+
+
 
 ##########
 # Look for Standardized libraries
