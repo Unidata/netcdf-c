@@ -32,6 +32,7 @@ ${NCDUMP} test1_offset.nc > test2_offset.cdl
 cmp test1_offset.cdl test2_offset.cdl
 echo "*** All ncgen and ncdump with 64-bit offset format tests passed!"
 
+
 if test "x$CDF5" = x1 ; then
 echo ""
 echo "*** Testing ncgen and ncdump with CDF5 format."

@@ -860,7 +860,7 @@ platformdircontent(const char* canonpath, NClist* contents)
     size_t len;
     char* d = NULL;
 
-    ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
+    ZTRACE(6,"canonpath=%s",canonpath);
 
     switch (ret = platformtestcontentbearing(canonpath)) {
     case NC_EEMPTY: ret = NC_NOERR; break; /* directory */    
