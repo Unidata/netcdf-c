@@ -11,6 +11,11 @@
 
 include $(top_srcdir)/lib_flags.am
 
+EXTRA_DIST = CMakeLists.txt license.txt
+
+# True if DAP4 and/or NCZARR are enabled
+if NETCDF_ENABLE_XML2
+
 if NETCDF_ENABLE_LIBXML2
 AM_CPPFLAGS += ${XML2FLAGS}
 endif
@@ -27,7 +32,7 @@ AM_CXXFLAGS = -std=c++11
 libncxml_la_SOURCES = ncxml_tinyxml2.cpp tinyxml2.cpp tinyxml2.h
 endif
 
-EXTRA_DIST = CMakeLists.txt license.txt
+
 
 # Download and massage the tinyxml2 source
 REPO = https://github.com/leethomason/tinyxml2.git
@@ -52,3 +57,5 @@ tinyxml2::
 	| tr -d '\r' \
 	| cat > ./tinyxml2.cpp
 	rm -fr tinyxml2
+
+endif
