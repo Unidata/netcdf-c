@@ -3,7 +3,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-set -x
 set -e
 
 isolate "testdir_auxmisc"
@@ -22,11 +21,6 @@ testprov() {
 rm -f ${ISOPATH}/tmp_provparse.txt
 for t in $TESTS ; do
 ${execdir}/test_auxmisc -P ${t} >> ${ISOPATH}/tmp_provparse.txt
-#echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-#cat ${srcdir}/ref_provparse.txt
-#echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-#cat ${ISOPATH}/tmp_provparse.txt
-#echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 done
 # Verify
 diff ${srcdir}/ref_provparse.txt ${ISOPATH}/tmp_provparse.txt
