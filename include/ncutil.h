@@ -10,20 +10,7 @@ API for libdispatch/dutil.c
 #ifndef NCUTIL_H
 #define NCUTIL_H
 
-#if defined(DLL_NETCDF) /* define when library is a DLL */
-#  if defined(DLL_EXPORT) /* define when building the library */
-#   define MSC_EXTRA __declspec(dllexport)
-#  else
-#   define MSC_EXTRA __declspec(dllimport)
-#  endif
-#else
-#  define MSC_EXTRA
-#endif	/* defined(DLL_NETCDF) */
-#ifndef EXTERNL
-# define EXTERNL MSC_EXTRA extern
-#endif
-
-
+/**************************************************/
 
 /* signature: void swapinline16(void* ip) */
 #define swapinline16(ip) \
@@ -74,13 +61,13 @@ struct NClist;
 struct NCbytes;
 struct NCURI;
 
-EXTERNL int NC__testurl(const char* path, char** basenamep);
+EXTERNL int NC__testurl(const char* path, char** basenamep, int* isfilep);
 EXTERNL int NC_isLittleEndian(void);
 EXTERNL char* NC_backslashEscape(const char* s);
 EXTERNL char* NC_backslashUnescape(const char* esc);
 EXTERNL char* NC_entityescape(const char* s);
 EXTERNL char* NC_shellUnescape(const char* esc);
-EXTERNL int NC_mktmp(const char* base, char** tmpfile);
+EXTERNL int NC_mktmp(const char* base, char** tmpp);
 EXTERNL int NC_readfile(const char* filename, struct NCbytes* content);
 EXTERNL int NC_readfilen(const char* filename, struct NCbytes* content, long long amount);
 EXTERNL int NC_readfileF(FILE* stream, struct NCbytes* content, long long amount);
@@ -97,7 +84,6 @@ EXTERNL int NC_joinwith(struct NClist* segments, const char* sep, const char* pr
 EXTERNL void NC_sortenvv(size_t n, char** envv);
 EXTERNL void NC_sortlist(struct NClist* l);
 EXTERNL void NC_freeenvv(size_t nkeys, char** keys);
-EXTERNL int NC_swapatomicdata(size_t datalen, void* data, int typesize);
 
 #if defined(__cplusplus)
 }

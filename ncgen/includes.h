@@ -52,6 +52,7 @@
 #include "debug.h"
 #include "nc.h"
 #include "netcdf_aux.h"
+#include "ncutil.h"
 
 extern int specialconstants;
 
