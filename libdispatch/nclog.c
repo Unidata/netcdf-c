@@ -71,7 +71,10 @@ ncloginit(void)
     envv = getenv(NCENVLOGGING);
     if(envv != NULL) {
 	int level = nctagforname(envv);
-        if(level < 0) ncsetloglevel(level);
+        if(level > 0) {
+            nc_set_log_level(level);
+            ncsetloglevel(NCLOGNOTE);
+        }
     }
     envv = getenv(NCENVTRACING);
     if(envv != NULL) nctracelevel(atoi(envv));
