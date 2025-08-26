@@ -5,8 +5,6 @@
 # tst_ncgen4_classic.sh
 # Dennis Heimbigner
 
-export SETX=1
-set -x
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 

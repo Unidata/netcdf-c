@@ -3,7 +3,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -x
 set -e
 
 # For testing purposes: we want MSYS_NO_PATHCONV and MSYS2_ARG_CONV_EXCL set.
