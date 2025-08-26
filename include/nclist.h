@@ -18,7 +18,7 @@ typedef struct NClist {
   void** content;
   size_t alloc;
   size_t length;
-  int nonextendible;
+  int extendible;
 } NClist;
 
 EXTERNL NClist* nclistnew(void);
@@ -60,7 +60,7 @@ EXTERNL NClist* nclistclone(const NClist*, int deep);
 /* Extract the contents of a list, leaving list empty */
 EXTERNL void* nclistextract(NClist*);
 
-/* Set the contents of the list; mark as non-extendible */
+/* Set the contents of the list; mark extendible as false  */
 EXTERNL int nclistsetcontents(NClist*, void**, size_t, size_t length);
 
 /* Append an uncounted NULL to the end of the list */
