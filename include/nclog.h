@@ -33,7 +33,6 @@ extern "C" {
 
 EXTERNL void ncloginit(void);
 EXTERNL int ncsetloglevel(int level);
-EXTERNL int nc_set_log_level(int level);
 EXTERNL int nclogopen(FILE* stream);
 
 /* The tag value is an arbitrary integer */
