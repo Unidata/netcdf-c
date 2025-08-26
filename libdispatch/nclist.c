@@ -51,7 +51,7 @@ NClist* nclistnew(void)
     l->alloc=0;
     l->length=0;
     l->content=NULL;
-    l->nonextendible = 0;
+    l->extendible = 1;
   }
   return l;
 }
@@ -61,7 +61,7 @@ nclistfree(NClist* l)
 {
   if(l) {
     l->alloc = 0;
-    if(!l->nonextendible && l->content != NULL) {free(l->content); l->content = NULL;}
+    if(l->extendible && l->content != NULL) {free(l->content); l->content = NULL;}
     free(l);
   }
   return TRUE;
@@ -101,7 +101,7 @@ nclistsetalloc(NClist* l, size_t sz)
   if(l == NULL) return nclistfail();
   if(sz <= 0) {sz = (l->length?2*l->length:DEFAULTALLOC);}
   if(l->alloc >= sz) {return TRUE;}
-  if(l->nonextendible) return nclistfail();
+  if(!l->extendible) return nclistfail();
   newcontent=(void**)calloc(sz,sizeof(void*));
   if(newcontent != NULL && l->alloc > 0 && l->length > 0 && l->content != NULL) {
     memcpy((void*)newcontent,(void*)l->content,sizeof(void*)*l->length);
@@ -326,11 +326,11 @@ int
 nclistsetcontents(NClist* l, void** contents, size_t alloc, size_t length)
 {
     if(l == NULL) return nclistfail();
-    if(!l->nonextendible && l->content != NULL) {free(l->content);} else {l->content = NULL;}
+    if(l->extendible && l->content != NULL) {free(l->content);} else {l->content = NULL;}
     l->content = (void**)contents;
     l->length = length;
     l->alloc = alloc;
-    l->nonextendible = 1;
+    l->extendible = 0;
     return 1;
 }
 
