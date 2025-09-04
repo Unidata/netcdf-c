@@ -70,6 +70,8 @@ static int sortcmp(const void* arg1, const void* arg2);
    severity 0 for errors, 1 for important log messages, 2 for less
    important, etc. */
 int nc_log_level = NC_TURN_OFF_LOGGING;
+
+
 #if NC_HAS_PARALLEL4
 /* File pointer for the parallel I/O log file. */
 FILE *LOG_FILE = NULL;
@@ -94,6 +96,12 @@ nc_log(int severity, const char *fmt, ...)
     va_list argp;
     int t;
     FILE *f = stderr;
+
+    const char* envv = NULL;
+    envv = getenv("NC4LOGGING");
+    if(envv != NULL) {
+        nc_log_level = atoi(envv);
+    }
 
     /* If the severity is greater than the log level, we don't print
      * this message. */
