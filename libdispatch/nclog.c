@@ -49,7 +49,6 @@ static const char* nctagset[] = {"OFF","ERR","WARN","NOTE","DEBUG",NULL};
 /* Forward */
 static const char* nctagname(int tag);
 static int nctagforname(const char* tag);
- 
 /*!\defgroup NClog NClog Management
 @{*/
 
@@ -71,7 +70,9 @@ ncloginit(void)
     envv = getenv(NCENVLOGGING);
     if(envv != NULL) {
 	int level = nctagforname(envv);
-        if(level < 0) ncsetloglevel(level);
+        if(level > 0) {
+            ncsetloglevel(NCLOGNOTE);
+        }
     }
     envv = getenv(NCENVTRACING);
     if(envv != NULL) nctracelevel(atoi(envv));
