@@ -265,6 +265,7 @@ EXTERNL d4size_t NCD4_getcounter(NCD4offset* p);
    using DAP4.
 */
 #define HYRAXHACK
+#undef HYRAXCHECKSUM
 
 EXTERNL NC* NCD4_get_substrate_nc(NC* nc);
 
