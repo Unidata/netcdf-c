@@ -17,7 +17,7 @@ The libcurl authorization mechanisms can be accessed in two ways
 
 1. Inserting the username and password into the url, or
 2. Accessing information from a so-called _rc_ file named either
-   `.ncrc` or `.dodsrc`. The latter is historical and deprecated, but will be supported indefinitely.
+   `.ncrc`, `.daprc`, or `.dodsrc`. The latter two are  historical and deprecated, but will be supported indefinitely.
 
 ## URL-Based Authentication {#auth_url}
 
@@ -199,7 +199,7 @@ which the client is redirected for authorization, and the
 login and password are those needed to authenticate on that machine.
 
 The location of the `.netrc` file can be specified by
-putting the following line in your `.ncrc`/`.dodsrc` file.
+putting the following line in your `.ncrc`  file.
 
     HTTP.NETRC=<path to .ncrc file>
 
@@ -207,7 +207,7 @@ If not specified, then libcurl will look first in the current
 directory, and then in the HOME directory.
 
 One final note. In using this, you MUST
-to specify a real file in the file system to act as the
+specify a real file in the file system to act as the
 cookie jar file (HTTP.COOKIEJAR) so that the
 redirect site can properly pass back authorization information.
 
@@ -462,5 +462,5 @@ what you changed to the author so this document can be updated.
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu
 __Initial Version__: 11/21/2014<br>
-__Last Revised__: 08/24/2017
+__Last Revised__: 09/06/2025
 
