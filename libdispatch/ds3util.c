@@ -761,7 +761,10 @@ NC_getdefaults3region(NCURI* uri, const char** regionp)
 	}
     }
     if(region == NULL)
-	  region = (NC_getglobalstate()->aws.default_region ? NC_getglobalstate()->aws.default_region : "us-east-1"); /* Force use of the Amazon default */
+	/* Force use of the Amazon default */
+	region = (NC_getglobalstate()->aws.default_region
+			? NC_getglobalstate()->aws.default_region
+			: AWS_GLOBAL_DEFAULT_REGION);
 #ifdef AWSDEBUG
     fprintf(stderr,">>> activeregion = |%s|\n",region);
 #endif
