@@ -181,6 +181,10 @@ NC_hashmapnew(size_t startsize)
 	if(startsize == 0) {nullfree(hm); return 0;}
     }
     hm->table = (NC_hentry*)calloc(sizeof(NC_hentry), (size_t)startsize);
+    if(hm->table == NULL) {
+        nullfree(hm);
+        return 0;
+    }
     hm->alloc = startsize;
     hm->active = 0;
     return hm;
