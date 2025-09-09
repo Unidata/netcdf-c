@@ -1192,7 +1192,9 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 	/* else */
 	if(type != NC_VARIABLE)
 		return EINVAL;
-
+	
+	if (ncap->nelems > SIZE_MAX / sizeof(NC_var *))
+		return NC_ERANGE;
 	ncap->value = (NC_var **) calloc(1,ncap->nelems * sizeof(NC_var *));
 	if(ncap->value == NULL)
 		return NC_ENOMEM;
