@@ -511,31 +511,28 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
         }
     }
 
-    /* Does the att exists already? */
+    /* Does the att exist already? */
     if ((attr_exists = H5Aexists(locid, att->hdr.name)) < 0)
         BAIL(NC_EHDFERR);
     if (attr_exists)
     {
-        hssize_t npoints;
-
-        /* Open the attribute. */
+        /* Open the existing attribute. */
         if ((existing_attid = H5Aopen(locid, att->hdr.name, H5P_DEFAULT)) < 0)
             BAIL(NC_EATTMETA);
 
-        /* Find the type of the existing attribute. */
+        /* Get the type of the existing attribute. */
         if ((existing_att_typeid = H5Aget_type(existing_attid)) < 0)
             BAIL(NC_EATTMETA);
 
-        /* How big is the attribute? */
+        /* Get the dataspace of the existing attribute. */
         if ((existing_spaceid = H5Aget_space(existing_attid)) < 0)
             BAIL(NC_EATTMETA);
-        if ((npoints = H5Sget_simple_extent_npoints(existing_spaceid)) < 0)
-            BAIL(NC_EATTMETA);
 
-        /* For text attributes the size is specified in the datatype
-           and it is enough to compare types using H5Tequal(). */
+        /* Is new attribute the same datatype and size as previous?
+         * For text attributes the size is embedded in the datatype, not the dataspace.
+         * H5Sextent_equal will also do the right thing with NULL dataspace cases. */
         if (!H5Tequal(file_typeid, existing_att_typeid) ||
-            (att->nc_typeid != NC_CHAR && npoints != att->len))
+            (!H5Sextent_equal(spaceid, existing_spaceid)))
         {
             /* The attribute exists but we cannot re-use it. */
 
@@ -2470,7 +2467,7 @@ done:
     return stat;
 }
 
-static int NC4_root_att_exists(NC_FILE_INFO_T*, const char* aname);
+static int NC4_strict_att_exists(NC_FILE_INFO_T*);
 static int NC4_walk(hid_t, int*);
 
 /**
@@ -2507,13 +2504,9 @@ NC4_isnetcdf4(struct NC_FILE_INFO* h5)
     int count;
 
     /* Look for NC3_STRICT_ATT_NAME */
-    exists = NC4_root_att_exists(h5,NC3_STRICT_ATT_NAME);
+    exists = NC4_strict_att_exists(h5);
     if(exists)
-        {isnc4 = 1; goto done;}
-    /* Look for _NCProperties */
-    exists = NC4_root_att_exists(h5,NCPROPS);
-    if(exists)
-        {isnc4 = 1; goto done;}
+        goto done;
     /* attribute did not exist */
     /* => last resort: walk the HDF5 file looking for markers */
     count = 0;
@@ -2529,16 +2522,15 @@ done:
 }
 
 /**
- * @internal See if the named root attribute exists.
+ * @internal See if the NC3 strict attribute exists.
  *
  * @param h5 Pointer to HDF5 file info struct.
- * @param aname attribute name for which to look.
  *
- * @returns -1 if error || 1 if exists || 0 otherwise
+ * @returns 1 if error || exists; 0 otherwise
  * @author Dennis Heimbigner.
  */
 static int
-NC4_root_att_exists(NC_FILE_INFO_T *h5, const char* aname)
+NC4_strict_att_exists(NC_FILE_INFO_T *h5)
 {
     hid_t grpid = -1;
     htri_t attr_exists;
@@ -2547,8 +2539,8 @@ NC4_root_att_exists(NC_FILE_INFO_T *h5, const char* aname)
     grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 
     /* See if the NC3_STRICT_ATT_NAME attribute exists */
-    if ((attr_exists = H5Aexists(grpid, aname))<0)
-        return -1;
+    if ((attr_exists = H5Aexists(grpid, NC3_STRICT_ATT_NAME)) < 0)
+        return 1;
     return (attr_exists?1:0);
 }
 
