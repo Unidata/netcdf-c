@@ -541,6 +541,8 @@ v1h_get_NC_dimarray(v1hs *gsp, NC_dimarray *ncap)
 	if(type != NC_DIMENSION)
 		return EINVAL;
 
+	if (ncap->nelems > SIZE_MAX / sizeof(NC_dim *))
+		return NC_ERANGE;
 	ncap->value = (NC_dim **) calloc(1,ncap->nelems * sizeof(NC_dim *));
 	if(ncap->value == NULL)
 		return NC_ENOMEM;
