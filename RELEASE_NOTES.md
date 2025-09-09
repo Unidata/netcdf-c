@@ -5,9 +5,12 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.9.4 - TBD
+## 4.10.0 - TBD
 
 * Rebuild the S3-related code and other changes necessary to build cleanly on github actions. See [Github #3159](https://github.com/Unidata/netcdf-c/pull/3159) for more information.
+* Add new environmental logging variable for `netCDF4` related logging subsystem, `NC4LOGGING`.  If `libnetcdf` is compiled with logging enabled, logs can be enabled at runtime by setting this environmental variable to the desired log level.  
+* Update ncjson.[ch] and ncproplist.[ch]. Also fix references to old API. Also fix include/netcdf_ncjson.h and include/netcdf_proplist.h builds. See [Github #3086](https://github.com/Unidata/netcdf-c/pull/3086) for more information.
+* Refactor drc.c to move many of its purely utility functions into dutil.c. Also change the NC_mktmp signature. Change other files to match. See [Github #3094](https://github.com/Unidata/netcdf-c/pull/3094) for more information.
 * Provide an auxilliary function, `ncaux_parse_provenance()`, that allows users to parse the _NCProperties attribute into a collection of character pointers. See [Github #3088](https://github.com/Unidata/netcdf-c/pull/3088) for more information.
 * Fix a namespace problem in tinyxml2.cpp. Note that this is a visual studio problem hence use of _MSC_VER. Also turn off DAP4 tests against Hyrax server until DAP4 spec problems are fixed. See [Github #3089](https://github.com/Unidata/netcdf-c/pull/3089) for more information.
 
