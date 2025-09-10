@@ -148,7 +148,7 @@ noop1.cdl unknown.cdl tst_broken_files.c ref_bloscx.cdl			\
 tst_bloscfail.sh tst_fixedstring.sh					\
 ref_fixedstring.cdl tst_filterinstall.sh tst_filter_vlen.sh		\
 tst_filter_misc.sh run_zstd_test.sh run_par_warn_test.sh.in		\
-ref_tmp_tst_warn_out.txt run_empty_vlen_test.sh 
+ref_tmp_tst_warn_out.txt run_zero_len_att_test.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
