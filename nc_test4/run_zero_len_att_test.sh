@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
+
 n=0
 
 while [ "$n" -le 4 ]; do
@@ -12,7 +16,7 @@ while [ "$n" -le 4 ]; do
   fi
 
   # Create new netcdf file with character attribute of length N.
-  sed -e "s/STR1/$value/" << EOF | ncgen -4 -o zero-len-attribute-test.nc
+  sed -e "s/STR1/$value/" << EOF | ${NCGEN} -4 -o zero-len-attribute-test.nc
 netcdf zero-len-attribute-test {
 variables:
   int var1 ;
@@ -30,7 +34,7 @@ EOF
   echo ''
 
     # Overwrite the character attribute with length 0.
-    ./zero-len-attribute-test
+    ./tst_zero_len_att
 
   echo After : 
   h5dump -a comment zero-len-attribute-test.nc \
