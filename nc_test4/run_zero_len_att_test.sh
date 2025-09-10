@@ -35,8 +35,6 @@ EOF
       | grep -e STRSIZE -e DATASPACE -e \:  \
       | tr -s '\n ' ' '
 
-  echo ''
-
     # Overwrite the character attribute with length 0.
     ./tst_zero_len_att
 
@@ -52,7 +50,7 @@ EOF
 
     if [ "${CHECKVAL}" != "NULL" ]; then
       echo ""
-      echo "ERROR: N size ${n}, expected NULL, received ${CHECKVAL_STRIPPED}"
+      echo "ERROR: N size ${n}, expected NULL, received ${CHECKVAL}"
       echo "Exiting"
       echo ""
       exit -1
