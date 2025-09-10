@@ -3,6 +3,10 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+if ! command -v h5dump >/dev/null 2>&1; then
+  echo "h5dump not found, skipping."
+  exit 0
+fi
 
 n=0
 
