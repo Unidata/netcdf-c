@@ -520,11 +520,11 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
         if ((existing_attid = H5Aopen(locid, att->hdr.name, H5P_DEFAULT)) < 0)
             BAIL(NC_EATTMETA);
 
-        /* Get the type of the existing attribute. */
+        /* Get the HDF5 datatype of the existing attribute. */
         if ((existing_att_typeid = H5Aget_type(existing_attid)) < 0)
             BAIL(NC_EATTMETA);
 
-        /* Get the dataspace of the existing attribute. */
+        /* Get the HDF5 dataspace of the existing attribute. */
         if ((existing_spaceid = H5Aget_space(existing_attid)) < 0)
             BAIL(NC_EATTMETA);
 
