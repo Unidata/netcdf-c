@@ -43,6 +43,10 @@ IF(NETCDF_BUILD_UTILITIES)
 # H5 and nczarr Fixed string support
   build_bin_test(build_fixedstring)
   ADD_SH_TEST(nc_test4 tst_fixedstring)
+# H5 and zeor len attribute test
+# See https://github.com/Unidata/netcdf-c/issues/3154
+  build_bin_test(tst_zero_len_att)
+  add_sh_test(nc_test4 run_zero_len_att_test)
 IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
   build_bin_test(tst_filterparser)
   build_bin_test(test_filter)
@@ -57,6 +61,7 @@ IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
   ADD_SH_TEST(nc_test4 tst_specific_filters)
   ADD_SH_TEST(nc_test4 tst_bloscfail)
   ADD_SH_TEST(nc_test4 tst_filter_vlen)
+
   IF(FALSE)
     # This test is too dangerous to run in a parallel make environment.
     # It causes race conditions. So suppress and only test by hand.
