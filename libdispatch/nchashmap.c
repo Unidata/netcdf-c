@@ -173,18 +173,16 @@ NC_hashmapnew(size_t startsize)
     hm = (NC_hashmap*)malloc(sizeof(NC_hashmap));
 
     if(startsize == 0 || startsize < MINTABLESIZE)
-	startsize = MINTABLESIZE;
+	    startsize = MINTABLESIZE;
     else {
-	startsize *= 4;
-	startsize /= 3;
-	startsize = findPrimeGreaterThan(startsize);
-	if(startsize == 0) {nullfree(hm); return 0;}
+        if(startsize > MAX_SIZE / 4){nullfree(hm);return 0;}
+        startsize *= 4;
+        startsize /= 3;
+        startsize = findPrimeGreaterThan(startsize);
+	    if(startsize == 0) {nullfree(hm); return 0;}
     }
     hm->table = (NC_hentry*)calloc(sizeof(NC_hentry), (size_t)startsize);
-    if(hm->table == NULL) {
-        nullfree(hm);
-        return 0;
-    }
+    if(hm->table == NULL) {nullfree(hm);return 0;}
     hm->alloc = startsize;
     hm->active = 0;
     return hm;
