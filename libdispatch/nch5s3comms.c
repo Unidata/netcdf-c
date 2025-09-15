@@ -488,7 +488,7 @@ NCH5_s3comms_hrb_node_insert(VList* list, const char *name, const char *value)
     namelen = nulllen(name);
 
     /* get lowercase name */
-    lowername = (char *)malloc(sizeof(char) * (namelen + 1));
+    lowername = (char *)calloc(namelen + 1, sizeof(char));
     if (lowername == NULL)
         HGOTO_ERROR(H5E_RESOURCE, NC_ENOMEM, FAIL, "cannot make space for lowercase name copy.");
     for (i = 0; i < namelen; i++)
@@ -507,7 +507,7 @@ NCH5_s3comms_hrb_node_insert(VList* list, const char *name, const char *value)
 
     catlen   = namelen + strlen(value) + 2; /* +2 from ": " */
     catwrite = catlen + 3;             /* 3 not 1 to quiet compiler warning */
-    nvcat = (char *)malloc(catwrite);
+    nvcat = (char *)calloc(1,catwrite);
     if (nvcat == NULL)
 	HGOTO_ERROR(H5E_RESOURCE, NC_ENOMEM, FAIL, "cannot make space for concatenated string.");
     ret = snprintf(nvcat, catwrite, "%s: %s", lowername, value);
@@ -621,25 +621,25 @@ NCH5_s3comms_hrb_init_request(const char *_resource, const char *_http_version)
     if (_http_version == NULL)
         _http_version = "HTTP/1.1";
 
-    /* malloc space for and prepare structure */
-    request = (hrb_t *)malloc(sizeof(hrb_t));
+    /* alloc space for and prepare structure */
+    request = (hrb_t *)calloc(1,sizeof(hrb_t));
     if (request == NULL)
         HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "no space for request structure");
     request->magic        = S3COMMS_HRB_MAGIC;
     request->body         = vsnew();
     request->headers	  = vlistnew();
 
-    /* malloc and copy strings for the structure */
+    /* alloc and copy strings for the structure */
     reslen = nulllen(_resource);
 
     if (_resource[0] == '/') {
-        res = (char *)malloc(sizeof(char) * (reslen + 1));
+        res = (char *)calloc(reslen + 1,sizeof(char));
         if (res == NULL)
             HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "no space for resource string");
         memcpy(res, _resource, (reslen + 1));
     }
     else {
-        res = (char *)malloc(sizeof(char) * (reslen + 2));
+        res = (char *)calloc(reslen + 1, sizeof(char));
         if (res == NULL)
             HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "no space for resource string");
         *res = '/';
@@ -648,7 +648,7 @@ NCH5_s3comms_hrb_init_request(const char *_resource, const char *_http_version)
     } /* end if (else resource string not starting with '/') */
 
     vrsnlen = nulllen(_http_version) + 1;
-    vrsn    = (char *)malloc(sizeof(char) * vrsnlen);
+    vrsn    = (char *)calloc(vrsnlen, sizeof(char));
     if (vrsn == NULL)
         HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "no space for http-version string");
     strncpy(vrsn, _http_version, vrsnlen);
@@ -1023,7 +1023,7 @@ NCH5_s3comms_s3r_execute(s3r_t *handle, const char* url,
 done:
     if(httpcodep) *httpcodep = httpcode;
     ncurifree(purl);
-    /* clean any malloc'd resources */
+    /* clean any alloc'd resources */
     curl_reset(handle);
     return (ret_value);;
 } /* NCH5_s3comms_s3r_read */
@@ -1069,6 +1069,7 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
     const char* signingregion = AWS_GLOBAL_DEFAULT_REGION;
 
     TRACE(0,"root=%s region=%s access_id=%s access_key=%s",root,region,access_id,access_key);
+fprintf(stderr,"@@@ open: root=|%s| region=|%s| access_id=|%s| access_key=|%s|\n",root,region,access_id,access_key);
 
 #if S3COMMS_DEBUG_TRACE
     fprintf(stdout, "called NCH5_s3comms_s3r_open.\n");
@@ -1079,7 +1080,7 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
 
     handle = (s3r_t *)calloc(1,sizeof(s3r_t));
     if (handle == NULL)
-	HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for handle.");
+	HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not calloc space for handle.");
 
     handle->magic	= S3COMMS_S3R_MAGIC;
 
@@ -1106,25 +1107,25 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
     /* copy strings */
     if(nulllen(region) != 0) {
         tmplen = nulllen(region) + 1;
-        handle->region = (char *)malloc(sizeof(char) * tmplen);
+        handle->region = (char *)calloc(tmplen,sizeof(char));
         if (handle->region == NULL)
-            HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for handle region copy.");
+            HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not calloc space for handle region copy.");
         memcpy(handle->region, region, tmplen);
     }
 
     if(nulllen(access_id) != 0) {
         tmplen = nulllen(access_id) + 1;
-        handle->accessid = (char *)malloc(sizeof(char) * tmplen);
+        handle->accessid = (char *)calloc(tmplen, sizeof(char));
         if (handle->accessid == NULL)
-            HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for handle ID copy.");
+            HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not alloc space for handle ID copy.");
         memcpy(handle->accessid, access_id, tmplen);
     }
     
     if(nulllen(access_key) != 0) {
         tmplen = nulllen(access_key) + 1;
-        handle->accesskey = (char *)malloc(sizeof(char) * tmplen);
+        handle->accesskey = (char *)calloc(tmplen, sizeof(char));
         if (handle->accesskey == NULL)
-           HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for handle access key copy.");
+           HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not calloc space for handle access key copy.");
         memcpy(handle->accesskey, access_key, tmplen);
     }
 
@@ -1147,6 +1148,14 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
         /* Compute the signing key */
         if (SUCCEED != NCH5_s3comms_signing_key(&signing_key, access_key, signingregion, iso8601now))
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "problem in NCH5_s3comms_s3comms_signing_key.");
+{
+int i;
+fprintf(stderr,"@@@ signing_key: access_key=|%s| signingregion=|%s| iso8601now=|%s|\n", access_key, signingregion, iso8601now);
+fprintf(stderr,"@@@\tsigning_key=|");
+for(i=0;i<(int)SHA256_DIGEST_LENGTH;i++)
+fprintf(stderr,"%hhu",signing_key[i]);
+fprintf(stderr,"|\n");
+}
         if (signing_key == NULL)
             HGOTO_ERROR(H5E_ARGS, NC_EAUTH, NULL, "signing key cannot be null.");
 	handle->signing_key = signing_key;
@@ -1167,6 +1176,11 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
 
     if (CURLE_OK != curl_easy_setopt(curlh, CURLOPT_FAILONERROR, 1L))
         HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "error while setting CURL option (CURLOPT_FAILONERROR).");
+
+    if(getenv("CURLOPT_VERBOSE") != NULL) {
+	if (CURLE_OK != curl_easy_setopt(curlh, CURLOPT_VERBOSE, 1L))
+            HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "error while setting CURL option (CURLOPT_VERBOSE).");
+    }
 
     handle->curlhandle = curlh;
 
@@ -1249,7 +1263,7 @@ done:
     if(httpcodep) *httpcodep = httpcode;
     (void)vsextract(wrap);
     vsfree(wrap);
-    /* clean any malloc'd resources */
+    /* clean any alloc'd resources */
     nullfree(rangebytesstr);
     curl_reset(handle);
     return UNTRACE(ret_value);;
@@ -1300,7 +1314,7 @@ done:
     if(httpcodep) *httpcodep = httpcode;
     (void)vsextract(wrap);
     vsfree(wrap);
-    /* clean any malloc'd resources */
+    /* clean any alloc'd resources */
     vlistfreeall(otherheaders);
     curl_reset(handle);
     return UNTRACE(ret_value);
@@ -1342,7 +1356,7 @@ NCH5_s3comms_s3r_getkeys(s3r_t *handle, const char* url, s3r_buf_t* response, lo
 done:
     if(httpcodep) *httpcodep = httpcode;
     vsfree(content);
-    /* clean any malloc'd resources */
+    /* clean any alloc'd resources */
     curl_reset(handle);
     return UNTRACEX(ret_value,"response=[%d]",ncbyteslength(response));
 } /* NCH5_s3comms_s3r_getkeys */
@@ -2020,7 +2034,7 @@ NCH5_s3comms_signing_key(unsigned char **mdp, const char *secret, const char *re
         HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "`iso8601now` cannot be NULL.");
 
     AWS4_secret_len = 4 + nulllen(secret) + 1;
-    AWS4_secret     = (char *)malloc(sizeof(char *) * AWS4_secret_len);
+    AWS4_secret     = (char *)calloc(AWS4_secret_len,sizeof(char *));
     if (AWS4_secret == NULL)
         HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "Could not allocate space.");
 
@@ -2030,7 +2044,7 @@ NCH5_s3comms_signing_key(unsigned char **mdp, const char *secret, const char *re
         HGOTO_ERRORVA(H5E_ARGS, NC_EINVAL, FAIL, "problem writing AWS4+secret `%s`", secret);
 
     if((md = (unsigned char*)calloc(1,SHA256_DIGEST_LENGTH))==NULL)
-       HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for signing key .");
+       HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not alloc space for signing key .");
 
     /* hash_func, key, len(key), msg, len(msg), digest_dest, digest_len_dest
      * we know digest length, so ignore via NULL
@@ -2717,18 +2731,18 @@ build_range(size_t offset, size_t len, char** rangep)
     int                ret           = 0; /* working variable to check  */
                                           /* return value of snprintf  */
     if (len > 0) {
-        rangebytesstr = (char *)malloc(sizeof(char) * (S3COMMS_MAX_RANGE_STRING_SIZE + 1));
+        rangebytesstr = (char *)calloc(S3COMMS_MAX_RANGE_STRING_SIZE + 1,sizeof(char));
         if (rangebytesstr == NULL)
-            HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, FAIL, "could not malloc range format string.");
+            HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, FAIL, "could not alloc range format string.");
         ret = snprintf(rangebytesstr, (S3COMMS_MAX_RANGE_STRING_SIZE), "bytes=%lld-%lld",
                          (long long)offset, (long long)(offset + len - 1));
         if (ret <= 0 || ret >= S3COMMS_MAX_RANGE_STRING_SIZE)
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "unable to format HTTP Range value");
     }
     else if (offset > 0) {
-        rangebytesstr = (char *)malloc(sizeof(char) * (S3COMMS_MAX_RANGE_STRING_SIZE + 1));
+        rangebytesstr = (char *)calloc(S3COMMS_MAX_RANGE_STRING_SIZE + 1,sizeof(char));
         if (rangebytesstr == NULL)
-            HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, FAIL, "could not malloc range format string.");
+            HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, FAIL, "could not alloc range format string.");
         ret = snprintf(rangebytesstr, (S3COMMS_MAX_RANGE_STRING_SIZE), "bytes=%lld-", (long long)offset);
         if (ret <= 0 || ret >= S3COMMS_MAX_RANGE_STRING_SIZE)
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "unable to format HTTP Range value");
