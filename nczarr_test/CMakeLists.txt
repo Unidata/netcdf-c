@@ -142,13 +142,18 @@ IF(NETCDF_ENABLE_TESTS)
     BUILD_BIN_TEST(s3util ${COMMONSRC})
   # Pure AWS Test
     IF(NETCDF_ENABLE_S3_AWS)
+      MESSAGE(WARNING "!!!!!! AWSSDK_INCLUDE_DIR: ${AWSSDK_INCLUDE_DIR}")
       SET(TMP_CMAKE_CXX_STANDARD ${MAKE_CXX_STANDARD})
       SET(CMAKE_CXX_STANDARD 11)
       ADD_EXECUTABLE(tst_pure_awssdk tst_pure_awssdk.cpp)
+      target_include_directories(tst_pure_awssdk 
+        PRIVATE 
+        ${AWSSDK_INCLUDE_DIR})
       TARGET_LINK_LIBRARIES(tst_pure_awssdk ${AWSSDK_CORE_LIB_FILE})
-      target_include_directories(tst_pure_awssdk PRIVATE ${AWSSDK_INCLUDE_DIR})
+
       ADD_TEST(tst_pure_awssdk ${EXECUTABLE_PUTPUT_PATH}/tst_pure_awssdk)
       SET(F tst_pure_awssdk)
+
       IF(WIN32)
         SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
         SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
