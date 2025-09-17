@@ -252,10 +252,15 @@ s3io_close(ncio* nciop, int deleteit)
     s3io = (NCS3IO*)nciop->pvt;
     assert(s3io != NULL);
 
+
     if(s3io->s3client && s3io->s3.bucket && s3io->s3.rootkey) {
+
+#ifdef NETCDF_ENABLE_S3_INTERNAL
 	if(deleteit)
 	    NC_s3sdktruncate(s3io->s3client, s3io->s3.bucket, s3io->s3.rootkey, &s3io->errmsg);
         NC_s3sdkclose(s3io->s3client, &s3io->errmsg);
+#endif
+
     }
     s3io->s3client = NULL;
     NC_s3clear(&s3io->s3);
