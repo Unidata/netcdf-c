@@ -1624,7 +1624,7 @@ isdaoscontainer(const char* path)
     }
 #else /*!HAVE_GETFATTR*/
     /* We just can't test for DAOS container.*/
-    stat = 0;
+    rc = 0;
 #endif /*HAVE_GETFATTR*/
 #endif /*HAVE_SYS_XATTR_H*/
     }
