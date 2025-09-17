@@ -287,7 +287,7 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
         /* Move to front of the lru */
         (void)ncxcachetouch(cache->xcache,hkey);
         break;
-    case NC_ENOOBJECT:
+    case NC_ENOOBJECT: case NC_EEMPTY:
         entry = NULL; /* not found; */
 	break;
     default: goto done;
@@ -703,7 +703,7 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     switch(stat) {
     case NC_NOERR:
 	break;
-    case NC_EEMPTY:
+    case NC_ENOOBJECT: case NC_EEMPTY:
     default: goto done;
     }
 done:
@@ -755,7 +755,7 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     nullfree(path); path = NULL;
     switch(stat) {
     case NC_NOERR: entry->size = size; break;
-    case NC_EEMPTY: empty = 1; stat = NC_NOERR; break;
+    case NC_ENOOBJECT: case NC_EEMPTY: empty = 1; stat = NC_NOERR; break;
     default: goto done;
     }
 
@@ -772,7 +772,7 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
         nullfree(path); path = NULL;
         switch (stat) {
         case NC_NOERR: break;
-        case NC_EEMPTY: empty = 1; stat = NC_NOERR;break;
+        case NC_ENOOBJECT: case NC_EEMPTY: empty = 1; stat = NC_NOERR;break;
 	default: goto done;
 	}
         entry->isfiltered = (int)FILTERED(cache); /* Is the data being read filtered? */

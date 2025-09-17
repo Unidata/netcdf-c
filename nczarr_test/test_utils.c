@@ -4,11 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
-#include <ncpathmgr.h>
-#include <nclist.h>
-#include <ncuri.h>
-#include <nclog.h>
+#include "netcdf.h"
+#include "ncpathmgr.h"
+#include "nclist.h"
+#include "ncuri.h"
+#include "nclog.h"
+#include "ncutil.h"
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -603,7 +604,7 @@ filenamefor(const char* f0)
     char* p;
 
     strcpy(result,f0); /* default */
-    if(nc__testurl(f0,NULL)) goto done;
+    if(NC__testurl(f0,NULL,NULL)) goto done;
     /* Not a URL */
     p = strrchr(f0,'.'); /* look at the extension, if any */
     if(p == NULL) goto done; /* No extension */

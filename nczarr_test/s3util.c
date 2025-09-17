@@ -277,7 +277,7 @@ s3list(void)
 
 done:
     s3shutdown(0);
-    NCZ_freeenvv(nkeys,keys);    
+    NC_freeenvv(nkeys,keys);    
     return stat;
 }
 
@@ -311,7 +311,7 @@ s3clear(void)
     }
 
 done:
-    NCZ_freeenvv(nkeys,keys);    
+    NC_freeenvv(nkeys,keys);    
     s3shutdown(0);
     return stat;
 }
@@ -341,7 +341,7 @@ s3print(void)
 done:
     if(content) free(content);
     s3shutdown(0);
-    NCZ_freeenvv(nkeys,keys);    
+    NC_freeenvv(nkeys,keys);    
     return stat;
 }
 

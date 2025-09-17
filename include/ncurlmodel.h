@@ -17,23 +17,11 @@ typedef struct NCmode {
     int implementation; /* NC_FORMATX_XXX value */
 } NCmode;
 
-/* return 1 if path looks like a url; 0 otherwise */
-EXTERNL int NC_testurl(const char* path);
-
 /*
 Return an NC_FORMATX_... value.
 Assumes that the path is known to be a url.
 */
 EXTERNL int NC_urlmodel(const char* path, int mode, char** newurl, NCmode* model);
-
-/**
- * Provide a hidden interface to allow utilities
- * to check if a given path name is really an ncdap3 url.
- * If no, put null in basenamep, else put basename of the url
- * minus any extension into basenamep; caller frees.
- * Return 1 if it looks like a url, 0 otherwise.
- */
-EXTERNL int nc__testurl(const char* path, char** basenamep);
 
 /* allow access url parse and params without exposing nc_url.h */
 EXTERNL int NCDAP_urlparse(const char* s, void** dapurl);

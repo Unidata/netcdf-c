@@ -5,6 +5,13 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+if test "x$TESTNCZARR" = x1 ; then
+. "$srcdir/test_nczarr.sh"
+s3isolate "testdir_specific_filters"
+THISDIR=`pwd`
+cd $ISOPATH
+fi
+
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
@@ -30,17 +37,12 @@ trimleft() {
 sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 }
 
-if test "x$TESTNCZARR" = x1 ; then
-. "$srcdir/test_nczarr.sh"
-fi
-
-if ! avail blosc; then echo "Blosc compressor not found"; exit 0; fi
-
 # Locate the plugin dir and the library names; argument order is critical
-# Find bzip2 and capture
-findplugin h5blosc
+# Find blosc and capture
+if ! avail blosc; then exit 0; fi
+findplugin h5bzip2
 BLOSCLIB="${HDF5_PLUGIN_LIB}"
-BLOSCDIR="${HDF5_PLUGIN_DIR}/${BZIP2LIB}"
+BLOSCDIR="${HDF5_PLUGIN_DIR}/${BLOSCLIB}"
 
 echo "final HDF5_PLUGIN_DIR=${HDF5_PLUGIN_DIR}"
 export HDF5_PLUGIN_DIR

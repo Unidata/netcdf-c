@@ -21,6 +21,7 @@
 #endif
 #endif
 #include "ncrc.h"
+#include "ncutil.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "ochttp.h"

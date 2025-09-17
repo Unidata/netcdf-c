@@ -13,6 +13,7 @@ target_sources(dispatch
     daux.c dinstance.c dinstance_intern.c
     dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c
     ncproplist.c 
+    ncindex.c
 )
 
 if (NETCDF_ENABLE_DLL)
