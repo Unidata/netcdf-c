@@ -46,11 +46,11 @@ EOF
   
   CHECKVAL=$(h5dump -a comment zero-len-attribute-test.nc \
     | grep -e STRSIZE -e DATASPACE -e \:  \
-    | tr -s '\n ' ' ' | cut -d ' ' -f 5 | xargs)
+    | tr -s '\n ' ' ' | cut -d ' ' -f 4,5 | xargs)
 
-    if [ "${CHECKVAL}" != "NULL" ]; then
+    if [ "${CHECKVAL}" != "DATASPACE NULL" ]; then
       echo ""
-      echo "ERROR: N size ${n}, expected NULL, received ${CHECKVAL}"
+      echo "ERROR: N size ${n}, expected DATASPACE NULL, received ${CHECKVAL}"
       echo "Exiting"
       echo ""
       exit -1
