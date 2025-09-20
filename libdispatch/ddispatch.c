@@ -183,9 +183,9 @@ NC_createglobalstate(void)
     if(tmp != NULL && strlen(tmp) > 0)
         nc_globalstate->rcinfo->rcfile = strdup(tmp);
     /* Initialize chunk cache defaults */
-    nc_globalstate->chunkcache.size = DEFAULT_CHUNK_CACHE_SIZE;		    /**< Default chunk cache size. */
-    nc_globalstate->chunkcache.nelems = DEFAULT_CHUNKS_IN_CACHE;	    /**< Default chunk cache number of elements. */
-    nc_globalstate->chunkcache.preemption = DEFAULT_CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
+    nc_globalstate->chunkcache->size = DEFAULT_CHUNK_CACHE_SIZE;		    /**< Default chunk cache size. */
+    nc_globalstate->chunkcache->nelems = DEFAULT_CHUNKS_IN_CACHE;	    /**< Default chunk cache number of elements. */
+    nc_globalstate->chunkcache->preemption = DEFAULT_CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
     
 done:
     return stat;
@@ -207,11 +207,13 @@ NC_freeglobalstate(void)
         nullfree(nc_globalstate->tempdir);
         nullfree(nc_globalstate->home);
         nullfree(nc_globalstate->cwd);
+#if 0
 	nullfree(nc_globalstate->aws.default_region);
 	nullfree(nc_globalstate->aws.config_file);
 	nullfree(nc_globalstate->aws.profile);
 	nullfree(nc_globalstate->aws.access_key_id);
 	nullfree(nc_globalstate->aws.secret_access_key);
+#endif
         if(nc_globalstate->rcinfo) {
 	    NC_rcclear(nc_globalstate->rcinfo);
 	    free(nc_globalstate->rcinfo);
