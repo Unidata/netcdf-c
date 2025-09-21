@@ -511,31 +511,28 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
         }
     }
 
-    /* Does the att exists already? */
+    /* Does the att exist already? */
     if ((attr_exists = H5Aexists(locid, att->hdr.name)) < 0)
         BAIL(NC_EHDFERR);
     if (attr_exists)
     {
-        hssize_t npoints;
-
-        /* Open the attribute. */
+        /* Open the existing attribute. */
         if ((existing_attid = H5Aopen(locid, att->hdr.name, H5P_DEFAULT)) < 0)
             BAIL(NC_EATTMETA);
 
-        /* Find the type of the existing attribute. */
+        /* Get the HDF5 datatype of the existing attribute. */
         if ((existing_att_typeid = H5Aget_type(existing_attid)) < 0)
             BAIL(NC_EATTMETA);
 
-        /* How big is the attribute? */
+        /* Get the HDF5 dataspace of the existing attribute. */
         if ((existing_spaceid = H5Aget_space(existing_attid)) < 0)
             BAIL(NC_EATTMETA);
-        if ((npoints = H5Sget_simple_extent_npoints(existing_spaceid)) < 0)
-            BAIL(NC_EATTMETA);
 
-        /* For text attributes the size is specified in the datatype
-           and it is enough to compare types using H5Tequal(). */
+        /* Is new attribute the same datatype and size as previous?
+         * For text attributes the size is embedded in the datatype, not the dataspace.
+         * H5Sextent_equal will also do the right thing with NULL dataspace cases. */
         if (!H5Tequal(file_typeid, existing_att_typeid) ||
-            (att->nc_typeid != NC_CHAR && npoints != att->len))
+            (!H5Sextent_equal(spaceid, existing_spaceid)))
         {
             /* The attribute exists but we cannot re-use it. */
 

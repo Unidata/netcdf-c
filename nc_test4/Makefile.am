@@ -44,8 +44,9 @@ endif
 NC4_TESTS += tst_h_strbug tst_h_refs
 
 # Build test programs plus programs used in test scripts.
-check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug tst_vlenstr
-TESTS = $(NC4_TESTS) run_empty_vlen_test.sh
+check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug \ 
+tst_vlenstr tst_zero_len_att
+TESTS = $(NC4_TESTS) run_empty_vlen_test.sh run_zero_len_att_test.sh
 XFAIL_TESTS =
 
 # Add these if large file tests are turned on.
@@ -147,7 +148,7 @@ noop1.cdl unknown.cdl tst_broken_files.c ref_bloscx.cdl			\
 tst_bloscfail.sh tst_fixedstring.sh					\
 ref_fixedstring.cdl tst_filterinstall.sh tst_filter_vlen.sh		\
 tst_filter_misc.sh run_zstd_test.sh run_par_warn_test.sh.in		\
-ref_tmp_tst_warn_out.txt
+ref_tmp_tst_warn_out.txt run_zero_len_att_test.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
@@ -160,7 +161,8 @@ floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
 testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
 testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
 tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp                 \
-tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp tmp_*.cdl ref_fixedstring.h5
+tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp tmp_*.cdl ref_fixedstring.h5 \
+zero-len-attribute-test.nc
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh run_par_warn_test.sh	
 
