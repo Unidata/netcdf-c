@@ -910,9 +910,9 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		h5->uri = newuri;
 	        if((retval = NC_getactives3profile(h5->uri,&profile0)))
 		    BAIL(retval);
-   	        if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
+   	        if((retval = NC_s3profilelookup(profile0,AWS_PROF_ACCESS_KEY_ID,&awsaccessid0)))
 		    BAIL(retval);		
-		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
+		if((retval = NC_s3profilelookup(profile0,AWS_PROF_SECRET_ACCESS_KEY,&awssecretkey0)))
 		    BAIL(retval);		
 		if(s3.region == NULL)
 		    s3.region = strdup(AWS_GLOBAL_DEFAULT_REGION);
