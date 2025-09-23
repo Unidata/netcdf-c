@@ -15,6 +15,7 @@ struct NClist;
 struct NCURI;
 struct NCRCinfo;
 struct NCZ_Plugin;
+struct GlobalAWS;
 
 /**************************************************/
 /* Begin to collect global state info in one place (more to do) */
@@ -35,20 +36,16 @@ typedef struct NCglobalstate {
 	/* All possible HDF5 filter plugins */
 	/* Consider onverting to linked list or hash table or
 	   equivalent since very sparse */
-	struct NCZ_Plugin** loaded_plugins; //[H5Z_FILTER_MAX+1];
+	struct NCZ_Plugin** loaded_plugins; /*[H5Z_FILTER_MAX+1]*/
 	size_t loaded_plugins_max; /* plugin filter id index. 0<loaded_plugins_max<=H5Z_FILTER_MAX */
     } zarr;
-#if 0
-    struct NCAWSPARAMS { /* AWS S3 specific parameters/defaults */
-	char* region;
+    struct GlobalAWS { /* AWS S3 specific parameters/defaults */
 	char* default_region;
 	char* config_file;
 	char* profile;
 	char* access_key_id;
 	char* secret_access_key;
-	char* session_token;
     } aws;
-#endif
     struct Alignment { /* H5Pset_alignment parameters */
         int defined; /* 1 => threshold and alignment explicitly set */
 	int threshold;
@@ -58,7 +55,7 @@ typedef struct NCglobalstate {
         size_t size;     /**< Size in bytes of the var chunk cache. */
         size_t nelems;   /**< Number of slots in var chunk cache. */
         float preemption; /**< Chunk cache preemtion policy. */
-    }* chunkcache;
+    } *chunkcache; /* Note that this is now a pointer to an allocated struct */
 } NCglobalstate;
 
 /* Externally visible */
@@ -74,6 +71,7 @@ void NC_freeglobalstate(void);
 
 /* Extract AWS values from various sources */
 void NC_awsglobal(void);
+#if 0
 void NC_awsnczfile(NCAWSPARAMS* zfileaws, struct NCURI* uri);
 void NC_awsenvironment(NCAWSPARAMS* aws);
 void NC_awsrc(NCAWSPARAMS* aws, struct NCURI* uri);
@@ -82,6 +80,8 @@ void NC_awsparamsmerge(NCAWSPARAMS* baseaws, NCAWSPARAMS* newaws);
 void NC_cloneawsparams(NCAWSPARAMS* clone, NCAWSPARAMS* aws);
 void NC_clearawsparams(NCAWSPARAMS*);
 NCAWSPARAMS NC_awsparams_empty(void);
+#endif
+void NC_clearawsparams(struct GlobalAWS*);
 
 #if defined(__cplusplus)
 }

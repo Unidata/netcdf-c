@@ -142,6 +142,8 @@ NCDISPATCH_finalize(void)
     return status;
 }
 
+#if 0
+
 /**************************************************/
 /* Global State constants and state */
 
@@ -225,6 +227,8 @@ NC_freeglobalstate(void)
 }
 
 /** \} */
+
+#endif
 
 /**************************************************/
 /** \defgroup atomic_types Atomic Type functions */

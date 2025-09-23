@@ -825,12 +825,12 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     if (!nc4_info->parallel)
     {
 	NCglobalstate* gs = NC_getglobalstate();
-	if (H5Pset_cache(fapl_id, 0, gs->chunkcache.nelems, gs->chunkcache.size,
-			 gs->chunkcache.preemption) < 0)
+	if (H5Pset_cache(fapl_id, 0, gs->chunkcache->nelems, gs->chunkcache->size,
+			 gs->chunkcache->preemption) < 0)
 	    BAIL(NC_EHDFERR);
 	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-	     __func__, gs->chunkcache.size, gs->chunkcache.nelems,
-	     gs->chunkcache.preemption));
+	     __func__, gs->chunkcache->size, gs->chunkcache->nelems,
+	     gs->chunkcache->preemption));
     }
 
     {
@@ -1479,10 +1479,10 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
         BAIL(NC_EVARMETA);
 
     /* Learn about current chunk cache settings. */
-    if ((H5Pget_chunk_cache(access_pid, &(var->chunkcache.nelems),
-                            &(var->chunkcache.size), &rdcc_w0)) < 0)
+    if ((H5Pget_chunk_cache(access_pid, &(var->chunkcache->nelems),
+                            &(var->chunkcache->size), &rdcc_w0)) < 0)
         BAIL(NC_EHDFERR);
-    var->chunkcache.preemption = (float)rdcc_w0;
+    var->chunkcache->preemption = (float)rdcc_w0;
 
     /* Get the dataset creation properties. */
     if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)

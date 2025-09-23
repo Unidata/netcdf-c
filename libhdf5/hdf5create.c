@@ -152,12 +152,12 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     if (!nc4_info->parallel)
     {
 	NCglobalstate* gs = NC_getglobalstate();
-	if (H5Pset_cache(fapl_id, 0, gs->chunkcache.nelems, gs->chunkcache.size,
-			 gs->chunkcache.preemption) < 0)
+	if (H5Pset_cache(fapl_id, 0, gs->chunkcache->nelems, gs->chunkcache->size,
+			 gs->chunkcache->preemption) < 0)
 	    BAIL(NC_EHDFERR);
 	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-	     __func__, gs->chunkcache.size, gs->chunkcache.nelems,
-	     gs->chunkcache.preemption));
+	     __func__, gs->chunkcache->size, gs->chunkcache->nelems,
+	     gs->chunkcache->preemption));
     }
 
     {

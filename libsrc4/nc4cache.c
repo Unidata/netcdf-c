@@ -68,9 +68,9 @@ nc_set_chunk_cache(size_t size, size_t nelems, float preemption)
     NCglobalstate* gs = NC_getglobalstate();
     if (preemption < 0 || preemption > 1)
         return NC_EINVAL;
-    gs->chunkcache.size = size;
-    gs->chunkcache.nelems = nelems;
-    gs->chunkcache.preemption = preemption;
+    gs->chunkcache->size = size;
+    gs->chunkcache->nelems = nelems;
+    gs->chunkcache->preemption = preemption;
     return NC_NOERR;
 }
 
@@ -96,13 +96,13 @@ nc_get_chunk_cache(size_t *sizep, size_t *nelemsp, float *preemptionp)
 {
     NCglobalstate* gs = NC_getglobalstate();
     if (sizep)
-        *sizep = gs->chunkcache.size;
+        *sizep = gs->chunkcache->size;
 
     if (nelemsp)
-        *nelemsp = gs->chunkcache.nelems;
+        *nelemsp = gs->chunkcache->nelems;
 
     if (preemptionp)
-        *preemptionp = gs->chunkcache.preemption;
+        *preemptionp = gs->chunkcache->preemption;
     return NC_NOERR;
 }
 
@@ -127,9 +127,9 @@ nc_set_chunk_cache_ints(int size, int nelems, int preemption)
     NCglobalstate* gs = NC_getglobalstate();
     if (size <= 0 || nelems <= 0 || preemption < 0 || preemption > 100)
         return NC_EINVAL;
-    gs->chunkcache.size = (size_t)size;
-    gs->chunkcache.nelems = (size_t)nelems;
-    gs->chunkcache.preemption = (float)preemption / 100;
+    gs->chunkcache->size = (size_t)size;
+    gs->chunkcache->nelems = (size_t)nelems;
+    gs->chunkcache->preemption = (float)preemption / 100;
     return NC_NOERR;
 }
 
@@ -153,11 +153,11 @@ nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 {
     NCglobalstate* gs = NC_getglobalstate();
     if (sizep)
-        *sizep = (int)gs->chunkcache.size;
+        *sizep = (int)gs->chunkcache->size;
     if (nelemsp)
-        *nelemsp = (int)gs->chunkcache.nelems;
+        *nelemsp = (int)gs->chunkcache->nelems;
     if (preemptionp)
-        *preemptionp = (int)(gs->chunkcache.preemption * 100);
+        *preemptionp = (int)(gs->chunkcache->preemption * 100);
 
     return NC_NOERR;
 }

@@ -77,10 +77,5 @@ CLEANFILES = reclaim_tests*.txt reclaim_tests.nc reclaim_tests.dmp tmp_*.txt
 clean-local:
 	rm -fr testdir_* testset_*
 
-check-local:
-	echo "@@@"
-	pwd
-	if ls -ld *.sh ; then x=1; else x=0; fi
-
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

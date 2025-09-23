@@ -98,6 +98,7 @@ NC_freeglobalstate(void)
 
 /** \} */
 
+#if 0
 /* Aws Param management */
 void
 NC_cloneawsparams(struct NCAWSPARAMS* clone, struct NCAWSPARAMS* aws)
@@ -112,26 +113,25 @@ NC_cloneawsparams(struct NCAWSPARAMS* clone, struct NCAWSPARAMS* aws)
     clone->secret_access_key = nulldup(aws->secret_access_key);
 }
 
-void
-NC_clearawsparams(struct NCAWSPARAMS* aws)
-{
-    nullfree(aws->region);
-    nullfree(aws->default_region);
-    nullfree(aws->config_file);
-    nullfree(aws->profile);
-    nullfree(aws->session_token);
-    nullfree(aws->access_key_id);
-    nullfree(aws->secret_access_key);
-    nullfree(aws->session_token);
-    memset(aws,0,sizeof(struct NCAWSPARAMS));
-}
-
 NCAWSPARAMS
 NC_awsparams_empty(void)
 {
     NCAWSPARAMS aws;
     memset(&aws,0,sizeof(NCAWSPARAMS));
     return aws;
+}
+
+#endif
+
+void
+NC_clearawsparams(struct GlobalAWS* aws)
+{
+    nullfree(aws->default_region);
+    nullfree(aws->config_file);
+    nullfree(aws->profile);
+    nullfree(aws->access_key_id);
+    nullfree(aws->secret_access_key);
+    memset(aws,0,sizeof(struct GlobalAWS));
 }
 
 /**************************************************/
@@ -156,10 +156,10 @@ Note: 4 takes precedent over 3 takes precedent over and 2 takes precedent over 1
 EXTERNL void
 NC_awsglobal(void)
 {
-    NCAWSPARAMS aws;
     NCglobalstate* gs = NC_getglobalstate();
-
 #if 0
+    NCAWSPARAMS aws;
+
     aws = NC_awsparams_empty();
     NC_clearawsparams(&gs->aws);
     

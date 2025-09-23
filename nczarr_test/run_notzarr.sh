@@ -26,6 +26,7 @@ testfailed() {
 }
 
 # Make test sets
+rm -fr ./ref_notzarr.tar.gz ./ref_notzarr.tar
 cp ${srcdir}/ref_notzarr.tar.gz .
 gunzip ref_notzarr.tar.gz
 tar -xf ref_notzarr.tar
