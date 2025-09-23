@@ -69,18 +69,6 @@ extern "C" {
 struct NCglobalstate* NC_getglobalstate(void);
 void NC_freeglobalstate(void);
 
-/* Extract AWS values from various sources */
-void NC_awsglobal(void);
-#if 0
-void NC_awsnczfile(NCAWSPARAMS* zfileaws, struct NCURI* uri);
-void NC_awsenvironment(NCAWSPARAMS* aws);
-void NC_awsrc(NCAWSPARAMS* aws, struct NCURI* uri);
-void NC_awsfrag(NCAWSPARAMS* aws, struct NCURI* uri);
-void NC_awsparamsmerge(NCAWSPARAMS* baseaws, NCAWSPARAMS* newaws);
-void NC_cloneawsparams(NCAWSPARAMS* clone, NCAWSPARAMS* aws);
-void NC_clearawsparams(NCAWSPARAMS*);
-NCAWSPARAMS NC_awsparams_empty(void);
-#endif
 void NC_clearawsparams(struct GlobalAWS*);
 
 #if defined(__cplusplus)
