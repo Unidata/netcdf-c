@@ -32,8 +32,8 @@ jobs:
       - name: Update Homebrew
         run: brew update
 
-      - name: Install libtool
-        run: brew install libtool
+      - name: Install autotools
+        run: brew install libtool autoconf automake coreutils gnu-tar 
 
         ###
         # libhdf5
