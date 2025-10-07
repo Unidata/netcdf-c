@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.10.0 - TBD
 
-
+* Update `macOS` github runners from macos-13 to macos-14, due to deprecation. 
 * Fix an error compiling netCDF with AWS-S3-SDK support using cmake. See [Github 3155](https://github.com/Unidata/netcdf-c/issues/3155) for more information. 
 * Add new environmental logging variable for `netCDF4` related logging subsystem, `NC4LOGGING`.  If `libnetcdf` is compiled with logging enabled, logs can be enabled at runtime by setting this environmental variable to the desired log level.  
 * Clean up the S3 API for all non-libnczarr code. This continues the splitting of PR [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068).
