@@ -318,6 +318,10 @@ jobs:
         shell: bash -l {0}
         run: |
           brew update
+          echo ""
+          echo "Checking installed packagesin homebrew"
+          brew list
+          echo ""
           brew install libtool autoconf automake coreutils
 
       - name: Run autoconf
