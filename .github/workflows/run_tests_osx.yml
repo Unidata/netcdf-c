@@ -27,6 +27,15 @@ jobs:
       - uses: actions/checkout@v4
 
         ###
+        # Install dependences
+        ###
+      - name: Update Homebrew
+        run: brew update
+
+      - name: Install libtool
+        run: brew install libtool
+
+        ###
         # libhdf5
         ###
       - name: Cache libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
