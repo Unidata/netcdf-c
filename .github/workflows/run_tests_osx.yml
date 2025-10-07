@@ -27,15 +27,6 @@ jobs:
       - uses: actions/checkout@v4
 
         ###
-        # Install dependences
-        ###
-      - name: Update Homebrew
-        run: brew update
-
-      - name: Install autotools
-        run: brew install libtool autoconf automake coreutils gnu-tar 
-
-        ###
         # libhdf5
         ###
       - name: Cache libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -325,14 +316,16 @@ jobs:
 
       - name: Install autoconf
         shell: bash -l {0}
-        run: brew install automake autoconf libtool m4
+        run: |
+          brew update
+          brew install libtool autoconf automake coreutils
 
       - name: Run autoconf
         shell: bash -l {0}
         run: |
           which autoreconf 
-          ls /opt/homebrew/share
-          autoreconf -if -I /opt/homebrew/share/aclocal
+          ls /opt/homebrew/share/aclocal
+          autoreconf -if
 
       - name: Configure
         shell: bash -l {0}
