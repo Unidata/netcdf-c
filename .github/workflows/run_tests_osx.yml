@@ -329,7 +329,9 @@ jobs:
 
       - name: Run autoconf
         shell: bash -l {0}
-        run: autoreconf -if
+        run: which autoreconf && ls /opt/homebrew/share && autoreconf -if -I /opt/homebrew/share/aclocal
+
+      - 
 
       - name: Configure
         shell: bash -l {0}
