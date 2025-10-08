@@ -6,7 +6,7 @@
 
 name: Run macOS-based netCDF Tests
 
-on: [pull_request,workflow_dispatch]
+on: [push,pull_request,workflow_dispatch]
 
 concurrency:  
   group: ${{ github.workflow}}-${{ github.head_ref }}  
@@ -16,7 +16,7 @@ jobs:
 
   build-deps-osx:
 
-    runs-on: macos-13
+    runs-on: macos-14
 
     strategy:
       matrix:
@@ -62,7 +62,7 @@ jobs:
   nc-autotools-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
-    runs-on: macos-13
+    runs-on: macos-14
 
     strategy:
       matrix:
@@ -125,7 +125,7 @@ jobs:
       ###
       - name: Install autoconf
         shell: bash -l {0}
-        run: brew install automake m4
+        run: brew install libtool autoconf automake coreutils m4
 
       - name: Run autoconf
         shell: bash -l {0}
@@ -175,7 +175,7 @@ jobs:
   nc-cmake-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
-    runs-on: macos-13
+    runs-on: macos-14
 
     strategy:
       matrix:
@@ -277,7 +277,7 @@ jobs:
   nc-ac-tests-oneoff-osx:
 
     needs: build-deps-osx
-    runs-on: macos-13
+    runs-on: macos-14
 
     strategy:
       matrix:
@@ -316,11 +316,20 @@ jobs:
 
       - name: Install autoconf
         shell: bash -l {0}
-        run: brew install automake
+        run: |
+          brew update
+          echo ""
+          echo "Checking installed packagesin homebrew"
+          brew list
+          echo ""
+          brew install libtool autoconf automake coreutils m4
 
       - name: Run autoconf
         shell: bash -l {0}
-        run: autoreconf -if
+        run: |
+          which autoreconf 
+          ls /opt/homebrew/share/aclocal
+          autoreconf -if
 
       - name: Configure
         shell: bash -l {0}
@@ -358,7 +367,7 @@ jobs:
   nc-cmake-tests-oneoff-osx-shared:
 
     needs: build-deps-osx
-    runs-on: macos-13
+    runs-on: macos-14
 
     strategy:
       matrix:
@@ -432,7 +441,7 @@ jobs:
   nc-cmake-tests-oneoff-osx-static:
 
     needs: build-deps-osx
-    runs-on: macos-13
+    runs-on: macos-14
 
     strategy:
       matrix:
