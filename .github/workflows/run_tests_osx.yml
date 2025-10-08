@@ -125,7 +125,7 @@ jobs:
       ###
       - name: Install autoconf
         shell: bash -l {0}
-        run: brew install automake m4
+        run: brew install libtool autoconf automake coreutils m4
 
       - name: Run autoconf
         shell: bash -l {0}
@@ -322,7 +322,7 @@ jobs:
           echo "Checking installed packagesin homebrew"
           brew list
           echo ""
-          brew install libtool autoconf automake coreutils
+          brew install libtool autoconf automake coreutils m4
 
       - name: Run autoconf
         shell: bash -l {0}
