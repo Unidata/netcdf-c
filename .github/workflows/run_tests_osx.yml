@@ -61,7 +61,7 @@ jobs:
 
   nc-autotools-osx:
 
-    needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx, nc-ac-tests-oneoff-osx-intel  ]
+    needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
     runs-on: macos-14
 
     strategy:
@@ -174,7 +174,7 @@ jobs:
 
   nc-cmake-osx:
 
-    needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx, nc-ac-tests-oneoff-osx-intel ]
+    needs: [ nc-cmake-tests-oneoff-osx-shared, nc-cmake-tests-oneoff-osx-static, nc-ac-tests-oneoff-osx ]
     runs-on: macos-14
 
     strategy:
@@ -272,97 +272,7 @@ jobs:
         if: ${{ failure() }}
 
   #####
-  # One-Off Autotools-based tests, Intel.
-  # Using macos-15-intel for this.
-  #####
-  nc-ac-tests-oneoff-osx-intel:
-
-    needs: build-deps-osx
-    runs-on: macos-15-intel
-
-    strategy:
-      matrix:
-        hdf5: [ 1.12.2, 1.14.3 ]
-    steps:
-
-      - uses: actions/checkout@v4
-
-      ###
-      # Set Environmental Variables
-      ###
-
-      - run: echo "CFLAGS=-I${HOME}/environments/${{ matrix.hdf5 }}/include" >> $GITHUB_ENV
-      - run: echo "LDFLAGS=-L${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
-      - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
-
-
-      ###
-      # Fetch Cache
-      ###
-
-      - name: Fetch HDF Cache
-        id: cache-hdf-osx
-        uses: actions/cache@v4
-        with:
-          path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
-
-      - name: Check Cache
-        shell: bash -l {0}
-        run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
-
-      ###
-      # Configure and build
-      ###
-
-      - name: Install autoconf
-        shell: bash -l {0}
-        run: |
-          brew update
-          echo ""
-          echo "Checking installed packagesin homebrew"
-          brew list
-          echo ""
-          brew install libtool autoconf automake coreutils m4
-
-      - name: Run autoconf
-        shell: bash -l {0}
-        run: |
-          which autoreconf 
-          ls /opt/homebrew/share/aclocal
-          autoreconf -if
-
-      - name: Configure
-        shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-libxml2
-        if: ${{ success() }}
-
-      - name: Look at config.log if error
-        shell: bash -l {0}
-        run: cat config.log
-        if: ${{ failure() }}
-
-      - name: Print Summary
-        shell: bash -l {0}
-        run: cat libnetcdf.settings
-
-      - name: Build Library and Utilities
-        shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j
-        if: ${{ success() }}
-
-      - name: Build Tests
-        shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check TESTS="" -j
-        if: ${{ success() }}
-
-      - name: Run Tests
-        shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
-        if: ${{ success() }}
-
-  #####
-  # One-Off Autotools-based tests, arm64.
+  # One-Off Autotools-based tests.
   #####
   nc-ac-tests-oneoff-osx:
 
@@ -451,7 +361,7 @@ jobs:
         if: ${{ success() }}
 
   #####
-  # One-Off CMake-based tests, arm64.
+  # One-Off CMake-based tests.
   #####
 
   nc-cmake-tests-oneoff-osx-shared:
