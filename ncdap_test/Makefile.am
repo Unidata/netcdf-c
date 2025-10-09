@@ -62,14 +62,15 @@ TESTS += test_partvar
 # Various
 TESTS += tst_longremote3.sh
 tst_longremote3.log: tst_remote3.log
-endif
 
 if NETCDF_ENABLE_DAP_LONG_TESTS
 test_manyurls_SOURCES = test_manyurls.c manyurls.h
-test_manyurls.log: tst_longremote3.log
 check_PROGRAMS += test_manyurls
 TESTS += test_manyurls
+test_manyurls.log: tst_longremote3.log
 endif
+
+endif # NETCDF_BUILD_UTILITIES
 
 test_partvar_SOURCES = test_partvar.c
 
