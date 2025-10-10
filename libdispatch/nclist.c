@@ -98,10 +98,11 @@ nclistsetalloc(NClist* l, size_t sz)
 {
   void** newcontent = NULL;
   if(l == NULL) return nclistfail();
-  if(sz <= 0) {sz = (l->length?2*l->length:DEFAULTALLOC);}
+  if(sz <= 0) {sz = (l->alloc?2*l->alloc:DEFAULTALLOC);}
   if(l->alloc >= sz) {return TRUE;}
   newcontent=(void**)calloc(sz,sizeof(void*));
-  if(newcontent != NULL && l->alloc > 0 && l->length > 0 && l->content != NULL) {
+  if(newcontent == NULL) return nclistfail(); /* out of memory */
+  if(l->alloc > 0 && l->length > 0 && l->content != NULL) {
     memcpy((void*)newcontent,(void*)l->content,sizeof(void*)*l->length);
   }
   if(l->content != NULL) free(l->content);
