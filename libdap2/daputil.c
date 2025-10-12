@@ -286,8 +286,7 @@ collectnodepath(CDFnode* node, NClist* path, int withdataset)
     nclistpush(path,(void*)node);
     while(node->container != NULL) {
 	node = node->container;
-	if(!withdataset && node->nctype == NC_Dataset)
-	    break;
+	if(!withdataset && node->nctype == NC_Dataset) break;
 	nclistinsert(path,0,(void*)node);
     }
 }
