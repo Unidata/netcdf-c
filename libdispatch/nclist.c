@@ -177,7 +177,8 @@ int
 nclistpush(NClist* l, const void* elem)
 {
   if(l == NULL) return nclistfail();
-  if(l->content == NULL) nclistsetalloc(l,0); /* guarantee l->content is defined */
+  if(l->content == NULL)
+      nclistsetalloc(l,0);
   if(l->length >= l->alloc) nclistsetalloc(l,l->length+1);
   l->content[l->length] = (void*)elem;
   l->length++;
