@@ -2543,8 +2543,8 @@ searchgroupdim(int grp, int dimid)
 	for(i = 0; i < nids; i++) {
 	    if(ids[i] == dimid) goto done;
 	}
-    } else
-        ret = NC_EBADDIM;
+    }
+    ret = NC_EBADDIM; /* Either nids == 0 or no match */
 
 done:
     nullfree(ids);
