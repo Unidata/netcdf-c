@@ -5,7 +5,8 @@
 
 #include "manyurls.h"
 
-#undef VERBOSE
+/* Turn on to verify that all the URLS in manyurls.h are valid */
+#undef VERIFY
 
 int main()
 {
@@ -16,24 +17,22 @@ int main()
 	    char* tp = *p;	
             int mode = 0;
             int status = -1;
-#ifdef VERBOSE
-	    printf("Opening: %s\n",tp);
-#endif
+	    printf("Testing: %s\n",tp);
             status = nc_open(tp, mode, &ncid);
 	    switch(status) {
 	    case NC_NOERR:
 		break;
 	    case NC_ENOTFOUND:
-#ifdef VERBOSE
-	        printf("{%d} %s\n",i,tp);
-#endif
+	        printf("Warning: notfound: {%d} %s\n",i,tp);
 		status = NC_NOERR;
 		break;
 	    default:
-	        fprintf(stderr,"*** %s\n",nc_strerror(status));
-		return 1;
+	        printf("Failure: %s\n",nc_strerror(status));
+		break;
             }
-            // nc_close(ncid);
+#ifdef VERIFY
+            nc_close(ncid); /* Do not close to see how many urls we can keep open */
+#endif
     }
     return 0;
 }
