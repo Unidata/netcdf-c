@@ -210,7 +210,10 @@ typedef const void* (*H5PL_get_plugin_info_proto)(void);
 
 /* Protect old HDF5 code (pre 1.8.12) */
 #ifdef USE_HDF5
-# if H5_VERSION_LE(1,8,11)
+# if H5_VERSION_LE(1,8,11) || ( defined(__APPLE__) && defined(__MACH__))
+#undef H5allocate_memory
+#undef H5free_memory
+#undef H5resize_memory
 # define H5allocate_memory(size,clear) ((clear)?calloc(1,(size)):malloc(size))
 # define H5free_memory(buf) free(buf)
 # define H5resize_memory(buf,size) realloc(buf,size)
