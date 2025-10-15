@@ -1,8 +1,3 @@
-NetCDF In-Memory Support
-====================================
-
-<!-- double header is needed to workaround doxygen bug -->
-
 NetCDF In-Memory Support {#inmemory}
 ====================================
 
@@ -20,11 +15,11 @@ Actually, three distinct but related capabilities are provided.
 
 1. DISKLESS -- Read a file into memory, operate on it, and optionally
 write it back out to disk when nc_close() is called.
-2. INMEMORY -- Tell the netcdf-c library to treat a provided block
+1. INMEMORY -- Tell the netcdf-c library to treat a provided block
 of memory as if it were a netcdf file. At close, it is possible to ask
 for the final contents of the memory chunk. Be warned that there is
 some complexity to this as described below.
-4. MMAP -- Tell the netcdf-c library to use the *mmap()* operating
+1. MMAP -- Tell the netcdf-c library to use the *mmap()* operating
 system functionality to access a file.
 
 The first two capabilities are intertwined in the sense that the
