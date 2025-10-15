@@ -5,8 +5,32 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
-# Disable automatic path conversions in MINGW shell:
-export MSYS2_ARG_CONV_EXCL='*'
+# For testing purposes: we want MSYS_NO_PATHCONV and MSYS2_ARG_CONV_EXCL set.
+#     Suppress converting paths of form /[a-z]/... to [a-z]:/...
+      export MSYS_NO_PATHCONV=1
+#     Disable automatic path conversions in MINGW shell:
+      export MSYS2_ARG_CONV_EXCL='*'
+
+# '@' will get translated to embedded blank
+TESTPATHS1=
+TESTPATHS1="${TESTPATHS1} /xxx/x/y"
+TESTPATHS1="${TESTPATHS1} d:/x/y"
+TESTPATHS1="${TESTPATHS1} /cygdrive/d/x/y"
+TESTPATHS1="${TESTPATHS1} /d/x/y"
+TESTPATHS1="${TESTPATHS1} /cygdrive/d"
+TESTPATHS1="${TESTPATHS1} /d"
+TESTPATHS1="${TESTPATHS1} d:\\\\x\\\\y"
+TESTPATHS1="${TESTPATHS1} d:\\\\x\\\\y@w\\\\z"
+# Trim
+TESTPATHS1=`echo "${TESTPATHS1}"|sed -e 's|^[ 	]\+||'`
+
+TESTPATHS2=
+TESTPATHS2="${TESTPATHS2} /xxx/x/y;/cygdrive/d/x/y"
+TESTPATHS2="${TESTPATHS2} /d/x/y;/cygdrive/d"
+TESTPATHS2="${TESTPATHS2} /d/x/y;d:\\\\x\\\\y"
+TESTPATHS2="${TESTPATHS2} d:\\\\x\\\\y@w\\\\z"
+# Trim
+TESTPATHS2=`echo "${TESTPATHS2}"|sed -e 's|^[ 	]\+||'`
 
 # We need to find the drive letter, if any
 DL=`${NCPATHCVT} -c -x / | sed -e 's|/cygdrive/\([a-zA-Z]\)/.*|\1|'`
@@ -41,23 +65,22 @@ testcase1() {
     testcaseD "-u" "$1"
     testcaseD "-c" "$1"
     testcaseD "-w" "$1"
+    testcaseD "-m" "$1"
 }
 
 testcase2() {
     testcaseP "-u" "$1"
     testcaseP "-c" "$1"
     testcaseP "-w" "$1"
+    testcaseP "-m" "$1"
 }
 
 rm -f tmp_pathcvt.txt
 
-# '@' will get translated to embedded blank
-TESTPATHS1="/xxx/x/y d:/x/y /cygdrive/d/x/y /d/x/y /cygdrive/d /d /cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn d:\\\\x\\\\y d:\\\\x\\\\y@w\\\\z"
 for p in $TESTPATHS1 ; do
 testcase1 "$p"
 done
 
-TESTPATHS2="/xxx/x/y;/cygdrive/d/x/y /d/x/y;/cygdrive/d cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn;d:\\\\x\\\\y d:\\\\x\\\\y@w\\\\z"
 for p in $TESTPATHS2 ; do
 testcase2 "$p"
 done

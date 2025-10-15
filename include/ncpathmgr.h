@@ -35,7 +35,7 @@ Assumptions about Input path:
        Cygwin (/cygdrive/D/...),
        Windows|MINGW|MSYS (D:\...),
        Windows network path (\\mathworks\...)
-       MSYS (/D/...) but only if local platform is Windows or MSYS.
+       MSYS (/D/...) if -im was used but only if local platform is MINGW | MSYS.
 4. It is encoded in the local platform character set.  Note that
    for most systems, this is utf-8. But for Windows, the
    encoding is most likely some form of ANSI code page, probably
@@ -53,8 +53,8 @@ Parsing Rules:
 4. A leading // is a windows network path and is converted
    to a drive letter using the fake drive letter "/".
    So '//svc/x/y' translates to '/:/svc/x/y'.
-5. If the platform is Windows or MSYS, then a leading /D/ is treated
-   as a drive letter.
+5. If the platform is MINGW or MSYS and -im was specified,
+   then a leading /D/ is treated as a drive letter.
 6. All other cases are assumed to be Unix variants with no drive letter. 
 
 After parsing, the following pieces of information are kept in a struct.
@@ -94,7 +94,6 @@ Notes:
 #define WINPATH 1
 #endif
 #endif
-
 #ifdef _WIN64
 #define STAT struct _stat64 *
 #else
@@ -133,7 +132,6 @@ Notes:
 #define S_ISREG(mode) ((mode) & _S_IFREG)
 #endif
 #endif /*_WIN32*/
-
 
 /*
 WARNING: you should never need to explictly call this function;
@@ -178,6 +176,12 @@ EXTERNL int NCpath2utf8(const char* path, char** u8p);
 
 /* Convert stdin, stdout, stderr to use binary mode (\r\n -> \n) */
 EXTERNL int NCstdbinary(void);
+
+/* Signal that input paths should be treated as NCPD_NIX, NCPD_MSYS, or NCPD_UNKNOWN (defaulted) */
+EXTERNL void NCpathsetplatform(int inputtype);
+
+/* Force the platform based on various CPP flags */
+EXTERNL void NCpathforceplatform(void);
 
 /* Wrap various stdio and unistd IO functions.
 It is especially important to use for windows so that
@@ -245,11 +249,5 @@ EXTERNL int NCgetinputpathkind(const char* inpath);
 EXTERNL const char* NCgetkindname(int kind);
 EXTERNL void printutf8hex(const char* s, char* sx);
 EXTERNL int getmountpoint(char*, size_t);
-
-/**************************************************/
-/* From dutil.c */
-EXTERNL char* NC_backslashEscape(const char* s);
-EXTERNL char* NC_backslashUnescape(const char* esc);
-EXTERNL char* NC_shellUnescape(const char* esc);
 
 #endif /* _NCPATHMGR_H_ */

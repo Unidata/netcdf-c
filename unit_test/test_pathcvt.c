@@ -12,6 +12,7 @@ Test the NCpathcvt
 #include <string.h>
 #include "netcdf.h"
 #include "ncpathmgr.h"
+#include "ncutil.h"
 
 #define DEBUG
 
@@ -24,6 +25,9 @@ typedef struct Test {
 } Test;
 
 /* Path conversion tests */
+/* The test path is parsed by each kind.
+   Then compared to the expected value.
+*/
 static Test PATHTESTS[] = {
 {"/xxx/a/b",{
 	"/xxx/a/b",		/*NCPD_LINUX*/
@@ -51,9 +55,9 @@ static Test PATHTESTS[] = {
 	}},
 {"/d/x/y",{
 	 "/d/x/y",		/*NCPD_LINUX*/
-	"d:\\x\\y",		/*NCPD_MSYS*/
+	"c:\\d\\x\\y",		/*NCPD_MSYS*/
 	 "/cygdrive/c/d/x/y",	/*NCPD_CYGWIN*/
-	 "d:\\x\\y"		/*NCPD_WIN*/
+	 "c:\\d\\x\\y"		/*NCPD_WIN*/
 	}},
 {"/cygdrive/d",{
 	 "/d",			/*NCPD_LINUX*/
@@ -63,16 +67,10 @@ static Test PATHTESTS[] = {
 	}},
 {"/d", {
 	"/d",			/*NCPD_LINUX*/
-	"d:",			/*NCPD_MSYS*/
+	"c:\\d",		/*NCPD_MSYS*/
 	 "/cygdrive/c/d",	/*NCPD_CYGWIN*/
-	 "d:"			/*NCPD_WIN*/
+	 "c:\\d"		/*NCPD_WIN*/
 	}},
-{"/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",{
-    "/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",		/*NCPD_LINUX*/
-    "d:\\git\\netcdf-c\\dap4_test\\test_anon_dim.2.syn",	/*NCPD_MSYS*/
-    "/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",	/*NCPD_CYGWIN*/
-    "d:\\git\\netcdf-c\\dap4_test\\test_anon_dim.2.syn"		/*NCPD_WIN*/
-    }},
 /* Test relative path */
 {"x/y",{
 	 "x/y",	/*NCPD_LINUX*/
@@ -86,7 +84,6 @@ static Test PATHTESTS[] = {
 	"x/y",	/*NCPD_CYGWIN*/
 	 "x\\y"	/*NCPD_WIN*/
 	}},
-#ifndef _WIN32X
 /* Test utf8 path */
 {"/海/海",{
 	 "/海/海",		/*NCPD_LINUX*/
@@ -101,7 +98,6 @@ static Test PATHTESTS[] = {
     NULL /*meaningless*/,		/*NCPD_CYGWIN*/
     "\\\\git\\netcdf-c\\dap4_test"	/*NCPD_WIN*/
     }},
-#endif
 {NULL, {NULL, NULL, NULL, NULL}}
 };
 
@@ -181,6 +177,7 @@ main(int argc, char** argv)
 	    nullfree(unescaped); unescaped = NULL;
 	    nullfree(expanded); expanded = NULL;
 	    nullfree(cvt); cvt = NULL;
+	    fflush(stderr); fflush(stdout);
 	}
     }
     nullfree(cvt); nullfree(unescaped);

@@ -330,12 +330,13 @@ createtempfile(OCstate* state, OCtree* tree)
 
     snprintf(basepath,sizeof(basepath),"%s/%s",globalstate->tempdir,DATADDSFILE);
     tmppath = NULL;
-    if((stat = NC_mktmp(basepath,&tmppath))) goto fail;
-    if (stat != OC_NOERR && errno != EEXIST) {
+    stat = NC_mktmp(basepath,&tmppath);
+    if(stat || tmppath == NULL) {
         fprintf(stderr, "Cannot create %sfile\n",DATADDSFILE);
 	stat = OC_EACCESS;
         goto fail;
     }
+
 #ifdef OCDEBUG
     nclog(NCLOGNOTE,"oc_open: creating tmp file: %s",tmppath);
 #endif
@@ -558,9 +559,10 @@ ocset_curlproperties(OCstate* state)
         /* Create the unique cookie file name */
 	snprintf(basepath,sizeof(basepath),"%s/occookies",globalstate->tempdir);
 	tmppath = NULL;
-	if((stat = NC_mktmp(basepath,&tmppath))) goto fail;
-        if (stat != OC_NOERR && errno != EEXIST) {
+	stat = NC_mktmp(basepath,&tmppath);
+	if(stat || tmppath == NULL) {
             fprintf(stderr, "Cannot create cookie file\n");
+	    stat = OC_EACCESS;
             goto fail;
         }
         state->auth->curlflags.cookiejar = tmppath; tmppath = NULL;

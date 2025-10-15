@@ -140,11 +140,11 @@ processurl(S3op op, const char* surl, char** piece)
     /* split the path by "/"  */
     nclistfreeall(segments);
     segments = nclistnew();
-    if((stat = nczm_split_delim(url->path,'/',segments))) goto done;
+    if((stat = NC_split_delim(url->path,'/',segments))) goto done;
     if(nclistlength(segments) == 0)
 	{stat = NC_EURL; goto done;}
     bucket = ((char*)nclistremove(segments,0));
-    if((stat = nczm_join(segments,&prefix))) goto done;
+    if((stat = NC_join(segments,&prefix))) goto done;
     nclistfreeall(segments); segments = NULL;
 
     switch (op) {

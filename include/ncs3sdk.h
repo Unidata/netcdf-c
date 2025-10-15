@@ -47,42 +47,54 @@ struct AWSprofile {
 struct NClist;
 struct NCglobalstate;
 
+#ifndef DECLSPEC
+#ifdef DLL_NETCDF
+  #ifdef DLL_EXPORT /* define when building the library */
+    #define DECLSPEC __declspec(dllexport)
+  #else
+    #define DECLSPEC __declspec(dllimport)
+  #endif
+#else
+  #define DECLSPEC
+#endif
+#endif /*!DECLSPEC*/
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* API for ncs3sdk_XXX.[c|cpp] */
-EXTERNL int NC_s3sdkinitialize(void);
-EXTERNL int NC_s3sdkfinalize(void);
-EXTERNL void* NC_s3sdkcreateclient(NCS3INFO* context);
-EXTERNL int NC_s3sdkbucketexists(void* s3client, const char* bucket, int* existsp, char** errmsgp);
-EXTERNL int NC_s3sdkbucketcreate(void* s3client, const char* region, const char* bucket, char** errmsgp);
-EXTERNL int NC_s3sdkbucketdelete(void* s3client, NCS3INFO* info, char** errmsgp);
-EXTERNL int NC_s3sdkinfo(void* client0, const char* bucket, const char* pathkey, unsigned long long* lenp, char** errmsgp);
-EXTERNL int NC_s3sdkread(void* client0, const char* bucket, const char* pathkey, unsigned long long start, unsigned long long count, void* content, char** errmsgp);
-EXTERNL int NC_s3sdkwriteobject(void* client0, const char* bucket, const char* pathkey, unsigned long long count, const void* content, char** errmsgp);
-EXTERNL int NC_s3sdkclose(void* s3client0, char** errmsgp);
-EXTERNL int NC_s3sdktruncate(void* s3client0, const char* bucket, const char* prefix, char** errmsgp);
-EXTERNL int NC_s3sdklist(void* s3client0, const char* bucket, const char* prefix, size_t* nkeysp, char*** keysp, char** errmsgp);
-EXTERNL int NC_s3sdklistall(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp);
-EXTERNL int NC_s3sdkdeletekey(void* client0, const char* bucket, const char* pathkey, char** errmsgp);
+DECLSPEC int NC_s3sdkinitialize(void);
+DECLSPEC int NC_s3sdkfinalize(void);
+DECLSPEC void* NC_s3sdkcreateclient(NCS3INFO* context);
+DECLSPEC int NC_s3sdkbucketexists(void* s3client, const char* bucket, int* existsp, char** errmsgp);
+DECLSPEC int NC_s3sdkbucketcreate(void* s3client, const char* region, const char* bucket, char** errmsgp);
+DECLSPEC int NC_s3sdkbucketdelete(void* s3client, NCS3INFO* info, char** errmsgp);
+DECLSPEC int NC_s3sdkinfo(void* client0, const char* bucket, const char* pathkey, unsigned long long* lenp, char** errmsgp);
+DECLSPEC int NC_s3sdkread(void* client0, const char* bucket, const char* pathkey, unsigned long long start, unsigned long long count, void* content, char** errmsgp);
+DECLSPEC int NC_s3sdkwriteobject(void* client0, const char* bucket, const char* pathkey, unsigned long long count, const void* content, char** errmsgp);
+DECLSPEC int NC_s3sdkclose(void* s3client0, char** errmsgp);
+DECLSPEC int NC_s3sdktruncate(void* s3client0, const char* bucket, const char* prefix, char** errmsgp);
+DECLSPEC int NC_s3sdklist(void* s3client0, const char* bucket, const char* prefix, size_t* nkeysp, char*** keysp, char** errmsgp);
+DECLSPEC int NC_s3sdklistall(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp);
+DECLSPEC int NC_s3sdkdeletekey(void* client0, const char* bucket, const char* pathkey, char** errmsgp);
 
 /* From ds3util.c */
-EXTERNL void NC_s3sdkenvironment(void);
+DECLSPEC void NC_s3sdkenvironment(void);
 
-EXTERNL int NC_getdefaults3region(NCURI* uri, const char** regionp);
-EXTERNL int NC_s3urlprocess(NCURI* url, NCS3INFO* s3, NCURI** newurlp);
-EXTERNL int NC_s3clear(NCS3INFO* s3);
-EXTERNL int NC_s3clone(NCS3INFO* s3, NCS3INFO** news3p);
-EXTERNL const char* NC_s3dumps3info(NCS3INFO* info);
-EXTERNL void NC_s3freeprofilelist(struct NClist* profiles);
-EXTERNL int NC_getactives3profile(NCURI* uri, const char** profilep);
-EXTERNL int NC_s3profilelookup(const char* profile, const char* key, const char** valuep);
-EXTERNL void NC_s3getcredentials(const char *profile, const char **region, const char **accessid, const char **accesskey);
-EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
-EXTERNL int NC_iss3(NCURI* uri, enum NCS3SVC*);
-EXTERNL int NC_s3urlrebuild(NCURI* url, struct NCS3INFO* s3, NCURI** newurlp);
-EXTERNL int NC_aws_load_credentials(struct NCglobalstate* gstate);
+DECLSPEC int NC_getdefaults3region(NCURI* uri, const char** regionp);
+DECLSPEC int NC_s3urlprocess(NCURI* url, NCS3INFO* s3, NCURI** newurlp);
+DECLSPEC int NC_s3clear(NCS3INFO* s3);
+DECLSPEC int NC_s3clone(NCS3INFO* s3, NCS3INFO** news3p);
+DECLSPEC const char* NC_s3dumps3info(NCS3INFO* info);
+DECLSPEC void NC_s3freeprofilelist(struct NClist* profiles);
+DECLSPEC int NC_getactives3profile(NCURI* uri, const char** profilep);
+DECLSPEC int NC_s3profilelookup(const char* profile, const char* key, const char** valuep);
+DECLSPEC void NC_s3getcredentials(const char *profile, const char **region, const char **accessid, const char **accesskey);
+DECLSPEC int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
+DECLSPEC int NC_iss3(NCURI* uri, enum NCS3SVC*);
+DECLSPEC int NC_s3urlrebuild(NCURI* url, struct NCS3INFO* s3, NCURI** newurlp);
+DECLSPEC int NC_aws_load_credentials(struct NCglobalstate* gstate);
 
 #ifdef __cplusplus
 }

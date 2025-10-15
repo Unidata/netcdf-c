@@ -119,39 +119,6 @@ done:
 }
 
 /**************************************************/
-/**
- * Provide a hidden interface to allow utilities
- * to check if a given path name is really an ncdap3 url.
- * If no, put null in basenamep, else put basename of the url
- * minus any extension into basenamep; caller frees.
- * Return 1 if it looks like a url, 0 otherwise.
- */
-
-int
-nc__testurl(const char* path, char** basenamep)
-{
-    NCURI* uri;
-    int ok = 0;
-    if(ncuriparse(path,&uri) == NCU_OK) {
-	char* slash = (uri->path == NULL ? NULL : strrchr(uri->path, '/'));
-	char* dot;
-	if(slash == NULL) slash = (char*)path; else slash++;
-        slash = nulldup(slash);
-        if(slash == NULL)
-            dot = NULL;
-        else
-            dot = strrchr(slash, '.');
-        if(dot != NULL &&  dot != slash) *dot = '\0';
-	if(basenamep)
-            *basenamep=slash;
-        else if(slash)
-            free(slash);
-        ncurifree(uri);
-	ok = 1;
-    }
-    return ok;
-}
-
 /*
 Fill in the model fields to degree possible.
 Assumes that the path is known to be a url
@@ -243,6 +210,7 @@ done:
     return stat;
 }
 
+#if 0
 /* return 1 if path looks like a url; 0 otherwise */
 int
 NC_testurl(const char* path)
@@ -268,3 +236,4 @@ NC_testurl(const char* path)
     }
     return 0;
 }
+#endif /*0*/
