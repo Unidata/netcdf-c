@@ -939,7 +939,9 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
+INPUT                  = @abs_top_srcdir@/docs/mainpage.md \
+                         @abs_top_srcdir@/docs/netcdf_advanced_features.md \
+                         @abs_top_srcdir@/docs/appendices.md \
                          @abs_top_srcdir@/RELEASE_NOTES.md \
                          @abs_top_srcdir@/docs/install-fortran.md \
                          @abs_top_srcdir@/docs/windows-binaries.md \
@@ -1195,7 +1197,7 @@ FILTER_SOURCE_PATTERNS =
 # (index.html). This can be useful if you have a project on for instance GitHub
 # and want to reuse the introduction page also for the doxygen output.
 
-USE_MDFILE_AS_MAINPAGE =
+USE_MDFILE_AS_MAINPAGE = @abs_top_srcdir@/docs/mainpage.md
 
 # The Fortran standard specifies that for fixed formatted Fortran code all
 # characters from position 72 are to be considered as comment. A common
