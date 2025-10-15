@@ -1398,7 +1398,7 @@ HTML_STYLESHEET        =
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
 HTML_EXTRA_STYLESHEET  = @DOXYGEN_CSS_FILE@ \
-                @abs_top_srcdir@/docs/doxygen-awesome-css/doxygen-awesome.css 
+                @abs_top_srcdir@/docs/doxygen-awesome-css/doxygen-awesome.css @abs_top_srcdir@/docs/doxygen-awesome-css/custom.css
 HTML_COLORSTYLE        = LIGHT
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
