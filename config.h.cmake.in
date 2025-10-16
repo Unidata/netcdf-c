@@ -148,6 +148,9 @@ are set when opening a binary file on Windows. */
 /* if true, build DAP4 Client */
 #cmakedefine NETCDF_ENABLE_DAP4 1
 
+/* if true, do long dap tests */
+#cmakedefine NETCDF_ENABLE_DAP_LONG_TESTS 1
+
 /* if true, do remote tests */
 #cmakedefine NETCDF_ENABLE_DAP_REMOTE_TESTS 1
 
