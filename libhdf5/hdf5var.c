@@ -85,9 +85,9 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
         if ((access_pid = H5Pcreate(H5P_DATASET_ACCESS)) < 0)
             return NC_EHDFERR;
-        if (H5Pset_chunk_cache(access_pid, var->chunkcache->nelems,
-                               var->chunkcache->size,
-                               var->chunkcache->preemption) < 0)
+        if (H5Pset_chunk_cache(access_pid, var->chunkcache.nelems,
+                               var->chunkcache.size,
+                               var->chunkcache.preemption) < 0)
             return NC_EHDFERR;
         if (H5Dclose(hdf5_var->hdf_datasetid) < 0)
             return NC_EHDFERR;
@@ -2377,9 +2377,9 @@ NC4_HDF5_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
     assert(var && var->hdr.id == varid);
 
     /* Set the values. */
-    var->chunkcache->size = size;
-    var->chunkcache->nelems = nelems;
-    var->chunkcache->preemption = preemption;
+    var->chunkcache.size = size;
+    var->chunkcache.nelems = nelems;
+    var->chunkcache.preemption = preemption;
 
     /* Reopen the dataset to bring new settings into effect. */
     if ((retval = nc4_reopen_dataset(grp, var)))

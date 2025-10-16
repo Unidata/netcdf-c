@@ -1013,9 +1013,9 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     }
 
     /* Set per-var chunk cache, for chunked datasets. */
-    if (var->storage == NC_CHUNKED && var->chunkcache->size)
-        if (H5Pset_chunk_cache(access_plistid, var->chunkcache->nelems,
-                               var->chunkcache->size, var->chunkcache->preemption) < 0)
+    if (var->storage == NC_CHUNKED && var->chunkcache.size)
+        if (H5Pset_chunk_cache(access_plistid, var->chunkcache.nelems,
+                               var->chunkcache.size, var->chunkcache.preemption) < 0)
             BAIL(NC_EHDFERR);
 
     /* At long last, create the dataset. */
@@ -1133,12 +1133,12 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     /* If the chunk cache is too small, and the user has not changed
      * the default value of the chunk cache size, then increase the
      * size of the cache. */
-    if (var->chunkcache->size == CHUNK_CACHE_SIZE)
-        if (chunk_size_bytes > var->chunkcache->size)
+    if (var->chunkcache.size == CHUNK_CACHE_SIZE)
+        if (chunk_size_bytes > var->chunkcache.size)
         {
-            var->chunkcache->size = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
-            if (var->chunkcache->size > DEFAULT_CHUNK_CACHE_SIZE)
-                var->chunkcache->size = DEFAULT_CHUNK_CACHE_SIZE;
+            var->chunkcache.size = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
+            if (var->chunkcache.size > DEFAULT_CHUNK_CACHE_SIZE)
+                var->chunkcache.size = DEFAULT_CHUNK_CACHE_SIZE;
             if ((retval = nc4_reopen_dataset(grp, var)))
                 return retval;
         }

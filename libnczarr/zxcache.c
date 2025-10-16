@@ -86,9 +86,9 @@ NCZ_set_var_chunk_cache(int ncid, int varid, size_t cachesize, size_t nelems, fl
     assert(zvar != NULL && zvar->cache != NULL);
 
     /* Set the values. */
-    var->chunkcache->size = cachesize;
-    var->chunkcache->nelems = nelems;
-    var->chunkcache->preemption = preemption;
+    var->chunkcache.size = cachesize;
+    var->chunkcache.nelems = nelems;
+    var->chunkcache.preemption = preemption;
 
     /* Fix up cache */
     if((retval = NCZ_adjust_var_cache(var))) goto done;
@@ -129,9 +129,9 @@ fprintf(stderr,"xxx: adjusting cache for: %s\n",var->hdr.name);
     /* Reclaim any existing fill_chunk */
     if((stat = NCZ_reclaim_fill_chunk(zcache))) goto done;
     /* Reset the parameters */
-    zvar->cache->params.size = var->chunkcache->size;
-    zvar->cache->params.nelems = var->chunkcache->nelems;
-    zvar->cache->params.preemption = var->chunkcache->preemption;
+    zvar->cache->params.size = var->chunkcache.size;
+    zvar->cache->params.nelems = var->chunkcache.nelems;
+    zvar->cache->params.preemption = var->chunkcache.preemption;
 #ifdef DEBUG
     fprintf(stderr,"%s.cache.adjust: size=%ld nelems=%ld\n",
         var->hdr.name,(unsigned long)zvar->cache->maxsize,(unsigned long)zvar->cache->maxentries);
@@ -191,7 +191,7 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
     }
     
     /* Set default cache parameters */
-    cache->params = *(NC_getglobalstate()->chunkcache);
+    cache->params = NC_getglobalstate()->chunkcache;
 
 #ifdef FLUSH
     cache->maxentries = 1;

@@ -91,11 +91,11 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
 
     /* Give the user what they want. */
     if (sizep)
-        *sizep = var->chunkcache->size;
+        *sizep = var->chunkcache.size;
     if (nelemsp)
-        *nelemsp = var->chunkcache->nelems;
+        *nelemsp = var->chunkcache.nelems;
     if (preemptionp)
-        *preemptionp = var->chunkcache->preemption;
+        *preemptionp = var->chunkcache.preemption;
 
     return NC_NOERR;
 }

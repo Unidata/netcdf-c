@@ -457,14 +457,14 @@ var->type_info->rc++;
     zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 
     /* Set cache defaults */
-    memcpy(var->chunkcache,gstate->chunkcache,sizeof(struct ChunkCache));
+    var->chunkcache = gstate->chunkcache;
 
     /* Create the cache */
     if((retval=NCZ_create_chunk_cache(var,zvar->chunkproduct*var->type_info->size,zvar->dimension_separator,&zvar->cache)))
 	BAIL(retval);
 
     /* Set the per-variable chunkcache defaults */
-    zvar->cache->params = *(var->chunkcache);
+    zvar->cache->params = var->chunkcache;
 
     /* Return the varid. */
     if (varidp)
