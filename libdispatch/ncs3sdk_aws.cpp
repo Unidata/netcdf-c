@@ -150,6 +150,8 @@ NC_s3sdkinitialize(void)
     return NCUNTRACE(NC_NOERR);
 }
 
+
+
 EXTERNL int
 NC_s3sdkfinalize(void)
 {
@@ -825,4 +827,16 @@ mergekeysets(KeySet* keys1, KeySet* keys2, KeySet* merge)
     for(i=0;i<keys2->getnkeys();i++)
 	merge->push(keys2->extractithkey(i));
     return NC_NOERR;
+}
+
+/*
+Return a list of full keys  of legal objects below a specified key.
+Not necessarily sorted.
+Essentially same as getkeys, but with no delimiter.
+*/
+EXTERNL int
+NC_s3sdklistall(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
+{
+    NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
+    return NCUNTRACE(getkeys(s3client0, bucket, prefixkey0, NULL, nkeysp, keysp, errmsgp));
 }

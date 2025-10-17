@@ -22,6 +22,7 @@ The following packages are required to build netCDF-C using CMake.
 
 * netCDF-C Source Code
 * CMake version 2.8.12 or greater.
+* m4
 * Optional Requirements:
 	* HDF5 Libraries for netCDF4/HDF5 support.
 	* libcurl for DAP support.

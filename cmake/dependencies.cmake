@@ -446,7 +446,7 @@ if(NETCDF_ENABLE_S3)
     else(AWSSDK_FOUND)
       set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
     endif(AWSSDK_FOUND)
-  else(NETCDF_ENABLE_S3_INTERNAL)
+  else(NETCDF_ENABLE_S3_AWS)
     # Find crypto libraries required with testing with the internal s3 api.
     #find_library(SSL_LIB NAMES ssl openssl)
     find_package(OpenSSL REQUIRED)
