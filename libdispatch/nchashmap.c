@@ -175,7 +175,7 @@ NC_hashmapnew(size_t startsize)
     if(startsize == 0 || startsize < MINTABLESIZE)
 	    startsize = MINTABLESIZE;
     else {
-        if(startsize > MAX_SIZE / 4){nullfree(hm);return 0;}
+        if(startsize > (size_t - 1) / 4){nullfree(hm);return 0;}
         startsize *= 4;
         startsize /= 3;
         startsize = findPrimeGreaterThan(startsize);
