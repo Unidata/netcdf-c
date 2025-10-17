@@ -5,8 +5,13 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.9.4 - TBD
+## 4.10.0 - TBD
 
+* Fix the problems around ncdap_test/test_manyurls.c. See [Github ????](https://github.com/Unidata/netcdf-c/issues/????) for more information. 
+* Fix bug in ncdump when printing FQNs ([Issue 3184](https://github.com/Unidata/netcdf-c/issues/3184)). See [Github ????](https://github.com/Unidata/netcdf-c/issues/????) for more information. 
+* Update `macOS` github runners from macos-13 to macos-14, due to deprecation. 
+* Fix an error compiling netCDF with AWS-S3-SDK support using cmake. See [Github 3155](https://github.com/Unidata/netcdf-c/issues/3155) for more information. 
+* Add new environmental logging variable for `netCDF4` related logging subsystem, `NC4LOGGING`.  If `libnetcdf` is compiled with logging enabled, logs can be enabled at runtime by setting this environmental variable to the desired log level.  
 * Clean up the S3 API for all non-libnczarr code. This continues the splitting of PR [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068).
 See [Github #3090](https://github.com/Unidata/netcdf-c/pull/3090) for more information.
 * Step 1 in splitting PR [Github #3068](https://github.com/Unidata/netcdf-c/pull/3068). Update ncjson.[ch] and ncproplist.[ch]. Also fix references to old API. Also fix include/netcdf_ncjson.h and include/netcdf_proplist.h builds. See [Github #3086](https://github.com/Unidata/netcdf-c/pull/3086) for more information.
