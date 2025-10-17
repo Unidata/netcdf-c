@@ -941,6 +941,7 @@ WARN_LOGFILE           =
 
 INPUT                  = @abs_top_srcdir@/docs/mainpage.md \
                          @abs_top_srcdir@/docs/netcdf_advanced_features.md \
+                         @abs_top_srcdir@/docs/remote_data_access.md \
                          @abs_top_srcdir@/RELEASE_NOTES.md \
                          @abs_top_srcdir@/docs/install-fortran.md \
                          @abs_top_srcdir@/docs/windows-binaries.md \

@@ -1,8 +1,6 @@
 Building the NetCDF-4.2 and later Fortran libraries {#building_netcdf_fortran}
 ===================================================
 
-[TOC]
-
 In versions before 4.2, the Fortran netCDF library source was bundled
 with the C library source in one distribution. With more recent
 versions, the Fortran netCDF library has been split off into an

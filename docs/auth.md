@@ -1,9 +1,5 @@
-NetCDF Authorization Support
+NetCDF Authorization Support {#auth_support}
 ====================================
-
-<!-- double header is needed to workaround doxygen bug -->
-
-[TOC]
 
 ## Introduction {#auth}
 

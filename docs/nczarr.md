@@ -1,10 +1,6 @@
-The NetCDF NCZarr Implementation
+The NetCDF NCZarr Implementation {#nczarr_head}
 ============================
-<!-- double header is needed to workaround doxygen bug -->
 
-# The NetCDF NCZarr Implementation {#nczarr_head}
-
-\tableofcontents
 
 # NCZarr Introduction {#nczarr_introduction}
 

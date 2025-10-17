@@ -1,8 +1,5 @@
 # Introduction and Overview {#introduction-and-overview-mainpage}
 
-## Table of Contents
-
-\tableofcontents
 
 ## What is NetCDF? {#what_is_netcdf}
 

@@ -1,8 +1,3 @@
-
-Cloud Storage Access Using The NetCDF-C Library 
-============================
-<!-- double header is needed to workaround doxygen bug -->
-
 # Cloud Storage Access Using The NetCDF-C Library {#nccloud_head}
 
 \tableofcontents

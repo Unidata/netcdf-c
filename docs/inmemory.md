@@ -1,7 +1,6 @@
 NetCDF In-Memory Support {#inmemory}
 ====================================
 
-[TOC]
 
 Introduction {#inmemory_intro}
 --------------
