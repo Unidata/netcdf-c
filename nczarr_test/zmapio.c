@@ -261,7 +261,7 @@ implfor(const char* path)
     mode = ncurifragmentlookup(uri,"mode");
     if(mode == NULL) goto done;
     /* split on commas */
-    NCCHECK(nczm_split_delim(mode,',',segments));
+    NCCHECK(NC_split_delim(mode,',',segments));
     for(size_t i=0;i<nclistlength(segments);i++) {
         const char* value = nclistget(segments,i);
 	if(strcmp(value,"file")==0) {impl = NCZM_FILE; goto done;}
@@ -298,7 +298,7 @@ rootpathfor(const char* path)
 	p = (char*)nclistremove(segments,0);
 	nullfree(p); p = NULL;
         /* Put it back together */
-        if((stat = nczm_join(segments,&rootpath))) goto done;
+        if((stat = NC_join(segments,&rootpath))) goto done;
 	} break;
 #endif
     default:
@@ -347,7 +347,7 @@ objdump(void)
 	/* Now print info for this obj key */
         switch (stat=nczmap_len(map,obj,&len)) {
 	    case NC_NOERR: hascontent = 1; break;
-	    case NC_EEMPTY: /* fall thru */ /* this is not a content bearing key */
+	    case NC_EEMPTY: case NC_ENOOBJECT: /* fall thru */ /* this is not a content bearing key */
 	    case NC_EACCESS: hascontent = 0; len = 0; stat = NC_NOERR; break;
 	    default: goto done;
 	}

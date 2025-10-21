@@ -38,6 +38,7 @@ struct Options {
     enum Actions action;
     const char* url;
     const char* key;
+    const char* prefix;
 } dumpoptions;
 
 /* Upload data */
@@ -67,6 +68,16 @@ check(int code, const char* fcn, int line)
     if(code == NC_NOERR) return code;
     fprintf(stderr,"***FAIL: (%d) %s @ %s:%d\n",code,nc_strerror(code),fcn,line);
     abort();
+}
+
+static const char*
+buildkey(const char* suffix)
+{
+    static char truekey[4096];
+    if(suffix == NULL) suffix = "";
+    if(strlen(suffix) > 0) assert(suffix[0] == '/');
+    snprintf(truekey,sizeof(truekey),"%s%s",dumpoptions.prefix,suffix);
+    return truekey;
 }
 
 static enum Actions
@@ -113,7 +124,7 @@ profilesetup(const char* url)
     CHECK(NC_s3profilelookup(activeprofile, "aws_access_key_id", &accessid));
     CHECK(NC_s3profilelookup(activeprofile, "aws_secret_access_key", &accesskey));
     if(s3info.profile) free(s3info.profile);
-    s3info.profile = nulldup(activeprofile);
+    s3info.profile = (char*)nulldup(activeprofile);
     if(s3info.region == NULL) s3info.region = "";
     if(s3info.bucket == NULL) {stat = NC_ES3; goto done;}
 
@@ -189,7 +200,7 @@ testinfo(void)
     int stat = NC_NOERR;
     unsigned long long size = 0;
 
-    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}","/object_store/dir1/nested1/file1.txt",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}",buildkey("/dir1/nested1/file1.txt"),!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -198,7 +209,7 @@ testinfo(void)
                dumpoptions.url,newurl,s3info.bucket,s3info.region,activeprofile);
 #endif
     if((s3client = NC_s3sdkcreateclient(&s3info))==NULL) {CHECK(NC_ES3);}
-    CHECK(NC_s3sdkinfo(s3client, s3info.bucket, dumpoptions.key, &size, NULL));
+    CHECK(NC_s3sdkinfo(s3client, s3info.bucket, buildkey(dumpoptions.key), &size, NULL));
     printf("testinfo: size=%llu\n",size);
 
 done:
@@ -222,10 +233,10 @@ testread(void)
                dumpoptions.url,newurl,s3info.bucket,s3info.region,activeprofile);
 #endif
     if((s3client = NC_s3sdkcreateclient(&s3info))==NULL) {CHECK(NC_ES3);}
-    CHECK(NC_s3sdkinfo(s3client, s3info.bucket, dumpoptions.key, &size, NULL));
+    CHECK(NC_s3sdkinfo(s3client, s3info.bucket, buildkey(dumpoptions.key), &size, NULL));
     printf("testread: size=%llu\n",size);
     content = calloc(1,size+1);
-    CHECK(NC_s3sdkread(s3client, s3info.bucket, dumpoptions.key, 0, size, content, NULL));
+    CHECK(NC_s3sdkread(s3client, s3info.bucket, buildkey(dumpoptions.key), 0, size, content, NULL));
     ((char*)content)[size] = '\0';
     printf("testread: content=|%s|\n",(char*)content);
     free(content);
@@ -251,14 +262,14 @@ testwrite(void)
                dumpoptions.url,newurl,s3info.bucket,s3info.region,activeprofile);
 #endif
     if((s3client = NC_s3sdkcreateclient(&s3info))==NULL) {CHECK(NC_ES3);}
-    CHECK(NC_s3sdkwriteobject(s3client, s3info.bucket, dumpoptions.key, strlen(uploaddata), uploaddata, NULL));
+    CHECK(NC_s3sdkwriteobject(s3client, s3info.bucket, buildkey(dumpoptions.key), strlen(uploaddata), uploaddata, NULL));
 
     /* Verify existence and size */
-    CHECK(NC_s3sdkinfo(s3client, s3info.bucket, dumpoptions.key, &size, NULL));
+    CHECK(NC_s3sdkinfo(s3client, s3info.bucket, buildkey(dumpoptions.key), &size, NULL));
     printf("testwrite: size=%llu\n",size);
 
     content = calloc(1,size+1); /* allow for trailing nul */
-    CHECK(NC_s3sdkread(s3client, s3info.bucket, dumpoptions.key, 0, size, content, NULL));
+    CHECK(NC_s3sdkread(s3client, s3info.bucket, buildkey(dumpoptions.key), 0, size, content, NULL));
     ((char*)content)[size] = '\0';
     printf("testwrite: content=|%s|\n",(const char*)content);
     free(content);
@@ -275,7 +286,7 @@ testlist(void)
     size_t i,nkeys = 0;
     char** keys = NULL;
 
-    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/object_store/dir1",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", buildkey("/dir1"),!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -283,7 +294,7 @@ testlist(void)
     printf("url=%s => info=%s\n",dumpoptions.url,NC_s3dumps3info(&s3info));
 #endif
     if((s3client = NC_s3sdkcreateclient(&s3info))==NULL) {CHECK(NC_ES3);}
-    CHECK(NC_s3sdklist(s3client, s3info.bucket, dumpoptions.key, &nkeys, &keys, NULL));
+    CHECK(NC_s3sdklist(s3client, s3info.bucket, buildkey(dumpoptions.key), &nkeys, &keys, NULL));
     printf("testlist: nkeys=%u; keys:\n",(unsigned)nkeys);
     for(i=0;i<nkeys;i++) {
         printf("\t|%s|\n",keys[i]);
@@ -306,7 +317,7 @@ testlistlong(void)
     char path[4096];
     unsigned char checklist[LONGCOUNT];
 
-    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/object_store/dir1",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", buildkey("/dir1"),!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -320,10 +331,10 @@ testlistlong(void)
         printf("url=%s {url=%s bucket=%s region=%s profile=%s}\n",
                dumpoptions.url,newurl,s3info.bucket,s3info.region,activeprofile);
 #endif
-        snprintf(path,sizeof(path),"%s/getkey_%d",dumpoptions.key,(int)i);
+        snprintf(path,sizeof(path),"%s/getkey_%d",buildkey(dumpoptions.key),(int)i);
         CHECK(NC_s3sdkwriteobject(s3client, s3info.bucket, path, strlen(uploaddata), uploaddata, NULL));
     }
-    CHECK(NC_s3sdklist(s3client, s3info.bucket, dumpoptions.key, &nkeys, &keys, NULL));
+    CHECK(NC_s3sdklist(s3client, s3info.bucket, buildkey(dumpoptions.key), &nkeys, &keys, NULL));
     printf("testlistlong: nkeys=%u; keys:\n",(unsigned)nkeys);
     if(nkeys != LONGCOUNT) {
         fprintf(stderr,"*** nkeys mismatch: create=%d found=%d\n",LONGCOUNT,(int)nkeys);
@@ -355,6 +366,7 @@ testlistlong(void)
         switch (stat) {
         case NC_NOERR:     printf("deleted\n");        break;
         case NC_ENOOBJECT: printf("does not exist\n"); break;
+        case NC_EEMPTY:    printf("has no content\n"); break;
         default:           printf("failed\n");         break;
         }
         stat = NC_NOERR; /* reset */
@@ -375,7 +387,7 @@ testlistall(void)
     size_t i,nkeys = 0;
     char** keys = NULL;
 
-    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/object_store",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", buildkey(NULL),!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -383,7 +395,7 @@ testlistall(void)
     printf("url=%s => info=%s\n",dumpoptions.url,NC_s3dumps3info(&s3info));
 #endif
     if((s3client = NC_s3sdkcreateclient(&s3info))==NULL) {CHECK(NC_ES3);}
-    CHECK(NC_s3sdklistall(s3client, s3info.bucket, dumpoptions.key, &nkeys, &keys, NULL));
+    CHECK(NC_s3sdklistall(s3client, s3info.bucket, buildkey(dumpoptions.key), &nkeys, &keys, NULL));
     printf("testlistall: nkeys=%u; keys:\n",(unsigned)nkeys);
     for(i=0;i<nkeys;i++) {
         printf("\t|%s|\n",keys[i]);
@@ -412,22 +424,24 @@ testdeletekey(void)
                dumpoptions.url,newurl,s3info.bucket,s3info.region,activeprofile);
 #endif
     if((s3client = NC_s3sdkcreateclient(&s3info))==NULL) {CHECK(NC_ES3);}
-    stat = NC_s3sdkdeletekey(s3client, s3info.bucket, dumpoptions.key, NULL);
+    stat = NC_s3sdkdeletekey(s3client, s3info.bucket, buildkey(dumpoptions.key), NULL);
 
-    printf("testdeletekey: url %s%s: ",newurl,dumpoptions.key);
+    printf("testdeletekey: url %s%s: ",newurl,buildkey(dumpoptions.key));
     switch (stat) {
     case NC_NOERR:     printf("deleted\n");        break;
     case NC_ENOOBJECT: printf("does not exist\n"); break;
+    case NC_EEMPTY:    printf("has no content\n"); break;
     default:           printf("failed\n");         break;
     }
     stat = NC_NOERR; /* reset */
     
     /* Verify deleted and size */
-    stat = NC_s3sdkinfo(s3client, s3info.bucket, dumpoptions.key, &size, NULL);
-    printf("testdeletekey: url %s%s: ",newurl,dumpoptions.key);
+    stat = NC_s3sdkinfo(s3client, s3info.bucket, buildkey(dumpoptions.key), &size, NULL);
+    printf("testdeletekey: url %s%s: ",newurl,buildkey(dumpoptions.key));
     switch (stat) {
     case NC_NOERR:     printf("not deleted; size=%d\n",(int)size); break;
     case NC_ENOOBJECT: printf("deleted\n"); break;
+    case NC_EEMPTY:    printf("has no content\n"); break;
     default:           printf("failed\n"); goto done;
     }
     stat = NC_NOERR; /* reset */
@@ -459,7 +473,7 @@ main(int argc, char** argv)
     /* Init options */
     memset((void*)&dumpoptions,0,sizeof(dumpoptions));
 
-    while ((c = getopt(argc, argv, "dhk:tu:")) != EOF) {
+    while ((c = getopt(argc, argv, "dhk:tu:P:")) != EOF) {
         switch(c) {
         case 'd':
             dumpoptions.debug = 1;
@@ -475,6 +489,14 @@ main(int argc, char** argv)
             break;
         case 'u':
             dumpoptions.url = strdup(optarg);
+            break;
+        case 'P':
+	    if(strlen(optarg) == 0) {
+		fprintf(stderr,"Empty prefix option\n");
+		stat = NC_EINVAL;
+		goto done;
+	    }
+            dumpoptions.prefix = strdup(optarg);
             break;
         case '?':
            fprintf(stderr,"unknown option\n");
@@ -520,11 +542,29 @@ main(int argc, char** argv)
 
         dumpoptions.action = actionfor(argv[0]);
 
-        if(dumpoptions.action != EXISTS_ACTION && dumpoptions.key == NULL) {
+        if(dumpoptions.key == NULL
+	   && dumpoptions.action != EXISTS_ACTION
+	   && dumpoptions.action != LIST_ACTION
+	   && dumpoptions.action != LISTALL_ACTION
+   	   && dumpoptions.action != LONGLIST_ACTION)
+	    {
             fprintf(stderr,"no -k argument\n");
             stat = NC_EINVAL;
             goto done;
-        }
+	    }
+        if(dumpoptions.url == NULL)
+	    {
+            fprintf(stderr,"no -u argument\n");
+            stat = NC_EINVAL;
+            goto done;
+	    }
+        if(dumpoptions.prefix == NULL)
+	    {
+            fprintf(stderr,"no -P argument\n");
+            stat = NC_EINVAL;
+            goto done;
+	    }
+	   
 
         switch (dumpoptions.action) {
         case EXISTS_ACTION: stat = testbucketexists(); break;

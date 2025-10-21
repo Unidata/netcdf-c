@@ -62,7 +62,6 @@ TESTS += test_partvar
 # Various
 TESTS += tst_longremote3.sh
 tst_longremote3.log: tst_remote3.log
-endif
 
 # This test how many urls we can have open at one time, but it is basically useless, so disable it */
 #if NETCDF_ENABLE_DAP_LONG_TESTS
@@ -71,6 +70,8 @@ endif
 #test_manyurls_SOURCES = test_manyurls.c manyurls.h
 #test_manyurls.log: tst_longremote3.log
 #endif
+
+endif # NETCDF_BUILD_UTILITIES
 
 test_partvar_SOURCES = test_partvar.c
 

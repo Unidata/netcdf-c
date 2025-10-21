@@ -51,6 +51,7 @@ NClist* nclistnew(void)
     l->alloc=0;
     l->length=0;
     l->content=NULL;
+    l->extendible = 1;
   }
   return l;
 }
@@ -60,7 +61,7 @@ nclistfree(NClist* l)
 {
   if(l) {
     l->alloc = 0;
-    if(l->content != NULL) {free(l->content); l->content = NULL;}
+    if(l->extendible && l->content != NULL) {free(l->content); l->content = NULL;}
     free(l);
   }
   return TRUE;
@@ -317,7 +318,6 @@ done:
     return clone;
 }
 
-
 void*
 nclistextract(NClist* l)
 {
@@ -329,6 +329,18 @@ nclistextract(NClist* l)
 	l->content = NULL;
     }
     return result;
+}
+
+int
+nclistsetcontents(NClist* l, void** contents, size_t alloc, size_t length)
+{
+    if(l == NULL) return nclistfail();
+    if(l->extendible && l->content != NULL) {free(l->content);} else {l->content = NULL;}
+    l->content = (void**)contents;
+    l->length = length;
+    l->alloc = alloc;
+    l->extendible = 0;
+    return 1;
 }
 
 /* Extends nclist to include a NULL that is not included

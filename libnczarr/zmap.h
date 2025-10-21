@@ -332,12 +332,6 @@ EXTERNL void NCZ_s3finalize(void);
 /** Split a path into pieces along '/' character; elide any leading '/' */
 EXTERNL int nczm_split(const char* path, struct NClist* segments);
 
-/* Split a path into pieces along some character; elide any leading char */
-EXTERNL int nczm_split_delim(const char* path, char delim, struct NClist* segments);
-
-/* Convenience: Join all segments into a path using '/' character */
-EXTERNL int nczm_join(struct NClist* segments, char** pathp);
-
 /* Convenience: Join all segments into a path using '/' character
    but taking possible lead windows drive letter into account
 */
@@ -367,11 +361,6 @@ EXTERNL int nczm_canonicalpath(const char* path, char** cpathp);
 EXTERNL int nczm_basename(const char* path, char** basep);
 EXTERNL int nczm_segment1(const char* path, char** seg1p);
 EXTERNL int nczm_lastsegment(const char* path, char** lastp);
-
-/* bubble sorts (note arguments) */
-EXTERNL void nczm_sortlist(struct NClist* l);
-EXTERNL void nczm_sortenvv(size_t n, char** envv);
-EXTERNL void NCZ_freeenvv(int n, char** envv);
 
 #ifdef __cplusplus
 }

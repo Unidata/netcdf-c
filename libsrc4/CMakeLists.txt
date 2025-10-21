@@ -7,7 +7,7 @@
 # Process these files with m4.
 
 set(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4grp.c
-nc4internal.c nc4type.c nc4var.c ncfunc.c ncindex.c nc4cache.c)
+nc4internal.c nc4type.c nc4var.c ncfunc.c nc4cache.c)
 
 add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
 

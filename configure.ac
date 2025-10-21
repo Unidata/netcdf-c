@@ -2150,6 +2150,11 @@ AC_SUBST([S3TESTBUCKET],["unidata-zarr-test-data"])
 AC_DEFINE([S3TESTSUBTREE], ["netcdf-c"], [S3 test path prefix])
 AC_SUBST([S3TESTSUBTREE],[netcdf-c])
 
+# Additional S3 Test Endpoint
+# WARNING: this must match the value in CMakeLists.txt
+AC_DEFINE([S3ENDPOINT], ["s3.us-east-1.amazonaws.com"], [S3 test endpoint])
+AC_SUBST([S3ENDPOINT],["s3.us-east-1.amazonaws.com"])
+
 # Build a small unique id to avoid interference on same platform
 PLATFORMUID="$RANDOM"
 # Make sure uid > 0

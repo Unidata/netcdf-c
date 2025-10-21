@@ -60,6 +60,9 @@ S3TESTBUCKET=@S3TESTBUCKET@
 # All S3 tests should use this to store intermediate results.
 S3TESTSUBTREE=@S3TESTSUBTREE@
 
+# Additional S3 test endpoint
+S3ENDPOINT=@S3ENDPOINT@
+
 TESTUID=@TESTUID@
 
 set -e
@@ -199,6 +202,23 @@ export HOME
 fi
 fi
 
+# Setup test environment to handle path conversions
+# Set ncpathcvt platform
+NCIPLAT="-I_"
+if test "x$FP_ISCYGWIN" != x ; then
+NCIPLAT="-Ic"
+elif test "x$FP_MINGW" != x || test "x$FP_MSYS" != x ; then
+NCIPLAT="-Im"
+# Assume converting paths of form /[a-z]/... to [a-z]:/...
+export MSYS_NO_PATHCONV=
+# Ensable automatic path conversions in MINGW shell:
+export MSYS2_ARG_CONV_EXCL=
+else
+  if test "x$FP_ISMSVC" = x ; then
+NCIPLAT="-Iu"
+  fi
+fi
+
 # OS/X and windows apparently have no echo -n option, so fake it
 echon() {
     echo $@ | tr -d '\n'
@@ -228,7 +248,6 @@ isolate() {
       if test "x$NOISOPATH" = x ; then ISOTESTSET="${ISOTESTSET}${TESTUID}"; fi    
       ISODIR="$1"
       ISOPATH="${ISOTESTSET}/$ISODIR"
-      rm -fr $ISOPATH
       mkdir -p $ISOPATH
   fi
 }

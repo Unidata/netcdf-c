@@ -453,7 +453,7 @@ if(NETCDF_ENABLE_S3)
     if(NOT OpenSSL_FOUND)
       message(FATAL_ERROR "Can't find an ssl library, required by S3_INTERNAL")
     endif(NOT OpenSSL_FOUND)
-    
+
     #find_package(Crypto REQUIRED)
     #if(NOT CRYPTO_LIB)
     #  message(FATAL_ERROR "Can't find a crypto library, required by S3_INTERNAL")

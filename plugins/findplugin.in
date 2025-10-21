@@ -63,10 +63,10 @@ findplugindir() {
 FP_PLUGIN_DIR=
 # Figure out the path to where the lib is stored
 # This can probably be simplified
-
 CURWD=`pwd`
 cd ${TOPBUILDDIR}/plugins
 FP_PLUGINS=`pwd`
+FP_PLUGINS=`${NCPATHCVT} ${NCIPLAT} "${FP_PLUGINS}"`
 cd ${CURWD}
 
 # Case 1: Cmake with Visual Studio
@@ -93,7 +93,13 @@ if test "x$FP_PLUGIN_DIR" = x ; then
 fi
 
 # Make local path
-FP_PLUGIN_DIR=`${NCPATHCVT} -F $FP_PLUGIN_DIR`
+TRUEPLUGINDIR=`${NCPATHCVT} ${NCIPLAT} -F $FP_PLUGIN_DIR`
+#if test "x$FP_ISMSVC" = xyes || test "x$FP_MINGW" = xyes; then
+#TRUEPLUGINDIR=`${NCPATHCVT} ${NCIPLAT} -F -w $FP_PLUGIN_DIR`
+#else
+#TRUEPLUGINDIR=`${NCPATHCVT} ${NCIPLAT} -F -u $FP_PLUGIN_DIR`
+#fi
+FP_PLUGIN_DIR="${TRUEPLUGINDIR}"
 HDF5_PLUGIN_DIR="$FP_PLUGIN_DIR"
 if test "x$HDF5_PLUGIN_PATH" = x ; then
     HDF5_PLUGIN_PATH="$HDF5_PLUGIN_DIR"
@@ -101,14 +107,13 @@ fi
 }
 
 findplugin() {    
-
 FP_NAME="$1"
-
 FP_PLUGIN_LIB=
-
 # Figure out the plugin file name
 FP_PLUGIN_LIB="${FP_PLUGIN_PRE}${FP_NAME}.${FP_PLUGIN_EXT}"
-
+if test "x${FP_PLUGIN_DIR}" = x ; then
+findplugindir
+fi
 # Verify
 if ! test -f "$FP_PLUGIN_DIR/$FP_PLUGIN_LIB" ; then
   echo "***Fail: Could not locate a usable $FP_PLUGIN_LIB"

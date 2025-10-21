@@ -681,6 +681,8 @@ int
 NCZ_filter_finalize(void)
 {
     int stat = NC_NOERR;
+
+    ZTRACE(6,"");
     if(!NCZ_filter_initialized) goto done;
     NCZ_filter_initialized = 0;
 
