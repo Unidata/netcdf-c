@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.10.0 - TBD
 
+* Cleanup RELEASE_NOTES.md. See [Github 3190](https://github.com/Unidata/netcdf-c/issues/3190) for more information. 
 * Rebuild the S3-related code and other changes necessary to build cleanly on github actions. See [Github #3159](https://github.com/Unidata/netcdf-c/pull/3159) for more information.
 * Fix the problems around ncdap_test/test_manyurls.c. See [Github 3182](https://github.com/Unidata/netcdf-c/issues/3182) for more information. 
 * Fix bug in ncdump when printing FQNs ([Issue 3184](https://github.com/Unidata/netcdf-c/issues/3184)). See [Github 3185](https://github.com/Unidata/netcdf-c/issues/3185) for more information. 
