@@ -215,7 +215,7 @@ OPAQUESTRING	(0[xX][0-9A-Fa-f][0-9A-Fa-f]*)
 PATH    ([/]|([/]{ID})([/]{ID})*)
 
 XUNUMBER     {OPAQUESTRING}([Ss]|[Ll]|[Ll][Ll])?
-NUMBER       [+-]?[0-9][0-9]*[Uu]?([BbSs]|[Ll]|[Ll][Ll])?
+NUMBER       [+-]?[0-9][0-9]*(([Uu]([BbSs]|[Ll]{1,2}))|(([BbSs]|[Ll]{1,2})[Uu])|[Uu]|([BbSs]|[Ll]{1,2}))?
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
