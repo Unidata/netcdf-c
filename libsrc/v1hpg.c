@@ -1203,6 +1203,8 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 	ncap->nalloc = ncap->nelems;
 
 	ncap->hashmap = NC_hashmapnew(ncap->nelems);
+	if (ncap->hashmap == NULL)
+		return NC_ENOMEM;
 	{
 		NC_var **vpp = ncap->value;
 		NC_var *const *const end = &vpp[ncap->nelems];
