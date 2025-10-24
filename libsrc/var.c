@@ -485,6 +485,8 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
       /*if(!(shp == varp->shape && IS_RECVAR(varp)))*/
       if( shp != NULL && (shp != varp->shape || !IS_RECVAR(varp)))
 		{
+          if(product <= 0)
+            return NC_ERANGE;
           if( ((off_t)(*shp)) <= OFF_T_MAX / product )
 			{
               product *= (*shp > 0 ? (off_t)*shp : 1);
