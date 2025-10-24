@@ -88,6 +88,9 @@ new_x_NC_attr(
 
 	assert(!(xsz == 0 && nelems != 0));
 
+	if(sz > SIZE_MAX -xsz)
+		return NULL;
+
 	sz += xsz;
 
 	attrp = (NC_attr *) malloc(sz);
