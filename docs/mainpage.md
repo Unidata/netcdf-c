@@ -35,7 +35,7 @@ You can find the documentation for netCDF-Fortran here:
 
 NetCDF was developed and is maintained at [Unidata](https://www.unidata.ucar.edu), part of the [University Corporation for Atmospheric Research](http://www2.ucar.edu) (UCAR) [Community Programs](http://www.ucp.ucar.edu) (UCP). Unidata is funded primarily by the National Science Foundation.
 
-A complete list of credits and contributors to NetCDF may be found at the [credits](credits.md) page.
+A complete list of credits and contributors to NetCDF may be found at the @ref credits page.
 
 [Unidata](https://www.unidata.ucar.edu) provides data and software tools for use in geoscience education and research.
 
