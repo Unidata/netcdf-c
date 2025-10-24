@@ -72,13 +72,21 @@ new_x_NC_var(
 	size_t ndims)
 {
 	NC_var *varp;
+
+	if (ndims > SIZE_MAX / sizeof(int))
+		return NULL;
 	const size_t o1 = M_RNDUP(ndims * sizeof(int));
+
+	if (ndims > SIZE_MAX / sizeof(size_t))
+		return NULL;
 	const size_t o2 = M_RNDUP(ndims * sizeof(size_t));
 
 #ifdef MALLOCHACK
 	const size_t sz =  M_RNDUP(sizeof(NC_var)) +
 		 o1 + o2 + ndims * sizeof(off_t);
 #else /*!MALLOCHACK*/
+	if (ndims > SIZE_MAX / sizeof(off_t))
+		return NULL;
 	const size_t o3 = ndims * sizeof(off_t);
 	const size_t sz = sizeof(NC_var);
 #endif /*!MALLOCHACK*/
