@@ -68,6 +68,10 @@ extern nchashkey_t hash_fast(const char*, size_t length);
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#ifndef SIZE_MAX
+#define SIZE_MAX ((size_t)-1)
+#endif
+
 /* Forward */
 static const unsigned int NC_nprimes;
 static const unsigned int NC_primes[16386];
@@ -175,6 +179,7 @@ NC_hashmapnew(size_t startsize)
     if(startsize == 0 || startsize < MINTABLESIZE)
 	startsize = MINTABLESIZE;
     else {
+    if(startsize > SIZE_MAX / 4){nullfree(hm);return 0;}
 	startsize *= 4;
 	startsize /= 3;
 	startsize = findPrimeGreaterThan(startsize);
