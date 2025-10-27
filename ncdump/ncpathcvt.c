@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -32,13 +33,13 @@
 #include "ncbytes.h"
 
 static const char* USAGE =
-"ncpathcvt [-c|-m|-u|-w] [-e] [-h] [-k] [-p] [-x] [-F] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
+"ncpathcvt [-c|-m|-u|-w] [-I c|m|u|w|_] -e] [-h] [-k] [-p] [-x] [-F] [-D <driveletter>] [-B<char>] [-S<char>] PATH\n"
 "Options\n"
 "  -h help"
 "  -e add backslash escapes to '\' and ' '\n"
 "  -B <char> convert occurrences of <char> to blank\n"
 "  -D <driveletter> use driveletter when needed; defaults to 'c'\n"
-"  -F convert occurrences of '\\' to '/'"
+"  -F convert occurrences of '\\' to '/' when -c|-u; convert occurrences of '/' to '\\' when -w|-m\n"
 "  -S <char> use <char> as path separator when parsing;\n"
 "     currently limited to ';' or ':' but defaults to ';'\n"
 "Output type options:\n"
@@ -46,6 +47,18 @@ static const char* USAGE =
 "  -m convert to MSYS form of path: currently an alias for -w\n"
 "  -u convert to Unix form of path\n"
 "  -w convert to Windows form of path\n"
+"Output type options:\n"
+"  -c convert to Cygwin form of path\n"
+"  -m convert to MSYS form of path: currently an alias for -w\n"
+"  -u convert to Unix form of path\n"
+"  -w convert to Windows form of path\n"
+"Input type options:\n"
+"  -Ic treat the input path as if it was a cygwin path\n"
+"  -Im treat the input path as if it was a msys path\n"
+"  -Iu treat the input path as if it was a unix path\n"
+"  -Iw treat the input path as if it was a windows path\n"
+"  -i_ allow ncpathmgr to infer the path kind\n"
+"  This option is intended to deal with paths of the form '/[a-z]/...'\n"
 "Other options:\n"
 "  -k return kind of the local environment\n"
 "  -p return kind of the input path\n"
@@ -61,9 +74,10 @@ struct Options {
     int drive;
     int debug;
     int blank;
-    int slash;
     int pathkind;
     int sep;
+    int slashfrom; /* -F: translate slashfrom char to slashto char; do nothing if slashfrom is nul */
+    int slashto;
 } cvtoptions;
 
 static char* escape(const char* path);
@@ -107,13 +121,14 @@ slash(const char* path)
     char* q;
     char* epath = NULL;
 
+    assert(cvtoptions.slashfrom != '\0');
     epath = (char*)malloc(slen + 1);
     if(epath == NULL) usage("out of memtory");
     p = path;
     q = epath;
     for(;*p;p++) {
-	if(*p == '\\')
-	    *q++ = '/';
+	if(*p == cvtoptions.slashfrom)
+	    *q++ = cvtoptions.slashto;
         else *q++ = *p;
     }
     *q = '\0';
@@ -206,7 +221,7 @@ processdir(const char* indir, char** cvtdirp)
         cvtdir = escape(dir);
 	free(dir);
     }
-    if(cvtdir && cvtoptions.slash) {
+    if(cvtdir && cvtoptions.slashfrom) {
 	char* dir = cvtdir; cvtdir = NULL;
         cvtdir = slash(dir);
 	free(dir);
@@ -227,12 +242,13 @@ main(int argc, char** argv)
     NCbytes* outpath = ncbytesnew();
     int stat = NC_NOERR;
     size_t i;
+    int cvtslash = 0;
     
     memset((void*)&cvtoptions,0,sizeof(cvtoptions));
     cvtoptions.drive = 'c';
     cvtoptions.sep = ';';
 
-    while ((c = getopt(argc, argv, "B:D:FS:Xchkmpuwx")) != EOF) {
+    while ((c = getopt(argc, argv, "B:D:FI:S:Xchkmpuwx")) != EOF) {
 	switch(c) {
 	case 'c': cvtoptions.target = NCPD_CYGWIN; break;
 	case 'h': usage(NULL); break;
@@ -248,7 +264,16 @@ main(int argc, char** argv)
 		usage("Bad -B argument");
 	    break;
 	case 'D': cvtoptions.drive = optarg[0]; break;
-	case 'F': cvtoptions.slash = 1; break;
+	case 'F': cvtslash = 1; break;
+	case 'I':
+	    switch (optarg[0]) {
+	    case 'c': NCpathsetplatform(NCPD_CYGWIN); break;
+	    case 'm': NCpathsetplatform(NCPD_MSYS); break;
+	    case 'u': NCpathsetplatform(NCPD_NIX); break;
+	    case 'w': NCpathsetplatform(NCPD_WIN); break;
+	    case '_':
+	    default: NCpathsetplatform(NCPD_UNKNOWN); break;
+	    } ; break;
 	case 'S': cvtoptions.sep = optarg[0]; break;
 	case 'X': printenv(); break;
 	case '?':
@@ -265,6 +290,20 @@ main(int argc, char** argv)
        usage("no path specified");
     if (argc > 1)
        usage("more than one path specified");
+
+    /* Complete slashing */
+    cvtoptions.slashfrom = '\0'; /* default is to do nothing */
+    if(cvtslash) {
+        switch (cvtoptions.target) {
+	case NCPD_NIX: case NCPD_CYGWIN:
+	    cvtoptions.slashfrom = '\\'; cvtoptions.slashto = '/';
+	    break;
+	case NCPD_WIN: case NCPD_MSYS:
+	    cvtoptions.slashfrom = '/'; cvtoptions.slashto = '\\';
+	    break;
+	default: break; /* ignore */
+	}
+    }
 
     /* translate blanks */
     inpath = (char*)malloc(strlen(argv[0])+1);
@@ -296,7 +335,7 @@ main(int argc, char** argv)
 	ncbytescat(outpath,outdir);
 	nullfree(outdir);
     }
-    printf("%s",ncbytescontents(outpath));
+    printf("%s",ncbytescontents(outpath)); fflush(stdout);
 
 done:
     if(inpath) free(inpath);

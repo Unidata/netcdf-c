@@ -44,27 +44,29 @@ zreport(int err, const char* msg, const char* file, const char* fcn, int line)
 /**************************************************/
 /* Data Structure printers */
 
-static NClist* reclaim = NULL;
-static const int maxreclaim = 16;
+#if 0
+static NClist  llocal = {NULL};
+static void* ldata[1024];
+#endif
+#define BDATASIZE (1<<14)
+static NCbytes blocal = {NULL};
+static char  bdata[BDATASIZE];
 
-static char*
-capture(char* s)
+static void
+nczprint_setup(void)
 {
-    if(s != NULL) {
-	while(nclistlength(reclaim) >= maxreclaim)
-	    free(nclistremove(reclaim,0));
-        if(reclaim == NULL) reclaim = nclistnew();
-        nclistpush(reclaim,s);
-    }
-    return s;
-}
-
-void
-nczprint_reclaim(void)
-{
-    if(reclaim != NULL) {
-        nclistfreeall(reclaim);
-	reclaim = NULL;
+#if 0
+    if(llocal.content == NULL) {
+	NClist* l = nclistnew();
+	nclistsetcontents(l,ldata,1024,0);
+	llocal = *l;
+	nullfree(l);    }
+#endif
+    if(blocal.content == NULL) {
+	NCbytes* b = ncbytesnew();
+	ncbytessetcontents(b,bdata,BDATASIZE,0);
+	blocal = *b;
+	nullfree(b);
     }
 }
 
@@ -78,33 +80,32 @@ char*
 nczprint_slicex(const NCZSlice slice, int raw)
 {
     char* result = NULL;
-    NCbytes* buf = ncbytesnew();
     char value[64];
 
+    nczprint_setup();
     if(raw)
-        ncbytescat(buf,"[");
+        ncbytescat(&blocal,"[");
     else
-        ncbytescat(buf,"Slice{");
+        ncbytescat(&blocal,"Slice{");
     snprintf(value,sizeof(value),"%lu",(unsigned long)slice.start);
-    ncbytescat(buf,value);
-    ncbytescat(buf,":");
+    ncbytescat(&blocal,value);
+    ncbytescat(&blocal,":");
     snprintf(value,sizeof(value),"%lu",(unsigned long)slice.stop);
-    ncbytescat(buf,value);
+    ncbytescat(&blocal,value);
     if(slice.stride != 1) {
-        ncbytescat(buf,":");
+        ncbytescat(&blocal,":");
         snprintf(value,sizeof(value),"%lu",(unsigned long)slice.stride);
-        ncbytescat(buf,value);
+        ncbytescat(&blocal,value);
     }
-    ncbytescat(buf,"|");
+    ncbytescat(&blocal,"|");
     snprintf(value,sizeof(value),"%lu",(unsigned long)slice.len);
-    ncbytescat(buf,value);
+    ncbytescat(&blocal,value);
     if(raw)
-        ncbytescat(buf,"]");
+        ncbytescat(&blocal,"]");
     else
-        ncbytescat(buf,"}");
-    result = ncbytesextract(buf);
-    ncbytesfree(buf);
-    return capture(result);
+        ncbytescat(&blocal,"}");
+    result = ncbytescontents(&blocal);
+    return (result);
 }
 
 char*
@@ -118,20 +119,19 @@ nczprint_slicesx(int rank, const NCZSlice* slices, int raw)
 {
     int i;
     char* result = NULL;
-    NCbytes* buf = ncbytesnew();
 
+    nczprint_setup();
     for(i=0;i<rank;i++) {
 	char* ssl;
 	if(!raw)
-            ncbytescat(buf,"[");
+            ncbytescat(&blocal,"[");
 	ssl = nczprint_slicex(slices[i],raw);
-	ncbytescat(buf,ssl);
+	ncbytescat(&blocal,ssl);
 	if(!raw)
-	    ncbytescat(buf,"]");
+	    ncbytescat(&blocal,"]");
     }
-    result = ncbytesextract(buf);
-    ncbytesfree(buf);
-    return capture(result);
+    result = ncbytescontents(&blocal);
+    return (result);
 }
 
 char*
@@ -144,42 +144,41 @@ char*
 nczprint_odom(const NCZOdometer* odom)
 {
     char* result = NULL;
-    NCbytes* buf = ncbytesnew();
     char value[128];
     char* txt = NULL;
 
+    nczprint_setup();
     snprintf(value,sizeof(value),"Odometer{rank=%d ",odom->rank);
-    ncbytescat(buf,value);
+    ncbytescat(&blocal,value);
 
-    ncbytescat(buf," start=");
+    ncbytescat(&blocal," start=");
     txt = nczprint_vector(odom->rank,odom->start);
-    ncbytescat(buf,txt);
-    ncbytescat(buf," stop=");
+    ncbytescat(&blocal,txt);
+    ncbytescat(&blocal," stop=");
     txt = nczprint_vector(odom->rank,odom->stop);
-    ncbytescat(buf,txt);
-    ncbytescat(buf," len=");
+    ncbytescat(&blocal,txt);
+    ncbytescat(&blocal," len=");
     txt = nczprint_vector(odom->rank,odom->len);
-    ncbytescat(buf,txt);
-    ncbytescat(buf," stride=");
+    ncbytescat(&blocal,txt);
+    ncbytescat(&blocal," stride=");
     txt = nczprint_vector(odom->rank,odom->stride);
-    ncbytescat(buf,txt);
-    ncbytescat(buf," index=");
+    ncbytescat(&blocal,txt);
+    ncbytescat(&blocal," index=");
     txt = nczprint_vector(odom->rank,odom->index);
-    ncbytescat(buf,txt);
-    ncbytescat(buf," offset=");
+    ncbytescat(&blocal,txt);
+    ncbytescat(&blocal," offset=");
     snprintf(value,sizeof(value),"%llu",nczodom_offset(odom));
-    ncbytescat(buf,value);
-    ncbytescat(buf," avail=");
+    ncbytescat(&blocal,value);
+    ncbytescat(&blocal," avail=");
     snprintf(value,sizeof(value),"%llu",nczodom_avail(odom));
-    ncbytescat(buf,value);
-    ncbytescat(buf," more=");
+    ncbytescat(&blocal,value);
+    ncbytescat(&blocal," more=");
     snprintf(value,sizeof(value),"%d",nczodom_more(odom));
-    ncbytescat(buf,value);
+    ncbytescat(&blocal,value);
     
-    ncbytescat(buf,"}");
-    result = ncbytesextract(buf);
-    ncbytesfree(buf);
-    return capture(result);
+    ncbytescat(&blocal,"}");
+    result = ncbytescontents(&blocal);
+    return (result);
 }
 
 char*
@@ -192,34 +191,33 @@ char*
 nczprint_projectionx(const NCZProjection proj, int raw)
 {
     char* result = NULL;
-    NCbytes* buf = ncbytesnew();
     char value[128];
 
-    ncbytescat(buf,"Projection{");
+    nczprint_setup();
+    ncbytescat(&blocal,"Projection{");
     snprintf(value,sizeof(value),"id=%d,",proj.id);
-    ncbytescat(buf,value);
-    if(proj.skip) ncbytescat(buf,"*");
+    ncbytescat(&blocal,value);
+    if(proj.skip) ncbytescat(&blocal,"*");
     snprintf(value,sizeof(value),"chunkindex=%lu",(unsigned long)proj.chunkindex);
-    ncbytescat(buf,value);
+    ncbytescat(&blocal,value);
     snprintf(value,sizeof(value),",first=%lu",(unsigned long)proj.first);
-    ncbytescat(buf,value);
+    ncbytescat(&blocal,value);
     snprintf(value,sizeof(value),",last=%lu",(unsigned long)proj.last);
-    ncbytescat(buf,value);
+    ncbytescat(&blocal,value);
     snprintf(value,sizeof(value),",limit=%lu",(unsigned long)proj.limit);
-    ncbytescat(buf,value);
+    ncbytescat(&blocal,value);
     snprintf(value,sizeof(value),",iopos=%lu",(unsigned long)proj.iopos);
-    ncbytescat(buf,value);
+    ncbytescat(&blocal,value);
     snprintf(value,sizeof(value),",iocount=%lu",(unsigned long)proj.iocount);
-    ncbytescat(buf,value);
-    ncbytescat(buf,",chunkslice=");
+    ncbytescat(&blocal,value);
+    ncbytescat(&blocal,",chunkslice=");
     result = nczprint_slicex(proj.chunkslice,raw);
-    ncbytescat(buf,result);
-    ncbytescat(buf,",memslice=");
+    ncbytescat(&blocal,result);
+    ncbytescat(&blocal,",memslice=");
     result = nczprint_slicex(proj.memslice,raw);
-    ncbytescat(buf,result);
-    result = ncbytesextract(buf);
-    ncbytesfree(buf);
-    return capture(result);
+    ncbytescat(&blocal,result);
+    result = ncbytescontents(&blocal);
+    return (result);
 }
 
 char*
@@ -227,14 +225,14 @@ nczprint_allsliceprojections(int r, const NCZSliceProjections* slp)
 {
     int i;
     char* s;    
-    NCbytes* buf = ncbytesnew();
+
+    nczprint_setup();
     for(i=0;i<r;i++) {
 	s = nczprint_sliceprojections(slp[i]);
-	ncbytescat(buf,s);
+	ncbytescat(&blocal,s);
     } 	
-    s = ncbytesextract(buf);
-    ncbytesfree(buf);
-    return capture(s);
+    s = ncbytescontents(&blocal);
+    return (s);
 }
 
 char*
@@ -247,46 +245,44 @@ char*
 nczprint_sliceprojectionsx(const NCZSliceProjections slp, int raw)
 {
     char* result = NULL;
-    NCbytes* buf = ncbytesnew();
     char tmp[4096];
     int i;
 
+    nczprint_setup();
     snprintf(tmp,sizeof(tmp),"SliceProjection{r=%d range=%s count=%ld",
     		slp.r,nczprint_chunkrange(slp.range),(long)slp.count);
-    ncbytescat(buf,tmp);
-    ncbytescat(buf,",projections=[\n");
+    ncbytescat(&blocal,tmp);
+    ncbytescat(&blocal,",projections=[\n");
     for(i=0;i<slp.count;i++) {
 	NCZProjection* p = (NCZProjection*)&slp.projections[i];
-	ncbytescat(buf,"\t");
+	ncbytescat(&blocal,"\t");
         result = nczprint_projectionx(*p,raw);
-        ncbytescat(buf,result);
-	ncbytescat(buf,"\n");
+        ncbytescat(&blocal,result);
+	ncbytescat(&blocal,"\n");
     }
     result = NULL;
-    ncbytescat(buf,"]");
-    ncbytescat(buf,"}\n");
-    result = ncbytesextract(buf);
-    ncbytesfree(buf);
-    return capture(result);
+    ncbytescat(&blocal,"]");
+    ncbytescat(&blocal,"}\n");
+    result = ncbytescontents(&blocal);
+    return (result);
 }
 
 char*
 nczprint_chunkrange(const NCZChunkRange range)
 {
     char* result = NULL;
-    NCbytes* buf = ncbytesnew();
     char digits[64];
 
-    ncbytescat(buf,"ChunkRange{start=");
+    nczprint_setup();
+    ncbytescat(&blocal,"ChunkRange{start=");
     snprintf(digits,sizeof(digits),"%llu",range.start);
-    ncbytescat(buf,digits);
-    ncbytescat(buf," stop=");
+    ncbytescat(&blocal,digits);
+    ncbytescat(&blocal," stop=");
     snprintf(digits,sizeof(digits),"%llu",range.stop);
-    ncbytescat(buf,digits);
-    ncbytescat(buf,"}");
-    result = ncbytesextract(buf);
-    ncbytesfree(buf);
-    return capture(result);
+    ncbytescat(&blocal,digits);
+    ncbytescat(&blocal,"}");
+    result = ncbytescontents(&blocal);
+    return (result);
 }
 
 char*
@@ -322,41 +318,39 @@ nczprint_vector(size_t len, const size64_t* vec)
     char* result = NULL;
     int i;
     char value[128];
-    NCbytes* buf = ncbytesnew();
 
-    ncbytescat(buf,"(");
+    nczprint_setup();
+    ncbytescat(&blocal,"(");
     for(i=0;i<len;i++) {
-        if(i > 0) ncbytescat(buf,",");
+        if(i > 0) ncbytescat(&blocal,",");
         snprintf(value,sizeof(value),"%lu",(unsigned long)vec[i]);	
-	ncbytescat(buf,value);
+	ncbytescat(&blocal,value);
     }
-    ncbytescat(buf,")");
-    result = ncbytesextract(buf);
-    ncbytesfree(buf);
-    return capture(result);
+    ncbytescat(&blocal,")");
+    result = ncbytescontents(&blocal);
+    return (result);
 }
 
 char*
-nczprint_envv(const char** envv)
+nczprint_envv(NClist* envv)
 {
     char* result = NULL;
     int i;
-    NCbytes* buf = ncbytesnew();
-    const char** p;
 
-    ncbytescat(buf,"(");
+    nczprint_setup();
+    ncbytescat(&blocal,"(");
     if(envv) {
-        for(i=0,p=envv;*p;p++,i++) {
-        if(i > 0) ncbytescat(buf,",");
-	    ncbytescat(buf,"'");
-	    ncbytescat(buf,*p);
-	    ncbytescat(buf,"'");
+        for(i=0;i<nclistlength(envv);i++) {
+	    const char* p = (const char*)nclistget(envv,i);
+            if(i > 0) ncbytescat(&blocal,",");
+	    ncbytescat(&blocal,"'");
+	    ncbytescat(&blocal,p);
+	    ncbytescat(&blocal,"'");
 	}
     }
-    ncbytescat(buf,")");
-    result = ncbytesextract(buf);
-    ncbytesfree(buf);
-    return capture(result);
+    ncbytescat(&blocal,")");
+    result = ncbytescontents(&blocal);
+    return (result);
 }
 
 void

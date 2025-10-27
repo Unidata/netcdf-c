@@ -433,14 +433,14 @@ setkeyprefix(const char* file)
     if(strcmp(uri->protocol,"file")==0) return;
     
     segments = nclistnew();
-    nczm_split_delim(uri->path,'/',segments);
+    NC_split_delim(uri->path,'/',segments);
     /* Extract the first two segments */
     if(nclistlength(segments) < 1) return; /* not enough to qualify */
     /* Remove the bucket */
     { char* s = nclistremove(segments,0);
     nullfree(s); /* do not nest because arg is eval'd twice */
     }
-    nczm_join(segments,&keyprefix);
+    NC_join(segments,&keyprefix);
     nclistfreeall(segments);
     ncurifree(uri);
 }

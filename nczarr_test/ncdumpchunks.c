@@ -73,8 +73,6 @@ typedef struct Odometer {
 static char* captured[4096];
 static size_t ncap = 0;
 
-extern int nc__testurl(const char*,char**);
-
 Odometer* odom_new(size_t rank, const size_t* stop, const size_t* max);
 void odom_free(Odometer* odom);
 int odom_more(Odometer* odom);
@@ -490,7 +488,7 @@ filenamefor(const char* f0)
     char* p;
 
     strcpy(result,f0); /* default */
-    if(nc__testurl(f0,NULL)) goto done;
+    if(NC__testurl(f0,NULL,NULL)) goto done;
     /* Not a URL */
     p = strrchr(f0,'.'); /* look at the extension, if any */
     if(p == NULL) goto done; /* No extension */

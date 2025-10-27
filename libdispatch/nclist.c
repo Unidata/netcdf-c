@@ -51,6 +51,7 @@ NClist* nclistnew(void)
     l->alloc=0;
     l->length=0;
     l->content=NULL;
+    l->extendible = 1;
   }
   return l;
 }
@@ -60,7 +61,7 @@ nclistfree(NClist* l)
 {
   if(l) {
     l->alloc = 0;
-    if(l->content != NULL) {free(l->content); l->content = NULL;}
+    if(l->extendible && l->content != NULL) {free(l->content); l->content = NULL;}
     free(l);
   }
   return TRUE;
@@ -93,20 +94,30 @@ nclistclearall(NClist* l)
   return TRUE;
 }
 
+/*
+Set allocated memory to newalloc elements.
+If newalloc is zero, then just guarantee that l->content has memory allocated.
+*/
 int
-nclistsetalloc(NClist* l, size_t sz)
+nclistsetalloc(NClist* l, size_t newalloc)
 {
   void** newcontent = NULL;
+  size_t alloc;
   if(l == NULL) return nclistfail();
-  if(sz <= 0) {sz = (l->length?2*l->length:DEFAULTALLOC);}
-  if(l->alloc >= sz) {return TRUE;}
-  newcontent=(void**)calloc(sz,sizeof(void*));
-  if(newcontent != NULL && l->alloc > 0 && l->length > 0 && l->content != NULL) {
+  if(newalloc == 0) newalloc = DEFAULTALLOC; /* force newalloc to be greater than 0 */
+  if(l->alloc >= newalloc) {return TRUE;} /* already enough space */
+  /* Iterate to find an allocation greater or equal to newalloc */
+  alloc = l->alloc;
+  while(alloc < newalloc)
+      alloc = (2*alloc + 1); /* Double until we have a suitable allocation; +1 in case alloc is zero*/
+  newcontent=(void**)calloc(alloc,sizeof(void*));
+  if(newcontent == NULL) return nclistfail(); /* out of memory */
+  /* Copy data, if any,  to new contents */
+  if(l->alloc > 0 && l->length > 0 && l->content != NULL)
     memcpy((void*)newcontent,(void*)l->content,sizeof(void*)*l->length);
-  }
-  if(l->content != NULL) free(l->content);
-  l->content=newcontent;
-  l->alloc=sz;
+  if(l->content != NULL) free(l->content); /* reclaim old contents */
+  l->content = newcontent;
+  l->alloc = alloc;
   return TRUE;
 }
 
@@ -167,9 +178,9 @@ int
 nclistpush(NClist* l, const void* elem)
 {
   if(l == NULL) return nclistfail();
-  if(l->length >= l->alloc) nclistsetalloc(l,0);
   if(l->content == NULL)
       nclistsetalloc(l,0);
+  if(l->length >= l->alloc) nclistsetalloc(l,l->length+1);
   l->content[l->length] = (void*)elem;
   l->length++;
   return TRUE;
@@ -307,18 +318,29 @@ done:
     return clone;
 }
 
-
 void*
 nclistextract(NClist* l)
 {
     void* result = NULL;
     if(l) {
-    result = l->content;
-    l->alloc = 0;
-    l->length = 0;
-    l->content = NULL;
+	result = l->content;
+	l->alloc = 0;
+	l->length = 0;
+	l->content = NULL;
     }
     return result;
+}
+
+int
+nclistsetcontents(NClist* l, void** contents, size_t alloc, size_t length)
+{
+    if(l == NULL) return nclistfail();
+    if(l->extendible && l->content != NULL) {free(l->content);} else {l->content = NULL;}
+    l->content = (void**)contents;
+    l->length = length;
+    l->alloc = alloc;
+    l->extendible = 0;
+    return 1;
 }
 
 /* Extends nclist to include a NULL that is not included

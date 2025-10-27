@@ -6,6 +6,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 
 #CMD="valgrind --leak-check=full"
+#GCMD="gdb --args"
 
 URL="https://${S3ENDPOINT}/${S3TESTBUCKET}"
 
@@ -26,45 +27,46 @@ fi
 THISDIR=`pwd`
 cd $ISOPATH
 
-echo -e "Running S3 AWSSDK Unit Tests."
-echo -e "\to Checking ${URL} exists"
-${CMD} ${execdir}/test_s3sdk -u "${URL}"                                  exists
+echo "Running S3 AWSSDK Unit Tests."
 
-echo -e "\to Checking write to ${URL}"
-${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" write
+echo "	o Checking ${URL} exists"
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}"		     exists
+
+echo "	o Checking write to ${URL}$S3ISOPATH/test_s3sdk.txt"
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}" -k "/test_s3sdk.txt" write
 echo "Status: $?"
 
-echo -e "\to Checking read from ${URL}"
-${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" read
+echo "	o Checking read from ${URL}$S3ISOPATH/test_s3sdk.txt"
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}" -k "/test_s3sdk.txt" read
 echo "Status: $?"
 
-echo -e "\to Checking size of ${URL}/test_s3sdk.txt"
-${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" size
+echo "	o Checking size of ${URL}$S3ISOPATH/test_s3sdk.txt"
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}" -k "/test_s3sdk.txt" size
+echo "Status: $?"
+		
+echo "	o Checking list command for ${URL}"
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}"		      list
 echo "Status: $?"
 
-echo -e "\to Checking list command for ${URL}"
-${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                list
+echo "	o Checking listall command for ${URL}"
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}"                      listall
 echo "Status: $?"
 
-echo -e "\to Checking search command for ${URL}"
-${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "/object_store"               listall
+echo "	o Checking delete command for ${URL}$S3ISOPATH/test_s3sdk.txt"
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}" -k "/test_s3sdk.txt" delete
 echo "Status: $?"
 
-echo -e "\to Checking delete command for ${URL}/test_s3sdk.txt"
-${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" delete
-echo "Status: $?"
-
-echo -e "\to Checking delete command for non-existent ${URL}/test_s3sdk_x.txt"
-${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk_x.txt" delete
+echo "	o Checking delete command for non-existent ${URL}$S3ISOPATH/test_s3sdk_x.txt"
+${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}" -k "/test_s3sdk_x.txt" delete
 echo "Status: $?"
 
 if test "x$FEATURE_LARGE_TESTS" = xyes ; then
-    echo -e "\to Checking longlist command for ${URL}"
-    ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                longlist
+    echo "	o Checking longlist command for ${URL}"
+    ${CMD} ${execdir}/test_s3sdk -P "$S3ISOPATH" -u "${URL}"                    longlist
     echo "Status: $?"
 fi
 
-echo -e "Finished"
+echo "Finished"
 
 if test "x$GITHUB_ACTIONS" = xtrue; then
 # Cleanup on exit

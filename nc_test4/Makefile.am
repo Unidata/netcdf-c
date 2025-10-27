@@ -11,9 +11,9 @@
 include $(top_srcdir)/lib_flags.am
 
 # Un comment to use a more verbose test driver
-# SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-# sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-# LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 # TESTS_ENVIRONMENT = export SETX=1;
 
 TEST_EXTENSIONS = .sh
@@ -44,7 +44,7 @@ endif
 NC4_TESTS += tst_h_strbug tst_h_refs
 
 # Build test programs plus programs used in test scripts.
-check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug \ 
+check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug \
 tst_vlenstr tst_zero_len_att
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh run_zero_len_att_test.sh
 XFAIL_TESTS =

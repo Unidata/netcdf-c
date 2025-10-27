@@ -734,6 +734,10 @@ AC_ARG_ENABLE([dap-long-tests],
                                  [enable dap long tests])])
 test "x$enable_dap_long_tests" = xyes || enable_dap_long_tests=no
 AC_MSG_RESULT([$enable_dap_long_tests])
+if test "x$enable_dap_long_tests" = xyes; then
+   AC_DEFINE([NETCDF_ENABLE_DAP_LONG_TESTS], [1], [if true, execute long dap tests])
+fi
+
 if test "x$enable_dap_remote_tests" = "xno" || test "x$enable_external_server_tests" = "xno" ; then
   AC_MSG_NOTICE([--disable-dap-remote|external-server-tests => --disable_dap_long_tests])
   enable_dap_long_tests=no
@@ -2145,6 +2149,11 @@ AC_SUBST([S3TESTBUCKET],["unidata-zarr-test-data"])
 # WARNING: this must match the value in CMakeLists.txt
 AC_DEFINE([S3TESTSUBTREE], ["netcdf-c"], [S3 test path prefix])
 AC_SUBST([S3TESTSUBTREE],[netcdf-c])
+
+# Additional S3 Test Endpoint
+# WARNING: this must match the value in CMakeLists.txt
+AC_DEFINE([S3ENDPOINT], ["s3.us-east-1.amazonaws.com"], [S3 test endpoint])
+AC_SUBST([S3ENDPOINT],["s3.us-east-1.amazonaws.com"])
 
 # Build a small unique id to avoid interference on same platform
 PLATFORMUID="$RANDOM"

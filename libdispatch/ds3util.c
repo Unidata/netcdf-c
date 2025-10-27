@@ -200,7 +200,7 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
         const char* region0 = NULL;
 	/* Get default region */
 	if((stat = NC_getdefaults3region(url,&region0))) goto done;
-	region = nulldup(region0);
+	region = (char*)nulldup(region0);
     }
     if(region == NULL) {stat = NC_ES3; goto done;}
 
@@ -761,7 +761,7 @@ NC_getdefaults3region(NCURI* uri, const char** regionp)
 	}
     }
     if(region == NULL)
-	  region = (NC_getglobalstate()->aws.default_region ? NC_getglobalstate()->aws.default_region : "us-east-1"); /* Force use of the Amazon default */
+	region = (NC_getglobalstate()->aws.default_region ? NC_getglobalstate()->aws.default_region : "us-east-1"); /* Force use of the Amazon default */
 #ifdef AWSDEBUG
     fprintf(stderr,">>> activeregion = |%s|\n",region);
 #endif

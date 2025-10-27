@@ -46,8 +46,6 @@ typedef struct NCRCinfo {
 } NCRCinfo;
 
 /* Opaque structures */
-struct NCS3INFO;
-enum NCS3SVC;
 
 #if defined(__cplusplus)
 extern "C" {

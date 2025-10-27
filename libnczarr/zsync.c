@@ -867,7 +867,7 @@ download_jatts(NC_FILE_INFO_T* file, NC_OBJ* container, const NCjson** jattsp, c
     int purezarr = 0;
     int zarrkey = 0;
 
-    ZTRACE(3,"map=%p container=%s ",map,container->name);
+    ZTRACE(3,"container=%s ",container->name);
 
     purezarr = (zinfo->controls.flags & FLAG_PUREZARR)?1:0;
     zarrkey = (zinfo->controls.flags & FLAG_NCZARR_KEY)?1:0;
@@ -935,7 +935,7 @@ zconvert(const NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes
     int i;
     int count = 0;
     
-    ZTRACE(3,"src=%s typeid=%d typelen=%u",NCJtotext(src),typeid,typelen);
+    ZTRACE(3,"src=%s typeid=%d typelen=%u",NCJtotext(src,0),typeid,typelen);
 	    
     /* 3 cases:
        (1) singleton atomic value
@@ -996,7 +996,7 @@ computeattrinfo(const char* name, const NCjson* jtypes, nc_type typehint, int pu
     void* data = NULL;
     nc_type typeid;
 
-    ZTRACE(3,"name=%s typehint=%d purezarr=%d values=|%s|",name,typehint,purezarr,NCJtotext(values));
+    ZTRACE(3,"name=%s typehint=%d purezarr=%d values=|%s|",name,typehint,purezarr,NCJtotext(values,0));
 
     /* Get type info for the given att */
     typeid = NC_NAT;
@@ -1043,7 +1043,7 @@ computeattrdata(nc_type typehint, nc_type* typeidp, const NCjson* values, size_t
     int isjson = 0; /* 1 => attribute value is neither scalar nor array of scalars */
     int count = 0; /* no. of attribute values */
 
-    ZTRACE(3,"typehint=%d typeid=%d values=|%s|",typehint,*typeidp,NCJtotext(values));
+    ZTRACE(3,"typehint=%d typeid=%d values=|%s|",typehint,*typeidp,NCJtotext(values,0));
 
     /* Get assumed type */
     if(typeidp) typeid = *typeidp;
@@ -1104,7 +1104,7 @@ ncz_read_file(NC_FILE_INFO_T* file)
 
 done:
     NCJreclaim(json);
-    return ZUNTRACE(THROW(stat));
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -1190,7 +1190,7 @@ done:
     nclistfreeall(subgrps);
     nullfree(fullpath);
     nullfree(key);
-    return ZUNTRACE(THROW(stat));
+    return ZUNTRACE(stat);
 }
 
 
@@ -1482,7 +1482,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	if(endianness == NC_ENDIAN_NATIVE)
 	    endianness = zinfo->native_endianness;
 	if(endianness == NC_ENDIAN_NATIVE)
-	    endianness = (NCZ_isLittleEndian()?NC_ENDIAN_LITTLE:NC_ENDIAN_BIG);
+	    endianness = (NC_isLittleEndian()?NC_ENDIAN_LITTLE:NC_ENDIAN_BIG);
 	if(endianness == NC_ENDIAN_LITTLE || endianness == NC_ENDIAN_BIG) {
 	    var->endianness = endianness;
 	} else {stat = NC_EBADTYPE; goto done;}
@@ -1717,7 +1717,7 @@ done:
     nullfree(varpath); varpath = NULL;
     nullfree(shapes); shapes = NULL;
     nullfree(key); key = NULL;
-    return THROW(stat);
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -1747,7 +1747,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
     }
 
 done:
-    return ZUNTRACE(THROW(stat));
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -1887,7 +1887,7 @@ parse_group_content(const NCjson* jcontent, NClist* dimdefs, NClist* varnames, N
     size_t i;
     const NCjson* jvalue = NULL;
 
-    ZTRACE(3,"jcontent=|%s| |dimdefs|=%u |varnames|=%u |subgrps|=%u",NCJtotext(jcontent),(unsigned)nclistlength(dimdefs),(unsigned)nclistlength(varnames),(unsigned)nclistlength(subgrps));
+    ZTRACE(3,"jcontent=|%s| |dimdefs|=%u |varnames|=%u |subgrps|=%u",NCJtotext(jcontent,0),(unsigned)nclistlength(dimdefs),(unsigned)nclistlength(varnames),(unsigned)nclistlength(subgrps));
 
     if((stat=dictgetalt(jcontent,"dimensions","dims",&jvalue))) goto done;
     if(jvalue != NULL) {
@@ -2481,7 +2481,7 @@ upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts)
     char* fullpath = NULL;
     char* key = NULL;
 
-    ZTRACE(3,"file=%s grp=%s",file->controller->path,grp->hdr.name);
+    ZTRACE(3,"file=%s grp=%s",file->controller->path,container->name);
 
     if(jatts == NULL) goto done;    
 
