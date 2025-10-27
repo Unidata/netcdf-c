@@ -1468,10 +1468,6 @@ endif()
 
 if(NETCDF_ENABLE_DAP4)
   add_subdirectory(libdap4)
-else()
-  if(NETCDF_ENABLE_S3_INTERNAL)
-    add_subdirectory(libncxml)
-  endif()
 endif()
 
 if (NETCDF_ENABLE_DAP4 OR NETCDF_ENABLE_S3_INTERNAL OR NETCDF_ENABLE_NCZARR OR NETCDF_ENABLE_LIBXML2)
