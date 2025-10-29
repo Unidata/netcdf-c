@@ -72,13 +72,21 @@ new_x_NC_var(
 	size_t ndims)
 {
 	NC_var *varp;
+
+	if (ndims > SIZE_MAX / sizeof(int))
+		return NULL;
 	const size_t o1 = M_RNDUP(ndims * sizeof(int));
+
+	if (ndims > SIZE_MAX / sizeof(size_t))
+		return NULL;
 	const size_t o2 = M_RNDUP(ndims * sizeof(size_t));
 
 #ifdef MALLOCHACK
 	const size_t sz =  M_RNDUP(sizeof(NC_var)) +
 		 o1 + o2 + ndims * sizeof(off_t);
 #else /*!MALLOCHACK*/
+	if (ndims > SIZE_MAX / sizeof(off_t))
+		return NULL;
 	const size_t o3 = ndims * sizeof(off_t);
 	const size_t sz = sizeof(NC_var);
 #endif /*!MALLOCHACK*/
@@ -477,6 +485,8 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
       /*if(!(shp == varp->shape && IS_RECVAR(varp)))*/
       if( shp != NULL && (shp != varp->shape || !IS_RECVAR(varp)))
 		{
+          if(product <= 0)
+            return NC_ERANGE;
           if( ((off_t)(*shp)) <= OFF_T_MAX / product )
 			{
               product *= (*shp > 0 ? (off_t)*shp : 1);
@@ -525,6 +535,8 @@ NC_check_vlen(NC_var *varp, long long vlen_max) {
     for(ii = IS_RECVAR(varp) ? 1 : 0; ii < varp->ndims; ii++) {
       if(!varp->shape)
         return 0; /* Shape is undefined/NULL. */
+      if(prod <= 0)
+	    return 0; /* Multiplication operations may result in overflow */
       if ((long long)varp->shape[ii] > vlen_max / prod) {
         return 0;		/* size in bytes won't fit in a 32-bit int */
       }
