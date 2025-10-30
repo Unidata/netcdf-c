@@ -1616,7 +1616,7 @@ isdaoscontainer(const char* path)
 	    FILE *fp;
 	    char cmd[4096];
 	    memset(cmd,0,sizeof(cmd));
-        snprintf(cmd,sizeof(cmd),"getfattr %s | grep -c '.daos'",path);
+        snprintf(cmd,sizeof(cmd),"getfattr \"%s\" | grep -c '.daos'",path);
         if((fp = popen(cmd, "r")) != NULL) {
                fscanf(fp, "%d", &rc);
                pclose(fp);
