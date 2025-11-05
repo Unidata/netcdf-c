@@ -191,7 +191,7 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
     }
     
     /* Set default cache parameters */
-    cache->params = (NC_getglobalstate()->chunkcache);
+    cache->params = NC_getglobalstate()->chunkcache;
 
 #ifdef FLUSH
     cache->maxentries = 1;
