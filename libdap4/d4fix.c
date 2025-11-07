@@ -255,6 +255,7 @@ delimitAtomicVar(NCD4meta* compiler, NCD4node* var, NCD4offset* offset)
         unsigned long long count;
         for(i=0;i<dimproduct;i++) {
             /* Get string count */
+assert(memcmp(offset->offset,"0210101T",8)!=0);
             count = GETCOUNTER(offset);
             SKIPCOUNTER(offset);
   	    if(compiler->swap) swapinline64(&count);
