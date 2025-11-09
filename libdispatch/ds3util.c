@@ -266,14 +266,14 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
         s3->svc = svc;
     }
 done:
-    nclistfreeall(hostsegments);
-    nclistfreeall(pathsegments);
     nullfree(region);
     nullfree(bucket)
     nullfree(host)
     nullfree(path)
     ncurifree(newurl);
     ncbytesfree(buf);
+    nclistfreeall(hostsegments);
+    nclistfreeall(pathsegments);
     return stat;
 }
 
