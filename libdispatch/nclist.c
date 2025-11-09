@@ -221,7 +221,7 @@ nclistremove(NClist* l, size_t i)
   if((len=l->length) == 0) return NULL;
   if(i >= len) return NULL;
   elem = l->content[i];
-  memmovex(l->content,l->content+1,(len-1)*sizeof(void*));
+  memmovex(l->content+i,l->content+(i+1),(len-(i+1))*sizeof(void*));
 #if 0  
   for(i+=1;i<len;i++) l->content[i-1] = l->content[i];
 #endif
@@ -382,13 +382,21 @@ defined by platform.
 static void
 memmovex(void* dst, void* src, size_t len)
 {
+    if(len == 0) return;
 #ifdef HAVE_MEMMOVE
     memmove(dst,src,len*sizeof(char));
 #else
-    unsigned char* xsrc = (unsigned char*)src;
-    unsigned char* xdst = (unsigned char*)dst;
-    xsrc += len;
-    xdst += len;
-    while(len--) {*(--xdst) = *(--xsrc);}
+    {
+        char *d = dst;
+        const char *s = src;
+        if (d < s) {
+            while (len--) {*d++ = *s++;}
+        } else {
+            d += len; /* Point to one past the end of destination */
+            s += len; /* Point to one past the end of source */
+            while (len--) {*(--d) = *(--s);} /* Decrement pointers and copy */
+        }
+    }
 #endif
 }
+    

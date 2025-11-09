@@ -178,20 +178,20 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
 	/* bucket is unknown at this point */
 	svc = NCS3GS;
     } else { /* Presume Formats (8),(9),(10) */
-		if (nclistlength(hostsegments) > 3 && strcasecmp(nclistget(hostsegments, 1), "s3") == 0){
-			bucket = nclistremove(hostsegments, 0);
-			region = nclistremove(hostsegments, 2);
-			host = strdup(url->host + sizeof(bucket) + 1);
-		}else{
-			if (nclistlength(hostsegments) > 2 && strcasecmp(nclistget(hostsegments, 0), "s3") == 0){
-				region = nclistremove(hostsegments, 1);
-			}
-			if ((host = strdup(url->host)) == NULL){
-				stat = NC_ENOMEM;
-				goto done;
-			}
+	if (nclistlength(hostsegments) > 3 && strcasecmp(nclistget(hostsegments, 1), "s3") == 0){
+		bucket = nclistremove(hostsegments, 0);
+		region = nclistremove(hostsegments, 2);
+		host = strdup(url->host + sizeof(bucket) + 1);
+	}else{
+		if (nclistlength(hostsegments) > 2 && strcasecmp(nclistget(hostsegments, 0), "s3") == 0){
+			region = nclistremove(hostsegments, 1);
+		}
+		if ((host = strdup(url->host)) == NULL){
+			stat = NC_ENOMEM;
+			goto done;
 		}
 	}
+    }
 
     /* region = (1) from url, (2) s3->region, (3) default */
     if(region == NULL && s3 != NULL)
@@ -266,14 +266,14 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
         s3->svc = svc;
     }
 done:
+    nclistfreeall(hostsegments);
+    nclistfreeall(pathsegments);
     nullfree(region);
     nullfree(bucket)
     nullfree(host)
     nullfree(path)
     ncurifree(newurl);
     ncbytesfree(buf);
-    nclistfreeall(hostsegments);
-    nclistfreeall(pathsegments);
     return stat;
 }
 
