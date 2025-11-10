@@ -136,8 +136,9 @@ ncvlog(int level, const char* fmt, va_list ap)
 
     if(!nclogginginitialized) ncloginit();
 
-    if(nclog_global.loglevel < level || nclog_global.nclogstream == NULL) {
-        return;
+    if(nclog_global.nclogstream == NULL) return; /* No place to send log message */
+    if(level != NCLOGERR) { /* If log level is an error, then force printing */
+        if(nclog_global.loglevel < level) return;
     }
 
     prefix = nctagname(level);

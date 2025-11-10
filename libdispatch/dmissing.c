@@ -160,3 +160,31 @@ NC_strcasestr(const char *s, const char *find)
     return ((char *)s);
 }
 #endif
+
+#ifndef HAVE_MEMMOVE
+/**
+Define an implementation of memmove
+in the event that it is not available.
+@param dst target of the move
+@param src source of the move
+@param count number of bytes to move.
+Note: dst and src can overlap
+*/
+void*
+memmove(void *dst, const void *src, size_t count)
+{
+    char *d = dst;
+    const char *s = src;
+
+    if (d < s) {
+        while (count--) {*d++ = *s++;}
+    } else {
+        d += count; /* Point to one past the end of destination */
+        s += count; /* Point to one past the end of source */
+        while (count--) {*(--d) = *(--s);} /* Decrement pointers and copy */
+    }
+    return dst;
+}
+
+#endif /*HAVE_MEMMOVE*/
+
