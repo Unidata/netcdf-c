@@ -98,6 +98,12 @@ unsigned long long int strtoull(const char*, char**, int);
 #endif
 #endif
 
+#ifndef HAVE_MEMMOVE
+#ifndef memmove
+void* memmove(void *dest, const void *src, size_t count);
+#endif
+#endif
+
 #if defined(__cplusplus)
 }
 #endif
