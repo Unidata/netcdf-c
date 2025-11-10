@@ -67,7 +67,7 @@ d4bytesconcat(D4bytes* dst, D4bytes* src)
 {
     if(dst == NULL && src != NULL && src->used > 0) {
 	void* target = d4bytesalloc(dst,src->used);
-	d4memmove(target,src->memory,src->used);
+	memmove(target,src->memory,src->used);
     }
     return dst;
 }

@@ -64,8 +64,9 @@ zext=$1
 case "$zext" in 
     file)
 	# need to unpack
-	rm -fr ${ISOPATH}/ref_power_901_constants ${ISOPATH}/ref_power_901_constants.file
+	rm -fr ${ISOPATH}/ref_power_901_constants
 	unzip ref_power_901_constants.zip >> tmp_ignore.txt
+	rm -fr ${ISOPATH}/ref_power_901_constants.file
 	mv ${ISOPATH}/ref_power_901_constants ${ISOPATH}/ref_power_901_constants.file
 	testcasefile power_901_constants zarr; # test xarray as default
 	rm -f tmp_ignore.txt
@@ -80,8 +81,9 @@ case "$zext" in
 	# Read a test case created by netcdf-java zarr.
 	# unpack
 	# Use gunzip because it always appears to be available
-	rm -fr ${ISOPATH}/ref_zarr_test_data.cdl ${ISOPATH}/ref_zarr_test_data_2d.cdl
+	rm -fr ${ISOPATH}/ref_zarr_test_data.cdl
         gunzip -c ${srcdir}/ref_zarr_test_data.cdl.gz > ${ISOPATH}/ref_zarr_test_data.cdl
+	rm -fr ${ISOPATH}/ref_zarr_test_data_2d.cdl
         gunzip -c ${srcdir}/ref_zarr_test_data_2d.cdl.gz > ${ISOPATH}/ref_zarr_test_data_2d.cdl
         testcases3 zarr_test_data xarray
  	;;

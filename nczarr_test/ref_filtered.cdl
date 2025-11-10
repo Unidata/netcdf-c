@@ -14,7 +14,7 @@ group: g {
   		var:_Storage = "chunked" ;
   		var:_ChunkSizes = 4, 4, 4, 4 ;
   		var:_Filter = "307,9" ;
-  		var:_Codecs = "[{\"id\": \"bz2\",\"level\": \"9\"}]" ;
+  		var:_Codecs = "[{\"id\": \"bz2\",\"level\": 9}]" ;
   		var:_NoFill = "true" ;
 
   // group attributes:
