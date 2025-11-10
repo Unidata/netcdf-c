@@ -134,7 +134,7 @@ testshuffle() {
 testdeflate() {
   zext=$1
   if ! avail deflate; then return 0; fi
-  runfilter $zext deflate '1,9' '[{\"id\": \"zlib\",\"level\": \"9\"}]'
+  runfilter $zext deflate '1,9' '[{\"id\": \"zlib\",\"level\": 9}]'
   # need to replace _DeflateLevel
 #  sed -e 's/_DeflateLevel = 9/_Filter = "1,9"/' < tmp_filt_deflate.dump > tmp_filt_deflatex.dump
   diff -b -w "tmp_filt_deflate.cdl" "tmp_filt_deflate.dump"
@@ -143,7 +143,7 @@ testdeflate() {
 testbzip2() {
   zext=$1
   if ! avail bzip2; then return 0; fi
-  runfilter $zext bzip2 '307,9' '[{\"id\": \"bz2\",\"level\": \"9\"}]'
+  runfilter $zext bzip2 '307,9' '[{\"id\": \"bz2\",\"level\": 9}]'
   diff -b -w "tmp_filt_bzip2.cdl" "tmp_filt_bzip2.dump"
 }
 
@@ -169,7 +169,7 @@ testblosc() {
 testzstd() {
   zext=$1
   if ! avail zstd; then return 0; fi
-  runfilter $zext zstd '32015,1' '[{\"id\": \"zstd\",\"level\": \"1\"}]'
+  runfilter $zext zstd '32015,1' '[{\"id\": \"zstd\",\"level\": 1}]'
   diff -b -w "tmp_filt_zstd.cdl" "tmp_filt_zstd.dump"
 }
 

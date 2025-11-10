@@ -6,12 +6,6 @@
 #ifndef D4UTIL_H
 #define D4UTIL_H 1
 
-#ifdef HAVE_MEMMOVE
-#define d4memmove(dst,src,n) memmove(dst,src,n)
-#else
-#define d4memmove(dst,src,n) localmemmove(dst,src,n)
-#endif
-
 /* This is intended to be big enough to work as
    an offset/position/size for a file or a memory block.
 */

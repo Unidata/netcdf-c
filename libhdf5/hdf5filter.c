@@ -100,9 +100,10 @@ NC4_hdf5_filter_freelist(NC_VAR_INFO_T* var)
 
     if(filters == NULL) goto done;
 PRINTFILTERLIST(var,"free: before");
-    /* Free the filter list backward */
-    for(size_t i = nclistlength(filters);i-->0;) {
-	struct NC_HDF5_Filter* spec = (struct NC_HDF5_Filter*)nclistremove(filters,i);
+    /* Free the filter list leaving ptrs in place */
+    for(size_t i = 0; i < nclistlength(filters);i++) {
+	struct NC_HDF5_Filter* spec = (struct NC_HDF5_Filter*)nclistget(filters,i);
+	assert((spec->nparams == 0 && spec->params == NULL) || (spec->nparams > 0 && spec->params != NULL));
 	if(spec->nparams > 0) nullfree(spec->params);
 	nullfree(spec);
     }
