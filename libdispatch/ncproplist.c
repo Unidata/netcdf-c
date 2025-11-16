@@ -392,5 +392,5 @@ ncproplist_unused(void)
     unused = ncproplistith;
     unused = ncproplistinit;
     unused = (void*)ncproplistith;
-    unused = unused;
+    (void)unused;
 }
