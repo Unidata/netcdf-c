@@ -305,14 +305,16 @@ swapn2b(void *dst, const void *src, IntType nn)
 {
     /* it is OK if dst == src */
     IntType i;
-    uint16_t *op = (uint16_t*) dst;
-    uint16_t *ip = (uint16_t*) src;
+    char *op = (char*) dst;
+    char *ip = (char*) src;
     uint16_t tmp;
     for (i=0; i<nn; i++) {
         /* memcpy is used to handle the case of unaligned memory */
-        memcpy(&tmp, &ip[i], sizeof(tmp));
+        memcpy(&tmp, ip, sizeof(tmp));
         tmp = SWAP2(tmp);
-        memcpy(&op[i], &tmp, sizeof(tmp));
+        memcpy(op, &tmp, sizeof(tmp));
+        ip += sizeof(uint16_t);
+        op += sizeof(uint16_t);
     }
 }
 
@@ -332,14 +334,16 @@ inline static void
 swapn4b(void *dst, const void *src, IntType nn)
 {
     IntType i;
-    uint32_t *op = (uint32_t*) dst;
-    uint32_t *ip = (uint32_t*) src;
+    char *op = (char*) dst;
+    char *ip = (char*) src;
     uint32_t tmp;
     for (i=0; i<nn; i++) {
         /* memcpy is used to handle the case of unaligned memory */
-        memcpy(&tmp, &ip[i], sizeof(tmp));
+        memcpy(&tmp, ip, sizeof(tmp));
         tmp = SWAP4(tmp);
-        memcpy(&op[i], &tmp, sizeof(tmp));
+        memcpy(op, &tmp, sizeof(tmp));
+        ip += sizeof(uint32_t);
+        op += sizeof(uint32_t);
     }
 }
 
@@ -360,14 +364,16 @@ inline static void
 swapn8b(void *dst, const void *src, IntType nn)
 {
     IntType i;
-    uint64_t *op = (uint64_t*) dst;
-    uint64_t *ip = (uint64_t*) src;
+    char *op = (char*) dst;
+    char *ip = (char*) src;
     uint64_t tmp;
     for (i=0; i<nn; i++) {
         /* memcpy is used to handle the case of unaligned memory */
-        memcpy(&tmp, &ip[i], sizeof(tmp));
+        memcpy(&tmp, ip, sizeof(tmp));
         tmp = SWAP8(tmp);
-        memcpy(&op[i], &tmp, sizeof(tmp));
+        memcpy(op, &tmp, sizeof(tmp));
+        ip += sizeof(uint64_t);
+        op += sizeof(uint64_t);
     }
 }
 # endif /* !vax */
