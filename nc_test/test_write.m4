@@ -1925,7 +1925,7 @@ TestFunc(rename_att)(AttVarArgs)
     nc_type atttype;
     IntType length;
     IntType attlength;
-    char  text[MAX_NELS];
+    unsigned char text[MAX_NELS];
     double value[MAX_NELS];
     double expect;
 
@@ -1997,13 +1997,13 @@ TestFunc(rename_att)(AttVarArgs)
             IF (length != attlength)
                 error("inq_att: unexpected length");
             if (datatype == NC_CHAR) {
-                err = APIFunc(get_att_text)(ncid, varid, name, text);
+                err = APIFunc(get_att_text)(ncid, varid, name, (char*)text);
                 IF (err != NC_NOERR)
                     error("get_att_text: %s", APIFunc(strerror)(err));
                 for (k = 0; k < attlength; k++) {
                     ndx[0] = k;
                     expect = hash(datatype, -1, ndx);
-                    IF (text[k] != (char)expect)
+                    IF (text[k] != (unsigned char)expect)
                         error("get_att_text: unexpected value");
                 }
             } else {
