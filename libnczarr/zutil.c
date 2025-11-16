@@ -19,7 +19,7 @@
 /* Static zarr type name table */
 
 /* Table of nc_type X {Zarr,NCZarr} X endianness
-Issue: Need to distinquish NC_STRING && MAXSTRLEN==1 from NC_CHAR
+Issue: Need to distinguish NC_STRING && MAXSTRLEN==1 from NC_CHAR
 in a way that allows other Zarr implementations to read the data.
 
 Available info:
@@ -32,7 +32,7 @@ so if we have "var:strattr = \"abcdef\"", then we need
 to decide how to infer the type: NC_STRING vs NC_CHAR.
 
 Solution:
-For variables and for NCZarr type attributes, distinquish by using:
+For variables and for NCZarr type attributes, distinguish by using:
 * ">S1" for NC_CHAR.
 * "|S1" for NC_STRING && MAXSTRLEN==1
 * "|Sn" for NC_STRING && MAXSTRLEN==n

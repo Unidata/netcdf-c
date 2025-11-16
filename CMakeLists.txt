@@ -732,7 +732,7 @@ if(NOT WIN32)
     set(USE_STDIO ON CACHE BOOL "")
   endif()
 
-  # FFIO insteaad of PosixIO
+  # FFIO instead of PosixIO
   option(NETCDF_ENABLE_FFIO "If true, use ffio instead of posixio" OFF)
   if(NETCDF_ENABLE_FFIO)
     set(USE_FFIO ON CACHE BOOL "")

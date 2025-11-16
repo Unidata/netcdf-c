@@ -95,7 +95,7 @@ Introduction
 * Archival::                    Is NetCDF a Good Archive Format?
 * Conventions::                 Creating Self-Describing Data Conforming to Conventions
 * Background::                  The Evolution of the NetCDF Interface
-* Whats New::                   Latest Developments in NetCDF
+* What's New::                   Latest Developments in NetCDF
 * Limitations::                 Limitations of NetCDF
 * Future ::                     Plans for Future Development
 * References::                  Papers Relating to Scientific Data
@@ -352,7 +352,7 @@ netcdf-install, @value{i-man}}.
 * Archival::                    Is NetCDF a Good Archive Format?
 * Conventions::                 Creating Self-Describing Data Conforming to Conventions
 * Background::                  The Evolution of the NetCDF Interface
-* Whats New::                   Latest Developments in NetCDF
+* What's New::                   Latest Developments in NetCDF
 * Limitations::                 Limitations of NetCDF
 * Future ::                     Plans for Future Development
 * References::                  Papers Relating to Scientific Data
@@ -641,7 +641,7 @@ conventions are often needed for local use. These should be
 contributed to the above netCDF conventions site if likely to interest
 other users in similar areas.
 
-@node Background, Whats New, Conventions, Introduction
+@node Background, What's New, Conventions, Introduction
 @section Background and Evolution of the NetCDF Interface
 @cindex XDR, introduction into netCDF
 @cindex workshop, CDF
@@ -891,7 +891,7 @@ application is also included that provides a graphical user interface
 to capabilities similar to the C-based ncdump and ncgen utilities, as
 well as CF-compliance checking and many other features.
 
-@node Whats New, Limitations, Background, Introduction
+@node What's New, Limitations, Background, Introduction
 @section What's New Since the Previous Release?
 @cindex new netCDF features in 4.0
 
@@ -928,7 +928,7 @@ Support for parallel I/O.
 More information about netCDF-4 can be found at the netCDF web
 page @uref{@value{netcdf-4-url}}.
 
-@node Limitations, Future , Whats New, Introduction
+@node Limitations, Future , What's New, Introduction
 @section Limitations of NetCDF
 @cindex arrays, ragged
 @cindex writers, multiple
@@ -6037,7 +6037,7 @@ In the case where a coordinate variable is defined for a dimension,
 the HDF5 dimscale matches the type of the netCDF coordinate variable,
 and contains the coordinate data.
 
-A further difficulty arrises when an n-dimensional coordinate
+A further difficulty arises when an n-dimensional coordinate
 variable is defined, where n is greater than one. NetCDF allows such
 coordinate variables, but the HDF5 model does not allow dimension
 scales to be attached to other dimension scales, making it impossible
@@ -6176,7 +6176,7 @@ NC_STRING).
 An odd case may arise in which the user defines a variable with the
 same name as a dimension, but which is not intended to be the
 coordinate variable for that dimension. In this case the string
-"_nc4_non_coord_" is pre-pended to the name of the HDF5 dataset, and
+"_nc4_non_coord_" is prepended to the name of the HDF5 dataset, and
 stripped from the name for the netCDF API.
 
 @subsection Attributes

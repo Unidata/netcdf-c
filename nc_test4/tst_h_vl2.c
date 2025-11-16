@@ -2,7 +2,7 @@
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use.
 
-   This program excersizes HDF5 variable length array code.
+   This program exercises HDF5 variable length array code.
 
    @author Ed Hartnett
 */

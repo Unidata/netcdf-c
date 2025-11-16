@@ -3334,7 +3334,7 @@ Wyoming.
 
 Fortran users may use character buffers to read and write compound
 types. User are invited to try classic Fortran features such as the
-equivilence and the common block statement. 
+equivalence and the common block statement. 
 
 @heading Usage 
 
