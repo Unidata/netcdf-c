@@ -181,7 +181,7 @@ sel_clause(DCEparsestate* state, int selcase,
 	   Object lhs, Object relop0, Object values)
 {
     DCEselection* sel = (DCEselection*)dcecreate(CES_SELECT);
-    sel->operator = (CEsort)relop0;
+    sel->operator = (CEops)relop0;
     sel->lhs = (DCEvalue*)lhs;
     if(selcase == 2) {/*singleton value*/
 	sel->rhs = nclistnew();
@@ -318,7 +318,7 @@ collectlist(Object list0, Object decl)
 }
 
 Object
-makeselectiontag(CEsort tag)
+makeselectiontag(CEops tag)
 {
     return (Object) tag;
 }
