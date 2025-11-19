@@ -833,16 +833,17 @@ put_atts(int ncid)
     int  j;		/* index of attribute */
     int  allInRange;
     double att[MAX_NELS];
-    char catt[MAX_NELS];
+    unsigned char catt[MAX_NELS];
 
     for (i = -1; i < numVars; i++) {
 	for (j = 0; j < NATTS(i); j++) {
 	    if (ATT_TYPE(i,j) == NC_CHAR) {
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-                    catt[k] = (char) hash(ATT_TYPE(i,j), -1, &k);
+			double dtmp = hash(ATT_TYPE(i,j), -1, &k);
+			catt[k] = (unsigned char) dtmp;
 		}
 		err = nc_put_att_text(ncid, i, ATT_NAME(i,j),
-		    ATT_LEN(i,j), catt);
+		    ATT_LEN(i,j), (char*)catt);
 		IF (err)
 		    error("nc_put_att_text: %s", nc_strerror(err));
 	    } else {
@@ -874,7 +875,7 @@ put_vars(int ncid)
     int  i;
     size_t  j;
     double value[MAX_NELS];
-    char text[MAX_NELS];
+    unsigned char text[MAX_NELS];
     int  allInRange;
 
     for (j = 0; j < MAX_RANK; j++)
@@ -884,14 +885,15 @@ put_vars(int ncid)
 	    err = toMixedBase(j, var_rank[i], var_shape[i], index);
 	    IF (err) error("toMixedBase");
 	    if (var_name[i][0] == 'c') {
-		text[j] = (char) hash(var_type[i], var_rank[i], index);
+		double dtmp = hash(var_type[i], var_rank[i], index);
+		text[j] = (unsigned char) dtmp;
 	    } else {
 		value[j]  = hash(var_type[i], var_rank[i], index);
 		allInRange = allInRange && inRange(value[j], var_type[i]);
 	    }
 	}
 	if (var_name[i][0] == 'c') {
-	    err = nc_put_vara_text(ncid, i, start, var_shape[i], text);
+	    err = nc_put_vara_text(ncid, i, start, var_shape[i], (char*)text);
 	    IF (err)
 		error("nc_put_vara_text: %s", nc_strerror(err));
 	} else {
