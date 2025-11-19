@@ -607,7 +607,7 @@ savevarbyid(NCD4node* group, NCD4node* var)
 {
     if(group->group.varbyid == NULL)
         group->group.varbyid = nclistnew();
-    nclistsetalloc(group->group.varbyid, (size_t)var->meta.id);
+    nclistsetlength(group->group.varbyid, (size_t)var->meta.id+1);
     nclistinsert(group->group.varbyid, (size_t)var->meta.id,var);
 }
 

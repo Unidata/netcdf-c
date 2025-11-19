@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.10.0 - TBD
 
+* Fix Issue with Numcodecs encoding problems where integer filter parameters are being encoded as strings. See [Github 3201](https://github.com/Unidata/netcdf-c/issues/3201) for more information. 
 * Cleanup RELEASE_NOTES.md. See [Github 3190](https://github.com/Unidata/netcdf-c/issues/3190) for more information. 
 * Rebuild the S3-related code and other changes necessary to build cleanly on github actions. See [Github #3159](https://github.com/Unidata/netcdf-c/pull/3159) for more information.
 * Fix the problems around ncdap_test/test_manyurls.c. See [Github 3182](https://github.com/Unidata/netcdf-c/issues/3182) for more information. 

@@ -26,7 +26,9 @@ testfailed() {
 }
 
 # Make test sets
+rm -fr ./ref_notzarr.tar.gz
 cp ${srcdir}/ref_notzarr.tar.gz .
+rm -fr ./ref_notzarr.tar
 gunzip ref_notzarr.tar.gz
 tar -xf ref_notzarr.tar
 if test "x$FEATURE_S3TESTS" = xyes ; then

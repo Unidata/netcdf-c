@@ -118,7 +118,7 @@ NCD4_dechunk(NCD4response* resp)
             return processerrchunk(resp, (void*)pchunk, hdr.count);
         /* data chunk; possibly last; possibly empty */
         if(hdr.count > 0)
-            d4memmove(pappend,pchunk,hdr.count); /* overwrite the header; this the heart of dechunking */
+            memmove(pappend,pchunk,hdr.count); /* overwrite the header; this the heart of dechunking */
 	pappend += hdr.count; /* next append point */
         phdr = pchunk + hdr.count; /* point to header of next chunk */
         if(hdr.flags & NCD4_LAST_CHUNK) break;
