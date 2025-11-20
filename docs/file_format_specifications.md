@@ -534,7 +534,7 @@ In the case where a coordinate variable is defined for a dimension,
 the HDF5 dimscale matches the type of the netCDF coordinate variable,
 and contains the coordinate data.
 
-A further difficulty arrises when an n-dimensional coordinate variable
+A further difficulty arises when an n-dimensional coordinate variable
 is defined, where n is greater than one. NetCDF allows such coordinate
 variables, but the HDF5 model does not allow dimension scales to be
 attached to other dimension scales, making it impossible to completely
@@ -645,7 +645,7 @@ NC_STRING).
 An odd case may arise in which the user defines a variable with the
 same name as a dimension, but which is not intended to be the
 coordinate variable for that dimension. In this case the string
-"_nc4_non_coord_" is pre-pended to the name of the HDF5 dataset, and
+"_nc4_non_coord_" is prepended to the name of the HDF5 dataset, and
 stripped from the name for the netCDF API.
 
 \subsection atts_spec Attributes

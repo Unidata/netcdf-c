@@ -839,7 +839,7 @@ main(int argc, char **argv)
       if (nc_del_att(ncid, 0, ATT_INT_NAME)) ERR;
       if (nc_close(ncid)) ERR;
 
-      /* Reopen the file and readd the attribute. Enddef and redef,
+      /* Reopen the file and re-add the attribute. Enddef and redef,
        * and delete it, then check to make sure it's gone. */
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
       if (nc_put_att_int(ncid, varid, ATT_INT_NAME, NC_INT, 3, int_out)) ERR;

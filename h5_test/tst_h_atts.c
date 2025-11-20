@@ -63,7 +63,7 @@ main()
 			      H5P_DEFAULT)) < 0) ERR;
       if ((grpid = H5Gcreate1(fileid, EMP_GRP, 0)) < 0) ERR;
 
-      /* Create space fo zero-length attributes. */
+      /* Create space for zero-length attributes. */
       if ((spaceid = H5Screate(H5S_NULL)) < 0) ERR;
 
       /* Attach some zero-length float attributes! */
@@ -295,7 +295,7 @@ main()
       /* Why test this out? Because this happens when the netcdf-4 user
        * assigns a fill value attribute to a var. Since HDF5 demands that
        * the fill value be supplied on var creation, I have to delete the
-       * dataset and recreate it, readding the attributes that existed
+       * dataset and recreate it, re-adding the attributes that existed
        * when I delete it. */
       hid_t var_spaceid = 0, datasetid = 0;
       hsize_t dims[1];

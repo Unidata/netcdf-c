@@ -160,7 +160,7 @@ Copy an array of instances of an arbitrary type.  This recursively walks
 the top-level instances to copy any nested data such as vlen or strings or such.
 
 Assumes it is passed a pointer to count instances of xtype and a
-space into which to copy the instance.  Copys any nested data.
+space into which to copy the instance.  Copies any nested data.
 
 WARNING: This needs access to the type metadata of the file, so
 a valid ncid and typeid must be available, which means the file

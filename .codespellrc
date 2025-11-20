@@ -1,0 +1,3 @@
+[codespell]
+skip = tst_wrf_reads.c,tst_utf8_phrases.c,t_ncio.in,env,*.dods,*.dmp
+ignore-words-list = berkley,boths,casesensistive,ccompiler,certificat,clen,clos,conly,datas,equil,fave,filetests,firs,fpr,gage,ges,hace,hieght,indx,inout,installin,intergers,lod,lond,makin,mapp,nam,nce,nd,ndefined,nmme,oce,offsetp,oint,olt,ot,pass-thru,pres,relm,restructed,rin,sav,shs,statics,stopp,testng,tje,udo,varian,varn,vas

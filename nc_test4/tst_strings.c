@@ -443,7 +443,7 @@ main(int argc, char **argv)
          snprintf(filename, sizeof(filename), "%s_dim_combo_%d.nc", TEST_NAME, dim_combo);
          if (nc_create(filename, NC_NETCDF4, &ncid)) ERR;
 
-         /* Create an array of strings for the Universal Declaraion of Human Rights. */
+         /* Create an array of strings for the Universal Declaration of Human Rights. */
          if (nc_def_dim(ncid, DIM_NAME1, dim_len, dimids)) ERR;
          if (nc_def_var(ncid, VAR_NAME1, NC_STRING, NDIMS, dimids, &varid)) ERR;
 
@@ -460,7 +460,7 @@ main(int argc, char **argv)
          if (var_type != NC_STRING || strcmp(var_name, VAR_NAME1) || var_ndims != NDIMS ||
              var_dimids[0] != dimids[0]) ERR;
 
-         /* Write the universal declaraion of human rights. */
+         /* Write the universal declaration of human rights. */
          if (dim_combo)
          {
             size_t start[NDIMS], count[NDIMS] = {1};

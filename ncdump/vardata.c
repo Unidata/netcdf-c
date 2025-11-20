@@ -154,7 +154,7 @@ lput2(
 static void
 print_any_att_val (
     struct safebuf_t *sb,	/* string where output goes */
-    const ncatt_t *attp,	/* attrbute */
+    const ncatt_t *attp,	/* attribute */
     const void *valp		/* pointer to the value */
 	    ) {
     nctype_t *typ = attp->tinfo;

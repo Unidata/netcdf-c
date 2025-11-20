@@ -112,7 +112,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-   printf("**** testing that sync failes without enddef for classic model...");
+   printf("**** testing that sync fails without enddef for classic model...");
    {
       int ncid, var1_id, var2_id, var3_id, dimid;
       int ndims, nvars, natts, unlimdimid, dimid_in;

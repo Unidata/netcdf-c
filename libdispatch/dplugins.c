@@ -136,7 +136,7 @@ nc_plugin_path_finalize(void)
 
     NC_plugin_path_verify = 0;
 
-    /* Finalize the actual implementatios */
+    /* Finalize the actual implementation */
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
     if((stat = NCZ_plugin_path_finalize())) goto done;    
 #endif

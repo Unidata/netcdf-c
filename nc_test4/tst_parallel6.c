@@ -35,7 +35,7 @@ int main(int argc, char** argv)
         printf("\n*** Testing parallel I/O.\n");
 
     if (!rank)
-        printf("*** testing record lenth with multiple processes writing records...");
+        printf("*** testing record length with multiple processes writing records...");
 
     /* nc_set_log_level(4); */
     if (nc_create_par(FILENAME, NC_CLOBBER | NC_NETCDF4, MPI_COMM_WORLD,

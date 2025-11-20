@@ -23,7 +23,7 @@ some suffix of the index set cover a contiguous chunk
 of the index space. This happens when the index positions
 starting at p up to rank have a start of zero, a count
 the same as the max index size, and a stride of one.
-Then we can effectively tread indices 0 thru p-1 as
+Then we can effectively treat indices 0 thru p-1 as
 a short odometer that steps through the chunks.
 In practice, it is usually only ncdump that does this.
 A simpler optimization that is to see if the (start,count)

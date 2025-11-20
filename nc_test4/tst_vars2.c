@@ -299,7 +299,7 @@ main(int argc, char **argv)
             if (nc_inq_attid(ncid, 0, UNITS, &attnum_in)) ERR;
             if (attnum_in != 1) ERR;
 
-            /* Now add a fill value. This will acutually cause HDF5 to
+            /* Now add a fill value. This will actually cause HDF5 to
              * destroy the dataset and recreate it, recreating also the
              * three attributes that are attached to it. */
             if (nc_put_att(ncid, varid, NC_FillValue, NC_FLOAT,
@@ -385,7 +385,7 @@ main(int argc, char **argv)
             if (nc_inq_attid(ncid, 0, UNITS, &attnum_in)) ERR;
             if (attnum_in != 1) ERR;
 
-            /* Now add a fill value. This will acutually cause HDF5 to
+            /* Now add a fill value. This will actually cause HDF5 to
              * destroy the dataset and recreate it, recreating also the
              * three attributes that are attached to it. */
             ncattput(ncid, varid, NC_FillValue, NC_FLOAT, 1, &fill_value);

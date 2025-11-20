@@ -534,7 +534,7 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
         if (!H5Tequal(file_typeid, existing_att_typeid) ||
             (!H5Sextent_equal(spaceid, existing_spaceid)))
         {
-            /* The attribute exists but we cannot re-use it. */
+            /* The attribute exists but we cannot reuse it. */
 
             /* Delete the attribute. */
             if (H5Adelete(locid, att->hdr.name) < 0)
@@ -552,9 +552,9 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
         }
         else
         {
-            /* The attribute exists and we can re-use it. */
+            /* The attribute exists and we can reuse it. */
 
-            /* Write the values, re-using the existing attribute. */
+            /* Write the values, reusing the existing attribute. */
             if (H5Awrite(existing_attid, file_typeid, data) < 0)
                 BAIL(NC_EATTMETA);
         }
@@ -1915,7 +1915,7 @@ exit:
 
 /**
  * @internal Recursively write all the metadata in a group. Groups and
- * types have all already been written. Propagate bad cooordinate
+ * types have all already been written. Propagate bad coordinate
  * order to subgroups, if detected.
  *
  * @param grp Pointer to group info struct.
@@ -2104,7 +2104,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
         /* Check all vars and see if dim[i] != NULL if dimids[i] valid. */
         /* This loop is very odd. Under normal circumstances, var->dimid[d] is zero
            (from the initial calloc) which is a legitimate dimid. The code does not
-           distinquish this case from the dimscale case where the id might actually
+           distinguish this case from the dimscale case where the id might actually
            be defined.
            The original nc4_find_dim searched up the group tree looking for the given
            dimid in one of the dim lists associated with each ancestor group.

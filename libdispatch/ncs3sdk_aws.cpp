@@ -387,7 +387,7 @@ NC_s3sdkinfo(void* s3client0, const char* bucket, const char* pathkey, size64_t*
 	if(lenp) *lenp = (size64_t)l;
     } else {
 	if(lenp) *lenp = 0;
-	/* Distinquish not-found from other errors */
+	/* Distinguish not-found from other errors */
 	switch (head_outcome.GetError().GetErrorType()) {
 	case Aws::S3::S3Errors::RESOURCE_NOT_FOUND:
             stat = NC_EEMPTY;

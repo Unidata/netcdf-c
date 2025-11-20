@@ -16,7 +16,7 @@ This file contains a high-level description of this package's evolution. Release
 * Add new environmental logging variable for `netCDF4` related logging subsystem, `NC4LOGGING`.  If `libnetcdf` is compiled with logging enabled, logs can be enabled at runtime by setting this environmental variable to the desired log level.  
 * Update ncjson.[ch] and ncproplist.[ch]. Also fix references to old API. Also fix include/netcdf_ncjson.h and include/netcdf_proplist.h builds. See [Github #3086](https://github.com/Unidata/netcdf-c/pull/3086) for more information.
 * Refactor drc.c to move many of its purely utility functions into dutil.c. Also change the NC_mktmp signature. Change other files to match. See [Github #3094](https://github.com/Unidata/netcdf-c/pull/3094) for more information.
-* Provide an auxilliary function, `ncaux_parse_provenance()`, that allows users to parse the _NCProperties attribute into a collection of character pointers. See [Github #3088](https://github.com/Unidata/netcdf-c/pull/3088) for more information.
+* Provide an auxiliary function, `ncaux_parse_provenance()`, that allows users to parse the _NCProperties attribute into a collection of character pointers. See [Github #3088](https://github.com/Unidata/netcdf-c/pull/3088) for more information.
 * Fix a namespace problem in tinyxml2.cpp. Note that this is a visual studio problem hence use of _MSC_VER. Also turn off DAP4 tests against Hyrax server until DAP4 spec problems are fixed. See [Github #3089](https://github.com/Unidata/netcdf-c/pull/3089) for more information.
 
 
@@ -165,7 +165,7 @@ This file contains a high-level description of this package's evolution. Release
 * Modernize CURL in netCDF cmake by \@WardF in https://github.com/Unidata/netcdf-c/pull/2904
 * Misc clang-tidy fixes, and added a .clang-tidy config file by \@seanm in https://github.com/Unidata/netcdf-c/pull/2875
 * Rename the vendored strlcat symbol by \@weiznich in https://github.com/Unidata/netcdf-c/pull/2906
-* Remove superflous check for libcurl  by \@WardF in https://github.com/Unidata/netcdf-c/pull/2907
+* Remove superfluous check for libcurl  by \@WardF in https://github.com/Unidata/netcdf-c/pull/2907
 * Fix warnings in `ncgen3` by \@ZedThree in https://github.com/Unidata/netcdf-c/pull/2900
 * Add CI for a Windows Runner on Github Actions. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2910
 * Fix conversion warnings in libdispatch by \@ZedThree in https://github.com/Unidata/netcdf-c/pull/2905
@@ -192,8 +192,8 @@ This file contains a high-level description of this package's evolution. Release
 * Fix cmake-based libnetcdf.settings.in by \@WardF in https://github.com/Unidata/netcdf-c/pull/2944
 * CI: Add Cygwin CMake run by \@DWesl in https://github.com/Unidata/netcdf-c/pull/2930
 * Convert NCzarr meta-data to use only Zarr attributes by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2936
-* Fix: CMAKE_MODULE_PATH contents is being overriden with -D contents, not merged with by \@gorloffslava in https://github.com/Unidata/netcdf-c/pull/2946
-* Propegate change to metadata and use of anonymous dimensions to NCZarr test by \@WardF in https://github.com/Unidata/netcdf-c/pull/2949
+* Fix: CMAKE_MODULE_PATH contents is being overridden with -D contents, not merged with by \@gorloffslava in https://github.com/Unidata/netcdf-c/pull/2946
+* Propagate change to metadata and use of anonymous dimensions to NCZarr test by \@WardF in https://github.com/Unidata/netcdf-c/pull/2949
 * S3 Mode url reconstruction defaults to wrong server type by \@mannreis in https://github.com/Unidata/netcdf-c/pull/2947
 * Fix most warnings in libdap2 by \@ZedThree in https://github.com/Unidata/netcdf-c/pull/2887
 * Check if HDF5 "file" is a DAOS object by \@brtnfld in https://github.com/Unidata/netcdf-c/pull/2021
@@ -384,7 +384,7 @@ This is the maintenance release which adds support for HDF5 version 1.14.0, in a
 * Adding all-error-codes.md back in to distribution documentation. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2501
 * Update hdf5 version in github actions. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2504
 * Minor update to doxygen function documentation by \@gsjaardema in https://github.com/Unidata/netcdf-c/pull/2451
-* Fix some addtional errors in NCZarr by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2503
+* Fix some additional errors in NCZarr by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2503
 * Cleanup szip handling some more by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2421
 * Check for zstd development headers in autotools by \@WardF in https://github.com/Unidata/netcdf-c/pull/2507
 * Add new options to nc-config by \@WardF in https://github.com/Unidata/netcdf-c/pull/2509
@@ -494,7 +494,7 @@ for domain specific info such as used by GDAL/Zarr. See [Github #2278](https://g
 * [Enhancement] Improve support for msys2+mingw platform. See [Github #2171](https://github.com/Unidata/netcdf-c/pull/2171).
 * [Bug Fix] Clean up the various inter-test dependencies in ncdump for CMake. See [Github #2168](https://github.com/Unidata/netcdf-c/pull/2168).
 * [Bug Fix] Fix use of non-aws appliances. See [Github #2152](https://github.com/Unidata/netcdf-c/pull/2152).
-* [Enhancement] Added options to suppress the new behavior from [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135).  The options for `cmake` and `configure` are, respectively `-DENABLE_LIBXML2` and `--(enable/disable)-libxml2`. Both of these options defaul to 'on/enabled'.  When disabled, the bundled `ezxml` XML interpreter is used regardless of whether `libxml2` is present on the system.
+* [Enhancement] Added options to suppress the new behavior from [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135).  The options for `cmake` and `configure` are, respectively `-DENABLE_LIBXML2` and `--(enable/disable)-libxml2`. Both of these options default to 'on/enabled'.  When disabled, the bundled `ezxml` XML interpreter is used regardless of whether `libxml2` is present on the system.
 * [Enhancement] Support optional use of libxml2, otherwise default to ezxml. See [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135) -- H/T to [Egbert Eich](https://github.com/e4t).
 * [Bug Fix] Fix several os related errors. See [Github #2138](https://github.com/Unidata/netcdf-c/pull/2138).
 * [Enhancement] Support byte-range reading of netcdf-3 files stored in private buckets in S3. See [Github #2134](https://github.com/Unidata/netcdf-c/pull/2134)
@@ -580,7 +580,7 @@ nc_inq_var_filter [https://github.com/Unidata/netcdf-c/issues/1693].
 * [Bug Fix] Use proper CURLOPT values for VERIFYHOST and VERIFYPEER; the semantics for VERIFYHOST in particular changed. Documented in NUG/DAP2.md. See  [https://github.com/Unidata/netcdf-c/issues/1684].
 * [Bug Fix][cmake] Correct an issue with parallel filter test logic in CMake-based builds.
 * [Bug Fix] Now allow nc_inq_var_deflate()/nc_inq_var_szip() to be called for all formats, not just HDF5. Non-HDF5 files return NC_NOERR and report no compression in use. This reverts behavior that was changed in the 4.7.4 release. See [https://github.com/Unidata/netcdf-c/issues/1691].
-* [Bug Fix] Compiling on a big-endian machine exposes some missing forward delcarations in dfilter.c.
+* [Bug Fix] Compiling on a big-endian machine exposes some missing forward declarations in dfilter.c.
 * [File Change] Change from HDF5 v1.6 format compatibility, back to v1.8 compatibility, for newly created files.  The superblock changes from version 0 back to version 2.  An exception is when using libhdf5 deprecated versions 1.10.0 and 1.10.1, which can only create v1.6 compatible format.  Full backward read/write compatibility for netCDF-4 is maintained in all cases.  See [Github #951](https://github.com/Unidata/netcdf-c/issues/951).
 
 ## 4.7.4 - March 27, 2020
@@ -590,7 +590,7 @@ nc_inq_var_filter [https://github.com/Unidata/netcdf-c/issues/1693].
 * [Bug Fix] Correct behavior for the command line utilities when directly accessing a directory using utf8 characters. See [Github #1669](https://github.com/Unidata/netcdf-c/issues/1669), [Github #1668](https://github.com/Unidata/netcdf-c/issues/1668) and [Github #1666](https://github.com/Unidata/netcdf-c/issues/1666) for more information.
 * [Bug Fix] Attempts to set filters or chunked storage on scalar vars will now return NC_EINVAL. Scalar vars cannot be chunked, and only chunked vars can have filters. Previously the library ignored these attempts, and always storing scalars as contiguous storage. See [https://github.com/Unidata/netcdf-c/issues/1644].
 * [Enhancement] Support has been added for multiple filters per variable.  See [https://github.com/Unidata/netcdf-c/issues/1584].
-* [Enhancement] Now nc_inq_var_szip retuns 0 for parameter values if szip is not in use for var. See [https://github.com/Unidata/netcdf-c/issues/1618].
+* [Enhancement] Now nc_inq_var_szip returns 0 for parameter values if szip is not in use for var. See [https://github.com/Unidata/netcdf-c/issues/1618].
 * [Enhancement] Now allow parallel I/O with filters, for HDF5-1.10.3 and later. See [https://github.com/Unidata/netcdf-c/issues/1473].
 * [Enhancement] Increased default size of cache buffer to 16 MB, from 4 MB. Increased number of slots to 4133. See [https://github.com/Unidata/netcdf-c/issues/1541].
 * [Enhancement] Allow zlib compression to be used with parallel I/O writes, if HDF5 version is 1.10.3 or greater. See [https://github.com/Unidata/netcdf-c/issues/1580].
@@ -683,7 +683,7 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 ## 4.6.1 - March 19, 2018
 
 * [Bug Fix] Corrected an issue which could result in a dap4 failure. See [Github #888](https://github.com/Unidata/netcdf-c/pull/888) for more information.
-* [Bug Fix][Enhancement] Allow `nccopy` to control output filter suppresion.  See [Github #894](https://github.com/Unidata/netcdf-c/pull/894) for more information.
+* [Bug Fix][Enhancement] Allow `nccopy` to control output filter suppression.  See [Github #894](https://github.com/Unidata/netcdf-c/pull/894) for more information.
 * [Enhancement] Reverted some new behaviors that, while in line with the netCDF specification, broke existing workflows.  See [Github #843](https://github.com/Unidata/netcdf-c/issues/843) for more information.
 * [Bug Fix] Improved support for CRT builds with Visual Studio, improves zlib detection in hdf5 library. See [Github #853](https://github.com/Unidata/netcdf-c/pull/853) for more information.
 * [Enhancement][Internal] Moved HDF4 into a distinct dispatch layer. See [Github #849](https://github.com/Unidata/netcdf-c/pull/849) for more information.

@@ -126,7 +126,7 @@ test program nc_test4/tst_interops5.c, we have:
 ```
 
 This turns the log level to 3 just before the call to nc_open(). The
-output of this is (lines that start with '***' are regurlar test
+output of this is (lines that start with '***' are regular test
 output. All other output is produced by the logger):
 
 ```
@@ -265,9 +265,9 @@ netcdf.h include file ::NC_TURN_OFF_LOGGING).
 * 1-5 will log internal operations with increasing verbosity. Setting
 higher log levels is the same as log level 5.
 
-Setting the log level to 1 will show netCDF interal function calls and
+Setting the log level to 1 will show netCDF internal function calls and
 their parameters. Setting log level to 2 or 3 will show important
-internal varaibles. Setting the log level to 4 or 5 will output a
+internal variables. Setting the log level to 4 or 5 will output a
 large amount of text.
 
 # Logging with Parallel I/O {#logging_parallel}
@@ -323,4 +323,4 @@ situations.
 
 Logging output is not considered part of the public API of netCDF, and
 may change at any time without notice. Do not write code which depends
-on particular logging output from the netCDF libary.
+on particular logging output from the netCDF library.

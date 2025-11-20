@@ -730,7 +730,7 @@ int
 NCZ_set_log_level()
 {
     /* If the user wants to completely turn off logging, turn off NCZ
-       logging too. Now I truely can't think of what to do if this
+       logging too. Now I truly can't think of what to do if this
        fails, so just ignore the return code. */
     if (nc_log_level == NC_TURN_OFF_LOGGING)
     {
@@ -780,7 +780,7 @@ NCZ_inq_format(int ncid, int *formatp)
  * @param ncid File ID (ignored).
  * @param formatp a pointer that gets the extended format. Note that
  * this is not the same as the format provided by nc_inq_format(). The
- * extended foramt indicates the dispatch layer model. NetCDF-4 files
+ * extended format indicates the dispatch layer model. NetCDF-4 files
  * will always get NC_FORMATX_NC4.
  * @param modep a pointer that gets the open/create mode associated with
  * this file. Ignored if NULL.

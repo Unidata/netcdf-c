@@ -62,7 +62,7 @@ HDF5_def_dim(int ncid, const char *name, size_t len, int *idp)
     /* Check some stuff if strict nc3 rules are in effect. */
     if (h5->cmode & NC_CLASSIC_MODEL)
     {
-        /* Only one limited dimenson for strict nc3. */
+        /* Only one limited dimension for strict nc3. */
         if (len == NC_UNLIMITED) {
             for(size_t i=0;i<ncindexsize(grp->dim);i++) {
                 dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);

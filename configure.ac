@@ -1800,7 +1800,7 @@ if test "x$enable_hdf5" = xyes ; then
       if test "x$hdf5_parallel" = xno; then
       	 # If user specifically asked for parallel4, then error out.
 	 if test "x$user_set_parallel4" = xyes; then
-	    AC_MSG_ERROR([Paralllel IO in netCDF-4 requested, but HDF5 does not provide parallel IO.])
+	    AC_MSG_ERROR([Parallel IO in netCDF-4 requested, but HDF5 does not provide parallel IO.])
 	 fi
          # User didn't specify, so disable parallel4
 	 enable_parallel4=no

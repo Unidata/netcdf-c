@@ -1214,7 +1214,7 @@ set_var_chunked(int ogrp, int o_varid)
 	    int odimid = dimids[odim];
 	    int idimid = dimmap_idimid(odimid); /* corresponding dimid in input file */
 	    if(dimmap_ounlim(odimid))
-		is_unlimited = 1; /* whether vriable is unlimited */
+		is_unlimited = 1; /* whether variable is unlimited */
 	    if(idimid != -1) {
 		size_t chunksize = dimchunkspec_size(idimid); /* from chunkspec */
 		size_t dimlen;

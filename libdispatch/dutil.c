@@ -251,7 +251,7 @@ NC_mktmp(const char* base, char** tmpp)
         snprintf(spid,sizeof(spid),"%06d",rno);
         strlcat(tmp,spid,len);
         fd=NCopen3(tmp,O_RDWR|O_CREAT, _S_IREAD|_S_IWRITE);
-	if(fd >= 0) break; /* sucess */
+	if(fd >= 0) break; /* success */
 	fd = -1; /* try again */
     }
 #endif /* !HAVE_MKSTEMP */

@@ -478,7 +478,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    Lossless compression like zlib must also be used (see nc_def_var_deflate()).
 
    Producers of large datasets may find that using quantize with
-   compression will result in significant improvent in the final data
+   compression will result in significant improvement in the final data
    size.
 
    A notable feature of all the quantization algorithms is data remain 
@@ -632,7 +632,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 
    Chunked storage means the data are stored as chunks, of
    user-configurable size. Chunked storage is required for variable
-   with one or more unlimted dimensions, or variable which use
+   with one or more unlimited dimensions, or variable which use
    compression, or any other filter.
 
    The total size of a chunk must be less than 4 GiB. That is, the

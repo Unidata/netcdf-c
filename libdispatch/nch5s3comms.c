@@ -537,7 +537,7 @@ done:
  *    This allows for the pointer itself to be NULLed from within the call.
  *    If buffer or buffer pointer is NULL, there is no effect.
  *    Headers list at `first_header` is not touched.
- *    - Programmer should re-use or destroy `first_header` pointer
+ *    - Programmer should reuse or destroy `first_header` pointer
  *      (hrb_node_t *) as suits their purposes.
  *    - Recommend fetching prior to destroy()
  *      e.g., `reuse_node = hrb_to_die->first_header; destroy(hrb_to_die);`
@@ -989,7 +989,7 @@ NCH5_s3comms_s3r_execute(s3r_t *handle, const char* url,
 
     ncuriparse(url,&purl);
     if((ret_value = validate_url(purl)))
-       HGOTO_ERRORVA(H5E_ARGS, NC_EINVAL, FAIL, "unparseable url: %s", url);
+       HGOTO_ERRORVA(H5E_ARGS, NC_EINVAL, FAIL, "unparsable url: %s", url);
 
     /*********************
      * Setup             *
@@ -1975,7 +1975,7 @@ done:
  * Purpose:
  *     Create AWS4 "Signing Key" from secret key, AWS region, and timestamp.
  *     Sequentially runs HMAC_SHA256 on strings in specified order,
- *     generating re-usable checksum (according to documentation, valid for
+ *     generating reusable checksum (according to documentation, valid for
  *     7 days from time given).
  *     `secret` is `access key id` for targeted service/bucket/resource.
  *     `iso8601now` must conform to format, yyyyMMDD'T'hhmmss'Z'

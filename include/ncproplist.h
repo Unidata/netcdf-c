@@ -55,7 +55,7 @@ typedef enum NCPtype {
 	NCP_CONST=0,  /* Value is a simple uintptr_t constant */
 	NCP_BYTES=2,  /* Value points to a counted sequence of bytes; If a string,
 			then it includes the nul term character */
-	NCP_COMPLEX=3 /* Value points to an arbitraryily complex structure */
+	NCP_COMPLEX=3 /* Value points to an arbitrarily complex structure */
 } NCPtype;
 
 /* (Returns < 0 => error) (>= 0 => success) */

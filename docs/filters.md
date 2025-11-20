@@ -81,7 +81,7 @@ A user may encounter an incompatibility if any of the following appears in user 
 * The function *\_nc\_inq\_var\_filter* was returning the error value NC\_ENOFILTER  if a variable had no associated filters.
   It has been reverted to the previous case where it returns NC\_NOERR and the returned filter id was set to zero if the variable had no filters.
 * The function *nc\_inq\_var\_filterids* was renamed to *nc\_inq\_var\_filter\_ids*.
-* Some auxilliary functions for parsing textual filter specifications have been moved to the file *netcdf\_aux.h*. See [Appendix A](#filters_appendixa).
+* Some auxiliary functions for parsing textual filter specifications have been moved to the file *netcdf\_aux.h*. See [Appendix A](#filters_appendixa).
 * All of the "filterx" functions have been removed. This is unlikely to cause problems because they had limited visibility.
 
 For additional information, see [Appendix B](#filters_appendixb).
@@ -355,7 +355,7 @@ Some things to note.
 2. For an untagged positive integer, the constant is treated as of the smallest type into which it fits (i.e. 8,16,32, or 64 bit).
 3. For signed byte and short, the value is sign extended to 32 bits and then treated as an unsigned int value, but maintaining the bit-pattern.
 4. For double, and signed|unsigned long long, they are converted as specified in the section on <a href="#filters_paramcoding">parameter encode/decode</a>.
-5. In order to support mutiple filters, the argument to *\_Filter* may be a pipeline separated  (using '|') to specify a list of filters specs.
+5. In order to support multiple filters, the argument to *\_Filter* may be a pipeline separated  (using '|') to specify a list of filters specs.
 
 ## Dynamic Loading Process {#filters_Process}
 
@@ -423,7 +423,7 @@ So it has three parameters:
 NCZarr has four constraints that must be met.
 
 1. It must store its filter information in its metadata in the above JSON dictionary format.
-2. It is required to re-use the HDF5 filter implementations.
+2. It is required to reuse the HDF5 filter implementations.
 This is to avoid having to rewrite the filter implementations
 This means that some mechanism is needed to translate between the HDF5 id+parameter model and the Zarr JSON dictionary model.
 3. It must be possible to modify the set of visible parameters in response to environment information such as the type of the associated variable; this is required to mimic the corresponding HDF5 capability.
@@ -744,7 +744,7 @@ When reading a file the order of application is of necessity the reverse.
 There are some special cases.
 
 1. The fletcher32 filter is always applied first, if enabled.
-2. If *nc\_def\_var\_filter*or *nc\_def\_var\_deflate*or *nc\_def\_var\_szip*is called multiple times with the same filter id, but possibly with different sets of parameters, then the position of that filter in the sequence of applictions does not change.
+2. If *nc\_def\_var\_filter*or *nc\_def\_var\_deflate*or *nc\_def\_var\_szip*is called multiple times with the same filter id, but possibly with different sets of parameters, then the position of that filter in the sequence of applications does not change.
     However the last set of parameters specified is used when actually writing the dataset.
 3. Deflate and shuffle &mdash; these two are inextricably linked in the current API, but have quite different semantics.
     If you call *nc\_def\_var\_deflate*multiple times, then the previous rule applies with respect to deflate.
@@ -1131,7 +1131,7 @@ So aside from those four, the current set of standard filters is as follows.
 <tr><td>bzip2<td>307<td>https://sourceware.org/bzip2/
 </table>
 
-It is important to note that in order to use each standard filter, several additonal libraries must be installed.
+It is important to note that in order to use each standard filter, several additional libraries must be installed.
 Consider the zstandard compressor, which is one of the supported standard filters.
 When installing the netcdf library, the following other libraries must be installed.
 
@@ -1202,7 +1202,7 @@ A user may encounter an incompatibility if any of the following appears in user 
 * The function *nc\_inq\_var\_filter* was returning the error value NC\_ENOFILTER  if a variable had no associated filters.
   It has been reverted to the previous case where it returns NC\_NOERR and the returned filter id was set to zero if the variable had no filters.
 * The function *nc\_inq\_var\_filterids* was renamed to *nc\_inq\_var\_filter\_ids*.
-* Some auxilliary functions for parsing textual filter specifications have been moved to the file *netcdf\_aux.h*. See [Appendix A](#filters_appendixa).
+* Some auxiliary functions for parsing textual filter specifications have been moved to the file *netcdf\_aux.h*. See [Appendix A](#filters_appendixa).
 * All of the "filterx" functions have been removed. This is unlikely to cause problems because they had limited visibility.
 
 For additional information, see [Appendix B](#filters_appendixb).

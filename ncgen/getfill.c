@@ -142,7 +142,7 @@ filllist(Symbol* tsym, Datalist* dl)
 }
 
 /* Create an array of fill values of basetype given the dimset. This
-is recursive over the dimensions as specified by the index argumen
+is recursive over the dimensions as specified by the index argument
 */
 static void
 fillarray(Symbol* basetype, Dimset* dimset, int index, Datalist* arraylist)

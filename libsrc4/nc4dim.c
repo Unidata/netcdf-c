@@ -161,7 +161,7 @@ done:
  * @param ncid File and group ID.
  * @param nunlimdimsp Pointer that gets the number of unlimited
  * dimensions. Ignored if NULL.
- * @param unlimdimidsp Pointer that gets arrray of unlimited dimension
+ * @param unlimdimidsp Pointer that gets array of unlimited dimension
  * ID. Ignored if NULL.
  *
  * @return ::NC_NOERR No error.

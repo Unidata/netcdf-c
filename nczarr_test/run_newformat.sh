@@ -12,7 +12,7 @@ THISDIR=`pwd`
 cd $ISOPATH
 
 echo ""
-echo "*** Testing backward compatibilty between nczarr meta data format V1 vs V2"
+echo "*** Testing backward compatibility between nczarr meta data format V1 vs V2"
 
 testcaseold() {
 echo "*** Test old format support"

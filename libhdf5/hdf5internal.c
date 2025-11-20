@@ -965,7 +965,7 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
  * if NULL.
  * @param nelemsp Pointer that gets number of elements to hold in
  * cache. Ignored if NULL.
- * @param preemptionp Pointer that gets preemption stragety (between 0
+ * @param preemptionp Pointer that gets preemption strategy (between 0
  * and 1). Ignored if NULL.
  *
  * @return ::NC_NOERR No error.

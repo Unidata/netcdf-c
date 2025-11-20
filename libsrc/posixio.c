@@ -238,7 +238,7 @@ fgrow2(const int fd, const off_t len)
 
   /* There is a problem with fstat on Windows based systems
      which manifests (so far) when Config RELEASE is built.
-     Use _filelengthi64 isntead.
+     Use _filelengthi64 instead.
 
      See https://github.com/Unidata/netcdf-c/issues/188
 
@@ -1826,7 +1826,7 @@ ncio_px_filesize(ncio *nciop, off_t *filesizep)
 
 	/* There is a problem with fstat on Windows based systems
 		which manifests (so far) when Config RELEASE is built.
-		Use _filelengthi64 isntead. */
+		Use _filelengthi64 instead. */
 #ifdef HAVE_FILE_LENGTH_I64
 
 	int64_t file_len = 0;

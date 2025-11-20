@@ -511,7 +511,7 @@ main(int argc, char **argv)
     /* Determine 2D data decomposition to write lat/lon coordinate vars. */
     if (decomp_latlon(dim_len, latlon_start, latlon_count, &lat, &lon)) ERR;
 
-    /* Decompose grid_xt and grid_yt coordiate vars. */
+    /* Decompose grid_xt and grid_yt coordinate vars. */
     if (decomp_grid(dim_len, &grid_xt_start, &grid_xt_size,
                     &grid_yt_start, &grid_yt_size, &grid_xt, &grid_yt)) ERR;
 

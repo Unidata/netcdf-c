@@ -43,7 +43,7 @@ Should work for any netcdf format.
 WARNING: deprecated in favor the corresponding function in netcdf.h.
 These are just wrappers for nc_reclaim_data and
 nc_reclaim_data_all and nc_copy_data and nc_copy_data_all and
-are here for back compatibilty.
+are here for back compatibility.
 */
 
 EXTERNL int ncaux_reclaim_data(int ncid, int xtype, void* memory, size_t count);

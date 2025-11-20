@@ -2256,7 +2256,7 @@ computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarra
     assert(zfile && zvar);
 
     if(purezarr && xarray) {/* Read in the attributes to get xarray dimdef attribute; Note that it might not exist */
-	/* Note that if xarray && !purezarr, then xarray will be superceded by the nczarr dimensions key */
+	/* Note that if xarray && !purezarr, then xarray will be superseded by the nczarr dimensions key */
         char zdimname[4096];
 	if(zvar->xarray == NULL) {
 	    assert(nclistlength(dimnames) == 0);

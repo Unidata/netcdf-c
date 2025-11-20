@@ -2943,7 +2943,7 @@ Not in define mode.
 
 @heading Example
 
-In this exampe rom nf_test/ftst_groups.F, a groups is reated, and then
+In this example rom nf_test/ftst_groups.F, a groups is reated, and then
 a sub-group is created in that group.
 
 @example
@@ -3511,7 +3511,7 @@ will be given.
 
 @item SIZEP
 The (in-memory) size of the type (in bytes) will be copied here. VLEN
-type size is the size of one vlen sturture (i.e. the sice of
+type size is the size of one vlen structure (i.e. the sice of
 nc_vlen_t). String size is returned as the size of one C character
 pointer.
 

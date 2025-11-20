@@ -509,8 +509,8 @@ NC3_def_var_endian(int ncid, int varid, int endianness)
 }
 
 static int
-NC3_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms)
+NC3_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* params)
 {
     return NC_ENOTNC4;
 }
-    
+

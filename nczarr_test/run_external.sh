@@ -12,7 +12,7 @@ THISDIR=`pwd`
 cd $ISOPATH
 
 # This shell script tests reading of
-# publically accessible S3 zarr datasets.
+# publicly accessible S3 zarr datasets.
 
 TESTCASES=
 if test "x$FEATURE_BYTERANGE" = xyes && test "x$FEATURE_S3" = xyes && test "x$FP_ISCYGWIN" = x ; then

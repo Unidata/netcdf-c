@@ -1285,7 +1285,7 @@ ifdef(`PNETCDF',,``#'endif')
                 expect[k] = hash4(cdf_format, ATT_TYPE(i,j), -1, ndx, NCT_ITYPE($1));
                 if (inRange3(cdf_format, expect[k],ATT_TYPE(i,j),NCT_ITYPE($1))) {
 		    /* netCDF specification make a special case for type
-		     * conversion between uchar and scahr: do not check for
+		     * conversion between uchar and schar: do not check for
 		     * range error. See
 		     * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
                      */

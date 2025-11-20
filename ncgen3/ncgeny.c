@@ -1411,7 +1411,7 @@ yyreduce:
 		    dummyvar.has_data = 0;
 
 		    nvdims = 0;
-		    /* make sure variable not re-declared */
+		    /* make sure variable not redeclared */
 		    if (yyvsp[0]->is_var == 1) {
 		       derror( "duplicate variable declaration for %s",
 		               yyvsp[0]->name);

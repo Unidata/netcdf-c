@@ -40,7 +40,7 @@ typedef struct NCexleaf {
     int uid; /* primarily for debug */
     struct NCexleaf* next; /* linked list of all leaves for cleanup */
     int depth; /* local depth */
-    int active; /* index of the first emptry slot */
+    int active; /* index of the first empty slot */
     NCexentry* entries; /* |entries| == leaflen*/
 } NCexleaf;
 

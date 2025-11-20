@@ -329,7 +329,7 @@ nc_inq_ndims(int ncid, int *ndimsp)
 
    This function finds the ID of the unlimited dimension. For
    netCDF-4/HDF5 files (which may have more than one unlimited
-   dimension), the ID of the first unlimited dimesnion is
+   dimension), the ID of the first unlimited dimension is
    returned. For these files, nc_inq_unlimdims() will return all the
    unlimited dimension IDs.
 

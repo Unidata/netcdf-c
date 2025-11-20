@@ -43,7 +43,7 @@ IF(NETCDF_BUILD_UTILITIES)
 # H5 and nczarr Fixed string support
   build_bin_test(build_fixedstring)
   ADD_SH_TEST(nc_test4 tst_fixedstring)
-# H5 and zeor len attribute test
+# H5 and zero len attribute test
 # See https://github.com/Unidata/netcdf-c/issues/3154
   build_bin_test(tst_zero_len_att)
   add_sh_test(nc_test4 run_zero_len_att_test)

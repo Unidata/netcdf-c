@@ -432,7 +432,7 @@ combinations can occur because of previous processing steps.
 ### Fragment List Normalization
 As the fragment list is processed, duplicates appear with the same key.
 A function -- cleanfragments() -- is applied to clean up the fragment list
-by coalesing the values of duplicate keys and removing duplicate key values.
+by coalescing the values of duplicate keys and removing duplicate key values.
 
 ### S3 Rebuild
 If the URL is determined to be a reference to a resource on the Amazon S3 cloud,
@@ -467,7 +467,7 @@ is set to NC\_FORMAT\_CLASSIC.
 
 ### Non-Mode Key Processing
 If processing the mode does not tell us the implementation, then
-all other fragment keys are processed to see if the implementaton
+all other fragment keys are processed to see if the implementation
 (and format) can be deduced. Currently this does nothing.
 
 ### URL Defaults

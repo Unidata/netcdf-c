@@ -280,7 +280,7 @@ NCZ_load_all_plugins(void)
 	    }
 	}
     }
-    /* Iniitalize all remaining plugins */
+    /* Initialize all remaining plugins */
     {
         size_t i;
 	NCZ_Plugin* p;
@@ -639,7 +639,7 @@ getentries(const char* path, NClist* contents)
     if((ret = nczm_localize(ffpath,&lpath,LOCALIZE))) goto done;
     dir = FindFirstFile(lpath, &FindFileData);
     if(dir == INVALID_HANDLE_VALUE) {
-	/* Distinquish not-a-directory from no-matching-file */
+	/* Distinguish not-a-directory from no-matching-file */
         switch (GetLastError()) {
 	case ERROR_FILE_NOT_FOUND: /* No matching files */ /* fall thru */
 	    ret = NC_NOERR;

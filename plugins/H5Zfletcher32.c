@@ -137,7 +137,7 @@ H5Z_filter_fletcher32(unsigned flags, size_t H5_ATTR_UNUSED cd_nelmts, const uns
         }
 
         /* Set return values */
-        /* (Re-use the input buffer, just note that the size is smaller by the size of the checksum) */
+        /* (Reuse the input buffer, just note that the size is smaller by the size of the checksum) */
         ret_value = nbytes-FLETCHER_LEN;
     } else { /* Write */
         unsigned char *dst;     /* Temporary pointer to destination buffer */

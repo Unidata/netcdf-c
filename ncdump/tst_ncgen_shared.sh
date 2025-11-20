@@ -10,7 +10,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 # 3. Modify the file tst_ncgen_shared.sh to add
 #    the test to the end of the TESTS4 variable
 #    or CLASSIC variable.
-# 4. Add the new files into cdl/Makfile.am
+# 4. Add the new files into cdl/Makefile.am
 #    and expected/Makefile.am 
 
 set -e

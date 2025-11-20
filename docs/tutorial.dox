@@ -747,7 +747,7 @@ each space size is encountered, a phony dimension of that size is
 checked for. It it does not exist, a new phony dimension is created
 for that size. In this way, a HDF5 file with datasets that are using
 shared dimensions can be seen properly in netCDF-4. (There is no
-shared dimension in HDF5, but data users will freqently write many
+shared dimension in HDF5, but data users will frequently write many
 datasets with the same shape, and intend these to be shared
 dimensions.)
 

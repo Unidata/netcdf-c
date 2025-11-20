@@ -33,7 +33,7 @@ main()
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
       
-      /* Set latest_format in access propertly list. This ensures that
+      /* Set latest_format in access property list. This ensures that
        * the latest, greatest, HDF5 versions are used in the file. */ 
       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
 
@@ -102,7 +102,7 @@ main()
 /*       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR; */
 /*       if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR; */
       
-/*       /\* Set latest_format in access propertly list. This ensures that */
+/*       /\* Set latest_format in access property list. This ensures that */
 /*        * the latest, greatest, HDF5 versions are used in the file. *\/  */
 /*       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR; */
 
@@ -167,7 +167,7 @@ main()
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
       
-      /* Set latest_format in access propertly list. This ensures that
+      /* Set latest_format in access property list. This ensures that
        * the latest, greatest, HDF5 versions are used in the file. */ 
       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
 

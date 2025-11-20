@@ -11,7 +11,7 @@ See \ref copyright file for more info.
 
 /* This is a quickie tester for netcdf-4.
 
-   This just excersizes MPI file I/O to make sure everything's working
+   This just exercises MPI file I/O to make sure everything's working
    properly. If this doesn't work, netcdf/HDF5 parallel I/O also won't
    work.
 

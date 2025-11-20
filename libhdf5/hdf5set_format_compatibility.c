@@ -7,7 +7,7 @@
  * library versions.
  *
  * Format compatibility is transient, not baked in to an HDF5 file
- * at creation time.  Therefore the desired compatibilty options
+ * at creation time.  Therefore the desired compatibility options
  * must be selected every time a file is opened for writing.
  *
  * This function should be called before every call to create a new
@@ -21,7 +21,7 @@
  *
  * The basic functionality is to select the traditional HDF5 v1.8
  * format compatibility, whenever possible.  The less desirable
- * v1.6 compatibily is selected in a few strange cases when it is
+ * v1.6 compatibility is selected in a few strange cases when it is
  * not possible to select v1.8.
  *
  * Files created or updated with v1.10 and higher compatibility are

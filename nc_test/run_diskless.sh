@@ -67,7 +67,7 @@ rm -f $FILE2 tst_diskless2.cdl
 ${execdir}/tst_diskless2
 if test -f $FILE2 ; then
   echo "**** $FILE2 created"
-  # Do a cyle test
+  # Do a cycle test
   if ${NCDUMP} $FILE2 |sed -e s/tst_diskless2/tmp1/ > tmp1.cdl ; then
     if ${NCGEN} -k nc4 -o tmp1.nc tmp1.cdl ;then
       if ${NCDUMP} tmp1.nc >tmp2.cdl ; then

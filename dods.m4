@@ -318,7 +318,7 @@
 #     AC_SUBST(IDL_ROOT)
 # 
 #     # Now find where the IDL 5.2 or later shareable libraries live.
-#     # NB: This won't work if libraries for several architecutures are 
+#     # NB: This won't work if libraries for several architectures are 
 #     # installed for several machines.
 #     AC_MSG_CHECKING(for the IDL shareable library directory)
 #     # cd to the IDL root because it is likely a symbolic link and find 

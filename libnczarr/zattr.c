@@ -591,7 +591,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
         if (var->written_to)
             return NC_ELATEFILL;
 
-        /* Get the length of the veriable data type. */
+        /* Get the length of the variable data type. */
         if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->hdr.id,
                                           &type_size)))
             return retval;
@@ -862,7 +862,7 @@ NCZ_inq_attid(int ncid, int varid, const char *name, int *attnump)
  * @param ncid File and group ID.
  * @param varid Variable ID.
  * @param attnum The index number of the attribute.
- * @param name Pointer that gets name of attrribute.
+ * @param name Pointer that gets name of attribute.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.

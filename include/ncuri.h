@@ -92,7 +92,7 @@ EXTERNL int ncurisetquerykey(NCURI* duri,const char* key, const char* value);
 /* append a specific &key=...& in uri query */
 EXTERNL int ncuriappendquerykey(NCURI* duri,const char* key, const char* value);
 
-/* Get the actual list of queryies */
+/* Get the actual list of queries */
 EXTERNL void* ncuriqueryparams(NCURI* uri);
 /* Get the actual list of frags */
 EXTERNL void* ncurifragmentparams(NCURI* uri);

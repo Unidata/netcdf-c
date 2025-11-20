@@ -187,7 +187,7 @@ xxdr_string(XXDR* xdrs, char** sp, off_t* lenp)
     s[len] = '\0'; /* make sure it is null terminated */
     if(sp) *sp = s;
     if(lenp) *lenp = len;
-    /* xxdr_opaque will have skippped any trailing bytes */
+    /* xxdr_opaque will have skipped any trailing bytes */
     return 1;    
 }
 

@@ -28,7 +28,7 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
 #ifdef PRINT_CHUNK_WASTE_REPORT
    printf("\n");
 #endif
-   /* Caclulate the total space taken up by the chunked data. */
+   /* Calculate the total space taken up by the chunked data. */
    for (d = 0; d < ndims; d++)
    {
       /* How many chunks along this dimension are required to hold all the data? */

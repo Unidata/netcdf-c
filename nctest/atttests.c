@@ -1063,7 +1063,7 @@ test_ncattname(const char *path) /* name of writable netcdf file to open */
     }
     /* try with bad netCDF handle, check error */
     if (ncattname(cdfid, NC_GLOBAL, 0, att.name) != -1) {
-	error("%s: ncattname shoul fail with bad cdfid", pname);
+	error("%s: ncattname should fail with bad cdfid", pname);
 	nerrs++;
     }
     free (tmp.name);

@@ -56,7 +56,7 @@ main()
       if (H5DSattach_scale(var1_datasetid, dimscaleid, 0) < 0) ERR;
       if (H5DSset_label(var1_datasetid, 0, FIFTIES_SONG) < 0) ERR;
 
-      /* Create a 1D variabls that doesn't use the dimension scale. */
+      /* Create a 1D variable that doesn't use the dimension scale. */
       if ((var2_datasetid = H5Dcreate1(grpid, VAR2_NAME, H5T_NATIVE_INT,
                                       var1_spaceid, H5P_DEFAULT)) < 0) ERR;
 
