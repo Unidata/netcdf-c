@@ -1618,9 +1618,9 @@ H5FD__s3comms_load_aws_creds_from_file(FILE *file, const char *profile_name, cha
     char        profile_line[32];
     char        buffer[128];
     const char *setting_names[] = {
-        "region",
-        "aws_access_key_id",
-        "aws_secret_access_key",
+        AWS_PROF_REGION,
+        AWS_PROF_ACCESS_KEY_ID,
+        AWS_PROF_SECRET_ACCESS_KEY,
     };
     char *const setting_pointers[] = {
         aws_region,
