@@ -121,10 +121,9 @@ hash_$1(const int       cdf_format,
     double value;
 
     value = hash4(cdf_format, type, rank, index, itype);
-    ifelse(`$1',`text',`return (text)value;',`
     if (value > $1_max) return $1_max;
     else if (value < $1_min) return $1_min;
-    else return ($1)value;')
+    else return ($1)value;
 }
 ')dnl
 
