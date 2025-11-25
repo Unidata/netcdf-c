@@ -79,7 +79,6 @@ static const char* userpwdallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!$&'()*+,-.;=_~?#/";
 
 #ifndef HAVE_STRNDUP
-#define strndup ncstrndup
 /* Not all systems have strndup, so provide one*/
 char*
 ncstrndup(const char* s, size_t len)
