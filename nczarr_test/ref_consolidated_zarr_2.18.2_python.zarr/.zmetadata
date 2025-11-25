@@ -7,7 +7,7 @@
             "zarr_format": 2
         },
         "G1/.zattrs": {
-            "Details": "Varibles are chunked"
+            "Details": "Variables are chunked"
         },
         "G1/.zgroup": {
             "zarr_format": 2
@@ -20,13 +20,7 @@
                 6,
                 15
             ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
+            "compressor": null,
             "dtype": "<i4",
             "fill_value": 0,
             "filters": null,
@@ -45,13 +39,7 @@
                 3,
                 5
             ],
-            "compressor": {
-                "blocksize": 0,
-                "clevel": 5,
-                "cname": "lz4",
-                "id": "blosc",
-                "shuffle": 1
-            },
+            "compressor": null,
             "dtype": "<i8",
             "fill_value": 0,
             "filters": null,
