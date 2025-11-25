@@ -127,9 +127,9 @@ int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist 
 
 	const NCjson *jmetadata = NULL;
 	NCJdictget(zfile->metadata_handler->jcsl, "metadata", &jmetadata);
-	for (i = 0; i < NCJlength(jmetadata); i += 2)
+	for (i = 0; i < NCJdictlength(jmetadata); i++)
 	{
-		NCjson *jname = NCJith(jmetadata, i);
+		NCjson *jname = NCJdictkey(jmetadata, i);
 		const char *fullname = NCJstring(jname);
 		size_t lfullname = strlen(fullname);
 		if (lfullname < lgroup ||
@@ -215,9 +215,9 @@ int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NCli
 
 	const NCjson *jmetadata = NULL;
 	NCJdictget(zfile->metadata_handler->jcsl, "metadata", &jmetadata);
-	for (i = 0; i < NCJlength(jmetadata); i += 2)
+	for (i = 0; i < NCJdictlength(jmetadata); i++)
 	{
-		NCjson *jname = NCJith(jmetadata, i);
+		NCjson *jname = NCJdictkey(jmetadata, i);
 		const char *fullname = NCJstring(jname);
 		size_t lfullname = strlen(fullname);
 		if (lfullname < lgroup ||
