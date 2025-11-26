@@ -57,11 +57,11 @@ typedef struct NCZ_Metadata_Dispatcher
 	int zarr_format;		/* Zarr format version */
 	int dispatch_version;   /* Dispatch table version*/
 	size64_t flags;			/* Metadata handling flags */
-
-	int (*list_groups)(NCZ_FILE_INFO_T *, NC_GRP_INFO_T *, NClist *subgrpnames);
-	int (*list_variables)(NCZ_FILE_INFO_T *, NC_GRP_INFO_T *, NClist *varnames);
-	int (*fetch_json_content)(NCZ_FILE_INFO_T *, NCZMD_MetadataType, const char *name, NCjson **jobj);
-	int (*update_json_content)(NCZ_FILE_INFO_T *, NCZMD_MetadataType, const char *name, const NCjson *jobj);
+    int (*list_groups)(NCZ_FILE_INFO_T *, NC_GRP_INFO_T *, NClist *subgrpnames);
+    int (*list_variables)(NCZ_FILE_INFO_T *, NC_GRP_INFO_T *, NClist *varnames);
+    int (*fetch_json_content)(NCZ_FILE_INFO_T *, NCZMD_MetadataType, const char *name, NCjson **jobj);
+    int (*update_json_content)(NCZ_FILE_INFO_T *, NCZMD_MetadataType, const char *name, const NCjson *jobj);
+	int (*validate_json_content)(const NCjson *jobj);
 } NCZ_Metadata_Dispatcher;
 
 typedef struct NCZ_Metadata
