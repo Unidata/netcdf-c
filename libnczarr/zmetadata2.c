@@ -379,18 +379,18 @@ int validate_consolidated_json_noop_v2(const NCjson *json){
 int validate_consolidated_json_v2(const NCjson *json)
 {
     if (json == NULL || NCJsort(json) != NCJ_DICT || NCJdictlength(json) == 0)
-        return NC_EINVAL;
+        return NC_EZARRMETA;
 
     const NCjson *jtmp = NULL;
     NCJdictget(json, "metadata", &jtmp);
     if (jtmp == NULL || NCJsort(jtmp) != NCJ_DICT || NCJdictlength(jtmp) == 0)
-        return NC_EINVAL;
+        return NC_EZARRMETA;
 
     jtmp = NULL;
     struct NCJconst format = {0,0,0,0};
     NCJdictget(json, "zarr_consolidated_format", &jtmp);
     if (jtmp == NULL || NCJsort(jtmp) != NCJ_INT || NCJcvt(jtmp,NCJ_INT, &format ) || format.ival != 1)
-        return NC_EINVAL;
+        return NC_EZARRMETA;
 
     return NC_NOERR;
 }
