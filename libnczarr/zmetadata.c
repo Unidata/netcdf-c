@@ -217,25 +217,31 @@ int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat)
 //Inference of the metadata handler
 int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile)
 {
-	int stat = NC_NOERR;
-	const NCZ_Metadata_Dispatcher *zmd_dispatcher = zfile->metadata_handler.dispatcher;
-	NCjson *jcsl = NULL;
+    NCjson *jcsl = NULL;
 
+    if (zfile->creating) {
+        zfile->metadata_handler.jcsl = NULL;
+        zfile->metadata_handler.dispatcher = NCZ_csl_metadata_handler2;
+        return NC_NOERR;
+    }
+    
+    zfile->metadata_handler.jcsl = NULL;
+	zfile->metadata_handler.dispatcher = NCZ_metadata_handler2; // default
 
-	if ((zfile->creating || (stat = NCZ_downloadjson(zfile->map, Z2METADATA, &jcsl)) == NC_NOERR)
-		&& jcsl != NULL && NCJsort(jcsl) == NCJ_DICT)
-	{
-		zmd_dispatcher = NCZ_csl_metadata_handler2;
-	}else{
-		zmd_dispatcher = NCZ_metadata_handler2;
-		NCJreclaim(jcsl);
-		jcsl = NULL;
-	}
+    if (NCZ_downloadjson(zfile->map, Z2METADATA, &jcsl) || jcsl == NULL) {
+        nclog(NCLOGNOTE, "Dataset not consolidated! Doing so will improve performance");
+        return NC_NOERR;
+    }
+    
+    if (NCZ_csl_metadata_handler2->validate_consolidated(jcsl) != NC_NOERR) {
+        nclog(NCLOGWARN,"Consolidated metadata is invalid, ignoring it!");
+        return NC_EZARRMETA;
+    }
 
-	zfile->metadata_handler.jcsl = jcsl;
-	zfile->metadata_handler.dispatcher = zmd_dispatcher;
-
-	return stat;
+    // Use consolidated metadata handler
+    zfile->metadata_handler.jcsl = jcsl;
+    zfile->metadata_handler.dispatcher = NCZ_csl_metadata_handler2;
+    return NC_NOERR;
 }
 
 void NCZMD_free_metadata_handler(NCZ_Metadata * zmd){
