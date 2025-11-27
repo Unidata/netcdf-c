@@ -58,7 +58,7 @@ typedef struct NCZ_Metadata_Dispatcher
     int (*list_variables)(struct NCZ_FILE_INFO*, NC_GRP_INFO_T *, NClist *varnames);
     int (*fetch_json_content)(struct NCZ_FILE_INFO*, NCZMD_MetadataType, const char *name, NCjson **jobj);
     int (*update_json_content)(struct NCZ_FILE_INFO*, NCZMD_MetadataType, const char *name, const NCjson *jobj);
-	int (*validate_json_content)(const NCjson *jobj);
+	int (*validate_consolidated)(const NCjson *jobj); // Should  validate whole JSON content of .zmetadata
 } NCZ_Metadata_Dispatcher;
 
 typedef struct NCZ_Metadata

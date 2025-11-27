@@ -24,8 +24,8 @@ int fetch_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_ob
 int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, const NCjson *jobj);
 int update_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, const NCjson *jobj);
 
-int validate_json_content_noop_v2(const NCjson *json);
-int validate_csl_json_content_v2(const NCjson *json);
+int validate_consolidated_json_noop_v2(const NCjson *json);
+int validate_consolidated_json_v2(const NCjson *json);
 
 /**************************************************/
 
@@ -39,7 +39,7 @@ static const NCZ_Metadata_Dispatcher NCZ_md2_table = {
 
 	.fetch_json_content = fetch_json_content_v2,
 	.update_json_content = update_json_content_v2,
-    .validate_json_content = validate_json_content_noop_v2,
+    .validate_consolidated = validate_consolidated_json_noop_v2,
 };
 
 static const NCZ_Metadata_Dispatcher NCZ_csl_md2_table = {
@@ -52,7 +52,7 @@ static const NCZ_Metadata_Dispatcher NCZ_csl_md2_table = {
 
 	.fetch_json_content = fetch_csl_json_content_v2,
 	.update_json_content = update_csl_json_content_v2,
-    .validate_json_content = validate_csl_json_content_v2,
+    .validate_consolidated = validate_consolidated_json_v2,
 };
 
 const NCZ_Metadata_Dispatcher *NCZ_metadata_handler2 = &NCZ_md2_table;
@@ -368,7 +368,7 @@ done:
 	return stat;
 }
 
-int validate_json_content_noop_v2(const NCjson *json){
+int validate_consolidated_json_noop_v2(const NCjson *json){
     NC_UNUSED(json);
     return NC_NOERR;
 }
@@ -376,7 +376,7 @@ int validate_json_content_noop_v2(const NCjson *json){
 // Checks if the content of .zmetadata contains a valid non empty json
 //  - with non empty json in "metadata"
 //  - with "zarr_consolidated_format" == 1
-int validate_csl_json_content_v2(const NCjson *json)
+int validate_consolidated_json_v2(const NCjson *json)
 {
     if (json == NULL || NCJsort(json) != NCJ_DICT || NCJdictlength(json) == 0)
         return NC_EINVAL;
