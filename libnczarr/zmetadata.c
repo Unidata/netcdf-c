@@ -3,7 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "zmetadata.h"
+#include "zincludes.h"
 
 /**************************************************/
 
@@ -33,13 +33,13 @@ done:
 // Returns the list of subgroups from *grp
 int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames)
 {
-	return zfile->metadata_handler->dispatcher->list_groups(zfile, grp, subgrpnames);
+	return zfile->metadata_handler.dispatcher->list_groups(zfile, grp, subgrpnames);
 }
 
 // Returns the list of variables from grp
 int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *varnames)
 {
-	return zfile->metadata_handler->dispatcher->list_variables(zfile, grp, varnames);
+	return zfile->metadata_handler.dispatcher->list_variables(zfile, grp, varnames);
 }
 
 
@@ -58,7 +58,7 @@ int NCZMD_fetch_json_group(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const cha
 	if ((stat = nczm_concat(group, name, &key)))
 		goto done;
 
-	stat = zfile->metadata_handler->dispatcher->fetch_json_content(zfile, NCZMD_GROUP, key, jgroup);
+	stat = zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_GROUP, key, jgroup);
 done:	
 	nullfree(group);
 	nullfree(key);
@@ -76,7 +76,7 @@ int NCZMD_fetch_json_attrs(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const cha
 	if ((stat = nczm_concat(group, name, &key)))
 		goto done;
 
-	stat = zfile->metadata_handler->dispatcher->fetch_json_content(zfile, NCZMD_ATTRS, key , jattrs);
+	stat = zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_ATTRS, key , jattrs);
 done:	
 	nullfree(group);
 	nullfree(key);
@@ -96,7 +96,7 @@ int NCZMD_fetch_json_array(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const cha
 		goto done;
 	
 
-	stat = zfile->metadata_handler->dispatcher->fetch_json_content(zfile, NCZMD_ARRAY, key, jarray);
+	stat = zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_ARRAY, key, jarray);
 done:
 	nullfree(group);
 	nullfree(key);
@@ -118,7 +118,7 @@ int NCZMD_update_json_group(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const ch
 	if ((stat = nczm_concat(group, name, &key)))
 		goto done;
 
-	stat = zfile->metadata_handler->dispatcher->update_json_content(zfile, NCZMD_GROUP, key, jgroup);
+	stat = zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_GROUP, key, jgroup);
 done:	
 	nullfree(group);
 	nullfree(key);
@@ -136,7 +136,7 @@ int NCZMD_update_json_attrs(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const ch
 	if ((stat = nczm_concat(group, name, &key)))
 		goto done;
 
-	stat = zfile->metadata_handler->dispatcher->update_json_content(zfile, NCZMD_ATTRS, key , jattrs);
+	stat = zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_ATTRS, key , jattrs);
 done:	
 	nullfree(group);
 	nullfree(key);
@@ -156,7 +156,7 @@ int NCZMD_update_json_array(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const ch
 		goto done;
 	
 
-	stat = zfile->metadata_handler->dispatcher->update_json_content(zfile, NCZMD_ARRAY, key, jarray);
+	stat = zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_ARRAY, key, jarray);
 done:
 	nullfree(group);
 	nullfree(key);
@@ -167,8 +167,8 @@ done:
 // Writes .zmetadata file into storage
 int NCZMD_consolidate(NCZ_FILE_INFO_T *zfile) {
 	int stat = NC_NOERR;
-	if (zfile->creating == 1 && zfile->metadata_handler != NULL && zfile->metadata_handler->jcsl !=NULL){
-		stat = NCZ_uploadjson(zfile->map, Z2METADATA ,zfile->metadata_handler->jcsl);
+	if (zfile->creating == 1 && zfile->metadata_handler.jcsl !=NULL){
+		stat = NCZ_uploadjson(zfile->map, Z2METADATA ,zfile->metadata_handler.jcsl);
 	}
 	return stat;
 }
@@ -176,8 +176,7 @@ int NCZMD_consolidate(NCZ_FILE_INFO_T *zfile) {
 
 int NCZMD_is_metadata_consolidated(NCZ_FILE_INFO_T *zfile)
 {
-	NCZ_Metadata *zmd = NULL;
-	zmd = zfile->metadata_handler;
+	NCZ_Metadata *zmd = &(zfile->metadata_handler);
 	if (zmd == NULL ||
 		zmd->jcsl == NULL ||
 		NCJsort(zmd->jcsl) != NCJ_DICT ||
@@ -191,7 +190,7 @@ int NCZMD_is_metadata_consolidated(NCZ_FILE_INFO_T *zfile)
 int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat)
 { // Only pure Zarr is determined
 
-	NCZ_Metadata *zmd = zfile->metadata_handler;
+    NCZ_Metadata *zmd = &(zfile->metadata_handler);
 	if ( !zmd || !zmd->dispatcher ) {
 		return NC_EFILEMETA;
 	}
@@ -216,17 +215,12 @@ int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat)
 }
 
 //Inference of the metadata handler
-int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile, const NCZ_Metadata **mdhandlerp)
+int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile)
 {
 	int stat = NC_NOERR;
-	const NCZ_Metadata_Dispatcher *zmd_dispatcher = NULL;
+	const NCZ_Metadata_Dispatcher *zmd_dispatcher = zfile->metadata_handler.dispatcher;
 	NCjson *jcsl = NULL;
 
-	if (zfile->metadata_handler != NULL)
-	{
-		stat = NC_EOBJECT;
-		goto done;
-	}
 
 	if ((zfile->creating || (stat = NCZ_downloadjson(zfile->map, Z2METADATA, &jcsl)) == NC_NOERR)
 		&& jcsl != NULL && NCJsort(jcsl) == NCJ_DICT)
@@ -238,22 +232,14 @@ int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile, const NCZ_Metadata **mdha
 		jcsl = NULL;
 	}
 
-		NCZ_Metadata *zmdh = NULL;
-		if ((zmdh = (NCZ_Metadata *)calloc(1, sizeof(NCZ_Metadata))) == NULL)
-		{
-			stat = NC_ENOMEM;
-			goto done;
-		}
-		zmdh->jcsl = jcsl;
-		zmdh->dispatcher = zmd_dispatcher;
+	zfile->metadata_handler.jcsl = jcsl;
+	zfile->metadata_handler.dispatcher = zmd_dispatcher;
 
-		*mdhandlerp = (const NCZ_Metadata *)zmdh;
-done:
 	return stat;
 }
 
 void NCZMD_free_metadata_handler(NCZ_Metadata * zmd){
 	if (zmd == NULL) return;
 	NCJreclaim(zmd->jcsl);
-	nullfree(zmd);
+    zmd->jcsl = NULL;
 }

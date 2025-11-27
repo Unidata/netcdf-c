@@ -145,7 +145,7 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_NCZARR_KEY  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
 	NCZM_IMPL mapimpl;
     } controls;
-    struct NCZ_Metadata * metadata_handler;
+    struct NCZ_Metadata metadata_handler;
     int default_maxstrlen; /* default max str size for variables of type string */
 } NCZ_FILE_INFO_T;
 

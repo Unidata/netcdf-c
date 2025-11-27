@@ -24,10 +24,7 @@ Note: This will also be the case of zarr v3
 
 #ifndef ZMETADATA_H
 #define ZMETADATA_H
-#include "zincludes.h"
-#include "ncjson.h"
-#include "zinternal.h"
-
+struct NCZ_FILE_INFO;
 
 #if defined(__cplusplus)
 extern "C"
@@ -57,10 +54,10 @@ typedef struct NCZ_Metadata_Dispatcher
 	int zarr_format;		/* Zarr format version */
 	int dispatch_version;   /* Dispatch table version*/
 	size64_t flags;			/* Metadata handling flags */
-    int (*list_groups)(NCZ_FILE_INFO_T *, NC_GRP_INFO_T *, NClist *subgrpnames);
-    int (*list_variables)(NCZ_FILE_INFO_T *, NC_GRP_INFO_T *, NClist *varnames);
-    int (*fetch_json_content)(NCZ_FILE_INFO_T *, NCZMD_MetadataType, const char *name, NCjson **jobj);
-    int (*update_json_content)(NCZ_FILE_INFO_T *, NCZMD_MetadataType, const char *name, const NCjson *jobj);
+    int (*list_groups)(struct NCZ_FILE_INFO*, NC_GRP_INFO_T *, NClist *subgrpnames);
+    int (*list_variables)(struct NCZ_FILE_INFO*, NC_GRP_INFO_T *, NClist *varnames);
+    int (*fetch_json_content)(struct NCZ_FILE_INFO*, NCZMD_MetadataType, const char *name, NCjson **jobj);
+    int (*update_json_content)(struct NCZ_FILE_INFO*, NCZMD_MetadataType, const char *name, const NCjson *jobj);
 	int (*validate_json_content)(const NCjson *jobj);
 } NCZ_Metadata_Dispatcher;
 
@@ -80,24 +77,24 @@ extern const NCZ_Metadata_Dispatcher *NCZ_csl_metadata_handler2;
 extern int NCZMD_initialize(void);
 extern int NCZMD_finalize(void);
 
-extern int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
-extern int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *varnames);
+extern int NCZMD_list_groups(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
+extern int NCZMD_list_variables(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, NClist *varnames);
 
-extern int NCZMD_fetch_json_group(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jgroup);
-extern int NCZMD_fetch_json_attrs(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jattrs);
-extern int NCZMD_fetch_json_array(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jarrays);
+extern int NCZMD_fetch_json_group(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jgroup);
+extern int NCZMD_fetch_json_attrs(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jattrs);
+extern int NCZMD_fetch_json_array(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jarrays);
 
 /* Write operations */
-extern int NCZMD_update_json_group(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jgroup);
-extern int NCZMD_update_json_attrs(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jattrs);
-extern int NCZMD_update_json_array(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jarrays);
-extern int NCZMD_consolidate(NCZ_FILE_INFO_T *zfile);
+extern int NCZMD_update_json_group(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jgroup);
+extern int NCZMD_update_json_attrs(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jattrs);
+extern int NCZMD_update_json_array(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jarrays);
+extern int NCZMD_consolidate(struct NCZ_FILE_INFO*zfile);
 /**************************************************/
 
 /* Inference for the Metadata handler */
-extern int NCZMD_is_metadata_consolidated(NCZ_FILE_INFO_T *zfile);
-extern int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat); // Only pure Zarr is determined
-extern int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile, const NCZ_Metadata **mdhandlerp);
+extern int NCZMD_is_metadata_consolidated(struct NCZ_FILE_INFO*zfile);
+extern int NCZMD_get_metadata_format(struct NCZ_FILE_INFO*zfile, int *zarrformat); // Only pure Zarr is determined
+extern int NCZMD_set_metadata_handler(struct NCZ_FILE_INFO *zfile);
 extern void NCZMD_free_metadata_handler(NCZ_Metadata * zmd);
 
 #if defined(__cplusplus)
