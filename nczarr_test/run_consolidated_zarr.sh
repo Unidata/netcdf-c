@@ -7,6 +7,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+isolate "testdir_consolidated_zarr"
 s3isolate "testdir_consolidated_zarr"
 THISDIR=`pwd`
 cd $ISOPATH
@@ -48,8 +49,8 @@ testcase_csl_vs_no(){
     set -x
     echo "*** Test: consolidated pure python zarr read; format=$zext"
     deletemap $zext $file
-    cp -r $srcdir/ref_consolidated_zarr_2.18.2_python.zarr ref_consolidated_zarr_2.18.2_python.zarr.$zext
-    cp -r $srcdir/ref_consolidated_zarr_2.18.2_python.zarr ref_zarr_2.18.2_python.zarr.$zext
+    cp -r $srcdir/ref_consolidated_zarr_2.18.2_python.zarr/. ref_consolidated_zarr_2.18.2_python.zarr.$zext
+    cp -r $srcdir/ref_consolidated_zarr_2.18.2_python.zarr/. ref_zarr_2.18.2_python.zarr.$zext
     rm -f ref_zarr_2.18.2_python.zarr.$zext/.zmetadata
     fileargs ref_consolidated_zarr_2.18.2_python.zarr "mode=zarr"
     echo "${NCDUMP} $fileurl > tmp_consolidated_python_zarr_${zext}.cdl"
