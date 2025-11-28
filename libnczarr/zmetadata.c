@@ -30,16 +30,34 @@ done:
 	return THROW(stat);
 }
 
+static int
+cmpstrings(const void* a1, const void* a2)
+{
+    const char** s1 = (const char**)a1;
+    const char** s2 = (const char**)a2;
+    return strcmp(*s1,*s2);
+}
+
 // Returns the list of subgroups from *grp
 int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames)
 {
-	return zfile->metadata_handler.dispatcher->list_groups(zfile, grp, subgrpnames);
+    int stat = NC_NOERR;
+    if((stat = zfile->metadata_handler.dispatcher->list_groups(zfile, grp, subgrpnames))){
+        return stat;
+    }
+    qsort(subgrpnames->content, subgrpnames->length, sizeof(char*), cmpstrings);
+    return stat;
 }
 
 // Returns the list of variables from grp
 int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *varnames)
 {
-	return zfile->metadata_handler.dispatcher->list_variables(zfile, grp, varnames);
+	int stat = NC_NOERR;
+    if((stat = zfile->metadata_handler.dispatcher->list_variables(zfile, grp, varnames))){
+        return stat;
+    }
+    qsort(varnames->content, varnames->length, sizeof(char*), cmpstrings);
+    return stat;
 }
 
 
