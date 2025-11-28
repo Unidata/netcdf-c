@@ -52,9 +52,6 @@ FEATURE_PLUGIN_SEARCH_PATH="@NETCDF_PLUGIN_SEARCH_PATH@"
 # Thredds-test server is currently disabled
 #FEATURE_THREDDSTEST=1
 
-# This is the S3 endpoint to be used during tests
-S3ENDPOINT=@S3ENDPOINT@
-
 # This is the Unidata S3 test bucket
 # All S3 tests should use this to store intermediate results.
 S3TESTBUCKET=@S3TESTBUCKET@

@@ -2142,11 +2142,6 @@ fi
 
 # The Unidata testing S3 bucket
 # WARNING: this must match the value in CMakeLists.txt
-AC_DEFINE([S3ENDPOINT], ["s3.us-east-1.amazonaws.com"], [S3 test endpoint])
-AC_SUBST([S3ENDPOINT],["s3.us-east-1.amazonaws.com"])
-
-# The Unidata testing S3 bucket
-# WARNING: this must match the value in CMakeLists.txt
 AC_DEFINE([S3TESTBUCKET], ["unidata-zarr-test-data"], [S3 test bucket])
 AC_SUBST([S3TESTBUCKET],["unidata-zarr-test-data"])
 
