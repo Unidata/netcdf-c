@@ -23,6 +23,11 @@
 #define NCZ_CHUNKSIZE_FACTOR (10)
 #define NCZ_MIN_CHUNK_SIZE (2)
 
+/* The name of the env var for controlling .zmetadata use*/
+#define NCZARR_CONSOLIDATED_KEY_ENV "NCZARR_METADATA_CONSOLIDATED_KEY"
+#define NCZARR_CONSOLIDATED_ENV "NCZARR_CONSOLIDATED"
+#define NCZARR_CONSOLIDATED_DEFAULT 0 /* default to consolidated metadata */
+
 /**************************************************/
 /* Constants */
 
@@ -143,6 +148,7 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_LOGGING     4
 #		define FLAG_XARRAYDIMS  8
 #		define FLAG_NCZARR_KEY  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
+#       define FLAG_CONSOLIDATED 32 /* Use/set consolidated metadata */
 	NCZM_IMPL mapimpl;
     } controls;
     struct NCZ_Metadata metadata_handler;
