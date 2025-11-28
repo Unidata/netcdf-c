@@ -184,6 +184,9 @@ are set when opening a binary file on Windows. */
 /* if true, enable S3 testing*/
 #cmakedefine WITH_S3_TESTING "${WITH_S3_TESTING}"
 
+/* S3 Test endpoint */
+#define S3ENDPOINT "${S3ENDPOINT}"
+
 /* S3 Test Bucket */
 #define S3TESTBUCKET "${S3TESTBUCKET}"
 

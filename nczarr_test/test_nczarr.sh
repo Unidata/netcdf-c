@@ -9,7 +9,7 @@ if test "x$SETX" != x; then set -x; fi
 # Figure out which cloud repo to use
 if test "x$NCZARR_S3_TEST_HOST" = x ; then
 #    export NCZARR_S3_TEST_HOST=stratus.ucar.edu
-    export NCZARR_S3_TEST_HOST=s3.us-east-1.amazonaws.com
+    export NCZARR_S3_TEST_HOST="${S3ENDPOINT:-s3.us-east-1.amazonaws.com}"
 fi
 if test "x$NCZARR_S3_TEST_BUCKET" = x ; then
     export NCZARR_S3_TEST_BUCKET="${S3TESTBUCKET}"
