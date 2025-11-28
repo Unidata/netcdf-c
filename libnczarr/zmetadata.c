@@ -214,12 +214,30 @@ int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat)
 	return NC_NOERR;
 }
 
+
+int use_consolidated_metadata(NCZ_FILE_INFO_T *zfile)
+{
+    int use_consolidated = NCZARR_CONSOLIDATED_DEFAULT || (zfile->controls.flags & FLAG_CONSOLIDATED);
+    const char *e = getenv(NCZARR_CONSOLIDATED_ENV);
+
+    int env_use_consolidated = (e != NULL)  && (
+            (atoi(e) > 0) ||(strcasecmp(e, "true") == 0) || (strcasecmp(e, "yes") == 0)
+        );
+
+    return use_consolidated || env_use_consolidated ;
+}
+
 //Inference of the metadata handler
 int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile)
 {
     NCjson *jcsl = NULL;
 
-    if (zfile->creating) {
+    int use_consolidated = use_consolidated_metadata(zfile);
+    if (!use_consolidated){
+        nclog(NCLOGNOTE, "Not using consolidated metadata! Doing so could improve reading performance");
+    }
+
+    if (use_consolidated && zfile->creating) {
         zfile->metadata_handler.jcsl = NULL;
         zfile->metadata_handler.dispatcher = NCZ_csl_metadata_handler2;
         return NC_NOERR;
@@ -227,12 +245,14 @@ int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile)
     
     zfile->metadata_handler.jcsl = NULL;
 	zfile->metadata_handler.dispatcher = NCZ_metadata_handler2; // default
-
+    if (!use_consolidated)
+        return NC_NOERR;
+    
     if (NCZ_downloadjson(zfile->map, Z2METADATA, &jcsl) || jcsl == NULL) {
         nclog(NCLOGNOTE, "Dataset not consolidated! Doing so will improve performance");
         return NC_NOERR;
     }
-    
+
     if (NCZ_csl_metadata_handler2->validate_consolidated(jcsl) != NC_NOERR) {
         nclog(NCLOGWARN,"Consolidated metadata is invalid, ignoring it!");
         return NC_EZARRMETA;
