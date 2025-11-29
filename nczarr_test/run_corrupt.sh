@@ -18,6 +18,7 @@ export NCLOGGING=WARN
 
 testnoshape1() {
   zext=file
+  rm -fr ./ref_noshape.file
   unzip ${srcdir}/ref_noshape.file.zip
   fileargs ${ISOPATH}/ref_noshape "mode=zarr,$zext"
   rm -f tmp_noshape1_${zext}.cdl
