@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.10.0 - TBD
 
-* Clean up minor problems with DAP2/DAP4 code. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????) for more information.
+* Clean up minor problems with DAP2/DAP4 code. See [Github #3215](https://github.com/Unidata/netcdf-c/pull/3215) for more information.
 * Cleanup RELEASE_NOTES.md. See [Github 3190](https://github.com/Unidata/netcdf-c/issues/3190) for more information. 
 * Rebuild the S3-related code and other changes necessary to build cleanly on github actions. See [Github #3159](https://github.com/Unidata/netcdf-c/pull/3159) for more information.
 * Fix the problems around ncdap_test/test_manyurls.c. See [Github 3182](https://github.com/Unidata/netcdf-c/issues/3182) for more information. 
