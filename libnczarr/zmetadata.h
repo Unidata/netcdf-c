@@ -8,7 +8,7 @@ Encapsulates Zarr metadata operations across versions, supporting both
 consolidated access and per-file access. Provides a common interface 
 for metadata operations.
  
-The dispatcher is defined by the type NCZ_Metadata_Dispatcher.
+The dispatcher is defined by the type NCZ_Metadata.
 It offers 2 types of operations that allow decoupling/abstract
 filesystem access, content reading of the JSON metadata files
 1. Listings: (involves either listing or parsing consolidated view)
@@ -48,28 +48,23 @@ typedef enum {
 	NCZMD_ARRAY
 } NCZMD_MetadataType;
 
-typedef struct NCZ_Metadata_Dispatcher
+typedef struct NCZ_Metadata
 {
 	int zarr_format;		/* Zarr format version */
 	int dispatch_version;   /* Dispatch table version*/
 	size64_t flags;			/* Metadata handling flags */
+	NCjson *jcsl; // Consolidated JSON view or NULL
     int (*list_groups)(struct NCZ_FILE_INFO*, const char * key, NClist *subgrpnames);
     int (*list_variables)(struct NCZ_FILE_INFO*, const char * key, NClist *varnames);
     int (*fetch_json_content)(struct NCZ_FILE_INFO*, NCZMD_MetadataType, const char *name, NCjson **jobj);
     int (*update_json_content)(struct NCZ_FILE_INFO*, NCZMD_MetadataType, const char *name, const NCjson *jobj);
 	int (*validate_consolidated)(const NCjson *jobj); // Should  validate whole JSON content of .zmetadata
-} NCZ_Metadata_Dispatcher;
-
-typedef struct NCZ_Metadata
-{
-	NCjson *jcsl; // Consolidated JSON view or NULL
-	const NCZ_Metadata_Dispatcher *dispatcher;
 } NCZ_Metadata;
 
 // regular handler
-extern const NCZ_Metadata_Dispatcher *NCZ_metadata_handler2;
+extern const NCZ_Metadata *NCZ_metadata_handler2;
 // consolidated metadata handler
-extern const NCZ_Metadata_Dispatcher *NCZ_csl_metadata_handler2;
+extern const NCZ_Metadata *NCZ_csl_metadata_handler2;
 
 /* Inference for the Metadata handler */
 extern int NCZMD_is_metadata_consolidated(struct NCZ_FILE_INFO*zfile);

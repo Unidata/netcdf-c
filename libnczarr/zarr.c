@@ -150,7 +150,6 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* controls)
     /* Initialize metadata handle */
     assert(zinfo->map != NULL);
     NCZMD_set_metadata_handler(zinfo);
-    assert(zinfo->metadata_handler.dispatcher != NULL);
 
     /* Ok, try to read superblock */
     if((stat = ncz_read_superblock(file,&nczarr_version,&zarr_format))) goto done;

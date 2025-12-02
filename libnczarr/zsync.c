@@ -2462,25 +2462,3 @@ getnczarrkey(NC_OBJ* container, const char* name, const NCjson** jncxxxp)
 done:
     return THROW(stat);
 }
-
-static int
-downloadzarrobj(NC_FILE_INFO_T* file, struct ZARROBJ* zobj, const char* fullpath, const char* objname)
-{
-    int stat = NC_NOERR;
-    char* key = NULL;
-    NCZMAP* map = ((NCZ_FILE_INFO_T*)file->format_file_info)->map;
-
-    /* Download .zXXX and .zattrs */
-    nullfree(zobj->prefix);
-    zobj->prefix = strdup(fullpath);
-    NCJreclaim(zobj->obj); zobj->obj = NULL;
-    NCJreclaim(zobj->atts); zobj->obj = NULL;
-    if((stat = nczm_concat(fullpath,objname,&key))) goto done;
-    if((stat=NCZ_downloadjson(map,key,&zobj->obj))) goto done;
-    nullfree(key); key = NULL;
-    if((stat = nczm_concat(fullpath,Z2ATTRS,&key))) goto done;
-    if((stat=NCZ_downloadjson(map,key,&zobj->atts))) goto done;
-done:
-    nullfree(key);
-    return THROW(stat);
-}

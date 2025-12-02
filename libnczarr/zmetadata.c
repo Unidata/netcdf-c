@@ -19,7 +19,7 @@ cmpstrings(const void* a1, const void* a2)
 int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames)
 {
     int stat = NC_NOERR;
-    if((stat = zfile->metadata_handler.dispatcher->list_groups(zfile,key, subgrpnames))){
+    if((stat = zfile->metadata_handler.list_groups(zfile,key, subgrpnames))){
         return stat;
     }
     qsort(subgrpnames->content, subgrpnames->length, sizeof(char*), cmpstrings);
@@ -30,7 +30,7 @@ int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpna
 int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *varnames)
 {
 	int stat = NC_NOERR;
-    if((stat = zfile->metadata_handler.dispatcher->list_variables(zfile, key, varnames))){
+    if((stat = zfile->metadata_handler.list_variables(zfile, key, varnames))){
         return stat;
     }
     qsort(varnames->content, varnames->length, sizeof(char*), cmpstrings);
@@ -43,15 +43,15 @@ int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *varna
 /////////////////////////////////////////////////////////////////////
 
 int NCZMD_fetch_json_group(NCZ_FILE_INFO_T *zfile, const char *key, NCjson **jgroup) {
-	return zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_GROUP, key, jgroup);
+	return zfile->metadata_handler.fetch_json_content(zfile, NCZMD_GROUP, key, jgroup);
 }
 
 int NCZMD_fetch_json_attrs(NCZ_FILE_INFO_T *zfile, const char *key, NCjson **jattrs) {
-	return  zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_ATTRS, key, jattrs);
+	return  zfile->metadata_handler.fetch_json_content(zfile, NCZMD_ATTRS, key, jattrs);
 }
 
 int NCZMD_fetch_json_array(NCZ_FILE_INFO_T *zfile, const char *key, NCjson **jarray) {
-	return zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_ARRAY, key, jarray);
+	return zfile->metadata_handler.fetch_json_content(zfile, NCZMD_ARRAY, key, jarray);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,15 +59,15 @@ int NCZMD_fetch_json_array(NCZ_FILE_INFO_T *zfile, const char *key, NCjson **jar
 ////////////////////////////////////////////////////////////////////////////////
 
 int NCZMD_update_json_group(NCZ_FILE_INFO_T *zfile, const char *key, const NCjson *jgroup) {
-	return zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_GROUP, key, jgroup);
+	return zfile->metadata_handler.update_json_content(zfile, NCZMD_GROUP, key, jgroup);
 }
 
 int NCZMD_update_json_attrs(NCZ_FILE_INFO_T *zfile, const char *key, const NCjson *jattrs) {
-	return zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_ATTRS, key , jattrs);
+	return zfile->metadata_handler.update_json_content(zfile, NCZMD_ATTRS, key , jattrs);
 }
 
 int NCZMD_update_json_array(NCZ_FILE_INFO_T *zfile, const char *key, const NCjson *jarray) {
-	return zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_ARRAY, key, jarray);
+	return zfile->metadata_handler.update_json_content(zfile, NCZMD_ARRAY, key, jarray);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ int NCZMD_is_metadata_consolidated(NCZ_FILE_INFO_T *zfile)
 	if (zmd == NULL ||
 		zmd->jcsl == NULL ||
 		NCJsort(zmd->jcsl) != NCJ_DICT ||
-		!(zmd->dispatcher->flags & ZARR_CONSOLIDATED))
+		!(zmd->flags & ZARR_CONSOLIDATED))
 	{
 		return NC_ENOOBJECT;
 	}
@@ -98,14 +98,10 @@ int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat)
 { // Only pure Zarr is determined
 
     NCZ_Metadata *zmd = &(zfile->metadata_handler);
-	if ( !zmd || !zmd->dispatcher ) {
-		return NC_EFILEMETA;
-	}
 
-
-	if (zmd->dispatcher->zarr_format >= ZARRFORMAT2)
+	if (zmd->zarr_format >= ZARRFORMAT2)
 	{
-		*zarrformat = zmd->dispatcher->zarr_format;
+		*zarrformat = zmd->zarr_format;
 		return NC_NOERR;
 	}
 
@@ -145,13 +141,11 @@ int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile)
     }
 
     if (use_consolidated && zfile->creating) {
-        zfile->metadata_handler.jcsl = NULL;
-        zfile->metadata_handler.dispatcher = NCZ_csl_metadata_handler2;
+        zfile->metadata_handler = *NCZ_csl_metadata_handler2;
         return NC_NOERR;
     }
     
-    zfile->metadata_handler.jcsl = NULL;
-	zfile->metadata_handler.dispatcher = NCZ_metadata_handler2; // default
+	zfile->metadata_handler = *NCZ_metadata_handler2; // default
     if (!use_consolidated)
         return NC_NOERR;
     
@@ -166,8 +160,8 @@ int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile)
     }
 
     // Use consolidated metadata handler
+    zfile->metadata_handler = *NCZ_csl_metadata_handler2;
     zfile->metadata_handler.jcsl = jcsl;
-    zfile->metadata_handler.dispatcher = NCZ_csl_metadata_handler2;
     return NC_NOERR;
 }
 

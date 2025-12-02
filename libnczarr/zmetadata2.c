@@ -29,10 +29,11 @@ int validate_consolidated_json_v2(const NCjson *json);
 
 /**************************************************/
 
-static const NCZ_Metadata_Dispatcher NCZ_md2_table = {
+static const NCZ_Metadata NCZ_md2_table = {
 	ZARRFORMAT2,
 	NCZ_METADATA_VERSION,  /* Version of the dispatch table */
 	ZARR_NOT_CONSOLIDATED, /* Flags*/
+	.jcsl = NULL,
 
 	.list_groups = NCZMD_v2_list_groups,
 	.list_variables = NCZMD_v2_list_variables,
@@ -42,10 +43,11 @@ static const NCZ_Metadata_Dispatcher NCZ_md2_table = {
     .validate_consolidated = validate_consolidated_json_noop_v2,
 };
 
-static const NCZ_Metadata_Dispatcher NCZ_csl_md2_table = {
+static const NCZ_Metadata NCZ_csl_md2_table = {
 	ZARRFORMAT2,
 	NCZ_METADATA_VERSION, /* Version of the dispatch table */
 	ZARR_CONSOLIDATED,	  /* Flags*/
+	.jcsl = NULL,
 
 	.list_groups = NCZMD_v2_csl_list_groups,
 	.list_variables = NCZMD_v2_csl_list_variables,
@@ -55,8 +57,8 @@ static const NCZ_Metadata_Dispatcher NCZ_csl_md2_table = {
     .validate_consolidated = validate_consolidated_json_v2,
 };
 
-const NCZ_Metadata_Dispatcher *NCZ_metadata_handler2 = &NCZ_md2_table;
-const NCZ_Metadata_Dispatcher *NCZ_csl_metadata_handler2 = &NCZ_csl_md2_table;
+const NCZ_Metadata *NCZ_metadata_handler2 = &NCZ_md2_table;
+const NCZ_Metadata *NCZ_csl_metadata_handler2 = &NCZ_csl_md2_table;
 
 ////////////////////////////////////////////////////
 
