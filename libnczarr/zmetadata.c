@@ -5,8 +5,6 @@
 
 #include "zincludes.h"
 
-/**************************************************/
-
 static int
 cmpstrings(const void* a1, const void* a2)
 {
@@ -15,7 +13,6 @@ cmpstrings(const void* a1, const void* a2)
     return strcmp(*s1,*s2);
 }
 
-// Returns the list of subgroups from *grp
 int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames)
 {
     int stat = NC_NOERR;
@@ -26,7 +23,6 @@ int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpna
     return stat;
 }
 
-// Returns the list of variables from grp
 int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *varnames)
 {
 	int stat = NC_NOERR;
@@ -36,11 +32,6 @@ int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *varna
     qsort(varnames->content, varnames->length, sizeof(char*), cmpstrings);
     return stat;
 }
-
-
-/////////////////////////////////////////////////////////////////////
-//     Fetch JSON content from .zmetadata or storage
-/////////////////////////////////////////////////////////////////////
 
 int NCZMD_fetch_json_group(NCZ_FILE_INFO_T *zfile, const char *key, NCjson **jgroup) {
 	return zfile->metadata.fetch_json_content(zfile, NCZMD_GROUP, key, jgroup);
@@ -54,10 +45,6 @@ int NCZMD_fetch_json_array(NCZ_FILE_INFO_T *zfile, const char *key, NCjson **jar
 	return zfile->metadata.fetch_json_content(zfile, NCZMD_ARRAY, key, jarray);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-//    				 Update in-memory + storage JSON content 
-////////////////////////////////////////////////////////////////////////////////
-
 int NCZMD_update_json_group(NCZ_FILE_INFO_T *zfile, const char *key, const NCjson *jgroup) {
 	return zfile->metadata.update_json_content(zfile, NCZMD_GROUP, key, jgroup);
 }
@@ -70,8 +57,6 @@ int NCZMD_update_json_array(NCZ_FILE_INFO_T *zfile, const char *key, const NCjso
 	return zfile->metadata.update_json_content(zfile, NCZMD_ARRAY, key, jarray);
 }
 
-////////////////////////////////////////////////////////////////////////////
-// Writes .zmetadata file into storage
 int NCZMD_consolidate(NCZ_FILE_INFO_T *zfile) {
 	int stat = NC_NOERR;
 	if (zfile->creating == 1 && zfile->metadata.jcsl !=NULL){
@@ -79,7 +64,6 @@ int NCZMD_consolidate(NCZ_FILE_INFO_T *zfile) {
 	}
 	return stat;
 }
-////////////////////////////////////////////////////////////////////////////
 
 int NCZMD_is_metadata_consolidated(NCZ_FILE_INFO_T *zfile)
 {
@@ -95,8 +79,7 @@ int NCZMD_is_metadata_consolidated(NCZ_FILE_INFO_T *zfile)
 }
 
 int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat)
-{ // Only pure Zarr is determined
-
+{
     NCZ_Metadata *zmd = &(zfile->metadata);
 
 	if (zmd->zarr_format >= ZARRFORMAT2)
@@ -104,9 +87,6 @@ int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat)
 		*zarrformat = zmd->zarr_format;
 		return NC_NOERR;
 	}
-
-	// Last thing to do is to look for:
-	//      .zattrs, .zgroup or .zarray
 
 	if (!nczmap_exists(zfile->map, "/" Z2ATTRS) && !nczmap_exists(zfile->map, "/" Z2GROUP) && !nczmap_exists(zfile->map, "/" Z2ARRAY))
 	{
@@ -130,7 +110,6 @@ int use_consolidated_metadata(NCZ_FILE_INFO_T *zfile)
     return use_consolidated || env_use_consolidated ;
 }
 
-//Inference of the metadata handler
 int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile)
 {
     NCjson *jcsl = NULL;
@@ -145,7 +124,7 @@ int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile)
         return NC_NOERR;
     }
     
-	zfile->metadata = *NCZ_metadata_handler2; // default
+	zfile->metadata = *NCZ_metadata_handler2;
     if (!use_consolidated)
         return NC_NOERR;
     
@@ -159,7 +138,6 @@ int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile)
         return NC_EZARRMETA;
     }
 
-    // Use consolidated metadata handler
     zfile->metadata = *NCZ_csl_metadata_handler2;
     zfile->metadata.jcsl = jcsl;
     return NC_NOERR;

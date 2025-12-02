@@ -61,12 +61,9 @@ typedef struct NCZ_Metadata
 	int (*validate_consolidated)(const NCjson *jobj); // Should  validate whole JSON content of .zmetadata
 } NCZ_Metadata;
 
-// regular handler
 extern const NCZ_Metadata *NCZ_metadata_handler2;
-// consolidated metadata handler
 extern const NCZ_Metadata *NCZ_csl_metadata_handler2;
 
-/* Inference for the Metadata handler */
 extern int NCZMD_is_metadata_consolidated(struct NCZ_FILE_INFO*zfile);
 extern int NCZMD_get_metadata_format(struct NCZ_FILE_INFO*zfile, int *zarrformat); // Only pure Zarr is determined
 extern int NCZMD_set_metadata_handler(struct NCZ_FILE_INFO *zfile);
