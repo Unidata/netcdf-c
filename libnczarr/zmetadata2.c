@@ -10,6 +10,9 @@ extern int NCZF2_finalize(void);
 
 #define  MINIMIM_CSL_REP_RAW "{\"metadata\":{},\"zarr_consolidated_format\":1}"
 
+int NCZMD_v2_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *vars);
+int NCZMD_v2_csl_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *vars);
+
 int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames);
 int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames);
 
@@ -31,6 +34,7 @@ static const NCZ_Metadata NCZ_md2_table = {
 	ZARR_NOT_CONSOLIDATED,
 	.jcsl = NULL,
 
+	.list_nodes = NCZMD_v2_list_nodes,
 	.list_groups = NCZMD_v2_list_groups,
 	.list_variables = NCZMD_v2_list_variables,
 
@@ -45,6 +49,7 @@ static const NCZ_Metadata NCZ_csl_md2_table = {
 	ZARR_CONSOLIDATED,
 	.jcsl = NULL,
 
+	.list_nodes = NCZMD_v2_csl_list_nodes,
 	.list_groups = NCZMD_v2_csl_list_groups,
 	.list_variables = NCZMD_v2_csl_list_variables,
 
@@ -56,12 +61,12 @@ static const NCZ_Metadata NCZ_csl_md2_table = {
 const NCZ_Metadata *NCZ_metadata_handler2 = &NCZ_md2_table;
 const NCZ_Metadata *NCZ_csl_metadata_handler2 = &NCZ_csl_md2_table;
 
-int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames)
+int NCZMD_v2_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *vars)
 {
 	size_t i;
 	int stat = NC_NOERR;
 	char *subkey = NULL;
-	char *zgroup = NULL;
+	char *zkey = NULL;
 	NClist *matches = nclistnew();
 
 	if ((stat = nczmap_search(zfile->map, key, matches)))
@@ -73,25 +78,33 @@ int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgr
 			continue;
 		if ((stat = nczm_concat(key, name, &subkey)))
 			goto done;
-		if ((stat = nczm_concat(subkey, Z2GROUP, &zgroup)))
+		if ((stat = nczm_concat(subkey, Z2GROUP, &zkey)))
 			goto done;
-		if ((stat = nczmap_exists(zfile->map, zgroup)) == NC_NOERR)
-			nclistpush(subgrpnames, strdup(name));
+		if (NC_NOERR == nczmap_exists(zfile->map, zkey) && groups != NULL)
+			nclistpush(groups, strdup(name));
+
+		nullfree(zkey);
+		zkey = NULL;
+		if ((stat = nczm_concat(subkey, Z2ARRAY, &zkey)))
+			goto done;
+		if (NC_NOERR == nczmap_exists(zfile->map, zkey) && vars != NULL)
+			nclistpush(vars, strdup(name));
 		stat = NC_NOERR;
+
 		nullfree(subkey);
 		subkey = NULL;
-		nullfree(zgroup);
-		zgroup = NULL;
+		nullfree(zkey);
+		zkey = NULL;
 	}
 
 done:
 	nullfree(subkey);
-	nullfree(zgroup);
+	nullfree(zkey);
 	nclistfreeall(matches);
 	return stat;
 }
 
-int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames)
+int NCZMD_v2_csl_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *vars)
 {
 	size_t i;
 	int stat = NC_NOERR;
@@ -116,13 +129,17 @@ int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *s
 			continue;
 		}
 		const char *start = fullname + lgroup + (lgroup > 0);
-		const char *end = strchr(start, NCZM_SEP[0]);
+		const char *end = strchr(start, NCZM_SEP[0]) + 1;
 		if (end == NULL || end <= start)
 			continue;
 		size_t lname = (size_t)(end - start);
-		if (strncmp(Z2METAROOT, end, sizeof(Z2METAROOT)) == 0)
+		if (strncmp(Z2GROUP, end, sizeof(Z2GROUP)) == 0 && groups != NULL)
 		{
-			nclistpush(subgrpnames, strndup(start, lname));
+			nclistpush(groups, strndup(start, lname));
+		}
+		else if (strncmp(Z2ARRAY, end, sizeof(Z2ARRAY)) == 0 && vars != NULL)
+		{
+			nclistpush(vars, strndup(start, lname));
 		}
 	}
 done:
@@ -132,80 +149,25 @@ done:
 	return stat;
 }
 
+
+int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames)
+{
+	return NCZMD_v2_list_nodes(zfile, key, subgrpnames, NULL);
+}
+
+int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames)
+{
+	return NCZMD_v2_csl_list_nodes(zfile, key, subgrpnames, NULL);
+}
+
 int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *varnames)
 {
-	size_t i;
-	int stat = NC_NOERR;
-	char *varkey = NULL;
-	char *zarray = NULL;
-	NClist *matches = nclistnew();
-
-	if ((stat = nczmap_search(zfile->map, key, matches)))
-		goto done;
-	for (i = 0; i < nclistlength(matches); i++)
-	{
-		const char *name = nclistget(matches, i);
-		if (name[0] == NCZM_DOT)
-			continue; 
-		if ((stat = nczm_concat(key, name, &varkey)))
-			goto done;
-		if ((stat = nczm_concat(varkey, Z2ARRAY, &zarray)))
-			goto done;
-		if ((stat = nczmap_exists(zfile->map, zarray)) == NC_NOERR)
-			nclistpush(varnames, strdup(name));
-		stat = NC_NOERR;
-		nullfree(varkey);
-		varkey = NULL;
-		nullfree(zarray);
-		zarray = NULL;
-	}
-
-done:
-	nullfree(varkey);
-	nullfree(zarray);
-	nclistfreeall(matches);
-	return stat;
+	return NCZMD_v2_list_nodes(zfile, key, NULL, varnames);
 }
 
 int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, const char* key, NClist *varnames)
 {
-	size_t i;
-	int stat = NC_NOERR;
-	char *varkey = NULL;
-	char *zarray = NULL;
-	NClist *matches = nclistnew();
-
-	const char *group = key + (key[0] == '/');
-	size_t lgroup = strlen(group);
-
-	const NCjson *jmetadata = NULL;
-	NCJdictget(zfile->metadata.jcsl, "metadata", &jmetadata);
-	for (i = 0; i < NCJdictlength(jmetadata); i++)
-	{
-		NCjson *jname = NCJdictkey(jmetadata, i);
-		const char *fullname = NCJstring(jname);
-		size_t lfullname = strlen(fullname);
-		if (lfullname < lgroup ||
-			strncmp(fullname, group, lgroup) ||
-			(lgroup > 0 && fullname[lgroup] != NCZM_SEP[0]))
-		{
-			continue;
-		}
-		const char *start = fullname + lgroup + (lgroup > 0);
-		const char *end = strchr(start, NCZM_SEP[0]);
-		if (end == NULL || end <= start)
-			continue;
-		size_t lname = (size_t)(end - start);
-		if (strncmp("/" Z2ARRAY, end, sizeof("/" Z2ARRAY)) == 0)
-		{
-			nclistpush(varnames, strndup(start, lname));
-		}
-	}
-done:
-	nullfree(varkey);
-	nullfree(zarray);
-	nclistfreeall(matches);
-	return stat;
+	return NCZMD_v2_csl_list_nodes(zfile, key, NULL, varnames);
 }
 
 static int zarr_obj_type2suffix(NCZMD_MetadataType zarr_obj_type, const char **suffix){
@@ -322,6 +284,11 @@ int validate_consolidated_json_noop_v2(const NCjson *json){
     return NC_NOERR;
 }
 
+/// Checks if the content of .zmetadata contains a valid non empty json:
+///   - with non empty json in "metadata"
+///	  - with "zarr_consolidated_format" == 1
+/// @param json corresponding to the full .zmetadata content
+/// @return `NC_NOERR` if valid, `NC_EZARRMETA` otherwise
 int validate_consolidated_json_v2(const NCjson *json)
 {
     if (json == NULL || NCJsort(json) != NCJ_DICT || NCJdictlength(json) == 0)

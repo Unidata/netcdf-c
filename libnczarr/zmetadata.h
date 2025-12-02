@@ -54,6 +54,7 @@ typedef struct NCZ_Metadata
 	int dispatch_version;   /* Dispatch table version*/
 	size64_t flags;			/* Metadata handling flags */
 	NCjson *jcsl; // Consolidated JSON view or NULL
+	int (*list_nodes)(struct NCZ_FILE_INFO*, const char * key, NClist *groups, NClist *vars);
     int (*list_groups)(struct NCZ_FILE_INFO*, const char * key, NClist *subgrpnames);
     int (*list_variables)(struct NCZ_FILE_INFO*, const char * key, NClist *varnames);
     int (*fetch_json_content)(struct NCZ_FILE_INFO*, NCZMD_MetadataType, const char *name, NCjson **jobj);
@@ -69,6 +70,7 @@ extern int NCZMD_get_metadata_format(struct NCZ_FILE_INFO*zfile, int *zarrformat
 extern int NCZMD_set_metadata_handler(struct NCZ_FILE_INFO *zfile);
 extern void NCZMD_free_metadata_handler(NCZ_Metadata * zmd);
 
+extern int NCZMD_list_nodes(struct NCZ_FILE_INFO*zfile, const char * key, NClist *groups, NClist *vars);
 extern int NCZMD_list_groups(struct NCZ_FILE_INFO*zfile, const char * key, NClist *subgrpnames);
 extern int NCZMD_list_variables(struct NCZ_FILE_INFO*zfile, const char * key, NClist *varnames);
 

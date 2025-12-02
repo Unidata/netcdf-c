@@ -13,6 +13,17 @@ cmpstrings(const void* a1, const void* a2)
     return strcmp(*s1,*s2);
 }
 
+int NCZMD_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *vars)
+{
+    int stat = NC_NOERR;
+    if((stat = zfile->metadata.list_nodes(zfile,key, groups, vars))){
+        return stat;
+    }
+    qsort(groups->content, groups->length, sizeof(char*), cmpstrings);
+    qsort(vars->content, vars->length, sizeof(char*), cmpstrings);
+    return stat;
+}
+
 int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames)
 {
     int stat = NC_NOERR;
