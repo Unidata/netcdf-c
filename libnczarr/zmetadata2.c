@@ -16,6 +16,8 @@
 /// @return `NC_NOERR` if succeeding
 int NCZMD_v2_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *vars);
 
+int NCZMD_v2_csl_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *vars);
+
 /// @brief Retrieve the group names contained within a group specified by `key`.
 ///  The order of the names may be arbitrary
 /// @param zfile - The zarr file info structure
@@ -23,6 +25,8 @@ int NCZMD_v2_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups
 /// @param groups - NClist where names will be added
 /// @return `NC_NOERR` if succeeding
 int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups);
+
+int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups);
 
 /// @brief Retrieve the variable names contained by a group specified by `key`.
 ///  The order of the names may be arbitrary
@@ -32,6 +36,8 @@ int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *group
 /// @return `NC_NOERR` if succeeding
 int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist * variables);
 
+int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups);
+
 /// @brief Retrieve JSON metadata of a given type for the specified `key` from the storage
 /// @param zfile - The zarr file info structure
 ///	@param zobj - The type of metadata to set
@@ -39,6 +45,8 @@ int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist * v
 /// @param jobj - JSON to be written
 /// @return `NC_NOERR` if succeeding
 int fetch_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
+
+int fetch_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
 
 /// @brief Write JSON metadata of a given type for the specified `key` to the storage
 /// @param zfile - The zarr file info structure
@@ -48,11 +56,14 @@ int fetch_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_ty
 /// @return `NC_NOERR` if succeeding
 int update_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj, const char *key, const NCjson *jobj);
 
+int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj, const char *key, const NCjson *jobj);
 
 /// @brief Place holder for non consolidated handler
 /// @param json - Not used!
 /// @return `NC_NOERR` always
 int validate_consolidated_json_noop_v2(const NCjson *json);
+
+int validate_consolidated_json_v2(const NCjson *json);
 
 static const NCZ_Metadata NCZ_md2_table = {
 	ZARRFORMAT2,
@@ -70,6 +81,21 @@ static const NCZ_Metadata NCZ_md2_table = {
 };
 
 const NCZ_Metadata *NCZ_metadata_handler2 = &NCZ_md2_table;
+
+static const NCZ_Metadata NCZ_csl_md2_table = {
+	ZARRFORMAT2,
+	NCZ_METADATA_VERSION,
+	ZARR_CONSOLIDATED,
+	.jcsl = NULL,
+
+	.list_nodes = NCZMD_v2_csl_list_nodes,
+	.list_groups = NCZMD_v2_csl_list_groups,
+	.list_variables = NCZMD_v2_csl_list_variables,
+
+	.fetch_json_content = fetch_csl_json_content_v2,
+	.update_json_content = update_csl_json_content_v2,
+    .validate_consolidated = validate_consolidated_json_v2,
+};
 
 int NCZMD_v2_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *variables)
 {
@@ -114,15 +140,68 @@ done:
 	return stat;
 }
 
+int NCZMD_v2_csl_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *variables)
+{
+	size_t i;
+	int stat = NC_NOERR;
+	char *subkey = NULL;
+	char *zgroup = NULL;
+	NClist *matches = nclistnew();
+
+	const char *group = key + (key[0] == '/');
+	size_t lgroup = strlen(group);
+
+	const NCjson *jmetadata = NULL;
+	NCJdictget(zfile->metadata.jcsl, "metadata", &jmetadata);
+	for (i = 0; i < NCJdictlength(jmetadata); i++)
+	{
+		NCjson *jname = NCJdictkey(jmetadata, i);
+		const char *fullname = NCJstring(jname);
+		size_t lfullname = strlen(fullname);
+		if (lfullname < lgroup ||
+			strncmp(fullname, group, lgroup) ||
+			(lgroup > 0 && fullname[lgroup] != NCZM_SEP[0]))
+		{
+			continue;
+		}
+		const char *start = fullname + lgroup + (lgroup > 0);
+		const char *end = strchr(start, NCZM_SEP[0]) + 1;
+		if (end == NULL || end <= start)
+			continue;
+		size_t lname = (size_t)(end - start) - 1;
+		if (strncmp(Z2GROUP, end, sizeof(Z2GROUP)) == 0 && groups != NULL)
+		{
+			nclistpush(groups, strndup(start, lname));
+		}
+		else if (strncmp(Z2ARRAY, end, sizeof(Z2ARRAY)) == 0 && variables != NULL)
+		{
+			nclistpush(variables, strndup(start, lname));
+		}
+	}
+	nullfree(subkey);
+	nullfree(zgroup);
+	nclistfreeall(matches);
+	return stat;
+}
 
 int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups)
 {
 	return NCZMD_v2_list_nodes(zfile, key, groups, NULL);
 }
 
+int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups)
+{
+	return NCZMD_v2_csl_list_nodes(zfile, key, groups, NULL);
+}
+
 int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *variables)
 {
 	return NCZMD_v2_list_nodes(zfile, key, NULL, variables);
+}
+
+int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, const char* key, NClist *variables)
+{
+	return NCZMD_v2_csl_list_nodes(zfile, key, NULL, variables);
 }
 
 static int zarr_obj_type2suffix(NCZMD_MetadataType zarr_obj_type, const char **suffix){
@@ -159,6 +238,64 @@ done:
 	return stat;
 }
 
+int fetch_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, NCjson **jobj)
+{
+	int stat = NC_NOERR;
+	const NCjson *jtmp = NULL;
+	const char *suffix;
+	char * key = NULL;
+	if ( (stat = zarr_obj_type2suffix(zobj_t, &suffix))
+	   ||(stat = nczm_concat(prefix, suffix, &key))){
+		return stat;
+	}
+
+	if (NCJdictget(zfile->metadata.jcsl, "metadata", &jtmp) == 0
+	&& jtmp && NCJsort(jtmp) == NCJ_DICT)
+	{
+		NCjson *tmp = NULL;
+		if ((stat = NCJdictget(jtmp, key + (key[0] == '/'), (const NCjson**)&tmp)))
+			goto done;
+		if (tmp)
+			NCJclone(tmp, jobj);
+	}
+done:
+	nullfree(key);
+	return stat;
+
+}
+
+int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t, const char *prefix, const NCjson *jobj)
+{
+	int stat = NC_NOERR;
+
+	if ((stat=update_json_content_v2(zfile,zobj_t,prefix,jobj))){
+		goto done;
+	}
+	if (zfile->metadata.jcsl == NULL &&
+		(stat = NCJparse(MINIMIM_CSL_REP_RAW,0,&zfile->metadata.jcsl))){
+		goto done;
+	}
+
+	NCjson * jrep = NULL;
+	if ((stat = NCJdictget(zfile->metadata.jcsl,"metadata", (const NCjson**)&jrep)) || jrep == NULL) {
+		goto done;
+	}
+
+	const char *suffix;
+	char * key = NULL;
+	if ((stat = zarr_obj_type2suffix(zobj_t, &suffix))
+		|| (stat = nczm_concat(prefix, suffix, &key))){
+		goto done;
+	}
+	const char * mdkey= key[0] == '/'?key+1:key;
+	NCjson * jval = NULL;
+	NCJclone(jobj,&jval);
+	NCJinsert(jrep, mdkey, jval);
+done:
+	free(key);
+	return stat;
+
+}
 int update_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj, const char *prefix, const NCjson *jobj)
 {
 	int stat = NC_NOERR;
@@ -177,5 +314,24 @@ done:
 
 int validate_consolidated_json_noop_v2(const NCjson *json){
     NC_UNUSED(json);
+    return NC_NOERR;
+}
+
+int validate_consolidated_json_v2(const NCjson *json)
+{
+    if (json == NULL || NCJsort(json) != NCJ_DICT || NCJdictlength(json) == 0)
+        return NC_EZARRMETA;
+
+    const NCjson *jtmp = NULL;
+    NCJdictget(json, "metadata", &jtmp);
+    if (jtmp == NULL || NCJsort(jtmp) != NCJ_DICT || NCJdictlength(jtmp) == 0)
+        return NC_EZARRMETA;
+
+    jtmp = NULL;
+    struct NCJconst format = {0,0,0,0};
+    NCJdictget(json, "zarr_consolidated_format", &jtmp);
+    if (jtmp == NULL || NCJsort(jtmp) != NCJ_INT || NCJcvt(jtmp,NCJ_INT, &format ) || format.ival != 1)
+        return NC_EZARRMETA;
+
     return NC_NOERR;
 }
