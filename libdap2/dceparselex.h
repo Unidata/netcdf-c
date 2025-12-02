@@ -10,7 +10,7 @@
 struct DCEparsestate;
 typedef struct DCEparsestate DCEparsestate;
 
-#include "dcetab.h"
+#include "dce.tab.h"
 
 #ifdef _WIN32
 
@@ -51,7 +51,7 @@ struct DCEparsestate {
    essentially the same role as the typical bison %union
    declaration
 */
-   
+
 
 extern int ceerror(DCEparsestate*,char*);
 extern void ce_parse_error(DCEparsestate*,const char *fmt, ...);
