@@ -12,11 +12,11 @@ extern int NCZF2_finalize(void);
 
 #define  MINIMIM_CSL_REP_RAW "{\"metadata\":{},\"zarr_consolidated_format\":1}"
 
-int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
-int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
+int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames);
+int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames);
 
-int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
-int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
+int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames);
+int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames);
 
 int fetch_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
 int fetch_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
@@ -60,20 +60,16 @@ const NCZ_Metadata_Dispatcher *NCZ_csl_metadata_handler2 = &NCZ_csl_md2_table;
 
 ////////////////////////////////////////////////////
 
-int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames)
+int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames)
 {
 	size_t i;
 	int stat = NC_NOERR;
-	char *grpkey = NULL;
 	char *subkey = NULL;
 	char *zgroup = NULL;
 	NClist *matches = nclistnew();
 
-	/* Compute the key for the grp */
-	if ((stat = NCZ_grpkey(grp, &grpkey)))
-		goto done;
 	/* Get the map and search group */
-	if ((stat = nczmap_search(zfile->map, grpkey, matches)))
+	if ((stat = nczmap_search(zfile->map, key, matches)))
 		goto done;
 	for (i = 0; i < nclistlength(matches); i++)
 	{
@@ -81,7 +77,7 @@ int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *sub
 		if (name[0] == NCZM_DOT)
 			continue; /* zarr/nczarr specific */
 		/* See if name/.zgroup exists */
-		if ((stat = nczm_concat(grpkey, name, &subkey)))
+		if ((stat = nczm_concat(key, name, &subkey)))
 			goto done;
 		if ((stat = nczm_concat(subkey, Z2GROUP, &zgroup)))
 			goto done;
@@ -95,25 +91,21 @@ int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *sub
 	}
 
 done:
-	nullfree(grpkey);
 	nullfree(subkey);
 	nullfree(zgroup);
 	nclistfreeall(matches);
 	return stat;
 }
 
-int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames)
+int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames)
 {
 	size_t i;
 	int stat = NC_NOERR;
-	char *grpkey = NULL;
 	char *subkey = NULL;
 	char *zgroup = NULL;
 	NClist *matches = nclistnew();
-	/* Compute the key for the grp */
-	if ((stat = NCZ_grpkey(grp, &grpkey)))
-		goto done;
-	const char *group = grpkey + (grpkey[0] == '/');
+
+	const char *group = key + (key[0] == '/');
 	size_t lgroup = strlen(group);
 
 	const NCjson *jmetadata = NULL;
@@ -141,27 +133,22 @@ int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist 
 		}
 	}
 done:
-	nullfree(grpkey);
 	nullfree(subkey);
 	nullfree(zgroup);
 	nclistfreeall(matches);
 	return stat;
 }
 
-int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *varnames)
+int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *varnames)
 {
 	size_t i;
 	int stat = NC_NOERR;
-	char *grpkey = NULL;
 	char *varkey = NULL;
 	char *zarray = NULL;
 	NClist *matches = nclistnew();
 
-	/* Compute the key for the grp */
-	if ((stat = NCZ_grpkey(grp, &grpkey)))
-		goto done;
 	/* Get the map and search group */
-	if ((stat = nczmap_search(zfile->map, grpkey, matches)))
+	if ((stat = nczmap_search(zfile->map, key, matches)))
 		goto done;
 	for (i = 0; i < nclistlength(matches); i++)
 	{
@@ -169,7 +156,7 @@ int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *
 		if (name[0] == NCZM_DOT)
 			continue; /* zarr/nczarr specific */
 		/* See if name/.zarray exists */
-		if ((stat = nczm_concat(grpkey, name, &varkey)))
+		if ((stat = nczm_concat(key, name, &varkey)))
 			goto done;
 		if ((stat = nczm_concat(varkey, Z2ARRAY, &zarray)))
 			goto done;
@@ -183,25 +170,21 @@ int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *
 	}
 
 done:
-	nullfree(grpkey);
 	nullfree(varkey);
 	nullfree(zarray);
 	nclistfreeall(matches);
 	return stat;
 }
 
-int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *varnames)
+int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, const char* key, NClist *varnames)
 {
 	size_t i;
 	int stat = NC_NOERR;
-	char *grpkey = NULL;
 	char *varkey = NULL;
 	char *zarray = NULL;
 	NClist *matches = nclistnew();
-	/* Compute the key for the grp */
-	if ((stat = NCZ_grpkey(grp, &grpkey)))
-		goto done;
-	const char *group = grpkey + (grpkey[0] == '/');
+
+	const char *group = key + (key[0] == '/');
 	size_t lgroup = strlen(group);
 
 	const NCjson *jmetadata = NULL;
@@ -229,7 +212,6 @@ int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NCli
 		}
 	}
 done:
-	nullfree(grpkey);
 	nullfree(varkey);
 	nullfree(zarray);
 	nclistfreeall(matches);

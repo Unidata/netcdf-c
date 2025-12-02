@@ -16,10 +16,10 @@ cmpstrings(const void* a1, const void* a2)
 }
 
 // Returns the list of subgroups from *grp
-int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames)
+int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *subgrpnames)
 {
     int stat = NC_NOERR;
-    if((stat = zfile->metadata_handler.dispatcher->list_groups(zfile, grp, subgrpnames))){
+    if((stat = zfile->metadata_handler.dispatcher->list_groups(zfile,key, subgrpnames))){
         return stat;
     }
     qsort(subgrpnames->content, subgrpnames->length, sizeof(char*), cmpstrings);
@@ -27,10 +27,10 @@ int NCZMD_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrp
 }
 
 // Returns the list of variables from grp
-int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *varnames)
+int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist *varnames)
 {
 	int stat = NC_NOERR;
-    if((stat = zfile->metadata_handler.dispatcher->list_variables(zfile, grp, varnames))){
+    if((stat = zfile->metadata_handler.dispatcher->list_variables(zfile, key, varnames))){
         return stat;
     }
     qsort(varnames->content, varnames->length, sizeof(char*), cmpstrings);
@@ -42,120 +42,32 @@ int NCZMD_list_variables(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *var
 //     Fetch JSON content from .zmetadata or storage
 /////////////////////////////////////////////////////////////////////
 
-int NCZMD_fetch_json_group(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jgroup)
-{
-	int stat = NC_NOERR;
-	char *group= NULL;
-	char *key = NULL;	
-
-	if (grp && ((stat = NCZ_grpkey(grp, &group)) != NC_NOERR)) 
-		goto done;
-	if ((stat = nczm_concat(group, name, &key)))
-		goto done;
-
-	stat = zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_GROUP, key, jgroup);
-done:	
-	nullfree(group);
-	nullfree(key);
-	return stat;
+int NCZMD_fetch_json_group(NCZ_FILE_INFO_T *zfile, const char *key, NCjson **jgroup) {
+	return zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_GROUP, key, jgroup);
 }
 
-int NCZMD_fetch_json_attrs(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jattrs)
-{
-	int stat = NC_NOERR;
-	char *group= NULL;
-	char *key = NULL;
-
-	if (grp && ((stat = NCZ_grpkey(grp, &group)) != NC_NOERR)) 
-		goto done;
-	if ((stat = nczm_concat(group, name, &key)))
-		goto done;
-
-	stat = zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_ATTRS, key , jattrs);
-done:	
-	nullfree(group);
-	nullfree(key);
-	return stat;
+int NCZMD_fetch_json_attrs(NCZ_FILE_INFO_T *zfile, const char *key, NCjson **jattrs) {
+	return  zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_ATTRS, key, jattrs);
 }
 
-int NCZMD_fetch_json_array(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jarray)
-{
-	int stat = NC_NOERR;
-	char *group= NULL;
-	char *key = NULL;	
-
-	if (grp && ((stat = NCZ_grpkey(grp, &group)) != NC_NOERR)) 
-		goto done;
-
-	if ((stat = nczm_concat(group, name, &key)))
-		goto done;
-	
-
-	stat = zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_ARRAY, key, jarray);
-done:
-	nullfree(group);
-	nullfree(key);
-	return stat;
+int NCZMD_fetch_json_array(NCZ_FILE_INFO_T *zfile, const char *key, NCjson **jarray) {
+	return zfile->metadata_handler.dispatcher->fetch_json_content(zfile, NCZMD_ARRAY, key, jarray);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //    				 Update in-memory + storage JSON content 
 ////////////////////////////////////////////////////////////////////////////////
 
-int NCZMD_update_json_group(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jgroup)
-{
-	int stat = NC_NOERR;
-	char *group= NULL;
-	char *key = NULL;	
-
-	if (grp && ((stat = NCZ_grpkey(grp, &group)) != NC_NOERR)) 
-		goto done;
-	if ((stat = nczm_concat(group, name, &key)))
-		goto done;
-
-	stat = zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_GROUP, key, jgroup);
-done:	
-	nullfree(group);
-	nullfree(key);
-	return stat;
+int NCZMD_update_json_group(NCZ_FILE_INFO_T *zfile, const char *key, const NCjson *jgroup) {
+	return zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_GROUP, key, jgroup);
 }
 
-int NCZMD_update_json_attrs(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jattrs)
-{
-	int stat = NC_NOERR;
-	char *group= NULL;
-	char *key = NULL;
-
-	if (grp && ((stat = NCZ_grpkey(grp, &group)) != NC_NOERR)) 
-		goto done;
-	if ((stat = nczm_concat(group, name, &key)))
-		goto done;
-
-	stat = zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_ATTRS, key , jattrs);
-done:	
-	nullfree(group);
-	nullfree(key);
-	return stat;
+int NCZMD_update_json_attrs(NCZ_FILE_INFO_T *zfile, const char *key, const NCjson *jattrs) {
+	return zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_ATTRS, key , jattrs);
 }
 
-int NCZMD_update_json_array(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jarray)
-{
-	int stat = NC_NOERR;
-	char *group= NULL;
-	char *key = NULL;	
-
-	if (grp && ((stat = NCZ_grpkey(grp, &group)) != NC_NOERR)) 
-		goto done;
-
-	if ((stat = nczm_concat(group, name, &key)))
-		goto done;
-	
-
-	stat = zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_ARRAY, key, jarray);
-done:
-	nullfree(group);
-	nullfree(key);
-	return stat;
+int NCZMD_update_json_array(NCZ_FILE_INFO_T *zfile, const char *key, const NCjson *jarray) {
+	return zfile->metadata_handler.dispatcher->update_json_content(zfile, NCZMD_ARRAY, key, jarray);
 }
 
 ////////////////////////////////////////////////////////////////////////////

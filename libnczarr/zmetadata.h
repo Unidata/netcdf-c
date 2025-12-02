@@ -53,8 +53,8 @@ typedef struct NCZ_Metadata_Dispatcher
 	int zarr_format;		/* Zarr format version */
 	int dispatch_version;   /* Dispatch table version*/
 	size64_t flags;			/* Metadata handling flags */
-    int (*list_groups)(struct NCZ_FILE_INFO*, NC_GRP_INFO_T *, NClist *subgrpnames);
-    int (*list_variables)(struct NCZ_FILE_INFO*, NC_GRP_INFO_T *, NClist *varnames);
+    int (*list_groups)(struct NCZ_FILE_INFO*, const char * key, NClist *subgrpnames);
+    int (*list_variables)(struct NCZ_FILE_INFO*, const char * key, NClist *varnames);
     int (*fetch_json_content)(struct NCZ_FILE_INFO*, NCZMD_MetadataType, const char *name, NCjson **jobj);
     int (*update_json_content)(struct NCZ_FILE_INFO*, NCZMD_MetadataType, const char *name, const NCjson *jobj);
 	int (*validate_consolidated)(const NCjson *jobj); // Should  validate whole JSON content of .zmetadata
@@ -77,17 +77,17 @@ extern int NCZMD_get_metadata_format(struct NCZ_FILE_INFO*zfile, int *zarrformat
 extern int NCZMD_set_metadata_handler(struct NCZ_FILE_INFO *zfile);
 extern void NCZMD_free_metadata_handler(NCZ_Metadata * zmd);
 
-extern int NCZMD_list_groups(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
-extern int NCZMD_list_variables(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, NClist *varnames);
+extern int NCZMD_list_groups(struct NCZ_FILE_INFO*zfile, const char * key, NClist *subgrpnames);
+extern int NCZMD_list_variables(struct NCZ_FILE_INFO*zfile, const char * key, NClist *varnames);
 
-extern int NCZMD_fetch_json_group(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jgroup);
-extern int NCZMD_fetch_json_attrs(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jattrs);
-extern int NCZMD_fetch_json_array(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, NCjson **jarrays);
+extern int NCZMD_fetch_json_group(struct NCZ_FILE_INFO*zfile, const char *key, NCjson **jgroup);
+extern int NCZMD_fetch_json_attrs(struct NCZ_FILE_INFO*zfile, const char *key, NCjson **jattrs);
+extern int NCZMD_fetch_json_array(struct NCZ_FILE_INFO*zfile, const char *key, NCjson **jarrays);
 
 /* Write operations */
-extern int NCZMD_update_json_group(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jgroup);
-extern int NCZMD_update_json_attrs(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jattrs);
-extern int NCZMD_update_json_array(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jarrays);
+extern int NCZMD_update_json_group(struct NCZ_FILE_INFO*zfile, const char *key, const NCjson *jgroup);
+extern int NCZMD_update_json_attrs(struct NCZ_FILE_INFO*zfile, const char *key, const NCjson *jattrs);
+extern int NCZMD_update_json_array(struct NCZ_FILE_INFO*zfile, const char *key, const NCjson *jarrays);
 extern int NCZMD_consolidate(struct NCZ_FILE_INFO*zfile);
 
 
