@@ -37,7 +37,6 @@ extern "C"
 #endif /*NCZ_METADATA_VERSION*/
 
 #define Z2METADATA "/.zmetadata"
-#define Z3METADATA "/zarr.json"
 
 #define ZARR_NOT_CONSOLIDATED 0
 #define ZARR_CONSOLIDATED 1
@@ -72,10 +71,11 @@ extern const NCZ_Metadata_Dispatcher *NCZ_metadata_handler2;
 // consolidated metadata handler
 extern const NCZ_Metadata_Dispatcher *NCZ_csl_metadata_handler2;
 
-
-/* Called by nc_initialize and nc_finalize respectively */
-extern int NCZMD_initialize(void);
-extern int NCZMD_finalize(void);
+/* Inference for the Metadata handler */
+extern int NCZMD_is_metadata_consolidated(struct NCZ_FILE_INFO*zfile);
+extern int NCZMD_get_metadata_format(struct NCZ_FILE_INFO*zfile, int *zarrformat); // Only pure Zarr is determined
+extern int NCZMD_set_metadata_handler(struct NCZ_FILE_INFO *zfile);
+extern void NCZMD_free_metadata_handler(NCZ_Metadata * zmd);
 
 extern int NCZMD_list_groups(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames);
 extern int NCZMD_list_variables(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, NClist *varnames);
@@ -89,13 +89,7 @@ extern int NCZMD_update_json_group(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *gr
 extern int NCZMD_update_json_attrs(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jattrs);
 extern int NCZMD_update_json_array(struct NCZ_FILE_INFO*zfile, NC_GRP_INFO_T *grp, const char *name, const NCjson *jarrays);
 extern int NCZMD_consolidate(struct NCZ_FILE_INFO*zfile);
-/**************************************************/
 
-/* Inference for the Metadata handler */
-extern int NCZMD_is_metadata_consolidated(struct NCZ_FILE_INFO*zfile);
-extern int NCZMD_get_metadata_format(struct NCZ_FILE_INFO*zfile, int *zarrformat); // Only pure Zarr is determined
-extern int NCZMD_set_metadata_handler(struct NCZ_FILE_INFO *zfile);
-extern void NCZMD_free_metadata_handler(NCZ_Metadata * zmd);
 
 #if defined(__cplusplus)
 }

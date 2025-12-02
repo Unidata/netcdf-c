@@ -7,29 +7,6 @@
 
 /**************************************************/
 
-extern int NCZMD2_initialize(void);
-extern int NCZMD2_finalize(void);
-
-/**************************************************/
-////////////////////////////////////////////////////
-
-int NCZMD_initialize(void)
-{
-	int stat = NC_NOERR;
-	if((stat=NCZMD2_initialize())) goto done;
-done:
-	return THROW(stat);
-}
-
-int NCZMD_finalize(void)
-{
-
-	int stat = NC_NOERR;
-	if((stat=NCZMD2_finalize())) goto done;
-done:
-	return THROW(stat);
-}
-
 static int
 cmpstrings(const void* a1, const void* a2)
 {

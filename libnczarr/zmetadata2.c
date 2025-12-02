@@ -58,20 +58,6 @@ static const NCZ_Metadata_Dispatcher NCZ_csl_md2_table = {
 const NCZ_Metadata_Dispatcher *NCZ_metadata_handler2 = &NCZ_md2_table;
 const NCZ_Metadata_Dispatcher *NCZ_csl_metadata_handler2 = &NCZ_csl_md2_table;
 
-/******************************************************/
-
-int
-NCZMD2_initialize(void)
-{
-	return NC_NOERR;
-}
-
-int
-NCZMD2_finalize(void)
-{
-	return NC_NOERR;
-}
-
 ////////////////////////////////////////////////////
 
 int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, NC_GRP_INFO_T *grp, NClist *subgrpnames)
