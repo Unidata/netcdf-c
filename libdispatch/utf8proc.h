@@ -157,7 +157,7 @@ typedef enum {
   UTF8PROC_NLF2PS    = (1<<8),
   /** Indicating that the meaning of NLF-sequences is unknown. */
   UTF8PROC_NLF2LF    = (UTF8PROC_NLF2LS | UTF8PROC_NLF2PS),
-  /** Strips and/or convers control characters.
+  /** Strips and/or converts control characters.
    *
    * NLF-sequences are transformed into space, except if one of the
    * NLF2LS/PS/LF options is given. HorizontalTab (HT) and FormFeed (FF)

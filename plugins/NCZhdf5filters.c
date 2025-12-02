@@ -87,7 +87,7 @@ NCZ_shuffle_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     
     if(nparams > 0)
         typesize = params[0];
-    snprintf(json,sizeof(json),"{\"id\": \"%s\", \"elementsize\": \"%u\"}",NCZ_shuffle_codec.codecid,typesize);
+    snprintf(json,sizeof(json),"{\"id\": \"%s\", \"elementsize\": %u}",NCZ_shuffle_codec.codecid,typesize);
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }
@@ -300,10 +300,10 @@ NCZ_deflate_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     char json[1024];
 
     if(nparams == 0 || params == NULL)
-        {stat = NC_EFILTER; goto done;}
+	{stat = NC_EFILTER; goto done;}
 
     level = params[0];
-    snprintf(json,sizeof(json),"{\"id\": \"%s\", \"level\": \"%u\"}",NCZ_zlib_codec.codecid,level);
+    snprintf(json,sizeof(json),"{\"id\": \"%s\", \"level\": %u}",NCZ_zlib_codec.codecid,level);
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }

@@ -372,7 +372,7 @@ with case 2. Case 3 should cause an error with a malformed grid.
 
 [Note: for some reason, this code has been difficult to get right;
 I have rewritten 6 times and it probably is still not right.]
-[2/25/2013 Sigh! Previous fixes have introducted another bug,
+[2/25/2013 Sigh! Previous fixes have introduced another bug,
 so now we fix the fix.]
 
 Input is

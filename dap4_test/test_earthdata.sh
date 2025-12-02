@@ -10,7 +10,7 @@ THISDIR=`pwd`
 cd $ISOPATH
 
 # This shell script tests reading of
-# publically accessible DAP4 datasets on earthdata
+# publicly accessible DAP4 datasets on earthdata
 
 # Setup
 # Assume environment variable USERPWD="username:password"

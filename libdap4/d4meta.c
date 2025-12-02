@@ -607,7 +607,7 @@ savevarbyid(NCD4node* group, NCD4node* var)
 {
     if(group->group.varbyid == NULL)
         group->group.varbyid = nclistnew();
-    nclistsetalloc(group->group.varbyid, (size_t)var->meta.id);
+    nclistsetlength(group->group.varbyid, (size_t)var->meta.id+1);
     nclistinsert(group->group.varbyid, (size_t)var->meta.id,var);
 }
 
@@ -739,7 +739,7 @@ compileAttrValues(NCD4meta* builder, NCD4node* attr, void** memoryp, NClist* blo
     memset((void*)&converter,0,sizeof(converter));
 
     /* Deal with _FillValue */
-    if(container->sort == NCD4_VAR && strcmp(attr->name,"_FillValue")==0) {
+    if(container->sort == NCD4_VAR && strcmp(attr->name,NC_FillValue)==0) {
 	/* Verify or fix or ignore or fail on type mismatch */
 	if(container->basetype != basetype) {/* _FillValue/Variable type mismatch */
 	    int compatible = isfilltypecompatible(container->basetype, basetype);
