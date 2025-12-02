@@ -1952,11 +1952,9 @@ parse_group_content_pure(NCZ_FILE_INFO_T*  zinfo, NC_GRP_INFO_T* grp, NClist* va
         goto done;
     }
     
-    nclistclear(varnames);
-    if((stat = NCZMD_list_variables(zinfo, key,varnames))) goto done;
-    
     nclistclear(subgrps);
-    if((stat = NCZMD_list_groups(zinfo, key,subgrps))) goto done;
+    nclistclear(varnames);
+    if((stat = NCZMD_list_nodes(zinfo, key,subgrps, varnames))) goto done;
 
 done:
     nullfree(key);
