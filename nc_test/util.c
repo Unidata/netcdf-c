@@ -47,7 +47,7 @@ inRange_uchar(const int     cdf_format,
 
     if (cdf_format < NC_FORMAT_CDF5 && xtype == NC_BYTE) {
         /* netCDF specification make a special case for type conversion between
-         * uchar and scahr: do not check for range error. See
+         * uchar and schar: do not check for range error. See
          * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
          */
         return(value >= 0 && value <= 255);

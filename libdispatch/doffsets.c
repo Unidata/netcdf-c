@@ -20,7 +20,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
-This code is a variantion of the H5detect.c code from HDF5.
+This code is a variation of the H5detect.c code from HDF5.
 Author: D. Heimbigner 10/7/2008
 */
 
@@ -75,7 +75,7 @@ The assumptions appear to be as follows:
    depends only on the types that precede it in the struct.
 2. the compiler does not reorder fields.
 3. arrays are tightly packed.
-4. nested structs are alignd according to their first member
+4. nested structs are aligned according to their first member
    (this actually follows from C language requirement that
     a struct can legally be cast to an instance of its first member).
 Given the alignments for the various common primitive types,

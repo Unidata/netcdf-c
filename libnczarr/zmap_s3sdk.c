@@ -30,7 +30,7 @@ all keys are assumed to exist, but may have no content.
 
 Notes:
 1. Our canonical URLs use path style rather than virtual-host, although
-   virtual-host URLs will be accepted anc converted to path-style.
+   virtual-host URLs will be accepted and converted to path-style.
 */
 
 #undef DEBUG

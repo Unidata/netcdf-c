@@ -415,7 +415,7 @@ define(`GETF_CheckBND',
 	*ip = ($1)xx;')dnl
 
 dnl
-dnl For GET APIs boudnary check for when $1 is either 'longlong' or 'ulonglong'
+dnl For GET APIs boundary check for when $1 is either 'longlong' or 'ulonglong'
 dnl
 define(`GETF_CheckBND2',
        `ifelse(index(`$1',`u'), 0,

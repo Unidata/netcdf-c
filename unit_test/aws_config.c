@@ -52,7 +52,7 @@ main(int argc, char** argv)
     CHECK(NC_aws_load_credentials(gs));
     
     // Lets ensure the active profile is loaded
-    // from the configurtion files instead of an URL
+    // from the configuration files instead of an URL
     const char* activeprofile = NULL;
     CHECK(NC_getactives3profile(NULL, &activeprofile));
 

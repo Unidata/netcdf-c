@@ -2,7 +2,7 @@
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use.
 
-   This program excersizes HDF5 variable length array code.
+   This program exercises HDF5 variable length array code.
 */
 
 #include "h5_err_macros.h"

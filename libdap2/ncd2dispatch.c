@@ -1961,7 +1961,7 @@ computeseqcountconstraintsr(NCDAPCOMMON* dapcomm, CDFnode* node, CDFnode** candi
     } else if(candidate != NULL && candidatep != NULL) {
 	*candidatep = candidate;
     } else { /* compound != NULL by construction */
-	/* recurse on a nested grids or strucures */
+	/* recurse on a nested grids or structures */
         computeseqcountconstraintsr(dapcomm,compound,candidatep);
     }
 }
