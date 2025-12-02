@@ -122,6 +122,7 @@ typedef struct NCZ_FILE_INFO {
     NCZcommon common;
     struct NCZMAP* map; /* implementation */
     struct NCauth* auth;
+    struct NCZ_Metadata metadata;
     struct nczarr {
 	int zarr_version;
 	struct {
