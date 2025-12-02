@@ -139,7 +139,7 @@ NC_finddim(const NC_dimarray *ncap, const char *uname, NC_dim **dimpp)
 	goto done;
    /* normalized version of uname */
   if(nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name))
-	goto done;	 
+	goto done;
   if(NC_hashmapget(ncap->hashmap, name, strlen(name), &data) == 0)
 	goto done;
   dimid = (int)data;

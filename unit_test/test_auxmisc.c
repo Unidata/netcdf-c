@@ -89,14 +89,14 @@ main(int argc, char** argv)
             break;
 	case 'P':
 	    options.cmd = cmd_prov;
-	    break;	    
+	    break;
         case '?':
            fprintf(stderr,"unknown option\n");
            stat = NC_EINVAL;
            goto done;
         }
     }
- 
+
     /* Setup args */
     argc -= optind;
     argv += optind;

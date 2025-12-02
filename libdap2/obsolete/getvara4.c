@@ -22,7 +22,7 @@ static void makewholesegment4(DCEsegment* seg, NClist* dimset);
 See the comment preceding nc3d_getvarx
 to understand how constraints are handled.
 */
-int 
+int
 NCD4_get_vara(int ncid, int varid,
 	      const size_t* startp,
 	      const size_t* countp,
@@ -57,7 +57,7 @@ NCD4_get_vara(int ncid, int varid,
 
     LOG((2, "nc_get_vara: ncid 0x%x varid %d", ncid, varid));
 
-    ncstat = NC_check_id(ncid, (NC**)&drno); 
+    ncstat = NC_check_id(ncid, (NC**)&drno);
     if(ncstat != NC_NOERR) goto fail;
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
 
@@ -113,18 +113,18 @@ fprintf(stderr,"\n");
 	if(startp[i] > dim->dim.declsize
 	   || startp[i]+countp[i] > dim->dim.declsize) {
 	    ncstat = NC_EINVALCOORDS;
-	    goto fail;	    
+	    goto fail;
 	}
-    }	     
+    }
 
 #ifdef DEBUG
  { NClist* dims = cdfvar->array.dimset0;
 fprintf(stderr,"getvarx: %s/%d",cdfvar->ncfullname,(int)nclistlength(dims));
 if(nclistlength(dims) > 0) {int i;
-for(i=0;i<nclistlength(dims);i++) 
+for(i=0;i<nclistlength(dims);i++)
 fprintf(stderr,"[%lu:%lu:%lu]",(unsigned long)startp[i],(unsigned long)countp[i],(unsigned long)stridep[i]);
 fprintf(stderr," -> ");
-for(i=0;i<nclistlength(dims);i++) 
+for(i=0;i<nclistlength(dims);i++)
 if(stridep[i]==1)
 fprintf(stderr,"[%lu:%lu]",(unsigned long)startp[i],(unsigned long)((startp[i]+countp[i])-1));
 else
@@ -162,7 +162,7 @@ fprintf(stderr,"\n");
     state = 0;
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
 	state = FETCHWHOLE;
-	cachenode = dapcomm->cdf.cache->prefetch;	
+	cachenode = dapcomm->cdf.cache->prefetch;
 	ASSERT((cachenode != NULL));
 #ifdef DEBUG
 fprintf(stderr,"Unconstrained: reusing prefetch\n");
@@ -183,7 +183,7 @@ fprintf(stderr,"Reusing cache\n");
 	state = FETCHPART;
     }
 
-    ASSERT(state != 0);    
+    ASSERT(state != 0);
 
 
     ncstat = buildvaraprojection3(varainfo,
@@ -252,7 +252,7 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
     /* attach DATADDS to DDS */
     unattach34(dapcomm->cdf.ddsroot);
     ncstat = attachsubset34(cachenode->datadds,dapcomm->cdf.ddsroot);
-    if(ncstat) goto fail;	
+    if(ncstat) goto fail;
 
     /* Now, walk to the relevant instance */
     switch (state) {
@@ -284,7 +284,7 @@ fprintf(stderr,"getvarx: walkprojection: %s\n",dumpprojection(walkprojection));
     target = varainfo->target;
     /* xtarget is in the datadds space */
     xtarget = target->attachment;
-    if(xtarget == NULL) 
+    if(xtarget == NULL)
 	{THROWCHK(ncstat=NC_ENODATA); goto fail;}
 
     /* Switch to datadds tree space*/
@@ -502,7 +502,7 @@ abort();
            and extract each instance */
         ASSERT((rank > 0));
 	if(caching || unconstrainable) {
-            odom = newdapodometer(seg.slices,0,rank);	    
+            odom = newdapodometer(seg.slices,0,rank);
 	} else { /*Since vara was projected out, build a simple odometer*/
             odom = newsimpledapodometer(&seg,rank);
 	}
@@ -518,7 +518,7 @@ abort();
 
     case OCFIELDMODE: /* Walk each field in turn */
 	/* Align the buffer to struct boundary*/
-	alignbuffer3(memory,tnode->typesize.instance.alignment);	
+	alignbuffer3(memory,tnode->typesize.instance.alignment);
         fieldcontent = oc_data_new(conn);
         for(i=0;i<nclistlength(tnode->subnodes);i++) {
             CDFnode* subnode = (CDFnode*)nclistget(tnode->subnodes,i);
@@ -530,7 +530,7 @@ abort();
 
     case OCSEQUENCEMODE:
 	/* Collect the set of records as a separate memory structure */
-	vlenmemory = ncbytesnew();	
+	vlenmemory = ncbytesnew();
 	ncbytessetalloc(vlenmemory,4096);
 #ifdef READCHECK
 fprintf(stderr,"getcontent4r: record: vlenmemory=%lx\n",
@@ -551,7 +551,7 @@ fprintf(stderr,"getcontent4r: record: vlen.p=%lx\n",
 	(unsigned long)vlenref.p);
 #endif
 	/* Now put an nc_vlen_t into our buffer */
-	alignbuffer3(memory,tnode->typesize.field.alignment);	
+	alignbuffer3(memory,tnode->typesize.field.alignment);
 	ncbytesappendn(memory,(char*)&vlenref,sizeof(vlenref));
 #ifdef READCHECK
 fprintf(stderr,"getcontent4r: record: memory=%lx |memory|=%lu\n",
@@ -643,7 +643,7 @@ fprintf(stderr,"getcontent4prim: scalar: memdata=%lx\n",(unsigned long)memdata);
 	char* memdata;
 	int contiguous;
 
-	if(caching || unconstrainable) {	
+	if(caching || unconstrainable) {
             odom = newdapodometer(slices,0,rank);
         } else {
             odom = newsimpledapodometer(segment,rank);
@@ -670,14 +670,14 @@ printf("read: %s: memoffset=%lu externaltypesize=%lu dimcount=%lu requested=%lu 
 fflush(stdout);
 }
 #endif
-	
+
 	/* Optimize off the use of the odometer by checking the slicing
            to locate the largest possible suffix of dimensions that
            represent a contiguous chunk; However do not do this if
            external type conversion is needed.
         */
 
-	contiguous = contiguousdims(odom);	
+	contiguous = contiguousdims(odom);
 	if(contiguous < odom->rank && internaltype == externaltype) {
 	    /* Compute the chunk size */
 	    size_t chunkcount;
@@ -688,7 +688,7 @@ fflush(stdout);
 	    if(contiguous == 0) {
 		/* The whole vara slice is usable:
 		   read the whole chunk at one shot.
-		*/		   
+		*/
 	        /* copy the data locally before conversion */
 		ocstat = oc_data_get(conn,currentcontent,memdata,
 			               arraysize,0,chunkcount);
@@ -724,7 +724,7 @@ fflush(stdout);
 	        if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
 	        ocstat = ncdap4convert(internaltype,externaltype,memdata,value,1);
 	        if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto fail;}
-		memdata += externaltypesize;		
+		memdata += externaltypesize;
 		dapodometerincr(odom);
             }
 	}
@@ -752,7 +752,7 @@ Find the largest prefix of n dimensions such that:
 n .. odom.rank are complete: they have start of 0,
 stride of 1 and count == dimensions size.
 */
-static int 
+static int
 contiguousdims(Dapodometer* odom)
 {
     unsigned int i;
@@ -783,7 +783,7 @@ case CASE(NC_STRING,NC_URL):
 case CASE(NC_URL,NC_STRING):
 case CASE(NC_URL,NC_URL):
     for(i=0;i<count;i++) {
-        *((char**)memory) = (char*) *(char**)value;    
+        *((char**)memory) = (char*) *(char**)value;
         memory += nctypesizeof(dsttype);
     }
     break;
@@ -841,7 +841,7 @@ fprintf(stderr,"vara: %s\n",getvaraprint(getvar));
     path = nclistnew();
     collectnodepath3(target,path,WITHOUTDATASET);
     if(nclistlength(path) == 0) return NC_NOERR;
-    
+
     ncbytesclear(buf);
     for(dimdex=0,i=0;i<nclistlength(path);i++) {
 	node = (CDFnode*)nclistget(path,i);

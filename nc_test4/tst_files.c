@@ -510,7 +510,7 @@ test_redef(int format)
    {
        if (nc_redef(ncid)) ERR;
    }
-   
+
    /* Close it up. */
    if (format != NC_FORMAT_NETCDF4)
       if (nc_enddef(ncid)) ERR;

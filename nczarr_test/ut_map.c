@@ -73,7 +73,7 @@ fprintf(stderr,"file=%s output=%s\n",utoptions.file,utoptions.output);
     url = makeurl(utoptions.file,impl,&utoptions);
 
     if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
-    
+
 done:
     nullfree(tmp);
     ut_final();
@@ -300,7 +300,7 @@ readdata(void)
         size64_t start, count, last;
         start = i * chunklen;
 	last = start + chunklen;
-	if(last > totallen) 
+	if(last > totallen)
 	    last = totallen;
 	count = last - start;
 	if((stat = nczmap_read(map, path, start, count, &data1p[start])))
@@ -331,7 +331,7 @@ searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
     NClist* matches = nclistnew();
     char prefix[4096]; /* only ok because we know testdata */
     size_t prefixlen;
-    
+
     nclistpush(objects,strdup(prefix0));
 
     prefix[0] = '\0';

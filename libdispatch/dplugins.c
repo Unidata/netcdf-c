@@ -8,7 +8,7 @@
 
 /**
  * @file
- * Functions for working with plugins. 
+ * Functions for working with plugins.
  */
 
 #include "config.h"
@@ -32,7 +32,7 @@
 Unified plugin related code
 */
 /**************************************************/
-/* Plugin-path API */ 
+/* Plugin-path API */
 
 /* list of environment variables to check for plugin roots */
 #define PLUGIN_ENV "HDF5_PLUGIN_PATH"
@@ -81,7 +81,7 @@ nc_plugin_path_initialize(void)
 
     /* Initialize the implementations */
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
-    if((stat = NCZ_plugin_path_initialize())) goto done;    
+    if((stat = NCZ_plugin_path_initialize())) goto done;
 #endif
 #ifdef USE_HDF5
     if((stat = NC4_hdf5_plugin_path_initialize())) goto done;
@@ -138,7 +138,7 @@ nc_plugin_path_finalize(void)
 
     /* Finalize the actual implementation */
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
-    if((stat = NCZ_plugin_path_finalize())) goto done;    
+    if((stat = NCZ_plugin_path_finalize())) goto done;
 #endif
 #ifdef USE_HDF5
     if((stat = NC4_hdf5_plugin_path_finalize())) goto done;

@@ -127,7 +127,7 @@ main(int argc, char** argv)
 
     NCT_inittimer();
 
-    for(np=N;*np;np++) {    
+    for(np=N;*np;np++) {
 	int ns,i;
 
 	ns = *np;

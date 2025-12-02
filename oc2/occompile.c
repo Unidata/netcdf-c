@@ -30,7 +30,7 @@ static const char StartOfSequence = '\x5A';
 static const char EndOfSequence = '\xA5';
 
 /*
-Provide an option that makes a single pass over 
+Provide an option that makes a single pass over
 the data packet and record pointers into it
 to speed up access.
 */
@@ -169,7 +169,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
 	data->ninstances = nelements;
 	data->instances = nclistextract(records);
 	MEMGOTO(data,ocstat,fail);
-	nclistfree(records);	    
+	nclistfree(records);
 	records = NULL;
         break;
 
@@ -193,7 +193,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
     if(data != NULL)
 	ocdata_free(state,data);
 
-    return OCTHROW(ocstat);    
+    return OCTHROW(ocstat);
 
 fail:
     /* See if we can extract error info from the response */
@@ -231,7 +231,7 @@ occompilerecord(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** recordp)
         if(record != NULL)
 	    ocdata_free(state,record);
     }
-    return OCTHROW(ocstat);    
+    return OCTHROW(ocstat);
 }
 
 static OCerror
@@ -293,7 +293,7 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
     unsigned int xxdrcount;
     OCnode* xnode = data->pattern;
     int scalar = (xnode->array.rank == 0);
-    
+
     OCASSERT((xnode->octype == OC_Atomic));
 
     if(!scalar) {
@@ -410,7 +410,7 @@ istoplevel(OCnode* node)
     switch (node->octype) {
     case OC_Dataset: case OC_Grid: case OC_Atomic: return 1;
     case OC_Structure:
-	return (node->array.rank == 0 ? 1 : 0); /* Toplevel if scalar */ 
+	return (node->array.rank == 0 ? 1 : 0); /* Toplevel if scalar */
     case OC_Sequence: default: return 0;
     }
     return 1;
@@ -452,7 +452,7 @@ ocerrorstring(XXDR* xdrs)
     char* data;
     if(!xxdr_setpos(xdrs,(off_t)0)) return 0;
     data = (char*)malloc((size_t)avail);
-    MEMCHECK(data,0);    
+    MEMCHECK(data,0);
     if(!xxdr_opaque(xdrs,data,avail)) {free(data); return 0;}
     /* check for error tag at front */
     if(ocstrncmp(data,tag,sizeof(tag))==0) {

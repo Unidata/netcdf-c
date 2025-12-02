@@ -34,7 +34,7 @@ occomputesemantics(NClist* ocnodes)
 	    node->array.sizes = (size_t*)malloc(node->array.rank*sizeof(size_t));
 	    for(j=0;j<node->array.rank;j++) {
 		OCnode* dim = (OCnode*)nclistget(node->array.dimensions,j);
-		node->array.sizes[j] = dim->dim.declsize;		
+		node->array.sizes[j] = dim->dim.declsize;
 	    }
 	}
     }
@@ -166,7 +166,7 @@ ocroot_free(OCnode* root)
 	if(root == node)
 	    nclistremove(state->trees,(size_t)i);
     }
-    /* Note: it is ok if state->trees does not contain this root */    
+    /* Note: it is ok if state->trees does not contain this root */
     octree_free(tree);
 }
 
@@ -442,7 +442,7 @@ mergeother1(OCnode* root, OCnode* das)
         /* compute the full name of this attribute */
         computefullname(das);
         /* create attribute */
-        att = makeattribute(das->fullname,das->etype,das->att.values);	
+        att = makeattribute(das->fullname,das->etype,das->att.values);
         nclistpush(root->attributes,(void*)att);
     } else if(das->octype == OC_Attributeset) {
 	size_t i;
@@ -451,7 +451,7 @@ mergeother1(OCnode* root, OCnode* das)
 	    OCnode* sub = (OCnode*)nclistget(das->subnodes,i);
 	    if(sub == NULL) continue;
 	    mergeother1(root,sub);
-	}	
+	}
     } else
 	stat = OC_EDAS;
 done:
@@ -467,7 +467,7 @@ ocuncorrelate(OCnode* root)
     for(i=0;i<nclistlength(tree->nodes);i++) {
 	OCnode* node = (OCnode*)nclistget(tree->nodes,i);
 	node->datadds = NULL;
-    }        
+    }
 }
 
 static OCerror
@@ -521,8 +521,8 @@ occorrelater(OCnode* dds, OCnode* dxd)
 	    OCnode* ddsdim = (OCnode*)nclistget(dds->array.dimensions,(size_t)i);
 	    OCnode* dxddim = (OCnode*)nclistget(dxd->array.dimensions,(size_t)i);
 	    ocstat = occorrelater(ddsdim,dxddim);
-	    if(!ocstat) goto fail;	    
-	}	
+	    if(!ocstat) goto fail;
+	}
     }
 
 fail:
@@ -557,7 +557,7 @@ ocmarkcacheable(OCstate* state, OCnode* ddsroot)
 	if(node->etype != OC_String && node->etype != OC_URL) continue;
 	/* collect node path */
         nclistclear(path);
-        occollectpathtonode(node,path);	
+        occollectpathtonode(node,path);
 #if 0
         ok = 1;
 #endif
@@ -570,7 +570,7 @@ ocmarkcacheable(OCstate* state, OCnode* ddsroot)
 #endif
 	    break;
 	    }
-	}	
+	}
 #if 0
 	if(ok) {
    	    node->cache.cacheable = 1;

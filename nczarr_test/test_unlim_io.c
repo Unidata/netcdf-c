@@ -29,7 +29,7 @@ writedata(void)
     int i;
 
     for(i=0;i<NDATA;i++) data[i] = (options->data == 0x7fffffff ? i: options->data);
- 
+
     if(options->debug >= 1) {
 	fprintf(stderr,"write: dimlens=%s chunklens=%s\n",
 	    printvector(options->rank,options->dimlens),printvector(options->rank,options->chunks));
@@ -46,7 +46,7 @@ readdata(void)
 {
     int ret = NC_NOERR;
     size_t i;
-    
+
     memset(data,0,datasize);
 
     if(options->debug >= 1)
@@ -78,7 +78,7 @@ genodom(void)
     /* Iterate the odometer */
     for(i=0;odom_more(odom);odom_next(odom),i++) {
 	printf("[%02d] %s\n",i,(i==0?odom_print(odom):odom_printshort(odom)));
-    }	     
+    }
 done:
     odom_free(odom);
     return ret;
@@ -90,22 +90,22 @@ main(int argc, char** argv)
 {
     int stat = NC_NOERR;
     int i;
-    
+
     if((stat=getoptions(&argc,&argv))) goto done;
     if((stat=verifyoptions(options))) goto done;
-    
+
     if(meta->ncid == 0) {
 	fprintf(stderr,"File not found: %s\n",options->file);
 	ERR(NC_EACCESS);
     }
-    
+
     if(options->create == Create) {
 	if((stat = getmetadata(1))) ERR(stat);
 	if(meta->ncid && (stat = nc_close(meta->ncid))) ERR(stat);
     }
     if((stat = getmetadata(0)))
 	ERR(stat);
-    
+
     dimprod = 1;
     chunkprod = 1;
     for(i=0;i<options->rank;i++) {dimprod *= options->dimlens[i]; chunkprod *= options->chunks[i];}

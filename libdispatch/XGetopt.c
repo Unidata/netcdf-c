@@ -11,7 +11,7 @@
 //     - Added Unicode support
 //
 //     Version 1.1 - 2002 March 10
-//     - Added example to XGetopt.cpp module header 
+//     - Added example to XGetopt.cpp module header
 //
 // This software is released into the public domain.
 // You are free to use it in any way you like.
@@ -274,7 +274,7 @@ XCommandLineToArgvA(int* argcp, char*** argvp)
 	}
 	/* Just collect the character as part of the current word */
         ncbytesappend(word,c);
-    }	
+    }
     /* Return parsed words */
     if(argcp) *argcp = nclistlength(argv);
     nclistpush(argv,NULL); /* Just to be sure */

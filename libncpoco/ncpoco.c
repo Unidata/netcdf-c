@@ -41,7 +41,7 @@ ncpsharedlibnew(NCPSharedLib** libp)
     ret = lib->api.init(lib);
     if(ret == NC_NOERR && libp)
 	*libp = lib;
-	
+
 done:
     return ret;
 }

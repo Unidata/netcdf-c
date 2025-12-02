@@ -27,7 +27,7 @@
 
 /*
  * Fill typed array element with specified value, that is
- * 	
+ *
  * 	v[ii] = val;
  */
 /* type: netcdf type of v, NC_BYTE, ..., NC_DOUBLE */
@@ -67,7 +67,7 @@ val_stuff(nc_type type, void *v, int ii, long val)	/* v[ii] = val */
  *
  * 	(v[ii] != val)
  *
- * returns 0 if equal, 1 if not equal 
+ * returns 0 if equal, 1 if not equal
  */
 
 /* type: netcdf type of v, NC_BYTE, ..., NC_DOUBLE */
@@ -195,12 +195,12 @@ test_slabs(int cdfid) /* handle of netcdf open and in data mode */
 		}
 	    }
 	}
-	
+
 	for (idim = 0; idim < NDIMS; idim++) {
 	    corner[idim] = 0;
 	    edge[idim] = dims[idim].size;
 	}
-      
+
 	/* ncvarput the whole variable */
 	if (ncvarput(cdfid, varid[iv], corner, edge, (void *) v) == -1) {
 	    error("%s: ncvarput failed", pname);
@@ -228,7 +228,7 @@ test_slabs(int cdfid) /* handle of netcdf open and in data mode */
 	    error("%s: ncvarget got wrong value for point", pname);
 	    nerrs++;
 	}
-	
+
 	/* get an interior vector in each direction */
 	for (idim=0; idim < NDIMS; idim++) {
 	    for (jdim=0; jdim < NDIMS; jdim++) {
@@ -287,7 +287,7 @@ test_slabs(int cdfid) /* handle of netcdf open and in data mode */
 		}
 	    }
 	}
-	
+
 	/* get an interior cube in each direction */
 	for (idim=0; idim < NDIMS; idim++) {
 	    for (jdim=idim+1; jdim < NDIMS; jdim++) {

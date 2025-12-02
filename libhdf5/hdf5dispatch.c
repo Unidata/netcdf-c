@@ -109,7 +109,7 @@ static const NC_Dispatch HDF5_dispatcher = {
 
     NC4_def_var_quantize,
     NC4_inq_var_quantize,
-    
+
     NC4_hdf5_inq_filter_avail,
 };
 

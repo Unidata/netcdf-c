@@ -77,7 +77,7 @@ main(int argc, char **argv)
 #ifdef TESTNCZARR
     const char* template = NULL;
     char file_url[4096];
-    
+
     if(argc == 1)
         {fprintf(stderr,"usage: test_quantize <zarr-url-template>\n"); exit(1);}
 
@@ -90,12 +90,12 @@ main(int argc, char **argv)
 #endif
 
 #define NUM_MODE_TESTS 2
-#define NUM_QUANTIZE_MODES 3	    
+#define NUM_QUANTIZE_MODES 3
     int mode = NC_NETCDF4|NC_CLOBBER;
     int m;
     int q, quantize_mode[NUM_QUANTIZE_MODES] = {NC_QUANTIZE_BITGROOM, NC_QUANTIZE_GRANULARBR,
 						NC_QUANTIZE_BITROUND};
-    
+
     printf("\n*** Testing netcdf-4 variable quantization functions.\n");
     for (m = 0; m < NUM_MODE_TESTS; m++)
     {
@@ -106,7 +106,7 @@ main(int argc, char **argv)
 	    printf("**** testing with NC_NETCDF4|NC_CLASSIC_MODEL...\n");
 	    mode |= NC_CLASSIC_MODEL;
 	}
-	    
+
 	printf("\t**** testing quantization setting and error conditions...\n");
 	{
 	    int ncid, dimid, varid1, varid2;
@@ -490,7 +490,7 @@ main(int argc, char **argv)
 		int x;
 
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
-		
+
 		/* Create a netcdf-4 file with two vars. */
 		if (nc_create(FILE_NAME, mode, &ncid)) ERR;
 		if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
@@ -620,7 +620,7 @@ main(int argc, char **argv)
 		double double_data[DIM_LEN_1] = {1.111111111111};
 
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
-		
+
 		/* Create a netcdf-4 file with two vars. */
 		if (nc_create(FILE_NAME, mode, &ncid)) ERR;
 		if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
@@ -702,7 +702,7 @@ main(int argc, char **argv)
 		    printf ("\nfloat_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n",
 		            float_data[0], dfout.u, double_in, dfin.u);
 
-#endif		    
+#endif
 		    switch (quantize_mode[q])
 		    {
 		    case NC_QUANTIZE_BITGROOM:
@@ -738,7 +738,7 @@ main(int argc, char **argv)
 		int x;
 
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
-		
+
 		/* Create a netcdf-4 file with two vars. */
 		if (nc_create(FILE_NAME, mode, &ncid)) ERR;
 		if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
@@ -818,7 +818,7 @@ main(int argc, char **argv)
 		    default:
 			ERR;
 		    }
-			
+
 		    /* Open the file and check metadata. */
 		    if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 		    if (nc_inq_varid(ncid,VAR_NAME_1,&varid1)) ERR;
@@ -867,7 +867,7 @@ main(int argc, char **argv)
 		int x;
 
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
-		
+
 		/* Create a netcdf-4 file with two vars. */
 		if (nc_create(FILE_NAME, mode, &ncid)) ERR;
 		if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
@@ -1000,7 +1000,7 @@ main(int argc, char **argv)
 		int x;
 
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
-		
+
 		/* Create a netcdf-4 file with two vars. */
 		if (nc_create(FILE_NAME, mode, &ncid)) ERR;
 		if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
@@ -1040,7 +1040,7 @@ main(int argc, char **argv)
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
 
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
-		    
+
 		    switch (quantize_mode[q])
 		    {
 		    case NC_QUANTIZE_BITGROOM:
@@ -1138,7 +1138,7 @@ main(int argc, char **argv)
 		size_t index;
 
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
-		
+
 		/* Create file. */
 		if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
@@ -1202,7 +1202,7 @@ main(int argc, char **argv)
 
 		    union FU xpect[NUM_QUANTIZE_MODES][DIM_LEN_8];
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_8];
-		    
+
 		    /* This test comes up with different answers to this than
 		     * the corresponding bitgroom filter test, but that's
 		     * OK. In netcdf-c quantization is applied as the data are

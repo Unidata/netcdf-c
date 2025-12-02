@@ -20,7 +20,7 @@ main()
     int i32[100];
     size_t start[1];
     size_t count[1];
-    int ok = 1;    
+    int ok = 1;
     char url[1024];
 
     {

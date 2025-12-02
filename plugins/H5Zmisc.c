@@ -135,14 +135,14 @@ fprintf(stderr,">>> TC_EXPANDED: decompress: nbytes=%u buf_size=%u xdata[0..8]=|
             newbuf = H5allocate_memory(*buf_size,0);
             if(newbuf == NULL) abort();
             memcpy(newbuf,*buf,*buf_size);
-	
+
 	} else {
             /* Replace buffer */
             newbuf = H5allocate_memory(*buf_size,0);
             if(newbuf == NULL) abort();
             memcpy(newbuf,*buf,*buf_size);
 	}
-	
+
         /* reclaim old buffer */
         H5free_memory(*buf);
         *buf = newbuf;

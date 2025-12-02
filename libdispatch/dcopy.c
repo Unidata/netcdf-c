@@ -284,7 +284,7 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
    char name[NC_MAX_NAME + 1];
    char att_name[NC_MAX_NAME + 1];
    nc_type xtype;
-   int ndims; 
+   int ndims;
    int dimids_in[NC_MAX_VAR_DIMS], dimids_out[NC_MAX_VAR_DIMS];
    int natts, real_ndims;
    int varid_out;

@@ -117,9 +117,9 @@ NCD4_makeFQN(NCD4node* node)
         if(ISGROUP(n->sort))
 	    nclistinsert(grps,0,n); /* keep the correct order of groups */
 	else
-	    nclistinsert(parts,0,n);	
+	    nclistinsert(parts,0,n);
     }
-    
+
     /* Build grp prefix of the fqn */
     for(i=1;i<nclistlength(grps);i++) {
         n = (NCD4node*)nclistget(grps,i);
@@ -341,7 +341,7 @@ NCD4_elidenuls(char* s, size_t slen)
         int c = s[i];
 	if(c != 0)
 	    s[j++] = (char)c;
-    }       
+    }
     /* if we remove any nuls then nul term */
     if(j < i)
 	s[j] = '\0';
@@ -418,14 +418,14 @@ NCD4_getcounter(NCD4offset* p)
 void
 NCD4_incr(NCD4offset* p, d4size_t size)
 {
-    VERIFY(p,size);    
+    VERIFY(p,size);
     p->offset += size;
 }
 
 void
 NCD4_decr(NCD4offset* p, d4size_t size)
 {
-    VERIFY(p,size);    
+    VERIFY(p,size);
     p->offset -= size;
 }
 
@@ -449,6 +449,6 @@ void
 NCD4_reporterror(NCD4response* resp, NCURI* uri)
 {
     char* u = NULL;
-    u = ncuribuild(uri,NULL,NULL,NCURIALL);     
+    u = ncuribuild(uri,NULL,NULL,NCURIALL);
     fprintf(stderr,"***FAIL: url=%s httpcode=%d errmsg->\n%s\n",u,resp->serial.httpcode,resp->error.message);
 }

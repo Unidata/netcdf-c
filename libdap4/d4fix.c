@@ -61,7 +61,7 @@ ADDNODE(NClist* list, NCD4node* node)
 #endif
 
 
-	
+
 /**************************************************/
 /* Topo sort in postfix order */
 
@@ -131,8 +131,8 @@ walk(NCD4node* node, NClist* sorted)
 	for(i=0;i<nclistlength(node->group.elements);i++) {
 	    NCD4node* elem = (NCD4node*)nclistget(node->group.elements,i);
 	    walk(elem,sorted);
-	}		
-	break;	
+	}
+	break;
     case NCD4_TYPE: /* Need to discriminate on the subsort */
 	switch (node->subsort) {
 	case NC_SEQ:
@@ -144,7 +144,7 @@ walk(NCD4node* node, NClist* sorted)
 	        NCD4node* f = (NCD4node*)nclistget(node->vars,i);
 		walk(f,sorted);
 	    }
-	    break;	
+	    break;
 	case NC_ENUM: /* Depends on its basetype, but since that is atomic, we can ignore */
 	    /* fall thru */
 	default: /* Atomic or opaque, so already marked */
@@ -163,7 +163,7 @@ walk(NCD4node* node, NClist* sorted)
   	    walk(m,sorted);
 	}
 	break;
-	
+
     case NCD4_ATTR: /* Depends on its base type */
 	walk(node->basetype,sorted);
 	break;
@@ -178,8 +178,8 @@ walk(NCD4node* node, NClist* sorted)
     for(i=0;i<nclistlength(node->attributes);i++) {
 	NCD4node* a = (NCD4node*)nclistget(node->attributes,i);
 	walk(a,sorted);
-    }		
-    ADDNODE(sorted,node);    
+    }
+    ADDNODE(sorted,node);
 }
 
 
@@ -292,11 +292,11 @@ delimitStructArray(NCD4meta* compiler, NCD4node* varortype,  NCD4offset* offset)
     NCD4node* type;
 
    if(varortype->sort == NCD4_VAR) {
-	dimproduct = NCD4_dimproduct(varortype);	
+	dimproduct = NCD4_dimproduct(varortype);
 	type = varortype->basetype;
    } else {
 	dimproduct = 1;
-	type = varortype;	
+	type = varortype;
    }
 
     for(i=0;i<dimproduct;i++) {
@@ -340,11 +340,11 @@ delimitSeqArray(NCD4meta* compiler, NCD4node* varortype,  NCD4offset* offset)
     NCD4node* type;
 
     if(varortype->sort == NCD4_VAR) {
-	dimproduct = NCD4_dimproduct(varortype);	
+	dimproduct = NCD4_dimproduct(varortype);
 	type = varortype->basetype;
     } else {
 	dimproduct = 1;
-	type = varortype;	
+	type = varortype;
     }
 
     for(i=0;i<dimproduct;i++) {
@@ -365,7 +365,7 @@ delimitSeq(NCD4meta* compiler, NCD4node* vlentype, NCD4offset* offset)
 
     /* The true type of the record is the basetype of the vlen,
        where the vlen type is the basetype of the var
-     */ 
+     */
     assert(vlentype->subsort == NC_VLEN);
     recordtype = vlentype->basetype;
 
@@ -400,7 +400,7 @@ Assumes it is called after byte swapping and offsetting.
 Assumes that var is not fixed size.
 */
 
-int 
+int
 NCD4_moveto(NCD4meta* compiler, NCD4node* var, d4size_t count, NCD4offset* offset)
 {
     int ret = NC_NOERR;
@@ -483,7 +483,7 @@ skipStructInstance(NCD4meta* compiler, NCD4node* type,  NCD4offset* offset)
     for(i=0;i<nclistlength(type->vars);i++) {
         NCD4node* field = (NCD4node*)nclistget(type->vars,i);
 	NCD4node* ftype = field->basetype;
-        d4size_t dimproduct = NCD4_dimproduct(field);	
+        d4size_t dimproduct = NCD4_dimproduct(field);
 	for(j=0;j<dimproduct;j++) {
 	    if((ret=skipInstance(compiler,ftype,offset)))
 		goto done;

@@ -66,8 +66,8 @@ main(int argc, char **argv)
               if (double_in[i][j] != double_out[i][j]) ERR;
           }
       }
-          
-      
+
+
       if (nc_close(ncid)) ERR;
    }
 

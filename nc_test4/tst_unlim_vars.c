@@ -31,7 +31,7 @@ int
 main(int argc, char **argv)
 {
     int stat = NC_NOERR;
-    
+
     printf("\n*** Testing netcdf-4 variables with unlimited dimensions.\n");
     printf("*** Testing file with one var, one unlim dim...");
     {

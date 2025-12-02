@@ -175,7 +175,7 @@ nczprint_odom(const NCZOdometer* odom)
     ncbytescat(&blocal," more=");
     snprintf(value,sizeof(value),"%d",nczodom_more(odom));
     ncbytescat(&blocal,value);
-    
+
     ncbytescat(&blocal,"}");
     result = ncbytescontents(&blocal);
     return (result);
@@ -224,13 +224,13 @@ char*
 nczprint_allsliceprojections(int r, const NCZSliceProjections* slp)
 {
     int i;
-    char* s;    
+    char* s;
 
     nczprint_setup();
     for(i=0;i<r;i++) {
 	s = nczprint_sliceprojections(slp[i]);
 	ncbytescat(&blocal,s);
-    } 	
+    }
     s = ncbytescontents(&blocal);
     return (s);
 }
@@ -290,7 +290,7 @@ nczprint_idvector(size_t len, const int* ids)
 {
     size64_t v[4096];
     size_t i;
-    for(i=0;i<len;i++) v[i] = ids[i];    
+    for(i=0;i<len;i++) v[i] = ids[i];
     return nczprint_vector(len,v);
 }
 
@@ -299,7 +299,7 @@ nczprint_paramvector(size_t len, const unsigned* params)
 {
     size64_t v[4096];
     size_t i;
-    for(i=0;i<len;i++) v[i] = params[i];    
+    for(i=0;i<len;i++) v[i] = params[i];
     return nczprint_vector(len,v);
 }
 
@@ -308,7 +308,7 @@ nczprint_sizevector(size_t len, const size_t* sizes)
 {
     size64_t v[4096];
     size_t i;
-    for(i=0;i<len;i++) v[i] = sizes[i];    
+    for(i=0;i<len;i++) v[i] = sizes[i];
     return nczprint_vector(len,v);
 }
 
@@ -323,7 +323,7 @@ nczprint_vector(size_t len, const size64_t* vec)
     ncbytescat(&blocal,"(");
     for(i=0;i<len;i++) {
         if(i > 0) ncbytescat(&blocal,",");
-        snprintf(value,sizeof(value),"%lu",(unsigned long)vec[i]);	
+        snprintf(value,sizeof(value),"%lu",(unsigned long)vec[i]);
 	ncbytescat(&blocal,value);
     }
     ncbytescat(&blocal,")");

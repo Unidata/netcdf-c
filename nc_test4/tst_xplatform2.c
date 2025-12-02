@@ -556,7 +556,7 @@ main(int argc, char **argv)
    /* Now run the tests formerly in tst_h_atts2.c. */
 #define REF_FILE_NAME "tst_xplatform2_3.nc"
 #define NUM_OBJ 3
-   
+
    printf("\n*** Checking HDF5 attribute functions some more.\n");
    printf("*** Opening tst_xplatform2_3.nc...");
    {

@@ -159,7 +159,7 @@ NCZ_show_metadata(int ncid)
 }
 
 #ifndef NETCDF_ENABLE_NCZARR_FILTERS
-int 
+int
 NCZ_def_var_filter(int ncid, int varid, unsigned int id , size_t n , const unsigned int *params)
 {
     NC_UNUSED(ncid);
@@ -170,7 +170,7 @@ NCZ_def_var_filter(int ncid, int varid, unsigned int id , size_t n , const unsig
     return REPORT(NC_NOERR,"def_var_filter");
 }
 
-int 
+int
 NCZ_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids)
 {
     NC_UNUSED(ncid);

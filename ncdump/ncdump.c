@@ -1080,7 +1080,7 @@ pr_att_specials(
 		if(first) {
 		    pr_att_name(ncid,varp->name,NC_ATT_FILTER);
 		    printf(" = \"");
-		} else 
+		} else
 	            printf("|");
 		printf("%u",filterids[k]);
 		if(nparams > 0) {
@@ -1103,13 +1103,13 @@ pr_att_specials(
         stat = nc_inq_att(ncid,varid,NC_ATT_CODECS,&typeid,&len);
         if(stat == NC_NOERR && typeid == NC_CHAR && len > 0) {
 	    char* json = (char*)malloc(len+1);
-	    if(json != NULL) {	    
+	    if(json != NULL) {
                 stat = nc_get_att_text(ncid,varid,NC_ATT_CODECS,json);
                 if(stat == NC_NOERR) {
 		    char* escapedjson = NULL;
 		    pr_att_name(ncid, varp->name, NC_ATT_CODECS);
 		    /* Escape the json */
-		    escapedjson = escaped_string(json);	
+		    escapedjson = escaped_string(json);
                     printf(" = \"%s\" ;\n",escapedjson);
 		    free(escapedjson);
 		}
@@ -1812,7 +1812,7 @@ do_ncdump_rec(int ncid, const char *path)
 	  *    dimid.
 	  * 7. If found, then use the fqn of that dimension location.
   	  * 8. If not found, then signal NC_EBADDIM.
-          */	 
+          */
 
 	  int target_dimid, dimgrp, duplicate, stopsearch, usefqn;
 
@@ -1847,7 +1847,7 @@ do_ncdump_rec(int ncid, const char *path)
 		 /* we processed the root, so try the breadth-first search */
 		 stopsearch = -1; /* -1 means we hit the root group but did not find it */
 		 rootncid = dimgrp;
-		 break;		 
+		 break;
 	     default: NC_CHECK(ret);
 	     }
 	  }

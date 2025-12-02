@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     MPI_Comm comm=MPI_COMM_SELF;
     MPI_Info info=MPI_INFO_NULL;
     char file_name[NC_MAX_NAME + 1];
-    
+
     printf("\n*** Testing bug fix with changing PnetCDF variable offsets...");
 
     MPI_Init(&argc,&argv);

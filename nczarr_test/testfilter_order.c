@@ -131,7 +131,7 @@ deffilters(void)
     unsigned int params[1];
 
     /* Register filter 0 */
-    params[0] = 0;    
+    params[0] = 0;
     printf("def filter id[0]=%d nparams=1 params[0]=%d\n",(int)FILTER_ID,(int)params[0]); fflush(stdout);
     CHECK(nc_def_var_filter(ncid,varid,FILTER_ID,1,params));
     params[0] = 1;

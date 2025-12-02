@@ -47,7 +47,7 @@ ncxml_root(ncxml_doc_t doc0)
 const char*
 ncxml_name(ncxml_t xml0)
 {
-    ezxml_t xml = (ezxml_t)xml0;    
+    ezxml_t xml = (ezxml_t)xml0;
     return (xml?xml->name:NULL);
 }
 

@@ -370,7 +370,7 @@ main(int argc, char **argv)
             if (nc_def_user_format(mode[i], &tst_dispatcher_bad_version,
                                    NULL) != NC_EINVAL) ERR;
             /* Make sure defining a magic number with netcdf3 is rejected. */
-            if (nc_def_user_format(NC_CLASSIC_MODEL, &tst_dispatcher, 
+            if (nc_def_user_format(NC_CLASSIC_MODEL, &tst_dispatcher,
                                    magic_number) != NC_EINVAL) ERR;
         }
     }

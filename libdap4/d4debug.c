@@ -120,7 +120,7 @@ NCD4_debugcopy(NCD4INFO* info)
 	varsize = type->meta.memsize * dimprod;
 	memory = d4alloc(varsize);
         if(memory == NULL)
-	    {ret = NC_ENOMEM; goto done;}		
+	    {ret = NC_ENOMEM; goto done;}
 	{
 	    /* We need to read via NCD4 */
 	    int d4gid = makedap4id(ncp,grpid);
@@ -134,7 +134,7 @@ NCD4_debugcopy(NCD4INFO* info)
           size and the dap4 data specified size. In fact,
           the substrate will always be zero unless debugcopy is used.
 	*/
-	{	
+	{
 	    size_t edges[NC_MAX_VAR_DIMS];
 	    size_t d;
 	    for(d=0;d<nclistlength(var->dims);d++) {
@@ -147,7 +147,7 @@ NCD4_debugcopy(NCD4INFO* info)
 	if((ret=NC_reclaim_data(NCD4_get_substrate(ncp),type->meta.id,memory,dimprod)))
 	    goto done;
 	nullfree(memory); memory = NULL;
-    }	    
+    }
 done:
     nullfree(memory);
     nclistfree(topvars);

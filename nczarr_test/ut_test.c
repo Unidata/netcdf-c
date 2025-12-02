@@ -40,7 +40,7 @@ usage(int err)
         fprintf(stderr," -v<type>var(<dim/chunksize,dim/chunksize...>)");
         fprintf(stderr," -s<slices>");
         fprintf(stderr," -W<int>,<int>...");
-	fprintf(stderr,"\n");	
+	fprintf(stderr,"\n");
     fflush(stderr);
     exit(1);
 }
@@ -60,11 +60,11 @@ ut_init(int argc, char** argv, struct UTOptions * options)
 	options->vardefs = nclistnew();
         while ((c = getopt(argc, argv, "T:Dx:f:o:p:k:d:v:s:W:")) != EOF) {
             switch(c) {
-            case 'T':  
+            case 'T':
 	        nctracelevel(atoi(optarg));
                 break;
-            case 'D':  
-                options->debug = 1;     
+            case 'D':
+                options->debug = 1;
                 break;
             case 'x': /*execute*/
 		if(parsestringvector(optarg,0,&options->cmds) <= 0) usage(THROW(0));
@@ -104,7 +104,7 @@ ut_init(int argc, char** argv, struct UTOptions * options)
 
     canonicalfile(&options->file);
     canonicalfile(&options->output);
-    
+
 done:
     return THROW(stat);
 }

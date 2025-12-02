@@ -95,7 +95,7 @@ NCZ_create(const char* path, int cmode, size_t initialsz, int basepe,
     NCURI* uri = NULL;
 
     ZTRACE(0,"path=%s,cmode=%d,initialsz=%ld,ncid=%d)",path,cmode,initialsz,ncid);
-    
+
     NC_UNUSED(parameters);
 
     assert(path);
@@ -118,7 +118,7 @@ NCZ_create(const char* path, int cmode, size_t initialsz, int basepe,
 
     /* Turn on NC_WRITE */
     cmode |= NC_WRITE;
-    
+
     /* Get the controls */
     ncuriparse(path,&uri);
     if(uri == NULL) goto done;

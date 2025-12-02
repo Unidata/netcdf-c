@@ -30,7 +30,7 @@ dapmerge(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 
     if(ddsroot == NULL || dasroot == NULL)
 	return NC_NOERR;
-    /* Merge the das tree onto the dds tree */ 
+    /* Merge the das tree onto the dds tree */
     ocstat = oc_merge_das(nccomm->oc.conn,dasroot,ddsroot->ocnode);
     if(ocstat != OC_NOERR) goto done;
 
@@ -41,17 +41,17 @@ dapmerge(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 	OCddsnode ocnode = node->ocnode;
 	size_t attrcount;
 	OCtype ocetype;
-			
+
 	OCCHECK(oc_dds_attr_count(conn,ocnode,&attrcount));
 	for(j=0;j<attrcount;j++) {
 	    size_t nvalues;
-	    
+
 	    NCattribute* att = NULL;
 
 	    if(ocname != NULL) {
 	      free(ocname); ocname = NULL;
 	    } /* from last loop */
-	    
+
 	    OCCHECK(oc_dds_attr(conn,ocnode,j,&ocname,&ocetype,&nvalues,NULL));
 	    if(nvalues > 0) {
 	        values = (char**)malloc(sizeof(char*)*nvalues);

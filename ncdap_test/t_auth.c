@@ -69,7 +69,7 @@ main(int argc, char** argv)
         fprintf(stderr,"WARNING: Cannot locate test server\n");
 	exit(0);
     }
-    
+
     snprintf(url1,sizeof(url1),URL1,USERPWD,dfaltsvc); /* embedded */
     snprintf(url2,sizeof(url2),URL2,dfaltsvc); /* using rc file */
 
@@ -202,7 +202,7 @@ killrc()
     const char* home;
 #ifdef KEEPRC
     fprintf(stderr,"kill: ./%s\n",RC);
-#else 
+#else
     char path[1024];
     snprintf(path,sizeof(path),"%s/%s",".",RC);
     unlink(path); /* delete the file */

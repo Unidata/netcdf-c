@@ -96,9 +96,9 @@ H5Z_filter_noop(unsigned int flags, size_t cd_nelmts,
                      size_t *buf_size, void **buf)
 {
     void* newbuf;
-    size_t i;    
+    size_t i;
     const char* direction = (flags & H5Z_FLAG_REVERSE) ? "decompress" : "compress";
-    
+
     NC_UNUSED(instance);
 
     printf("direction=%s id=%lu cd_nelmts=%lu cd_values=",direction,(unsigned long)H5Z_NOOP[0].id,(unsigned long)cd_nelmts);
@@ -149,7 +149,7 @@ static int NCZ_noop_codec_to_hdf5(const char* codec, size_t* nparamsp, unsigned*
 static int NCZ_noop_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp);
 
 /* Structure for NCZ_PLUGIN_CODEC */
-static NCZ_codec_t NCZ_noop_codec = {/* NCZ_codec_t  codec fields */ 
+static NCZ_codec_t NCZ_noop_codec = {/* NCZ_codec_t  codec fields */
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
 #if NOOP_INSTANCE == 0
@@ -196,7 +196,7 @@ NCZ_noop_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
 	{stat = NC_EFILTER; goto done;}
     if(jtmp == NULL || !NCJisatomic(jtmp)) {stat = NC_EINVAL; goto done;}
     if(strcmp(NCJstring(jtmp),NCZ_noop_codec.codecid)!=0) {stat = NC_EINVAL; goto done;}
-  
+
     nparams = (NCJarraylength(jcodec) - 1) / 2; /* -1 for id each param is key+value */
 
     if((params = (unsigned*)calloc(nparams,sizeof(unsigned)))== NULL)
@@ -216,7 +216,7 @@ NCZ_noop_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
     }
     if(nparamsp) *nparamsp = nparams;
     if(paramsp) {*paramsp = params; params = NULL;}
-    
+
 done:
     if(params) free(params);
     NCJreclaim(jcodec);
@@ -247,7 +247,7 @@ NCZ_noop_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }
-    
+
 done:
     return stat;
 }

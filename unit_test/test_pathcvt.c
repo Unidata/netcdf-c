@@ -142,7 +142,7 @@ main(int argc, char** argv)
 	        continue;
 	    }
 	    /* ensure that NC_shellUnescape does not affect result */
-	    unescaped = NC_shellUnescape(test->test);	
+	    unescaped = NC_shellUnescape(test->test);
 	    expanded = expand(test->expected[k]);
 #ifdef DEBUG
 	    fprintf(stderr,">>> unescaped=|%s| expanded=|%s|\n",unescaped,expanded);
@@ -173,7 +173,7 @@ main(int argc, char** argv)
 	    }
 #ifdef DEBUG
 	    fprintf(stderr,"\n");
-#endif	    
+#endif
 	    nullfree(unescaped); unescaped = NULL;
 	    nullfree(expanded); expanded = NULL;
 	    nullfree(cvt); cvt = NULL;
@@ -241,7 +241,7 @@ setmacros(void)
     const char* m;
     for(i=0;i<128;i++) macros[i] = NULL;
     if((m=getenv("MSYS2_PREFIX"))) {
-	macros['m'] = strdup(m);    
+	macros['m'] = strdup(m);
     }
 }
 

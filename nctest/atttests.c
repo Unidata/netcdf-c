@@ -57,8 +57,8 @@ test_ncattput(const char *path) /* name of writable netcdf file to open */
     static nclong long_vals[] = {10, 20};
     static float float_vals[] = {1.5, 2.5, 3.5 };
     static double double_vals[] = {4.5, 5.5, 6.5, 7.5};
-    /* 
-     * test attributes; it is important for this test that the size 
+    /*
+     * test attributes; it is important for this test that the size
      * required for the attribute values increases monotonically.
      */
     static struct cdfatt atts[] = {
@@ -181,8 +181,8 @@ test_ncattput(const char *path) /* name of writable netcdf file to open */
 	free (tmp.val);
     }
     /*
-     * check that changing type of existing attribute, increasing 
-     * length of attribute, and changing value of existing attribute 
+     * check that changing type of existing attribute, increasing
+     * length of attribute, and changing value of existing attribute
      * work OK in define mode.
      */
     tmp.name = (char *) emalloc(MAX_NC_NAME);
@@ -260,9 +260,9 @@ test_ncattput(const char *path) /* name of writable netcdf file to open */
 	      pname);
 	ncclose(cdfid); return ++nerrs;
     }
-    /* 
-     * check that changing type of existing attribute, decreasing 
-     * length of attribute, and changing value of existing attribute 
+    /*
+     * check that changing type of existing attribute, decreasing
+     * length of attribute, and changing value of existing attribute
      * work OK in data mode
      */
     for (ia = 0; ia < na - 1; ia++) {
@@ -767,8 +767,8 @@ test_ncattcopy(const char *path1, const char *path2)
     }
     free (tmp.val);
 
-    /* 
-     * check that old attribute put works with target in data mode, 
+    /*
+     * check that old attribute put works with target in data mode,
      * also checks that changing type and length of an attribute works OK
      */
     if (ncendef (cdfid2) == -1) {
@@ -1072,7 +1072,7 @@ test_ncattname(const char *path) /* name of writable netcdf file to open */
       (void) fprintf(stderr,"FAILED! ***\n");
     else
       (void) fprintf(stderr,"ok ***\n");
-    
+
     return nerrs;
 }
 
@@ -1222,7 +1222,7 @@ test_ncattrename(const char *path) /* name of writable netcdf file to open */
 
 /*
  * Test ncattdel
- *    check that proper delete worked	
+ *    check that proper delete worked
  *    try with bad netCDF handle, check error
  *    try with bad variable handle, check error
  *    try with nonexisting attribute, check error
@@ -1293,7 +1293,7 @@ test_ncattdel(const char *path) /* name of writable netcdf file to open */
 		  &natts) == -1) {
 	error("%s: ncvarinq failed", pname);
 	ncclose(cdfid); return ++nerrs;
-    }    
+    }
 
     /* delete global attribute and check that it's gone */
     if (ncattdel(cdfid, NC_GLOBAL, yaa.name) == -1) {

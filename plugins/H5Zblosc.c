@@ -59,8 +59,8 @@ b. Redistributions in binary form must reproduce the above copyright
    documentation and/or other materials provided with the
    distribution.
 
-c. Neither the name of the author nor the names of contributors may 
-   be used to endorse or promote products derived from this software 
+c. Neither the name of the author nor the names of contributors may
+   be used to endorse or promote products derived from this software
    without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -155,7 +155,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space)
   hsize_t chunkdims[32];
 
   assert(sizeof(hid_t) == 8);
-  
+
   if(H5Pget_filter_by_id1(dcpl, H5Z_FILTER_BLOSC, &flags, &nelements, values, 0, NULL) < 0) goto failed;
 
   assert(nelements == 7);

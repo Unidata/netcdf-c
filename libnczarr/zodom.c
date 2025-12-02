@@ -23,7 +23,7 @@ nczodom_new(int rank, const size64_t* start, const size64_t* stop, const size64_
     if(buildodom(rank,&odom)) return NULL;
     odom->properties.stride1 = 1; /* assume */
     odom->properties.start0 = 1; /* assume */
-    for(i=0;i<rank;i++) { 
+    for(i=0;i<rank;i++) {
 	odom->start[i] = (size64_t)start[i];
 	odom->stride[i] = (size64_t)stride[i];
 	odom->stop[i] = (size64_t)stop[i];
@@ -46,7 +46,7 @@ nczodom_fromslices(int rank, const NCZSlice* slices)
     if(buildodom(rank,&odom)) return NULL;
     odom->properties.stride1 = 1; /* assume */
     odom->properties.start0 = 1; /* assume */
-    for(i=0;i<rank;i++) {    
+    for(i=0;i<rank;i++) {
 	odom->start[i] = slices[i].start;
 	odom->stop[i] = slices[i].stop;
 	odom->stride[i] = slices[i].stride;
@@ -61,7 +61,7 @@ nczodom_fromslices(int rank, const NCZSlice* slices)
     }
     return odom;
 }
-  
+
 void
 nczodom_free(NCZOdometer* odom)
 {
@@ -95,7 +95,7 @@ nczodom_next(NCZOdometer* odom)
 done:
     return;
 }
-  
+
 /* Get the value of the odometer */
 size64_t*
 nczodom_indices(const NCZOdometer* odom)
@@ -118,7 +118,7 @@ nczodom_offset(const NCZOdometer* odom)
         offset *= odom->stop[i];
 #endif
         offset += odom->index[i];
-    } 
+    }
     return offset;
 }
 
@@ -129,7 +129,7 @@ buildodom(int rank, NCZOdometer** odomp)
     NCZOdometer* odom = NULL;
     if(odomp) {
         if((odom = calloc(1,sizeof(NCZOdometer))) == NULL)
-	    goto done;   
+	    goto done;
         odom->rank = rank;
         if((odom->start=calloc(1,(sizeof(size64_t)*(size_t)rank)))==NULL) goto nomem;
         if((odom->stop=calloc(1,(sizeof(size64_t)*(size_t)rank)))==NULL) goto nomem;

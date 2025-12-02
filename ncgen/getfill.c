@@ -78,7 +78,7 @@ fill(Symbol* tsym, Datalist* filler)
         for(i=0;i<listlength(tsym->subnodes);i++) {
 	    NCConstant* fieldinstance = NULL;
 	    Symbol* field = (Symbol*)listget(tsym->subnodes,i);
-	    if(field->typ.dimset.ndims > 0) {	
+	    if(field->typ.dimset.ndims > 0) {
   	        /*  Build a sublist for this field */
 	        Datalist* arraydata = builddatalist(0);
                 fillarray(field->typ.basetype,&field->typ.dimset,0,arraydata);
@@ -89,7 +89,7 @@ fill(Symbol* tsym, Datalist* filler)
 	    } else
 		/* Append directly to cmpdlist*/
 		filllist(field->typ.basetype,cmpdlist);
-        }	  
+        }
         /* Add compound instance to the filler list */
 	con = list2const(cmpdlist);
         dlappend(filler,con);
@@ -127,7 +127,7 @@ filllist(Symbol* tsym, Datalist* dl)
         for(size_t i=0;i<listlength(tsym->subnodes);i++) {
 	    Symbol* field = (Symbol*)listget(tsym->subnodes,i);
 	    filllist(field->typ.basetype,sublist);
-        }	  
+        }
 	con = builddatasublist(sublist);
 	dlappend(dl,con);
 	break;
@@ -233,7 +233,7 @@ nc_getfill(NCConstant* value, Symbol* tsym)
     }
 }
 
-char* 
+char*
 nc_dfaltfillname(nc_type nctype)
 {
     switch (nctype) {

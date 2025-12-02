@@ -141,7 +141,7 @@ memio_new(const char* path, int ioflags, size_t initialsize, ncio** nciopp, NCME
 
     /* Unlike netcdf-4, INMEMORY and DISKLESS share code */
     if(fIsSet(ioflags,NC_DISKLESS))
-	fSet(ioflags,NC_INMEMORY);    
+	fSet(ioflags,NC_INMEMORY);
 
     /* use asserts because this is an internal function */
     assert(fIsSet(ioflags,NC_INMEMORY));
@@ -258,7 +258,7 @@ memio_create(const char* path, int ioflags,
 
     if(path == NULL ||* path == 0)
         return NC_EINVAL;
-    
+
     status = memio_new(path, ioflags, initialsz, &nciop, &memio);
     if(status != NC_NOERR)
         return status;
@@ -266,7 +266,7 @@ memio_create(const char* path, int ioflags,
     if(memio->persist) {
 	/* Verify the file is writeable or does not exist*/
 	if(fileexists(path) && !fileiswriteable(path))
-	    {status = EPERM; goto unwind_open;}	
+	    {status = EPERM; goto unwind_open;}
     }
 
     /* Allocate the memory for this file */
@@ -355,8 +355,8 @@ memio_open(const char* path,
 	/* As a safeguard, if !locked and NC_WRITE is set,
            then we must take control of the incoming memory */
         if(!locked && fIsSet(ioflags,NC_WRITE)) {
-	    memparams->memory = NULL;	    
-	}	
+	    memparams->memory = NULL;
+	}
     } else { /* read the file into a chunk of memory*/
 	assert(diskless);
 	status = readfile(path,&meminfo);
@@ -377,7 +377,7 @@ memio_open(const char* path,
     memio->memory = meminfo.memory;
 
     /* memio_new may have modified the allocated size, in which case,
-       reallocate the memory unless the memory is locked. */    
+       reallocate the memory unless the memory is locked. */
     if(memio->alloc > meminfo.size) {
 	if(memio->locked)
 	    memio->alloc = meminfo.size; /* force it back to what it was */
@@ -396,9 +396,9 @@ fprintf(stderr,"memio_open: initial memory: %lu/%lu\n",(unsigned long)memio->mem
     if(memio->persist) {
 	/* Verify the file is writeable and exists */
 	if(!fileexists(path))
-	    {status = ENOENT; goto unwind_open;}	
+	    {status = ENOENT; goto unwind_open;}
 	if(!fileiswriteable(path))
-	    {status = EACCES; goto unwind_open;}	
+	    {status = EACCES; goto unwind_open;}
     }
 
     /* Use half the filesize as the blocksize ; why? */
@@ -523,7 +523,7 @@ memio_close(ncio* nciop, int doUnlink)
 
     /* See if the user wants the contents persisted to a file */
     if(memio->persist && memio->memory != NULL) {
-	status = writefile(nciop->path,memio);		
+	status = writefile(nciop->path,memio);
     }
 
     /* We only free the memio memory if file is not locked or has been modified */
@@ -646,7 +646,7 @@ memio_sync(ncio* const nciop)
     return NC_NOERR; /* do nothing */
 }
 
-/* "Hidden" Internal function to extract the 
+/* "Hidden" Internal function to extract the
    the size and/or contents of the memory.
 */
 int
@@ -724,7 +724,7 @@ readfile(const char* path, NC_memio* memio)
 done:
     ncbytesfree(buf);
     if(f != NULL) fclose(f);
-    return status;    
+    return status;
 }
 
 /* write contents of a memory chunk back into a disk file */
@@ -737,5 +737,5 @@ writefile(const char* path, NCMEMIO* memio)
         if((status = NC_writefile(path,memio->size,memio->memory))) goto done;
     }
 done:
-    return status;    
+    return status;
 }

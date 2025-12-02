@@ -153,7 +153,7 @@ NC_RO_rename_var(int ncid, int varid, const char *name)
 
 /**
  * @internal Not allowed for read-only access.
- * 
+ *
  * @param ncid File ID.
  * @param varid Variable ID.
  * @param startp Array of start indices.
@@ -217,7 +217,7 @@ int
 NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align,
               size_t v_minfree, size_t r_align)
 {
-   return NC_NOERR;   
+   return NC_NOERR;
 }
 
 /**

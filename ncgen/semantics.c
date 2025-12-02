@@ -503,8 +503,8 @@ orderedtypes(Symbol* avsym, nc_type typ, List* types)
         ASSERT(avsym->objectclass == NC_ATT);
 	container = avsym->container;
 	if(container->objectclass == NC_VAR)
-	    container = container->container;	    
-    }	    
+	    container = container->container;
+    }
     /* walk up the containing groups and collect type */
     for(;container!= NULL;container = container->container) {
 	/* Walk types in the container */
@@ -525,7 +525,7 @@ locateeconst(Symbol* enumt, const char* ecname)
         Symbol* esym = (Symbol*)listget(enumt->subnodes,i);
         ASSERT(esym->subclass == NC_ECONST);
         if(strcmp(esym->name,ecname)==0)
-	    return esym;	
+	    return esym;
     }
     return NULL;
 }
@@ -556,7 +556,7 @@ findeconstenum(Symbol* avsym, NCConstant* con)
     /* See if we can find the enum type */
     for(size_t i=0;i<listlength(typdefs);i++) {
 	Symbol* sym = (Symbol*)listget(typdefs,i);
-	ASSERT(sym->objectclass == NC_TYPE && sym->subclass == NC_ENUM);	
+	ASSERT(sym->objectclass == NC_TYPE && sym->subclass == NC_ENUM);
 	if(path != NULL && strcmp(sym->name,path)==0) {enumt = sym; break;}
 	/* See if enum has a matching econst */
         econst = locateeconst(sym,name);
@@ -1240,7 +1240,7 @@ processvardataR(Symbol* vsym, Dimset* dimset, Datalist* data, int dimindex)
 	ASSERT((datalistlen(data) == 1));
 	/* return clone of this data */
 	newlist = clonedatalist(data);
-	goto done;	
+	goto done;
     }
 
     /* four cases to consider: (dimindex==rank-1 vs dimindex < rank-1) X (unlimited vs fixedsize)*/
@@ -1260,7 +1260,7 @@ processvardataR(Symbol* vsym, Dimset* dimset, Datalist* data, int dimindex)
 	       so, unbpack compound */
 	    ASSERT(datalistlen(data) == 1);
 	    datacon = datalistith(data,0);
-	    actual = compoundfor(datacon);	    		    
+	    actual = compoundfor(datacon);
 	} else
 	    actual = data;
         /* fall through */
@@ -1285,9 +1285,9 @@ processvardataR(Symbol* vsym, Dimset* dimset, Datalist* data, int dimindex)
                 /* Construct a datalist to hold processed subset */
 		newcon = processvardataR(vsym,dimset,subset,dimindex+1);
                 dlappend(newlist,newcon);
-		reclaimdatalist(subset);		
+		reclaimdatalist(subset);
                 if((offset+blocksize) >= datalen) break; /* done */
-            }           
+            }
         }
     }
 done:

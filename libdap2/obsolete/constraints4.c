@@ -45,7 +45,7 @@ buildvaraprojection4(Getvara* getvar,
     /* All slices are assigned to the first (and only segment) */
     dimset = var->array.dimset0;
     segment->rank = nclistlength(var->array.dimset0);
-    for(i=0;i<segment->rank;i++) { 
+    for(i=0;i<segment->rank;i++) {
         DCEslice* slice = &segment->slices[i];
 	CDFnode* dim = (CDFnode*)nclistget(dimset,i);
         slice->first = startp[i];
@@ -91,7 +91,7 @@ prefetchdata4(NCDAPCOMMON* nccomm)
         for(i=0;i<nclistlength(allvars);i++) {
             CDFnode* var = (CDFnode*)nclistget(allvars,i);
             size_t nelems = 1;
-    
+
             /* Compute the # of elements in the variable */
             for(j=0;j<nclistlength(var->array.dimensions);j++) {
                 CDFnode* dim = (CDFnode*)nclistget(var->array.dimensions,j);
@@ -101,7 +101,7 @@ prefetchdata4(NCDAPCOMMON* nccomm)
                 nclistpush(vars,(ncelem)var);
         }
     }
-    
+
     /* If there are no vars, then do nothing */
     if(nclistlength(vars) == 0) {
 	nccomm->cdf.cache->prefetch = NULL;
@@ -115,7 +115,7 @@ prefetchdata4(NCDAPCOMMON* nccomm)
     canonicalprojection34(vars,newconstraint->projections);
     /* similar for selections */
     newconstraint->selections = dceclonelist(constraint->selections);
- 
+
     ncstat = buildcachenode34(nccomm,newconstraint,vars,&cache,0);
     if(ncstat) goto done;
 
@@ -162,16 +162,16 @@ computevarset4(NCDAP4* drno, Getvara* getvar, NClist* varlist)
         switch (getvar->tactic->tactic) {
         case tactic_all: /* add all visible variables */
 	    nclistpush(varlist,(ncelem)var);
-	    break;	    
+	    break;
         case tactic_partial: /* add only small variables + target */
 	    if(var->estimatedsize < drno->dap.cdf.smallsizelimit
 	       || getvar->target == var) {
 		nclistpush(varlist,(ncelem)var);
 	    }
-	    break;	    
+	    break;
         case tactic_var: /* add only target var */
 	    if(getvar->target == var) nclistpush(varlist,(ncelem)var);
-	    break;	    
+	    break;
 	default: break;
 	}
     }

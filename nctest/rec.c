@@ -202,7 +202,7 @@ test_ncrecinq(const char *path) /* name of netcdf file to open */
 	error("%s: ncrecinq failed to report bad handle", pname);
 	nerrs++;
     }
-    
+
     if (nerrs > 0)
       (void) fprintf(stderr,"FAILED! ***\n");
     else
@@ -261,7 +261,7 @@ recput(int ncid, long recnum, void **datap)
 	    if (ncvarput(ncid, rvids[iv], start, edges, datap[iv]) == -1)
 	      return -1;
 	}
-    }    
+    }
     return 0;
 }
 
@@ -295,7 +295,7 @@ recget(int ncid, long recnum, void **datap)
 	    if (ncvarget(ncid, rvids[iv], start, edges, datap[iv]) == -1)
 	      return -1;
 	}
-    }    
+    }
     return 0;
 }
 
@@ -381,7 +381,7 @@ test_ncrecput(const char *path) /* name of writable netcdf file to open */
 	val_fill_zero(vartype[iv], recsize[iv], datar[iv]);
 	zeros[iv] = 0;
     }
-    
+
     if (nrvars > 0) {
 	void *datap0 = datap[0];
 
@@ -536,7 +536,7 @@ test_ncrecget(const char *path) /* name of netcdf file to open */
 	val_fill_zero(vartype[iv], recsize[iv], datar[iv]);
 	zeros[iv] = 0;
     }
-    
+
     if (nrvars > 0) {
 	void *datap0 = datap[0];
 	void *datar0 = datar[0];
@@ -587,7 +587,7 @@ test_ncrecget(const char *path) /* name of netcdf file to open */
       (void) fprintf(stderr,"FAILED! ***\n");
     else
       (void) fprintf(stderr,"ok ***\n");
-    
+
     return nerrs;
 }
 

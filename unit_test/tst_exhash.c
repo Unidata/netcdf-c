@@ -96,7 +96,7 @@ main(int argc, char** argv)
     map=ncexhashnew(LEAFN);
     if(map == NULL) CHECK(NC_EINVAL);
 #ifdef VERBOSE
-    fprintf(stderr,"new:\n"); ncexhashprint(map);    
+    fprintf(stderr,"new:\n"); ncexhashprint(map);
 #endif
     for(key=0;key<*np;key++) {
 	ncexhashkey_t hashkey = hkeyfor(key);
@@ -106,7 +106,7 @@ main(int argc, char** argv)
 	CHECK(ncexhashput(map,hashkey,(uintptr_t)key));
     }
 #ifdef VERBOSE
-    fprintf(stderr,"insert.after:");ncexhashprint(map);    
+    fprintf(stderr,"insert.after:");ncexhashprint(map);
 #endif
 
     NCT_marktime(&inserttime[1]);
@@ -127,7 +127,7 @@ main(int argc, char** argv)
 
     NCT_marktime(&readtime[1]);
 
-    fprintf(stderr,"statistics:\n"); ncexhashprintstats(map);    
+    fprintf(stderr,"statistics:\n"); ncexhashprintstats(map);
     fprintf(stderr,"times: N=%u\n",*np);
 
     if(!NCT_reporttime(*np, inserttime, insertrange, "insert")) goto fail;
@@ -154,7 +154,7 @@ main(int argc, char** argv)
 	fprintf(stderr,"iterating: |keys|=%u  |matches|=%u\n",*np,nmatches);
 	if(found) free(found);
     }
-    
+
     /* Test setdata */
     {
 	fprintf(stderr,"setdata: %u\n",*np);
@@ -211,7 +211,7 @@ main(int argc, char** argv)
 	NCT_marktime(&remtime[1]);
         if(!NCT_reporttime(*np, remtime, remrange, "removal")) goto fail;
     }
-    
+
     ncexhashmapfree(map);
 
     }

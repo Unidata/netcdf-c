@@ -18,7 +18,7 @@
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #endif
-    
+
 #include "netcdf.h"
 #include "netcdf_aux.h"
 #include "ncbytes.h"
@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 	fname = strdup(argv[0]);
     }
 
-    if(tag == NULL) tag = strdup(progname);    
+    if(tag == NULL) tag = strdup(progname);
     if(ncaux_readfile(fname,&len,(void**)&data0)) usage();
     if(offset >= len) {
 	fprintf(stderr,"Offset too large: file length = %u\n",(unsigned)len);

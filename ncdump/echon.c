@@ -52,7 +52,7 @@ main(int argc, char** argv)
 	case 'N': noeol = 0; break;
 	case '?': default: break; /* ignore */
 	}
-    }    
+    }
 
 nomoreargs:
     /* leave non-flag args */
@@ -65,7 +65,7 @@ nomoreargs:
     input = (char*)calloc(1,(size_t)len+1+1); /* +1 for nul term +1 for '\n' */
     assert(input != NULL);
     input[0] = '\0';
-    /* Concat all the arguments with  ' ' between them */   
+    /* Concat all the arguments with  ' ' between them */
     for(i=0;i<argc;i++) {
 	if(i > 0) strcat(input," ");
 	strcat(input,argv[i]);
@@ -89,7 +89,7 @@ nomoreargs:
 		case 't': *q++ = '\t'; break;
 		case 'v': *q++ = '\v'; break;
 		default: *q++ = *p; break;
-		}		 
+		}
 		break;
 	    }
 	    p++;

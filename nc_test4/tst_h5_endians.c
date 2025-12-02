@@ -49,7 +49,7 @@ f32swap(float x)
   unsigned char c;
   u.f = x;
   c = u.bytes[0]; u.bytes[0] = u.bytes[3]; u.bytes[3] = c;
-  c = u.bytes[1]; u.bytes[1] = u.bytes[2]; u.bytes[2] = c;  
+  c = u.bytes[1]; u.bytes[1] = u.bytes[2]; u.bytes[2] = c;
   return u.f;
 }
 
@@ -65,7 +65,7 @@ f64swap(double x)
   c = u.bytes[0]; u.bytes[0] = u.bytes[7]; u.bytes[7] = c;
   c = u.bytes[1]; u.bytes[1] = u.bytes[6]; u.bytes[6] = c;
   c = u.bytes[2]; u.bytes[2] = u.bytes[5]; u.bytes[5] = c;
-  c = u.bytes[3]; u.bytes[3] = u.bytes[4]; u.bytes[4] = c;  
+  c = u.bytes[3]; u.bytes[3] = u.bytes[4]; u.bytes[4] = c;
   return u.d;
 }
 #endif

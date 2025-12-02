@@ -117,7 +117,7 @@ NCZ_def_dim(int ncid, const char *name, size_t len, int *idp)
             return NC_ENOMEM;
         dim->format_dim_info = diminfo;
         diminfo->common.file = h5;
-    }    
+    }
 
     /* Pass back the dimid. */
     if (idp)

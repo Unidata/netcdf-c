@@ -30,7 +30,7 @@ printrc(NCglobalstate* ngs)
 	    printf("[%s ",entry->host);
             if(entry->urlpath != NULL)
 	        printf("/%s] ",entry->urlpath);
-	    printf("]");					
+	    printf("]");
         }
 	printf("|%s|->|%s|\n",entry->key,entry->value);
     }

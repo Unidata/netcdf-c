@@ -26,7 +26,7 @@
 /* This is the concatenation of
 
 unicodedatabase.c codepoint.c database.c streaming.c
-composition.c decomposition.c utf8rewind.c 
+composition.c decomposition.c utf8rewind.c
 (order is important)
 
 with some modifications to simplify
@@ -10982,7 +10982,7 @@ const CompositionRecord UnicodeCompositionRecord[940] = {
 };
 const CompositionRecord* UnicodeCompositionRecordPtr = UnicodeCompositionRecord;
 
-const char* CompressedStringData = 
+const char* CompressedStringData =
 	"\x41\xCC\x80\x41\xCC\x81\x41\xCC\x82\x41\xCC\x83\x41\xCC\x88\x41\xCC\x8A\x43\xCC\xA7\x45\xCC\x80\x45"
 	"\xCC\x81\x45\xCC\x82\x45\xCC\x88\x49\xCC\x80\x49\xCC\x81\x49\xCC\x82\x49\xCC\x88\x4E\xCC\x83\x4F\xCC"
 	"\x80\x4F\xCC\x81\x4F\xCC\x82\x4F\xCC\x83\x4F\xCC\x88\x55\xCC\x80\x55\xCC\x81\x55\xCC\x82\x55\xCC\x88"
@@ -12399,7 +12399,7 @@ static uint8_t compose_execute(ComposeState* state)
 				if (state->output->codepoint[cursor_current] >= HANGUL_L_FIRST &&
 					state->output->codepoint[cursor_current] <= HANGUL_L_LAST)
 				{
-					/* Check for Hangul LV pair */ 
+					/* Check for Hangul LV pair */
 
 					if (state->output->codepoint[cursor_next] >= HANGUL_V_FIRST &&
 						state->output->codepoint[cursor_next] <= HANGUL_V_LAST)
@@ -12414,7 +12414,7 @@ static uint8_t compose_execute(ComposeState* state)
 					state->output->codepoint[cursor_current] >= HANGUL_S_FIRST &&
 					state->output->codepoint[cursor_current] <= HANGUL_S_LAST)
 				{
-					/* Check for Hangul LV and T pair */ 
+					/* Check for Hangul LV and T pair */
 
 					if (state->output->codepoint[cursor_next] >= HANGUL_T_FIRST &&
 						state->output->codepoint[cursor_next] <= HANGUL_T_LAST)
@@ -12452,7 +12452,7 @@ static uint8_t compose_execute(ComposeState* state)
 						codepoint   U+1E0A U+0000 U+0031
 						    index        0      1      2
 
-						If the second codepoint was at the end of the sequence, the output 
+						If the second codepoint was at the end of the sequence, the output
 						sequence is shortened by one.
 					*/
 
@@ -12503,12 +12503,12 @@ static uint8_t compose_execute(ComposeState* state)
 
 			/*
 				We want to move valid codepoints to the left as much as possible in order to fill up
-				holes left by the composition process. 
+				holes left by the composition process.
 
 				Note that the process does not clear unused codepoints at the end, this is a small
 				optimization in order to avoid unnecessary clears. The length member is adjusted to
 				the new size.
-				
+
 				Before reordering:
 
 				codepoint   A  B  0  0  0  D
@@ -12889,7 +12889,7 @@ static uint8_t decompose_execute(DecomposeState* state)
 }
 
 /**
-   Given a utf8 string, input, 
+   Given a utf8 string, input,
 
 */
 

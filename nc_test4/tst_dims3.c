@@ -401,7 +401,7 @@ main(int argc, char **argv)
        int dimids[NDIM2];
        size_t start[NDIM2] = {0, 0}, count[NDIM2] = {DATALEN2, 1}, dimlen;
        int data[DATALEN2] = {42, 42};
-       
+
        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
        if (nc_def_dim(ncid, "x", DATALEN2, &dimids[0])) ERR;
        if (nc_def_dim(ncid, "t", NC_UNLIMITED, &dimids[1])) ERR;
@@ -452,7 +452,7 @@ main(int argc, char **argv)
        int dimids[NDIM2];
        size_t start[NDIM2], count[NDIM2], dimlen;
        int data[DATALEN2];
-       
+
        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
        if (nc_def_dim(ncid, "x", DATALEN2, &dimidx)) ERR;
        if (nc_def_dim(ncid, "t", NC_UNLIMITED, &dimidt)) ERR;

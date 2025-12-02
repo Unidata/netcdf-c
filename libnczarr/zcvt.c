@@ -44,7 +44,7 @@ NCZ_string2cvt(char* src, nc_type srctype, struct ZCVT* zcvt, nc_type* typeidp)
     nc_type dsttype = NC_NAT;
 
     assert(zcvt);
-    
+
     /* Convert to a restricted set of values */
     switch (srctype) {
     case NC_BYTE: {
@@ -107,7 +107,7 @@ NCZ_json2cvt(const NCjson* jsrc, struct ZCVT* zcvt, nc_type* typeidp)
     nc_type srctype = NC_NAT;
     double naninf;
     float naninff;
-    
+
     /* Convert the incoming jsrc to a restricted set of values */
     switch (NCJsort(jsrc)) {
     case NCJ_INT: /* convert to (u)int64 */
@@ -399,11 +399,11 @@ NCZ_convert1(const NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	    snprintf(digits,sizeof(digits),"%lli",(unsigned long long)zcvt.uint64v);
 	    ncbytesappendn(buf,digits,strlen(digits));
 	    break;
-	case NC_STRING: 
+	case NC_STRING:
 	    len = strlen(zcvt.strv);
 	    ncbytesappendn(buf,zcvt.strv,len);
 	default: abort();
-	}	
+	}
 	} break;
     default: stat = NC_EINTERNAL; goto done;
     }
@@ -425,7 +425,7 @@ NCZ_stringconvert1(nc_type srctype, char* src, NCjson* jvalue)
     char* p = NULL;
     int isnanorinf = 0;
 
-    assert(srctype >= NC_NAT && srctype != NC_CHAR && srctype <= NC_STRING);    
+    assert(srctype >= NC_NAT && srctype != NC_CHAR && srctype <= NC_STRING);
     /* Convert to a restricted set of values */
     switch (srctype) {
     case NC_BYTE: {
@@ -631,6 +631,6 @@ naninftest(const char* s, double* dcase, float* fcase)
     } else if(strcasecmp(s,"-infinityf")==0) {
 	*dcase = (- INFINITY); *fcase = (- INFINITYF);
 	nctype = NC_FLOAT;
-    }    
+    }
     return nctype;
 }

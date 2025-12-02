@@ -21,7 +21,7 @@ static void dumpocnode1(OCnode* node, int depth);
 static void dumpdimensions(OCnode* node);
 static void dumpattvalue(OCtype nctype, char** aset, int index);
 
-static const char* sindent = 
+static const char* sindent =
 	"                                                                                                     ";
 
 static const char*

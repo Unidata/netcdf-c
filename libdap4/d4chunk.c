@@ -50,12 +50,12 @@ NCD4_dechunk(NCD4response* resp)
             /* Avoid strdup since rawdata might contain nul chars */
 	    len = resp->raw.size;
             if((resp->serial.dmr = malloc(len+1)) == NULL)
-                return THROW(NC_ENOMEM);    
+                return THROW(NC_ENOMEM);
             memcpy(resp->serial.dmr,praw,len);
             resp->serial.dmr[len] = '\0';
             /* Suppress nuls */
             (void)NCD4_elidenuls(resp->serial.dmr,len);
-            return THROW(NC_NOERR); 
+            return THROW(NC_NOERR);
 	}
     } else if(resp->mode != NCD4_DAP)
     	return THROW(NC_EDAP);
@@ -81,7 +81,7 @@ NCD4_dechunk(NCD4response* resp)
 
     /* avoid strxxx operations on dmr */
     if((resp->serial.dmr = malloc(hdr.count+1)) == NULL)
-        return THROW(NC_ENOMEM);        
+        return THROW(NC_ENOMEM);
     memcpy(resp->serial.dmr,pdmr,hdr.count);
     resp->serial.dmr[hdr.count-1] = '\0';
     /* Suppress nuls */
@@ -108,7 +108,7 @@ NCD4_dechunk(NCD4response* resp)
 	pchunk  -- pointer to the data part of the current chunk
 	pappend -- where to append next chunk to the growing dechunked data
     */
-    for(firstchunk=1;;firstchunk=0) {	
+    for(firstchunk=1;;firstchunk=0) {
         pchunk = NCD4_getheader(phdr,&hdr,resp->controller->platform.hostlittleendian); /* Process first data chunk header */
 	if(firstchunk) {
 	    pdap = phdr; /* remember start point of the dechunked data */
@@ -133,7 +133,7 @@ NCD4_dechunk(NCD4response* resp)
 #ifdef D4DUMPDAP
     NCD4_tagdump(resp->serial.dapsize,resp->serial.dap,0,"DAP");
 #endif
-    return THROW(NC_NOERR);    
+    return THROW(NC_NOERR);
 }
 
 static int
@@ -158,7 +158,7 @@ NCD4_infermode(NCD4response* resp)
     char* raw = resp->raw.memory;
 
     if(size < 16)
-        return THROW(NC_EDAP); /* must have at least this to hold a hdr + partial dmr*/ 
+        return THROW(NC_EDAP); /* must have at least this to hold a hdr + partial dmr*/
     if(memcmp(raw,"<?xml",strlen("<?xml"))==0
        || memcmp(raw,"<Dataset",strlen("<Dataset"))==0) {
         resp->mode = NCD4_DMR;

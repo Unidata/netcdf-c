@@ -19,7 +19,7 @@ main()
     /* Open existing file in read/write mode */
     if ((res = nc_open("zero-len-attribute-test.nc", NC_WRITE, &ncid)))
         BAIL(res);
-    
+
     len1 = strlen (STR1);
     /* printf ("Write global attribute, strlen = %d\n", len1); */
 

@@ -50,14 +50,14 @@ main(int argc, char** argv)
     NCglobalstate* gs = NC_getglobalstate();
     //Not checking, aborts if ~/.aws/config doesn't exist
     CHECK(NC_aws_load_credentials(gs));
-    
+
     // Lets ensure the active profile is loaded
     // from the configuration files instead of an URL
     const char* activeprofile = NULL;
     CHECK(NC_getactives3profile(NULL, &activeprofile));
 
     fprintf(stderr, "Active profile:%s\n", STR(activeprofile));
-    
+
     // ARGV contains should contain "key[=value]" to verify
     // if key was parsed when loading the aws config and if it's
     // value is updated in case it's redefined on the .aws/credentials
@@ -68,8 +68,8 @@ main(int argc, char** argv)
 
         NC_s3profilelookup(activeprofile,argkey,&value);
         fprintf(stderr, "%s\t%s -> %s\n",value?"":"*** FAIL:", argv[i],value?value:"NOT DEFINED!");
-        if ( value == NULL 
-            || (argvalue != NULL 
+        if ( value == NULL
+            || (argvalue != NULL
                 && strncmp(value, argvalue, strlen(value)))
         ){
                 c++;

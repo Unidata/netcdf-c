@@ -188,7 +188,7 @@ urlmodetest(const char* path)
 {
     int kind = 0;
     NCURI* uri = NULL;
-    
+
     ncuriparse(path,&uri);
     if(uri == NULL) return 0; /* Not URL */
     if(NC_testmode(uri, "bytes")) {

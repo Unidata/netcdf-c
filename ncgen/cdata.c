@@ -8,7 +8,7 @@
 
 #ifdef ENABLE_C
 
-#include <math.h> 
+#include <math.h>
 #ifndef isnan
 extern int isnan(double);
 #endif
@@ -38,7 +38,7 @@ c_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf,.
 
     switch (con->nctype) {
     case NC_CHAR:
-	if(con->value.charv == '\'') 
+	if(con->value.charv == '\'')
 	    bbprintf(codetmp,"'\\''");
 	else
 	    bbprintf(codetmp,"'%s'",cescapifychar(con->value.charv,'\''));
@@ -106,7 +106,7 @@ c_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf,.
 	while(*p) {
 	    strlcat(special,"\\x",bslen+3);
 	    strlcat(special,p,bslen+3);
-	    p += 2;	
+	    p += 2;
 	}
 	strlcat(special,"\"",bslen+3);
 	} break;

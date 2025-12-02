@@ -119,7 +119,7 @@ gen_ncjava_std(const char *filename)
 		 filename,(nofill_flag?"false":"true"));
     jlined(1,stmt);
     jflush();
-    
+
     /* define dimensions from info in dims array */
     if (ndims > 0) {
 	jline("");
@@ -167,19 +167,19 @@ gen_ncjava_std(const char *filename)
         }
         jflush();
     }
-        
+
     /* Define the global attributes*/
     if(ngatts > 0) {
         jline("");
         jlined(1,"/* assign global attributes */");
         for(iatt = 0; iatt < ngatts; iatt++) {
             Symbol* gasym = (Symbol*)listget(gattdefs,iatt);
-            genjstd_defineattribute(gasym);            
+            genjstd_defineattribute(gasym);
         }
         jline("");
         jflush();
     }
-    
+
     /* Define the variable specific attributes*/
     if(natts > 0) {
         jline("");
@@ -246,7 +246,7 @@ genjstd_defineattribute(Symbol* asym)
 
     code = bbNew();
 
-    genjstd_attrdata(asym,code);   
+    genjstd_attrdata(asym,code);
 
     /* Handle primitives separately */
     if(asym->typ.basetype->typ.typecode != NC_CHAR) commify(code);
@@ -336,7 +336,7 @@ computemaxunlimited(void)
     maxsize = 0;
     for(i=0;i<listlength(vardefs);i++) {
         Symbol* dim;
-        Symbol* var = (Symbol*)listget(vardefs,i);      
+        Symbol* var = (Symbol*)listget(vardefs,i);
         if(var->typ.dimset.ndims == 0) continue; /* rank == 0*/
         dim = var->typ.dimset.dimsyms[0];
         if(dim->dim.size != NC_UNLIMITED) continue; /* var does not use unlimited*/
@@ -429,12 +429,12 @@ genjstd_definevardata(Symbol* vsym)
     nprintf(stmt,sizeof(stmt),"ncfile.write(\"%s\",data);",
 		jescapifyname(vsym->name));
     jlined(1,stmt);
-    bbFree(code);    
+    bbFree(code);
     jlined(1,"}");
     jflush();
 }
 
-const char* 
+const char*
 jtypeallcaps(nc_type type)
 {
     switch (type) {
@@ -455,7 +455,7 @@ jtypeallcaps(nc_type type)
     return 0;
 }
 
-const char* 
+const char*
 jtypecap(nc_type type)
 {
     switch (type) {

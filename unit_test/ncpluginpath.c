@@ -94,7 +94,7 @@ getfrom(int formatx, char** textp)
     int stat = NC_NOERR;
     NCPluginList dirs = {0,NULL};
     char* text = NULL;
-   
+
     /* Get a plugin path */
     switch (formatx) {
     case 0: /* Global */

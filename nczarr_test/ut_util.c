@@ -42,7 +42,7 @@ parseslices(const char* s0, int* nslicesp, NCZSlice* slices)
     for(s=s0,nslices=0;*s;s++) {
 	if(*s == '[') nslices++;
     }
-    
+
     if(nslices > NC_MAX_VAR_DIMS) return THROW(NC_EINVAL); /* too many */
     if(nslicesp) *nslicesp = nslices;
 
@@ -70,11 +70,11 @@ parsedimdef(const char* s0, Dimdef** defp)
 {
     int nchars;
     const char* s = NULL;
-    Dimdef* def = NULL;    
+    Dimdef* def = NULL;
     unsigned l;
     const char* p;
     ptrdiff_t count;
-    
+
     if((def = calloc(1,sizeof(struct Dimdef)))==NULL)
 	return THROW(NC_ENOMEM);
 
@@ -101,7 +101,7 @@ parsevardef(const char* s0, NClist* dimdefs, Vardef** varp)
 {
     int count;
     const char* s = NULL;
-    Vardef* vd = NULL;    
+    Vardef* vd = NULL;
     const char* p;
     ptrdiff_t len;
     char name[NC_MAX_NAME];
@@ -114,7 +114,7 @@ parsevardef(const char* s0, NClist* dimdefs, Vardef** varp)
     /* Scan for the end of type name */
     p = strchr(s,BLANK);
     if(p == NULL) return THROW(NC_EINVAL);
-    len = (p - s);  
+    len = (p - s);
     if(len == 0) return THROW(NC_EINVAL);
     memcpy(name,s,(size_t)len);
     name[len] = '\0';
@@ -124,13 +124,13 @@ parsevardef(const char* s0, NClist* dimdefs, Vardef** varp)
     s = p;
 
     /* Scan for the end of var name */
-    p = strchr(s,LPAREN);   
+    p = strchr(s,LPAREN);
     if(p == NULL) return THROW(NC_EINVAL);
-    len = (p - s);  
+    len = (p - s);
     if(len == 0) return THROW(NC_EINVAL);
     memcpy(name,s,(size_t)len);
     name[len] = '\0';
-    vd->name = strdup(name);     
+    vd->name = strdup(name);
     /* parse a vector of dimnames and chunksizes and convert */
     s = p;
     if(*s == LPAREN) {
@@ -146,7 +146,7 @@ parsevardef(const char* s0, NClist* dimdefs, Vardef** varp)
                 Dimdef* dimref = NULL;
                 /* Split on / to get chunksize */
                 p = strchr(names[j],'/');
-                if(p) *p++ = '\0';              
+                if(p) *p++ = '\0';
                 if((dimref = finddim(names[j],dimdefs)) == NULL)
                     return THROW(NC_EINVAL);
                 vd->dimrefs[j] = dimref;
@@ -266,7 +266,7 @@ printvec(int len, size64_t* vec)
     ncbytescat(buf,"(");
     for(i=0;i<len;i++) {
         if(i > 0) ncbytescat(buf,",");
-        snprintf(value,sizeof(value),"%lu",(unsigned long)vec[i]);      
+        snprintf(value,sizeof(value),"%lu",(unsigned long)vec[i]);
         ncbytescat(buf,value);
     }
     ncbytescat(buf,")");
@@ -317,7 +317,7 @@ finddim(const char* name, NClist* defs)
         Dimdef* dd = nclistget(defs,i);
         if(strcmp(dd->name,name) == 0)
             return dd;
-    }    
+    }
     return NULL;
 }
 
@@ -356,7 +356,7 @@ computelinearoffset(int R, const size64_t* indices, const size64_t* max, size64_
           offset *= max[i];
           offset += indices[i];
 	  product *= max[i];
-      } 
+      }
       if(productp) *productp = product;
       return offset;
 }

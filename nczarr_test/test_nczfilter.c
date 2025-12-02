@@ -34,7 +34,7 @@ main(int argc, char **argv)
     unsigned int filterids[8];
     size_t nparams;
     unsigned inqparams[8];
-    
+
     if(argc == 1)
 	furl = FILENAME;
     else
@@ -59,7 +59,7 @@ main(int argc, char **argv)
     if(nparams != 1) ERR(NC_EFILTER);
     if(inqparams[0] != params[0]) ERR(NC_EFILTER);
     printf("nparams=%u params[0]=%u\n",(unsigned)nparams,(unsigned)inqparams[0]);
-    
+
     if ((ret=nc_close(ncid))) ERR(ret);
 
     nc_finalize();

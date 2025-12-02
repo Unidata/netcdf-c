@@ -222,7 +222,7 @@ nclistremove(NClist* l, size_t i)
   if(i >= len) return NULL;
   elem = l->content[i];
   memmovex(l->content+i,l->content+(i+1),(len-(i+1))*sizeof(void*));
-#if 0  
+#if 0
   for(i+=1;i<len;i++) l->content[i-1] = l->content[i];
 #endif
   l->length--;
@@ -321,7 +321,7 @@ nclistclone(const NClist* l, int deep)
 	for(i=0;i<nclistlength(l);i++) {
 	    char* dups = strdup(nclistget(l,i));
 	    if(dups == NULL) {nclistfreeall(clone); clone = NULL; goto done;}
-	    nclistpush(clone,dups);	    
+	    nclistpush(clone,dups);
 	}
     }
     clone->content[l->length] = (void*)0;
@@ -399,4 +399,4 @@ memmovex(void* dst, void* src, size_t len)
     }
 #endif
 }
-    
+

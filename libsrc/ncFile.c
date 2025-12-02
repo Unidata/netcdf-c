@@ -51,7 +51,7 @@ getState(ncstdio* iop)
     if(iop != NULL) {
 	if(iop->state != NULL) {
 	    return (struct ncFileState*)iop->state;
-	}	
+	}
     }
     return NULL;
 }
@@ -105,7 +105,7 @@ ncFile_open(const char *path, int ioflags, ncstdio** filepp)
     return NC_NOERR;
 }
 
-static int 
+static int
 NCFile_close(ncstdio* filep, int delfile)
 {
     struct ncFileState* state;
@@ -116,10 +116,10 @@ NCFile_close(ncstdio* filep, int delfile)
     state->file = NULL;
     if(delfile)
 	unlink(state->path);
-    return NC_NOERR;          
+    return NC_NOERR;
 }
 
-static int 
+static int
 NCFile_free(ncstdio* filep)
 {
     struct ncFileState* state;
@@ -132,7 +132,7 @@ NCFile_free(ncstdio* filep)
 	free(state);
     }
     free(filep);
-    return NC_NOERR;          
+    return NC_NOERR;
 }
 
 static int
@@ -143,7 +143,7 @@ NCFile_flush(ncstdio* filep);
     state = (struct ncFileState*)filep->state;
     if(state == NULL) return NC_EINVAL;
     if(state->file == NULL) return NC_EINVAL;
-    fflush(state->file);	
+    fflush(state->file);
     return NC_NOERR;
 }
 
@@ -187,12 +187,12 @@ static int
 NCFile_read(ncstdio* filep, void* memory, const size_t size, size_t* actualp);
 {
     struct ncFileState* state;
-    size_t actual;    
+    size_t actual;
     if(filep == NULL) return NC_EINVAL;
     state = (struct ncFileState*)filep->state;
     if(state == NULL || state->file == NULL) return NC_EINVAL;
     actual = fread(memory,1,size,state->file);
-    if(actualp) *actualp = actual;    
+    if(actualp) *actualp = actual;
     return (actual < size ? NC_EIO : NC_NOERR);
 }
 
@@ -200,16 +200,16 @@ static int
 NCFile_write(ncstdio* filep, const void* memory, const size_t size, size_t* actual);
 {
     struct ncFileState* state;
-    size_t actual;    
+    size_t actual;
     if(filep == NULL) return NC_EINVAL;
     state = (struct ncFileState*)filep->state;
     if(state == NULL || state->file == NULL) return NC_EINVAL;
     actual = fwrite(memory,1,size,state->file);
-    if(actualp) *actualp = actual;    
+    if(actualp) *actualp = actual;
     return (actual < size ? NC_EIO : NC_NOERR);
 }
 
-static int 
+static int
 NCFile_uid(ncstdio* filep, int* idp)
 {
     struct ncFileState* state;

@@ -158,7 +158,7 @@ nclog(NCLOGDEBUG,"prefetch: %s",var->ncfullname);
 	DCEprojection* varprojection;
         CDFnode* var = (CDFnode*)nclistget(vars,i);
 	/* Ignore invisible vars */
-	if(var->invisible) continue; 
+	if(var->invisible) continue;
 	/* convert var to a projection */
 	ncstat = dapvar2projection(var,&varprojection);
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}

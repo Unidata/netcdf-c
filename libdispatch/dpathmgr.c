@@ -425,7 +425,7 @@ NCfopen(const char* path, const char* flags)
 
 #ifdef WINUTF8
     if(acp == CP_UTF8) {
-        /* This should take utf8 directly */ 
+        /* This should take utf8 directly */
         f = fopen(cvtpath,bflags8);
     } else
 #endif
@@ -464,7 +464,7 @@ NCopen3(const char* path, int flags, int mode)
 #endif
 #ifdef WINUTF8
     if(acp == CP_UTF8) {
-        /* This should take utf8 directly */ 
+        /* This should take utf8 directly */
         fd = _open(cvtpath,flags,mode);
     } else
 #endif
@@ -531,7 +531,7 @@ NCaccess(const char* path, int mode)
     if((cvtpath = NCpathcvt(path8)) == NULL) {stat = EINVAL; goto done;}
 #ifdef WINUTF8
     if(acp == CP_UTF8) {
-        /* This should take utf8 directly */ 
+        /* This should take utf8 directly */
         if(_access(cvtpath,mode) < 0) {stat = errno; goto done;}
     } else
 #endif
@@ -564,7 +564,7 @@ NCremove(const char* path)
     if((cvtpath = NCpathcvt(path8)) == NULL) {status=ENOMEM; goto done;}
 #ifdef WINUTF8
     if(acp == CP_UTF8) {
-        /* This should take utf8 directly */ 
+        /* This should take utf8 directly */
         if(remove(cvtpath) < 0) {status = errno; goto done;}
     } else
 #endif
@@ -596,7 +596,7 @@ NCmkdir(const char* path, int mode)
     if((cvtpath = NCpathcvt(path8)) == NULL) {status=ENOMEM; goto done;}
 #ifdef WINUTF8
     if(acp == CP_UTF8) {
-        /* This should take utf8 directly */ 
+        /* This should take utf8 directly */
         if(_mkdir(cvtpath) < 0) {status = errno; goto done;}
     } else
 #endif
@@ -623,7 +623,7 @@ NCrmdir(const char* path)
 
     /* First, convert from current Code Page to utf8 */
     if((status = ansi2utf8(path,&path8))) goto done;
-	
+
     cvtname = NCpathcvt(path8);
     if(cvtname == NULL) {errno = ENOENT; status = -1;}
     status = rmdir(cvtname);
@@ -747,7 +747,7 @@ NCstdbinary(void)
     if(_setmode(fd,_O_BINARY)<0) return NC_EINVAL;
     fd = _fileno(stderr);
     if(_setmode(fd,_O_BINARY)<0) return NC_EINVAL;
-    return NC_NOERR;        
+    return NC_NOERR;
 }
 
 #else /*!WINPATH*/

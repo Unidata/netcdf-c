@@ -355,7 +355,7 @@ testlistlong(void)
     for(i=0;i<GETKEYLEN;i++) {
         if(checklist[i] == 0)
 	    fprintf(stderr,"checklist[%d]=0\n",(int)i);
-    }    
+    }
 
 #ifdef SELF_CLEAN
     /* Clean up s3 store */
@@ -370,7 +370,7 @@ testlistlong(void)
         default:           printf("failed\n");         break;
         }
         stat = NC_NOERR; /* reset */
-    }    
+    }
 #endif
 
 done:
@@ -434,7 +434,7 @@ testdeletekey(void)
     default:           printf("failed\n");         break;
     }
     stat = NC_NOERR; /* reset */
-    
+
     /* Verify deleted and size */
     stat = NC_s3sdkinfo(s3client, s3info.bucket, buildkey(dumpoptions.key), &size, NULL);
     printf("testdeletekey: url %s%s: ",newurl,buildkey(dumpoptions.key));
@@ -509,7 +509,7 @@ main(int argc, char** argv)
         fprintf(stderr,"no -u argument\n");
         stat = NC_EINVAL;
         goto done;
-    }        
+    }
 
     if(dumpoptions.test) {
         /* Mimic run_s3sdk.sh test */
@@ -564,7 +564,7 @@ main(int argc, char** argv)
             stat = NC_EINVAL;
             goto done;
 	    }
-	   
+
 
         switch (dumpoptions.action) {
         case EXISTS_ACTION: stat = testbucketexists(); break;

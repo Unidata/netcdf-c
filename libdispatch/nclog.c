@@ -20,7 +20,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
- 
+
 #include "netcdf.h"
 #include "nclog.h"
 
@@ -64,7 +64,7 @@ ncloginit(void)
     nclogginginitialized = 1;
     memset(&nclog_global,0,sizeof(nclog_global));
     ncsetloglevel(NCLOGOFF);
-    nclog_global.tracelevel = -1;    
+    nclog_global.tracelevel = -1;
     nclog_global.nclogstream = stderr;
     /* Use environment variables to preset nclogging state*/
     envv = getenv(NCENVLOGGING);
@@ -206,7 +206,7 @@ nctracelevel(int level)
       nclog_global.tracelevel = level;
     } else { /*(level >= 0)*/
         nclog_global.tracelevel = level;
-	nclogopen(NULL); /* use stderr */    
+	nclogopen(NULL); /* use stderr */
     }
     return oldlevel;
 }

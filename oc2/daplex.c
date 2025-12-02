@@ -170,7 +170,7 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
                         of code will address the issue.
 		    */
 #ifdef KEEPSLASH
-		    dapaddyytext(lexstate,c);		    
+		    dapaddyytext(lexstate,c);
 #endif
 		    c=*(++p);
 		    if(c == '\0') more = 0;

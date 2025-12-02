@@ -304,7 +304,7 @@ ocping(const char* url)
 
     /* Create a CURL instance */
     stat = occurlopen(&curl);
-    if(stat != OC_NOERR) return stat;    
+    if(stat != OC_NOERR) return stat;
 
     /* Use redirects */
     cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L));

@@ -198,7 +198,7 @@ test_plus_one(const char *testfile)
    for(i=0;i<DIM3_LEN;i++) {
 	if(idata[i] != i)
 	    ERR;
-   }   
+   }
    if((status=nc_close(ncid))) ERRSTAT(status);
    return 0;
 }

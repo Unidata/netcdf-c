@@ -95,7 +95,7 @@ struct Metadata {
     struct Dim d1;
     struct Dim d2;
     struct Dim d4;
-    /* var ids */    
+    /* var ids */
     struct Var intvar;
     struct Var strvar;
     struct Var vintvar;
@@ -191,7 +191,7 @@ setupatts(int ncid, struct Var* var)
 {
     int stat = NC_NOERR;
     int i;
-    if((stat=nc_inq_varnatts(ncid,var->vid,&var->natts))) return NCTHROW(stat);    
+    if((stat=nc_inq_varnatts(ncid,var->vid,&var->natts))) return NCTHROW(stat);
     var->atts = (struct Att*)calloc(sizeof(struct Att),MAXOBJECTS);
     if(var->atts == NULL) return NCTHROW(NC_ENOMEM);
 
@@ -319,7 +319,7 @@ static int
 testatts(int ncid, struct Var* v, NCbytes* attbuf)
 {
     int stat = NC_NOERR;
-    NCbytes* databuf = ncbytesnew();     
+    NCbytes* databuf = ncbytesnew();
     /* Print any attributes */
     if(v->natts > 0) {
 	int i;
@@ -352,7 +352,7 @@ testvar(int ncid, struct Var* v)
     char* attbuforig = NULL;
     char* attbufcopy = NULL;
     void* copy = NULL;
-    
+
     /* Test original */
     if((stat=readvar(ncid,v))) return NCTHROW(stat);
     if((stat=dumpvar(ncid,v,v->data,tmpbuf))) return NCTHROW(stat);
@@ -396,7 +396,7 @@ testvar(int ncid, struct Var* v)
         if(strcmp(attbuforig,attbufcopy) != 0)
             fprintf(stderr,"*** attribute orig != attribute copy\n");
     }
-    
+
     /* reclaim original */
     if((stat=nc_reclaim_data_all(ncid,v->tid,v->data,v->dimprod))) return NCTHROW(stat);
     /* reclaim copy */
@@ -411,7 +411,7 @@ testvar(int ncid, struct Var* v)
     if(attbuforig) free(attbuforig);
     if(attbufcopy) free(attbufcopy);
 
-    return NCTHROW(stat);     
+    return NCTHROW(stat);
 }
 
 static void
@@ -431,7 +431,7 @@ test(struct Metadata* md)
     CHECK(testvar(md->ncid,&md->vcatomvar));
     CHECK(testvar(md->ncid,&md->vcstrvar));
     CHECK(testvar(md->ncid,&md->vcvlenvar));
-    CHECK(testvar(md->ncid,&md->vccmpdvar));    
+    CHECK(testvar(md->ncid,&md->vccmpdvar));
     /* Specials */
     CHECK(testvar(md->ncid,&md->int3110));
 done:
@@ -460,7 +460,7 @@ main(int argc, char** argv)
            goto done;
         }
     }
- 
+
     setup(&metadata);
     test(&metadata);
 

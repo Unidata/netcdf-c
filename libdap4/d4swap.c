@@ -34,7 +34,7 @@ NCD4_swapdata(NCD4response* resp, NCD4node* var, int doswap)
 {
     int ret = NC_NOERR;
     NCD4offset* offset = NULL;
-    
+
     offset = BUILDOFFSET(resp->serial.dap,resp->serial.dapsize);
 	OFFSET2BLOB(var->data.dap4data,offset);
 	switch (var->subsort) {

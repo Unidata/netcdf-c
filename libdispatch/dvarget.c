@@ -106,7 +106,7 @@ NC_get_vara(int ncid, int varid,
    return stat;
 }
 
-/** 
+/**
 \internal
 Get data for a variable.
 
@@ -598,7 +598,7 @@ NC_get_vars(int ncid, int varid, const size_t *start,
    return stat;
 }
 
-/** 
+/**
 \internal
 Called by externally visible nc_get_varm_xxx routines. Note that the
 varm routines are deprecated. Use the vars routines instead for new
@@ -608,7 +608,7 @@ code.
 
 \param varid Variable ID
 
-\param start start indices. 
+\param start start indices.
 
 \param edges count indices.
 

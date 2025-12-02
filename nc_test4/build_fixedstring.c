@@ -33,17 +33,17 @@ main()
 
    printf("\n*** Checking HDF5 fixed length string types.\n");
 
-   printf("*** Create HDF5 Dataset ...");   
+   printf("*** Create HDF5 Dataset ...");
 
    /* Open file. */
    if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
-      
+
    /* Create fixed string type. */
    if ((typeid =  H5Tcopy(H5T_C_S1)) < 0) ERR;
    type_size = 4 * sizeof(char);
    if (H5Tset_size (typeid, type_size) < 0) ERR;
    if (H5Tset_strpad (typeid, H5T_STR_NULLPAD) < 0) ERR;
-      
+
    /* Write a scalar attribute of this type. */
    if ((spaceid1 = H5Screate(H5S_SCALAR)) < 0) ERR;
    if ((attid1 = H5Acreate1(fileid, ATT_NAME1, typeid, spaceid1, H5P_DEFAULT)) < 0) ERR;

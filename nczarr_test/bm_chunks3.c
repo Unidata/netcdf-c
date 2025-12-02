@@ -198,7 +198,7 @@ main(int argc, char *argv[])
     printf("cache: %3.2f MBytes  %ld objs  %3.2f preempt, ",
 	   cache_size/1.e6, cache_hash, cache_pre);
     }
-    
+
     if(bmoptions.debug) {
         if(deflate_level == 0) {
   	    printf("compression level: uncompressed");
@@ -220,7 +220,7 @@ main(int argc, char *argv[])
     varyz = (unsigned *) emalloc(sizeof(unsigned) * szyz);
     varxz = (unsigned *) emalloc(sizeof(unsigned) * szxz);
     varxy = (unsigned *) emalloc(sizeof(unsigned) * szxy);
-    
+
     mm = 0;
     for(j = 0; j < dims[1]; j++) {
 	for(k = 0; k < dims[2]; k++) {
@@ -345,7 +345,7 @@ test(Tag tag, int reading, int ncid, int varid, int rank, int index, size_t* dim
     count[1] = dims[1];
     count[2] = dims[2];
 
-    count[index] = 1;    
+    count[index] = 1;
 
     if(chunks != NULL)
         snprintf(time_mess, sizeof(time_mess),"%s %s %3ld %3ld %3ld  %3ld %3ld %3ld", tagnames[tag], rwnames[reading],

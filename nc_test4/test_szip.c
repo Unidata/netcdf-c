@@ -126,7 +126,7 @@ compare()
 {
     int i,j;
     int errs = 0;
-    
+
     /* Do comparison */
     for (i=0; i < NX; i++) {
 	for (j=0; j < NY; j++) {

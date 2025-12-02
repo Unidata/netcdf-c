@@ -54,7 +54,7 @@ NCZ_szip_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
     NCjson* json = NULL;
     const NCjson* jtmp = NULL;
     struct NCJconst jc = {0,0,0,NULL};
-    
+
     if(nparamsp == NULL || paramsp == NULL)
         {stat = NC_EINTERNAL; goto done;}
 
@@ -79,7 +79,7 @@ NCZ_szip_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
 
     *nparamsp = nparams;
     *paramsp = params; params = NULL;
-    
+
 done:
     NCJreclaim(json);
     nullfree(params);
@@ -99,7 +99,7 @@ NCZ_szip_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }
-    
+
 done:
     return stat;
 }
@@ -117,7 +117,7 @@ NCZ_szip_modify_parameters(int ncid, int varid, size_t* vnparamsp, unsigned** vp
     unsigned* params = NULL;
     unsigned* vparams = NULL;
     size_t wnparams = 4;
-    
+
     if(wnparamsp == NULL || wparamsp == NULL)
         {ret_value = NC_EFILTER; goto done;}
     if(vnparamsp == NULL || vparamsp == NULL)
@@ -207,7 +207,7 @@ NCZ_szip_modify_parameters(int ncid, int varid, size_t* vnparamsp, unsigned** vp
     *wnparamsp = wnparams;
     nullfree(*wparamsp);
     *wparamsp = params; params = NULL;
-    
+
 done:
     nullfree(params);
     FUNC_LEAVE_NOAPI(ret_value)
@@ -222,7 +222,7 @@ NCZ_szip_visible_parameters(int ncid, int varid, size_t nparamsin, const unsigne
 
     if(nparamsp == NULL || paramsp == NULL)
         {stat = NC_EFILTER; goto done;}
-    
+
     if((params = (unsigned*)malloc(2*sizeof(unsigned)))==NULL)
         {stat = NC_ENOMEM; goto done;}
 

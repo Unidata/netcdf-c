@@ -790,7 +790,7 @@ parseAttributes(NCD4parser* parser, NCD4node* container, ncxml_t xml)
     {
         char** p;
 	if(!ncxml_attr_pairs(xml,&pairs))
-	    {ret = NC_ENOMEM; goto done;}	
+	    {ret = NC_ENOMEM; goto done;}
 	if(container->xmlattributes) nclistfree(container->xmlattributes);
         container->xmlattributes = nclistnew();
 	for(p=pairs;*p;p+=2) {
@@ -944,7 +944,7 @@ getValueStrings(NCD4parser* parser, NCD4node* type, ncxml_t xattr, NClist* svalu
     NC_UNUSED(type);
     /* See first if we have a "value" xml attribute */
     s = ncxml_attr(xattr,"value");
-    if(s != NULL) 
+    if(s != NULL)
 	{PUSH(svalues,s); s = NULL;}
     else {/* look for <Value> subnodes */
 	ncxml_t x;
@@ -1268,14 +1268,14 @@ static int atisort(const void* a, const void* b)
 {
     return strcasecmp(((struct ATOMICTYPEINFO*)a)->name,((struct ATOMICTYPEINFO*)b)->name);
 }
-		
+
 static int
 defineAtomicTypes(NCD4meta* meta, NClist* list)
 {
     int ret = NC_NOERR;
     NCD4node* node;
     size_t i;
- 
+
     if(list == NULL) return THROW(NC_EINTERNAL);
     if(!atomictypessorted) {
 	qsort((void*)atomictypeinfo, NCD4_NATOMICTYPES,sizeof(struct ATOMICTYPEINFO),atisort);
@@ -1298,7 +1298,7 @@ aticmp(const void* a, const void* b)
     NCD4node** nodebp = (NCD4node**)b;
     return strcasecmp(name,(*nodebp)->name);
 }
-		
+
 /* Binary search the set of set of atomictypes */
 static NCD4node*
 lookupAtomicType(NClist* atomictypes, const char* name)
@@ -1318,9 +1318,9 @@ lookupAtomicType(NClist* atomictypes, const char* name)
 static int
 makeNode(NCD4parser* parser, NCD4node* parent, ncxml_t xml, NCD4sort sort, nc_type subsort, NCD4node** nodep)
 {
-    int ret = NC_NOERR;    
+    int ret = NC_NOERR;
     NCD4node* node = NULL;
-    
+
     assert(parser);
     if((ret = makeNodeStatic(parser->metadata,parent,sort,subsort,&node))) goto done;
 
@@ -1646,7 +1646,7 @@ NCD4_defineattr(NCD4meta* meta, NCD4node* parent, const char* aname, const char*
 	return NC_EINVAL;
     SETNAME(attr,strdup(aname));
     attr->basetype = basetype;
-    PUSH(parent->attributes,attr);		
+    PUSH(parent->attributes,attr);
     if(attrp) *attrp = attr;
     return NC_NOERR;
 }
@@ -1672,11 +1672,11 @@ parseForwards(NCD4parser* parser, NCD4node* root)
             NCD4node* mapref = lookupFQN(parser,mapname,NCD4_VAR);
 	    if(mapref != NULL)
 	        PUSH(var->maps,mapref);
-	    else if(!parser->dapparse) 
+	    else if(!parser->dapparse)
 	        FAIL(NC_ENOTVAR,"<Map> name does not refer to a variable: %s",mapname);
 	}
     }
-    
+
 done:
     return THROW(ret);
 }

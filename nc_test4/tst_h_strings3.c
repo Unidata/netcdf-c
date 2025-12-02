@@ -20,7 +20,7 @@ main()
    printf("\n*** Checking HDF5 string types more, more, more!\n");
    printf("*** Checking string 1D dataset with extend...");
    {
-#define MARK_TWAIN "Mark_Twain"      
+#define MARK_TWAIN "Mark_Twain"
 #define NUM_STR 1
 #define NDIMS 1
       hid_t fileid, grpid, spaceid;
@@ -33,14 +33,14 @@ main()
       char *empty = "";
 
       /* Create the file, open root group. */
-      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
       if ((grpid = H5Gopen2(fileid, "/", H5P_DEFAULT)) < 0) ERR;
-      
+
       /* Create string type. */
       if ((typeid = H5Tcopy(H5T_C_S1)) < 0) ERR;
       if (H5Tset_size(typeid, H5T_VARIABLE) < 0) ERR;
-      
+
       /* Create a space for the dataset. */
       if ((spaceid = H5Screate_simple(1, dims, max_dims)) < 0) ERR;
 
@@ -48,13 +48,13 @@ main()
       if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
       if (H5Pset_chunk(plistid, 1, chunk_dims) < 0) ERR;
       if (H5Pset_fill_value(plistid, typeid, &empty) < 0) ERR;
-      if ((datasetid = H5Dcreate1(grpid, MARK_TWAIN, typeid, 
+      if ((datasetid = H5Dcreate1(grpid, MARK_TWAIN, typeid,
 				  spaceid, plistid)) < 0) ERR;
 
       /* Now extend the dataset. */
       if (H5Dextend(datasetid, xtend_size) < 0) ERR;
 
-      if (H5Dwrite(datasetid, typeid, spaceid, spaceid, 
+      if (H5Dwrite(datasetid, typeid, spaceid, spaceid,
 		   H5P_DEFAULT, data) < 0) ERR;
 
       /* Close up. */

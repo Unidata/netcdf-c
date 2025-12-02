@@ -79,7 +79,7 @@ s3io_new(const char* path, int ioflags, ncio** nciopp, NCS3IO** hpp)
 
     nciop = (ncio* )calloc(1,sizeof(ncio));
     if(nciop == NULL) {status = NC_ENOMEM; goto fail;}
-    
+
     nciop->ioflags = ioflags;
 
     *((char**)&nciop->path) = strdup(path);
@@ -118,8 +118,8 @@ fail:
    ioflags - flags from nc_create
    initialsz - From the netcdf man page: "The argument
    Iinitialsize sets the initial size of the file at creation time."
-   igeto - 
-   igetsz - 
+   igeto -
+   igetsz -
    sizehintp - the size of a page of data for buffered reads and writes.
    nciopp - pointer to a pointer that will get location of newly
    created and inited ncio struct.
@@ -142,7 +142,7 @@ s3io_create(const char* path, int ioflags,
    ioflags - flags passed into nc_open.
    igeto - looks like this function can do an initial page get, and
    igeto is going to be the offset for that. But it appears to be
-   unused 
+   unused
    igetsz - the size in bytes of initial page get (a.k.a. extent). Not
    ever used in the library.
    sizehintp - the size of a page of data for buffered reads and writes.
@@ -208,7 +208,7 @@ done:
     return status;
 }
 
-/* 
+/*
  *  Get file size in bytes.
  */
 static int
@@ -242,7 +242,7 @@ s3io_pad_length(ncio* nciop, off_t length)
    doUnlink - if true, unlink file
 */
 
-static int 
+static int
 s3io_close(ncio* nciop, int deleteit)
 {
     int status = NC_NOERR;

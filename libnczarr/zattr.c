@@ -95,7 +95,7 @@ ncz_get_att_special(NC_FILE_INFO_T* h5, NC_VAR_INFO_T* var, const char* name,
                     int* attnump, void* data)
 {
     int stat = NC_NOERR;
-    
+
     /* Fail if asking for att id */
     if(attnump)
         {stat = NC_EATTMETA; goto done;}
@@ -103,7 +103,7 @@ ncz_get_att_special(NC_FILE_INFO_T* h5, NC_VAR_INFO_T* var, const char* name,
     /* Handle the per-var case(s) first */
     if(var != NULL) {
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
-        if(strcmp(name,NC_ATT_CODECS)==0) {	
+        if(strcmp(name,NC_ATT_CODECS)==0) {
             NClist* filters = (NClist*)var->filters;
 
             if(mem_type == NC_NAT) mem_type = NC_CHAR;
@@ -111,7 +111,7 @@ ncz_get_att_special(NC_FILE_INFO_T* h5, NC_VAR_INFO_T* var, const char* name,
                 {stat = NC_ECHAR; goto done;}
             if(filetypep) *filetypep = NC_CHAR;
 	    if(lenp) *lenp = 0;
-	    if(filters == NULL) goto done;	  
+	    if(filters == NULL) goto done;
  	    if((stat = NCZ_codec_attr(var,lenp,data))) goto done;
 	}
 #endif
@@ -561,7 +561,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
     /* Now fill in the metadata. */
     att->dirty = NC_TRUE;
 
-    /* When we reclaim existing data, make sure to use the right type */ 
+    /* When we reclaim existing data, make sure to use the right type */
     if(new_att) attsave.type = file_type; else attsave.type = att->nc_typeid;
     att->nc_typeid = file_type;
 
@@ -608,7 +608,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
         }
 
         /* Determine the size of the fill value in bytes. */
-	
+
 	{
 	    nc_type var_type = var->type_info->hdr.id;
    	    size_t var_type_size = var->type_info->size;
@@ -693,7 +693,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
     att->dirty = NC_TRUE;
     att->created = NC_FALSE;
     att->len = len;
-    
+
     /* Mark attributes on variable dirty, so they get written */
     if(var)
         var->attr_dirty = NC_TRUE;
@@ -726,7 +726,7 @@ exit:
 	    (void)NC_reclaim_data_all(h5->controller,fillsave.type,var->fill_value,1);
 	    var->fill_value = fillsave.data;
         }
-    }    
+    }
     /* If there was an error return it, otherwise return any potential
        range error value. If none, return NC_NOERR as usual.*/
     if (range_error)
@@ -962,7 +962,7 @@ ncz_del_attr(NC_FILE_INFO_T* file, NC_OBJ* container, const char* name)
 	    NCJreclaim(key);
 	    NCJreclaim(value);
 	    break;
-	}    
+	}
     }
     /* Write the json back out */
     if((stat = ncz_unload_jatts(zinfo, container, jattrs, jtypes)))

@@ -162,13 +162,13 @@ fprintf(stderr,"readDATADDS:\n");
             ncurisetquery(url,tree->constraint);
             readurl = ncuribuild(url,NULL,".dods",flags);
             MEMCHECK(readurl,OC_ENOMEM);
-            if (ocdebug > 0) 
+            if (ocdebug > 0)
                 {fprintf(stderr, "fetch url=%s\n", readurl);fflush(stderr);}
             stat = ocfetchurl_file(state->curl, readurl, tree->data.file,
                                    &tree->data.datasize, &lastmod);
             if(stat == OC_NOERR)
                 state->datalastmodified = lastmod;
-            if (ocdebug > 0) 
+            if (ocdebug > 0)
                 {fprintf(stderr,"fetch complete\n"); fflush(stderr);}
         }
         free(readurl);

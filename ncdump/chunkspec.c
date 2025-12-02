@@ -282,7 +282,7 @@ varchunkspec_parse(int igrp, const char *spec0)
 	chunkspec->kind = NC_CONTIGUOUS;
 	goto notchunked;
     } else
-	chunkspec->kind = NC_CHUNKED;	
+	chunkspec->kind = NC_CHUNKED;
 
     /* Iterate over dimension sizes */
     while(*p) {
@@ -338,7 +338,7 @@ varchunkspec_kind(int grpid, int varid)
 {
     for(size_t i=0;i<listlength(varchunkspecs);i++) {
 	struct VarChunkSpec* spec = listget(varchunkspecs,i);
-	if(spec->igrpid == grpid && spec->ivarid == varid) 
+	if(spec->igrpid == grpid && spec->ivarid == varid)
 	    return spec->kind;
     }
     return NC_CONTIGUOUS; /* default */

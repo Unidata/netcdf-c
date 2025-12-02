@@ -72,7 +72,7 @@ dap_attributebody(DAPparsestate* state, Object attrlist)
     /* Check for and remove attribute duplicates */
     NClist* dups = scopeduplicates((NClist*)attrlist);
     if(dups != NULL) {
-        ocnodes_free(dups);	
+        ocnodes_free(dups);
 	dap_parse_error(state,"Duplicate attribute names in same scope");
 	state->error = OC_ENAMEINUSE; /* semantic error */
 	return NULL;
@@ -531,7 +531,7 @@ DAPparse(OCstate* conn, OCtree* tree, char* parsestring)
 	case OCDDS: ocerr = OC_EDDS; break;
 	case OCDATADDS: ocerr = OC_EDATADDS; break;
 	default: ocerr = OC_EDAPSVC;
-	}		
+	}
     }
     dap_parse_cleanup(state);
     return ocerr;

@@ -36,7 +36,7 @@ reportchunking(const char* title, NC_VAR_INFO_T* var)
 	strlcat(buf,digits,sizeof(buf));
     }
     LOG((3,"%s",buf));
-}    
+}
 #endif
 
 /* Mnemonic */
@@ -297,7 +297,7 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     NCglobalstate* gstate = NC_getglobalstate();
 
     ZTRACE(1,"ncid=%d name=%s xtype=%d ndims=%d dimids=%s",ncid,name,xtype,ndims,nczprint_idvector(ndims,dimidsp));
-    
+
     /* Find info for this file and group, and set pointer to each. */
     if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
 	BAIL(retval);
@@ -449,7 +449,7 @@ var->type_info->rc++;
 	    var->chunksizes[0] = 1;
 	}
     }
-    
+
     /* Compute the chunksize cross product */
     zvar->chunkproduct = 1;
     if(!zvar->scalar)
@@ -555,7 +555,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     zvar = var->format_var_info;
 
     ZTRACEMORE(1,"\tstoragep=%d chunksizes=%s",(storagep?*storagep:-1),(chunksizes?nczprint_sizevector(var->ndims,chunksizes):"null"));
-    
+
     /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
      * before HDF5 1.10.3. */
 #ifdef NETCDF_ENABLE_NCZARR_FILTERS
@@ -647,7 +647,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    {retval = NC_EINVAL; goto done;}
 	} else if (storage == NC_CHUNKED && var->ndims > 0) {
 	    var->storage = NC_CHUNKED;
-	    
+
 	    /* If the user provided chunksizes, check that they are valid
 	     * and that their total size of chunk is less than 4 GB. */
 	    if (chunksizes)
@@ -692,7 +692,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	}
 	/* Adjust cache */
         if((retval = NCZ_adjust_var_cache(var))) goto done;
-    
+
 #ifdef LOGGING
 	{
 	    int dfalt = (chunksizes == NULL);
@@ -700,7 +700,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	}
 #endif
     }
-    
+
     /* Are we setting a fill modes? */
     if (no_fill)
     {
@@ -791,7 +791,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    if (var->type_info->hdr.id != NC_FLOAT &&
 		var->type_info->hdr.id != NC_DOUBLE)
 		return NC_EINVAL;
-	    
+
 	    /* All quantization codecs require number of significant digits */
 	    if (!nsd)
 		return NC_EINVAL;
@@ -822,7 +822,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 
 	    var->nsd = *nsd;
 	}
-	
+
 	var->quantize_mode = *quantize_mode;
 
 	/* If quantization is turned off, then set nsd to 0. */
@@ -1044,22 +1044,22 @@ NCZ_def_var_endian(int ncid, int varid, int endianness)
  * When quantize is turned on, and the number of significant digits
  * (NSD) has been specified, then the netCDF library will quantize according
  * to the selected algorithm. BitGroom interprets NSD as decimal digits
- * will apply all zeros or all ones (alternating) to bits which are not 
- * needed to specify the value to the number of significant decimal digits. 
- * BitGroom retain the same number of bits for all values of a variable. 
+ * will apply all zeros or all ones (alternating) to bits which are not
+ * needed to specify the value to the number of significant decimal digits.
+ * BitGroom retain the same number of bits for all values of a variable.
  * BitRound (BR) interprets NSD as binary digits (i.e., bits) and keeps the
  * the user-specified number of significant bits then rounds the result
  * to the nearest representable number according to IEEE rounding rules.
- * BG and BR both retain a uniform number of significant bits for all 
+ * BG and BR both retain a uniform number of significant bits for all
  * values of a variable. Granular BitRound interprest NSD as decimal
- * digits. GranularBR determines the number of bits to necessary to 
+ * digits. GranularBR determines the number of bits to necessary to
  * retain the user-specified number of significant digits individually
  * for every value of the variable. GranularBR then applies the BR
  * quantization algorithm on a granular, value-by-value, rather than
  * uniformly for the entire variable. GranularBR quantizes more bits
  * than BG, and is thus more compressive and less accurate than BG.
  * BR knows bits and makes no guarantees about decimal precision.
- * All quantization algorithms change the values of the data, and make 
+ * All quantization algorithms change the values of the data, and make
  * it more compressible.
  *
  * Quantizing the data does not reduce the size of the data on disk,
@@ -1091,13 +1091,13 @@ NCZ_def_var_endian(int ncid, int varid, int endianness)
  * @param varid Variable ID. NC_GLOBAL may not be used.
  * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
  * ::NC_QUANTIZE_BITGROOM, ::NC_QUANTIZE_BITROUND or ::NC_QUANTIZE_GRANULARBR.
- * @param nsd Number of significant digits (either decimal or binary). 
- * May be any integer from 1 to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables 
- * of type ::NC_FLOAT) or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables 
+ * @param nsd Number of significant digits (either decimal or binary).
+ * May be any integer from 1 to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables
+ * of type ::NC_FLOAT) or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables
  * of type ::NC_DOUBLE) for mode ::NC_QUANTIZE_BITGROOM and mode
- * ::NC_QUANTIZE_GRANULARBR. May be any integer from 1 to 
- * ::NC_QUANTIZE_MAX_FLOAT_NSB (for variables of type ::NC_FLOAT) or 
- * ::NC_QUANTIZE_MAX_DOUBLE_NSB (for variables of type ::NC_DOUBLE) 
+ * ::NC_QUANTIZE_GRANULARBR. May be any integer from 1 to
+ * ::NC_QUANTIZE_MAX_FLOAT_NSB (for variables of type ::NC_FLOAT) or
+ * ::NC_QUANTIZE_MAX_DOUBLE_NSB (for variables of type ::NC_DOUBLE)
  * for mode ::NC_QUANTIZE_BITROUND.
  *
  * @returns ::NC_NOERR No error.
@@ -1176,7 +1176,7 @@ NCZ_inq_var_quantize(int ncid, int varid, int *quantize_modep,
     if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
         return retval;
     if (!var)
-        return NC_ENOTVAR;	
+        return NC_ENOTVAR;
     assert(var->hdr.id == varid);
     if(var->quantize_mode == -1)
         {if((retval = NCZ_ensure_quantizer(ncid, var))) return retval;}
@@ -1561,7 +1561,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 #ifndef LOOK
     NC_UNUSED(fmaxdims);
 #endif
-    
+
     /* Find info for this file, group, and var. */
     if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
 	return THROW(retval);
@@ -1930,7 +1930,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         /* We must convert - allocate a buffer. */
         need_to_convert++;
 	if(zvar->scalar) {
-	    len *= countp[0];	
+	    len *= countp[0];
         } else {
 	    for (d2 = 0; d2 < (var->ndims); d2++)
                 len *= countp[d2];
@@ -2227,7 +2227,7 @@ done:
    	   (fletcher32p?*fletcher32p:-1),
 	   (no_fill?*no_fill:-1),
 	   (endiannessp?*endiannessp:-1),
-   	   (ndimsp?*ndimsp:-1), 
+   	   (ndimsp?*ndimsp:-1),
 	   (dimidsp?nczprint_idvector(var->ndims,dimidsp):"null"),
 	   (storagep?*storagep:-1),
 	   (chunksizesp?nczprint_sizevector(var->ndims,chunksizesp):"null"));
@@ -2368,7 +2368,7 @@ NCZ_update_dim_extents(NC_VAR_INFO_T* var, size64_t* start, size64_t* count, siz
 	endpoint = start[r] + stride[r]*count[r] - stride[r];
 	if(dim->len < endpoint) {
 	    if(!dim->unlimited) return NC_EDIMSIZE;
-	    /*else*/ dim->len = endpoint+1; 
+	    /*else*/ dim->len = endpoint+1;
 	}
     }
     return NC_NOERR;

@@ -7,7 +7,7 @@
 #include "d4curlfunctions.h"
 
 /* Define supported curl flags */
-struct CURLFLAG curlopts[] = { 
+struct CURLFLAG curlopts[] = {
 #ifdef HAVE_CURLOPT_BUFFERSIZE
 {"CURLOPT_BUFFERSIZE",CURLOPT_BUFFERSIZE,98,CF_LONG},
 #endif

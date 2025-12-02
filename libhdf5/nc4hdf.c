@@ -101,7 +101,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
         var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
         assert(var && var->format_var_info);
 
-	hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;	
+	hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;
 	assert(hdf5_var != NULL);
         for (unsigned int d = 0; d < var->ndims; d++)
         {
@@ -1056,7 +1056,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     }
 
     /* If quantization is in use, write an attribute indicating it, a
-     * single integer which is the number of significant digits 
+     * single integer which is the number of significant digits
      * (NSD, for BitGroom and Granular BitRound) or number of significant bits
      * (NSB, for BitRound). */
     if (var->quantize_mode)
@@ -2539,7 +2539,7 @@ NC4_root_att_exists(NC_FILE_INFO_T *h5, const char* aname)
 {
     hid_t grpid = -1;
     htri_t attr_exists;
-    
+
     /* Get root group ID. */
     grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 

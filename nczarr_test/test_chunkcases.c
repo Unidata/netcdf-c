@@ -26,7 +26,7 @@ writedata(void)
     size_t i;
 
     for(i=0;i<dimprod;i++) data[i] = i;
- 
+
     if(options->debug >= 1) {
         fprintf(stderr,"write: dimlens=%s chunklens=%s\n",
             printvector(options->rank,options->dimlens),printvector(options->rank,options->chunks));
@@ -50,7 +50,7 @@ readdata(void)
 {
     int ret = NC_NOERR;
     size_t i;
-    
+
     memset(data,0,datasize);
 
     if(options->debug >= 1)
@@ -84,7 +84,7 @@ genodom(void)
     /* Iterate the odometer */
     for(i=0;odom_more(odom);odom_next(odom),i++) {
 	printf("[%02d] %s\n",i,(i==0?odom_print(odom):odom_printshort(odom)));
-    }        
+    }
 done:
     odom_free(odom);
     return ret;
@@ -98,7 +98,7 @@ main(int argc, char** argv)
 
     if((stat=getoptions(&argc,&argv))) goto done;
     if((stat=verifyoptions(options))) goto done;
-    
+
     if((stat = getmetadata(0)))
 	ERR(stat);
 

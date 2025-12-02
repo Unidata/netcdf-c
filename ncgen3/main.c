@@ -121,12 +121,12 @@ main(
 		if (strcmp(lang_name, "c") == 0 || strcmp(lang_name, "C") == 0) {
 		    c_flag = 1;
 		}
-		else if (strcmp(lang_name, "f77") == 0 || 
+		else if (strcmp(lang_name, "f77") == 0 ||
 			 strcmp(lang_name, "fortran77") == 0 ||
 			 strcmp(lang_name, "Fortran77") == 0) {
 		    fortran_flag = 1;
 		} else {	/* Fortran90, Java, C++, Perl, Python, Ruby, ... */
-		    derror("%s: output language %s not implemented", 
+		    derror("%s: output language %s not implemented",
 			   progname, lang_name);
 		    return(1);
 		}
@@ -158,19 +158,19 @@ main(
 		}
 		(void)strcpy(kind_name, optarg);
 		/* The default kind is kind 1 (classic), with 32-bit offsets */
-		if (strcmp(kind_name, "1") == 0 || 
+		if (strcmp(kind_name, "1") == 0 ||
 		    strcmp(kind_name, "classic") == 0) {
 		    cmode_modifier |= NC_CLASSIC_MODEL;
 		}
 		/* The 64-bit offset kind (2)  should only be used if actually needed */
-		else if (strcmp(kind_name, "2") == 0 || 
+		else if (strcmp(kind_name, "2") == 0 ||
 			 strcmp(kind_name, "64-bit-offset") == 0 ||
 			 strcmp(kind_name, "64-bit offset") == 0) {
 		    cmode_modifier |= NC_64BIT_OFFSET;
 		}
 #ifdef USE_HDF5
 		/* NetCDF-4 HDF5 format*/
-		else if (strcmp(kind_name, "3") == 0 || 
+		else if (strcmp(kind_name, "3") == 0 ||
 			 strcmp(kind_name, "hdf5") == 0 ||
 			 strcmp(kind_name, "netCDF-4") == 0) {
 		    cmode_modifier |= NC_NETCDF4;
@@ -181,8 +181,8 @@ main(
 		    strcmp(kind_name, "netCDF-4 classic model") == 0) {
 		    cmode_modifier |= NC_NETCDF4 | NC_CLASSIC_MODEL;
 		}
-#endif 
-		else 
+#endif
+		else
 		{
 		   derror("Invalid format, try classic, 64-bit offset, netCDF-4, or netCDF-4 classic model");
 		   return 2;

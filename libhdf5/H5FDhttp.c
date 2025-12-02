@@ -46,7 +46,7 @@
 #endif
 
 /*
-Define a simple #ifdef test for the version of H5FD_class_t we are using 
+Define a simple #ifdef test for the version of H5FD_class_t we are using
 */
 
 #if H5_VERS_MAJOR == 1
@@ -106,7 +106,7 @@ typedef struct H5FD_http_t {
     unsigned    write_access;   /* Flag to indicate the file was opened with write access */
     H5FD_http_file_op op;	/* last operation */
     NC_HTTP_STATE*  state;       /* Curl handle + extra */
-    char*           url;        /* The URL (minus any fragment) for the dataset */ 
+    char*           url;        /* The URL (minus any fragment) for the dataset */
 } H5FD_http_t;
 
 
@@ -762,10 +762,10 @@ H5FD_http_read(H5FD_t *_file, H5FD_mem_t /*UNUSED*/ type, hid_t /*UNUSED*/ dxpl_
 	if(ncbyteslength(bbuf) != size) {
 	    ncbytesfree(bbuf); bbuf = NULL;
             H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_READERROR, "HTTP byte-range read mismatch ", -1);
-	}	
+	}
 
 	/* Extract the data from buf */
-	memcpy(buf,ncbytescontents(bbuf),size);	        
+	memcpy(buf,ncbytescontents(bbuf),size);
 	ncbytesfree(bbuf);
     }
 

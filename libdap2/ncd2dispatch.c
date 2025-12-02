@@ -786,7 +786,7 @@ fprintf(stderr,"\n");
 	if(var->attributes != NULL) {
 	    NCattribute* unsignedatt = NULL;
 	    int unsignedval = 0;
-	    /* See if variable has _Unsigned attribute */ 
+	    /* See if variable has _Unsigned attribute */
 	    for(j=0;j<nclistlength(var->attributes);j++) {
 		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
 		if(strcmp(att->name,"_Unsigned") == 0) {
@@ -807,7 +807,7 @@ fprintf(stderr,"\n");
 		char* val = NULL;
 		/* Check for _FillValue/Variable mismatch */
 		if(strcmp(att->name,NC_FillValue)==0) {
-		    /* Special case var is byte, fillvalue is int16 and 
+		    /* Special case var is byte, fillvalue is int16 and
 			unsignedattr == 0;
 			This exception is needed because DAP2 byte type
 			is equivalent to netcdf ubyte type. So passing
@@ -1293,11 +1293,11 @@ applyclientparams(NCDAPCOMMON* nccomm)
 
     /* allow embedded _ */
     value = paramlookup(nccomm,"stringlength");
-    if(value == NULL) 
+    if(value == NULL)
         value = paramlookup(nccomm,"maxstrlen");
     if(value != NULL && strlen(value) != 0) {
         if(sscanf(value,"%u",&len) && len > 0) dfaltstrlen = len;
-    } 
+    }
     nccomm->cdf.defaultstringlength = dfaltstrlen;
 
     /* String dimension limits apply to variables */
@@ -2252,7 +2252,7 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
     if((value=dapparamvalue(dapcomm,"encode")) != NULL) {
 	size_t i;
 	NClist* encode = nclistnew();
-	if(dapparamparselist(value,',',encode)) 
+	if(dapparamparselist(value,',',encode))
             nclog(NCLOGERR,"Malformed encode parameter: %s",value);
 	else {
 	    /* First, turn off all the encode flags */

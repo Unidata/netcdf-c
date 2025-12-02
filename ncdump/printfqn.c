@@ -149,10 +149,10 @@ main(int argc, char** argv)
 
     while ((c = getopt(argc, argv, "DVdtv:f:")) != EOF) {
 	switch(c) {
-	case 'D': 
-	    options.debug = 1;	    
+	case 'D':
+	    options.debug = 1;
 	    break;
-	case 'V': 
+	case 'V':
 	    usage();
 	    break;
 	case 'd':

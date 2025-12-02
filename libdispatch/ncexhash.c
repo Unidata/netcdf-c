@@ -133,7 +133,7 @@ ncexhashnew(int leaflen)
 
     gdepth = MINDEPTH;
     if(leaflen < MINLEAFLEN) leaflen = MINLEAFLEN;
-    
+
     /* Create the table */
     if((map = (NCexhashmap*)calloc(1,sizeof(NCexhashmap))) == NULL)
 	goto done;
@@ -170,11 +170,11 @@ ncexhashmapfree(NCexhashmap* map)
     /* Walk the leaf chain to free leaves */
     current = map->leaves; next = NULL;
     while(current) {
-	next = current->next;	
+	next = current->next;
 	exhashfreeleaf(map,current);
-	current = next;	
+	current = next;
     }
-    nullfree(map->directory);    
+    nullfree(map->directory);
     free(map);
 }
 
@@ -374,7 +374,7 @@ exhashsplit(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf* leaf)
 
     /* Save the old leaf's entries */
     entries = *leaf;
- 
+
     /* bump leaf depth */
     leaf->depth++;
 
@@ -386,7 +386,7 @@ exhashsplit(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf* leaf)
 	/* double the directory */
         if((stat = exhashdouble(map))) return THROW(stat); /* failed */
     }
-    
+
     /* Re-build the old leaf; keep same uid */
     if((leaf->entries = (NCexentry*)calloc((size_t)map->leaflen, sizeof(NCexentry))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
@@ -402,7 +402,7 @@ exhashsplit(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf* leaf)
 
     /* Now walk the directory to locate all occurrences of old
        leaf and replace with newleaf in those cases where the
-       directory index % 2 == 1 
+       directory index % 2 == 1
     */
     for(i=0;i<(1<<map->depth);i++) {
 	if(map->directory[i] == leafptr) {
@@ -449,7 +449,7 @@ exhashsplit(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf* leaf)
 done:
     if(stat) { /* unwind */
         nullfree(leaf->entries);
-	*leaf = entries; 
+	*leaf = entries;
     } else {
         nullfree(entries.entries);
     }
@@ -573,7 +573,7 @@ exhashunlinkleaf(NCexhashmap* map, NCexleaf* leaf)
 	    for(cur = map->leaves;cur != NULL;cur=cur->next) {
 	        if(cur->next == leaf) {
 		    cur->next = leaf->next;
-		    break;			
+		    break;
 		}
 	    }
 	}
@@ -591,7 +591,7 @@ exhashnewleaf(NCexhashmap* map, NCexleaf** leafp)
 	    goto done;
 	assert(map->leaflen > 0);
         if((leaf->entries = calloc((size_t)map->leaflen, sizeof(NCexentry))) == NULL)
-	    goto done;	
+	    goto done;
         leaf->uid = map->uid++;
 	*leafp = leaf; leaf = NULL;
     }
@@ -627,7 +627,7 @@ ncexhashremove(NCexhashmap* map, ncexhashkey_t hkey, uintptr_t* datap)
     /* Compress out the index'th entry */
     for(src=dst+1;src<leaf->active;src++,dst++)
 	leaf->entries[dst] = leaf->entries[src];
-    leaf->active--;        
+    leaf->active--;
     map->nactive--;
     return THROW(stat);
 }
@@ -728,7 +728,7 @@ ncexhashiterate(NCexhashmap* map, ncexhashkey_t* keyp, uintptr_t* datap)
     if(stat != NC_NOERR) { /* stop */
 	map->iterator.walking = 0;
 	map->iterator.leaf = NULL;
-	map->iterator.index = 0;	
+	map->iterator.index = 0;
     }
     return THROW(stat);
 }
@@ -826,7 +826,7 @@ ncexbinstr(ncexhashkey_t hkey, int depth)
     for(i=0;i<depth;i++)
         bits[(depth-1)-i] = ((hkey >> i) & 0x1) == 0 ? '0' : '1';
     bits[depth] = '\0';
-    return bits;    
+    return bits;
 }
 
 void
@@ -837,14 +837,14 @@ ncexhashprintstats(NCexhashmap* map)
     double leafavg = 0.0;
     double leafload = 0.0;
     unsigned long long dirsize, leafsize, total;
-    
+
     nactive = 0;
     unsigned long long nleaves = 0;
     for(leaf=map->leaves;leaf;leaf=leaf->next) {
         nleaves++;
 	nactive += leaf->active;
     }
-	
+
     leafavg = ((double)nactive)/((double)nleaves);
     leafload = leafavg / ((double)map->leaflen);
 

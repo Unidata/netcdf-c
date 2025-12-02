@@ -67,7 +67,7 @@ NCZ_initialize_internal(void)
             /* Verify its value */
 	    if(dimsep != NULL && strlen(dimsep) == 1 && islegaldimsep(dimsep[0]))
 		ngs->zarr.dimension_separator = dimsep[0];
-        }    
+        }
     }
 
     return stat;

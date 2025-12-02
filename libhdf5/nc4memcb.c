@@ -946,7 +946,7 @@ trace(const char* fcn, H5FD_file_image_op_t op, void* _udata, ...)
     ud = printudata(udata);
     strlcat(buf,"\n\tudata=",sizeof(buf));
     strlcat(buf,ud,sizeof(tmp));
-    free(ud);	
+    free(ud);
     strlcat(buf,"\n",sizeof(buf));
     va_end(ap);
     fprintf(stderr,"%s",buf);
@@ -968,7 +968,7 @@ traceend(const char* fcn, void* _udata, uintptr_t retval)
     strlcat(buf," udata=",sizeof(buf));
     ud = printudata(udata);
     strlcat(buf,ud,sizeof(tmp));
-    free(ud);	
+    free(ud);
     strlcat(buf,"\n",sizeof(buf));
     fprintf(stderr,"%s",buf);
     fflush(stderr);

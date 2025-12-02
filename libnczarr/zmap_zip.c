@@ -61,7 +61,7 @@ typedef struct ZZMAP {
     char** searchcache;
 } ZZMAP;
 
-typedef zip_int64_t ZINDEX;;    
+typedef zip_int64_t ZINDEX;;
 
 /* Forward */
 static NCZMAP_API zapi;
@@ -107,7 +107,7 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     int zerrno = ZIP_ER_OK;
     ZINDEX zindex = -1;
     char* abspath = NULL;
-    
+
     NC_UNUSED(parameters);
     ZTRACE(6,"path=%s mode=%d flag=%llu",path,mode,flags);
 
@@ -142,7 +142,7 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     if((abspath = NCpathabsolute(zzmap->root)) == NULL)
 	{stat = NC_EURL; goto done;}
     nullfree(zzmap->root);
-    zzmap->root = abspath;    
+    zzmap->root = abspath;
     abspath = NULL;
 
     /* Extract the dataset name */
@@ -164,9 +164,9 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     /* Tell it about the dataset as a dir */
     if((zindex = zip_dir_add(zzmap->archive, zzmap->dataset, ZIP_FL_ENC_UTF_8))<0)
 	{stat = zipmaperr(zzmap); goto done;}
-    
+
     /* Dataset superblock will be written by higher layer */
-     
+
     if(mapp) {*mapp = (NCZMAP*)zzmap; zzmap = NULL;}
 
 done:
@@ -194,7 +194,7 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     zip_flags_t zipflags = 0;
     int zerrno = ZIP_ER_OK;
     char* abspath = NULL;
-    
+
     NC_UNUSED(parameters);
     ZTRACE(6,"path=%s mode=%d flags=%llu",path,mode,flags);
 
@@ -226,7 +226,7 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     if((abspath = NCpathabsolute(zzmap->root)) == NULL)
 	{stat = NC_EURL; goto done;}
     nullfree(zzmap->root);
-    zzmap->root = abspath;    
+    zzmap->root = abspath;
     abspath = NULL;
 
     /* Set zip open flags */
@@ -247,7 +247,7 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
         zip_int64_t num_entries;
 
         num_entries = zip_get_num_entries(zzmap->archive, (zip_flags_t)0);
-        if(num_entries == 0) {stat = NC_EEMPTY; goto done;}    
+        if(num_entries == 0) {stat = NC_EEMPTY; goto done;}
         /* get 0'th entry name */
 	if((name = zip_get_name(zzmap->archive, 0, (zip_flags_t)0))==NULL)
 	    {stat = zipmaperr(zzmap); goto done;}
@@ -258,7 +258,7 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     }
 
     /* Dataset superblock will be read by higher layer */
-    
+
     if(mapp) {*mapp = (NCZMAP*)zzmap; zzmap = NULL;}
 
 done:
@@ -300,7 +300,7 @@ zipclose(NCZMAP* map, int delete)
     if(zzmap == NULL) return NC_NOERR;
 
     ZTRACE(6,"map=%s delete=%d",map->url,delete);
-    
+
     /* Close the zip */
     if(delete)
         zip_discard(zzmap->archive);
@@ -388,7 +388,7 @@ zipread(NCZMAP* map, const char* key, size64_t start, size64_t count, void* cont
     case NC_EEMPTY: /* its a dir; fall thru*/
     default: goto done;
     }
-    
+
     /* Note, assume key[0] == '/' */
     if((stat = nczm_appendn(&truekey,2,zzmap->dataset,key)))
         goto done;
@@ -455,7 +455,7 @@ zipwrite(NCZMAP* map, const char* key, size64_t count, const void* content)
     case NC_EEMPTY: /* its a dir; fall thru */
     default: goto done;
     }
-    
+
     zflags |= ZIP_FL_ENC_UTF_8;
     compression = ZIP_CM_STORE;
 
@@ -478,7 +478,7 @@ zipwrite(NCZMAP* map, const char* key, size64_t count, const void* content)
 
     if((zindex = zip_file_add(zzmap->archive, truekey, zs, zflags))<0)
         {stat = zipmaperr(zzmap); goto done;}
- 
+
     zs = NULL; localbuffer = NULL;
 
     if(zip_set_file_compression(zzmap->archive, zindex, compression, 0) < 0)
@@ -601,7 +601,7 @@ zipsearch(NCZMAP* map, const char* prefix0, NClist* matches)
 	    for(j=0;j<nclistlength(matches);j++) {
 	        const char* js = nclistget(matches,j);
 	        if(strcmp(js,is)==0) {duplicate = 1; break;} /* duplicate */
-	    }	    
+	    }
 	    if(!duplicate)
 	        nclistpush(matches,strdup(is));
 	}
@@ -628,10 +628,10 @@ zzcreategroup(ZZMAP* zzmap, const char* key, int nskip)
     NClist* segments = nclistnew();
     ZINDEX zindex;
     zip_flags_t zipflags = ZIP_FL_ENC_UTF_8;
-    
+
     ZTRACE(7,"map=%s key=%s nskip=%d",zzmap->map.url,key,nskip);
     if((stat=nczm_split(key,segments)))
-	goto done;    
+	goto done;
     len = nclistlength(segments);
     len -= nskip; /* leave off last nskip segments */
     /* Start with the dataset */
@@ -640,7 +640,7 @@ zzcreategroup(ZZMAP* zzmap, const char* key, int nskip)
 	const char* seg = nclistget(segments,i);
 	ncbytescat(path,"/");
 	ncbytescat(path,seg);
-	/* open and/or create the directory */	
+	/* open and/or create the directory */
 	if((zindex = zip_dir_add(zzmap->archive, ncbytescontents(path), zipflags))<0) {
 	    switch(stat = zipmaperr(zzmap)) {
 	    case NC_EOBJECT: stat = NC_NOERR; break; /* ok */
@@ -703,7 +703,7 @@ zzlen(ZZMAP* zzmap, ZINDEX zindex, size64_t* lenp)
     zip_flags_t zipflags = 0;
 
     assert(zindex >= 0);
-    
+
     ZTRACE(6,"zzmap=%s index=%llu",zzmap,zindex);
 
     zip_stat_init(&statbuf);

@@ -25,7 +25,7 @@ main(int argc, char** argv)
 	int c = *p;
         if(c >= 'A' && c <= 'Z') c = ((c - 'A') + 'a');
 	*p = (char)c;
-    }    
+    }
     do {
 #ifdef TOPSRCDIR
     if(strcmp(arg,"topsrcdir") == 0) {

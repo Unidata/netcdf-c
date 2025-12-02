@@ -81,11 +81,11 @@ main(int argc, char **argv)
 /* 	 {"64-bit offset", "netCDF-4"}; */
 #define NUM_FORMATS 1
       int this_format[NUM_FORMATS] = {NC_64BIT_OFFSET};
-      char format_name[NUM_FORMATS][NC_MAX_NAME + 1] = 
+      char format_name[NUM_FORMATS][NC_MAX_NAME + 1] =
 	 {"64-bit offset"};
       int i, j, f;
 
-      printf("NSLABS=%d, sizes: int - %d, size_t - %d, and int * - %d\n", 
+      printf("NSLABS=%d, sizes: int - %d, size_t - %d, and int * - %d\n",
 	     NSLABS, sizeof(int), sizeof(size_t), sizeof(int *));
 
       /* Create a file with one big variable. */
@@ -125,9 +125,9 @@ main(int argc, char **argv)
 	    for (i = 0; i < LAT_LEN; i++)
 	       for (j = 0; j < LON_LEN; j++)
 	       {
-		  if (data[i][j] != (signed char)((start[0] + i + j) % 19)) 
+		  if (data[i][j] != (signed char)((start[0] + i + j) % 19))
 		  {
-		     printf("error on start[0]: %d i: %d j: %d expected %d got %d\n", 
+		     printf("error on start[0]: %d i: %d j: %d expected %d got %d\n",
 			    start[0], i, j, (start[0] + i + j) % 19, data[i][j]);
 		     ERR_RET;
 		  }

@@ -60,16 +60,16 @@ main(int argc, char** argv)
 
     while ((c = getopt(argc, argv, "vhbk")) != EOF) {
 	switch(c) {
-	case 'b': 
+	case 'b':
 	    s3options.op = S3_BUCKET;
 	    break;
-	case 'h': 
+	case 'h':
 	    s3options.op = S3_HOST;
 	    break;
-	case 'k': 
+	case 'k':
 	    s3options.op = S3_KEY;
 	    break;
-	case 'v': 
+	case 'v':
 	    zs3usage();
 	    goto done;
 	case '?':
@@ -96,14 +96,14 @@ main(int argc, char** argv)
     if(stat == NC_NOERR) {
         if(piece == NULL) goto fail;
 	printf("%s",piece);
-    }    
+    }
 done:
     nullfree(piece);
     /* Reclaim s3options */
     nullfree(s3options.url);
     if(stat)
 	fprintf(stderr,"fail: %s\n",nc_strerror(stat));
-    return (stat ? 1 : 0);    
+    return (stat ? 1 : 0);
 fail:
     stat = NC_EINVAL;
     goto done;
@@ -115,10 +115,10 @@ processurl(S3op op, const char* surl, char** piece)
     int stat = NC_NOERR;
     NClist* segments = NULL;
     NCbytes* buf = ncbytesnew();
-    char* value = NULL;    
-    char* host = NULL;    
-    char* bucket = NULL;    
-    char* prefix = NULL;    
+    char* value = NULL;
+    char* host = NULL;
+    char* bucket = NULL;
+    char* prefix = NULL;
     NCURI* url = NULL;
 
     ncuriparse(surl,&url);
@@ -153,12 +153,12 @@ processurl(S3op op, const char* surl, char** piece)
     case S3_KEY: value = prefix; prefix = NULL; break;
     default: stat = NC_EURL; goto done;
     }
-    
+
     if(piece) {*piece = value; value = NULL;}
 
 done:
     ncurifree(url);
-    nullfree(value); 
+    nullfree(value);
     nullfree(host);
     nullfree(bucket);
     nullfree(prefix);

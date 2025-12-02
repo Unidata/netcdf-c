@@ -129,7 +129,7 @@ test_ncvardef(const char *path) /* name of writable netcdf file to open */
 	{"d0", 2}, {"d1",3}, {"d2",5}, {"d3", 6}, {"d4", 4}, {"d5", 31}};
     int nd = LEN_OF(di);	/* number of dimensions */
     int di_id[LEN_OF(di)];	/* dimension ids */
-    
+
     (void) fprintf(stderr, "*** Testing %s ...\t", &pname[5]);
 
     init_epsilons();

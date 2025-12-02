@@ -324,7 +324,7 @@ gettype(const char q0, const char q1, int* isunsignedp)
     int type = 0;
     int isunsigned = 0;
     char typechar;
-    
+
     isunsigned = (q0 == 'u' || q0 == 'U');
     if(q1 == '\0')
 	typechar = q0; /* we were given only a single char */
@@ -412,7 +412,7 @@ ncaux_h5filterspec_fix8(unsigned char* mem8, int decode)
     }
 #else /* Little endian */
     /* No action is necessary */
-#endif	    
+#endif
 }
 
 /*
@@ -445,7 +445,7 @@ ncaux_h5filterspec_parse(const char* txt, unsigned int* idp, size_t* nparamsp, u
     unsigned int filterid = 0;
     unsigned int* params = NULL;
     size_t len;
-    
+
     if(txt == NULL)
         {stat = NC_EINVAL; goto done;}
     len = strlen(txt);
@@ -453,7 +453,7 @@ ncaux_h5filterspec_parse(const char* txt, unsigned int* idp, size_t* nparamsp, u
         {stat = NC_EINVAL; goto done;}
 
     if((sdata0 = (char*)calloc(1,len+1+1))==NULL)
-	{stat = NC_ENOMEM; goto done;}	
+	{stat = NC_ENOMEM; goto done;}
     memcpy(sdata0,txt,len);
     sdata = sdata0;
 
@@ -523,7 +523,7 @@ ncaux_h5filterspec_parse_parameter(const char* txt, size_t* nuiparamsp, unsigned
     char* sdata = NULL; /* sdata0 with leading prefix skipped */
     size_t nuiparams = 0;
     size_t len;
-    
+
     if(txt == NULL)
         {stat = NC_EINVAL; goto done;}
     len = strlen(txt);
@@ -531,7 +531,7 @@ ncaux_h5filterspec_parse_parameter(const char* txt, size_t* nuiparamsp, unsigned
         {stat = NC_EINVAL; goto done;}
 
     if((sdata0 = (char*)calloc(1,len+1+1))==NULL)
-	{stat = NC_ENOMEM; goto done;}	
+	{stat = NC_ENOMEM; goto done;}
     memcpy(sdata0,txt,len);
     sdata = sdata0;
 
@@ -714,7 +714,7 @@ filterspec_cvt(const char* txt, size_t* nparamsp, unsigned int* params)
 	memcpy(&params[nparams++], &valf, sizeof(unsigned int));
         break;
     /* The following are 8-byte values, so we must swap pieces if this
-    is a little endian machine */        
+    is a little endian machine */
     case 'd':
         sstat = sscanf(p,"%lf",&vald);
         if(sstat != 1) {stat = NC_EINVAL; goto done;};
@@ -744,7 +744,7 @@ filterspec_cvt(const char* txt, size_t* nparamsp, unsigned int* params)
 done:
     return stat;
 }
-    
+
 #if 0
 /*
 Parse a filter spec string into a NC_H5_Filterspec*
@@ -762,8 +762,8 @@ ncaux_filter_parsespec(const char* txt, NC_H5_Filterspec** h5specp)
     NC_Filterspec* spec = NULL;
     NC_H5_Filterspec* h5spec = NULL;
     size_t len;
-    
-    if(txt == NULL) 
+
+    if(txt == NULL)
 	{stat = NC_EINVAL; goto done;}
     len = strlen(txt);
     if(len == 0) {stat = NC_EINVAL; goto done;}
@@ -873,7 +873,7 @@ ncaux_readfile(const char* filename, size_t* sizep, void** datap)
     if(stat == NC_NOERR && datap)
         *datap = ncbytesextract(content);
     ncbytesfree(content);
-    return stat;        
+    return stat;
 }
 
 EXTERNL int
@@ -1073,7 +1073,7 @@ ncaux_plugin_path_tostring(const NCPluginList* dirs, char sep, char** catp)
         sep = ';';
 #else
 	sep = ':';
-#endif    
+#endif
     if(dirs->ndirs > 0) {
 	for(i=0;i<dirs->ndirs;i++) {
 	    if(i>0) ncbytesappend(buf,sep);
@@ -1324,13 +1324,13 @@ ncaux_parse_provenance(const char* ncprop0, char*** pairsp)
     char* p = NULL;
     int i,count = 0;
     int endinner;
-    
+
     if(pairsp == NULL) goto done;
     *pairsp = NULL;
     ncproplen = nulllen(ncprop0);
 
     if(ncproplen == 0) goto done;
-    
+
     ncprop = (char*)malloc(ncproplen+1+1); /* double nul term */
     strcpy(ncprop,ncprop0); /* Make modifiable copy */
     ncprop[ncproplen] = '\0'; /* double nul term */
@@ -1354,7 +1354,7 @@ ncaux_parse_provenance(const char* ncprop0, char*** pairsp)
 	    thispair = p;
 	    count++;
 	    break;
-	case '\\': 
+	case '\\':
 	    p++; /* skip the escape and escaped char */
 	    /* fall thru */
 	default:
@@ -1383,7 +1383,7 @@ ncaux_parse_provenance(const char* ncprop0, char*** pairsp)
 		value = p;
 		endinner = 1;
 		break;
-	    case '\\': 
+	    case '\\':
 	        p++; /* skip the escape + escaped char */
 		/* fall thru */
 	    default:

@@ -30,5 +30,5 @@ main() {
     urnd = (unsigned)(rnd & 0xffffffff);
 #endif
     printf("%u",urnd);
-    exit(0);    
+    exit(0);
 }

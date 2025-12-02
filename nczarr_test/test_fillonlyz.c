@@ -37,7 +37,7 @@ main(int argc, char *argv[] )
 
     NCCHECK(getoptions(&argc,&argv));
     if(options->op == Write) NCCHECK(verifyoptions(options));
-    
+
     filename = options->file;
 
     NCCHECK(err = nc_open(filename,NC_NETCDF4,&ncid));

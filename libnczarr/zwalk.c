@@ -34,7 +34,7 @@ astype(int typesize, void* ptr)
 {
     switch(typesize) {
     case 4: {
-	static char is[8]; 
+	static char is[8];
 	snprintf(is,sizeof(is),"%u",*((unsigned int*)ptr));
 	return is;
         } break;
@@ -211,7 +211,7 @@ NCZ_transfer(struct Common* common, NCZSlice* slices)
 	we detect unlimited extensions.
      3. A memory odometer that walks the memory data to specify
         the locations in memory for read/write
-    */     
+    */
 
     if(wdebug >= 2)
 	fprintf(stderr,"slices=%s\n",nczprint_slices(common->rank,slices));
@@ -257,7 +257,7 @@ NCZ_transfer(struct Common* common, NCZSlice* slices)
 	    if((stat=NCZ_copy_data(common->file,common->var,slpptr,common->chunkcount,!ZCLEAR,memptr))) goto done;
 	} else {
 	    if((stat=NCZ_copy_data(common->file,common->var,memptr,common->chunkcount,ZCLEAR,slpptr))) goto done;
-	    
+
 	}
 #endif
 
@@ -406,9 +406,9 @@ NCZ_walk(NCZProjection** projv, NCZOdometer* chunkodom, NCZOdometer* slpodom, NC
 	size64_t laststride = 0;
 	unsigned char* memptr0 = NULL;
 	unsigned char* slpptr0 = NULL;
-	
+
         if(!nczodom_more(slpodom)) break;
-	
+
         if(wdebug >= 3) {
 	     fprintf(stderr,"xx.slp: odom: %s\n",nczprint_odom(slpodom));
 	     fprintf(stderr,"xx.mem: odom: %s\n",nczprint_odom(memodom));
@@ -454,7 +454,7 @@ if(wdebug > 0) {wdebug2(common,slpptr0,memptr0,slpavail,laststride,chunkdata);}
         nczodom_next(slpodom);
     }
 done:
-    return stat;    
+    return stat;
 }
 
 #if 0
@@ -546,12 +546,12 @@ done:
 static int
 NCZ_fillchunk(void* chunkdata, struct Common* common)
 {
-    int stat = NC_NOERR;    
+    int stat = NC_NOERR;
 
     if(common->fillvalue == NULL) {
         memset(chunkdata,0,common->chunkcount*common->typesize);
 	goto done;
-    }	
+    }
 
     if(common->cache->fillchunk == NULL) {
         /* Get fill chunk*/
@@ -572,7 +572,7 @@ done:
 @return err code
 */
 int
-NCZ_projectslices(struct Common* common, 
+NCZ_projectslices(struct Common* common,
                   NCZSlice* slices,
                   NCZOdometer** odomp)
 {
@@ -619,11 +619,11 @@ NCZ_projectslices(struct Common* common,
 
     /* Create an odometer to walk all the range combinations */
     for(r=0;r<common->rank;r++) {
-        start[r] = ranges[r].start; 
+        start[r] = ranges[r].start;
         stop[r] = ranges[r].stop;
         stride[r] = 1;
         len[r] = ceildiv(common->dimlens[r],common->chunklens[r]);
-    }   
+    }
 
     if((odom = nczodom_new(common->rank,start,stop,stride,len)) == NULL)
         {stat = NC_ENOMEM; goto done;}
@@ -660,7 +660,7 @@ NCZ_computelinearoffset(size_t R, const size64_t* indices, const size64_t* dimle
       for(i=0;i<R;i++) {
           offset *= dimlens[i];
           offset += indices[i];
-      } 
+      }
       return offset;
 }
 
@@ -676,7 +676,7 @@ NCZ_offset2indices(size_t R, size64_t offset, const size64_t* dimlens, size64_t*
       for(i=0;i<R;i++) {
           indices[i] = offset % dimlens[i];
           offset = offset / dimlens[i];
-      } 
+      }
 }
 #endif
 
@@ -695,11 +695,11 @@ NCZ_chunkindexodom(int rank, const NCZChunkRange* ranges, size64_t* chunkcounts,
     size64_t len[NC_MAX_VAR_DIMS];
 
     for(r=0;r<rank;r++) {
-        start[r] = ranges[r].start; 
+        start[r] = ranges[r].start;
         stop[r] = ranges[r].stop;
         stride[r] = 1;
         len[r] = chunkcounts[r];
-    }   
+    }
 
     if((odom = nczodom_new(rank, start, stop, stride, len))==NULL)
         {stat = NC_ENOMEM; goto done;}
@@ -729,14 +729,14 @@ static int
 iswholechunk(struct Common* common, NCZSlice* slices)
 {
     int i;
-    
+
     /* Check that slices cover a whole chunk */
     for(i=0;i<common->rank;i++) {
 	if(!(slices[i].stride == 1                            /* no point skipping              */
 	   && (slices[i].start % common->chunklens[i]) == 0 /* starting at beginning of chunk */
 	   && (slices[i].stop - slices[i].start)            /* stop-start = edge length       */
 	      == common->chunklens[i]                       /* edge length == chunk length    */
-	   )) 
+	   ))
 	    return 0; /* slices do not cover a whole chunk */
     }
     return 1;
@@ -811,8 +811,8 @@ NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata)
     if((stat = NCZ_read_cache_chunk(cache,zindices,&cachedata))) goto done;
     if(chunkdata) {
 	if((stat = NC_copy_data(h5->controller,var->type_info->hdr.id,cachedata,cache->chunkcount,chunkdata))) goto done;
-    }	
-    
+    }
+
 done:
     return stat;
 }

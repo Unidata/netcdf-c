@@ -7,7 +7,7 @@
 
 #ifdef ENABLE_F77
 
-#include <math.h> 
+#include <math.h>
 
 int f77_uid = 0;
 
@@ -34,7 +34,7 @@ f77_constant(Generator* generator, Symbol* sym, NCConstant* ci, Bytebuffer* code
     switch (ci->nctype) {
 
     case NC_CHAR:
-	if(ci->value.charv == '\'') 
+	if(ci->value.charv == '\'')
 	    snprintf(tmp,sizeof(tmp),"'\\''");
 	else
 	    snprintf(tmp,sizeof(tmp),"'%c'",ci->value.charv);
@@ -51,7 +51,7 @@ f77_constant(Generator* generator, Symbol* sym, NCConstant* ci, Bytebuffer* code
     case NC_FLOAT:
 	snprintf(tmp,sizeof(tmp),"%.8g",ci->value.floatv);
 	break;
-    case NC_DOUBLE: { 
+    case NC_DOUBLE: {
 	char* p = tmp;
 	/* FORTRAN requires e|E->D */
 	snprintf(tmp,sizeof(tmp),"%.16g",ci->value.doublev);

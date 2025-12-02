@@ -154,7 +154,7 @@ fprintf(stderr,"arg=%s value=%s\n",argv[optind-1],optarg);
 		} else if(strcasecmp(optarg,"s3")==0) {
 		    opt->format = NC_FORMATX_NCZARR;
 		    opt->impl = NCZM_S3;
-		} else 
+		} else
 		    {fprintf(stderr,"illegal format\n"); return NC_EINVAL;}
 		break;
   	    case OPT_X:
@@ -379,10 +379,10 @@ bm_varasprint(int rank, const size_t* start, const size_t* edges, const ptrdiff_
     static char s[4096];
     static char tmp[4096];
     const char* sv;
-    
+
     s[0] = '\0';
     if(stride == NULL) strcat(s,"vara{"); else strcat(s,"vars{");
-    snprintf(tmp,sizeof(tmp),"rank=%u",(unsigned)rank); strcat(s,tmp);    
+    snprintf(tmp,sizeof(tmp),"rank=%u",(unsigned)rank); strcat(s,tmp);
     strcat(s," start=("); sv = bm_printvector(rank,start); strcat(s,sv); strcat(s,")");
     strcat(s," edges=("); sv = bm_printvector(rank,edges); strcat(s,sv); strcat(s,")");
     if(stride != NULL) {

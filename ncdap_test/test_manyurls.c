@@ -14,7 +14,7 @@ int main()
     char** p;
 
     for(i=1,p=urllist;i<100;p++,i++) {
-	    char* tp = *p;	
+	    char* tp = *p;
             int mode = 0;
             int status = -1;
 	    printf("Testing: %s\n",tp);

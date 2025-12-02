@@ -56,7 +56,7 @@ static void NCZ_blosc_codec_finalize(void);
 /**************************************************/
 /* Provide the codec support for bzip2 filter */
 
-static NCZ_codec_t NCZ_bzip2_codec = {/* NCZ_codec_t  codec fields */ 
+static NCZ_codec_t NCZ_bzip2_codec = {/* NCZ_codec_t  codec fields */
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
   "bz2",	        /* Standard name/id of the codec */
@@ -84,10 +84,10 @@ NCZ_bzip2_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** par
     const NCjson* jtmp = NULL;
     unsigned* params = NULL;
     struct NCJconst jc;
-  
+
     if(nparamsp == NULL || paramsp == NULL)
         {stat = NC_EINTERNAL; goto done;}
-    
+
     if((params = (unsigned*)calloc(1,sizeof(unsigned)))== NULL)
         {stat = NC_ENOMEM; goto done;}
 
@@ -110,7 +110,7 @@ NCZ_bzip2_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** par
     params[0] = (unsigned)jc.ival;
     *nparamsp = 1;
     *paramsp = params; params = NULL;
-    
+
 done:
     if(params) free(params);
     NCJreclaim(jcodec);
@@ -132,7 +132,7 @@ NCZ_bzip2_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }
-    
+
 done:
     return stat;
 }
@@ -142,7 +142,7 @@ done:
 
 #ifdef HAVE_ZSTD
 
-static NCZ_codec_t NCZ_zstd_codec = {/* NCZ_codec_t  codec fields */ 
+static NCZ_codec_t NCZ_zstd_codec = {/* NCZ_codec_t  codec fields */
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
   "zstd",	        /* Standard name/id of the codec */
@@ -162,10 +162,10 @@ NCZ_zstd_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
     const NCjson* jtmp = NULL;
     unsigned* params = NULL;
     struct NCJconst jc;
-  
+
     if(nparamsp == NULL || paramsp == NULL)
         {stat = NC_EINTERNAL; goto done;}
-    
+
     if((params = (unsigned*)calloc(1,sizeof(unsigned)))== NULL)
         {stat = NC_ENOMEM; goto done;}
 
@@ -188,7 +188,7 @@ NCZ_zstd_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
     params[0] = (unsigned)jc.ival;
     *nparamsp = 1;
     *paramsp = params; params = NULL;
-    
+
 done:
     if(params) free(params);
     NCJreclaim(jcodec);
@@ -210,7 +210,7 @@ NCZ_zstd_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }
-    
+
 done:
     return stat;
 }
@@ -222,7 +222,7 @@ done:
 #ifdef HAVE_BLOSC
 
 /* Structure for NCZ_PLUGIN_CODEC */
-static NCZ_codec_t NCZ_blosc_codec = {/* NCZ_codec_t  codec fields */ 
+static NCZ_codec_t NCZ_blosc_codec = {/* NCZ_codec_t  codec fields */
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
   "blosc",	        /* Standard name/id of the codec */
@@ -282,7 +282,7 @@ NCZ_blosc_modify_parameters(int ncid, int varid, size_t* vnparamsp, unsigned** v
     size_t nparams;
     size_t vnparams = *vnparamsp;
     unsigned* vparams = *vparamsp;
-    
+
     if(vnparams < 7)
         {stat = NC_EFILTER; goto done;}
     nparams = 7;
@@ -327,7 +327,7 @@ NCZ_blosc_modify_parameters(int ncid, int varid, size_t* vnparamsp, unsigned** v
     *wnparamsp = nparams;
     nullfree(*wparamsp);
     *wparamsp = params; params = NULL;
-    
+
 done:
     nullfree(chunklens);
     nullfree(params);
@@ -393,7 +393,7 @@ NCZ_blosc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** par
 
     if(nparamsp) *nparamsp = 7;
     if(paramsp) {*paramsp = params; params = NULL;}
-    
+
 done:
     if(jc.sval) {
 	free(jc.sval);
@@ -425,7 +425,7 @@ NCZ_blosc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }
-    
+
 done:
     return stat;
 }

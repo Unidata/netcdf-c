@@ -19,7 +19,7 @@ main(int argc, char** argv)
     NCZOdometer* odom = NULL;
     Vardef* var = NULL;
     struct Common common;
-    
+
     /* Initialize */
     memset(&slpv,0,sizeof(slpv));
 
@@ -52,16 +52,16 @@ done:
     ut_final();
     if(stat)
 	nc_strerror(stat);
-    return (stat ? 1 : 0);    
+    return (stat ? 1 : 0);
 }
 
 void
 ut_chunk_print(int sort, ...)
 {
     int i;
-    va_list ap;    
+    va_list ap;
 #if 0
-    struct Common* common = NULL;    
+    struct Common* common = NULL;
 #endif
     size64_t rank; /* variable rank */
     NCZSlice* slices = NULL; /* the complete set of slices |slices| == R*/
@@ -69,7 +69,7 @@ ut_chunk_print(int sort, ...)
     NCZChunkRange* ranges = NULL; /* computed chunk ranges */
 
     va_start(ap,sort);
-    
+
     switch (sort) {
     default: break; /* ignore */
     case UTEST_RANGE: /* () */

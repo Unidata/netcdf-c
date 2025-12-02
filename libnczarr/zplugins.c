@@ -294,7 +294,7 @@ NCZ_load_all_plugins(void)
 	    }
 	}
     }
-    
+
 done:
     nullfree(defaultpluginpath);
     nclistfreeall(dirs);
@@ -354,7 +354,7 @@ NCZ_load_plugin_dir(const char* path)
 	    }
 	} else
 	    stat = NC_NOERR; /*ignore failure */
-    }	
+    }
 
 done:
     nullfree(file);
@@ -374,7 +374,7 @@ NCZ_load_plugin(const char* path, struct NCZ_Plugin** plugp)
     NCPSharedLib* lib = NULL;
     int flags = NCP_GLOBAL;
     size_t h5id = 0;
-    
+
     assert(path != NULL && strlen(path) > 0 && plugp != NULL);
 
     ZTRACE(8,"path=%s",path);
@@ -407,7 +407,7 @@ NCZ_load_plugin(const char* path, struct NCZ_Plugin** plugp)
         } else {/* cpd => !gpt && !gpi && !npi */
             if(gpt != NULL && gpi != NULL) { /* get HDF5 info */
                 h5type = gpt();
-                h5class = gpi();        
+                h5class = gpi();
                 /* Verify */
                 if(h5type != H5PL_TYPE_FILTER) {stat = NC_EPLUGIN; goto done;}
                 if(h5class->version != H5Z_CLASS_T_VERS) {stat = NC_EFILTER; goto done;}
@@ -432,12 +432,12 @@ NCZ_load_plugin(const char* path, struct NCZ_Plugin** plugp)
     if(h5class != NULL && codec != NULL) {
 	/* Verify consistency of the HDF5 and the Codec */
 	if(((size_t)h5class->id) != codec->hdf5id) goto done; /* ignore */
-    } 
+    }
 
     /* There are several cases to consider:
     1. This library has both HDF5 API and Codec API => merge
     2. This library has HDF5 API only and Codec API was already found in another library => merge
-    3. This library has Codec API only and HDF5 API was already found in another library => merge    
+    3. This library has Codec API only and HDF5 API was already found in another library => merge
     */
 
     /* Get any previous plugin entry for this id; may be NULL */
@@ -453,7 +453,7 @@ NCZ_load_plugin(const char* path, struct NCZ_Plugin** plugp)
 	/* create new entry */
 	if((plugin = (NCZ_Plugin*)calloc(1,sizeof(NCZ_Plugin)))==NULL) {stat = NC_ENOMEM; goto done;}
     }
-    
+
     /* Fill in the plugin */
     if(h5class != NULL && plugin->hdf5.filter == NULL) {
 	plugin->hdf5.filter = h5class;
@@ -507,7 +507,7 @@ NCZ_plugin_loaded(size_t filterid, NCZ_Plugin** pp)
     ZTRACE(6,"filterid=%d",filterid);
     if(filterid <= 0 || filterid >= H5Z_FILTER_MAX)
 	{stat = NC_EINVAL; goto done;}
-    if(filterid <= gs->zarr.loaded_plugins_max) 
+    if(filterid <= gs->zarr.loaded_plugins_max)
         plug = gs->zarr.loaded_plugins[filterid];
     if(pp) *pp = plug;
 done:
@@ -629,7 +629,7 @@ getentries(const char* path, NClist* contents)
     ffpath = (char*)malloc(len+2+1);
     memcpy(ffpath,path,len);
     if(path[len-1] != '/') {
-	ffpath[len] = '/';	
+	ffpath[len] = '/';
 	len++;
     }
     ffpath[len] = '*'; len++;
@@ -729,7 +729,7 @@ printparams(size_t nparams, const unsigned* params)
     static char ppbuf[4096];
     if(nparams == 0)
         snprintf(ppbuf,4096,"{0,%p}",params);
-    else 
+    else
         snprintf(ppbuf,4096,"{%u %s}",(unsigned)nparams,nczprint_paramvector(nparams,params));
     return ppbuf;
 }

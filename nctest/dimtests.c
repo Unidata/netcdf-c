@@ -15,7 +15,7 @@
 #include "error.h"
 #include "tests.h"
 
-/* 
+/*
  * Test ncdimdef
  *    try in data mode, check error
  *    check that returned id is one more than previous id
@@ -199,7 +199,7 @@ test_ncdimid(const char *path) /* name of writable netcdf file to open */
 /*
  * Test ncdiminq
  *    try in both modes
- *    check returned name and size against defined name and size	
+ *    check returned name and size against defined name and size
  *    try with bad dimension handle, check error
  *    try with bad netCDF handle, check error
  */
@@ -290,8 +290,8 @@ test_ncdiminq(const char *path) /* name of writable netcdf file to open */
       (void) fprintf(stderr,"ok ***\n");
 
     return nerrs;
-}    
-    
+}
+
 /*
  * Test ncdimrename
  *    check that proper rename worked with ncdiminq
@@ -387,7 +387,7 @@ test_ncdimrename(const char *path) /* name of writable netcdf file to open */
     /* Check with ncdimid */
     if (pp_dim != ncdimid(cdfid, "p")) {
 	error("%s: lookup by name in data mode failed after ncdimrename",
-	      pname);	
+	      pname);
 	return ++nerrs;
     }
     /* in data mode, restore old name */

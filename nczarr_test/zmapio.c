@@ -82,12 +82,12 @@ struct Dumpptions {
     int meta_only;
     Mapop mop;
     char infile[4096];
-    NCZM_IMPL impl;    
+    NCZM_IMPL impl;
     char* rootpath;
     const struct Type* nctype;
     char format[16];
     int xflags;
-#	define XNOZMETADATA 1	
+#	define XNOZMETADATA 1
     int strlen;
 } dumpoptions;
 
@@ -132,12 +132,12 @@ static const struct Type*
 decodetype(const char* name,  int* strlenp)
 {
     struct Type* p = types;
-    
+
     if(strncmp(name,"string/",strlen("string/"))==0) {
         *strlenp = atoi(name+strlen("string/"));
         name = "string";
     }
-    
+
     for(;p->typename != NULL;p++) {
 	if(strcasecmp(p->typename,name)==0) return p;
     }
@@ -158,24 +158,24 @@ main(int argc, char** argv)
 
     while ((c = getopt(argc, argv, "dhvx:t:F:T:X:")) != EOF) {
 	switch(c) {
-	case 'd': 
-	    dumpoptions.debug = 1;	    
+	case 'd':
+	    dumpoptions.debug = 1;
 	    break;
-	case 'h': 
-	    dumpoptions.meta_only = 1;	    
+	case 'h':
+	    dumpoptions.meta_only = 1;
 	    break;
-	case 't': 
+	case 't':
 	    dumpoptions.nctype = decodetype(optarg,&dumpoptions.strlen);
 	    if(dumpoptions.nctype == NULL) zmapusage();
 	    break;
-	case 'x': 
+	case 'x':
 	    dumpoptions.mop = decodeop(optarg);
 	    if(dumpoptions.mop == MOP_NONE) zmapusage();
 	    break;
-	case 'v': 
+	case 'v':
 	    zmapusage();
 	    goto done;
-	case 'F': 
+	case 'F':
 	    strcpy(dumpoptions.format,optarg);
 	    break;
 	case 'T':
@@ -197,8 +197,8 @@ main(int argc, char** argv)
 
     /* Default the kind */
     if(dumpoptions.nctype == NULL) {
-	dumpoptions.nctype = &types[0];    
-	fprintf(stderr,"Default type: %s\n",dumpoptions.nctype->typename); 
+	dumpoptions.nctype = &types[0];
+	fprintf(stderr,"Default type: %s\n",dumpoptions.nctype->typename);
     }
 
     /* get file argument */
@@ -233,7 +233,7 @@ main(int argc, char** argv)
     case MOP_OBJDUMP:
 	if((stat = objdump())) goto done;
 	break;
-    }    
+    }
 
 done:
     /* Reclaim dumpoptions */
@@ -241,7 +241,7 @@ done:
     nc_finalize();
     if(stat)
 	fprintf(stderr,"fail: %s\n",nc_strerror(stat));
-    return (stat ? 1 : 0);    
+    return (stat ? 1 : 0);
 fail:
     stat = NC_EINVAL;
     goto done;
@@ -270,7 +270,7 @@ implfor(const char* path)
     }
 done:
     ncurifree(uri);
-    nclistfreeall(segments);    
+    nclistfreeall(segments);
     return impl;
 }
 
@@ -289,7 +289,7 @@ rootpathfor(const char* path)
     case NCZM_ZIP:
 	rootpath = strdup("/"); /*constant*/
 	break;
-#ifdef NETCDF_ENABLE_S3  
+#ifdef NETCDF_ENABLE_S3
     case NCZM_S3: {
 	char* p = NULL;
         /* Split the path part */
@@ -336,7 +336,7 @@ objdump(void)
         for(size_t i=0;i<nclistlength(stack);i++)
 
             fprintf(stderr,"[%zu] %s\n",i,(char*)nclistget(stack,i));
-    }    
+    }
     for(size_t depth=0;depth < nclistlength(stack);depth++) {
         size64_t len = 0;
 	OBJKIND kind = 0;
@@ -472,15 +472,15 @@ printcontent(size64_t len, const char* content, OBJKIND kind)
 	    if(i > 0) printf(", ");
 	    switch(dumpoptions.nctype->nctype) {
 	    case NC_BYTE: printf(format,((char*)content)[i]); break;
-	    case NC_SHORT: printf(format,((short*)content)[i]); break;		
-	    case NC_INT: printf(format,((int*)content)[i]); break;		
-	    case NC_INT64: printf(format,((long long*)content)[i]); break;		
+	    case NC_SHORT: printf(format,((short*)content)[i]); break;
+	    case NC_INT: printf(format,((int*)content)[i]); break;
+	    case NC_INT64: printf(format,((long long*)content)[i]); break;
 	    case NC_UBYTE: printf(format,((unsigned char*)content)[i]); break;
-	    case NC_USHORT: printf(format,((unsigned short*)content)[i]); break;		
-	    case NC_UINT: printf(format,((unsigned int*)content)[i]); break;		
-	    case NC_UINT64: printf(format,((unsigned long long*)content)[i]); break;		
-	    case NC_FLOAT: printf(format,((float*)content)[i]); break;		
-	    case NC_DOUBLE: printf(format,((double*)content)[i]); break;		
+	    case NC_USHORT: printf(format,((unsigned short*)content)[i]); break;
+	    case NC_UINT: printf(format,((unsigned int*)content)[i]); break;
+	    case NC_UINT64: printf(format,((unsigned long long*)content)[i]); break;
+	    case NC_FLOAT: printf(format,((float*)content)[i]); break;
+	    case NC_DOUBLE: printf(format,((double*)content)[i]); break;
 	    case NC_CHAR: printf(format,((char*)content)[i]); break;
 	    case NC_STRING: printf(format,(int)strlen,((char*)(&content[i*strlen]))); break;
 	    default: abort();

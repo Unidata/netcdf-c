@@ -52,7 +52,7 @@ NCD4_open(const char * path, int mode,
     size_t len = 0;
     void* contents = NULL;
     NCD4response* dmrresp = NULL;
-    
+
     if(path == NULL)
 	return THROW(NC_EDAPURL);
 
@@ -157,7 +157,7 @@ NCD4_open(const char * path, int mode,
     /* Rebuild metadata */
     if((ret = NCD4_newMeta(d4info,&d4info->dmrmetadata))) goto done;
 
-    /* Capture response */    
+    /* Capture response */
     if((dmrresp = (NCD4response*)calloc(1,sizeof(NCD4response)))==NULL)
         {ret = NC_ENOMEM; goto done;}
     dmrresp->controller = d4info;
@@ -430,7 +430,7 @@ NCD4_applychecksumcontrols(NCD4INFO* info, NCD4response* resp)
     }
     value = getfragment(info,"hyrax");
     if(value != NULL) {
-      resp->checksumignore = 1; /* Assume checksum, but ignore */	    
+      resp->checksumignore = 1; /* Assume checksum, but ignore */
     }
 }
 

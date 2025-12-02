@@ -65,7 +65,7 @@ znc4create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP*
     Z4MAP* z4map = NULL;
     int ncid;
     NCURI* url = NULL;
-    
+
     /* Fix up mode */
     mode = (NC_NETCDF4 | NC_WRITE | mode);
     if(flags & FLAG_BYTERANGE)
@@ -97,8 +97,8 @@ znc4create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP*
     if((stat=nc_create(local,mode,&ncid)))
         {stat = NC_EEMPTY; goto done;} /* could not open */
     z4map->ncid = ncid;
-    
-    if(mapp) *mapp = (NCZMAP*)z4map;    
+
+    if(mapp) *mapp = (NCZMAP*)z4map;
 
 done:
     ncurifree(url);
@@ -117,7 +117,7 @@ znc4open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** 
     Z4MAP* z4map = NULL;
     int ncid;
     NCURI* url = NULL;
-	
+
     /* Fixup mode */
     mode = NC_NETCDF4 | mode;
     if(flags & FLAG_BYTERANGE)
@@ -146,8 +146,8 @@ znc4open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** 
     if((stat=nc_open(local,mode,&ncid)))
        goto done; /* could not open */
     z4map->ncid = ncid;
-    
-    if(mapp) *mapp = (NCZMAP*)z4map;    
+
+    if(mapp) *mapp = (NCZMAP*)z4map;
 
 done:
     nullfree(truepath);
@@ -170,7 +170,7 @@ znc4close(NCZMAP* map, int delete)
     if(map == NULL) return NC_NOERR;
 
     path = z4map->root;
-        
+
     if((stat = nc_close(z4map->ncid)))
 	goto done;
     if(delete) {
@@ -192,9 +192,9 @@ znc4exists(NCZMAP* map, const char* key)
     Z4MAP* z4map = (Z4MAP*)map;
     NClist* segments = nclistnew();
     int grpid;
-    
+
     if((stat=nczm_split(key,segments)))
-	goto done;    
+	goto done;
     switch(stat=zlookupobj(z4map,segments,&grpid)) {
     case NC_NOERR: break;
     case NC_ENOTFOUND: stat = NC_EEMPTY; /* Does not exist */
@@ -218,7 +218,7 @@ znc4len(NCZMAP* map, const char* key, size64_t* lenp)
     int dimids[1];
 
     if((stat=nczm_split(key,segments)))
-	goto done;    
+	goto done;
 
     switch(stat=zlookupobj(z4map,segments,&grpid)) {
     case NC_NOERR:
@@ -251,7 +251,7 @@ znc4defineobj(NCZMAP* map, const char* key)
     NClist* segments = nclistnew();
 
     if((stat=nczm_split(key,segments)))
-	goto done;    
+	goto done;
     switch (stat = zlookupobj(z4map,segments,&grpid)) {
     case NC_NOERR: break; /* already exists */
     case NC_ENOTFOUND: stat = NC_EEMPTY;
@@ -277,7 +277,7 @@ znc4read(NCZMAP* map, const char* key, size64_t start, size64_t count, void* con
     NClist* segments = nclistnew();
 
     if((stat=nczm_split(key,segments)))
-	goto done;    
+	goto done;
     switch (stat = zlookupobj(z4map,segments,&grpid)) {
     case NC_NOERR: /* exists */
         /* Look for the data variable */
@@ -307,7 +307,7 @@ znc4write(NCZMAP* map, const char* key, size64_t start, size64_t count, const vo
     NClist* segments = nclistnew();
 
     if((stat=nczm_split(key,segments)))
-	goto done;    
+	goto done;
     switch (stat = zlookupobj(z4map,segments,&grpid)) {
     case NC_NOERR: /* exists */
         /* Look for the data variable */
@@ -341,9 +341,9 @@ znc4search(NCZMAP* map, const char* prefix, NClist* matches)
     int* vars = NULL;
     int i;
     NCbytes* key = ncbytesnew();
-	
+
     if((stat=nczm_split(prefix,segments)))
-	goto done;    
+	goto done;
     if(nclistlength(segments) > 0) {
         /* Fix the last name */
         size_t pos = nclistlength(segments)-1;
@@ -400,13 +400,13 @@ testcontentbearing(int grpid)
 {
     int stat = NC_NOERR;
     int varid;
-    
+
     /* See if there is a content variable */
     switch (stat = nc_inq_varid(grpid,ZCONTENT,&varid)) {
     default: goto done; /* true error */
-    case NC_NOERR: /* This is a data bearing object */ 
+    case NC_NOERR: /* This is a data bearing object */
 	return NC_NOERR;
-    case NC_ENOTVAR:		
+    case NC_ENOTVAR:
 	return NC_EEMPTY;
     }
 
@@ -429,7 +429,7 @@ zlookupgroup(Z4MAP* z4map, NClist* segments, int nskip, int* grpidp)
 	int grpid2;
 	const char* seg = nclistget(segments,i);
 	char nc4name[NC_MAX_NAME];
-	nc4ify(seg,nc4name);	
+	nc4ify(seg,nc4name);
 	if((stat=nc_inq_grp_ncid(grpid,nc4name,&grpid2)))
 	    {stat = NC_ENOTFOUND; goto done;}
 	grpid = grpid2;
@@ -459,12 +459,12 @@ zlookupobj(Z4MAP* z4map, NClist* segments, int* grpidp)
     }
     /* See if this is content-bearing */
     if((stat = testcontentbearing(grpid)))
-	goto done;        
+	goto done;
 
     if(grpidp) *grpidp = grpid;
 
 done:
-    return (stat);    
+    return (stat);
 }
 
 /* Create a group; assume all intermediate groups exist
@@ -484,7 +484,7 @@ zcreategroup(Z4MAP* z4map, NClist* segments, int nskip, int* grpidp)
     /* Do all but last group */
     for(i=0;i<(len-1);i++) {
 	const char* seg = nclistget(segments,i);
-	nc4ify(seg,nc4name);	
+	nc4ify(seg,nc4name);
 	/* Does this group exist? */
 	if((stat=nc_inq_grp_ncid(grpid,nc4name,&grpid2)) == NC_ENOGRP) {
 	    {stat = NC_ENOTFOUND; goto done;} /* missing intermediate */
@@ -551,7 +551,7 @@ zcreateobj(Z4MAP* z4map, NClist* segments, int* grpidp)
     if((stat=nc_def_var(grpid, ZCONTENT, NC_UBYTE, 1, dimid, &varid)))
 	goto done;
 done:
-    return (stat);    
+    return (stat);
 }
 
 static int

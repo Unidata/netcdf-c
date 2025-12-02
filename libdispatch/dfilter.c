@@ -4,7 +4,7 @@
  */
 /**
  * @file
- * Functions for working with filters. 
+ * Functions for working with filters.
  */
 
 #include "config.h"
@@ -139,7 +139,7 @@ done:
 /**
 Find the first filter (if any) associated with a variable.
 Assumes HDF5 format using unsigned int.
-   
+
 @param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
@@ -188,7 +188,7 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
     if((stat = nc_inq_var_filter_info(ncid,varid,ids[0],nparamsp,params))) goto done;
     if(idp) *idp = ids[0];
  done:
-    nullfree(ids);        
+    nullfree(ids);
     return stat;
 }
 
@@ -237,7 +237,7 @@ nc_def_var_bzip2(int ncid, int varid, int level)
 {
     int stat = NC_NOERR;
     unsigned ulevel;
-    
+
     if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_BZIP2))) goto done;
     /* Filter is available */
     /* 1 <= Level <= 9 */
@@ -270,7 +270,7 @@ nc_inq_var_bzip2(int ncid, int varid, int* hasfilterp, int *levelp)
     size_t nparams;
     unsigned params = 0;
     int hasfilter = 0;
-    
+
     if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_BZIP2))) goto done;
     /* Filter is available */
     /* Get filter info */
@@ -291,9 +291,9 @@ done:
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param level From -131072 to 22 (depends on Zstandard version). 
+ * @param level From -131072 to 22 (depends on Zstandard version).
  * when compressing. Regular compression levels are from 1 up to 19.
- * Use levels >= 20, labeled `--ultra`, cautiously: they require more memory. 
+ * Use levels >= 20, labeled `--ultra`, cautiously: they require more memory.
  * Negative compression levels that extend the range of speed vs. ratio preferences.
  * The lower the level, the faster the speed (at the cost of compression).
  *
@@ -306,7 +306,7 @@ nc_def_var_zstandard(int ncid, int varid, int level)
 #ifdef HAVE_ZSTD
     int stat = NC_NOERR;
     unsigned ulevel;
-    
+
     if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_ZSTD))) goto done;
     /* Filter is available */
     /* Level must be between -131072 and 22 on Zstandard v. 1.4.5 (~202009)
@@ -344,7 +344,7 @@ nc_inq_var_zstandard(int ncid, int varid, int* hasfilterp, int *levelp)
     size_t nparams;
     unsigned params = 0;
     int hasfilter = 0;
-    
+
     if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_ZSTD))) goto done;
     /* Filter is available */
     /* Get filter info */
@@ -383,7 +383,7 @@ nc_def_var_blosc(int ncid, int varid, unsigned subcompressor, unsigned level, un
 #ifdef HAVE_BLOSC
     int stat = NC_NOERR;
     unsigned params[7];;
-    
+
     if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_BLOSC))) goto done;
     /* Filter is available */
 
@@ -436,7 +436,7 @@ nc_inq_var_blosc(int ncid, int varid, int* hasfilterp, unsigned* subcompressorp,
     size_t nparams;
     unsigned params[7];
     int hasfilter = 0;
-    
+
     if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_BLOSC))) goto done;
     /* Filter is available */
 

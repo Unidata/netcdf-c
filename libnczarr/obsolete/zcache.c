@@ -104,7 +104,7 @@ int
 NCZ_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
     /* Reset the cache parameters since var chunking may have changed */
-    
+
 
     return NC_NOERR;
 }
@@ -130,11 +130,11 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, NCZChunkCache** c
     void* fill = NULL;
     size_t nelems, cachesize;
     NCZ_VAR_INFO_T* zvar = NULL;
-	
+
     if(chunksize == 0) return NC_EINVAL;
 
     zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
-    
+
     if((cache = calloc(1,sizeof(NCZChunkCache))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     cache->var = var;
@@ -210,7 +210,7 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
     NC_FILE_INFO_T* file = cache->var->container->nc4_info;
     NCZCacheEntry* entry = NULL;
     int i;
-	
+
     /* Create the key for this cache */
     if((stat = NCZ_buildchunkpath(cache,indices,&key))) goto done;
 
@@ -220,7 +220,7 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
 	if(strcmp(key,entry->key)==0) {
             if(datap) *datap = entry->data;
 	    /* Move to keep MRU at end */
-	    nclistremove(cache->entries,i);	    
+	    nclistremove(cache->entries,i);
 	    break;
         } else entry = NULL;
     }
@@ -277,7 +277,7 @@ NCZ_write_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** data
     char* key = NULL;
     int i,rank = cache->ndims;
     NCZCacheEntry* entry = NULL;
-    
+
     /* Create the key for this cache */
     if((stat = NCZ_buildchunkpath(cache,indices,&key))) goto done;
 
@@ -287,7 +287,7 @@ NCZ_write_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** data
 	if(strcmp(key,entry->key)==0) {
             if(datap) *datap = entry->data;
 	    /* Move to keep MRU at end */
-	    nclistremove(cache->entries,i);	    
+	    nclistremove(cache->entries,i);
 	    break;
         } else entry = NULL;
     }
@@ -342,7 +342,7 @@ NCZ_flush_chunk_cache(NCZChunkCache* cache)
     size_t i;
 
     if(NCZ_cache_size(cache) == 0) goto done;
-    
+
     /* Iterate over the entries in hashmap */
     for(i=0;i<nclistlength(cache->entries);i++) {
         NCZCacheEntry* entry = nclistget(cache->entries,i);
@@ -410,12 +410,12 @@ buildchunkkey(size_t R, const size64_t* chunkindices, char** keyp)
     NCbytes* key = ncbytesnew();
 
     if(keyp) *keyp = NULL;
-    
+
     for(r=0;r<R;r++) {
 	char sindex[64];
         if(r > 0) ncbytescat(key,".");
 	/* Print as decimal with no leading zeros */
-	snprintf(sindex,sizeof(sindex),"%lu",(unsigned long)chunkindices[r]);	
+	snprintf(sindex,sizeof(sindex),"%lu",(unsigned long)chunkindices[r]);
 	ncbytescat(key,sindex);
     }
     ncbytesnull(key);

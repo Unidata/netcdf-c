@@ -173,16 +173,16 @@ reclaim_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position instance)
         }
 out:
         if(vlen->len > 0 && vlen->p != NULL) {free(vlen->p);}
-        goto done;	
-    } else if(utype->nc_type_class == NC_COMPOUND) {    
+        goto done;
+    } else if(utype->nc_type_class == NC_COMPOUND) {
 	Position finstance;  /* mark the fields's instance */
 	nfields = nclistlength(utype->u.c.field);
         /* Get info about each field in turn and reclaim it */
         for(fid=0;fid<nfields;fid++) {
 	    NC_FIELD_INFO_T* field = NULL;
-	    
+
 	    /* Get field's dimension sizes */
-	    field = (NC_FIELD_INFO_T*)nclistget(utype->u.c.field,fid);    
+	    field = (NC_FIELD_INFO_T*)nclistget(utype->u.c.field,fid);
 	    ndims = field->ndims;
 	    int arraycount = 1;
 	    for(i=0;i<ndims;i++) {dimsizes[i] = field->dim_size[i]; arraycount *= dimsizes[i];}
@@ -202,7 +202,7 @@ out:
 		}
 		continue; /* do next field */
 	    }
-	    
+
 	    /* optimize: fixed length compound base type */
             if((stat = nc4_find_type(file,field->nc_typeid,&basetype))) goto done;
 	    if(!basetype->varsized) continue;
@@ -272,7 +272,7 @@ NC_copy_data(NC* nc, nc_type xtype, const void* memory, size_t count, void* copy
         memcpy(copy,memory,count*typesize);
 	goto done;
     }
-    
+
 #ifdef USE_NETCDF4
     /* Optimize: Vector of strings */
     if(xtype == NC_STRING) {
@@ -411,16 +411,16 @@ copy_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position src, Position d
 	    vsrc.memory += basetype->size;
 	    vdst.memory += basetype->size;
         }
-	goto done;	
-    } else if(utype->nc_type_class == NC_COMPOUND) {    
+	goto done;
+    } else if(utype->nc_type_class == NC_COMPOUND) {
 	Position fsrc;  /* mark the src fields's instance */
 	Position fdst;  /* mark the dst fields's instance */
 	nfields = nclistlength(utype->u.c.field);
         /* Get info about each field in turn and copy it */
         for(fid=0;fid<nfields;fid++) {
 	    NC_FIELD_INFO_T* field = NULL;
-	    
-	    field = (NC_FIELD_INFO_T*)nclistget(utype->u.c.field,fid);    
+
+	    field = (NC_FIELD_INFO_T*)nclistget(utype->u.c.field,fid);
 	    ndims = field->ndims;
 	    arraycount = 1;
 	    for(i=0;i<ndims;i++) {dimsizes[i] = field->dim_size[i]; arraycount *= (size_t)dimsizes[i];}
@@ -441,7 +441,7 @@ copy_datar(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* utype, Position src, Position d
 	    if(field->nc_typeid == NC_STRING) {
 	        char** srcstrvec = (char**)fsrc.memory;
 	        char** dststrvec = (char**)fdst.memory;
-		for(i=0;i<arraycount;i++) 
+		for(i=0;i<arraycount;i++)
 		    {if(srcstrvec[i] != NULL) {dststrvec[i] = strdup(srcstrvec[i]);} else {dststrvec[i] = NULL;}}
 		continue; /* move to next field */
 	    }

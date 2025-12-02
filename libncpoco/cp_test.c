@@ -79,7 +79,7 @@ check(enum CE ce, int invert, int lineno, const char* file, ...)
 	}
 	break;
     case CE_SYM:
-        sym = va_arg(args,void*);	
+        sym = va_arg(args,void*);
 	if((!invert && sym == NULL) || (invert && sym != NULL)) {
 	   fprintf(stderr,"(%s:%d): get symbol failure\n",file,lineno);
            goto fail;
@@ -215,7 +215,7 @@ main(int argc, char** argv)
 	break;
     case 1:
     case 0:
-	break;	
+	break;
     }
 
     if(prefixpath == NULL) {

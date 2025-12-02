@@ -169,7 +169,7 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
     NCZChunkCache* cache = NULL;
     void* fill = NULL;
     NCZ_VAR_INFO_T* zvar = NULL;
-	
+
     if(chunksize == 0) return NC_EINVAL;
 
     zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
@@ -189,7 +189,7 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
 	    cache->chunkcount *= var->chunksizes[i];
         }
     }
-    
+
     /* Set default cache parameters */
     cache->params = NC_getglobalstate()->chunkcache;
 
@@ -316,7 +316,7 @@ fprintf(stderr,"|cache.read.lru|=%ld\n",nclistlength(cache->mru));
 #endif
     if(datap) *datap = entry->data;
     entry = NULL;
-    
+
 done:
     if(created && stat == NC_NOERR)  stat = NC_EEMPTY; /* tell upper layers */
     if(entry) free_cache_entry(cache,entry);
@@ -331,7 +331,7 @@ NCZ_write_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void* conte
     int rank = cache->ndims;
     NCZCacheEntry* entry = NULL;
     ncexhashkey_t hkey;
-    
+
     /* create the hash key */
     hkey = ncxcachekey(indices,sizeof(size64_t)*cache->ndims);
 
@@ -467,7 +467,7 @@ NCZ_flush_chunk_cache(NCZChunkCache* cache)
     ZTRACE(4,"cache.var=%s |cache|=%d",cache->var->hdr.name,(int)nclistlength(cache->mru));
 
     if(NCZ_cache_size(cache) == 0) goto done;
-    
+
     /* Iterate over the entries in hashmap */
     for(i=0;i<nclistlength(cache->mru);i++) {
         NCZCacheEntry* entry = nclistget(cache->mru,i);
@@ -546,7 +546,7 @@ NCZ_ensure_fill_chunk(NCZChunkCache* cache)
 done:
     return NC_NOERR;
 }
-    
+
 int
 NCZ_reclaim_fill_chunk(NCZChunkCache* zcache)
 {
@@ -612,12 +612,12 @@ NCZ_buildchunkkey(size_t R, const size64_t* chunkindices, char dimsep, char** ke
     if(keyp) *keyp = NULL;
 
     assert(islegaldimsep(dimsep));
-    
+
     for(r=0;r<R;r++) {
 	char sindex[64];
         if(r > 0) ncbytesappend(key,dimsep);
 	/* Print as decimal with no leading zeros */
-	snprintf(sindex,sizeof(sindex),"%lu",(unsigned long)chunkindices[r]);	
+	snprintf(sindex,sizeof(sindex),"%lu",(unsigned long)chunkindices[r]);
 	ncbytescat(key,sindex);
     }
     ncbytesnull(key);
@@ -737,7 +737,7 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     int tid;
 
     ZTRACE(5,"cache.var=%s entry.key=%s sep=%d",cache->var->hdr.name,entry->key,cache->dimension_separator);
-    
+
     LOG((3, "%s: file: %p", __func__, file));
 
     file = (cache->var->container)->nc4_info;
@@ -760,7 +760,7 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     }
 
     /* make room in the cache */
-    if((stat = constraincache(cache,size))) goto done;    
+    if((stat = constraincache(cache,size))) goto done;
 
     if(!empty) {
         /* Make sure we have a place to read it */
@@ -853,7 +853,7 @@ NCZ_buildchunkpath(NCZChunkCache* cache, const size64_t* chunkindices, struct Ch
     /* Get the var object key */
     if((stat = NCZ_varkey(cache->var,&varkey))) goto done;
     key->varkey = varkey; varkey = NULL;
-    key->chunkkey = chunkname; chunkname = NULL;    
+    key->chunkkey = chunkname; chunkname = NULL;
 
 done:
     nullfree(chunkname);
@@ -911,10 +911,10 @@ NCZ_printxcache(NCZChunkCache* cache)
     	cache->dimension_separator
 	);
     ncbytescat(buf,s);
-    
+
     snprintf(s,sizeof(s),"\tmru: (%u)\n",(unsigned)nclistlength(cache->mru));
     ncbytescat(buf,s);
-    if(nclistlength(cache->mru)==0)    
+    if(nclistlength(cache->mru)==0)
         ncbytescat(buf,"\t\t<empty>\n");
     for(i=0;i<nclistlength(cache->mru);i++) {
 	NCZCacheEntry* e = (NCZCacheEntry*)nclistget(cache->mru,i);

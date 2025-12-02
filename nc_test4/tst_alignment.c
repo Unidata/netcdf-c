@@ -44,7 +44,7 @@ main(int argc, char **argv)
     if (nc_def_var(ncid, "var", NC_UBYTE, 1, dimids, &varid)) ERR;
     chunks[0] = CHUNKSIZE;
     if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, chunks)) ERR;
-    if (nc_enddef(ncid)) ERR;     
+    if (nc_enddef(ncid)) ERR;
 
     for(i=0;i<CHUNKSIZE;i++) data[i] = (i)%2;
     if(nc_put_var(ncid,varid,data)) ERR;
@@ -90,7 +90,7 @@ main(int argc, char **argv)
 	    fprintf(stderr,"data[%d] mismatch\n",i);
 	    ERR;
 	}
-    }    
+    }
 
     if (H5Dclose(datasetid) < 0) ERR;
     if (H5Gclose(grpid) < 0) ERR;

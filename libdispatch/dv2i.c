@@ -1,4 +1,4 @@
-/** \file 
+/** \file
 The V2 API Functions.
 
 Copyright 2018, University Corporation for Atmospheric Research
@@ -51,8 +51,8 @@ MSC_EXTRA int ncerr = NC_NOERR ; /**< V2 API error code. */
 # define A_FREE(name)  /**< Free a variable. */
 
 # define A_INIT(lhs, type, ndims, rhs)  /**< Init a variable */
-	
-#else 
+
+#else
 /*
  * We do have to copy the arguments to switch from 'long'
  * to 'size_t' or 'ptrdiff_t'. In my tests on an SGI,
@@ -76,25 +76,25 @@ nvdims(int ncid, int varid)
    return ndims;
 }
 
-/* Used to avoid errors on 64-bit windows related to 
+/* Used to avoid errors on 64-bit windows related to
    c89 macros and flow control/conditionals. */
 static void* nvmalloc(off_t size) {
   if(size < 0)
     return NULL;
-  
+
   return malloc(size);
 
 }
 
 #define NDIMS_DECL const int ndims = nvdims(ncid, varid); \
-  
-  
+
+
 # define A_DECL(name, type, ndims, rhs)		\
   type *const name = (type*) nvmalloc((ndims) * sizeof(type))
 
 
 #if 0
-  ALLOC_ONSTACK(name, type, ndims)		
+  ALLOC_ONSTACK(name, type, ndims)
 #endif
 
 # define A_FREE(name) \
@@ -143,11 +143,11 @@ numrecvars(int ncid, int* nrecvarsp, int *recvarids)
     int recdimid;
     int dimids[MAX_NC_DIMS];
 
-    status = nc_inq_nvars(ncid, &nvars); 
+    status = nc_inq_nvars(ncid, &nvars);
     if(status != NC_NOERR)
 	return status;
 
-    status = nc_inq_unlimdim(ncid, &recdimid); 
+    status = nc_inq_unlimdim(ncid, &recdimid);
     if(status != NC_NOERR)
 	return status;
 
@@ -157,10 +157,10 @@ numrecvars(int ncid, int* nrecvarsp, int *recvarids)
     }
     nrecvars = 0;
     for (varid = 0; varid < nvars; varid++) {
-	status = nc_inq_varndims(ncid, varid, &ndims); 
+	status = nc_inq_varndims(ncid, varid, &ndims);
 	if(status != NC_NOERR)
 	    return status;
-	status = nc_inq_vardimid(ncid, varid, dimids); 
+	status = nc_inq_vardimid(ncid, varid, dimids);
 	if(status != NC_NOERR)
 	    return status;
 	if (ndims > 0 && dimids[0] == recdimid) {
@@ -196,16 +196,16 @@ ncrecsize(int ncid, int varid, size_t *recsizep)
     int size;
 
     *recsizep = 0;
-    status = nc_inq_unlimdim(ncid, &recdimid); 
+    status = nc_inq_unlimdim(ncid, &recdimid);
     if(status != NC_NOERR)
 	return status;
-    status = nc_inq_vartype(ncid, varid, &type); 
+    status = nc_inq_vartype(ncid, varid, &type);
     if(status != NC_NOERR)
 	return status;
-    status = nc_inq_varndims(ncid, varid, &ndims); 
+    status = nc_inq_varndims(ncid, varid, &ndims);
     if(status != NC_NOERR)
 	return status;
-    status = nc_inq_vardimid(ncid, varid, dimids); 
+    status = nc_inq_vardimid(ncid, varid, dimids);
     if(status != NC_NOERR)
 	return status;
     if (ndims == 0 || dimids[0] != recdimid) {
@@ -226,7 +226,7 @@ ncrecsize(int ncid, int varid, size_t *recsizep)
 
 /**
  * Retrieves the dimension sizes of a variable with a specified variable id in
- * an open netCDF file.  
+ * an open netCDF file.
  *
  * @param ncid File ID.
  * @param varid Variable ID.
@@ -244,10 +244,10 @@ dimsizes(int ncid, int varid, size_t *sizes)
     int id;
     int dimids[MAX_NC_DIMS];
 
-    status = nc_inq_varndims(ncid, varid, &ndims); 
+    status = nc_inq_varndims(ncid, varid, &ndims);
     if(status != NC_NOERR)
 	return status;
-    status = nc_inq_vardimid(ncid, varid, dimids); 
+    status = nc_inq_vardimid(ncid, varid, dimids);
     if(status != NC_NOERR)
 	return status;
     if (ndims == 0 || sizes == NULL)
@@ -299,17 +299,17 @@ nc_inq_rec(
     int rvarids[MAX_NC_VARS];
     int nrvars = 0;
 
-    status = nc_inq_nvars(ncid, &nvars); 
+    status = nc_inq_nvars(ncid, &nvars);
     if(status != NC_NOERR)
 	return status;
 
-    status = nc_inq_unlimdim(ncid, &recdimid); 
+    status = nc_inq_unlimdim(ncid, &recdimid);
     if(status != NC_NOERR)
 	return status;
 
     if (recdimid == -1)
 	return NC_NOERR;
-    
+
     status = numrecvars(ncid, &nrvars, rvarids);
     if(status != NC_NOERR)
 	return status;
@@ -386,7 +386,7 @@ nc_put_rec(
 	    if(status != NC_NOERR)
 		return status;
 	}
-    }    
+    }
     return 0;
 }
 
@@ -446,7 +446,7 @@ nc_get_rec(
 	    if(status != NC_NOERR)
 		return status;
 	}
-    }    
+    }
     return 0;
 }
 
@@ -610,7 +610,7 @@ ncclose(int ncid)
 	{
 		nc_advise("ncclose", status, "ncid %d", ncid);
 		return -1;
-		
+
 	}
 	return 0;
 }
@@ -636,7 +636,7 @@ ncinquire(
     int		ncid,
     int*	ndims,
     int*	nvars,
-    int*	natts, 
+    int*	natts,
     int*	recdim
 )
 {
@@ -681,7 +681,7 @@ ncsync(int ncid)
 	{
 		nc_advise("ncsync", status, "ncid %d", ncid);
 		return -1;
-		
+
 	}
 	return 0;
 }
@@ -801,7 +801,7 @@ ncdiminq(
 		return -1;
 	}
 	/* else */
-	
+
 	if(length != NULL)
 		*length = (int) ll;
 
@@ -856,7 +856,7 @@ int
 ncvardef(
     int		ncid,
     const char*	name,
-    nc_type	datatype, 
+    nc_type	datatype,
     int		ndims,
     const int*	dim
 )
@@ -937,7 +937,7 @@ ncvarinq(
 		return -1;
 	}
 	/* else */
-	
+
 	if(ndims != NULL)
 		*ndims = (int) nd;
 
@@ -1041,7 +1041,7 @@ ncvarput(
     int		ncid,
     int		varid,
     const long*	start,
-    const long*	count, 
+    const long*	count,
     const void*	value
 )
 {
@@ -1083,7 +1083,7 @@ ncvarget(
     int		ncid,
     int		varid,
     const long*	start,
-    const long*	count, 
+    const long*	count,
     void*	value
 )
 {
@@ -1136,7 +1136,7 @@ ncvarputs(
 	/* else */
 	{
 
-	NDIMS_DECL 
+	NDIMS_DECL
 	A_DECL(stp, size_t, ndims, start);
 	A_DECL(cntp, size_t, ndims, count);
 	A_DECL(strdp, ptrdiff_t, ndims, stride);
@@ -1405,7 +1405,7 @@ int
 ncattput(
     int		ncid,
     int		varid,
-    const char*	name, 
+    const char*	name,
     nc_type	datatype,
     int		len,
     const void*	value
@@ -1440,7 +1440,7 @@ int
 ncattinq(
     int		ncid,
     int		varid,
-    const char*	name, 
+    const char*	name,
     nc_type*	datatype,
     int*	len
 )
@@ -1454,7 +1454,7 @@ ncattinq(
 		    ncid, varid, name);
 		return -1;
 	}
-	
+
 	if(len != NULL)
 		*len = (int) ll;
 
@@ -1479,7 +1479,7 @@ int
 ncattget(
     int		ncid,
     int		varid,
-    const char*	name, 
+    const char*	name,
     void*	value
 )
 {
@@ -1511,7 +1511,7 @@ int
 ncattcopy(
     int		ncid_in,
     int		varid_in,
-    const char*	name, 
+    const char*	name,
     int		ncid_out,
     int		varid_out
 )
@@ -1574,7 +1574,7 @@ int
 ncattrename(
     int		ncid,
     int		varid,
-    const char*	name, 
+    const char*	name,
     const char*	newname
 )
 {

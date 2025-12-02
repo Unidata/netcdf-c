@@ -48,7 +48,7 @@ NCD4_get_vars(int gid, int varid,
     d4size_t dimproduct;
     size_t dstpos;
     NCD4offset* offset = NULL;
-    
+
     /* Get netcdf var metadata and data */
     if((ret=getvarx(gid, varid, &info, &ncvar, &xtype, &xsize, &nc4type, &nc4size)))
 	{goto done;}
@@ -63,7 +63,7 @@ NCD4_get_vars(int gid, int varid,
 
     instance = malloc(nc4size);
     if(instance == NULL)
-	{ret = THROW(NC_ENOMEM); goto done;}	
+	{ret = THROW(NC_ENOMEM); goto done;}
 
     dimproduct = NCD4_dimproduct(ncvar);
     /* build size vector */
@@ -71,7 +71,7 @@ NCD4_get_vars(int gid, int varid,
 	NCD4node* dim = nclistget(ncvar->dims,i);
 	dimsizes[i] = dim->dim.size;
     }
-	
+
     /* Extract and desired subset of data */
     if(rank > 0)
         odom = d4odom_new(rank,start,edges,stride,dimsizes);
@@ -104,7 +104,7 @@ NCD4_get_vars(int gid, int varid,
 	} else {
 	    /* We have to walk to the pos'th location in the data */
 	    if((ret=NCD4_moveto(meta,ncvar,pos,offset)))
-	        {goto done;}		    
+	        {goto done;}
 	}
 	dst = instance;
 	if((ret=NCD4_movetoinstance(meta,nctype,offset,&dst,blobs)))
@@ -228,7 +228,7 @@ done:
     if(dapresp != NULL && dapresp->error.message != NULL)
     	NCD4_reporterror(dapresp,ceuri);    /* Make sure the user sees this */
     ncurifree(ceuri);
-    return THROW(ret);    
+    return THROW(ret);
 }
 
 #if 0
@@ -255,7 +255,7 @@ matchvar(NCD4meta* dmrmeta, NCD4node* dapvar, NCD4node** dmrvarp)
     NClist* dmrpath = nclistnew(); /* compute path for this dmr var */
     int found = 0;
     NCD4node* match = NULL;
-    
+
     /* Capture the dap path starting at root and ending at the dapvar (assumed to be topvar) */
     for(x=dapvar;x != NULL;x=x->container) nclistinsert(dappath,0,x);
     /* Iterate over all variable nodes to find matching one */

@@ -169,7 +169,7 @@ NCJparsen(size_t len, const char* text, unsigned flags, NCjson** jsonp)
 	}
 	len = (size_t)((p - parser->text) + 1);
     }
-    if(len == 0) 
+    if(len == 0)
 	{stat = NCJTHROW(NCJ_ERR); goto done;}
     parser->text[len] = '\0';
     parser->text[len+1] = '\0';
@@ -295,8 +295,8 @@ NCJparseArray(NCJparser* parser, struct NCjlist* arrayp)
 	default:
 	    stat = NCJTHROW(NCJ_ERR);
 	    goto done;
-	}	
-    }	
+	}
+    }
 
 done:
     if(element != NULL)
@@ -337,7 +337,7 @@ NCJparseDict(NCJparser* parser, struct NCjlist* dictp)
 	case NCJ_COLON: break;
 	case NCJ_UNDEF: case NCJ_EOF:
 	default: stat = NCJTHROW(NCJ_ERR); goto done;
-	}    
+	}
 	/* Get the value */
 	if((stat = NCJparseR(parser,&value))==NCJ_ERR) goto done;
         /* Next token must be comma or RBRACE */
@@ -357,8 +357,8 @@ NCJparseDict(NCJparser* parser, struct NCjlist* dictp)
 	default:
 	    stat = NCJTHROW(NCJ_ERR);
 	    goto done;
-	}	
-    }	
+	}
+    }
 
 done:
     if(key != NULL)
@@ -480,7 +480,7 @@ testint(const char* word)
 static int
 nancmp(const void* keyp, const void* membpp)
 {
-    int cmp;    
+    int cmp;
     const char* key = (const char*)keyp;
     const char** membp = (const char**)membpp;
     cmp = strcasecmp(key,*membp);
@@ -499,7 +499,7 @@ testdouble(const char* word)
     pos = bsearch(word, NANINF, NNANINF, sizeof(char*), nancmp);
     if(pos != NULL) return 1;
     /* Try to convert to number */
-    ncvt = sscanf(word,"%lg%n",&d,&count); 
+    ncvt = sscanf(word,"%lg%n",&d,&count);
     return (ncvt == 1 && strlen(word)==((size_t)count) ? 1 : 0);
 }
 
@@ -530,7 +530,7 @@ NCJreclaim(NCjson* json)
     case NCJ_INT:
     case NCJ_DOUBLE:
     case NCJ_BOOLEAN:
-    case NCJ_STRING: 
+    case NCJ_STRING:
 	nullfree(json->string);
 	break;
     case NCJ_DICT:
@@ -584,7 +584,7 @@ NCJnew(int sort, NCjson** objectp)
     case NCJ_DICT:
     case NCJ_ARRAY:
 	break;
-    default: 
+    default:
 	stat = NCJTHROW(NCJ_ERR);
 	goto done;
     }
@@ -637,7 +637,7 @@ NCJdictget(const NCjson* dict, const char* key, const NCjson** jvaluep)
 	if(jkey->string != NULL && strcmp(jkey->string,key)==0) {
 	    if(jvaluep) {*jvaluep = jvalue;}
 	    break;
-	}	    
+	}
     }
 
 done:
@@ -681,7 +681,7 @@ NCJunescape(NCJparser* parser)
 	*q++ = (char)c;
     }
     *q = '\0';
-    return NCJTHROW(NCJ_OK);    
+    return NCJTHROW(NCJ_OK);
 }
 
 /* Unescape a single character */
@@ -743,43 +743,43 @@ NCJcvt(const NCjson* jvalue, int outsort, struct NCJconst* output)
 	break;
     case CASE(NCJ_BOOLEAN,NCJ_INT):
 	if(strcasecmp(jvalue->string,NCJ_TAG_FALSE)==0) output->ival = 0; else output->ival = 1;
-	break;	
+	break;
     case CASE(NCJ_BOOLEAN,NCJ_DOUBLE):
 	if(strcasecmp(jvalue->string,NCJ_TAG_FALSE)==0) output->dval = 0.0; else output->dval = 1.0;
-	break;	
+	break;
     case CASE(NCJ_BOOLEAN,NCJ_STRING):
         output->sval = nulldup(jvalue->string);
-	break;	
+	break;
 
     case CASE(NCJ_INT,NCJ_BOOLEAN):
 	sscanf(jvalue->string,"%lld",&output->ival);
 	output->bval = (output->ival?1:0);
-	break;	
+	break;
     case CASE(NCJ_INT,NCJ_INT):
 	sscanf(jvalue->string,"%lld",&output->ival);
-	break;	
+	break;
     case CASE(NCJ_INT,NCJ_DOUBLE):
 	sscanf(jvalue->string,"%lld",&output->ival);
 	output->dval = (double)output->ival;
-	break;	
+	break;
     case CASE(NCJ_INT,NCJ_STRING):
         output->sval = nulldup(jvalue->string);
-	break;	
+	break;
 
     case CASE(NCJ_DOUBLE,NCJ_BOOLEAN):
 	sscanf(jvalue->string,"%lf",&output->dval);
 	output->bval = (output->dval == 0?0:1);
-	break;	
+	break;
     case CASE(NCJ_DOUBLE,NCJ_INT):
 	sscanf(jvalue->string,"%lf",&output->dval);
 	output->ival = (long long)output->dval;
-	break;	
+	break;
     case CASE(NCJ_DOUBLE,NCJ_DOUBLE):
 	sscanf(jvalue->string,"%lf",&output->dval);
-	break;	
+	break;
     case CASE(NCJ_DOUBLE,NCJ_STRING):
         output->sval = nulldup(jvalue->string);
-	break;	
+	break;
 
     case CASE(NCJ_STRING,NCJ_BOOLEAN):
 	if(strcasecmp(jvalue->string,NCJ_TAG_FALSE)==0) output->bval = 0; else output->bval = 1;
@@ -792,7 +792,7 @@ NCJcvt(const NCjson* jvalue, int outsort, struct NCJconst* output)
 	break;
     case CASE(NCJ_STRING,NCJ_STRING):
         output->sval = nulldup(jvalue->string);
-	break;	
+	break;
 
     default:
         stat = NCJTHROW(NCJ_ERR);
@@ -836,7 +836,7 @@ listlookup(const struct NCjlist* list, const char* key, size_t* indexp)
     len = (int)list->len; /* => |list| < 2 billion or do */
     for(i=0;i<len;i+=2) {
 	const NCjson* jkey = list->contents[i];
-	if(jkey != NULL && jkey->string != NULL && strcmp(jkey->string,key)==0) {match = i;break;}	    
+	if(jkey != NULL && jkey->string != NULL && strcmp(jkey->string,key)==0) {match = i;break;}
     }
     if(match < 0) {stat = NCJ_EOF;}  else {if(indexp) *indexp = (size_t)match;}
 done:
@@ -909,7 +909,7 @@ NCJclone(const NCjson* json, NCjson** clonep)
     }
 done:
     if(stat == NCJ_OK && clonep) {*clonep = clone; clone = NULL;}
-    NCJreclaim(clone);    
+    NCJreclaim(clone);
     return NCJTHROW(stat);
 }
 
@@ -929,7 +929,7 @@ NCJcloneArray(const NCjson* array, NCjson** clonep)
     }
 done:
     if(stat == NCJ_OK && clonep) {*clonep = clone; clone = NULL;}
-    NCJreclaim(clone);    
+    NCJreclaim(clone);
     return stat;
 }
 
@@ -949,7 +949,7 @@ NCJcloneDict(const NCjson* dict, NCjson** clonep)
     }
 done:
     if(stat == NCJ_OK && clonep) {*clonep = clone; clone = NULL;}
-    NCJreclaim(clone);    
+    NCJreclaim(clone);
     return NCJTHROW(stat);
 }
 
@@ -964,7 +964,7 @@ NCJaddstring(NCjson* json, int sort, const char* s)
     if((stat = NCJnewstring(sort, s, &jtmp))==NCJ_ERR) goto done;
     if((stat = NCJappend(json,jtmp))==NCJ_ERR) goto done;
     jtmp = NULL;
-    
+
 done:
     NCJreclaim(jtmp);
     return NCJTHROW(stat);
@@ -1036,7 +1036,7 @@ NCJinsertint(NCjson* object, const char* key, long long value)
     NCjson* jkey = NULL;
     NCjson* jvalue = NULL;
     char digits[64];
- 
+
     if(key == NULL)
 	{stat = NCJTHROW(NCJ_ERR); goto done;}
     if((stat = NCJnewstring(NCJ_STRING,key,&jkey))==NCJ_ERR) goto done;
@@ -1070,7 +1070,7 @@ NCJappend(NCjson* object, NCjson* value)
 OPTSTATIC int
 NCJappendstring(NCjson* object, int sort, const char* s)
 {
-    NCjson* js = NULL;    
+    NCjson* js = NULL;
     if(object == NULL || s == NULL)
 	return NCJTHROW(NCJ_ERR);
     NCJnewstring(sort,s,&js);
@@ -1092,7 +1092,7 @@ NCJappendint(NCjson* object, long long value)
     int stat = NCJ_OK;
     NCjson* jvalue = NULL;
     char digits[64];
- 
+
     snprintf(digits,sizeof(digits),"%lld",value);
     NCJcheck(NCJnewstring(NCJ_INT,digits,&jvalue));
     NCJcheck(NCJappend(object,jvalue)); jvalue = NULL;
@@ -1178,7 +1178,7 @@ NCJunparseR(const NCjson* json, NCJbuf* buf, unsigned flags)
 		bytesappendc(buf,' ');
 		/* Allow for the possibility of a short dict entry */
 		if(json->list.contents[i+1] == NULL) { /* short */
-	   	    bytesappendc(buf,'?');		
+	   	    bytesappendc(buf,'?');
 		    shortlist = 1;
 		} else {
 		    NCJunparseR(json->list.contents[i+1],buf,flags);
@@ -1231,7 +1231,7 @@ escape(const char* text, NCJbuf* buf)
 	} else
 	    bytesappendc(buf,(char)c);
     }
-    return NCJTHROW(NCJ_OK);    
+    return NCJTHROW(NCJ_OK);
 }
 
 static int
@@ -1263,7 +1263,7 @@ bytesappend(NCJbuf* buf, const char* s)
         if((newtext = (char*)malloc(newlen))==NULL)
             {stat = NCJTHROW(NCJ_ERR); goto done;}
         strcpy(newtext,buf->text);
-	strcat(newtext,s);	
+	strcat(newtext,s);
 	free(buf->text); buf->text = NULL;
 	buf->text = newtext; newtext = NULL;
 	buf->len = newlen;

@@ -194,7 +194,7 @@ ARM(ncdouble,NC_DOUBLE,double,ncint64,NC_INT64,long long)
 ARM(ncdouble,NC_DOUBLE,double,ncuint64,NC_UINT64,unsigned long long)
 ARM(ncdouble,NC_DOUBLE,double,ncfloat,NC_FLOAT,float)
 ARM(ncdouble,NC_DOUBLE,double,ncdouble,NC_DOUBLE,double)
-	
+
         default: ncstat = NC_EINVAL; THROWCHK(ncstat); goto fail;
         }
         value += nctypesizeof(srctype);
@@ -266,31 +266,31 @@ dapcvtattrval(nc_type etype, void* dst, NClist* src, NCattribute* att)
 		/* Note that in DAP2, this is unsigned 8-bit integer */
 		u8p = (unsigned char*)dstmem;
 		*u8p = (unsigned char)(val.llval);
-		break;	
+		break;
 	    case NC_SHORT:
 		i16p = (short*)dstmem;
 		*i16p = (short)(val.llval);
-		break;	
+		break;
 	    case NC_USHORT:
 		u16p = (unsigned short*)dstmem;
 		*u16p = (unsigned short)(val.llval);
-		break;	
+		break;
 	    case NC_INT:
 		i32p = (int*)dstmem;
 		*i32p = (int)(val.llval);
-		break;	
+		break;
 	    case NC_UINT:
 		u32p = (unsigned int*)dstmem;
 		*u32p = (unsigned int)(val.llval);
-		break;	
+		break;
 	    case NC_FLOAT:
 		fp = (float*)dstmem;
 		*fp = (float)(val.dval);
-		break;	
+		break;
 	    case NC_DOUBLE:
 		dp = (double*)dstmem;
 		*dp = (double)(val.dval);
-		break;	
+		break;
 	    default: return NC_EINTERNAL;
 	    }
 	} else if(etype == NC_CHAR) {

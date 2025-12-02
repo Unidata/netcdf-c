@@ -1,7 +1,7 @@
 /*
  *	Copyright 2018, University Corporation for Atmospheric Research
  *	See netcdf/COPYRIGHT file for copying and redistribution conditions.
- * 	
+ *
  */
 /* $Id: ncx_cray.c,v 1.60 2004/09/30 18:47:12 russ Exp $ */
 #ifndef _CRAY
@@ -186,7 +186,7 @@ cput_short_short(void *xp, const short *ip, int which)
 			    | (*wp & 0xffffffff0000ffff);
 		break;
 	case 3:
-		*wp = (*ip         & 0x000000000000ffff)   
+		*wp = (*ip         & 0x000000000000ffff)
 			    | (*wp & 0xffffffffffff0000);
 		break;
 	}
@@ -554,7 +554,7 @@ ncx_put_int_double(void *xp, const double *ip)
 		return NC_ERANGE;
 	return NC_NOERR;
 }
- 
+
 
 /* x_float */
 
@@ -1265,7 +1265,7 @@ ncx_get_size_t(const void **xpp,  size_t *ulp)
 	*ulp = *cp++ << 24;
 	*ulp |= (*cp++ << 16);
 	*ulp |= (*cp++ << 8);
-	*ulp |= *cp; 
+	*ulp |= *cp;
 
 	*xpp = (const void *)((const char *)(*xpp) + X_SIZEOF_SIZE_T);
 	return NC_NOERR;
@@ -1300,7 +1300,7 @@ ncx_get_off_t(const void **xpp, off_t *lp)
 	*lp = *cp++ << 24;
 	*lp |= (*cp++ << 16);
 	*lp |= (*cp++ << 8);
-	*lp |= *cp; 
+	*lp |= *cp;
 
 	*xpp = (const void *)((const char *)(*xpp) + X_SIZEOF_OFF_T);
 	return NC_NOERR;
@@ -1641,7 +1641,7 @@ ncx_pad_putn_schar_schar(void **xpp, size_t nelems, const schar *tp)
 		(void) memcpy(*xpp, nada, rndup);
 		*xpp = (void *)((char *)(*xpp) + rndup);
 	}
-	
+
 	return NC_NOERR;
 
 }
@@ -1661,7 +1661,7 @@ ncx_pad_putn_schar_uchar(void **xpp, size_t nelems, const uchar *tp)
 		(void) memcpy(*xpp, nada, rndup);
 		*xpp = (void *)((char *)(*xpp) + rndup);
 	}
-	
+
 	return NC_NOERR;
 
 }
@@ -1885,7 +1885,7 @@ ncx_getn_short_short(const void **xpp, const size_t nelems, short *tp)
 		if(tp == last)
 			return NC_NOERR;
 		tp++;
-		/*FALLTHRU*/	
+		/*FALLTHRU*/
 	case 2:
 		*tp = (short)((*wp >> 16) & 0xffff);
 		if(*tp & 0x8000)
@@ -1893,7 +1893,7 @@ ncx_getn_short_short(const void **xpp, const size_t nelems, short *tp)
 		if(tp == last)
 			return NC_NOERR;
 		tp++;
-		/*FALLTHRU*/	
+		/*FALLTHRU*/
 	case 1:
 		*tp = (short)(*wp & 0xffff);
 		if(*tp & 0x8000)
@@ -1902,7 +1902,7 @@ ncx_getn_short_short(const void **xpp, const size_t nelems, short *tp)
 			return NC_NOERR;
 		tp++;
 		wp++; /* Note Bene */
-		/*FALLTHRU*/	
+		/*FALLTHRU*/
 	}
 
 	assert((nelems - rem) != 0);
@@ -2050,7 +2050,7 @@ ncx_pad_getn_short_schar(const void **xpp, size_t nelems, schar *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2072,7 +2072,7 @@ ncx_pad_getn_short_uchar(const void **xpp, size_t nelems, uchar *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2088,7 +2088,7 @@ ncx_pad_getn_short_short(const void **xpp, size_t nelems, short *tp)
 	{
 		*xpp = ((char *) (*xpp) + X_SIZEOF_SHORT);
 	}
-		
+
 	return status;
 }
 
@@ -2109,7 +2109,7 @@ ncx_pad_getn_short_int(const void **xpp, size_t nelems, int *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2131,7 +2131,7 @@ ncx_pad_getn_short_long(const void **xpp, size_t nelems, long *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2153,7 +2153,7 @@ ncx_pad_getn_short_float(const void **xpp, size_t nelems, float *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2175,7 +2175,7 @@ ncx_pad_getn_short_double(const void **xpp, size_t nelems, double *tp)
 
 	if(rndup != 0)
 		xp += X_SIZEOF_SHORT;
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2224,9 +2224,9 @@ ncx_putn_short_short(void **xpp, size_t nelems, const short *tp)
 		word *wp = *xpp;
 		const int bo = bitoff(*xpp);
 		int ierr;
-	
+
 		*xpp = ((char *) (*xpp) + nelems * X_SIZEOF_SHORT);
-	
+
 		ierr = CRAY2IEG(&Cray2_I16, &nelems, wp,
 				&bo, tp, &UnitStride);
 		assert(ierr >= 0);
@@ -2257,7 +2257,7 @@ ncx_putn_short_short(void **xpp, const size_t nelems, const short *tp)
 		if(tp == last)
 			return status;
 		tp++;
-		/*FALLTHRU*/	
+		/*FALLTHRU*/
 	case 2:
 		*wp = ((*tp << 16) & 0x00000000ffff0000)
 			    | (*wp & 0xffffffff0000ffff);
@@ -2266,9 +2266,9 @@ ncx_putn_short_short(void **xpp, const size_t nelems, const short *tp)
 		if(tp == last)
 			return status;
 		tp++;
-		/*FALLTHRU*/	
+		/*FALLTHRU*/
 	case 1:
-		*wp = (*tp         & 0x000000000000ffff)   
+		*wp = (*tp         & 0x000000000000ffff)
 			    | (*wp & 0xffffffffffff0000);
 		if(*tp > X_SHORT_MAX || *tp < X_SHORT_MIN)
 			status = NC_ERANGE;
@@ -2276,7 +2276,7 @@ ncx_putn_short_short(void **xpp, const size_t nelems, const short *tp)
 			return status;
 		tp++;
 		wp++; /* Note Bene */
-		/*FALLTHRU*/	
+		/*FALLTHRU*/
 	}
 
 	assert((nelems - rem) != 0);
@@ -2417,9 +2417,9 @@ ncx_pad_putn_short_schar(void **xpp, size_t nelems, const schar *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2442,9 +2442,9 @@ ncx_pad_putn_short_uchar(void **xpp, size_t nelems, const uchar *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2460,7 +2460,7 @@ ncx_pad_putn_short_short(void **xpp, size_t nelems, const short *tp)
 	{
 		*xpp = ((char *) (*xpp) + X_SIZEOF_SHORT);
 	}
-		
+
 	return status;
 }
 
@@ -2482,9 +2482,9 @@ ncx_pad_putn_short_int(void **xpp, size_t nelems, const int *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2507,9 +2507,9 @@ ncx_pad_putn_short_long(void **xpp, size_t nelems, const long *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2532,9 +2532,9 @@ ncx_pad_putn_short_float(void **xpp, size_t nelems, const float *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2557,9 +2557,9 @@ ncx_pad_putn_short_double(void **xpp, size_t nelems, const double *tp)
 	if(rndup != 0)
 	{
 		(void) memcpy(xp, nada, X_SIZEOF_SHORT);
-		xp += X_SIZEOF_SHORT;	
+		xp += X_SIZEOF_SHORT;
 	}
-		
+
 	*xpp = (void *)xp;
 	return status;
 }
@@ -2670,7 +2670,7 @@ ncx_getn_int_int(const void **xpp, size_t nelems, int *tp)
 			cget_int_int(wp, tp + 1, 1);
 		}
 
-		*xpp = ((char *) (*xpp) + nwords * sizeof(word)); 
+		*xpp = ((char *) (*xpp) + nwords * sizeof(word));
 		nelems -= (nwords * sizeof(word)/X_SIZEOF_INT);
 		if(nelems != 0)
 		{
@@ -2715,7 +2715,7 @@ ncx_getn_int_long(const void **xpp, size_t nelems, long *tp)
 			cget_int_long(wp, tp + 1, 1);
 		}
 
-		*xpp = ((char *) (*xpp) + nwords * sizeof(word)); 
+		*xpp = ((char *) (*xpp) + nwords * sizeof(word));
 		nelems -= (nwords * sizeof(word)/X_SIZEOF_INT);
 		if(nelems != 0)
 		{
@@ -2822,9 +2822,9 @@ ncx_putn_int_int(void **xpp, size_t nelems, const int *tp)
 		word *wp = *xpp;
 		const int bo = bitoff(*xpp);
 		int ierr;
-	
+
 		*xpp = ((char *) (*xpp) + nelems * X_SIZEOF_INT);
-	
+
 		ierr = CRAY2IEG(&Cray2_I32, &nelems, wp,
 				&bo, tp, &UnitStride);
 		assert(ierr >= 0);
@@ -2871,7 +2871,7 @@ ncx_putn_int_int(void **xpp, size_t nelems, const int *tp)
 				status = lstatus;
 		}
 
-		*xpp = ((char *) (*xpp) + nwords * sizeof(word)); 
+		*xpp = ((char *) (*xpp) + nwords * sizeof(word));
 		nelems -= (nwords * sizeof(word)/X_SIZEOF_INT);
 		if(nelems != 0)
 		{
@@ -2923,7 +2923,7 @@ ncx_putn_int_long(void **xpp, size_t nelems, const long *tp)
 				status = lstatus;
 		}
 
-		*xpp = ((char *) (*xpp) + nwords * sizeof(word)); 
+		*xpp = ((char *) (*xpp) + nwords * sizeof(word));
 		nelems -= (nwords * sizeof(word)/X_SIZEOF_INT);
 		if(nelems != 0)
 		{
@@ -3112,7 +3112,7 @@ ncx_getn_float_float(const void **xpp, size_t nelems, float *tp)
 			cget_float_float(wp, tp + 1, 1);
 		}
 
-		*xpp = ((char *) (*xpp) + nwords * sizeof(word)); 
+		*xpp = ((char *) (*xpp) + nwords * sizeof(word));
 		nelems -= (nwords * sizeof(word)/X_SIZEOF_FLOAT);
 		if(nelems != 0)
 		{
@@ -3237,9 +3237,9 @@ ncx_putn_float_float(void **xpp, size_t nelems, const float *tp)
 		word *wp = *xpp;
 		const int bo = bitoff(*xpp);
 		int ierr;
-	
+
 		*xpp = ((char *) (*xpp) + nelems * X_SIZEOF_FLOAT);
-	
+
 		ierr = CRAY2IEG(&Cray2_F32, &nelems, wp,
 				&bo, tp, &UnitStride);
 		assert(ierr >= 0);
@@ -3286,7 +3286,7 @@ ncx_putn_float_float(void **xpp, size_t nelems, const float *tp)
 				status = lstatus;
 		}
 
-		*xpp = ((char *) (*xpp) + nwords * sizeof(word)); 
+		*xpp = ((char *) (*xpp) + nwords * sizeof(word));
 		nelems -= (nwords * sizeof(word)/X_SIZEOF_FLOAT);
 		if(nelems != 0)
 		{
@@ -3783,7 +3783,7 @@ ncx_pad_putn_text(void **xpp, size_t nelems, const char *tp)
 		(void) memcpy(*xpp, nada, rndup);
 		*xpp = (void *)((char *)(*xpp) + rndup);
 	}
-	
+
 	return NC_NOERR;
 
 }
@@ -3841,7 +3841,7 @@ ncx_pad_putn_void(void **xpp, size_t nelems, const void *tp)
 		(void) memcpy(*xpp, nada, rndup);
 		*xpp = (void *)((char *)(*xpp) + rndup);
 	}
-	
+
 	return NC_NOERR;
 
 }

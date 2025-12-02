@@ -58,7 +58,7 @@ H5Z_filter_unknown(unsigned int flags, size_t cd_nelmts,
                      size_t *buf_size, void **buf)
 {
     void* newbuf;
-    
+
     if (flags & H5Z_FLAG_REVERSE) {
         /* Replace buffer */
         newbuf = H5allocate_memory(*buf_size,0);
@@ -95,7 +95,7 @@ static int NCZ_unknown_codec_to_hdf5(const char* codec, size_t* nparamsp, unsign
 static int NCZ_unknown_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp);
 
 /* Structure for NCZ_PLUGIN_CODEC */
-static NCZ_codec_t NCZ_unknown_codec = {/* NCZ_codec_t  codec fields */ 
+static NCZ_codec_t NCZ_unknown_codec = {/* NCZ_codec_t  codec fields */
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
   "unknown",	        /* Standard name/id of the codec */
@@ -124,7 +124,7 @@ NCZ_unknown_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** p
 
     *nparamsp = 0;
     *paramsp = NULL;
-    
+
     return stat;
 }
 
@@ -141,7 +141,7 @@ NCZ_unknown_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }
-    
+
 done:
     return stat;
 }

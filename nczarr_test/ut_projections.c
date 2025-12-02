@@ -19,7 +19,7 @@ main(int argc, char** argv)
     struct Common common;
     NCZSliceProjections slpv[NC_MAX_VAR_DIMS];
     NCZChunkRange ncrv[NC_MAX_VAR_DIMS];
-    
+
     /* Initialize */
     memset(&slpv,0,sizeof(slpv));
     memset(&common,0,sizeof(common));
@@ -103,9 +103,9 @@ void
 ut_chunk_test(int sort,...)
 {
     int i;
-    va_list ap;    
+    va_list ap;
 #if 0
-    struct Common* common = NULL;    
+    struct Common* common = NULL;
 #endif
     int rank; /* variable rank */
     NCZSlice* slices = NULL; /* the complete set of slices |slices| == R*/
@@ -113,7 +113,7 @@ ut_chunk_test(int sort,...)
     NCZChunkRange* ranges = NULL; /* computed chunk ranges */
 
     va_start(ap,sort);
-    
+
     switch (sort) {
     default: break; /* ignore */
     case UTEST_RANGE: /* () */

@@ -58,7 +58,7 @@ struct Dumpptions {
     int verbose;
     S3op s3op;
     NCURI* url;
-    char* key; /* via -k flag */    
+    char* key; /* via -k flag */
     char* rootkey; /* from url | key */
     nc_type nctype; /* for printing content */
     char* filename;
@@ -134,8 +134,8 @@ main(int argc, char** argv)
 
     while ((c = getopt(argc, argv, "df:hk:p:t:T:u:v")) != EOF) {
 	switch(c) {
-	case 'd': 
-	    dumpoptions.debug = 1;	    
+	case 'd':
+	    dumpoptions.debug = 1;
 	    break;
 	case 'f':
 	    dumpoptions.filename = strdup(optarg);
@@ -155,10 +155,10 @@ main(int argc, char** argv)
 		memcpy(dumpoptions.key,optarg,strlen(optarg));
 	    dumpoptions.key[len] = '\0';
 	    } break;
-	case 'p': 
+	case 'p':
 	    dumpoptions.profile = strdup(optarg);
 	    break;
-	case 't': 
+	case 't':
 	    dumpoptions.nctype = typefor(optarg);
 	    break;
 	case 'u': {
@@ -171,7 +171,7 @@ main(int argc, char** argv)
 		    goto done;
 		}
 	    } break;
-	case 'v': 
+	case 'v':
 	    dumpoptions.verbose = 1;
 	    break;
 	case 'T':
@@ -238,7 +238,7 @@ main(int argc, char** argv)
     case S3OP_DOWNLOAD:
 	if((stat = s3download())) goto done;
 	break;
-    }    
+    }
 
 done:
     /* Reclaim dumpoptions */
@@ -249,7 +249,7 @@ done:
     nc_finalize();
     if(stat)
 	fprintf(stderr,"fail: %s\n",nc_strerror(stat));
-    return (stat ? 1 : 0);    
+    return (stat ? 1 : 0);
 }
 
 static int
@@ -277,7 +277,7 @@ s3list(void)
 
 done:
     s3shutdown(0);
-    NCZ_freeenvv(nkeys,keys);    
+    NCZ_freeenvv(nkeys,keys);
     return stat;
 }
 
@@ -311,7 +311,7 @@ s3clear(void)
     }
 
 done:
-    NCZ_freeenvv(nkeys,keys);    
+    NCZ_freeenvv(nkeys,keys);
     s3shutdown(0);
     return stat;
 }
@@ -341,7 +341,7 @@ s3print(void)
 done:
     if(content) free(content);
     s3shutdown(0);
-    NCZ_freeenvv(nkeys,keys);    
+    NCZ_freeenvv(nkeys,keys);
     return stat;
 }
 
@@ -408,15 +408,15 @@ printcontent(size64_t len, const char* content, nc_type nctype)
 	    if(nctype != NC_STRING && i > 0) printf(", ");
 	    switch(nctype) {
 	    case NC_BYTE: printf("%d",((char*)content)[i]); break;
-	    case NC_SHORT: printf("%d",((short*)content)[i]); break;		
-	    case NC_INT: printf("%d",((int*)content)[i]); break;		
-	    case NC_INT64: printf("%lld",((long long*)content)[i]); break;		
+	    case NC_SHORT: printf("%d",((short*)content)[i]); break;
+	    case NC_INT: printf("%d",((int*)content)[i]); break;
+	    case NC_INT64: printf("%lld",((long long*)content)[i]); break;
 	    case NC_UBYTE: printf("%u",((unsigned char*)content)[i]); break;
-	    case NC_USHORT: printf("%u",((unsigned short*)content)[i]); break;		
-	    case NC_UINT: printf("%u",((unsigned int*)content)[i]); break;		
-	    case NC_UINT64: printf("%llu",((unsigned long long*)content)[i]); break;		
-	    case NC_FLOAT: printf("%f",((float*)content)[i]); break;		
-	    case NC_DOUBLE: printf("%lf",((double*)content)[i]); break;		
+	    case NC_USHORT: printf("%u",((unsigned short*)content)[i]); break;
+	    case NC_UINT: printf("%u",((unsigned int*)content)[i]); break;
+	    case NC_UINT64: printf("%llu",((unsigned long long*)content)[i]); break;
+	    case NC_FLOAT: printf("%f",((float*)content)[i]); break;
+	    case NC_DOUBLE: printf("%lf",((double*)content)[i]); break;
 	    case NC_STRING: putc(content[i],stdout); break;
 	    default: abort();
 	    }

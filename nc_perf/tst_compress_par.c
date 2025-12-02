@@ -139,7 +139,7 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate, int u,
     for (i = 0; i < grid_xt_size; i++)
 	if (grid_xt_in[i] != grid_xt[i]) ERR;
     free(grid_xt_in);
-    
+
     /* Check the values for lon. */
     if (!(lon_in = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
     if (nc_get_vara_double(ncid, 1, latlon_start, latlon_count, lon_in)) ERR;
@@ -174,7 +174,7 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate, int u,
     for (i = 0; i < phalf_size; i++)
 	if (phalf_in[i] != phalf[i]) ERR;
     free(phalf_in);
-    
+
     return 0;
 }
 
@@ -301,12 +301,12 @@ write_meta(int ncid, int *data_varid, int s, int f, int nsd, int deflate, int u,
         /* versions. Do nothing for "none". */
         if (!strcmp(compression_filter_name[f], "zlib"))
             if (nc_def_var_deflate(ncid, data_varid[dv], s, 1, deflate)) ERR;
-        
+
 #if NC_HAS_SZIP_WRITE
         if (!strcmp(compression_filter_name[f], "szip"))
             if (nc_def_var_szip(ncid, data_varid[dv], 32, 32)) ERR;
 #endif /* NC_HAS_SZIP_WRITE */
-        
+
         if (nc_var_par_access(ncid, data_varid[dv], NC_COLLECTIVE)) ERR;
         if (nc_enddef(ncid)) ERR;
     }
@@ -373,7 +373,7 @@ decomp_latlon(int my_rank, int mpi_size, int *dim_len, size_t *latlon_start,
 	    latlon_start[1] = dim_len[1]/2;
 	}
     }
-    else 
+    else
         return ERR_AWFUL;
 
     /* Allocate storage. */
@@ -408,7 +408,7 @@ decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
     /* Vertical dimension (pfull). */
     count[1] = dim_len[2];
     start[1] = 0;
-    
+
     if (mpi_size == 1)
     {
 	start[2] = 0;
@@ -425,7 +425,7 @@ decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
         count[3] = 4;
 #else
         start[2] = (my_rank < 2) ? 0 : 768;
-        start[3] = (!my_rank || my_rank == 2) ? 0 : 1536;        
+        start[3] = (!my_rank || my_rank == 2) ? 0 : 1536;
         count[2] = 768;
         count[3] = 1536;
 #endif /* USE_SMALL */
@@ -480,7 +480,7 @@ decomp_p(int my_rank, int mpi_size, size_t *data_count, int *dim_len,
 	 size_t *pfull_start, size_t *pfull_size, float **pfull)
 {
     int i;
-    
+
     /* Size of local (i.e. for this pe) phalf data. */
     *phalf_size = dim_len[3]/mpi_size;
     *phalf_start = my_rank * *phalf_size;
@@ -491,11 +491,11 @@ decomp_p(int my_rank, int mpi_size, size_t *data_count, int *dim_len,
     *pfull_start = my_rank * *pfull_size;
     if (my_rank == mpi_size - 1)
         *pfull_size = *pfull_size + dim_len[2] % mpi_size;
-    
+
     /* Allocate space on this pe to hold the coordinate var data for this pe. */
     if (!(*pfull = malloc(data_count[1] * sizeof(float)))) ERR;
     if (!(*phalf = malloc(*phalf_size * sizeof(float)))) ERR;
-    
+
     /* Some fake data for this pe to write. */
     for (i = 0; i < data_count[1]; i++)
         (*pfull)[i] = my_rank * 100 + i;
@@ -511,7 +511,7 @@ find_filters(int *num_compression_filters, char compression_filter_name[][NC_MAX
              int deflate_level[][NUM_DEFLATE_LEVELS])
 {
     int nfilters = 0;
-       
+
     /* Try with no compression. */
     strcpy(compression_filter_name[nfilters], "none");
     nfilters++;
@@ -537,7 +537,7 @@ int
 main(int argc, char **argv)
 {
     /* Parallel I/O with compression was not supported in HDF5 prior to 1.10.2. */
-#if H5_VERSION_GE(1,10,2)    
+#if H5_VERSION_GE(1,10,2)
     /* MPI stuff. */
     int mpi_size, my_rank;
     MPI_Comm comm = MPI_COMM_WORLD;
@@ -578,7 +578,7 @@ main(int argc, char **argv)
 
     /* Determine what compression filters are present. */
     if ((ret = find_filters(&num_compression_filters, compression_filter_name, deflate_level)))
-        return ret;       
+        return ret;
 
     /* Determine 4D data decomposition to write data vars. */
     if (decomp_4D(my_rank, mpi_size, dim_len, data_start, data_count)) ERR;
@@ -597,7 +597,7 @@ main(int argc, char **argv)
 
     /* printf("%d: data_count[3] %ld data_count[2] %ld data_count[1] %ld\n", my_rank, */
     /*        data_count[3], data_count[2], data_count[1]); */
-    
+
     /* Allocate space to hold the data. */
     if (!(value_data = malloc(data_count[3] * data_count[2] * data_count[1] *
 			      sizeof(float)))) ERR;
