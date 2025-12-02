@@ -151,7 +151,7 @@ typedef struct NCZ_FILE_INFO {
 #       define FLAG_CONSOLIDATED 32 /* Use/set consolidated metadata */
 	NCZM_IMPL mapimpl;
     } controls;
-    struct NCZ_Metadata metadata_handler;
+    struct NCZ_Metadata metadata;
     int default_maxstrlen; /* default max str size for variables of type string */
 } NCZ_FILE_INFO_T;
 

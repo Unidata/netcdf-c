@@ -111,7 +111,7 @@ int NCZMD_v2_csl_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *s
 	size_t lgroup = strlen(group);
 
 	const NCjson *jmetadata = NULL;
-	NCJdictget(zfile->metadata_handler.jcsl, "metadata", &jmetadata);
+	NCJdictget(zfile->metadata.jcsl, "metadata", &jmetadata);
 	for (i = 0; i < NCJdictlength(jmetadata); i++)
 	{
 		NCjson *jname = NCJdictkey(jmetadata, i);
@@ -190,7 +190,7 @@ int NCZMD_v2_csl_list_variables(NCZ_FILE_INFO_T *zfile, const char* key, NClist 
 	size_t lgroup = strlen(group);
 
 	const NCjson *jmetadata = NULL;
-	NCJdictget(zfile->metadata_handler.jcsl, "metadata", &jmetadata);
+	NCJdictget(zfile->metadata.jcsl, "metadata", &jmetadata);
 	for (i = 0; i < NCJdictlength(jmetadata); i++)
 	{
 		NCjson *jname = NCJdictkey(jmetadata, i);
@@ -250,7 +250,7 @@ int fetch_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t,
 		return stat;
 	}
 	
-	if (NCJdictget(zfile->metadata_handler.jcsl, "metadata", &jtmp) == 0 
+	if (NCJdictget(zfile->metadata.jcsl, "metadata", &jtmp) == 0 
 	&& jtmp && NCJsort(jtmp) == NCJ_DICT)
 	{
 		NCjson *tmp = NULL;
@@ -293,13 +293,13 @@ int update_csl_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj_t
 		goto done;
 	}
 	// Allocating representation if doesn't exist
-	if (zfile->metadata_handler.jcsl == NULL && 
-		(stat = NCJparse(MINIMIM_CSL_REP_RAW,0,&zfile->metadata_handler.jcsl))){
+	if (zfile->metadata.jcsl == NULL && 
+		(stat = NCJparse(MINIMIM_CSL_REP_RAW,0,&zfile->metadata.jcsl))){
 		goto done;
 	}
 	// Updating the internal JSON representation to be synced later
 	NCjson * jrep = NULL;
-	if ((stat = NCJdictget(zfile->metadata_handler.jcsl,"metadata", (const NCjson**)&jrep)) || jrep == NULL) {
+	if ((stat = NCJdictget(zfile->metadata.jcsl,"metadata", (const NCjson**)&jrep)) || jrep == NULL) {
 		goto done;
 	}
 	
