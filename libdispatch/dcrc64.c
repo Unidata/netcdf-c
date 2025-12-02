@@ -31,7 +31,7 @@
 /* Version history:
    1.0  13 Dec 2013  First version
    1.1  13 Dec 2013  Fix comments in test code
-   1.2  14 Dec 2013  Determine endianess at run time
+   1.2  14 Dec 2013  Determine endianness at run time
    1.3  15 Dec 2013  Add eight-byte processing for big endian as well
                      Make use of the pthread library optional
    1.4  16 Dec 2013  Make once variable volatile for limited thread protection
@@ -59,9 +59,9 @@
 
 /* Tables for CRC calculation -- filled in by initialization functions that are
    called once.  These could be replaced by constant tables generated in the
-   same way.  There are two tables, one for each endianess.  Since these are
+   same way.  There are two tables, one for each endianness.  Since these are
    static, i.e. local, one should be compiled out of existence if the compiler
-   can evaluate the endianess check in crc64() at compile time. */
+   can evaluate the endianness check in crc64() at compile time. */
 static uint64 crc64_little_table[8][256];
 static uint64 crc64_big_table[8][256];
 
@@ -208,10 +208,10 @@ static inline uint64 crc64_big(uint64 crc, void *buf, size_t len)
 }
 
 /* Return the CRC-64 of buf[0..len-1] with initial crc, processing eight bytes
-   at a time.  This selects one of two routines depending on the endianess of
-   the architecture.  A good optimizing compiler will determine the endianess
+   at a time.  This selects one of two routines depending on the endianness of
+   the architecture.  A good optimizing compiler will determine the endianness
    at compile time if it can, and get rid of the unused code and table.  If the
-   endianess can be changed at run time, then this code will handle that as
+   endianness can be changed at run time, then this code will handle that as
    well, initializing and using two tables, if called upon to do so. */
 
 static int littleendian = -1;

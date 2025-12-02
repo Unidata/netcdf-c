@@ -1398,7 +1398,7 @@ TestFunc(att)_text(AttVarArgs)
     int i, j, err, ncid, nok=0;
     double dtmp;
     IntType k, ndx[1];
-    text value[MAX_NELS];
+    unsigned char value[MAX_NELS];
 
     err = FileCreate(scratch, NC_NOCLOBBER);
     IF (err != NC_NOERR) {
@@ -1434,7 +1434,7 @@ TestFunc(att)_text(AttVarArgs)
             if (ATT_TYPE(i,j) == NC_CHAR) {
                 assert(ATT_LEN(i,j) <= MAX_NELS);
 
-                err = PutAtt(text)(ncid, BAD_VARID, ATT_NAME(i,j), ATT_LEN(i,j), value);
+                err = PutAtt(text)(ncid, BAD_VARID, ATT_NAME(i,j), ATT_LEN(i,j), (char*)value);
                 IF (err != NC_ENOTVAR)
                     EXPECT_ERR(NC_ENOTVAR, err)
                 ELSE_NOK
@@ -1442,9 +1442,9 @@ TestFunc(att)_text(AttVarArgs)
                 for (k = 0; k < ATT_LEN(i,j); k++) {
                     ndx[0] = k;
                     dtmp = hash(ATT_TYPE(i,j), -1, ndx);
-                    value[k] = (text)dtmp;
+                    value[k] = (unsigned char)dtmp;
                 }
-                err = PutAtt(text)(ncid, i, ATT_NAME(i,j), ATT_LEN(i,j), value);
+                err = PutAtt(text)(ncid, i, ATT_NAME(i,j), ATT_LEN(i,j), (char*)value);
                 IF (err != NC_NOERR)
                     EXPECT_ERR(NC_NOERR, err)
                 ELSE_NOK

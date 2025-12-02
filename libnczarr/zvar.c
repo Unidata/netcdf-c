@@ -1068,13 +1068,13 @@ NCZ_def_var_endian(int ncid, int varid, int endianness)
  * and compression such as deflate constitute lossy compression.
  *
  * Producers of large datasets may find that using quantize with
- * compression will result in significant improvent in the final data
+ * compression will result in significant improvement in the final data
  * size.
  *
  * Variables which use quantize will have added an attribute with name
- * ::NC_QUANTIZE_BITGROOM_ATT_NAME, ::NC_QUANTIZE_GRANULARBR_ATT_NAME, 
- * or ::NC_QUANTIZE_BITROUND_ATT_NAME that contains the number of 
- * significant digits. Users should not delete or change this attribute. 
+ * ::NC_QUANTIZE_BITGROOM_ATT_NAME, ::NC_QUANTIZE_GRANULARBR_ATT_NAME,
+ * or ::NC_QUANTIZE_BITROUND_ATT_NAME that contains the number of
+ * significant digits. Users should not delete or change this attribute.
  * This is the only record that quantize has been applied to the data.
  *
  * As with the deflate settings, quantize settings may only be

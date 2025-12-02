@@ -244,7 +244,7 @@ NCD4_def_var_endian(int ncid, int p2, int p3)
 }
 
 static int
-NCD4_def_var_filter(int ncid, int varid, unsigned int id, size_t n, const unsigned int* parms)
+NCD4_def_var_filter(int ncid, int varid, unsigned int id, size_t n, const unsigned int* params)
 {
     return (NC_EPERM);
 }

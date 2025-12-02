@@ -63,7 +63,7 @@ NCZ_def_dim(int ncid, const char *name, size_t len, int *idp)
     if (h5->cmode & NC_CLASSIC_MODEL)
     {
 #ifdef LOOK
-        /* Only one limited dimenson for strict nc3. */
+        /* Only one limited dimension for strict nc3. */
         if (len == NC_UNLIMITED) {
 	    int i;
             for(i=0;i<ncindexsize(grp->dim);i++) {

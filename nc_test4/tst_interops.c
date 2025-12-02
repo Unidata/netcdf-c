@@ -66,7 +66,7 @@ main(int argc, char **argv)
       hsize_t dims[DIMS_2];
       hid_t fapl_id = H5P_DEFAULT, fcpl_id = H5P_DEFAULT;
 
-      /* Set latest_format in access propertly list and
+      /* Set latest_format in access property list and
        * H5P_CRT_ORDER_TRACKED in the creation property list. This turns
        * on HDF5 creation ordering. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
@@ -191,7 +191,7 @@ main(int argc, char **argv)
       int ncid, nvars_in, ndims_in, natts_in, unlimdim_in;
       size_t len_in;
 
-      /* Set latest_format in access propertly list and
+      /* Set latest_format in access property list and
        * H5P_CRT_ORDER_TRACKED in the creation property list. This
        * turns on HDF5 creation ordering. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;

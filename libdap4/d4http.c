@@ -110,8 +110,11 @@ WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *data)
         nclog(NCLOGWARN,"WriteMemoryCallback: zero sized chunk");
     /* Optimize for reading potentially large dods datasets */
     while(!ncbytesavail(buf,realsize)) {
-        /* double the size of the packet */
-        ncbytessetalloc(buf,2*ncbytesalloc(buf));
+        /* double the size of the packet (unless the buf is empty) */
+	if(ncbytesalloc(buf) == 0)
+	    ncbytessetalloc(buf,1024);
+	else
+	   ncbytessetalloc(buf,2*ncbytesalloc(buf));
     }
     ncbytesappendn(buf, ptr, realsize);
 #ifdef PROGRESS
