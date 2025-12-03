@@ -177,20 +177,15 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
 
     purezarr = (zinfo->controls.flags & FLAG_PUREZARR)?1:0;
 
-    /* Construct grp key */
-    if((stat = NCZ_grpkey(grp,&fullpath)))
-        goto done;
-
     /* build Z2GROUP contents */
     NCJnew(NCJ_DICT,&jgroup);
     snprintf(version,sizeof(version),"%d",zinfo->zarr.zarr_version);
     if((stat = NCJaddstring(jgroup,NCJ_STRING,"zarr_format"))<0) {stat = NC_EINVAL; goto done;}
     if((stat = NCJaddstring(jgroup,NCJ_INT,version))<0) {stat = NC_EINVAL; goto done;}
-    /* build Z2GROUP path */
-    if((stat = nczm_concat(fullpath,Z2GROUP,&key)))
-	goto done;
+
     /* Write to map */
-    if((stat=NCZ_uploadjson(map,key,jgroup))) goto done;
+    NCZ_grpkey(grp,&key);
+    if((stat=NCZMD_update_json_group(zinfo,key,(const NCjson*)jgroup))) goto done;
     nullfree(key); key = NULL;
 
     if(!purezarr) {
@@ -255,7 +250,9 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
     }
 
     /* Write out the .zattrs */
-    if((stat = upload_attrs(file,(NC_OBJ*)grp,jatts))) goto done;
+    nullfree(key);
+    NCZ_grpkey(grp,&key);
+    if((stat = NCZMD_update_json_attrs(zinfo, key, (const NCjson *)jatts))) goto done;
 
     /* Now synchronize all the variables */
     for(i=0; i<ncindexsize(grp->vars); i++) {
@@ -483,14 +480,12 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
         jtmp = NULL;
     }
 
-    /* build .zarray path */
-    if((stat = nczm_concat(fullpath,Z2ARRAY,&key)))
-	goto done;
-
-    /* Write to map */
-    if((stat=NCZ_uploadjson(map,key,jvar)))
-	goto done;
-    nullfree(key); key = NULL;
+    nullfree(key);
+    key = NULL;
+    NCZ_varkey(var, &key);
+    if((stat=NCZMD_update_json_array(zinfo,key,(const NCjson*)jvar))) {
+        goto done;
+    }
 
     /* Capture dimref names as FQNs */
     if(var->ndims > 0) {
@@ -549,7 +544,10 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     }
 
     /* Write out the .zattrs */
-    if((stat = upload_attrs(file,(NC_OBJ*)var,jatts))) goto done;
+    nullfree(key);
+    key = NULL;
+    NCZ_varkey(var, &key);
+    if((stat = NCZMD_update_json_attrs(zinfo, key, jatts))) goto done;
 
     var->created = 1;
 
