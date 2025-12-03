@@ -157,7 +157,6 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
     char version[1024];
     int purezarr = 0;
     NCZMAP* map = NULL;
-    char* fullpath = NULL;
     char* key = NULL;
     NCjson* json = NULL;
     NCjson* jgroup = NULL;
@@ -281,7 +280,6 @@ done:
     NCJreclaim(jnczgrp);
     NCJreclaim(jtypes);
     NCJreclaim(jatts);
-    nullfree(fullpath);
     nullfree(key);
     return ZUNTRACE(THROW(stat));
 }
@@ -304,7 +302,6 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     NCZ_FILE_INFO_T* zinfo = NULL;
     char number[1024];
     NCZMAP* map = NULL;
-    char* fullpath = NULL;
     char* key = NULL;
     char* dimpath = NULL;
     NClist* dimrefs = NULL;
@@ -345,7 +342,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
 #endif
 
     /* Construct var path */
-    if((stat = NCZ_varkey(var,&fullpath)))
+    if((stat = NCZ_varkey(var,&key)))
 	goto done;
 
     /* Create the zarray json object */
@@ -558,7 +555,6 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
 
 done:
     nclistfreeall(dimrefs);
-    nullfree(fullpath);
     nullfree(key);
     nullfree(dtypename);
     nullfree(dimpath);
@@ -703,7 +699,6 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, NCjson*
     NCjson* jdict = NULL;
     NCjson* jint = NULL;
     NCjson* jdata = NULL;
-    char* fullpath = NULL;
     char* key = NULL;
     char* content = NULL;
     char* dimpath = NULL;
@@ -758,12 +753,11 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, NCjson*
 
         }
     }
-
     /* Construct container path */
     if(container->sort == NCGRP)
-	stat = NCZ_grpkey(grp,&fullpath);
+	stat = NCZ_grpkey(grp,&key);
     else
-	stat = NCZ_varkey(var,&fullpath);
+	stat = NCZ_varkey(var,&key);
     if(stat)
 	goto done;
 
@@ -824,7 +818,6 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, NCjson*
     }
 
 done:
-    nullfree(fullpath);
     nullfree(key);
     nullfree(content);
     nullfree(dimpath);
@@ -1122,7 +1115,6 @@ define_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
     int stat = NC_NOERR;
     NCZ_FILE_INFO_T* zinfo = NULL;
     NCZ_GRP_INFO_T* zgrp = NULL;
-    char* fullpath = NULL;
     char* key = NULL;
     NCjson* json = NULL;
     const NCjson* jgroup = NULL;
@@ -1142,10 +1134,10 @@ define_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
     purezarr = (zinfo->controls.flags & FLAG_PUREZARR)?1:0;
 
     /* Construct grp path */
-    if((stat = NCZ_grpkey(grp,&fullpath))) goto done;
+    if((stat = NCZ_grpkey(grp,&key))) goto done;
 
     /* Download .zgroup and .zattrs */
-    if((stat = downloadzarrobj(file,&zgrp->zgroup,fullpath,Z2GROUP))) goto done;
+    if((stat = downloadzarrobj(file,&zgrp->zgroup,key,Z2GROUP))) goto done;
     jgroup = zgrp->zgroup.obj;
     jattrs = zgrp->zgroup.atts;
 
@@ -1188,7 +1180,6 @@ done:
     nclistfreeall(dimdefs);
     nclistfreeall(varnames);
     nclistfreeall(subgrps);
-    nullfree(fullpath);
     nullfree(key);
     return ZUNTRACE(stat);
 }
@@ -1808,7 +1799,7 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     NCZ_FILE_INFO_T* zinfo = NULL;
     NC_GRP_INFO_T* root = NULL;
     NCZ_GRP_INFO_T* zroot = NULL;
-    char* fullpath = NULL;
+    char* key = NULL;
 
     ZTRACE(3,"file=%s",file->controller->path);
 
@@ -1819,10 +1810,10 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     zroot = (NCZ_GRP_INFO_T*)root->format_grp_info;    
 
     /* Construct grp key */
-    if((stat = NCZ_grpkey(root,&fullpath))) goto done;
+    if((stat = NCZ_grpkey(root,&key))) goto done;
 
     /* Download the root group .zgroup and associated .zattrs */
-    if((stat = downloadzarrobj(file, &zroot->zgroup, fullpath, Z2GROUP))) goto done;
+    if((stat = downloadzarrobj(file, &zroot->zgroup, key, Z2GROUP))) goto done;
     jzgroup = zroot->zgroup.obj;    
 
     /* Look for superblock; first in .zattrs and then in .zgroup */
@@ -1871,7 +1862,7 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     if(nczarrvp) {*nczarrvp = nczarr_version; nczarr_version = NULL;}
     if(zarrfp) {*zarrfp = zarr_format; zarr_format = NULL;}
 done:
-    nullfree(fullpath);
+    nullfree(key);
     nullfree(zarr_format);
     nullfree(nczarr_version);
     return ZUNTRACE(THROW(stat));
