@@ -1135,7 +1135,10 @@ define_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
     if((stat = NCZ_grpkey(grp,&key))) goto done;
 
     /* Download .zgroup and .zattrs */
-    if((stat = downloadzarrobj(file,&zgrp->zgroup,key,Z2GROUP))) goto done;
+    if ((stat = NCZMD_fetch_json_group(zinfo, key, &zgrp->zgroup.obj)) \
+    || (stat = NCZMD_fetch_json_attrs(zinfo, key, &zgrp->zgroup.atts))) {
+        goto done;
+    }
     jgroup = zgrp->zgroup.obj;
     jattrs = zgrp->zgroup.atts;
 
@@ -1438,8 +1441,10 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
     if((stat = NCZ_varkey(var,&key)))
 	goto done;
 
-    /* Download */
-    if((stat = downloadzarrobj(file,&zvar->zarray,key,Z2ARRAY))) goto done;
+    if ((stat = NCZMD_fetch_json_array(zinfo, key, &zvar->zarray.obj)) \
+    || (stat = NCZMD_fetch_json_attrs(zinfo, key, &zvar->zarray.atts))) {
+        goto done;
+    }
     jvar = zvar->zarray.obj;
     jatts = zvar->zarray.atts;
     assert(jvar == NULL || NCJsort(jvar) == NCJ_DICT);
@@ -1808,8 +1813,10 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     /* Construct grp key */
     if((stat = NCZ_grpkey(root,&key))) goto done;
 
-    /* Download the root group .zgroup and associated .zattrs */
-    if((stat = downloadzarrobj(file, &zroot->zgroup, key, Z2GROUP))) goto done;
+    if((stat = NCZMD_fetch_json_group(zinfo, key, &zroot->zgroup.obj)) \
+        || NCZMD_fetch_json_attrs(zinfo, key, &zroot->zgroup.atts)) {
+            goto done;
+    }
     jzgroup = zroot->zgroup.obj;    
 
     /* Look for superblock; first in .zattrs and then in .zgroup */
