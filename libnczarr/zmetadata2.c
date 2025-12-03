@@ -7,14 +7,51 @@
 
 #define  MINIMIM_CSL_REP_RAW "{\"metadata\":{},\"zarr_consolidated_format\":1}"
 
+/// @brief Retrieve the group and variable names contained within a group specified by `key`.
+///  The order of the names may be arbitrary
+/// @param zfile - The zarr file info structure
+/// @param key - the key of the node - group
+/// @param groups - NClist where names will be added
+/// @param variables - NClist where names will be added
+/// @return `NC_NOERR` if succeeding
 int NCZMD_v2_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *vars);
 
+/// @brief Retrieve the group names contained within a group specified by `key`.
+///  The order of the names may be arbitrary
+/// @param zfile - The zarr file info structure
+/// @param key - the key of the node - group
+/// @param groups - NClist where names will be added
+/// @return `NC_NOERR` if succeeding
 int NCZMD_v2_list_groups(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups);
+
+/// @brief Retrieve the variable names contained by a group specified by `key`.
+///  The order of the names may be arbitrary
+/// @param zfile - The zarr file info structure
+/// @param key - the key of the node - group
+/// @param variables - NClist where names will be added
+/// @return `NC_NOERR` if succeeding
 int NCZMD_v2_list_variables(NCZ_FILE_INFO_T *zfile, const char * key, NClist * variables);
+
+/// @brief Retrieve JSON metadata of a given type for the specified `key` from the storage
+/// @param zfile - The zarr file info structure
+///	@param zobj - The type of metadata to set
+/// @param key - the key of the node - group or array
+/// @param jobj - JSON to be written
+/// @return `NC_NOERR` if succeeding
 int fetch_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zarr_obj_type, const char *key, NCjson **jobj);
 
+/// @brief Write JSON metadata of a given type for the specified `key` to the storage
+/// @param zfile - The zarr file info structure
+///	@param zobj - The type of metadata to set
+/// @param key - the key of the node - group or array
+/// @param jobj - JSON to be written
+/// @return `NC_NOERR` if succeeding
 int update_json_content_v2(NCZ_FILE_INFO_T *zfile, NCZMD_MetadataType zobj, const char *key, const NCjson *jobj);
 
+
+/// @brief Place holder for non consolidated handler
+/// @param json - Not used!
+/// @return `NC_NOERR` always
 int validate_consolidated_json_noop_v2(const NCjson *json);
 
 static const NCZ_Metadata NCZ_md2_table = {
