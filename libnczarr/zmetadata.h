@@ -65,10 +65,28 @@ typedef struct NCZ_Metadata
 
 extern const NCZ_Metadata *NCZ_metadata_handler2;
 
+/// @brief Sets the metadata handler for the given zarr file based on
+/// 	environment variables, file creation mode, and dataset contents.
+/// @param zfile - The zarr file info structure
+/// @return NC_NOERR on success, NC_EZARRMETA on failure
 extern int NCZMD_set_metadata_handler(struct NCZ_FILE_INFO *zfile);
+
+/// @brief Determines the Zarr format version set on the metadata handler or by
+/// 	probing the dataset for the existence of zarr metadata objects (.z*).
+/// @param zfile - The zarr file info structure
+/// @param zarrformat - Pointer to int to receive the zarr format version
 extern int NCZMD_get_metadata_format(struct NCZ_FILE_INFO*zfile, int *zarrformat);
+
+/// @brief Frees any resources associated with the metadata handler
+/// @param zmd - Potinter to the metadata handler structure
 extern void NCZMD_free_metadata_handler(NCZ_Metadata * zmd);
 
+/// @brief Lists groups and/or variables under a given group key.
+/// @param zfile - The zarr file info structure
+/// @param key - The group key within which to list nodes
+/// @param groups - Pointer to NClist to receive group names, NULL to skip
+/// @param vars - Pointer to NClist to receive variable names, NULL to skip
+/// @return NO_ERROR on success, error code on failure
 extern int NCZMD_list_nodes(struct NCZ_FILE_INFO*zfile, const char * key, NClist *groups, NClist *vars);
 
 /// @brief Lists groups under a given group key.
@@ -91,11 +109,40 @@ extern int NCZMD_list_variables(struct NCZ_FILE_INFO*zfile, const char * key, NC
 /// @param jgroup -	Pointer to NCjson to receive the group metadata
 /// @return NO_ERROR on success, error code on failure
 extern int NCZMD_fetch_json_group(struct NCZ_FILE_INFO*zfile, const char *key, NCjson **jgroup);
+
+/// @brief Fetches the JSON attributes given a key, either of group or array.
+/// @param zfile - The zarr file info structure
+/// @param key - The key whose attributes to fetch
+/// @param jattrs - Pointer to NCjson to receive the attributes
+/// @return NO_ERROR on success, error code on failure
 extern int NCZMD_fetch_json_attrs(struct NCZ_FILE_INFO*zfile, const char *key, NCjson **jattrs);
+
+/// @brief Fetches the JSON metadata of an array given its key.
+/// @param zfile - The zarr file info structure
+/// @param key - The array key whose metadata to fetch
+/// @param jarrays - Pointer to NCjson to receive the array metadata
+/// @return NO_ERROR on success, error code on failure
 extern int NCZMD_fetch_json_array(struct NCZ_FILE_INFO*zfile, const char *key, NCjson **jarrays);
 
+/// @brief Updates the JSON metadata of a group given a group key.
+/// @param zfile - The zarr file info structure
+/// @param key - The group key whose metadata to update
+/// @param jgroup -	The NCjson containing the new group metadata
+/// @return NO_ERROR on success, error code on failure
 extern int NCZMD_update_json_group(struct NCZ_FILE_INFO*zfile, const char *key, const NCjson *jgroup);
+
+/// @brief Updates the JSON attributes given a key, either of group or array.
+/// @param zfile - The zarr file info structure
+/// @param key - The key whose attributes to update
+/// @param jattrs - The NCjson containing the new attributes
+/// @return NO_ERROR on success, error code on failure
 extern int NCZMD_update_json_attrs(struct NCZ_FILE_INFO*zfile, const char *key, const NCjson *jattrs);
+
+/// @brief Updates the JSON metadata of an array given its key.
+/// @param zfile - The zarr file info structure
+/// @param key - The array key whose metadata to update
+/// @param jarrays - The NCjson containing the new array metadata
+/// @return NO_ERROR on success, error code on failure
 extern int NCZMD_update_json_array(struct NCZ_FILE_INFO *zfile, const char *key, const NCjson *jarrays);
 
 #if defined(__cplusplus)
