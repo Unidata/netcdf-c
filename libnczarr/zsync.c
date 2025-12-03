@@ -1398,7 +1398,6 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
     const NCjson* jncvar = NULL;
     const NCjson* jdimrefs = NULL;
     const NCjson* jvalue = NULL;
-    char* varpath = NULL;
     char* key = NULL;
     size64_t* shapes = NULL;
     NClist* dimnames = NULL;
@@ -1438,11 +1437,11 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
     var->quantize_mode = -1;
 
     /* Construct var path */
-    if((stat = NCZ_varkey(var,&varpath)))
+    if((stat = NCZ_varkey(var,&key)))
 	goto done;
 
     /* Download */
-    if((stat = downloadzarrobj(file,&zvar->zarray,varpath,Z2ARRAY))) goto done;
+    if((stat = downloadzarrobj(file,&zvar->zarray,key,Z2ARRAY))) goto done;
     jvar = zvar->zarray.obj;
     jatts = zvar->zarray.atts;
     assert(jvar == NULL || NCJsort(jvar) == NCJ_DICT);
@@ -1705,7 +1704,6 @@ suppressvar:
 
 done:
     nclistfreeall(dimnames); dimnames = NULL;
-    nullfree(varpath); varpath = NULL;
     nullfree(shapes); shapes = NULL;
     nullfree(key); key = NULL;
     return ZUNTRACE(stat);
