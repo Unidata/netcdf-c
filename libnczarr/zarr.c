@@ -79,6 +79,10 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* controls)
     if((stat = nczmap_create(zinfo->controls.mapimpl,nc->path,nc->mode,zinfo->controls.flags,NULL,&zinfo->map)))
 	goto done;
 
+    if((stat = NCZMD_set_metadata_handler(zinfo))){
+        goto done;
+    }
+
 done:
     ncurifree(uri);
     NCJreclaim(json);
