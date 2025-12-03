@@ -141,6 +141,7 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_LOGGING     4
 #		define FLAG_XARRAYDIMS  8
 #		define FLAG_NCZARR_KEY  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
+#		define FLAG_CONSOLIDATED 32
 	NCZM_IMPL mapimpl;
     } controls;
     int default_maxstrlen; /* default max str size for variables of type string */
