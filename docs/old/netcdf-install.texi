@@ -709,8 +709,8 @@ the effect of automatically turning off the CXX API, as if
 @item --enable-cxx4
 Turns on the new C++ API, which is currently under development, and
 will expose the full expanded model in the C++ API. The cxx4 API is
-experiemental, unfinished, and untested. It is provided for
-experiemental purposes only.
+experimental, unfinished, and untested. It is provided for
+experimental purposes only.
 
 @item --enable-large-file-tests
 Turn on tests for large files. These tests create files over 2 GB in

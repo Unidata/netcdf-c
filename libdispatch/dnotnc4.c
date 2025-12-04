@@ -61,13 +61,13 @@ NC_NOTNC4_inq_var_quantize(int ncid, int varid,  int *quantize_modep,
  * @param varid Ignored.
  * @param id Ignored.
  * @param nparams Ignored.
- * @param parms Ignored.
+ * @param params Ignored.
  *
  * @return ::NC_ENOTNC4 Not implemented for a dispatch table
  * @author Ed Hartnett
  */
 int
-NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int  id, size_t nparams, const unsigned int* parms)
+NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int  id, size_t nparams, const unsigned int* params)
 {
     return NC_ENOTNC4;
 }

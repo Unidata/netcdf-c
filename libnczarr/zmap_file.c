@@ -885,7 +885,7 @@ platformdircontent(const char* canonpath, NClist* contents)
 	{ret = NC_ENOMEM; goto done;}
     dir = FindFirstFile(lpath, &FindFileData);
     if(dir == INVALID_HANDLE_VALUE) {
-	/* Distinquish not-a-directory from no-matching-file */
+	/* Distinguish not-a-directory from no-matching-file */
         switch (GetLastError()) {
 	case ERROR_FILE_NOT_FOUND: /* No matching files */ /* fall thru */
 	    ret = NC_NOERR;

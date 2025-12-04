@@ -1317,7 +1317,7 @@ ncuriunescape(const char* s)
     return ncuridecodepartial(s,ascii);
 }
 
-/* Get the actual list of queryies */
+/* Get the actual list of queries */
 void*
 ncuriqueryparams(NCURI* uri)
 {

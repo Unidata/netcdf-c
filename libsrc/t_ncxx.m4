@@ -484,7 +484,7 @@ T_PUTN(short, double)
 
 T_PAD_PUTN(short, schar)
 dnl T_PAD_PUTN(short, uchar)
-dnl Don't make signed comparisons to usigned type
+dnl Don't make signed comparisons to unsigned type
 static void
 t_pad_putn_short_uchar(char *const buf)
 {
@@ -544,7 +544,7 @@ T_PUTN(double, double)
 
 T_GETN(schar, schar)
 dnl T_GETN(schar, uchar)
-dnl - we don't return conversion errors gettin schar to uchar.
+dnl - we don't return conversion errors getting schar to uchar.
 static void
 t_getn_schar_uchar(const char *const buf)
 {
@@ -573,7 +573,7 @@ T_GETN(schar, double)
 
 T_PAD_GETN(schar, schar)
 dnl T_PAD_GETN(schar, uchar)
-dnl - we don't return conversion errors gettin schar to uchar.
+dnl - we don't return conversion errors getting schar to uchar.
 static void
 t_pad_getn_schar_uchar(const char *const buf)
 {
@@ -613,7 +613,7 @@ T_GETN(short, double)
 
 T_PAD_GETN(short, schar)
 dnl T_PAD_GETN(short, uchar)
-dnl Don't make signed comparisons to usigned type
+dnl Don't make signed comparisons to unsigned type
 static void
 t_pad_getn_short_uchar(const char *const buf)
 {

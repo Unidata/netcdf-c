@@ -191,7 +191,7 @@ static int paramclone(size_t nparams, unsigned** dstp, const unsigned* src);
  * Internal netcdf nczarr filter functions.
  *
  * This file contains functions internal to the libnczarr library.
- * None of the functions in this file are exposed in the exernal API. These
+ * None of the functions in this file are exposed in the external API. These
  * functions all relate to the manipulation of netcdf-4's var->filters list.
  *
  * @author Dennis Heimbigner

@@ -964,7 +964,7 @@ nc_inq_var_endian(int ncid, int varid, int *endianp);
 
 /* Define a filter for a variable */
 EXTERNL int
-nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms);
+nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* params);
 
 /* Learn about the first filter on a variable */
 EXTERNL int
