@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.10.0 - TBD
 
-* Regularize, cleanup, and refactor various AWS features, especially regularizing AWS-related constants. See [Github ????](https://github.com/Unidata/netcdf-c/issues/????) for more information. 
+* Regularize, cleanup, and refactor various AWS features, especially WRT regularizing AWS-related constants. See [Github ????](https://github.com/Unidata/netcdf-c/issues/????) for more information. 
 * Begin the consolidation of global state into two files: libdispatch/dglobal.c and include/ncglobal.h. See [Github 3197](https://github.com/Unidata/netcdf-c/issues/3197) for more information. 
 * Fix Issue with Numcodecs encoding problems where integer filter parameters are being encoded as strings. See [Github 3201](https://github.com/Unidata/netcdf-c/issues/3201) for more information. 
 * Clean up minor problems with DAP2/DAP4 code. See [Github #3215](https://github.com/Unidata/netcdf-c/pull/3215) for more information.
