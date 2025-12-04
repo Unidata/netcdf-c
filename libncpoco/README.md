@@ -17,7 +17,7 @@ loading functions using mutual exclusion locks. For *nix* systems, this usually 
 In any case, it is possible to disable the use of mutual exclusion if you know
 you are operating in a single threaded environment: see the [installation](#installation) section below.
 
-# Implementataion Restrictions
+# Implementation Restrictions
 
 Currently support is provided for the following systems.
 

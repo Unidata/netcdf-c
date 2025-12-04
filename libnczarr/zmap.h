@@ -80,7 +80,7 @@ all other kinds of search using recursion. So for example
    although the implementation may still have to examine all legal keys to get the desired subset.
 3. Allow for use of partial read mechanisms such as iterators, if available.
    This can support processing a limited set of keys for each iteration. This is a
-   straighforward tradeoff of space over time.
+   straightforward tradeoff of space over time.
 
 This is doable in S3 search using common prefixes with a delimiter of '/', although
 the implementation is a bit tricky. For the file system zmap implementation, the legal search keys can be obtained
@@ -230,7 +230,7 @@ extern "C" {
 
 /**
 Get limitations of a particular implementation.
-@param impl -- the map implemenation type
+@param impl -- the map implementation type
 @param limitsp return limitation flags here
 @return NC_NOERR if the operation succeeded
 @return NC_EXXX if the operation failed for one of several possible reasons

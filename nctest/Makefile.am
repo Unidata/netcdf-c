@@ -31,7 +31,7 @@ nctest_classic.cdl ref_nctest_classic.cdl
 TESTPROGRAMS = nctest tst_rename
 check_PROGRAMS = $(TESTPROGRAMS)
 
-# This test requires that the utilites also be built.
+# This test requires that the utilities also be built.
 if NETCDF_BUILD_UTILITIES
 TESTS = $(TESTPROGRAMS) compare_test_files.sh
 # compare_test_files depends on nctest executing first.

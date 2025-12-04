@@ -180,7 +180,7 @@ NC4_hdf5_addfilter(NC_VAR_INFO_T* var, unsigned int id, size_t nparams, const un
         /* Need to be careful about where we insert fletcher32 and shuffle */
 	if(nclistlength(flist) > 0) {
 	    if(id == H5Z_FILTER_FLETCHER32)
-		pos = 0; /* alway first filter */
+		pos = 0; /* always first filter */
 	    else if(id == H5Z_FILTER_SHUFFLE) {
 		/* See if first filter is fletcher32 */
 	        struct NC_HDF5_Filter* f0 = (struct NC_HDF5_Filter*)nclistget(flist,0);

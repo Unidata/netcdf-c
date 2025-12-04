@@ -3,6 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+set -x
 set -e
 
 . ${top_srcdir}/dap4_test/d4test_common.sh

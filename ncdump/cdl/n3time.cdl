@@ -11,7 +11,7 @@ variables:
 	char DwellModeName(Mode, NameLength) ;
 		DwellModeName:long_name = "Name of the dwell mode" ;
 	float ClutterHeight(Mode) ;
-		ClutterHeight:long_name = "Maxmium height of clutter removal" ;
+		ClutterHeight:long_name = "Maximum height of clutter removal" ;
 		ClutterHeight:units = "meters" ;
 	short ClutterRemovedGates(Mode) ;
 		ClutterRemovedGates:long_name = "Number of gates removed by clutter algorithm" ;
