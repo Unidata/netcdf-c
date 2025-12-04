@@ -806,7 +806,7 @@ fprintf(stderr,"\n");
 		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
 		char* val = NULL;
 		/* Check for _FillValue/Variable mismatch */
-		if(strcmp(att->name,"_FillValue")==0) {
+		if(strcmp(att->name,NC_FillValue)==0) {
 		    /* Special case var is byte, fillvalue is int16 and 
 			unsignedattr == 0;
 			This exception is needed because DAP2 byte type
@@ -1961,7 +1961,7 @@ computeseqcountconstraintsr(NCDAPCOMMON* dapcomm, CDFnode* node, CDFnode** candi
     } else if(candidate != NULL && candidatep != NULL) {
 	*candidatep = candidate;
     } else { /* compound != NULL by construction */
-	/* recurse on a nested grids or strucures */
+	/* recurse on a nested grids or structures */
         computeseqcountconstraintsr(dapcomm,compound,candidatep);
     }
 }

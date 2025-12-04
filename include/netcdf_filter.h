@@ -74,7 +74,7 @@ extern "C" {
 
 /*Define a filter for a variable */
 EXTERNL int
-nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms);
+nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* params);
 
 /* Learn about the first defined filter filter on a variable */
 EXTERNL int

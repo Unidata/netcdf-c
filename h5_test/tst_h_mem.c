@@ -41,7 +41,7 @@ main()
       char var_name[STR_LEN + 1];
       int v;
 
-      /* Create file, setting latest_format in access propertly list
+      /* Create file, setting latest_format in access property list
        * and H5P_CRT_ORDER_TRACKED in the creation property list. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;

@@ -232,15 +232,15 @@ get_timeinfo(int ncid1, int varid1, ncvar_t *vp) {
 	    return;
 	}
 	/* Currently this gets reparsed for every value, need function
-	 * like cdRel2Comp that resuses parsed units? */
+	 * like cdRel2Comp that reuses parsed units? */
 	vp->timeinfo->units = strdup(units);
 	vp->has_timeval = true;
 	free(units);
     }
 }
 
-/* print_att_times 
- * by Dave Allured, NOAA/PSD/CIRES.  
+/* print_att_times
+ * by Dave Allured, NOAA/PSD/CIRES.
  * This version supports only primitive attribute types; do not call
  * for user defined types.  Print interpreted, human readable (ISO)
  * time strings for an attribute of a CF-like time variable.

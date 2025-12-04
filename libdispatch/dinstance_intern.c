@@ -229,7 +229,7 @@ the top-level instances to copy any nested data such as vlen or
 strings or such.
 
 Assumes it is passed a pointer to count instances of xtype and a
-space into which to copy the instance.  Copys any nested data
+space into which to copy the instance.  Copies any nested data
 by calling malloc().
 
 WARNING: DOES NOT ALLOCATE THE TOP-LEVEL MEMORY (see the

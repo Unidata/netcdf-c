@@ -42,7 +42,7 @@ main()
         char name[MAX_SYMBOL_LEN + 1];
         ssize_t size;
 
-        /* Create file, setting latest_format in access propertly list
+        /* Create file, setting latest_format in access property list
          * and H5P_CRT_ORDER_TRACKED in the creation property list. */
         if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
         if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
@@ -130,7 +130,7 @@ main()
         hsize_t dimscale_dims[1] = {DIM1_LEN};
         ssize_t size;
 
-        /* Create file, setting latest_format in access propertly list
+        /* Create file, setting latest_format in access property list
          * and H5P_CRT_ORDER_TRACKED in the creation property list. */
         if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
         if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
@@ -208,7 +208,7 @@ main()
         char name[MAX_NAME_LEN + 1];
         ssize_t size;
 
-        /* Create file, setting latest_format in access propertly list
+        /* Create file, setting latest_format in access property list
          * and H5P_CRT_ORDER_TRACKED in the creation property list. */
         if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
         if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
@@ -310,7 +310,7 @@ main()
 	    for (y = 0; y < NY; y++)
 		data_out[x][y] = x * NY + y;
 
-	/* Create file, setting latest_format in access propertly list
+	/* Create file, setting latest_format in access property list
 	 * and H5P_CRT_ORDER_TRACKED in the creation property list. */
 	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
 	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
@@ -452,7 +452,7 @@ main()
 	char var_name[STR_LEN + 1];
 	int v;
 
-	/* Create file, setting latest_format in access propertly list
+	/* Create file, setting latest_format in access property list
 	 * and H5P_CRT_ORDER_TRACKED in the creation property list. */
 	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
 	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
@@ -517,7 +517,7 @@ main()
 	hid_t fileid, grpid, spaceid, plistid;
 	hsize_t chunksize = 1;
 
-	/* Create file, setting latest_format in access propertly list
+	/* Create file, setting latest_format in access property list
 	 * and H5P_CRT_ORDER_TRACKED in the creation property list. */
 	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
 	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
@@ -568,7 +568,7 @@ main()
 	int data_in, data_out = 42;
 	H5D_layout_t layout;
 
-	/* Create file, setting latest_format in access propertly list
+	/* Create file, setting latest_format in access property list
 	 * and H5P_CRT_ORDER_TRACKED in the creation property list. */
 	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
 	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
@@ -635,7 +635,7 @@ main()
 	hid_t fileid, grpid, spaceid, plistid;
 	hsize_t chunksize = 1;
 
-	/* Create file, setting latest_format in access propertly list
+	/* Create file, setting latest_format in access property list
 	 * and H5P_CRT_ORDER_TRACKED in the creation property list. */
 	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
 	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;

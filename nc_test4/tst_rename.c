@@ -175,7 +175,7 @@ main(int argc, char **argv)
 
          /* Rename the variable. This will remove the (as yet
           * unwritten) dimscale-only dataset "longitude" and rename
-          * the extisting dataset "lon" to "longitude". Variable
+          * the existing dataset "lon" to "longitude". Variable
           * "longitude" will become a coordinate var. */
          if (nc_rename_var(ncid, 0, LONGITUDE)) ERR;
          if (check_charlies_no_enddef_file(ncid, LONGITUDE, LONGITUDE)) ERR;
@@ -217,7 +217,7 @@ main(int argc, char **argv)
 
          /* Rename the variable. This will remove the (as yet
           * unwritten) dimscale-only dataset "longitude" and rename
-          * the extisting dataset "lon" to "longitude". Variable
+          * the existing dataset "lon" to "longitude". Variable
           * "longitude" will become a coordinate var. */
          if (nc_rename_var(ncid, 0, LONGITUDE)) ERR;
          if (check_charlies_no_enddef_file(ncid, LONGITUDE, LONGITUDE)) ERR;
@@ -260,7 +260,7 @@ main(int argc, char **argv)
 
          /* Open the file and rename the variable. This will remove
           * the dimscale-only dataset "longitude" and rename the
-          * extisting dataset "lon" to "longitude". Variable
+          * existing dataset "lon" to "longitude". Variable
           * "longitude" will become a coordinate var. */
          if (nc_open(CHARLIE_TEST_FILE, NC_WRITE, &ncid)) ERR;
          if (nc_redef(ncid)) ERR;

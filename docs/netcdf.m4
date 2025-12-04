@@ -1303,7 +1303,7 @@ Thus, to access a single value, for example, specify COUNT() as
 Note that, for strided I/O, this argument must be adjusted
 to be compatible with the STRIDE() and START() arguments so that
 the interaction of the
-three does not attempt to access an invalid data co-ordinate.
+three does not attempt to access an invalid data coordinate.
 The elements of the
 COUNT() vector correspond, in order, to the variable's dimensions.
 .TP

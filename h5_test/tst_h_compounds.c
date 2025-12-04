@@ -924,7 +924,7 @@ main()
 	 data_out[i].y = 99.99f;
       }
 
-      /* Set latest_format in access propertly list and
+      /* Set latest_format in access property list and
        * H5P_CRT_ORDER_TRACKED in the creation property list. This
        * turns on HDF5 creation ordering. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;

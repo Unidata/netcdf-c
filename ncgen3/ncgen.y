@@ -219,7 +219,7 @@ varspec:        var
 		    dummyvar.has_data = 0;
 
 		    nvdims = 0;
-		    /* make sure variable not re-declared */
+		    /* make sure variable not redeclared */
 		    if ($1->is_var == 1) {
 		       derror( "duplicate variable declaration for %s",
 		               $1->name);

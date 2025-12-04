@@ -2,7 +2,7 @@
   Copyright 2019, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 
-  This program tests netcdf-4 parallel I/O using the zlib fliter while
+  This program tests netcdf-4 parallel I/O using the zlib filter while
   writing with parallel I/O. This works for HDF5-1.10.2 and later. In
   this case HDF5_SUPPORTS_PAR_FILTERS will be defined during
   configure.
