@@ -51,6 +51,7 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 	goto done;
     nclistfreeall(zinfo->controllist);
     NC_authfree(zinfo->auth);
+    NCZMD_free_metadata_handler(&(zinfo->metadata));
     nullfree(zinfo);
 
 done:
