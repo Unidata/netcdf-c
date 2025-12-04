@@ -206,7 +206,7 @@ Internally, the HDF5 core driver thinks it is doing the following:
 3. Free up the memory as no longer needed
    (call image_free).
 
-It turns out that for propertly lists, realloc is never called.
+It turns out that for property lists, realloc is never called.
 However the HDF5 core driver follows all of the above steps.
 
 The following sections describe the callback function operation.
@@ -377,7 +377,7 @@ This just returns the used size of the in-memory chunk.
 Note that the allocated size might be larger.
 
 ### ncio_closefunc
-If the usere wants the contents persisted, then write out the used portion
+If the user wants the contents persisted, then write out the used portion
 of the in-memory chunk to the target file.
 Then, if the in-memory chunk is not locked, or for some reason has
 been modified, go ahead and free that memory.

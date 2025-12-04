@@ -104,7 +104,7 @@ These are as follows.
 
 1. _--enable-s3_ -- Enable S3 support.
 2. _--enable-s3-internal_ -- Force use of the *nch5s3comms* SDK instead of the *aws-cpp-sdk* (assuming it is available).
-3. _--with-s3-testing_=yes|no|public -- "yes" means do all S3 tests, "no" means do no S3 testing, "public" means do only those tests that involve publically accessible S3 data.
+3. _--with-s3-testing_=yes|no|public -- "yes" means do all S3 tests, "no" means do no S3 testing, "public" means do only those tests that involve publicly accessible S3 data.
 
 __A note about using S3 with Automake.__
 If S3 support is desired, and using the Amazon "aws-sdk-cpp" SDK, and using Automake, then LDFLAGS must be properly set, namely to this.
@@ -119,9 +119,9 @@ Note also that if S3 support is enabled, then you need to have a C++ compiler in
 
 The necessary CMake flags are as follows (with defaults)
 
-1. *-DNETCDF_ENABLE_S3* -- Controll S3 support
+1. *-DNETCDF_ENABLE_S3* -- Control S3 support
 2. *-DNETCDF_ENABLE_S3_INTERNAL* -- Force use of the *nch5s3comms* SDK instead of the *aws-cpp-sdk*.
-3. *-DWITH-S3-TESTING_=ON|OFF|PUBLIC -- "ON" means do all S3 tests, "OFF" means do no S3 testing, "PUBLIC" means do only those tests that involve publically accessible S3 data.
+3. *-DWITH-S3-TESTING_=ON|OFF|PUBLIC -- "ON" means do all S3 tests, "OFF" means do no S3 testing, "PUBLIC" means do only those tests that involve publicly accessible S3 data.
 
 Note that unlike Automake, CMake can properly locate C++ libraries, so it should not be necessary to specify _-laws-cpp-sdk-s3_ assuming that the aws s3 libraries are installed in the default location.
 For CMake with Visual Studio, the default location is here:

@@ -186,7 +186,7 @@ extern int getrootid(int grpid);
 /*
  * Get attribute value for a single string value from either of NC_CHAR or NC_STRING types.
  * This routine assumes that the attribute holds a single string value. If there are more
- * than one string, subequent strings after the first one will be ignored.
+ * than one string, subsequent strings after the first one will be ignored.
  *
  * The caller is responsible for allocating and freeing memory for the str_out parameter.
  */

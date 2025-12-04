@@ -415,7 +415,7 @@ define(`GETF_CheckBND',
 	*ip = ($1)xx;')dnl
 
 dnl
-dnl For GET APIs boudnary check for when $1 is either 'longlong' or 'ulonglong'
+dnl For GET APIs boundary check for when $1 is either 'longlong' or 'ulonglong'
 dnl
 define(`GETF_CheckBND2',
        `ifelse(index(`$1',`u'), 0,
@@ -915,10 +915,10 @@ get_ix_uint(const void *xp, ix_uint *ip)
 {
 	const uchar *cp = (const uchar *) xp;
 
-	*ip = (ix_uint)(*cp++ << 24);
-	*ip = (ix_uint)(*ip | (ix_uint)(*cp++ << 16));
-	*ip = (ix_uint)(*ip | (ix_uint)(*cp++ << 8));
-	*ip = (ix_uint)(*ip | *cp);
+	*ip =       (ix_uint)(*cp++) << 24;
+	*ip = *ip | (ix_uint)(*cp++) << 16;
+	*ip = *ip | (ix_uint)(*cp++) << 8;
+	*ip = *ip | (ix_uint)(*cp);
 }
 
 static void
@@ -1865,14 +1865,14 @@ get_ix_int64(const void *xp, ix_int64 *ip)
 {
     const uchar *cp = (const uchar *) xp;
 
-    *ip  = ((ix_int64)(*cp++) << 56);
-    *ip |= ((ix_int64)(*cp++) << 48);
-    *ip |= ((ix_int64)(*cp++) << 40);
-    *ip |= ((ix_int64)(*cp++) << 32);
-    *ip |= ((ix_int64)(*cp++) << 24);
-    *ip |= ((ix_int64)(*cp++) << 16);
-    *ip |= ((ix_int64)(*cp++) <<  8);
-    *ip |=  (ix_int64)*cp;
+    *ip  = (ix_int64)((uint64_t)(*cp++) << 56);
+    *ip |= (ix_int64)((uint64_t)(*cp++) << 48);
+    *ip |= (ix_int64)((uint64_t)(*cp++) << 40);
+    *ip |= (ix_int64)((uint64_t)(*cp++) << 32);
+    *ip |= (ix_int64)((uint64_t)(*cp++) << 24);
+    *ip |= (ix_int64)((uint64_t)(*cp++) << 16);
+    *ip |= (ix_int64)((uint64_t)(*cp++) <<  8);
+    *ip |= (ix_int64)*cp;
 }
 
 static void

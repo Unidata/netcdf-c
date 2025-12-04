@@ -263,7 +263,7 @@ nc4_file_change_ncid(int ncid, unsigned short new_ncid_index)
     if ((ret = NC_check_id(ncid, &nc)))
         return ret;
 
-    /* Move it in the list. It will faile if list spot is already
+    /* Move it in the list. It will fail if list spot is already
      * occupied. */
     LOG((3, "moving nc->ext_ncid %d nc->ext_ncid >> ID_SHIFT %d",
          nc->ext_ncid, nc->ext_ncid >> ID_SHIFT));
@@ -1670,7 +1670,7 @@ nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
     assert(h5);
 
     /* Order is important here. We must delete the attribute contents
-       before deleteing any metadata because nc_reclaim_data depends
+       before deleting any metadata because nc_reclaim_data depends
        on the existence of the type info.
     */
 
