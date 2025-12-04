@@ -69,6 +69,7 @@ typedef struct NCZ_Metadata
 } NCZ_Metadata;
 
 extern const NCZ_Metadata *NCZ_metadata_handler2;
+extern const NCZ_Metadata *NCZ_csl_metadata_handler2;
 
 /// @brief Sets the metadata handler for the given zarr file based on
 /// 	environment variables, file creation mode, and dataset contents.

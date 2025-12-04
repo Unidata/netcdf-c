@@ -127,6 +127,8 @@ static const NCZ_Metadata NCZ_csl_md2_table = {
     .validate_consolidated = validate_consolidated_json_v2,
 };
 
+const NCZ_Metadata *NCZ_csl_metadata_handler2 = &NCZ_csl_md2_table;
+
 int NCZMD_v2_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *groups, NClist *variables)
 {
 	size_t i;
