@@ -39,6 +39,11 @@ extern "C"
 #define Z2METADATA "/.zmetadata"
 #define ZARRFORMAT2 2
 
+/* The name of the env var for controlling .zmetadata use*/
+#define NCZARR_CONSOLIDATED_KEY_ENV "NCZARR_METADATA_CONSOLIDATED_KEY"
+#define NCZARR_CONSOLIDATED_ENV "NCZARR_CONSOLIDATED"
+#define NCZARR_CONSOLIDATED_DEFAULT 0 /* default to consolidated metadata */
+
 #define ZARR_NOT_CONSOLIDATED 0
 #define ZARR_CONSOLIDATED 1
 
