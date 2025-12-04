@@ -4,7 +4,7 @@
 # See https://github.com/Unidata/docker-nctests
 # How    https://github.com/WardF/netcdf-test-action
 name: Run Docker-Based Regression Testing
-on: [push,pull_request,workflow_dispatch]
+on: [pull_request,workflow_dispatch]
 
 concurrency:  
   group: ${{ github.workflow}}-${{ github.head_ref }}  
