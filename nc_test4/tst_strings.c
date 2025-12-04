@@ -465,7 +465,7 @@ main(int argc, char **argv)
          {
             size_t start[NDIMS], count[NDIMS] = {1};
             size_t counter = 1;
-            
+
             /* Write one record at a time. */
             for (start[0] = 0; start[0] < DHR_LEN; start[0]++)
             {
@@ -510,7 +510,7 @@ main(int argc, char **argv)
          {
             int no_fill;
             char *fill_value_in[1];
-            
+
             if (nc_inq_var_fill(ncid, varid, &no_fill, (char **)fill_value_in)) ERR;
             if (no_fill) ERR;
             if (strcmp(fill_value_in[0], *string_fillp)) ERR;
@@ -520,7 +520,7 @@ main(int argc, char **argv)
          if (dim_combo < 2)
          {
             char *data_in[DHR_LEN];
-            
+
             /* Get the data in one read of the entire var. */
             if (nc_get_var(ncid, varid, data_in)) ERR;
             for (i = 0; i < DHR_LEN; i++)
@@ -532,7 +532,7 @@ main(int argc, char **argv)
             char *data_in;
             size_t start[NDIMS], count[NDIMS] = {1};
             int my_count = 0;
-            
+
             /* Get the data one record at a time. Every other record,
              * starting with the first, is a fill value. */
             for (start[0] = 0; start[0] < DHR_LEN; start[0]++)
@@ -579,7 +579,7 @@ main(int argc, char **argv)
       /* Create dims. */
       if (nc_def_dim(ncid, DIM_0_NAME, NC_UNLIMITED, &dimid[0])) ERR;
       if (nc_def_dim(ncid, DIM_1_NAME, DIM_1_LEN, &dimid[1])) ERR;
-               
+
       /* Create a var. */
       if (nc_def_var(ncid, VAR_NAME_NCDUMP, NC_STRING, NUM_DIMS, dimid, &varid)) ERR;
 

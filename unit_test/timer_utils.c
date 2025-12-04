@@ -54,7 +54,7 @@ NCT_inittimer(void)
 #ifdef DEBUG
 #if defined HAVE_CLOCK_GETTIME
     fprintf(stderr,"timer mechanism: clock_gettime\n");
-#elif defined HAVE_GETTIMEOFDAY 
+#elif defined HAVE_GETTIMEOFDAY
     fprintf(stderr,"timer mechanism: gettimeofday\n");
 #elif defined HAVE_GETRUSAGE
     fprintf(stderr,"timer mechanism: getrusage\n");
@@ -106,7 +106,7 @@ NCT_elapsedtime(Nanotime* nt0, Nanotime* nt1, Nanotime* delta)
 {
     long long nsec[2];
     long long deltansec;
-    
+
     nsec[0] = nt0->tv_nsec+(1000000000 * nt0->tv_sec);
     nsec[1] = nt1->tv_nsec+(1000000000 * nt1->tv_sec);
 
@@ -124,7 +124,7 @@ NCT_reporttime(unsigned nelems, Nanotime* times, struct TimeRange range, const c
     Nanotime delta;
     long long nsec,avg;
     double dnsec,dsec,davg;
-    
+
     NCT_elapsedtime(&times[0],&times[1],&delta);
     nsec = NCT_nanoseconds(delta);
     avg = nsec / nelems;

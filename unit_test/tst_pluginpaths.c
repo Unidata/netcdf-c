@@ -196,7 +196,7 @@ fprintf(stderr,"$$$ p=|%s| q=|%s|\n",p,q);
 	    leave = 1;
 	} else {
 	    *q++ = '\0'; /* overwrite ',' and skip to start of the next command*/
-	}	
+	}
 	ncmds++;
     }
 #ifdef DEBUG
@@ -241,7 +241,7 @@ getfrom(int formatx, char** textp)
     int stat = NC_NOERR;
     NCPluginList dirs = {0,NULL};
     char* text = NULL;
-   
+
     /* Get a plugin path */
     switch (formatx) {
     case 0: /* Global */
@@ -271,7 +271,7 @@ actionclear(const struct Execute* action)
 {
     int stat = NC_NOERR;
     NCPluginList dirs = {0,NULL};
-    if((stat=nc_plugin_path_set(&dirs))) goto done;   
+    if((stat=nc_plugin_path_set(&dirs))) goto done;
 done:
     return NCCHECK(stat);
 }
@@ -282,11 +282,11 @@ actionget(const struct Execute* action)
     int stat = NC_NOERR;
     char* text = NULL;
     int formatx = decodeformatx(action->arg);
-   
+
     /* Get global plugin path */
     if((stat = getfrom(formatx,&text))) goto done;
     printf("%s\n",text);
-    
+
 done:
     nullfree(text);
     return NCCHECK(stat);
@@ -301,7 +301,7 @@ actionset(const struct Execute* action)
 
     if(text == NULL) text = "";
     if((stat=ncaux_plugin_path_parse(text,0,&dirs))) goto done;
-    if((stat=nc_plugin_path_set(&dirs))) goto done;   
+    if((stat=nc_plugin_path_set(&dirs))) goto done;
 
 done:
     ncaux_plugin_path_clear(&dirs);
@@ -324,14 +324,14 @@ actionxget(const struct Execute* action)
     int stat = NC_NOERR;
     char path[4096];
     int pathlen = 0;
-   
+
     /* get pathlen */
     if((pathlen=ncaux_plugin_path_stringlen()) < 0) {stat = NC_EINVAL; goto done;}
     /* Get global plugin path */
     if((stat=ncaux_plugin_path_stringget(sizeof(path),path))) goto done;
     path[pathlen] = '\0'; /* nul term */
     printf("%s\n",path);
-    
+
 done:
     return NCCHECK(stat);
 }
@@ -363,10 +363,10 @@ main(int argc, char** argv)
 
     while ((c = getopt(argc, argv, "dvx:X:")) != EOF) {
 	switch(c) {
-	case 'd': 
-	    dumpoptions.debug = 1;	    
+	case 'd':
+	    dumpoptions.debug = 1;
 	    break;
-	case 'v': 
+	case 'v':
 	    pluginusage();
 	    goto done;
 	case 'x':
@@ -403,5 +403,5 @@ done:
     fflush(stdout);
     if(stat)
 	fprintf(stderr,"fail: %s\n",nc_strerror(stat));
-    return (stat ? 1 : 0);    
+    return (stat ? 1 : 0);
 }

@@ -312,7 +312,7 @@ NC4_HDF5_del_att(int ncid, int varid, const char *name)
         return NC_ENOTATT;
 
     /* Reclaim the content of the attribute */
-    if(att->data) 
+    if(att->data)
 	if((retval = NC_reclaim_data_all(h5->controller,att->nc_typeid,att->data,att->len))) return retval;
     att->data = NULL;
     att->len = 0;
@@ -541,7 +541,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
     /* Now fill in the metadata. */
     att->dirty = NC_TRUE;
 
-    /* When we reclaim existing data, make sure to use the right type */ 
+    /* When we reclaim existing data, make sure to use the right type */
     if(new_att) attsave.type = file_type; else attsave.type = att->nc_typeid;
     att->nc_typeid = file_type;
 
@@ -693,7 +693,7 @@ exit:
                 (void)NC_reclaim_data_all(h5->controller,fillsave.type,var->fill_value,1);
 	    var->fill_value = fillsave.data;
         }
-    }    
+    }
     /* If there was an error return it, otherwise return any potential
        range error value. If none, return NC_NOERR as usual.*/
     if (range_error)

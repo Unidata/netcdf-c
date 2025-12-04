@@ -454,7 +454,7 @@ main(
 	        (void)fread(bom,1,1,fp);
 	        break;
 	    default: /* legal printable char, presumably; rewind */
-            (void)fseek(fp, 0L, SEEK_SET);        
+            (void)fseek(fp, 0L, SEEK_SET);
 		break;
 	    }
 	}

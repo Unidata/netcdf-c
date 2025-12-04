@@ -93,7 +93,7 @@ NCDISPATCH_initialize(void)
         NCpathcanonical(home,&globalstate->home);
 	nullfree(home);
     }
- 
+
     /* Capture $CWD */
     {
         char cwdbuf[4096];
@@ -164,7 +164,7 @@ NC_createglobalstate(void)
 {
     int stat = NC_NOERR;
     const char* tmp = NULL;
-    
+
     if(nc_globalstate == NULL) {
         nc_globalstate = calloc(1,sizeof(NCglobalstate));
     }
@@ -186,7 +186,7 @@ NC_createglobalstate(void)
     nc_globalstate->chunkcache.size = DEFAULT_CHUNK_CACHE_SIZE;		    /**< Default chunk cache size. */
     nc_globalstate->chunkcache.nelems = DEFAULT_CHUNKS_IN_CACHE;	    /**< Default chunk cache number of elements. */
     nc_globalstate->chunkcache.preemption = DEFAULT_CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
-    
+
 done:
     return stat;
 }
@@ -298,7 +298,7 @@ NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep)
     if (name == NULL || strlen(name) == 0)
 	return NC_EBADTYPE;
     for(i=0;i<NUM_ATOMIC_TYPES;i++) {
-	if(strcasecmp(name,nc4_atomic_name[i])==0) {	
+	if(strcasecmp(name,nc4_atomic_name[i])==0) {
 	    if(idp) *idp = i;
             if(sizep) *sizep = nc4_atomic_size[i];
 	    return NC_NOERR;

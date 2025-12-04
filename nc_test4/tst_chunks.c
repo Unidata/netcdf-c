@@ -367,7 +367,7 @@ main(int argc, char **argv)
 
       /* Reopen the file. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
-      
+
       /* Close the file. */
       if (nc_close(ncid)) ERR;
    }

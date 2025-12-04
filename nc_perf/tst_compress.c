@@ -453,7 +453,7 @@ find_filters(int *num_compression_filters, char compression_filter_name[][NC_MAX
     strcpy(compression_filter_name[nfilters], "zlib");
     for (i = 0; i < NUM_DEFLATE_LEVELS; i++)
         deflate_level[nfilters][i] = i + 1;
-             
+
     /* deflate_level[nfilters][0] = 1; */
     /* deflate_level[nfilters][1] = 4; */
     /* deflate_level[nfilters][2] = 9; */

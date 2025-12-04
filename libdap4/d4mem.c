@@ -51,7 +51,7 @@ d4reclaim_data(NCD4node* tsym, void* memory, size_t count)
     int stat = NC_NOERR;
     size_t i;
     Position position;
-    
+
     if(tsym == NULL
        || (memory == NULL && count > 0))
         {stat = NC_EINVAL; goto done;}
@@ -74,7 +74,7 @@ static int
 d4reclaim_datar(NCD4node* tsym, Position* position)
 {
     int stat = NC_NOERR;
-    
+
     switch  (tsym->subsort) {
     case NC_CHAR: case NC_BYTE: case NC_UBYTE:
     case NC_SHORT: case NC_USHORT:
@@ -95,7 +95,7 @@ d4reclaim_datar(NCD4node* tsym, Position* position)
     }
     return stat;
 }
-	
+
 static int
 d4reclaim_usertype(NCD4node* tsym, Position* position)
 {
@@ -123,7 +123,7 @@ d4reclaim_vlen(NCD4node* tsym, Position* position)
     nc_vlen_t* vl = (nc_vlen_t*)(position->memory+position->offset);
 
     if((stat=nc4_find_type(tsym->container->nc4_info,tsym->u.v.base_nc_typeid,&basetype)))
-	goto done;    
+	goto done;
 
     /* Free up each entry in the vlen list */
     if(vl->p != NULL) {
@@ -181,14 +181,14 @@ d4reclaim_compound(NCD4node* tsym, Position* position)
         int ndims = field->ndims;
 	size_t fieldalign;
 	if((stat=nc4_find_type(tsym->container->nc4_info,field->nc_typeid,&fieldtype)))
-	    goto done;    
+	    goto done;
 	fieldalign = hdf5typealignment(fieldtype);
 	/* compute the total number of elements in the field array */
 	for(i=0;i<ndims;i++) arraycount *= field->dim_size[i];
 	position->offset = read_align(position->offset,fieldalign);
 	for(i=0;i<arraycount;i++) {
 	    if((stat = d4reclaim_datar(fieldtype, position))) goto done;
-	}		
+	}
     }
     position->offset = saveoffset;
     position->offset += tsym->size;
@@ -204,7 +204,7 @@ d4clone_data(NCD4node* tsym, void* src, void** dstp, size_t count)
     size_t i;
     Position srcpos;
     Position dstpos = {NULL,0};
-    
+
     if(tsym == NULL)
         {stat = NC_EINVAL; goto done;}
     if(src == NULL && count > 0)
@@ -226,7 +226,7 @@ static int
 d4clone_datar(NCD4node* tsym, Position* src, Position* dst)
 {
     int stat = NC_NOERR;
-    
+
     switch  (tsym->nc_type_class) {
     case NC_CHAR: case NC_BYTE: case NC_UBYTE:
     case NC_SHORT: case NC_USHORT:
@@ -247,7 +247,7 @@ d4clone_datar(NCD4node* tsym, Position* src, Position* dst)
     }
     return stat;
 }
-	
+
 static int
 d4clone_usertype(NCD4node* tsym, Position* position)
 {
@@ -275,7 +275,7 @@ d4clone_vlen(NCD4node* tsym, Position* position)
     nc_vlen_t* vl = (nc_vlen_t*)(position->memory+position->offset);
 
     if((stat=nc4_find_type(tsym->container->nc4_info,tsym->u.v.base_nc_typeid,&basetype)))
-	goto done;    
+	goto done;
 
     /* Free up each entry in the vlen list */
     if(vl->p != NULL) {
@@ -333,14 +333,14 @@ d4clone_compound(NCD4node* tsym, Position* position)
         int ndims = field->ndims;
 	size_t fieldalign;
 	if((stat=nc4_find_type(tsym->container->nc4_info,field->nc_typeid,&fieldtype)))
-	    goto done;    
+	    goto done;
 	fieldalign = hdf5typealignment(fieldtype);
 	/* compute the total number of elements in the field array */
 	for(i=0;i<ndims;i++) arraycount *= field->dim_size[i];
 	position->offset = read_align(position->offset,fieldalign);
 	for(i=0;i<arraycount;i++) {
 	    if((stat = d4clone_datar(fieldtype, position))) goto done;
-	}		
+	}
     }
     position->offset = saveoffset;
     position->offset += tsym->size;

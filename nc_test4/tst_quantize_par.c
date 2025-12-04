@@ -157,7 +157,7 @@ main(int argc, char **argv)
             start[0] = mpi_rank * DIM_LEN_5;
             if (nc_get_vara_float(ncid, varid1, start, count, float_in)) ERR;
             if (nc_get_vara_double(ncid, varid2, start, count, double_in)) ERR;
-            
+
             /* printf("\n"); */
             for (x = 0; x < DIM_LEN_5; x++)
             {

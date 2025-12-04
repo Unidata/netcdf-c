@@ -263,7 +263,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
 	NC_HDF5_FILE_INFO_T* hdf5_file = (NC_HDF5_FILE_INFO_T*)h5->format_file_info;
 	free(hdf5_file);
     }
-    
+
     /* Free the NC_FILE_INFO_T struct. */
     if ((retval = nc4_nc4f_list_del(h5)))
         return retval;

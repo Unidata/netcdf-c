@@ -264,7 +264,7 @@ static int
 filter_test1(void)
 {
     int ok = 1;
-    unsigned int params[MAXPARAMS];    
+    unsigned int params[MAXPARAMS];
 
     reset();
 

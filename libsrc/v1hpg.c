@@ -309,7 +309,7 @@ v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 	size_t nchars = 0;
 	NC_string *ncstrp = NULL;
 #if USE_STRICT_NULL_BYTE_HEADER_PADDING
-        size_t padding = 0;        
+        size_t padding = 0;
 #endif /* USE_STRICT_NULL_BYTE_HEADER_PADDING */
 
 	status = v1h_get_size_t(gsp, &nchars);
@@ -650,7 +650,7 @@ v1h_put_NC_attrV(v1hs *psp, const NC_attr *attrp)
 			(void) memcpy(psp->pos, value, nbytes);
 			value = (void *)((char *)value + nbytes);
 		}
-		
+
 		psp->pos = (void *)((char *)psp->pos + nbytes);
 		remaining -= nbytes;
 
@@ -720,7 +720,7 @@ v1h_get_NC_attrV(v1hs *gsp, NC_attr *attrp)
 			(void) memcpy(value, gsp->pos, nget);
 			value = (void *)((signed char *)value + nget);
 		}
-		
+
 		gsp->pos = (void*)((unsigned char *)gsp->pos + nget);
 
 		remaining -= nget;
@@ -1194,7 +1194,7 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 	/* else */
 	if(type != NC_VARIABLE)
 		return EINVAL;
-	
+
 	if (ncap->nelems > SIZE_MAX / sizeof(NC_var *))
 		return NC_ERANGE;
 	ncap->value = (NC_var **) calloc(1,ncap->nelems * sizeof(NC_var *));

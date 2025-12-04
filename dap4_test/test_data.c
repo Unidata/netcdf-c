@@ -60,16 +60,16 @@ parse(int argc, char** argv)
 
     while ((c = getopt(argc, argv, "cds:v")) != EOF) {
 	switch(c) {
-	case 'c': 
-	    options.checksum = 1;	    
+	case 'c':
+	    options.checksum = 1;
 	    break;
-	case 'd': 
-	    options.debug = 1;	    
+	case 'd':
+	    options.debug = 1;
 	    break;
-	case 's': 
+	case 's':
 	    options.substratename = strdup(optarg);
 	    break;
-	case 'v': 
+	case 'v':
 	    usage();
 	    goto done;
 	case '?':
@@ -114,7 +114,7 @@ gettestname(const char* argv0)
         prefix = strrchr(argv0,'\\');
     if(prefix) prefix++; else prefix = argv0;
     testname[0] = '\0';
-    strlcat(testname,prefix,sizeof(testname));    
+    strlcat(testname,prefix,sizeof(testname));
     suffix = strrchr(testname,'.');
     if(suffix != NULL) *suffix = '\0';
 }
@@ -139,7 +139,7 @@ main(int argc, char** argv)
 #ifdef DEBUG
     fprintf(stderr,"%s: url=%s\n",testname,url);
 #endif
-  
+
     ret = test(url);
 
 #ifdef DEBUG

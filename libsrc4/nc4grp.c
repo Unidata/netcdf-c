@@ -48,7 +48,7 @@ NC4_inq_ncid(int ncid, const char *name, int *grp_ncid)
 	if(grp_ncid) {
 	    NC_FILE_INFO_T* file = grp->nc4_info;
             *grp_ncid = file->controller->ext_ncid | file->root_grp->hdr.id;
-	}	
+	}
 	return NC_NOERR;
     }
 

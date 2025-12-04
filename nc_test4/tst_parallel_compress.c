@@ -176,7 +176,7 @@ main(int argc, char **argv)
                     SUMMARIZE_ERR;
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
-	    
+
 	/* Now run tests with unlimited dim. */
         for (f = 0; f < NUM_COMPRESSION_FILTERS; f++)
         {

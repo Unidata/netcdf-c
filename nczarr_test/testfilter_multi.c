@@ -144,13 +144,13 @@ verifyfilters(int ncid, int varid)
     size_t nfilters;
     unsigned int filterids[NFILTERS];
     unsigned int params[2];
-    
+
     /* Read back the compression info and verify it */
     CHECK(nc_inq_var_filter_ids(ncid,varid,&nfilters,filterids));
     if(nfilters != NFILTERS) {
 	fprintf(stderr,"Fail: nfilters mismatch: expected=%d actual=%u\n",NFILTERS,(unsigned)nfilters);
         return NC_EINVAL;
-    }    
+    }
     if(filterids[0] != BZIP2_ID
        || filterids[1] != H5Z_FILTER_DEFLATE
        || filterids[2] != NOOP_ID
@@ -160,31 +160,31 @@ verifyfilters(int ncid, int varid)
 		filterids[1],H5Z_FILTER_DEFLATE,
 		filterids[2],NOOP_ID);
         return NC_EINVAL;
-    }    
+    }
     /* Get level for each filter */
     CHECK(nc_inq_var_filter_info(ncid,varid,BZIP2_ID,&nparams,params));
     if(nparams != 1) {
 	fprintf(stderr,"Fail: nparams mismatch: id=%u expected=1 actual=%u\n",filterids[0],(unsigned)nparams);
         return NC_EINVAL;
-    }    
+    }
     if(params[0] != BZIP2_LEVEL) {
 	fprintf(stderr,"Fail: parameter mismatch: expected=%u actual=%u\n",BZIP2_LEVEL,params[0]);
         return NC_EINVAL;
-    }    
+    }
     CHECK(nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_DEFLATE,&nparams,params));
     if(nparams != 1) {
 	fprintf(stderr,"Fail: nparams mismatch: id=%u expected=1 actual=%u\n",filterids[1],(unsigned)nparams);
         return NC_EINVAL;
-    }    
+    }
     if(params[0] != DEFLATE_LEVEL) {
 	fprintf(stderr,"Fail: parameter mismatch: expected=%u actual=%u\n",BZIP2_LEVEL,params[0]);
         return NC_EINVAL;
-    }    
+    }
     CHECK(nc_inq_var_filter_info(ncid,varid,NOOP_ID,&nparams,params));
     if(nparams != 0) {
 	fprintf(stderr,"Fail: parameter mismatch: id=%u nparams: expected=0 actual=%u\n",NOOP_ID,(unsigned)nparams);
         return NC_EINVAL;
-    }    
+    }
     return NC_NOERR;
 }
 
@@ -199,7 +199,7 @@ test_multi(void)
 
     printf("\n*** Testing Multi-filter application: filter set = bzip2 deflate noop");
     printf("\n");
-    
+
     /* Clear the data array */
     memset(array,0,sizeof(float)*actualproduct);
 
@@ -240,8 +240,8 @@ test_multi(void)
     /* Read back the compression info and verify it */
     CHECK(verifyfilters(ncid,varid));
     printf("filters verified\n");
-    
-    /* Show chunking */ 
+
+    /* Show chunking */
     printf("show chunks:");
     for(i=0;i<actualdims;i++)
 	printf("%s%u",(i==0?" chunks=":","),(unsigned)chunks[i]);

@@ -52,7 +52,7 @@ ncxml_root(ncxml_doc_t doc0)
 const char*
 ncxml_name(ncxml_t xml0)
 {
-    xmlNode* xml = (xmlNode*)xml0;    
+    xmlNode* xml = (xmlNode*)xml0;
     return (const char*)(xml?xml->name:NULL);
 }
 
@@ -77,7 +77,7 @@ ncxml_child(ncxml_t xml0, const char* name)
     xmlNode* child = NULL;
 
     for(child=xml->children;child; child = child->next) {
-        if(child->type == XML_ELEMENT_NODE && strcmp((const char*)child->name,name)==0) 
+        if(child->type == XML_ELEMENT_NODE && strcmp((const char*)child->name,name)==0)
 	    return (ncxml_t)child;
     }
     return NULL;
@@ -90,7 +90,7 @@ ncxml_next(ncxml_t xml0, const char* name)
     xmlNode* next = NULL;
 
     for(next=xml->next;next; next = next->next) {
-        if(next->type == XML_ELEMENT_NODE && strcmp((const char*)next->name,name)==0) 
+        if(next->type == XML_ELEMENT_NODE && strcmp((const char*)next->name,name)==0)
 	    return (ncxml_t)next;
     }
     return NULL;

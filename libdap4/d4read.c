@@ -49,7 +49,7 @@ int
 NCD4_readDAP(NCD4INFO* state, NCURI* url, NCD4response* resp)
 {
     int stat = NC_NOERR;
-    
+
     ncbytesclear(state->curl->packet);
     stat = readpacket(state,url,state->curl->packet,NCD4_DAP,NCD4_FORMAT_NONE,&resp->serial.httpcode,NULL);
     if(stat) {
@@ -76,7 +76,7 @@ static const char*
 dxxformat(int fxx, int dxx)
 {
     switch(dxx) {
-    case NCD4_DMR: 
+    case NCD4_DMR:
 	switch(fxx) {
 	case NCD4_FORMAT_XML:return ".xml";
         default: break;
@@ -219,7 +219,7 @@ readfile(NCD4INFO* state, const NCURI* uri, NCD4mode dxx, NCD4format fxx, NCbyte
 	break;
     default: stat = NC_EDAP; break;
     }
-    
+
     if(FLAGSET(state->controls.flags,NCF_SHOWFETCH)) {
 	double secs;
 #ifdef HAVE_GETTIMEOFDAY

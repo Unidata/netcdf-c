@@ -112,7 +112,7 @@ zs3create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     NCURI* url = NULL;
     char* prefix = NULL;
     char* truekey = NULL;
-	
+
     NC_UNUSED(flags);
     NC_UNUSED(parameters);
 
@@ -167,8 +167,8 @@ zs3create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 	default: reporterr(z3map); goto done;
 	}
     }
-    
-    if(mapp) *mapp = (NCZMAP*)z3map;    
+
+    if(mapp) *mapp = (NCZMAP*)z3map;
 
 done:
     reporterr(z3map);
@@ -234,7 +234,7 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
 	stat = NC_ENOOBJECT;
 	goto done;
     }
-    if(mapp) *mapp = (NCZMAP*)z3map;    
+    if(mapp) *mapp = (NCZMAP*)z3map;
 
 done:
     reporterr(z3map);
@@ -244,7 +244,7 @@ done:
     return ZUNTRACE(stat);
 }
 
-/* This uses url so we can get bucket */ 
+/* This uses url so we can get bucket */
 static int
 zs3truncate(const char *s3url)
 {
@@ -329,15 +329,15 @@ zs3read(NCZMAP* map, const char* key, size64_t start, size64_t count, void* cont
     ZS3MAP* z3map = (ZS3MAP*)map; /* cast to true type */
     size64_t size = 0;
     char* truekey = NULL;
-    
+
     ZTRACE(6,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
 
     if((stat = maketruekey(z3map->s3.rootkey,key,&truekey))) goto done;
-    
+
     switch (stat=NC_s3sdkinfo(z3map->s3client, z3map->s3.bucket, truekey, &size, &z3map->errmsg)) {
     case NC_NOERR: break;
     case NC_EEMPTY: case NC_ENOOBJECT: goto done;
-    default: goto done; 	
+    default: goto done;
     }
     /* Sanity checks */
     if(start >= size || start+count > size)
@@ -365,13 +365,13 @@ zs3write(NCZMAP* map, const char* key, size64_t count, const void* content)
     char* chunk = NULL; /* use char* so we can do arithmetic with it */
     char* truekey = NULL;
     size64_t objsize;
-	
+
     ZTRACE(6,"map=%s key=%s count=%llu",map->url,key,count);
 
     if((stat = maketruekey(z3map->s3.rootkey,key,&truekey))) goto done;
 
     /* Apparently S3 has no write byterange operation, so we need to read the whole object,
-       copy data, and then rewrite */       
+       copy data, and then rewrite */
     switch (stat=NC_s3sdkinfo(z3map->s3client, z3map->s3.bucket, truekey, &objsize, &z3map->errmsg)) {
     case NC_NOERR: /* Figure out the new size of the object */
         break;
@@ -406,7 +406,7 @@ zs3close(NCZMAP* map, int deleteit)
 
     ZTRACE(6,"map=%s deleteit=%d",map->url, deleteit);
 
-    if(deleteit) 
+    if(deleteit)
         s3clear(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey);
      if(z3map->s3client && z3map->s3.bucket && z3map->s3.rootkey) {
         NC_s3sdkclose(z3map->s3client, &z3map->errmsg);
@@ -442,9 +442,9 @@ zs3search(NCZMAP* map, const char* prefix, NClist* matches)
     const char* p;
 
     ZTRACE(6,"map=%s prefix0=%s",map->url,prefix);
-    
+
     if((stat = maketruekey(z3map->s3.rootkey,prefix,&trueprefix))) goto done;
-    
+
     if(*trueprefix != '/') return NC_EINTERNAL;
     if((stat = NC_s3sdklist(z3map->s3client,z3map->s3.bucket,trueprefix,&nkeys,&list,&z3map->errmsg)))
         goto done;
@@ -470,13 +470,13 @@ zs3search(NCZMAP* map, const char* prefix, NClist* matches)
 	    for(j=0;j<nclistlength(matches);j++) {
 	        const char* js = nclistget(matches,j);
 	        if(strcmp(js,is)==0) {duplicate = 1; break;} /* duplicate */
-	    }	    
+	    }
 	    if(!duplicate)
 	        nclistpush(matches,strdup(is));
 	}
 	nclistfreeall(tmp); tmp = NULL;
     }
-	
+
 #ifdef DEBUG
     for(i=0;i<nclistlength(matches);i++) {
 	const char* is = nclistget(matches,i);
@@ -519,7 +519,7 @@ s3clear(void* s3client, const char* bucket, const char* rootkey)
 #ifdef S3DEBUG
 fprintf(stderr,"s3clear: %s\n",p);
 #endif
-                if((stat = NC_s3sdkdeletekey(s3client, bucket, p, NULL)))	
+                if((stat = NC_s3sdkdeletekey(s3client, bucket, p, NULL)))
 	            goto done;
 	    }
         }
@@ -542,11 +542,11 @@ maketruekey(const char* rootpath, const char* key, char** truekeyp)
     rootlen = strlen(rootpath);
     keylen = strlen(key);
     len = (rootlen+keylen+1+1+1);
-    
+
     truekey = (char*)malloc(len+1);
     if(truekey == NULL) {stat = NC_ENOMEM; goto done;}
     truekey[0] = '\0';
-    if(rootpath[0] != '/')    
+    if(rootpath[0] != '/')
         strlcat(truekey,"/",len+1);
     strlcat(truekey,rootpath,len+1);
     if(rootpath[rootlen-1] != '/')
@@ -555,7 +555,7 @@ maketruekey(const char* rootpath, const char* key, char** truekeyp)
     strlcat(truekey,key,len+1);
     if(key[keylen-1] == '/') /* remove any trailing '/' */
 	truekey[strlen(truekey)-1] = '\0';
-    *truekeyp = truekey; truekey = NULL;       
+    *truekeyp = truekey; truekey = NULL;
 
 done:
     nullfree(truekey);

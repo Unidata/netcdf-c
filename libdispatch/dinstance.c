@@ -61,7 +61,7 @@ static int dump_opaque(int ncid, nc_type xtype, size_t size, Position* offset, N
 #endif
 
 /**
-\ingroup user_types 
+\ingroup user_types
 Reclaim an array of instances of an arbitrary type.
 This function should be used when the other simpler functions
 such as *nc_free_vlens* or *nc_free_string* cannot be used.
@@ -96,7 +96,7 @@ nc_reclaim_data(int ncid, nc_type xtype, void* memory, size_t count)
 {
     int stat = NC_NOERR;
     NC* nc = NULL;
-    
+
     if(ncid < 0 || xtype <= 0)
         {stat = NC_EINVAL; goto done;}
     if(memory == NULL && count > 0)
@@ -107,7 +107,7 @@ nc_reclaim_data(int ncid, nc_type xtype, void* memory, size_t count)
     fprintf(stderr,">>> reclaim: memory=%p count=%lu ncid=%d xtype=%d\n",memory,(unsigned long)count,ncid,xtype);
 #endif
 
-    if((stat = NC_check_id(ncid,&nc))) goto done;    
+    if((stat = NC_check_id(ncid,&nc))) goto done;
     nc = DAPSUBSTRATE(nc);
 
     /* Call internal version */
@@ -185,7 +185,7 @@ nc_copy_data(int ncid, nc_type xtype, const void* memory, size_t count, void* co
 {
     int stat = NC_NOERR;
     NC* nc = NULL;
-    
+
     if(ncid < 0 || xtype <= 0)
         {stat = NC_EINVAL; goto done;}
     if(memory == NULL && count > 0)
@@ -199,7 +199,7 @@ nc_copy_data(int ncid, nc_type xtype, const void* memory, size_t count, void* co
     fprintf(stderr,">>> copy   : copy  =%p memory=%p count=%lu ncid=%d xtype=%d\n",copy,memory,(unsigned long)count,ncid,xtype);
 #endif
 
-    if((stat = NC_check_id(ncid,&nc))) goto done;    
+    if((stat = NC_check_id(ncid,&nc))) goto done;
     nc = DAPSUBSTRATE(nc);
 
     /* Call internal version */
@@ -446,10 +446,10 @@ dump_vlen(int ncid, nc_type xtype, nc_type basetype, Position* offset, NCbytes* 
 	    voffset.offset = (ptrdiff_t)NC_read_align((uintptr_t)voffset.offset, alignment);
 	    if((stat = dump_datar(ncid,basetype,&voffset,buf))) goto done;
 	}
-    } 
+    }
     ncbytescat(buf,")}");
     offset->offset += (ptrdiff_t)sizeof(nc_vlen_t);
-    
+
 done:
     return stat;
 }

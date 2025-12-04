@@ -126,7 +126,7 @@ bin_listend(Generator* generator, Symbol* tsym, void* liststate, ListClass lc, i
     if(lc == LISTCOMPOUND) {
         size_t offsetbase = *((size_t*)liststate);
         /* Pad out the whole instance */
-	alignto(tsym->typ.cmpdalign,buf,offsetbase);		
+	alignto(tsym->typ.cmpdalign,buf,offsetbase);
     }
     return 1;
 }
@@ -359,7 +359,7 @@ bin_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Byt
 	default: stat = NC_EINTERNAL; goto done; /* Should never happen */
 	} break; /*switch*/
 	} break; /*NC_PRIM*/
-	
+
     case NC_ENUM: {
 	Symbol* basetype = tsym->typ.basetype;
 	/* Pretend */
@@ -412,7 +412,7 @@ bin_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Byt
 	    for(i=0;i<arraycount;i++) {
 	        if((stat = bin_generate_data_r(fieldinstance, field->typ.basetype, NULL, databuf))) goto done;
 	    }
-	}		
+	}
         } break;
 
     default: stat = NC_EINTERNAL; goto done; /* Should never happen */
@@ -445,7 +445,7 @@ binary_reclaim_data(Symbol* tsym, void* memory, size_t count)
     int stat = NC_NOERR;
     size_t i;
     Reclaim reclaimer;
-    
+
     if(tsym == NULL
        || (memory == NULL && count > 0))
         {stat = NC_EINVAL; goto done;}
@@ -466,7 +466,7 @@ static int
 bin_reclaim_datar(Symbol* tsym, Reclaim* reclaimer)
 {
     int stat = NC_NOERR;
-    
+
     switch  (tsym->subclass) {
     case NC_CHAR: case NC_BYTE: case NC_UBYTE:
     case NC_SHORT: case NC_USHORT:
@@ -492,7 +492,7 @@ bin_reclaim_datar(Symbol* tsym, Reclaim* reclaimer)
     }
     return stat;
 }
-	
+
 #ifdef USE_NETCDF4
 static int
 bin_reclaim_usertype(Symbol* tsym, Reclaim* reclaimer)
@@ -582,7 +582,7 @@ bin_reclaim_compound(Symbol* tsym, Reclaim* reclaimer)
 	reclaimer->offset = read_alignment(reclaimer->offset,field->typ.alignment);
 	for(i=0;i<arraycount;i++) {
 	    if((stat = bin_reclaim_datar(field->typ.basetype, reclaimer))) goto done;
-	}		
+	}
     }
     reclaimer->offset = saveoffset;
     reclaimer->offset += tsym->typ.size;

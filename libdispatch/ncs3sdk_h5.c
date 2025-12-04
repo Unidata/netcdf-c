@@ -48,8 +48,8 @@ extern char* strdup(const char*);
 #define size64 unsigned long long
 
 typedef struct NCS3CLIENT {
-    char*	rooturl;      /* The URL (minus any fragment) for the dataset root path (excludes bucket on down) */ 
-    s3r_t*	h5s3client; /* From h5s3comms */  
+    char*	rooturl;      /* The URL (minus any fragment) for the dataset root path (excludes bucket on down) */
+    s3r_t*	h5s3client; /* From h5s3comms */
 } NCS3CLIENT;
 
 struct Object {
@@ -230,13 +230,13 @@ NC_s3sdkbucketcreate(void* s3client0, const char* region, const char* bucket, ch
 {
     int stat = NC_NOERR;
     NCS3CLIENT* s3client = (NCS3CLIENT*)s3client0;
-    
+
     NC_UNUSED(s3client);
 
     NCTRACE(11,"region=%s bucket=%s",region,bucket);
     if(errmsgp) *errmsgp = NULL;
     fprintf(stderr,"create bucket: %s\n",bucket); fflush(stderr);
-    return NCUNTRACE(stat);    
+    return NCUNTRACE(stat);
 }
 
 /*EXTERNL*/ int
@@ -244,7 +244,7 @@ NC_s3sdkbucketdelete(void* s3client0, NCS3INFO* info, char** errmsgp)
 {
     int stat = NC_NOERR;
     NCS3CLIENT* s3client = (NCS3CLIENT*)s3client0;
-    
+
     NC_UNUSED(s3client);
 
     NCTRACE(11,"info=%s%s",NC_s3dumps3info(info));
@@ -252,7 +252,7 @@ NC_s3sdkbucketdelete(void* s3client0, NCS3INFO* info, char** errmsgp)
     if(errmsgp) *errmsgp = NULL;
     fprintf(stderr,"delete bucket: %s\n",info->bucket); fflush(stderr);
 
-    return NCUNTRACE(stat);    
+    return NCUNTRACE(stat);
 }
 
 /**************************************************/
@@ -306,7 +306,7 @@ NC_s3sdkread(void* s3client0, const char* bucket, const char* pathkey, size64_t 
     data.count = count;
     data.content = content;
     if((stat = NCH5_s3comms_s3r_read(s3client->h5s3client,ncbytescontents(url),(size_t)start,(size_t)count,&data,&httpcode))) goto done;
-    stat = httptonc(httpcode);    
+    stat = httptonc(httpcode);
 done:
     ncbytesfree(url);
     return NCUNTRACE(stat);
@@ -334,7 +334,7 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
     data.content = (void*)content;
     if((stat = NCH5_s3comms_s3r_write(s3client->h5s3client,ncbytescontents(url),&data,&httpcode))) goto done;
     stat = httptonc(httpcode);
-    
+
 done:
     ncbytesfree(url);
     return NCUNTRACE(stat);
@@ -377,7 +377,7 @@ NC_s3sdktruncate(void* s3client0, const char* bucket, const char* prefix, char**
 
 done:
     nullfree(errmsg);
-    NC_freeenvv(nkeys,keys);    
+    NC_freeenvv(nkeys,keys);
     return NCUNTRACE(stat);
 }
 
@@ -395,7 +395,7 @@ getkeys(void* s3client0, const char* bucket, const char* prefixkey0, const char*
     char* prefixdir = NULL;
     NClist* query = NULL;
     char* querystring = NULL;
-    NCURI* purl = NULL;    
+    NCURI* purl = NULL;
     NCbytes* listurl = ncbytesnew();
     NClist* allkeys = nclistnew();
     struct LISTOBJECTSV2* listv2 = NULL;
@@ -405,9 +405,9 @@ getkeys(void* s3client0, const char* bucket, const char* prefixkey0, const char*
     long httpcode = 0;
 
     NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
-    
+
     /* cleanup the prefix */
-    if((stat = makes3prefix(prefixkey0,&prefixdir))) return NCUNTRACE(stat);        
+    if((stat = makes3prefix(prefixkey0,&prefixdir))) return NCUNTRACE(stat);
 
     do {
 	nclistfreeall(query);
@@ -445,7 +445,7 @@ getkeys(void* s3client0, const char* bucket, const char* prefixkey0, const char*
     if(keysp) {*keysp = nclistextract(allkeys);}
 
 done:
-    nullfree(continuetoken);    
+    nullfree(continuetoken);
     reclaim_listobjectsv2(listv2);
     nclistfreeall(allkeys);
     nclistfreeall(query);
@@ -488,7 +488,7 @@ NC_s3sdkdeletekey(void* s3client0, const char* bucket, const char* pathkey, char
     NCS3CLIENT* s3client = (NCS3CLIENT*)s3client0;
     NCbytes* url = ncbytesnew();
     long httpcode = 0;
-    
+
     NCTRACE(11,"s3client0=%p bucket=%s pathkey=%s",s3client0,bucket,pathkey);
 
     if((stat = makes3fullpath(s3client->rooturl,bucket,pathkey,NULL,url))) goto done;
@@ -527,7 +527,7 @@ rawtokeys(s3r_buf_t* response, NClist* allkeys, NClist* lengths, struct LISTOBJE
     /* Add common prefixes */
     if(nclistlength(listv2->commonprefixes) > 0) {
         if((stat = s3commonprefixes(listv2->commonprefixes,commonkeys))) goto done;
-    } 
+    }
     if((stat=mergekeysets(realkeys, commonkeys, allkeys))) goto done;
 
     if(listv2p) {*listv2p = listv2; listv2 = NULL;}
@@ -544,7 +544,7 @@ makes3rooturl(NCS3INFO* info)
 {
     NCbytes* buf = ncbytesnew();
     char* result = NULL;
-    
+
     ncbytescat(buf,"https://");
     ncbytescat(buf,info->host);
     result = ncbytesextract(buf);
@@ -614,7 +614,7 @@ mergekeysets(NClist* keys1, NClist* keys2, NClist* merge)
     int i;
     size_t nkeys1 = nclistlength(keys1);
     size_t nkeys2 = nclistlength(keys2);
-    for(i=0;i<nkeys1;i++) nclistpush(merge,nclistremove(keys1,0));		
+    for(i=0;i<nkeys1;i++) nclistpush(merge,nclistremove(keys1,0));
     for(i=0;i<nkeys2;i++) nclistpush(merge,nclistremove(keys2,0));
     nclistnull(merge);
     return NCTHROW(stat);
@@ -967,7 +967,7 @@ trim(char* s, int reclaim)
     const char* p;
     char* t = NULL;
     size_t len;
-    
+
     for(p=s;*p;p++) {
 	if(*p > ' ') {first = (p - s); break;}
     }
@@ -1025,7 +1025,7 @@ s3objectsinfo(NClist* contents, NClist* keys, NClist* lengths)
         if((stat = s3objectinfo1(s3_object,&key,&length))) goto done;
 	if(keys != NULL) {nclistpush(keys,key);} else {nullfree(key);}
 	key = NULL;
-	if(lengths != NULL) nclistpush(lengths,(void*)length);	
+	if(lengths != NULL) nclistpush(lengths,(void*)length);
     }
     if(keys != NULL) nclistnull(keys);
     if(lengths != NULL) nclistnull(lengths);
@@ -1079,7 +1079,7 @@ queryadd(NClist* query, const char* key, const char* value)
     evalue = NULL;
 done:
     nullfree(ekey);
-    nullfree(evalue);    
+    nullfree(evalue);
     return NCTHROW(stat);
 }
 
@@ -1108,7 +1108,7 @@ queryend(NClist* query, char** querystring)
 }
 
 /* Insert encoded key+value keeping sorted order */
-static int 
+static int
 queryinsert(NClist* list, char* ekey, char* evalue)
 {
     int pos,i,stat = NC_NOERR;

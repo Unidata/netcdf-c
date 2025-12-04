@@ -107,7 +107,7 @@ main(int argc, char** argv)
 	   fprintf(stderr,"unknown option\n");
 	   exit(1);
 	}
-    }	
+    }
 
     /* get file argument */
     argc -= optind;
@@ -133,7 +133,7 @@ main(int argc, char** argv)
 	if(i < MAXREAD) text[i] = (char)c;
     }
     if(i >= MAXREAD) {
-	fprintf(stderr,"Input too long\n");	
+	fprintf(stderr,"Input too long\n");
 	exit(1);
     }
     text[i] = '\0';
@@ -146,7 +146,7 @@ main(int argc, char** argv)
 	    NCJreclaim(json);
 	}
     }
-    printf("%d",(stat?0:1)); /* parse success|failure */    
+    printf("%d",(stat?0:1)); /* parse success|failure */
     if(f != stdin) fclose(f);
     return 0;
 }

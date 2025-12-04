@@ -341,7 +341,7 @@ NCD4_inq_att(int ncid, int varid, const char* name,
     int ret;
     int substrateid;
     const NC_reservedatt* rsvp = NULL;
-    
+
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
     substrateid = makenc4id(ncp,ncid);
 
@@ -387,7 +387,7 @@ NCD4_inq_attname(int ncid, int varid, int attnum, char* name)
     int ret;
     int substrateid;
     const NC_reservedatt* rsvp = NULL;
-    
+
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
     substrateid = makenc4id(ncp,ncid);
     ret = nc_inq_attname(substrateid, varid, attnum, name);
@@ -404,7 +404,7 @@ NCD4_rename_att(int ncid, int varid, const char* name, const char* newname)
     int ret;
     int substrateid;
     const NC_reservedatt* rsvp = NULL;
-    
+
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
     /* Is this a reserved attribute name? */
     if(name && (rsvp = NCD4_lookupreserved(name)))
@@ -421,7 +421,7 @@ NCD4_del_att(int ncid, int varid, const char* name)
     int ret;
     int substrateid;
     const NC_reservedatt* rsvp = NULL;
-    
+
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
     /* Is this a reserved attribute name? */
     if(name && (rsvp = NCD4_lookupreserved(name)))
@@ -438,7 +438,7 @@ NCD4_get_att(int ncid, int varid, const char* name, void* value, nc_type t)
     int ret;
     int substrateid;
     const NC_reservedatt* rsvp = NULL;
-    
+
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
     /* Is this a reserved attribute name? */
     if(name && (rsvp = NCD4_lookupreserved(name)))
@@ -813,7 +813,7 @@ NCD4_inq_filter_avail(int ncid, unsigned id)
 
 /**************************************************/
 /*
-Following functions are overridden to handle 
+Following functions are overridden to handle
 dap4 implementation specific issues.
 */
 
@@ -882,7 +882,7 @@ ncd4_get_att_reserved(NC* ncp, int ncid, int varid, const char* name, void* valu
             {ret = NC_EBADID; goto done;}
 	if(t != NC_UINT) {ret = NC_EBADTYPE; goto done;}
 	if(var->data.checksumattr == 0)
-	    {ret = NC_ENOTATT; goto done;} 
+	    {ret = NC_ENOTATT; goto done;}
 	*ip = (var->data.remotechecksum);
     } else if(strcmp(rsvp->name,D4LEATTR)==0) {
 	int* ip = (int*)value;
@@ -906,7 +906,7 @@ ncd4_inq_att_reserved(NC* ncp, int ncid, int varid, const char* name, nc_type* x
             {ret = NC_EBADID; goto done;}
         if((ret=NCD4_findvar(ncp,ncid,varid,&var,NULL))) goto done;
 	if(var->data.checksumattr == 0)
-	    {ret = NC_ENOTATT; goto done;} 
+	    {ret = NC_ENOTATT; goto done;}
 	if(xtypep) *xtypep = NC_UINT;
 	if(lenp) *lenp = 1;
     } else if(strcmp(rsvp->name,D4LEATTR)==0) {

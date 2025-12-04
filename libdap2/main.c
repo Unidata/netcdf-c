@@ -99,7 +99,7 @@ if(1)
 	            fprintf(stdout,"\""); fflush(stdout);
 		    dumpchars(nelems,memory);
 	            fprintf(stdout,"\"");
-		    break;		    
+		    break;
 		default:
 		    for(j=0;j<nelems;j++) {
 		        if(j > 0) fprintf(stdout," ");
@@ -112,7 +112,7 @@ if(1)
 	    } else
 		fprintf(stdout,"%s: no data\n",var->name);
 	}
-        fprintf(stdout,"\n");	
+        fprintf(stdout,"\n");
     }
 
     nc_close(ncid);
@@ -140,14 +140,14 @@ dumpchars(size_t nelems, char* memory)
 	    } else {
 		while(len-- >= 0) fprintf(stdout," ");
 	    }
-	    q = s;		
+	    q = s;
 	} else if(c > ' ' && c < 127) {
 	    fprintf(stdout,"%c",c);
 	} else switch(c) {
 	    case '\n': fprintf(stdout,"\\n"); break;
 	    case '\r': fprintf(stdout,"\\r"); break;
 	    case '\t': fprintf(stdout,"\\t"); break;
-	    case '\f': fprintf(stdout,"\\f"); break;	
+	    case '\f': fprintf(stdout,"\\f"); break;
 	    default: fprintf(stdout,"0x%2x",c);
 	}
     }

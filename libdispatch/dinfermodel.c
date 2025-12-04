@@ -464,9 +464,9 @@ processmacros(NClist* fraglenv, NClist* expanded)
                 if(strcmp(macros->name,key)==0) {
 		    char* const * p;
 		    nclistpush(expanded,strdup(macros->defkey));
-		    for(p=macros->defvalues;*p;p++) 
+		    for(p=macros->defvalues;*p;p++)
 			nclistpush(expanded,strdup(*p));
-		    found = 1;		    
+		    found = 1;
 		    break;
 	        }
 	    }
@@ -547,7 +547,7 @@ printlist(newmodes,"processinferences: new mode list");
 
     /* Store new mode value */
     if((newmodeval = list2string(newmodes))== NULL)
-	{stat = NC_ENOMEM; goto done;}        
+	{stat = NC_ENOMEM; goto done;}
     if((stat=replacemode(fraglenv,newmodeval))) goto done;
     modeval = NULL;
 
@@ -752,7 +752,7 @@ NC_omodeinfer(int useparallel, int cmode, NCmodel* model)
 	} else {
 	    model->impl = NC_FORMATX_UDF1;
 	}
-        if(fIsSet(cmode,NC_64BIT_OFFSET)) 
+        if(fIsSet(cmode,NC_64BIT_OFFSET))
         {
             model->format = NC_FORMAT_64BIT_OFFSET;
         }
@@ -928,13 +928,13 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	    abspath = canon; canon = NULL;
 	    if((stat = ncurisetpath(uri,abspath))) goto done;
 	}
-	
+
 	/* rebuild the path */
         if(newpathp) {
             *newpathp = ncuribuild(uri,NULL,NULL,NCURIALL);
 #ifdef DEBUG
 	    fprintf(stderr,"newpath=|%s|\n",*newpathp); fflush(stderr);
-#endif    
+#endif
 	}
 
         /* Phase 5: Process the mode key to see if we can tell the formatx */
@@ -1023,13 +1023,13 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	break;
     case NC_FORMATX_UDF0:
     case NC_FORMATX_UDF1:
-        if(model->format == NC_FORMAT_64BIT_OFFSET) 
+        if(model->format == NC_FORMAT_64BIT_OFFSET)
             omode |= NC_64BIT_OFFSET;
         else if(model->format == NC_FORMAT_64BIT_DATA)
             omode |= NC_64BIT_DATA;
-        else if(model->format == NC_FORMAT_NETCDF4)  
+        else if(model->format == NC_FORMAT_NETCDF4)
             omode |= NC_NETCDF4;
-        else if(model->format == NC_FORMAT_NETCDF4_CLASSIC)  
+        else if(model->format == NC_FORMAT_NETCDF4_CLASSIC)
             omode |= NC_NETCDF4|NC_CLASSIC_MODEL;
         break;
     default:
@@ -1106,7 +1106,7 @@ replacemode(NClist* envv, const char* newval)
 	char* val = NULL;
 	key = nclistget(envv,i);
 	if(strcasecmp(key,"mode")==0) {
-	    val = nclistget(envv,i+1);	    
+	    val = nclistget(envv,i+1);
 	    nclistset(envv,i+1,strdup(newval));
 	    nullfree(val);
 	    return NC_NOERR;
@@ -1121,7 +1121,7 @@ parsemode(const char* modeval)
     NClist* modes = nclistnew();
     if(modeval)
         (void)parseonchar(modeval,',',modes);/* split on commas */
-    return modes;    
+    return modes;
 }
 
 /* Convert a list into a comma'd string */
@@ -1148,7 +1148,7 @@ list2string(NClist* list)
 
 #if 0
 /* Given a comma separated string, remove duplicates; mostly used to cleanup mode list */
-static char* 
+static char*
 cleancommalist(const char* commalist, int caseinsensitive)
 {
     NClist* tmp = nclistnew();
@@ -1311,7 +1311,7 @@ openmagic(struct MagicFile* file)
 	{status = NC_ENOTBUILT;}
 #endif /*BYTERANGE*/
 	goto done;
-    }	
+    }
 #ifdef USE_PARALLEL
     if (file->use_parallel) {
 	int retval;
@@ -1365,7 +1365,7 @@ openmagic(struct MagicFile* file)
 		file->filelen = (long long)size;
 #endif
 	}
-        int retval2 = fseek(file->fp, 0L, SEEK_SET);        
+        int retval2 = fseek(file->fp, 0L, SEEK_SET);
 	    if(retval2 != 0)
 		{status = errno; goto done;}
     }
@@ -1519,8 +1519,8 @@ NC_interpret_magic_number(char* magic, NCmodel* model)
 	}
      }
      /* No match  */
-     if (!tmpimpl) 
-         status = NC_ENOTNC;         
+     if (!tmpimpl)
+         status = NC_ENOTNC;
 
      goto done;
 
@@ -1540,7 +1540,7 @@ done:
      {
          model->impl = NC_FORMATX_UDF1;
          status = NC_NOERR;
-     }    
+     }
 
      return check(status);
 }

@@ -23,7 +23,7 @@
 #define DIMSCALE_LABEL "dimscale_label"
 #define STR_LEN 255
 
-herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid, 
+herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid,
 		     void *visitor_data)
 {
    char name1[STR_LEN];
@@ -33,7 +33,7 @@ herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid,
     * is attached to. */
    if (H5Iget_name(did, name1, STR_LEN) < 0) ERR;
    if (strcmp(&name1[1], VAR1_NAME)) ERR;
-   
+
    /* Get more info on the dimscale object.*/
 #if H5_VERSION_GE(1,12,0)
    H5O_info2_t statbuf;
@@ -80,7 +80,7 @@ main()
 {
    printf("\n*** Checking HDF5 phony, secret, and underhanded dimscales. Shhh! Don't tell anyone!\n");
    printf("*** Creating a phony dimscale...");
-   
+
    {
       hid_t fileid, spaceid, datasetid, dimscaleid, cparmsid;
       hsize_t dims[NDIMS] = {DIM1_LEN}, maxdims[NDIMS] = {H5S_UNLIMITED};
@@ -134,7 +134,7 @@ main()
 
 	 /* Open the file. */
 	 if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      
+
 	 /* Loop through objects in the root group. */
 	 if (H5Gget_num_objs(fileid, &num_obj) < 0) ERR;
 	 for (i=0; i<num_obj; i++)

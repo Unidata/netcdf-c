@@ -109,8 +109,8 @@ gen_ncjava_jni(const char *filename)
     /*
 	Define vlen constants; For java, this is done in
 	two parts. Part 1 (here) defines the constants and part 2
-	fills them in. 
-    */ 
+	fills them in.
+    */
     {
 	jflush(); /* dump code to this point*/
 	genjjni_vlenconstants(vlenconstants,jcode);
@@ -161,7 +161,7 @@ gen_ncjava_jni(const char *filename)
     jline(stmt);
 
     /* create necessary declarations */
-    jline("");    
+    jline("");
     jlined(1,"int  stat;  /* return status */");
     jlined(1,"int  ncid;  /* netCDF id */");
     jlined(1,"int[]  ncidp = new int[1];  /* netCDF id return */");
@@ -172,7 +172,7 @@ gen_ncjava_jni(const char *filename)
 	The idea is to walk all the data lists
 	whose variable type has a vlen and collect
 	the vlen data and define a constant for it.
-    */ 
+    */
     jline("");
     jflush(); /* dump code to this point*/
     genjjni_vlendata(vlenconstants,jcode);
@@ -192,7 +192,7 @@ jline("}");
         jline("");
         jlined(1,"/* group ids */");
     }
-    if(!usingclassic && ngrps > 0) {    
+    if(!usingclassic && ngrps > 0) {
         for(igrp = 0; igrp < ngrps; igrp++) {
 	    Symbol* gsym = (Symbol*)listget(grpdefs,igrp);
 	    nprintf(stmt,sizeof(stmt),"int %s;",jgroupncid(gsym));
@@ -291,7 +291,7 @@ jline("}");
     } else if (cmode_modifier & NC_CLASSIC_MODEL) {
 	cmode_string = "NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL";
     } else if (cmode_modifier & NC_NETCDF4) {
-	cmode_string = "NC_CLOBBER|NC_NETCDF4";	
+	cmode_string = "NC_CLOBBER|NC_NETCDF4";
 #endif
     } else {
         derror("unknown cmode modifier");
@@ -303,7 +303,7 @@ jline("}");
     jlined(1,stmt);
     jlined(1,"ncid = ncidp[0];");
     jflush();
-    
+
 #ifdef USE_NETCDF4
     /* Define the group structure */
     /* ncid created above is also root group*/
@@ -396,19 +396,19 @@ jline("}");
 	}
     }
     jflush();
-    
+
     /* Define the global attributes*/
     if(ngatts > 0) {
 	jline("");
 	jlined(1,"/* assign global attributes */");
 	for(iatt = 0; iatt < ngatts; iatt++) {
 	    Symbol* gasym = (Symbol*)listget(gattdefs,iatt);
-	    genjjni_defineattribute(gasym);	    
+	    genjjni_defineattribute(gasym);
 	}
 	jline("");
     }
     jflush();
-    
+
     /* Define the variable specific attributes*/
     if(natts > 0) {
 	jline("");
@@ -484,10 +484,10 @@ definespecialattributes(Symbol* vsym)
             jpartial("new long[]{}");
         else {
             nprintf(stmt,sizeof(stmt),"%s_chunksizes",jname(vsym));
-            jpartial(stmt);                 
+            jpartial(stmt);
         }
         jline("));");
-    }   
+    }
     if(special->flags & _FLETCHER32_FLAG) {
         nprintf(stmt,sizeof(stmt),
                 "check_err(nc_def_var_fletcher32(%s, %s, %d));",
@@ -505,7 +505,7 @@ definespecialattributes(Symbol* vsym)
                 (special->_DeflateLevel >= 0?1:0),
                 (special->_DeflateLevel >= 0?special->_DeflateLevel:0));
         jlined(1,stmt);
-    }   
+    }
     if(special->flags & _ENDIAN_FLAG) {
         nprintf(stmt,sizeof(stmt),
                 "check_err(nc_def_var_endian(%s, %s, %s));",
@@ -515,7 +515,7 @@ definespecialattributes(Symbol* vsym)
                                                     :"NC_ENDIAN_BIG")
                 );
         jlined(1,stmt);
-    }   
+    }
     if(special->flags & _NOFILL_FLAG) {
         nprintf(stmt,sizeof(stmt),
                 "check_err(nc_def_var_fill(%s, %s, %s));",
@@ -524,14 +524,14 @@ definespecialattributes(Symbol* vsym)
                 (special->_Fill?"NC_FILL":"NC_NOFILL")
                 );
         jlined(1,stmt);
-    }   
+    }
 }
 #endif /*USE_NETCDF4*/
 
 /*
  * Return java type name for netCDF type, given type code.
  */
-const char* 
+const char*
 jtype(nc_type type)
 {
     switch (type) {
@@ -558,7 +558,7 @@ jtype(nc_type type)
  * Return a type name and dimensions for constant arrays
  * for netCDF type, given type code.
  */
-const char* 
+const char*
 jarraytype(nc_type type)
 {
     switch (type) {
@@ -599,7 +599,7 @@ jarraytype(nc_type type)
 /*
  * Return netcdf interface type name for netCDF type suffix, given type code.
  */
-const char* 
+const char*
 jstype(nc_type nctype)
 {
     switch (nctype) {
@@ -719,7 +719,7 @@ jtypename(Symbol* tsym)
 
 
 #ifdef USE_NETCDF4
-/* 
+/*
 Only generate type info for enumerations
 */
 static void
@@ -831,7 +831,7 @@ genjjni_deftype(Symbol* tsym)
 	    int j;
 	    Symbol* efield = (Symbol*)listget(tsym->subnodes,i);
 	    ASSERT(efield->subclass == NC_FIELD);
-	    if(efield->typ.dimset.ndims == 0) continue;	    
+	    if(efield->typ.dimset.ndims == 0) continue;
 	    nprintf(stmt,sizeof(stmt),"final int %s_dims[] = new int[] {",
 			jname(efield));
 	    for(j=0;j<efield->typ.dimset.ndims;j++) {
@@ -850,7 +850,7 @@ genjjni_deftype(Symbol* tsym)
 	    char tmp[1024];
 	    ASSERT(efield->subclass == NC_FIELD);
 	    snprintf(tmp,sizeof(tmp),"%lu",efield->typ.offset);
-	    if(efield->typ.dimset.ndims > 0){ 
+	    if(efield->typ.dimset.ndims > 0){
 	        nprintf(stmt,sizeof(stmt),"check_err(nc_insert_array_compound(%s, %s, \"%s\", %s, %s, %d, %s_dims));",
 		    jgroupncid(tsym->container),
 		    jtypencid(tsym),
@@ -899,7 +899,7 @@ genjjni_defineattribute(Symbol* asym)
 
     code = bbNew();
 
-    genjjni_attrdata(asym,code);	
+    genjjni_attrdata(asym,code);
 
     /* Handle primitives separately */
     if(isprimplus(basetype->typ.typecode)) {
@@ -965,7 +965,7 @@ genjjni_primattribute(Symbol* asym, Bytebuffer* code, unsigned long len)
                 (asym->att.var == NULL?"NC_GLOBAL"
                                       :jvarncid(asym->att.var)),
                 jescapifyname(asym->name),
-                jtypencid(basetype),             
+                jtypencid(basetype),
                 len);
         jpartial(stmt);
 	jprint(code);
@@ -1007,7 +1007,7 @@ genjjni_primattribute(Symbol* asym, Bytebuffer* code, unsigned long len)
                 (asym->att.var == NULL?"NC_GLOBAL"
                                       :jvarncid(asym->att.var)),
                 jescapifyname(asym->name),
-                jtypencid(basetype),             
+                jtypencid(basetype),
                 len);
         jpartial(stmt);
 	jprint(code);
@@ -1031,7 +1031,7 @@ computemaxunlimited(void)
     maxsize = 0;
     for(i=0;i<listlength(vardefs);i++) {
 	Symbol* dim;
-	Symbol* var = (Symbol*)listget(vardefs,i);	
+	Symbol* var = (Symbol*)listget(vardefs,i);
 	if(var->typ.dimset.ndims == 0) continue; /* rank == 0*/
 	dim = var->typ.dimset.dimsyms[0];
 	if(dim->dim.size != NC_UNLIMITED) continue; /* var does not use unlimited*/
@@ -1107,7 +1107,7 @@ fflush(stderr);
 
     /* define a block to avoid name clashes*/
     nprintf(stmt,sizeof(stmt),"%s{\n",indented(1));
-    bbCat(code,stmt);    
+    bbCat(code,stmt);
 
     /* generate constants for startset, countset*/
     nprintf(stmt,sizeof(stmt),"%slong[] %s_startset = new long[] {",
@@ -1155,7 +1155,7 @@ fflush(stderr);
 
     /* end defined block*/
     nprintf(stmt,sizeof(stmt),"%s}\n",indented(1));
-    bbCat(code,stmt);    
+    bbCat(code,stmt);
 
     for(i=0;i<closure->rank;i++) {
         closure->startset[i] = startset[i] + countset[i];
@@ -1328,7 +1328,7 @@ genjjni_definevardata(Symbol* vsym)
 	bbFree(databuf);
 
     }
-    bbFree(code);    
+    bbFree(code);
 }
 
 static void
@@ -1505,7 +1505,7 @@ jconst(Constant* ci)
 	while(*p) {
 	    strlcat(bstring,"\\x",bslen+3);
 	    strlcat(bstring,p,bslen+3);
-	    p += 2;	
+	    p += 2;
 	}
 	strlcat(bstring,"\"",bslen+3);
 	return bstring;
@@ -1591,7 +1591,7 @@ jprefixed(List* prefix, char* suffix, char* separator)
 	Symbol* sym = (Symbol*)listget(prefix,i);
         strcat(result,sym->name); /* append "<prefix[i]/>"*/
 	strcat(result,separator);
-    }    
+    }
     strcat(result,suffix); /* append "<suffix>"*/
     return result;
 }

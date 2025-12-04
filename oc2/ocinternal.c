@@ -426,7 +426,7 @@ ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
 
     /* Read until we find the separator (or EOF)*/
     ncbytesclear(state->packet);
-    retVal = fseek(tree->data.file, 0L, SEEK_SET);  
+    retVal = fseek(tree->data.file, 0L, SEEK_SET);
     if (retVal != 0) {
     	stat = OC_EDATADDS;
         return OCTHROW(stat);
@@ -491,7 +491,7 @@ ocget_rcproperties(OCstate* state)
     option = NC_rclookup(OCBUFFERSIZE,state->uri->uri,NULL);
     if(option != NULL && strlen(option) != 0) {
 	long bufsize;
-	if(strcasecmp(option,"max")==0) 
+	if(strcasecmp(option,"max")==0)
 	    bufsize = CURL_MAX_READ_SIZE;
 	else if(sscanf(option,"%ld",&bufsize) != 1 || bufsize <= 0)
             fprintf(stderr,"Illegal %s size\n",OCBUFFERSIZE);

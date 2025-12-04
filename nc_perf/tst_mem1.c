@@ -38,7 +38,7 @@ int main()
 	int at_max = 0;
 
 	NC_UNUSED(my_idx); NC_UNUSED(at_max);
-	
+
         if (nc_create(FILE_NAME, NC_CLOBBER | NC_NETCDF4, &ncid)) ERR;
         /* if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR; */
         if (nc_def_var(ncid, "dummy", NC_DOUBLE, 0, NULL, &varid)) ERR;

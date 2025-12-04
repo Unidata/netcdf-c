@@ -207,7 +207,7 @@ unregisterfilter(void)
     inqinfo.info = calloc(1,sizeof(H5Z_class2_t));
     if(inqinfo.info == NULL) CHECK(NC_ENOMEM);
     CHECK((stat=nc_filter_client_inq(inqinfo.id,(void*)inqinfo.info)));
-    CHECK((verifyfilterinfo(&inqinfo,&baseinfo)));    
+    CHECK((verifyfilterinfo(&inqinfo,&baseinfo)));
     /* Unregister */
     inqinfo.id = FILTER_ID;
     CHECK((stat = nc_filter_client_unregister(inqinfo.id)));
@@ -274,7 +274,7 @@ openfile(void)
 	    }
 	}
     }
-    if(nerrs > 0) return NC_EFILTER; 
+    if(nerrs > 0) return NC_EFILTER;
 
     if(params) free(params);
 

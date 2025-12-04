@@ -735,8 +735,8 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    if (var->type_info->hdr.id != NC_FLOAT &&
 		var->type_info->hdr.id != NC_DOUBLE)
 		return NC_EINVAL;
-	    
-	    
+
+
 	    /* All quantization codecs require number of significant digits */
 	    if (!nsd)
 		return NC_EINVAL;
@@ -747,7 +747,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 
 	    if (*quantize_mode == NC_QUANTIZE_BITGROOM ||
 		*quantize_mode == NC_QUANTIZE_GRANULARBR)
-	      { 
+	      {
 		if (var->type_info->hdr.id == NC_FLOAT &&
 		    *nsd > NC_QUANTIZE_MAX_FLOAT_NSD)
 		  return NC_EINVAL;
@@ -766,7 +766,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	      }
 	    var->nsd = *nsd;
 	}
-	
+
 	var->quantize_mode = *quantize_mode;
 
 	/* If quantization is turned off, then set nsd to 0. */
@@ -833,22 +833,22 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * When quantize is turned on, and the number of significant digits
  * (NSD) has been specified, then the netCDF library will quantize according
  * to the selected algorithm. BitGroom interprets NSD as decimal digits
- * will apply all zeros or all ones (alternating) to bits which are not 
- * needed to specify the value to the number of significant decimal digits. 
- * BitGroom retain the same number of bits for all values of a variable. 
+ * will apply all zeros or all ones (alternating) to bits which are not
+ * needed to specify the value to the number of significant decimal digits.
+ * BitGroom retain the same number of bits for all values of a variable.
  * BitRound (BR) interprets NSD as binary digits (i.e., bits) and keeps the
  * the user-specified number of significant bits then rounds the result
  * to the nearest representable number according to IEEE rounding rules.
- * BG and BR both retain a uniform number of significant bits for all 
+ * BG and BR both retain a uniform number of significant bits for all
  * values of a variable. Granular BitRound interprest NSD as decimal
- * digits. GranularBR determines the number of bits to necessary to 
+ * digits. GranularBR determines the number of bits to necessary to
  * retain the user-specified number of significant digits individually
  * for every value of the variable. GranularBR then applies the BR
  * quantization algorithm on a granular, value-by-value, rather than
  * uniformly for the entire variable. GranularBR quantizes more bits
  * than BG, and is thus more compressive and less accurate than BG.
  * BR knows bits and makes no guarantees about decimal precision.
- * All quantization algorithms change the values of the data, and make 
+ * All quantization algorithms change the values of the data, and make
  * it more compressible.
  *
  * Quantizing the data does not reduce the size of the data on disk,
@@ -880,13 +880,13 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * @param varid Variable ID. NC_GLOBAL may not be used.
  * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
  * ::NC_QUANTIZE_BITGROOM, ::NC_QUANTIZE_BITROUND or ::NC_QUANTIZE_GRANULARBR.
- * @param nsd Number of significant digits (either decimal or binary). 
- * May be any integer from 1 to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables 
- * of type ::NC_FLOAT) or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables 
+ * @param nsd Number of significant digits (either decimal or binary).
+ * May be any integer from 1 to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables
+ * of type ::NC_FLOAT) or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables
  * of type ::NC_DOUBLE) for mode ::NC_QUANTIZE_BITGROOM and mode
- * ::NC_QUANTIZE_GRANULARBR. May be any integer from 1 to 
- * ::NC_QUANTIZE_MAX_FLOAT_NSB (for variables of type ::NC_FLOAT) or 
- * ::NC_QUANTIZE_MAX_DOUBLE_NSB (for variables of type ::NC_DOUBLE) 
+ * ::NC_QUANTIZE_GRANULARBR. May be any integer from 1 to
+ * ::NC_QUANTIZE_MAX_FLOAT_NSB (for variables of type ::NC_FLOAT) or
+ * ::NC_QUANTIZE_MAX_DOUBLE_NSB (for variables of type ::NC_DOUBLE)
  * for mode ::NC_QUANTIZE_BITROUND.
  *
  * @returns ::NC_NOERR No error.
@@ -936,7 +936,7 @@ NC4_inq_var_quantize(int ncid, int varid, int *quantize_modep,
     if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
         return retval;
     if (!var)
-        return NC_ENOTVAR;	
+        return NC_ENOTVAR;
     assert(var->hdr.id == varid);
 
     /* Copy the data to the user's data buffers. */
@@ -2218,7 +2218,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 		    BAIL(retval);
 	    }
             filldata = (char *)filldata + file_type_size;
-	}        
+	}
     }
 
     /* Convert data type if needed. */
@@ -2237,7 +2237,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             range_error)
             range_error = 0;
     }
-    
+
 exit:
     if(fixedlengthstring && bufr) free(bufr);
     if (file_spaceid > 0)
@@ -2411,7 +2411,7 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
 
     LOG((1, "%s: ncid 0x%x varid %d size %d nelems %d preemption %d",
 	 __func__, ncid, varid, size, nelems, preemption));
-    
+
     if (size >= 0)
         real_size = ((size_t) size) * MEGABYTE;
 

@@ -106,7 +106,7 @@ ncproplistclear(NCproplist* plist)
 		stat = prop->typefcn(NCP_RECLAIM,&prop->pair,NULL);
 		if(stat < 0) goto done;
 		break;
-	    }	
+	    }
 	}
     }
     plist->count = 0;
@@ -157,7 +157,7 @@ ncproplistadd(NCproplist* plist, const char* key, uintptr_t value)
 done:
     return stat;
 }
-	
+
 /**
  * Add a byte string to the property list.
  * The proplist takes control of the value => do not free.
@@ -273,7 +273,7 @@ ncproplistclone(const NCproplist* src, NCproplist* clone)
 	    stat = sp->typefcn(NCP_COPY,&sp->pair,&cp->pair);
 	    if(stat < 0) goto done;
 	    break;
-	}	
+	}
     }
     clone->count = src->count;
 done:
@@ -291,7 +291,7 @@ extendplist(NCproplist* plist, size_t nprops)
 	goto done; /* Already enough space */
     newlist = realloc(plist->properties,newsize*sizeof(NCPproperty));
     if(newlist == NULL) {stat = NC_ENOMEM; goto done;}
-    plist->properties = newlist; newlist = NULL;    
+    plist->properties = newlist; newlist = NULL;
     plist->alloc = newsize;
 done:
     return stat;
@@ -317,7 +317,7 @@ ncproplistget(const NCproplist* plist, const char* key, uintptr_t* valuep, uintp
     for(i=0,props=plist->properties;i<plist->count;i++,props++) {
 	if(strcmp(props->pair.key,key)==0) {
 	    value = props->pair.value;
-	    size = props->pair.size;	    
+	    size = props->pair.size;
 	    stat = NC_NOERR; /* found */
 	    break;
 	}
@@ -343,7 +343,7 @@ OPTSTATIC int
 ncproplistith(const NCproplist* plist, size_t i, char* const * keyp, uintptr_t const * valuep, uintptr_t* sizep)
 {
     int stat = NC_NOERR;
-    NCPproperty* prop = NULL;    
+    NCPproperty* prop = NULL;
     if(plist == NULL) goto done;
     if(i >= plist->count) {stat = NC_EINVAL; goto done;}
     prop = &plist->properties[i];
@@ -358,7 +358,7 @@ done:
 /* Support Functions */
 
 /**
- * Initialize a new property list 
+ * Initialize a new property list
  */
 static int
 ncproplistinit(NCproplist* plist)

@@ -64,7 +64,7 @@ NCD4_parcelvars(NCD4meta* meta, NCD4response* resp)
     NCD4node* root = meta->root;
     NCD4offset* offset = NULL;
 
-    /* Recursively walk the tree in prefix order 
+    /* Recursively walk the tree in prefix order
        to get the top-level variables; also mark as unvisited */
     toplevel = nclistnew();
     NCD4_getToplevelVars(meta,root,toplevel);
@@ -76,11 +76,11 @@ NCD4_parcelvars(NCD4meta* meta, NCD4response* resp)
         if((ret=NCD4_delimit(meta,var,offset,resp->inferredchecksumming))) {
 	    FAIL(ret,"delimit failure");
 	}
-	var->data.response = resp; /* cross link */	
+	var->data.response = resp; /* cross link */
     }
 done:
     nclistfree(toplevel);
-    nullfree(offset);    
+    nullfree(offset);
     return THROW(ret);
 }
 
@@ -97,12 +97,12 @@ NCD4_processdata(NCD4meta* meta, NCD4response* resp)
     /* Do we need to swap the dap4 data? */
     meta->swap = (meta->controller->platform.hostlittleendian != resp->remotelittleendian);
 
-    /* Recursively walk the tree in prefix order 
+    /* Recursively walk the tree in prefix order
        to get the top-level variables; also mark as unvisited */
     toplevel = nclistnew();
     NCD4_getToplevelVars(meta,root,toplevel);
 
-    /* Extract remote checksums */ 
+    /* Extract remote checksums */
     for(i=0;i<nclistlength(toplevel);i++) {
 	NCD4node* var = (NCD4node*)nclistget(toplevel,i);
         if(resp->inferredchecksumming) {
@@ -207,7 +207,7 @@ fillstruct(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NCli
     size_t i;
     int ret = NC_NOERR;
     void* dst = *dstp;
- 
+
 #ifdef CLEARSTRUCT
     /* Avoid random data within aligned structs */
     memset(dst,0,type->meta.memsize);
@@ -231,13 +231,13 @@ static int
 fillseq(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs)
 {
     int ret = NC_NOERR;
-    d4size_t i,recordcount;    
+    d4size_t i,recordcount;
     nc_vlen_t* dst;
     NCD4node* vlentype;
     d4size_t recordsize;
 
     dst = (nc_vlen_t*)*dstp;
-    vlentype = type->basetype;    
+    vlentype = type->basetype;
     recordsize = vlentype->meta.memsize;
 
     /* Get record count (remember, it is already properly swapped) */
@@ -247,7 +247,7 @@ fillseq(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist*
 
     /* compute the required memory */
     dst->p = d4alloc(recordsize*recordcount);
-    if(dst->p == NULL) 
+    if(dst->p == NULL)
 	FAIL(NC_ENOMEM,"fillseq");
 
     for(i=0;i<recordcount;i++) {
@@ -269,7 +269,7 @@ static int
 fillstring(NCD4meta* meta, NCD4offset* offset, void** dstp, NClist* blobs)
 {
     int ret = NC_NOERR;
-    d4size_t count;    
+    d4size_t count;
     char** dst = *dstp;
     char* q;
 
@@ -285,7 +285,7 @@ fillstring(NCD4meta* meta, NCD4offset* offset, void** dstp, NClist* blobs)
     /* Write the pointer to the string */
     *dst = q;
     dst++;
-    *dstp = dst;    
+    *dstp = dst;
     INCR(offset,count);
 #if 0
     nclistpush(blobs,q);
@@ -402,7 +402,7 @@ NCD4_inferChecksums(NCD4meta* meta, NCD4response* resp)
     size_t i;
     int attrfound;
     NClist* toplevel = NULL;
- 
+
     /* Get the toplevel vars */
     toplevel = nclistnew();
     NCD4_getToplevelVars(meta,meta->root,toplevel);
@@ -412,7 +412,7 @@ NCD4_inferChecksums(NCD4meta* meta, NCD4response* resp)
     for(i=0;i<nclistlength(toplevel);i++) {
 	size_t a;
         NCD4node* node = (NCD4node*)nclistget(toplevel,i);
-	for(a=0;a<nclistlength(node->attributes);a++) {	
+	for(a=0;a<nclistlength(node->attributes);a++) {
             NCD4node* attr = (NCD4node*)nclistget(node->attributes,a);
 	    if(strcmp(D4CHECKSUMATTR,attr->name)==0) {
 		const char* val =  NULL;
@@ -482,7 +482,7 @@ NCD4_addchecksumattr(NCD4meta* meta, NClist* toplevel)
 
     for(i=0;i<nclistlength(toplevel);i++) {
         NCD4node* node = (NCD4node*)nclistget(toplevel,i);
-	
+
         /* Is remote checksum available? */
 	if(node->data.remotechecksummed) {
 	    NCD4node* attr = NCD4_findAttr(node,D4CHECKSUMATTR);

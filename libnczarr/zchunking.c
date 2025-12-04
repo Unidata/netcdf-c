@@ -134,7 +134,7 @@ NCZ_compute_projections(struct Common* common,  int r, size64_t chunkindex, cons
 
 	/* Compute the abs last touchable point in this chunk */
         absthislast = projection->offset + projection->limit;
-	
+
         /* Compute next point touched after the last point touched in previous projection;
 	   note that the previous projection might be wrt a chunk other than the immediately preceding
 	   one (because the intermediate ones were skipped).
@@ -237,7 +237,7 @@ NCZ_compute_per_slice_projections(
 
     /* Iterate over each chunk that intersects slice to produce projection */
     for(n=0,index=range->start;index<range->stop;index++,n++) {
-	if((stat = NCZ_compute_projections(common, r, index, slice, n, slp->projections))) 
+	if((stat = NCZ_compute_projections(common, r, index, slice, n, slp->projections)))
 	    goto done; /* something went wrong */
     }
 
@@ -258,7 +258,7 @@ NCZ_compute_all_slice_projections(
         NCZSliceProjections* results)
 {
     int stat = NC_NOERR;
-    int r; 
+    int r;
 
     for(r=0;r<common->rank;r++) {
 	/* Compute each of the rank SliceProjections instances */
@@ -277,7 +277,7 @@ done:
 
 /**************************************************/
 /* Utilities */
-    
+
 /* return 0 if slice is malformed; 1 otherwise */
 static int
 verifyslice(const NCZSlice* slice)
@@ -285,7 +285,7 @@ verifyslice(const NCZSlice* slice)
     if(slice->stop < slice->start) return 0;
     if(slice->stride <= 0) return 0;
     if((slice->stop - slice->start) > slice->len) return 0;
-    return 1;    
+    return 1;
 }
 
 void
@@ -295,7 +295,7 @@ NCZ_clearsliceprojections(int count, NCZSliceProjections* slpv)
 	int i;
         for(i=0;i<count;i++) {
 	    NCZSliceProjections* slp = &slpv[i];
-	    nullfree(slp->projections);	
+	    nullfree(slp->projections);
 	}
     }
 }
@@ -306,7 +306,7 @@ clearallprojections(NCZAllProjections* nap)
 {
     if(nap != NULL) {
 	int i;
-	for(i=0;i<nap->rank;i++) 
+	for(i=0;i<nap->rank;i++)
 	    nclistfreeall(&nap->allprojections[i].projections);
     }
 }

@@ -295,7 +295,7 @@ NCZ_write_ncproperties(NC_FILE_INFO_T* h5)
 	NC_ATT_INFO_T* att = (NC_ATT_INFO_T*)ncindexith(attlist,i);
 	if(strcmp(NCPROPS,att->hdr.name)==0) {
 	    ncprops = att;
-	    break;	
+	    break;
 	}
     }
     if(ncprops != NULL) goto done; /* Already exists, no overwrite */

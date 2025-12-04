@@ -24,7 +24,7 @@ main()
 
    printf("\n*** Testing netcdf type conversion.\n");
    printf("*** testing netcdf-4...");
-      
+
    /* Create a netcdf-4 format file one int variable. */
    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
    if (nc_def_var(ncid, VAR_NAME, NC_INT, 0, dimids, &varid)) ERR;

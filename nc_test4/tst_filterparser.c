@@ -115,7 +115,7 @@ params (BE):
 
 static unsigned int baseline[MAXPARAMS]; /* Expected */
 
-static const char* spec = 
+static const char* spec =
 "32768, -17b, 23ub, -25S, 27US, 77, 93U, 2147483647, -2147483648, 4294967295U, 789f, -9223372036854775807L, 18446744073709551615UL, 12345678.12345678d";
 
 /* Define the type strings for each spec entry */
@@ -212,7 +212,7 @@ main(int argc, char **argv)
 	fprintf(stderr,"ncaux_filter_parsespec failed\n");
 	goto done;
     }
-    
+
     if(filterid != PARAMS_ID) {
         fprintf(stderr,"mismatch: id: expected=%u actual=%u\n",(unsigned int)PARAMS_ID,filterid);
 	nerrs++;
@@ -271,7 +271,7 @@ gettype(const int q0, const int q1, int* isunsignedp)
     int type = 0;
     int isunsigned = 0;
     char typechar;
-    
+
     isunsigned = (q0 == 'u' || q0 == 'U');
     if(q1 == '\0')
 	typechar = q0; /* we were given only a single char */
@@ -346,7 +346,7 @@ NC4_h5filterspec_fix8(unsigned char* mem, int decode)
     }
 #else /* Little endian */
     /* No action is necessary */
-#endif	    
+#endif
 }
 #endif
 

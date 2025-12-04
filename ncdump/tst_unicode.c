@@ -80,7 +80,7 @@ check(int err, int line, const char* file)
         fprintf(stderr,"ERR %s.%d (%d) %s\n",file,line,err,nc_strerror(err));
         fflush(stderr);
     }
-    return err;    
+    return err;
 }
 
 #define CHECK(err) {if((ret=check(err,__LINE__,__FILE__))) goto done;}
@@ -139,8 +139,8 @@ test(int flags, const char* model)
        {CHECK(NC_EBADNAME);}
    CHECK(nc_close(ncid));
 done:
-   return ret; 
-}  
+   return ret;
+}
 
 int
 main(int argc, char **argv)

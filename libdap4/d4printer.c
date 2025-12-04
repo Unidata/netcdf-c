@@ -120,7 +120,7 @@ printNode(D4printer* out, NCD4node* node, int depth)
 	    if(node->opaque.size > 0)
 	        printXMLAttributeSize(out, "size", node->opaque.size);
 	    CAT("/>");
-	    break;	    
+	    break;
 	case NC_ENUM:
 	    INDENT(depth); CAT("<Enumeration");
 	    printXMLAttributeName(out, "name", node->name);
@@ -275,7 +275,7 @@ printDataset(D4printer* out, NCD4node* node, int depth)
     depth--;
     INDENT(depth);
     CAT("</Dataset>");
-    return THROW(ret);	   
+    return THROW(ret);
 }
 
 static int
@@ -291,8 +291,8 @@ printGroup(D4printer* out, NCD4node* node, int depth)
     depth--;
     INDENT(depth);
     CAT("</Group>");
-    return THROW(ret);	   
-}	
+    return THROW(ret);
+}
 
 static int
 printGroupBody(D4printer* out, NCD4node* node, int depth)
@@ -446,7 +446,7 @@ printXMLAttributeAtomics(D4printer* out, char* name, union ATOMICS* value, nc_ty
 {
     int ret = NC_NOERR;
     CAT(" "); CAT(name); CAT("=\"");
-    atomicsToString(out,value,type);	
+    atomicsToString(out,value,type);
     CAT(ncbytescontents(out->tmp));
     CAT("\"");
     return THROW(ret);

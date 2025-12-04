@@ -11,8 +11,8 @@
 int
 main(int argc, char** argv)
 {
-    char v5[256];  
-    char vn[256];  
+    char v5[256];
+    char vn[256];
     char* major, *minor, *patch;
     char* p;
     size_t i;

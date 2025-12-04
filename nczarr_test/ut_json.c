@@ -152,7 +152,7 @@ jclone(NCjson* json, NCjson** clonep)
     }
 done:
     if(stat == NC_NOERR && clonep) {*clonep = clone; clone = NULL;}
-    NCJreclaim(clone);    
+    NCJreclaim(clone);
     return stat;
 }
 
@@ -171,7 +171,7 @@ cloneArray(NCjson* array, NCjson** clonep)
     }
 done:
     if(stat == NC_NOERR && clonep) {*clonep = clone; clone = NULL;}
-    NCJreclaim(clone);    
+    NCJreclaim(clone);
     return stat;
 }
 
@@ -185,7 +185,7 @@ cloneDict(NCjson* dict, NCjson** clonep)
     NCJsetsort(clone,NCJ_DICT);
 done:
     if(stat == NC_NOERR && clonep) {*clonep = clone; clone = NULL;}
-    NCJreclaim(clone);    
+    NCJreclaim(clone);
     return stat;
 }
 
@@ -290,20 +290,20 @@ dumpR(NCjson* json, int depth)
 	if(ok != 1 || count != (int)strlen(NCJstring(json))) goto fail;
 	printf("%lld",int64v);
 	break;
-    case NCJ_DOUBLE: 
+    case NCJ_DOUBLE:
 	ok = sscanf(NCJstring(json),"%lg%n",&float64v,&count);
 	if(ok != 1 || count != (int)strlen(NCJstring(json))) goto fail;
 	printf("%lg",float64v);
 	break;
-    case NCJ_BOOLEAN: 
+    case NCJ_BOOLEAN:
 	if(strcasecmp(NCJstring(json),"true") != 0
 	   && strcasecmp(NCJstring(json),"false") != 0) goto fail;
 	printf("%s",NCJstring(json));
 	break;
-    case NCJ_NULL: 
+    case NCJ_NULL:
 	printf("null");
 	break;
-    case NCJ_DICT: 
+    case NCJ_DICT:
 	if(NCJarraylength(json) == 0) {
 	    printf("{}");
 	} else {
@@ -321,7 +321,7 @@ dumpR(NCjson* json, int depth)
 	    }
 	}
 	break;
-    case NCJ_ARRAY: 
+    case NCJ_ARRAY:
 	if(NCJarraylength(json) == 0) {
 	    printf("[]");
 	} else {

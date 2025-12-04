@@ -243,7 +243,7 @@ main(int argc, char** argv)
     int stat = NC_NOERR;
     size_t i;
     int cvtslash = 0;
-    
+
     memset((void*)&cvtoptions,0,sizeof(cvtoptions));
     cvtoptions.drive = 'c';
     cvtoptions.sep = ';';
@@ -317,7 +317,7 @@ main(int argc, char** argv)
 	    *q++ = c;
 	}
 	*q = '\0';
-    } 
+    }
 
     if(cvtoptions.pathkind) {
 	printpathkind(inpath);
@@ -329,7 +329,7 @@ main(int argc, char** argv)
 	{usage(nc_strerror(stat));}
     for(i=0;i<indirs.ndirs;i++) {
 	char* outdir = NULL;
-	if((stat = processdir(indirs.dirs[i],&outdir))) 
+	if((stat = processdir(indirs.dirs[i],&outdir)))
 	    {usage(nc_strerror(stat));}
 	if(i > 0) ncbytesappend(outpath,cvtoptions.sep);
 	ncbytescat(outpath,outdir);

@@ -8,7 +8,7 @@ Example program for write then read of a variable using bzip2 compression.
 
 \ingroup tutorial
 
-This is an example which 
+This is an example which
 creates a file with a variable that is compressed using bzip2.
 Then it reads that file and verifies that it returned the correct
 uncompressed data.
@@ -208,7 +208,7 @@ test_bzip2(void)
     }
     /* Show the level */
     printf("show parameters for bzip2: level=%u\n",level);
-    /* Show chunking */ 
+    /* Show chunking */
     printf("show chunks:");
     for(i=0;i<actualdims;i++)
 	printf("%s%ld",(i==0?" chunks=":","),(unsigned long)chunks[i]);
@@ -256,7 +256,7 @@ test_bzip2(void)
     }
     if(nparams != 1 && params != NULL && params[0] != BZIP2_LEVEL) {
 	printf("Compression parameter mismatch\n");
-	return NC_EFILTER; 
+	return NC_EFILTER;
     }
 
     /* Verify chunking */

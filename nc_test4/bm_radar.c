@@ -25,7 +25,7 @@ different chunking and compression parameters set.
 /* We will create this file. */
 #define FILE_NAME "bm_radar.nc"
 
-int 
+int
 file_size(char* name)
 {
    struct stat stbuf;
@@ -46,7 +46,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
 
    if (nc_open(file_name_in, NC_NOWRITE, &ncid_in)) ERR;
    if (nc_create(file_name_out, cmode_out, &ncid_out)) ERR;
-      
+
    if (nc_inq(ncid_in, &ndims, &nvars, &natts, &unlimdimid)) ERR;
 
    /* Copy dims. */
@@ -165,14 +165,14 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
       /* Allocate memory for one record. */
       if (!(data = nc_malloc(reclen * type_size)))
 	 return NC_ENOMEM;
-   
+
       /* Copy the var data one record at a time. */
       for (start[0]=0; !retval && start[0]<(size_t)dimlen[0]; start[0]++)
       {
 	 if (nc_get_vara(ncid_in, v, start, count, data)) ERR;
 	 if (nc_put_vara(ncid_out, v, start, count, data)) ERR;
       }
-    
+
      exit:
       if (data) nc_free(data);
       if (dimlen) nc_free(dimlen);
@@ -228,7 +228,7 @@ main(int argc, char **argv)
    {
 #define NDIMS 3
 #define NUM_TRIES 5
-#define MAX_DEFLATE 9      
+#define MAX_DEFLATE 9
       struct timeval start_time, end_time, diff_time;
       int chunking[NDIMS];
       int deflate;
@@ -249,7 +249,7 @@ main(int argc, char **argv)
 	    if (copy_file(FILE_NAME, FILE_NAME1, NC_NETCDF4, chunking, &deflate)) ERR;
 	    if (gettimeofday(&end_time, NULL)) ERR;
 	    if (timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
-	    
+
 	    /* Print some output. */
 	    printf("%d, %d, ", file_size(FILE_NAME), file_size(FILE_NAME1));
 	    for (chunk_size = 1, d = 0; d < NDIMS; d++)
@@ -257,11 +257,11 @@ main(int argc, char **argv)
 	       printf("%d, ", chunking[d]);
 	       chunk_size *= chunking[d];
 	    }
-	    
+
 	    total_time = (int)diff_time.tv_sec * 1000 + (int)diff_time.tv_usec;
 	    printf("%d, %d, %d", chunk_size, deflate, total_time);
 	    printf("\n");
-	    
+
 	    chunking[0] += 1;
 	    chunking[1] += 100;
 	    chunking[2] += 100;

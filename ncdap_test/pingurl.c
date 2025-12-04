@@ -43,10 +43,10 @@ main(int argc, char** argv)
     argc--; argv++;
     if(argc < 1)
 	usage();
- 
+
     /* Try http: first */
     snprintf(url,MAXSERVERURL,HTTP"://%s",argv[0]);
-    if(timedping(url,PINGTIME) == NC_NOERR) 
+    if(timedping(url,PINGTIME) == NC_NOERR)
 	found = 1;
     else {
 	/* Try https: next */
@@ -55,7 +55,7 @@ main(int argc, char** argv)
 	    found = 1;
 	    ishttps = 1;
 	}
-    }    
+    }
     if(found)
         printf((ishttps?"https\n":"http\n"));
     else

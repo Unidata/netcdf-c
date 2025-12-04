@@ -100,7 +100,7 @@ nc_http_open_verbose(const char* path, int verbose, NC_HTTP_STATE** statep)
     if((state = calloc(1,sizeof(NC_HTTP_STATE))) == NULL)
         {stat = NCTHROW(NC_ENOMEM); goto done;}
     state->path = strdup(path);
-    state->url = uri; uri = NULL;    
+    state->url = uri; uri = NULL;
 #ifdef NETCDF_ENABLE_S3
     state->format = (NC_iss3(state->url,NULL)?HTTPS3:HTTPCURL);
 #else
@@ -167,7 +167,7 @@ nc_http_close(NC_HTTP_STATE* state)
 	nullfree(state->s3.info);
 	state->s3.s3client = NULL;
         } break;
-#endif   
+#endif
     default: stat = NCTHROW(NC_ENOTBUILT); goto done;
     }
     nullfree(state->path);
@@ -241,13 +241,13 @@ nc_http_read(NC_HTTP_STATE* state, size64_t start, size64_t count, NCbytes* buf)
         if((stat = nc_http_set_response(state,buf))) goto fail;
         if((stat = setupconn(state,state->path)))
             goto fail;
-    
+
         /* Set to read byte range */
         snprintf(range,sizeof(range),"%ld-%ld",(long)start,(long)((start+count)-1));
         cstat = CURLERR(curl_easy_setopt(state->curl.curl, CURLOPT_RANGE, range));
         if(cstat != CURLE_OK)
             {stat = NCTHROW(NC_ECURL); goto done;}
-    
+
         if((stat = execute(state)))
             goto done;
 	break;
@@ -292,7 +292,7 @@ nc_http_write(NC_HTTP_STATE* state, NCbytes* payload)
 
     Trace("write");
 
-    if(payload == NULL || ncbyteslength(payload) == 0) goto done;    
+    if(payload == NULL || ncbyteslength(payload) == 0) goto done;
 
     switch (state->format) {
     case HTTPCURL:
@@ -346,14 +346,14 @@ nc_http_size(NC_HTTP_STATE* state, long long* sizep)
             goto done;
         /* Make sure we get headers */
         if((stat = headerson(state,CONTENTLENGTH))) goto done;
-    
+
         state->httpcode = 200;
         if((stat = execute(state)))
             goto done;
-    
+
         if(nclistlength(state->curl.response.headers) == 0)
             {stat = NCTHROW(NC_EURL); goto done;}
-    
+
         /* Get the content length header */
         if((stat = lookupheader(state,"content-length",&hdr))==NC_NOERR)
                 sscanf(hdr,"%llu",sizep);
@@ -456,7 +456,7 @@ nc_http_request_setheaders(NC_HTTP_STATE* state, const NClist* headers)
 {
     nclistfreeall(state->curl.request.headers);
     state->curl.request.headers = nclistclone(headers,1);
-    return NC_NOERR;    
+    return NC_NOERR;
 }
 #endif
 
@@ -547,7 +547,7 @@ HeaderCallback(char *buffer, size_t size, size_t nitems, void *data)
     if(state->curl.response.headset != NULL) {
         for(match=0,i=0;i<nclistlength(state->curl.response.headset);i++) {
             hdr = (const char*)nclistget(state->curl.response.headset,i);
-            if(strcasecmp(hdr,name)==0) {match = 1; break;}        
+            if(strcasecmp(hdr,name)==0) {match = 1; break;}
         }
         if(!match) goto done;
     }
@@ -570,7 +570,7 @@ HeaderCallback(char *buffer, size_t size, size_t nitems, void *data)
     value = NULL;
 done:
     nullfree(name);
-    return realsize;    
+    return realsize;
 }
 
 static int
@@ -594,7 +594,7 @@ setupconn(NC_HTTP_STATE* state, const char* objecturl)
     if (cstat != CURLE_OK) goto fail;
     cstat = CURLERR(curl_easy_setopt(state->curl.curl, CURLOPT_NOPROGRESS, 1));
     if (cstat != CURLE_OK) goto fail;
-    cstat = curl_easy_setopt(state->curl.curl, CURLOPT_FOLLOWLOCATION, 1); 
+    cstat = curl_easy_setopt(state->curl.curl, CURLOPT_FOLLOWLOCATION, 1);
     if (cstat != CURLE_OK) goto fail;
 
     /* Pull some values from .rc tables */
@@ -607,7 +607,7 @@ setupconn(NC_HTTP_STATE* state, const char* objecturl)
         hostport = NC_combinehostport(uri);
         ncurifree(uri); uri = NULL;
         value = NC_rclookup("HTTP.SSL.CAINFO",hostport,NULL);
-        nullfree(hostport); hostport = NULL;    
+        nullfree(hostport); hostport = NULL;
         if(value == NULL)
             value = NC_rclookup("HTTP.SSL.CAINFO",NULL,NULL);
         if(value != NULL) {
@@ -651,7 +651,7 @@ setupconn(NC_HTTP_STATE* state, const char* objecturl)
         break;
     default: break;
     }
-    
+
 done:
     return NCTHROW(stat);
 fail:
@@ -741,11 +741,11 @@ showerrors(NC_HTTP_STATE* state)
 {
     (void)curl_easy_setopt(state->curl.curl, CURLOPT_ERRORBUFFER, state->curl.errbuf);
 }
-    
+
 static int
 reporterror(NC_HTTP_STATE* state, CURLcode cstat)
 {
-    if(cstat != CURLE_OK) 
+    if(cstat != CURLE_OK)
         fprintf(stderr,"curlcode: (%d)%s : %s\n",
                 cstat,curl_easy_strerror(cstat),
                 state->errmsg?state->errmsg:"?");
@@ -758,13 +758,13 @@ void dump(const char *text, FILE *stream, unsigned char *ptr, size_t size)
   size_t i;
   size_t c;
   unsigned int width=0x10;
- 
+
   fprintf(stream, "%s, %10.10ld bytes (0x%8.8lx)\n",
           text, (long)size, (long)size);
- 
+
   for(i=0; i<size; i+= width) {
     fprintf(stream, "%4.4lx: ", (long)i);
- 
+
     /* show hex to the left */
     for(c = 0; c < width; c++) {
       if(i+c < size)
@@ -772,30 +772,30 @@ void dump(const char *text, FILE *stream, unsigned char *ptr, size_t size)
       else
         fputs("   ", stream);
     }
- 
+
     /* show data on the right */
     for(c = 0; (c < width) && (i+c < size); c++) {
       const int x = (ptr[i+c] >= 0x20 && ptr[i+c] < 0x80) ? ptr[i+c] : '.';
       fputc(x, stream);
     }
- 
+
     fputc('\n', stream); /* newline */
   }
 }
- 
+
 static int
 my_trace(CURL *handle, curl_infotype type, char *data, size_t size,void *userp)
 {
   const char *text;
   (void)handle; /* prevent compiler warning */
   (void)userp;
- 
+
   switch (type) {
   case CURLINFO_TEXT:
     fprintf(stderr, "== Info: %s", data);
   default: /* in case a new one is introduced to shock us */
     return 0;
- 
+
   case CURLINFO_HEADER_OUT:
     text = "=> Send header";
     break;
@@ -815,7 +815,7 @@ my_trace(CURL *handle, curl_infotype type, char *data, size_t size,void *userp)
     text = "<= Recv SSL data";
     break;
   }
- 
+
   dump(text, stderr, (unsigned char *)data, size);
   return 0;
 }
@@ -838,7 +838,7 @@ urlify(NC_HTTP_STATE* state, const char* path)
 	    ncbytescat(buf,state->url->path);
         if(ncbytesget(buf,ncbyteslength(buf)-1) == '/')
             ncbytessetlength(buf,ncbyteslength(buf)-1);
-    }     
+    }
     if(path != NULL) {
         if(path[0] != '/')
 	    ncbytescat(buf,"/");

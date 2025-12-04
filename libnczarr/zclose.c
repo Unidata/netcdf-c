@@ -33,7 +33,7 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 {
     int stat = NC_NOERR;
     NCZ_FILE_INFO_T* zinfo = NULL;
- 
+
     ZTRACE(2,"file=%s abort=%d",file->hdr.name,abort);
 
     if(!abort) {

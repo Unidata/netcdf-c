@@ -139,7 +139,7 @@ NCZ_grpkey(const NC_GRP_INFO_T* grp, char** pathp)
 	grp = nclistget(segments,i);
 	if(i > 1) ncbytescat(path,"/"); /* Assume root is named "/" */
 	ncbytescat(path,grp->hdr.name);
-    }        
+    }
     if(pathp) *pathp = ncbytesextract(path);
 
     nclistfree(segments);
@@ -286,7 +286,7 @@ fprintf(stderr,"uploadjson: %s\n",key); fflush(stderr);
     if((stat = NCJunparse(json,0,&content)))
 	goto done;
     ZTRACEMORE(4,"\tjson=%s",content);
-    
+
 if(getenv("NCS3JSON") != NULL)
 fprintf(stderr,">>>> uploadjson: %s: %s\n",key,content);
 
@@ -318,7 +318,7 @@ NCZ_createdict(NCZMAP* zmap, const char* key, NCjson** jsonp)
     /* See if it already exists */
     if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
     ifjson == NULL) {
-	if((stat = nczmap_def(zmap,key,NCZ_ISMETA))) goto done;	    
+	if((stat = nczmap_def(zmap,key,NCZ_ISMETA))) goto done;
     } else {
 	/* Already exists, fail */
 	stat = NC_EINVAL;
@@ -350,7 +350,7 @@ NCZ_createarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
 
     if((stat = NCZ_downloadjson(zmap,key,&json))) goto done;
     if(json == NULL) { /* create it */
-	if((stat = nczmap_def(zmap,key,NCZ_ISMETA))) goto done;	    
+	if((stat = nczmap_def(zmap,key,NCZ_ISMETA))) goto done;
         /* Create the initial array */
 	if((stat = NCJnew(NCJ_ARRAY,&json))) goto done;
     } else {
@@ -380,7 +380,7 @@ ncz_default_fill_value(nc_type nctype, const char** dfaltp)
 {
     if(nctype <= 0 || nctype > NC_MAX_ATOMIC_TYPE) return NC_EINVAL;
     if(dfaltp) *dfaltp = zfillvalue[nctype];
-    return NC_NOERR;	        
+    return NC_NOERR;
 }
 #endif
 
@@ -398,7 +398,7 @@ ncz_fill_value_sort(nc_type nctype, int* sortp)
 {
     if(nctype <= 0 || nctype > NC_MAX_ATOMIC_TYPE) return NC_EINVAL;
     if(sortp) *sortp = zjsonsort[nctype];
-    return NC_NOERR;	        
+    return NC_NOERR;
 }
 
 /*
@@ -422,7 +422,7 @@ NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, char dimsep, NC
     if((stat = nczmap_search(map,prefix,matches))) goto done;
     for(i=0;i<nclistlength(matches);i++) {
 	const char* name = nclistget(matches,i);
-	size_t namelen= strlen(name);	
+	size_t namelen= strlen(name);
 	/* Ignore keys that start with .z or .nc or a potential chunk name */
 	if(namelen >= 3 && name[0] == '.' && name[1] == 'n' && name[2] == 'c')
 	    continue;
@@ -484,7 +484,7 @@ ncz_nctype2dtype(nc_type nctype, int endianness, int purezarr, int len, char** d
         format = znames[nctype].nczarr[endianness];
     snprintf(dname,sizeof(dname),format,len);
     if(dnamep) *dnamep = strdup(dname);
-    return NC_NOERR;		
+    return NC_NOERR;
 }
 
 /*
@@ -693,7 +693,7 @@ NCZ_inferinttype(unsigned long long u64, int negative)
     if(i64 <= NC_MAX_UINT) return NC_UINT;
     return NC_INT64;
 }
- 
+
 /**
 @internal Similar to NCZ_grppath, but using group ids.
 @param gid - [in] group id
@@ -709,7 +709,7 @@ NCZ_grpname_full(int gid, char** pathp)
     char* path = NULL;
 
     if((stat = nc_inq_grpname_full(gid,&len,NULL))) return stat;
-    if((path=malloc(len+1)) == NULL) return NC_ENOMEM;    
+    if((path=malloc(len+1)) == NULL) return NC_ENOMEM;
     if((stat = nc_inq_grpname_full(gid,&len,path))) return stat;
     path[len] = '\0'; /* ensure null terminated */
     if(pathp) {*pathp = path; path = NULL;}
@@ -878,13 +878,13 @@ NCZ_chunkpath(struct ChunkKey key)
 {
     size_t plen = nulllen(key.varkey)+1+nulllen(key.chunkkey);
     char* path = (char*)malloc(plen+1);
-    
+
     if(path == NULL) return NULL;
     path[0] = '\0';
     strlcat(path,key.varkey,plen+1);
     strlcat(path,"/",plen+1);
     strlcat(path,key.chunkkey,plen+1);
-    return path;    
+    return path;
 }
 
 int
@@ -955,7 +955,7 @@ NCZ_fixed2char(const void* fixed, char** charp, size_t count, int maxstrlen)
 	    sp = NULL;
 	} else {
 	    if((sp = (unsigned char*)malloc((size_t)maxstrlen+1))==NULL) /* ensure null terminated */
-	        return NC_ENOMEM; 
+	        return NC_ENOMEM;
 	    memcpy(sp,p,(size_t)maxstrlen);
 	    sp[maxstrlen] = '\0';
 	}
@@ -990,7 +990,7 @@ Wrap NC_copy_data, but take string value into account when overwriting
 int
 NCZ_copy_data(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const void* memory, size_t count, int reading, void* copy)
 {
-    int stat = NC_NOERR;    
+    int stat = NC_NOERR;
     NC_TYPE_INFO_T* xtype = var->type_info;
     if(xtype->hdr.id == NC_STRING && !reading) {
 	size_t i;

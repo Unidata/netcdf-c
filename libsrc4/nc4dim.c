@@ -123,14 +123,14 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
 	if(lastname == norm_name)
 	    {retval = NC_EINVAL; goto done;}
 	*lastname++ = '\0'; /* break off the lastsegment */
-	if((retval = NC4_inq_grp_full_ncid(rootncid,norm_name,&parent))) 
+	if((retval = NC4_inq_grp_full_ncid(rootncid,norm_name,&parent)))
 	    goto done;
 	/* Get parent info */
 	if((retval=nc4_find_nc4_grp(parent,&grp)))
 	    goto done;
 	/* See if dim exists in this group */
         dim = (NC_DIM_INFO_T*)ncindexlookup(grp->dim,lastname);
-	if(dim == NULL) 	
+	if(dim == NULL)
 	    {retval = NC_EBADTYPE; goto done;}
 	goto done;
     }

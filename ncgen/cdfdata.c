@@ -193,7 +193,7 @@ genbin_primdata(Symbol* basetype, Datasrc* src, Datalist* fillsrc,
     prim = srcnext(src);
 
     if(prim == NULL || prim->nctype == NC_FILLVALUE) {
-	genbin_fillvalue(basetype,fillsrc,src,memory);	
+	genbin_fillvalue(basetype,fillsrc,src,memory);
 	return;
     }
 
@@ -205,7 +205,7 @@ genbin_primdata(Symbol* basetype, Datasrc* src, Datalist* fillsrc,
 	nc_getfill(&target);
 	/* fall thru*/
 #else
-	return;	
+	return;
 #endif
     }
 

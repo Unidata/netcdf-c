@@ -23,7 +23,7 @@
 /* This function is called when there is an overflow in a read/write
  * operation. Pass the fill value in as user_data. */
 H5T_conv_ret_t
-except_func(int except_type, hid_t src_id, hid_t dst_id, 
+except_func(int except_type, hid_t src_id, hid_t dst_id,
 	    void *src_buf, void *dst_buf, void *user_data);
 
 int
@@ -49,7 +49,7 @@ main()
    printf("*** creating test file...");
 
    /* Open file and create group. */
-   if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+   if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			   H5P_DEFAULT)) < 0) ERR;
    if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
 
@@ -65,28 +65,28 @@ main()
     * cause overflows. */
    dims[0] = DIM1_LEN;
    if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-   if ((datasetid = H5Dcreate1(grpid, INT_VAR_NAME, H5T_NATIVE_INT, 
+   if ((datasetid = H5Dcreate1(grpid, INT_VAR_NAME, H5T_NATIVE_INT,
 			      spaceid, H5P_DEFAULT)) < 0) ERR;
-   if ((schar_datasetid = H5Dcreate1(grpid, SCHAR_VAR_NAME, H5T_NATIVE_SCHAR, 
+   if ((schar_datasetid = H5Dcreate1(grpid, SCHAR_VAR_NAME, H5T_NATIVE_SCHAR,
 				    spaceid, H5P_DEFAULT)) < 0) ERR;
-   if ((double_datasetid = H5Dcreate1(grpid, DOUBLE_VAR_NAME, H5T_NATIVE_DOUBLE, 
+   if ((double_datasetid = H5Dcreate1(grpid, DOUBLE_VAR_NAME, H5T_NATIVE_DOUBLE,
 				    spaceid, H5P_DEFAULT)) < 0) ERR;
-   if ((float_datasetid = H5Dcreate1(grpid, FLOAT_VAR_NAME, H5T_NATIVE_FLOAT, 
+   if ((float_datasetid = H5Dcreate1(grpid, FLOAT_VAR_NAME, H5T_NATIVE_FLOAT,
 				    spaceid, H5P_DEFAULT)) < 0) ERR;
-   if (H5Dwrite(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, xfer_plistid, 
+   if (H5Dwrite(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, xfer_plistid,
 		int_data_out) < 0) ERR;
-   if (H5Dwrite(schar_datasetid, H5T_NATIVE_UCHAR, H5S_ALL, H5S_ALL, 
+   if (H5Dwrite(schar_datasetid, H5T_NATIVE_UCHAR, H5S_ALL, H5S_ALL,
 		xfer_plistid, uchar_data_out) < 0) ERR;
-/*   if (H5Dwrite(double_datasetid, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, 
+/*   if (H5Dwrite(double_datasetid, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL,
      xfer_plistid, double_data_out) < 0) ERR;*/
-   if (H5Dwrite(float_datasetid, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, 
+   if (H5Dwrite(float_datasetid, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL,
 		xfer_plistid, float_data_out) < 0) ERR;
 
    /* This should have produced 2 overflows. */
    if (overflow_count != 2) ERR;
    overflow_count = 0;
 
-   if (H5Dwrite(schar_datasetid, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, 
+   if (H5Dwrite(schar_datasetid, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL,
 		xfer_plistid, double_data_out3) < 0) ERR;
    /* This should have produced 0 overflows. */
    if (overflow_count != 0) ERR;
@@ -106,7 +106,7 @@ main()
     * rules). */
    printf("*** reading int dataset as floats...");
    if ((datasetid = H5Dopen1(grpid, INT_VAR_NAME)) < 0) ERR;
-   if (H5Dread(datasetid, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, 
+   if (H5Dread(datasetid, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL,
 	       H5P_DEFAULT, float_data_in) < 0) ERR;
    if (H5Dclose(datasetid) < 0) ERR;
    for (i=0; i<DIM1_LEN; i++)
@@ -122,7 +122,7 @@ main()
     * dataset into an array of uchar. */
    printf("*** reading float dataset as uchars...");
    if ((datasetid = H5Dopen1(grpid, FLOAT_VAR_NAME)) < 0) ERR;
-   if (H5Dread(datasetid, H5T_NATIVE_UCHAR, H5S_ALL, H5S_ALL, 
+   if (H5Dread(datasetid, H5T_NATIVE_UCHAR, H5S_ALL, H5S_ALL,
 	       xfer_plistid, uchar_data_in) < 0) ERR;
    if (H5Dclose(datasetid) < 0) ERR;
 
@@ -140,7 +140,7 @@ main()
     * generate three exceptions. */
    printf("*** writing out of range doubles to int dataset...");
    if ((datasetid = H5Dopen1(grpid, INT_VAR_NAME)) < 0) ERR;
-   if (H5Dwrite(datasetid, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, 
+   if (H5Dwrite(datasetid, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL,
 	       xfer_plistid, double_data_out2) < 0) ERR;
    if (H5Dclose(datasetid) < 0) ERR;
 
@@ -152,7 +152,7 @@ main()
    /* Now write three out of range floats to the int. */
    printf("*** writing out of range floats to int dataset...");
    if ((datasetid = H5Dopen1(grpid, INT_VAR_NAME)) < 0) ERR;
-   if (H5Dwrite(datasetid, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, 
+   if (H5Dwrite(datasetid, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL,
 	       xfer_plistid, float_data_out2) < 0) ERR;
    if (H5Dclose(datasetid) < 0) ERR;
 
@@ -162,17 +162,17 @@ main()
 
    /* Reread the data and display it. */
    if ((datasetid = H5Dopen1(grpid, INT_VAR_NAME)) < 0) ERR;
-   if (H5Dread(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, 
+   if (H5Dread(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
 	       H5P_DEFAULT, int_data_in) < 0) ERR;
    if (H5Dclose(datasetid) < 0) ERR;
-   
+
    SUMMARIZE_ERR;
    overflow_count = 0;
 
    /* Now try some doubles. */
    printf("*** writing doubles...");
    if ((datasetid = H5Dopen1(grpid, DOUBLE_VAR_NAME)) < 0) ERR;
-   if (H5Dwrite(datasetid, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, 
+   if (H5Dwrite(datasetid, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL,
 	       xfer_plistid, double_data_out3) < 0) ERR;
    if (H5Dclose(datasetid) < 0) ERR;
 
@@ -182,10 +182,10 @@ main()
 
    /* Reread the data. */
    if ((datasetid = H5Dopen1(grpid, INT_VAR_NAME)) < 0) ERR;
-   if (H5Dread(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, 
+   if (H5Dread(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL,
 	       H5P_DEFAULT, int_data_in) < 0) ERR;
    if (H5Dclose(datasetid) < 0) ERR;
-   
+
    /* Close up shop. */
    if (H5Fclose(fileid) < 0 ||
        H5Gclose(grpid) < 0) ERR;
@@ -198,7 +198,7 @@ main()
 /* This function is called when there is an overflow in a read/write
  * operation. Pass the fill value in as user_data. */
 H5T_conv_ret_t
-except_func(int except_type, hid_t src_id, hid_t dst_id, 
+except_func(int except_type, hid_t src_id, hid_t dst_id,
 	    void *src_buf, void *dst_buf, void *user_data)
 {
    /*printf("except_func: except_type %d\n", except_type);*/
@@ -243,7 +243,7 @@ except_func(int except_type, hid_t src_id, hid_t dst_id,
 	 {
 	    printf("Unknown type!\n");
 	    return H5T_CONV_UNHANDLED;
-	 }	 
+	 }
       }
       else if (H5Tequal(dst_id, H5T_STD_U8BE) ||
 	       H5Tequal(dst_id, H5T_STD_U8LE) > 0)
@@ -282,7 +282,7 @@ except_func(int except_type, hid_t src_id, hid_t dst_id,
 	 {
 	    printf("Unknown type!\n");
 	    return H5T_CONV_UNHANDLED;
-	 }	 
+	 }
       }
       else if (H5Tequal(dst_id, H5T_STD_I16BE) > 0 ||
 	       H5Tequal(dst_id, H5T_STD_I16LE) > 0)
@@ -321,7 +321,7 @@ except_func(int except_type, hid_t src_id, hid_t dst_id,
 	 {
 	    printf("Unknown type!\n");
 	    return H5T_CONV_UNHANDLED;
-	 }	 
+	 }
       }
       else if (H5Tequal(dst_id, H5T_STD_U16BE) ||
 	       H5Tequal(dst_id, H5T_STD_U16LE) > 0)
@@ -360,7 +360,7 @@ except_func(int except_type, hid_t src_id, hid_t dst_id,
 	 {
 	    printf("Unknown type!\n");
 	    return H5T_CONV_UNHANDLED;
-	 }	 
+	 }
       }
       else if (H5Tequal(dst_id, H5T_STD_I32BE) > 0 ||
 	       H5Tequal(dst_id, H5T_STD_I32LE) > 0)
@@ -399,7 +399,7 @@ except_func(int except_type, hid_t src_id, hid_t dst_id,
 	 {
 	    printf("Unknown type!\n");
 	    return H5T_CONV_UNHANDLED;
-	 }	 
+	 }
       }
       else if (H5Tequal(dst_id, H5T_STD_U32BE) ||
 	       H5Tequal(dst_id, H5T_STD_U32LE) > 0)
@@ -438,7 +438,7 @@ except_func(int except_type, hid_t src_id, hid_t dst_id,
 	 {
 	    printf("Unknown type!\n");
 	    return H5T_CONV_UNHANDLED;
-	 }	 
+	 }
       }
       else if (H5Tequal(dst_id, H5T_STD_I64BE) > 0 ||
 	       H5Tequal(dst_id, H5T_STD_I64LE) > 0)
@@ -477,7 +477,7 @@ except_func(int except_type, hid_t src_id, hid_t dst_id,
 	 {
 	    printf("Unknown type!\n");
 	    return H5T_CONV_UNHANDLED;
-	 }	 
+	 }
       }
       else if (H5Tequal(dst_id, H5T_STD_U64BE) ||
 	       H5Tequal(dst_id, H5T_STD_U64LE) > 0)
@@ -516,7 +516,7 @@ except_func(int except_type, hid_t src_id, hid_t dst_id,
 	 {
 	    printf("Unknown type!\n");
 	    return H5T_CONV_UNHANDLED;
-	 }	 
+	 }
       }
       else if (H5Tequal(dst_id, H5T_IEEE_F32BE) > 0 ||
 	       H5Tequal(dst_id, H5T_IEEE_F32LE) > 0)
@@ -555,7 +555,7 @@ except_func(int except_type, hid_t src_id, hid_t dst_id,
 	 {
 	    printf("Unknown type!\n");
 	    return H5T_CONV_UNHANDLED;
-	 }	 
+	 }
       }
       else if (H5Tequal(dst_id, H5T_IEEE_F64BE) ||
 	       H5Tequal(dst_id, H5T_IEEE_F64LE) > 0)
@@ -600,7 +600,7 @@ except_func(int except_type, hid_t src_id, hid_t dst_id,
       {
 	 printf("Unknown type!\n");
 	 return H5T_CONV_UNHANDLED;
-      }	 
+      }
 
       (*(int *)user_data)++;
       return H5T_CONV_HANDLED;

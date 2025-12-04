@@ -77,7 +77,7 @@ static int NCZ_misc_codec_to_hdf5(const char* codec, size_t* nparamsp, unsigned*
 static int NCZ_misc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp);
 
 /* Structure for NCZ_PLUGIN_CODEC */
-static NCZ_codec_t NCZ_misc_codec = {/* NCZ_codec_t  codec fields */ 
+static NCZ_codec_t NCZ_misc_codec = {/* NCZ_codec_t  codec fields */
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
   "test",	        /* Standard name/id of the codec */
@@ -118,7 +118,7 @@ NCZ_misc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
 	{stat = NC_EFILTER; goto done;}
     if(jtmp == NULL || !NCJisatomic(jtmp)) {stat = NC_EINVAL; goto done;}
     if(strcmp(NCJstring(jtmp),NCZ_misc_codec.codecid)!=0) {stat = NC_EINVAL; goto done;}
-  
+
     /* The codec will have (2*14 + 1) +1 = 29 dict entries + id*/
     nparams = (2*14 + 1) + 1;
     if(NCJarraylength(jcodec) != nparams) {
@@ -126,7 +126,7 @@ NCZ_misc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
 	stat = NC_EINVAL;
 	goto done;
     }
-    
+
     /* Actual # of parameters is 14 (ignoring the testcase number) */
     nparams = 14;
     if((params = (unsigned*)calloc(nparams,sizeof(unsigned)))== NULL)
@@ -143,7 +143,7 @@ NCZ_misc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** para
     }
     if(nparamsp) *nparamsp = nparams;
     if(paramsp) {*paramsp = params; params = NULL;}
-    
+
 done:
     if(params) free(params);
     NCJreclaim(jcodec);
@@ -173,7 +173,7 @@ NCZ_misc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }
-    
+
 done:
     return stat;
 }

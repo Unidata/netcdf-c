@@ -398,7 +398,7 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
         else
             return NC_EINVAL;
     }
-    
+
     return NC_NOERR;
 }
 
@@ -513,14 +513,14 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 	if(lastname == norm_name)
 	    {retval = NC_EINVAL; goto done;}
 	*lastname++ = '\0'; /* break off the lastsegment */
-	if((retval = NC4_inq_grp_full_ncid(rootncid,norm_name,&parent))) 
+	if((retval = NC4_inq_grp_full_ncid(rootncid,norm_name,&parent)))
 	    goto done;
 	/* Get parent info */
 	if((retval=nc4_find_nc4_grp(parent,&grp)))
 	    goto done;
 	/* See if type exists in this group */
         type = (NC_TYPE_INFO_T*)ncindexlookup(grp->type,lastname);
-	if(type == NULL) 	
+	if(type == NULL)
 	    {retval = NC_EBADTYPE; goto done;}
 	goto done;
     }
@@ -638,7 +638,7 @@ exit:
 int
 NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* fixedsizep)
 {
-    int stat = NC_NOERR;   
+    int stat = NC_NOERR;
     int f = 0;
     NC_FILE_INFO_T* h5 = NULL;
     NC_TYPE_INFO_T* typ = NULL;
@@ -684,7 +684,7 @@ NC4_recheck_varsize(NC_TYPE_INFO_T* parenttype, nc_type subtype)
     case NC_VLEN: parenttype->varsized = 1; break;
     case NC_COMPOUND: if(utype->varsized) parenttype->varsized = 1; break;
     }
-    
+
 done:
     return stat;
 }
@@ -718,7 +718,7 @@ int
 NC4_var_varsized(NC_VAR_INFO_T* var)
 {
     NC_TYPE_INFO_T* vtype = NULL;
-    
+
     /* Check the variable type */
     vtype = var->type_info;
     if(vtype->hdr.id < NC_STRING) return 0;

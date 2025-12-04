@@ -39,7 +39,7 @@ main(int argc, char** argv)
 	buf = ncbytesnew();
 
 	if((ret = nc_open(filename,NC_NETCDF4,&ncid))) goto fail;
-		
+
 	ret = NC4print(buf,ncid);
 	ncbytesnull(buf);
 	fprintf(stderr,"========== %s ==========\n",filename);

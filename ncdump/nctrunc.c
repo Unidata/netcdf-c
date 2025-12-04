@@ -38,7 +38,7 @@ main(int argc, char** argv)
     for(i=(red-1);i>=0;i--) {
 	if(buffer[i] != '\0') {
 	    trunc = i + 1;
-	    break;	    
+	    break;
 	}
     }
     p = buffer;
@@ -48,7 +48,7 @@ main(int argc, char** argv)
 	if(count == 0) break;
 	p += count;
 	avail -= count;
-	if(avail == 0) break;	
+	if(avail == 0) break;
     }
     if(avail > 0)
         exit(1);

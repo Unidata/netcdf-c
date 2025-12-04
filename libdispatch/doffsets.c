@@ -55,10 +55,10 @@ typedef struct nc_vlen_t {
 #define	NC_UINT64 	11	/* unsigned 8-byte int */
 #define	NC_STRING 	12	/* string */
 #define	NC_STRING 	12	/* string */
-#define	NC_VLEN 	13	
-#define	NC_OPAQUE 	14	
-#define	NC_ENUM 	15	
-#define	NC_COMPOUND 	16	
+#define	NC_VLEN 	13
+#define	NC_OPAQUE 	14
+#define	NC_ENUM 	15
+#define	NC_COMPOUND 	16
 #endif
 
 #include        "netcdf.h"
@@ -169,7 +169,7 @@ NC_compute_alignments(void)
 
     /* Then the vector*/
     COMP_ALIGNMENT(vec[NC_CHARINDEX],char);
-    COMP_ALIGNMENT(vec[NC_UCHARINDEX],unsigned char); 
+    COMP_ALIGNMENT(vec[NC_UCHARINDEX],unsigned char);
     COMP_ALIGNMENT(vec[NC_SHORTINDEX],short);
     COMP_ALIGNMENT(vec[NC_USHORTINDEX],unsigned short);
     COMP_ALIGNMENT(vec[NC_INTINDEX],int);

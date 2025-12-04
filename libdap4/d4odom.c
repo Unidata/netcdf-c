@@ -57,7 +57,7 @@ d4odom_new(size_t rank,
 	odom->stride[i] = istride;
 	odom->declsize[i] = ideclsize;
 	odom->index[i] = odom->start[i];
-    }    
+    }
     return odom;
 }
 
@@ -83,7 +83,7 @@ d4odom_print(D4odometer* odom)
 		(size_t)odom->start[i],
 		(size_t)odom->stride[i],
 		(size_t)odom->length[i]);
-	strlcat(line,tmp,sizeof(line));	
+	strlcat(line,tmp,sizeof(line));
     }
     return line;
 }
@@ -122,7 +122,7 @@ d4odom_offset(D4odometer* odom)
     for(i=0;i<odom->rank;i++) {
 	offset *= odom->declsize[i];
 	offset += odom->index[i];
-    } 
+    }
     return offset;
 }
 

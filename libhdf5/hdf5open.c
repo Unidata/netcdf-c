@@ -312,7 +312,7 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     /* There is a hidden attribute telling us the ids of the
      * dimensions that apply to this multi-dimensional coordinate
      * variable. Read it. */
-    if ((coord_attid = H5Aopen_by_name(hdf5_var->hdf_datasetid, ".", COORDINATES, 
+    if ((coord_attid = H5Aopen_by_name(hdf5_var->hdf_datasetid, ".", COORDINATES,
                                        H5P_DEFAULT, H5P_DEFAULT)) < 0)
         BAIL(NC_EATTMETA);
 
@@ -891,7 +891,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	    const char* awssecretkey0 = NULL;
 	    const char* profile0 = NULL;
 	    int iss3 = NC_iss3(h5->uri,NULL);
-	    
+
             fa.version = H5FD_CURR_ROS3_FAPL_T_VERSION;
 	    fa.authenticate = (hbool_t)0;
 	    fa.aws_region[0] = '\0';
@@ -911,9 +911,9 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	        if((retval = NC_getactives3profile(h5->uri,&profile0)))
 		    BAIL(retval);
    	        if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
-		    BAIL(retval);		
+		    BAIL(retval);
 		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
-		    BAIL(retval);		
+		    BAIL(retval);
 		if(s3.region == NULL)
 		    s3.region = strdup(AWS_GLOBAL_DEFAULT_REGION);
 	        if(awsaccessid0 == NULL || awssecretkey0 == NULL ) {
@@ -1136,7 +1136,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
                 /* fix up the parameters and the #params */
 		if(cd_nelems != 4)
 		    {stat = NC_EHDFERR; goto done;}
-		cd_nelems = 2; /* ignore last two */		
+		cd_nelems = 2; /* ignore last two */
 		/* Fix up changed params */
 		cd_values[0] &= (H5_SZIP_ALL_MASKS);
 		/* Save info */
@@ -1251,7 +1251,7 @@ static int get_quantize_info(NC_VAR_INFO_T *var)
 	      var->quantize_mode = NC_QUANTIZE_BITROUND;
 	  }
       }
-    
+
     /* If there is an attribute, read it for the nsd. */
     if (attid > 0)
     {
@@ -1614,7 +1614,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     var->type_info->rc++;
 
     /* Transfer endianness */
-    var->endianness = var->type_info->endianness; 
+    var->endianness = var->type_info->endianness;
 
 exit:
     if (finalname)
@@ -1991,7 +1991,7 @@ hdf5free(void* memory)
 static int
 read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 {
-    NC_FILE_INFO_T *h5 = NULL; 
+    NC_FILE_INFO_T *h5 = NULL;
     NC_TYPE_INFO_T *type = NULL;
     NC_HDF5_FILE_INFO_T *hdf5_info = NULL;
     NC_HDF5_TYPE_INFO_T *hdf5_type = NULL;
@@ -2215,7 +2215,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 
         type->nc_type_class = NC_ENUM;
         if((retval = NC4_set_varsize(type))) return retval;
-	
+
         /* Find the base type of this enum (i.e. what is this a
          * enum of?) */
         if (!(base_hdf_typeid = H5Tget_super(hdf_typeid)))
@@ -2932,7 +2932,7 @@ nc4_H5Fopen(const char *filename0, unsigned flags, hid_t fapl_id)
 
 #ifdef HDF5_UTF8_PATHS
     NCpath2utf8(filename0,&filename);
-#else    
+#else
     filename = strdup(filename0);
 #endif
     if((localname = NCpathcvt(filename))==NULL)

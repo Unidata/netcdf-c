@@ -38,7 +38,7 @@ getmountpoint(char* keyvalue, size_t size)
     const LPCSTR rpath = "SOFTWARE\\Cygwin\\setup\\";
     const LPCSTR leaf = "rootdir";
     HKEY key;
-	
+
     if(size == 0 || keyvalue == NULL)
 	return -1;
 

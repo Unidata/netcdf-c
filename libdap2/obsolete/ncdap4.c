@@ -55,7 +55,7 @@ NCD4_new_nc(NC** ncpp)
 {
     NCDAP4* ncp;
     /* Allocate memory for this info. */
-    if (!(ncp = calloc(1, sizeof(struct NCDAP4)))) 
+    if (!(ncp = calloc(1, sizeof(struct NCDAP4))))
        return NC_ENOMEM;
     if(ncpp) *ncpp = (NC*)ncp;
     return NC_NOERR;
@@ -125,7 +125,7 @@ NCD4_open(const char * path, int mode,
     /* set the compile flag by default */
     modifiedpath = (char*)emalloc(strlen(path)+strlen("[compile]")+1);
     strcpy(modifiedpath,"[compile]");
-    strcat(modifiedpath,path);    
+    strcat(modifiedpath,path);
 #else
 #endif
 
@@ -324,7 +324,7 @@ NCD4_abort(int ncid)
 
     LOG((1, "nc_abort: ncid 0x%x", ncid));
 
-    ncstat = NC_check_id(ncid, (NC**)&drno); 
+    ncstat = NC_check_id(ncid, (NC**)&drno);
     if(ncstat != NC_NOERR) return THROW(ncstat);
 
     dapcomm = (NCDAPCOMMON*)drno->dispatchdata;
@@ -409,7 +409,7 @@ builddims4(NCDAPCOMMON* dapcomm)
 	if(!swap) break;
     }
 
-    /* Define unlimited only if needed */ 
+    /* Define unlimited only if needed */
     if(dapcomm->cdf.recorddim != NULL) {
 	CDFnode* unlimited = dapcomm->cdf.recorddim;
         ncstat = nc_def_dim(drno->substrate,
@@ -577,7 +577,7 @@ buildvars4(NCDAPCOMMON* dapcomm)
                 CDFnode* dim = (CDFnode*)nclistget(vardims,j);
                 dimids[dimindex++] = dim->ncid;
  	    }
-        }   
+        }
 	setvarbasetype(dapcomm,var);
 	ASSERT((var->typeid > 0));
 
@@ -612,7 +612,7 @@ fprintf(stderr,"\n");
 	if(paramcheck34(dapcomm,"show","projection"))
 	    showprojection4(dapcomm,var);
     }
-    
+
 done:
     return THROW(ncstat);
 }
@@ -708,7 +708,7 @@ showprojection4(NCDAPCOMMON* dapcomm, CDFnode* var)
 
     /* If this is not a true leaf variable, then ignore it */
     if(var->nctype == NC_Sequence) return NC_NOERR;
-    
+
     /* Collect the set of DDS node name forming the xpath */
     collectnodepath3(var,path,WITHOUTDATASET);
     for(i=0;i<nclistlength(path);i++) {
@@ -725,7 +725,7 @@ showprojection4(NCDAPCOMMON* dapcomm, CDFnode* var)
 	snprintf(tmp,sizeof(tmp),"%lu",(unsigned long)dim->dim.declsize);
 	ncbytescat(projection,tmp);
 	ncbytescat(projection,"]");
-    }    
+    }
     /* Define the attribute */
     ncstat = nc_put_att_text(drno->substrate,var->ncid,
                                "_projection",
@@ -846,7 +846,7 @@ fixzerodims4r(NCDAPCOMMON* dapcomm, CDFnode* node)
 	    }
 	}
     }
-    /* walk the subnodes */    
+    /* walk the subnodes */
     for(i=0;i<nclistlength(node->subnodes);i++) {
 	CDFnode* subnode = (CDFnode*)nclistget(node->subnodes,i);
 	ncstat = fixzerodims4r(dapcomm,subnode);

@@ -34,7 +34,7 @@ main(int argc, const char * argv[])
     nc_vlen_t vlenPointers[4];
     nc_vlen_t* readVlenPointers;
     int i;
-    
+
 #ifdef AFIRST
     size_t start[2] = {1, 0};
     size_t count[2] = {2, 2};
@@ -44,28 +44,28 @@ main(int argc, const char * argv[])
 #endif
 
     // set up data
-     
+
     vlenPointers[0].len = 1; vlenPointers[0].p = "a";
     vlenPointers[1].len = 2; vlenPointers[1].p = "aa";
     vlenPointers[2].len = 1; vlenPointers[2].p = "b";
     vlenPointers[3].len = 2; vlenPointers[3].p = "bb";
 
     // -- WRITE --
-    
+
     retval = nc_create(FILE, NC_NETCDF4, &ncid);
     checkErrorCode(retval, "nc_create");
-    
+
     // Define dimensions
     retval = nc_def_dim(ncid, "a", NC_UNLIMITED, &dimid_a);
     checkErrorCode(retval, "nc_def_dim for 'a'");
-    
+
     retval = nc_def_dim(ncid, "b", 4, &dimid_b);
     checkErrorCode(retval, "nc_def_dim for 'b'");
 
     /* Define VLEN type */
     retval = nc_def_vlen(ncid,"str",NC_CHAR,&typeid);
     checkErrorCode(retval, "nc_def_vlen");
-    
+
     // Define variable
 #ifdef AFIRST
     dimids[0] = dimid_a;
@@ -76,7 +76,7 @@ main(int argc, const char * argv[])
 #endif
     retval = nc_def_var(ncid, "var", typeid, 2, dimids, &varid);
     checkErrorCode(retval, "nc_def_var");
-    
+
     // Put variable
 
     retval = nc_put_vars(ncid, varid, start, count, stride, vlenPointers);
@@ -85,11 +85,11 @@ main(int argc, const char * argv[])
 
     retval = nc_close(ncid);
     checkErrorCode(retval, "nc_close(1)");
-    
+
     // -- READ --
     retval = nc_open(FILE, NC_NOWRITE, &ncid);
     checkErrorCode(retval, "nc_open");
-    
+
     // get dimensions
     retval = nc_inq_var(ncid, varid, NULL, NULL, &ndims, dimids_read, NULL);
     checkErrorCode(retval, "nc_inq_var");
@@ -102,7 +102,7 @@ main(int argc, const char * argv[])
         checkErrorCode(retval, "nc_inq_dimlen");
         num_items *= dimlen;
     }
-    
+
     // get var
     readVlenPointers = (nc_vlen_t*)malloc(sizeof(nc_vlen_t)*num_items);
     retval = nc_get_var(ncid, varid, readVlenPointers);

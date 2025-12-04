@@ -126,7 +126,7 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid,
 
     *maxlen = 0;
 
-    LOG((3, "find_var_dim_max_length varid %d dimid %d", varid, dimid));    
+    LOG((3, "find_var_dim_max_length varid %d dimid %d", varid, dimid));
 
     /* Find this var. */
     var = (NC_VAR_INFO_T*)ncindexith(grp->vars, (size_t)varid);
@@ -580,7 +580,7 @@ nc4_HDF5_close_att(NC_ATT_INFO_T *att)
             return NC_EHDFERR;
 
 	nullfree(hdf5_att);
-	att->format_att_info = NULL;	
+	att->format_att_info = NULL;
 	return NC_NOERR;
 }
 
@@ -630,7 +630,7 @@ close_vars(NC_GRP_INFO_T *grp)
         if (var->type_info->rc == 1)
         {
 	    if(var->type_info->hdr.id <= NC_STRING)
-		/* This was a constructed atomic type; free its info */ 
+		/* This was a constructed atomic type; free its info */
 		nc4_HDF5_close_type(var->type_info);
         }
 
@@ -980,7 +980,7 @@ nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
     hid_t plistid;
     double dpreemption;
     int retval;
-    
+
     /* Find info for this file, group, and h5 info. */
     if ((retval = nc4_find_nc_grp_h5(ncid, NULL, NULL, &h5)))
         return retval;
@@ -1048,7 +1048,7 @@ nc_log_hdf5(void)
 #ifdef _WIN32
 
 /**
- * Converts the filename from ANSI to UTF-8 if HDF5 >= 1.10.6. 
+ * Converts the filename from ANSI to UTF-8 if HDF5 >= 1.10.6.
  * nc4_hdf5_free_pathbuf must be called to free pb.
  *
  * @param pb Pointer that conversion information is stored.

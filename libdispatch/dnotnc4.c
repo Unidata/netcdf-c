@@ -2,7 +2,7 @@
  * and redistribution conditions.*/
 /**
  * @file
- * @internal This file contains functions that 
+ * @internal This file contains functions that
  * can be used in dispatch tables to handle
  * such things as unimplemented functions.
  * As a rule, these functions will return NC_ENOTNC4.

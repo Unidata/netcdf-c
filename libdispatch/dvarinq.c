@@ -255,8 +255,8 @@ nc_inq_varnatts(int ncid, int varid, int *nattsp)
 		     nattsp);
 }
 
-/** 
-\ingroup variables 
+/**
+\ingroup variables
 
 Learn the shuffle and deflate settings for a variable.
 
@@ -299,7 +299,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
    unsigned int params[4];
    int deflating = 0;
    int stat;
-   
+
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
    TRACE(nc_inq_var_deflate);
@@ -549,7 +549,7 @@ nc_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp)
 
    if(stat != NC_NOERR) return stat;
    TRACE(nc_inq_var_quantize);
-   
+
    /* Using NC_GLOBAL is illegal. */
    if (varid == NC_GLOBAL) return NC_EGLOBAL;
 
@@ -690,7 +690,7 @@ Learn the szip settings of a variable.
 This function returns the szip settings for a variable. To turn on
 szip compression, use nc_def_var_szip(). Szip compression is only
 available for netCDF/HDF5 files, and only if HDF5 was built with szip
-support. 
+support.
 
 If a variable is not using szip, or if this function is called on a
 file that is not a HDF5 file, then a zero will be passed back for both
@@ -755,7 +755,7 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
        params[0] = 0;
        params[1] = 0;
        stat = NC_NOERR;
-       break;	   
+       break;
    default:
    	return stat;
    }

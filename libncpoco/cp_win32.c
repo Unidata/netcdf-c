@@ -98,7 +98,7 @@ load(NCPSharedLib* lib , const char* path0, int flags)
     lib->path = nulldup(path);
     lib->flags = flags;
     if(isAbsolutePath(path)) realflags |= LOAD_WITH_ALTERED_SEARCH_PATH;
-    lib->state.flags = realflags;    
+    lib->state.flags = realflags;
     lib->state.handle = LoadLibraryExA(path, 0, realflags);
     if(lib->state.handle == NULL) {
 	int errcode = GetLastError();

@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
          if (nc_inq_type_equal(ncid1, classic_type[t], ncid3, classic_type[t], &equal)) ERR;
          if (!equal) ERR;
       }
-      
+
       for (t = 0; t < NUM_ENHANCED_TYPES; t++)
       {
          if (nc_inq_type_equal(ncid1, typeid1, ncid2, enhanced_type[t], &equal)) ERR;

@@ -76,7 +76,7 @@ parseurlmode(const char* modestr0, char** listp)
 	/* Null terminate each comma-separated string */
 	*endp++ = '\0';
 	p = endp;
-    } 
+    }
     if(listp) *listp = modestr;
     modestr = NULL;
 
@@ -111,11 +111,11 @@ url_getmodel(const char* modestr, NCmode* model)
 		    model->implementation = legal->implementation;
 	    }
         }
-    }	
+    }
 
 done:
     nullfree(args);
-    return stat;    
+    return stat;
 }
 
 /**************************************************/
@@ -160,8 +160,8 @@ NC_urlmodel(const char* path, int cmode, char** newurl, NCmode* model)
 	if(strcmp(name,"protocol")==0)
 	    name = value;
 	if(strcasecmp(name,"dap2") == 0) {
-	    model->format = NC_FORMAT_NC3;	    
-	    model->implementation = NC_FORMATX_DAP2;	    
+	    model->format = NC_FORMAT_NC3;
+	    model->implementation = NC_FORMATX_DAP2;
 	    /* No need to set iosp field */
 	} else if(strcasecmp(name,"dap4") == 0) {
 	    model->format = NC_FORMAT_NETCDF4;
@@ -180,24 +180,24 @@ NC_urlmodel(const char* path, int cmode, char** newurl, NCmode* model)
 	    model->implementation = NC_FORMATX_DAP2;
 	}
     }
-    
+
     if(model->implementation == 0) goto done; /* could not interpret */
     switch (model->implementation) {
     case NC_FORMATX_NC3:
 	model->format = NC_FORMAT_NC3;
-	break;	
+	break;
     case NC_FORMATX_NC4:
 	model->format = NC_FORMAT_NETCDF4;
-	break;	
+	break;
     case NC_FORMATX_DAP2:
 	model->format = NC_FORMAT_NC3;
-	break;	
+	break;
     case NC_FORMATX_DAP4:
 	model->format = NC_FORMAT_NETCDF4;
-	break;	
+	break;
     case NC_FORMATX_NCZARR:
 	model->format = NC_FORMAT_NETCDF4;
-	break;	
+	break;
     default:
 	stat = NC_EINVAL;
 	goto done;

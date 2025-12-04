@@ -56,7 +56,7 @@ main(int argc, char **argv)
        char name_in[NC_MAX_NAME + 1];
        size_t len;
        double pi = 3.1459, pi_in;
-       int i; 
+       int i;
 
        /* Create a netCDF netCDF-4/HDF5 format file, with 4 vars. */
 	snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE_NAME);
@@ -66,7 +66,7 @@ main(int argc, char **argv)
        chunksize[0] = MEGABYTE/DOUBLE_SIZE;
        for (i = 0; i < NUMVARS; i++)
        {
-	  if (nc_def_var(ncid, var_name[i], NC_DOUBLE, NUMDIMS, 
+	  if (nc_def_var(ncid, var_name[i], NC_DOUBLE, NUMDIMS,
 			 dimids, &varid[i])) ERR;
 	  if (nc_def_var_chunking(ncid, i, 0, chunksize)) ERR;
        }
@@ -74,7 +74,7 @@ main(int argc, char **argv)
        for (i = 0; i < NUMVARS; i++)
 	  if (nc_put_var1_double(ncid, i, index, &pi)) ERR;
        if (nc_close(ncid)) ERR;
-       
+
        /* Reopen and check the file. */
        if (nc_open(file_name, 0, &ncid)) ERR;
        if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -86,7 +86,7 @@ main(int argc, char **argv)
        for (i = 0; i < NUMVARS; i++)
        {
 	  if (nc_inq_var(ncid, i, name_in, &xtype, &ndims, dimids, &natts)) ERR;
-	  if (strcmp(name_in, var_name[i]) || xtype != NC_DOUBLE || ndims != 1 || 
+	  if (strcmp(name_in, var_name[i]) || xtype != NC_DOUBLE || ndims != 1 ||
 	      dimids[0] != 0 || natts != 0) ERR;
 	  if (nc_get_var1_double(ncid, i, index, &pi_in)) ERR;
 	  if (pi_in != pi) ERR;

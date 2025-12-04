@@ -46,7 +46,7 @@ usage(int err)
         fprintf(stderr," -v <int>[,<int>*]");
         fprintf(stderr," -x c|r|w");
         fprintf(stderr," <filename>");
-	fprintf(stderr,"\n");	
+	fprintf(stderr,"\n");
     fflush(stderr);
     exit(1);
 }
@@ -124,10 +124,10 @@ getoptions(int* argcp, char*** argvp)
 	        options->data = atoi(optarg);
 	    options->flags |= HAS_DATA;
 	    break;
-	case 'D': 
+	case 'D':
 	    options->debug = (unsigned)atoi(optarg);
 	    break;
-	case 'O': 
+	case 'O':
 	    for(p=optarg;*p;p++) {
 	        switch (*p) {
 	        case 'c': options->create = Create; break;
@@ -141,8 +141,8 @@ getoptions(int* argcp, char*** argvp)
 	    } break;
 	case 'T':
 	    nctracelevel(atoi(optarg));
-	    break;	
-	case 'X': 
+	    break;
+	case 'X':
 	    if(strcmp(optarg,"opt")==0) {
 	        options->optimize = 1;
             } else if(strncmp(optarg,"wd",2)==0) {
@@ -236,8 +236,8 @@ getoptions(int* argcp, char*** argvp)
         for(i=0;i<options->rank;i++)
             options->edges[i] = ((options->stop[i]+(options->stride[i]-1)) / (options->stride[i]));
 	options->flags |= HAS_EDGES;
-    }	
-    
+    }
+
     if(  !(options->flags & HAS_MAX)
        && (options->flags & HAS_STOP)) {
         for(i=0;i<NC_MAX_VAR_DIMS;i++) {options->max[i] = options->stop[i];}
@@ -349,7 +349,7 @@ getmetadata(int create)
 	    options->flags |= HAS_CHUNKS;
 	}
     }
-    
+
 done:
     return ret;
 }
@@ -511,11 +511,11 @@ odom_print1(Odometer* odom, int isshort)
     static char s[4096];
     static char tmp[4096];
     const char* sv;
-    
+
     s[0] = '\0';
     strcat(s,"{");
     if(!isshort) {
-        snprintf(tmp,sizeof(tmp),"rank=%u",(unsigned)odom->rank); strcat(s,tmp);    
+        snprintf(tmp,sizeof(tmp),"rank=%u",(unsigned)odom->rank); strcat(s,tmp);
         strcat(s," start=("); sv = printvector(odom->rank,odom->start); strcat(s,sv); strcat(s,")");
         strcat(s," stop=("); sv = printvector(odom->rank,odom->stop); strcat(s,sv); strcat(s,")");
         strcat(s," stride=("); sv = printvector(odom->rank,odom->stride); strcat(s,sv); strcat(s,")");

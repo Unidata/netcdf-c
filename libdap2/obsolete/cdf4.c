@@ -21,7 +21,7 @@ NCerror
 computecdfnodesets4(NCDAPCOMMON* nccomm)
 {
     unsigned int i;
-    NClist* varnodes = nclistnew(); 
+    NClist* varnodes = nclistnew();
     NClist* allnodes = nccomm->cdf.ddsroot->tree->nodes;
 
     if(nccomm->cdf.seqnodes == NULL) nccomm->cdf.seqnodes = nclistnew();
@@ -54,7 +54,7 @@ computecdfnodesets4(NCDAPCOMMON* nccomm)
 The variables for a DAP->netcdf-4 translation are defined by
 the top-level objects in the DAP tree.
 Grids and Structures are converted to netcdf-4
-structures. Sequences are converted to vlens. 
+structures. Sequences are converted to vlens.
 One exception about Sequences. If a sequence
 with a single primitive field exists, then that field
 aliases the sequence, although the var node is still
@@ -94,7 +94,7 @@ fixgrids4(NCDAPCOMMON* nccomm)
     /* fix the dimensions of all grids (also collect top-level grids)*/
     for(i=0;i<nclistlength(gridnodes);i++) {
         CDFnode* grid = (CDFnode*)nclistget(gridnodes,i);
-        if(daptoplevel(grid)) nclistpush(topgrids,(ncelem)grid);	    
+        if(daptoplevel(grid)) nclistpush(topgrids,(ncelem)grid);
 	(void)fixgrid34(nccomm,grid); /* Ignore mal-formed grids */
     }
 
@@ -111,7 +111,7 @@ computetypenames4(NCDAPCOMMON* nccomm, CDFnode* tnode)
     if(tnode->nctype == NC_Primitive) {
 	/* Use the field name directly as its type field name */
 	ASSERT((tnode->ncbasename != NULL));
-        if(tnode->typename != NULL) nullfree(tnode->typename);	
+        if(tnode->typename != NULL) nullfree(tnode->typename);
 	tnode->typename = nulldup(tnode->ncbasename);
 	return NC_NOERR;
     }
@@ -177,8 +177,8 @@ computetypesizes4(NCDAPCOMMON* nccomm, CDFnode* tnode)
 fprintf(stderr,"computesize: struct=%s:\n",tnode->name);
 #endif
 	/* Alignment of a struct is that of its most stringent field */
-	maxalign = 0; 
-        /* Recurse on each field */	
+	maxalign = 0;
+        /* Recurse on each field */
         for(i=0;i<nclistlength(tnode->subnodes);i++) {
             field = (CDFnode*)nclistget(tnode->subnodes,i);
 	    if(!field->visible) continue;
@@ -402,7 +402,7 @@ reversepathstring(unsigned int count, NClist* path, NCbytes* name,
 	CDFnode* node = (CDFnode*)nclistget(path,depth);
 	if(i>0)	ncbytescat(name,(char*)separator);
 	ncbytescat(name,node->ncbasename);
-    }	
+    }
 }
 
 NCerror
@@ -428,7 +428,7 @@ shortentypenames4(NCDAPCOMMON* nccomm)
     /* repeatedly attempt to create names of increasing length
        until no more conflicts
     */
-    
+
     depth=0;
     do {
 	depth++;

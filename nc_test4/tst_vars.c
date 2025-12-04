@@ -189,7 +189,7 @@ create_4D_example(char *file_name, int cmode)
       /* This won't work due to bad id. */
       if (nc_put_vara_float(ncid + MILLION, pres_varid, start, count,
                             &pres_out[0][0][0]) != NC_EBADID) ERR;
-      
+
       /* Now write the data. */
       if (nc_put_vara_float(ncid, pres_varid, start, count,
 				      &pres_out[0][0][0])) ERR;
@@ -343,7 +343,7 @@ main(int argc, char **argv)
 
    {
       int bad_dimids[3] = {1, 2, 5}; /* "Three sir!" */
-      
+
       /* Create a file with a variable of each type. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimids[0])) ERR;
@@ -1165,7 +1165,7 @@ main(int argc, char **argv)
       if (nc_def_var_fill(ncid, varid, 0, NULL)) ERR;
       if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value_in)) ERR;
       if (no_fill) ERR;
-      
+
       /* Turn off fill mode. */
       if (nc_def_var_fill(ncid, varid, 1, NULL)) ERR;
       if (nc_inq_var_fill(ncid, varid, &no_fill, &fill_value_in)) ERR;

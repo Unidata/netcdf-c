@@ -1,7 +1,7 @@
 /* This is part of the netCDF package.
    Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
-    
+
    Test that netCDF provides proper error messages if broken Files are supplied.
 */
 

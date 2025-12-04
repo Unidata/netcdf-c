@@ -448,7 +448,7 @@ done:
 }
 
 #if ! defined __INTEL_COMPILER
-#if defined __APPLE__ 
+#if defined __APPLE__
 /** \internal */
 
 #if ! defined HAVE_DECL_ISINF
@@ -573,7 +573,7 @@ NC_join(NClist* segments, char** pathp)
 	const char* seg = nclistget(segments,i);
 	if(seg[0] != '/')
 	    ncbytescat(buf,"/");
-	ncbytescat(buf,seg);		
+	ncbytescat(buf,seg);
     }
 
 done:
@@ -638,6 +638,6 @@ NC_freeenvv(size_t n, char** envv)
 	    free(envv[i]);
 	}
     }
-    free(envv);    
+    free(envv);
 }
 

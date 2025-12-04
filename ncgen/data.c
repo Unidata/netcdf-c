@@ -260,7 +260,7 @@ commifyr(char* p, Bytebuffer* buf)
 	    bbAppend(buf,c);
 	    p=word(p,buf);
 	}
-    }    
+    }
     return p;
 }
 
@@ -276,7 +276,7 @@ word(char* p, Bytebuffer* buf)
 	    if(!c) break;
 	}
 	bbAppend(buf, c);
-    }	
+    }
     p--; /* leave terminator for parent */
     return p;
 }
@@ -286,7 +286,7 @@ wordstring(char* p, Bytebuffer* buf, char quote)
 {
     char c;
     bbAppend(buf,quote);
-    while((c=*p++)) {	    
+    while((c=*p++)) {
 	if(c == '\\') {
 	    bbAppend(buf,c);
 	    c = *p++;
@@ -409,7 +409,7 @@ retry:	    switch ((c=*p++)) {
 		hcount++;
 		while((c=*p) && (c == 'h')) {hcount++; p++;}
 		if(hcount > 2) hcount = 2;
-		goto retry;	        
+		goto retry;
 	    case 'l':
 		lcount++;
 		while((c=*p) && (c == 'l')) {
@@ -417,7 +417,7 @@ retry:	    switch ((c=*p++)) {
 		    p++;
 		}
 		if(lcount > 2) lcount = 2;
-		goto retry;	        
+		goto retry;
 	    case 'u':
 		if(hcount == 2) {
    	            snprintf(tmp,sizeof(tmp),
@@ -479,16 +479,16 @@ retry:	    switch ((c=*p++)) {
 	    case 's':
 		text = va_arg(argv,char*);
 		bbCat(buf,text);
-		break;		
+		break;
 	    case 'c':
 		c = (char)va_arg(argv,int);
 		bbAppend(buf,c);
-		break;		
+		break;
             default:
 		PANIC1("vbbprintf: unknown specifier: %c",(char)c);
 	    }
 	    break;
-	default: 
+	default:
 	    bbAppend(buf,c);
 	}
     }
@@ -530,7 +530,7 @@ emptycompoundconst(int lineno)
     c->nctype = NC_COMPOUND;
     setconstlist(c,builddatalist(0));
     c->filled = 0;
-    return c;    
+    return c;
 }
 
 /* Make an empty string constant*/
@@ -544,7 +544,7 @@ emptystringconst(int lineno)
     c->value.stringv.len = 0;
     c->value.stringv.stringv = NULL;
     c->filled = 0;
-    return c;    
+    return c;
 }
 
 #define INDENTMAX 256
@@ -557,7 +557,7 @@ indented(int n)
     if(dent == NULL) {
 	dent = (char*)ecalloc(INDENTMAX+1);
 	memset((void*)dent,' ',INDENTMAX);
-	dent[INDENTMAX] = '\0';	
+	dent[INDENTMAX] = '\0';
     }
     if(n*4 >= INDENTMAX) n = INDENTMAX/4;
     indentation = dent+(INDENTMAX - 4*n);
@@ -630,7 +630,7 @@ NCConstant*
 dlremove(Datalist* dl, size_t pos)
 {
     NCConstant* con = NULL;
-    ASSERT(dl->length > 0 && pos < dl->length);	
+    ASSERT(dl->length > 0 && pos < dl->length);
     con = dl->data[pos];
     for(size_t i=pos+1;i<dl->length;i++)
         dl->data[i-1] = dl->data[i];
@@ -646,7 +646,7 @@ dlinsert(Datalist* dl, size_t pos, Datalist* insertion)
     ptrdiff_t delta = (ptrdiff_t)(len1 - pos);
     dlsetalloc(dl, len2+len1+1);
 
-   
+
     /* move contents of dl up to make room for insertion */
     if(delta > 0)
         memmove(&dl->data[pos+len2],&dl->data[pos], (size_t)delta*sizeof(NCConstant*));
@@ -655,7 +655,7 @@ dlinsert(Datalist* dl, size_t pos, Datalist* insertion)
 	NCConstant* con = insertion->data[i];
 	con = cloneconstant(con);
         dl->data[pos+i] = con;
-    }    
+    }
 }
 
 /* Convert a datalist to a compound constant */
@@ -780,7 +780,7 @@ reclaimalldatalists(void)
 	    reclaimdatalist(di);
     }
     efree(alldatalists);
-    alldatalists = NULL;    
+    alldatalists = NULL;
 }
 
 static void

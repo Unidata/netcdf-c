@@ -104,7 +104,7 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid + TEST_VAL_42, LAT_NAME, LAT_LEN, &dimid) != NC_EBADID) ERR;
       if (nc_def_dim(ncid, NULL, LAT_LEN, &dimid) != NC_EINVAL) ERR;
       if (nc_def_dim(ncid, BAD_NAME, LAT_LEN, &dimid) != NC_EBADNAME) ERR;
-      
+
       /* Turn off define mode. It will be turned back on
        * automatically. */
       if (nc_enddef(ncid)) ERR;
@@ -162,7 +162,7 @@ main(int argc, char **argv)
 
       /* This will not work. */
       if (nc_def_dim(ncid, LAT_NAME_2, LAT_LEN, &dimid) != NC_EPERM) ERR;
-      
+
       if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
       if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
       if (nc_inq_dimids(ncid, &ndims_in, dimids_in, 0)) ERR;
@@ -215,7 +215,7 @@ main(int argc, char **argv)
 
       /* This will not work. */
       if (nc_def_dim(ncid, LAT_NAME, NC_UNLIMITED, &dimid) != NC_ENOTINDEFINE) ERR;
-     
+
       /* Turn on define mode. */
       if (nc_redef(ncid)) ERR;
 

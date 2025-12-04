@@ -752,7 +752,7 @@ compileAttrValues(NCD4meta* builder, NCD4node* attr, void** memoryp, NClist* blo
 	    } else
 	        goto done; /* ignore */
 	}
-    }  
+    }
     isenum = (basetype->subsort == NC_ENUM);
     truebase = (isenum ? basetype->basetype : basetype);
     if(!ISTYPE(truebase->sort) || (truebase->meta.id > NC_MAX_ATOMIC_TYPE))
@@ -1191,7 +1191,7 @@ isnumerictype(int typesort)
     case NC_UINT:
     case NC_INT64:
     case NC_UINT64:
-	return 1;	
+	return 1;
     default: break;
     }
     return 0;

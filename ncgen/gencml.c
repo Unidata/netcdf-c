@@ -152,12 +152,12 @@ gencml_group(Symbol* group)
 	for(iatt = 0; iatt < ngatts; iatt++) {
 	    Symbol* gasym = (Symbol*)listget(gattdefs,iatt);
 	    if(gasym->att.var == NULL) /* => global */
-		defineattribute(gasym);	    
+		defineattribute(gasym);
 	}
 	xline("");
     }
     xflush();
-    
+
     /* define variables from info in vars array */
     if (nvars > 0) {
 	xline("");
@@ -178,7 +178,7 @@ gencml_group(Symbol* group)
 		xpartial("\"");
 	    }
 	    xpartial(" type=\"");
-	    xpartial(xname(vsym->typ.basetype));	    
+	    xpartial(xname(vsym->typ.basetype));
 	    xline(" >");
 #ifdef USE_NETCDF4
 	    definespecialattributes(vsym);
@@ -202,7 +202,7 @@ gencml_group(Symbol* group)
 	if(gsym->container != group) continue;
 	gencml_group(gsym);
     }
-#endif    
+#endif
 
 #ifdef USE_NETCDF4
     if(group != rootgroup) {
@@ -222,7 +222,7 @@ definespecialattributes(Symbol* vsym)
         size_t* chunks = special->_ChunkSizes;
         nprintf(stmt,sizeof(stmt),"<attribute name=\"_Chunksizes\" storage=\"%s\"",
                 (storage == NC_CONTIGUOUS?"contiguous":"chunked"));
-        xpartial(stmt);                 
+        xpartial(stmt);
         if(special->nchunks != 0 && chunks != NULL) {
 	    int i;
             xpartial(" value=\"");
@@ -248,19 +248,19 @@ definespecialattributes(Symbol* vsym)
 		(special->_DeflateLevel >= 0?"true":"false"),
 		(special->_DeflateLevel >= 0?special->_DeflateLevel:0));
         xline(stmt);
-    }   
+    }
     if(special->flags & _ENDIAN_FLAG) {
         nprintf(stmt,sizeof(stmt),
                 "<attribute name=\"_Endianness\" value=\"%s\" />",
 		(special->_Endianness == NC_ENDIAN_LITTLE?"little":"big"));
         xline(stmt);
-    }   
+    }
     if(special->flags & _NOFILL_FLAG) {
         nprintf(stmt,sizeof(stmt),
                 "<attribute name=\"_Fill\" value=\"%s\" />",
 		(special->_Fill?"fill":"nofill"));
         xline(stmt);
-    }   
+    }
 }
 
 static void
@@ -356,7 +356,7 @@ defineattribute(Symbol* asym)
 
     code = bbNew();
 
-    gencml_attrdata(asym,code);	
+    gencml_attrdata(asym,code);
 
     /* Handle NC_CHAR specially */
     if(basetype->typ.typecode == NC_CHAR) {
@@ -379,7 +379,7 @@ defineattribute(Symbol* asym)
 	xpartial(bbContents(code));
 	xline("</values>");
         xline("</attribute>");
-    }    
+    }
     xflush();
 }
 
@@ -412,7 +412,7 @@ definevardata(Symbol* vsym)
         if(isprimplus(vsym->typ.basetype->typ.typecode)) xline("");
         xline("</values>");
     }
-    bbFree(code);    
+    bbFree(code);
 }
 
 /* return CML name for netCDF type, given type code */
@@ -498,7 +498,7 @@ xprefixed(List* prefix, char* suffix, char* separator)
 	Symbol* sym = (Symbol*)listget(prefix,i);
         strcat(result,sym->name); /* append "<prefix[i]/>"*/
 	strcat(result,separator);
-    }    
+    }
     strcat(result,suffix); /* append "<suffix>"*/
     return result;
 }

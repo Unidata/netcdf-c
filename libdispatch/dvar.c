@@ -352,7 +352,7 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
    switch the access for that variable to collective access.
 
    @note The HDF5 manual has this to say about shuffle:
-   
+
       The shuffle filter de-interlaces a block of data by reordering
       the bytes. All the bytes from one consistent byte position of
       each data element are placed together in one block; all bytes
@@ -468,12 +468,12 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
 
 /**
    Turn on quantization for a variable.
-  
+
    The data are quantized by setting unneeded bits to zeros or ones
-   so that they may compress well. BitGroom sets bits alternately to 1/0, 
+   so that they may compress well. BitGroom sets bits alternately to 1/0,
    while BitRound and Granular BitRound (GBR) round (more) bits to zeros
-   Quantization is lossy (data are irretrievably altered), and it 
-   improves the compression ratio provided by a subsequent lossless 
+   Quantization is lossy (data are irretrievably altered), and it
+   improves the compression ratio provided by a subsequent lossless
    compression filter. Quantization alone will not reduce the data size.
    Lossless compression like zlib must also be used (see nc_def_var_deflate()).
 
@@ -481,16 +481,16 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    compression will result in significant improvement in the final data
    size.
 
-   A notable feature of all the quantization algorithms is data remain 
+   A notable feature of all the quantization algorithms is data remain
    in IEEE754 format afterwards. Therefore quantization algorithms do
    nothing when data are read.
-  
+
    Quantization is only available for variables of type NC_FLOAT or
    NC_DOUBLE. Attempts to set quantization for other variable
-   types return an error (NC_EINVAL). 
+   types return an error (NC_EINVAL).
 
    Variables that use quantize will have added an attribute with name
-   NC_QUANTIZE_[ALGORITHM_NAME]_ATT_NAME, which will contain the 
+   NC_QUANTIZE_[ALGORITHM_NAME]_ATT_NAME, which will contain the
    number of significant digits. Users should not delete or change this
    attribute. This is the only record that quantize has been applied
    to the data.
@@ -512,12 +512,12 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    modified before the first call to nc_enddef(). Once nc_enddef() is
    called for the file, quantize settings for any variable in the file
    may not be changed.
- 
+
    Use of quantization is fully backwards compatible with existing
    versions and packages that can read compressed netCDF data. A
    variable which has been quantized is readable to older versions of
    the netCDF libraries, and to netCDF-Java.
- 
+
    For more information about quantization and the BitGroom filter,
    see @ref quantize.
 
@@ -535,15 +535,15 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
    ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR or
    ::NC_QUANTIZE_BITROUND.
-   @param nsd Number of significant digits (either decimal or binary). 
-   May be any integer from 1 to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables 
-   of type ::NC_FLOAT) or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables 
+   @param nsd Number of significant digits (either decimal or binary).
+   May be any integer from 1 to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables
+   of type ::NC_FLOAT) or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables
    of type ::NC_DOUBLE) for mode ::NC_QUANTIZE_BITGROOM and mode
-   ::NC_QUANTIZE_GRANULARBR. May be any integer from 1 to 
-   ::NC_QUANTIZE_MAX_FLOAT_NSB (for variables of type ::NC_FLOAT) or 
-   ::NC_QUANTIZE_MAX_DOUBLE_NSB (for variables of type ::NC_DOUBLE) 
+   ::NC_QUANTIZE_GRANULARBR. May be any integer from 1 to
+   ::NC_QUANTIZE_MAX_FLOAT_NSB (for variables of type ::NC_FLOAT) or
+   ::NC_QUANTIZE_MAX_DOUBLE_NSB (for variables of type ::NC_DOUBLE)
    for mode ::NC_QUANTIZE_BITROUND. Ignored if quantize_mode = NC_NOQUANTIZE.
-   
+
    @return ::NC_NOERR No error.
    @return ::NC_EGLOBAL Can't use ::NC_GLOBAL with this function.
    @return ::NC_EBADID Bad ncid.

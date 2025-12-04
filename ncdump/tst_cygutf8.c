@@ -34,7 +34,7 @@ static unsigned char name2[] = {
 
 static char* name3 = "xutf8_사람/접는사람";
 
-/* This is CP_1252 */ 
+/* This is CP_1252 */
 //static char* name4 = "xutf8_Å";
 static char name4[8] = {'x','u','t','f','8','_',0XC5,0x00} ;
 

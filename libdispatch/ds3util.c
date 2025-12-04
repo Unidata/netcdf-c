@@ -98,7 +98,7 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
     char* path = NULL;
     char* region = NULL;
     NCS3SVC svc = NCS3UNK;
-    
+
     if(url == NULL)
         {stat = NC_EURL; goto done;}
 
@@ -149,7 +149,7 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
 	/* If we find a bucket as part of the host, then remove it */
 	switch (nclistlength(hostsegments)) {
 	default: stat = NC_EURL; goto done;
-	case 3: /* Format (4) */ 
+	case 3: /* Format (4) */
 	    /* region unknown at this point */
     	    /* bucket unknown at this point */
 	    break;
@@ -389,12 +389,12 @@ NC_iss3(NCURI* uri, NCS3SVC* svcp)
 #endif
     /* Is "s3" or "gs3" in the mode list? */
     if(NC_testmode(uri,"s3")) {iss3 = 1; svc = NCS3; goto done;}
-    if(NC_testmode(uri,"gs3")) {iss3 = 1; svc = NCS3GS; goto done;}    
+    if(NC_testmode(uri,"gs3")) {iss3 = 1; svc = NCS3GS; goto done;}
     /* Last chance; see if host looks s3'y */
     if(uri->host != NULL) {
         if(endswith(uri->host,AWSHOST)) {iss3 = 1; svc = NCS3; goto done;}
         if(strcasecmp(uri->host,GOOGLEHOST)==0) {iss3 = 1; svc = NCS3GS; goto done;}
-    }    
+    }
     if(svcp) *svcp = svc;
 done:
     return iss3;
@@ -550,7 +550,7 @@ NC_aws_load_credentials(NCglobalstate* gstate)
             if((stat = awsparse(text,profiles))) goto done;
 	}
     }
-  
+
     /* If there is no default credentials, then try to synthesize one
        from various environment variables */
     {

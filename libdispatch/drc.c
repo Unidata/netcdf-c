@@ -89,7 +89,7 @@ nc_rc_get(const char* key)
     if(ncg->rcinfo->ignore) goto done;
     value = NC_rclookup(key,NULL,NULL);
 done:
-    value = nulldup(value);   
+    value = nulldup(value);
     return value;
 }
 
@@ -98,7 +98,7 @@ Set simple key=value in .rc table.
 Will overwrite any existing value.
 
 @param key
-@param value 
+@param value
 @return NC_NOERR if success
 @return NC_EINVAL if fail
 */
@@ -708,7 +708,7 @@ NC_rcfile_insert(const char* key, const char* hostport, const char* urlpath, con
     rctrim(entry->value);
 #ifdef DRCDEBUG
     storedump("NC_rcfile_insert",rc);
-#endif    
+#endif
 done:
     return ret;
 }

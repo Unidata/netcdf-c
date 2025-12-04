@@ -40,13 +40,13 @@
  * Note that this code is very ugly because it is the bastard
  * child of the HDF5 coding style and the NetCDF-C coding style
  * and some libcurl as well.
- * 
+ *
  * A note about the nccurl_hmac.c and nccurl_sha256.c files.
  * The code in this file depends on having access to two
  * cryptographic functions:
- * 1. HMAC signing function 
+ * 1. HMAC signing function
  * 2. SHA256 digest function
- * 
+ *
  * There are a number of libraries providing these functions.
  * For example, OPENSSL, WOLFSSL, GNUTLS, Windows crypto package
  * etc.  It turns out that libcurl has identified all of these
@@ -366,7 +366,7 @@ curlwritecallback(char *ptr, size_t size, size_t nmemb, void *userdata)
     if (sds->magic != S3COMMS_CALLBACK_STRUCT_MAGIC)
         return written;
 
-    if (product > 0) { 
+    if (product > 0) {
         vsappendn(sds->data,ptr,product);
         written = product;
     }
@@ -828,7 +828,7 @@ NCH5_s3comms_s3r_getsize(s3r_t *handle, const char* url, long long* sizep, long*
 
 done:
     if(sizep) {*sizep = (long long)content_length;}
-    if(httpcodep) *httpcodep = httpcode;    
+    if(httpcodep) *httpcodep = httpcode;
     nullfree(contentlength);
     return UNTRACEX(ret_value,"size=%lld",(sizep?-1:*sizep));
 } /* NCH5_s3comms_s3r_getsize */
@@ -860,7 +860,7 @@ NCH5_s3comms_s3r_deletekey(s3r_t *handle, const char* url, long* httpcodep)
 
     if((ret_value = NCH5_s3comms_s3r_execute(handle, url, HTTPDELETE, NULL, NULL, NULL, &httpcode, data)))
         HGOTO_ERROR(H5E_ARGS, ret_value, FAIL, "execute failed.");
-    
+
     /* Apparently, aws delivers a 204 response if it successfully deletes the key */
     if(httpcode == 204) httpcode = 200; /* treat 204 as success */
 
@@ -886,7 +886,7 @@ NCH5_s3comms_s3r_head(s3r_t *handle, const char* url, const char* header, const 
     int ret_value = SUCCEED;
     VString* data = vsnew();
     long httpcode = 0;
-    
+
     TRACE(0,"handle=%p url=%s header=%s query=%s httpcodep=%p valuep=%p",handle,url,SNULL(header),SNULL(query),httpcodep,valuep);
 
 #if S3COMMS_DEBUG_TRACE
@@ -1119,7 +1119,7 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
             HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for handle ID copy.");
         memcpy(handle->accessid, access_id, tmplen);
     }
-    
+
     if(nulllen(access_key) != 0) {
         tmplen = nulllen(access_key) + 1;
         handle->accesskey = (char *)malloc(sizeof(char) * tmplen);
@@ -1295,7 +1295,7 @@ NCH5_s3comms_s3r_write(s3r_t *handle, const char* url, const s3r_buf_t* data, lo
     if((ret_value = NCH5_s3comms_s3r_execute(handle, url, HTTPPUT, NULL, NULL, (const char**)vlistcontents(otherheaders), &httpcode, wrap)))
         HGOTO_ERROR(H5E_ARGS, ret_value, FAIL, "execute failed.");
 
-    
+
 done:
     if(httpcodep) *httpcodep = httpcode;
     (void)vsextract(wrap);
@@ -1416,7 +1416,7 @@ NCH5_s3comms_aws_canonical_request(VString* canonical_request_dest, VString* sig
     hrb_node_t *node         = NULL;
     int      ret_value    = SUCCEED;
     size_t i;
-    
+
     const char* sverb = verbtext(verb);
     const char* query_params = (query?query:"");
 
@@ -1450,7 +1450,7 @@ NCH5_s3comms_aws_canonical_request(VString* canonical_request_dest, VString* sig
     vscat(canonical_request_dest,"\n");
     vscat(canonical_request_dest,query_params);
     vscat(canonical_request_dest,"\n");
-    
+
     /* write in canonical headers, building signed headers concurrently */
     for(i=0;i<vlistlength(http_request->headers);i++) {
         node = (hrb_node_t*)vlistget(http_request->headers,i); /* assumed sorted */
@@ -2243,7 +2243,7 @@ NCH5_s3comms_uriencode(char** destp, const char *s, size_t s_len, int encode_sla
     size_t hex_len   = 0;
     int ret_value = SUCCEED;
     size_t s_off     = 0;
-    VString* dest = vsnew();    
+    VString* dest = vsnew();
 
 #if S3COMMS_DEBUG_TRACE
     fprintf(stdout, "NCH5_s3comms_uriencode called.\n");
@@ -2275,7 +2275,7 @@ NCH5_s3comms_uriencode(char** destp, const char *s, size_t s_len, int encode_sla
             vsappendn(dest, hex_buffer, hex_len);
         } /* end else (not a regular character) */
     }     /* end for each character */
-    
+
     if(n_written) {*n_written = vslength(dest);}
     if(destp) {*destp = vsextract(dest);}
 
@@ -2364,7 +2364,7 @@ request_setup(s3r_t* handle, const char* url, HTTPVerb verb, struct s3r_cbstruct
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "error while setting CURL option (CURLOPT_HEADERFUNCTION).");
        break;
     case HTTPPOST:
-    default: 
+    default:
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "Illegal verb: %d.",(int)verb);
             break;
     }
@@ -2419,7 +2419,7 @@ build_request(s3r_t* handle, NCURI* purl,
 #endif
     iso8601now[0]     = 0;
 
-    
+
     /**** CREATE HTTP REQUEST STRUCTURE (hrb_t) ****/
 
     request = NCH5_s3comms_hrb_init_request((const char *)purl->path, "HTTP/1.1");
@@ -2441,7 +2441,7 @@ build_request(s3r_t* handle, NCURI* purl,
             const char** hdrs = otherheaders;
             for(;*hdrs;hdrs+=2) {
                 const char* key = (const char*)hdrs[0];
-                const char* value = (const char*)hdrs[1];               
+                const char* value = (const char*)hdrs[1];
                 if (SUCCEED != NCH5_s3comms_hrb_node_insert(request->headers, key, value))
                    HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "unable to set host header");
             }
@@ -2798,7 +2798,7 @@ dump(const char *text, FILE *stream, unsigned char *ptr, size_t size)
   size_t i;
   size_t c;
   unsigned int width=0x10;
-  
+
   for(i=0; i<size; i+= width) {
     fprintf(stream, "%4.4lx: ", (long)i);
 #if 0
@@ -2820,7 +2820,7 @@ dump(const char *text, FILE *stream, unsigned char *ptr, size_t size)
   }
 #endif
 }
- 
+
 static int
 my_trace(CURL *handle, curl_infotype type, char *data, size_t size,void *userp)
 {
@@ -2829,7 +2829,7 @@ my_trace(CURL *handle, curl_infotype type, char *data, size_t size,void *userp)
   const char *text;
   (void)handle; /* prevent compiler warning */
   (void)userp;
- 
+
   switch (type) {
   case CURLINFO_TEXT:
     dumpdata=1;

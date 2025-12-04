@@ -92,7 +92,7 @@ main(int argc, char **argv)
       if (nc_inq_varids(grpid_in[0], NULL, varids_in)) ERR;
       if (nc_inq_varids(grpid_in[0], &nvars_in, NULL)) ERR;
       if (nc_inq_varids(grpid_in[0], NULL, NULL)) ERR;
-      
+
       if (nc_inq_ncid(ncid, HENRY_VII, &ncid_in)) ERR;
       if (ncid_in != grpid_in[0]) ERR;
 
@@ -148,7 +148,7 @@ main(int argc, char **argv)
 
       /* Re-open the file. */
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-      
+
       /* Check it out. */
       if (nc_inq_grps(ncid, NULL, &grpid_in)) ERR;
       if (nc_inq_grpname(grpid_in, name_in)) ERR;
@@ -352,7 +352,7 @@ main(int argc, char **argv)
       /* These won't work. */
       if (nc_inq_grp_full_ncid(ncid + TEST_VAL_42, full_name, &grp_in) != NC_EBADID) ERR;
       if (nc_inq_grp_full_ncid(ncid, NULL, &grp_in) != NC_EINVAL) ERR;
-      
+
       /* Get the ncid from the full name. */
       if (nc_inq_grp_full_ncid(ncid, full_name, &grp_in)) ERR;
       if (grp_in != ncid) ERR;

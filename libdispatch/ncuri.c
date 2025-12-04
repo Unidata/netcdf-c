@@ -1053,12 +1053,12 @@ ncuriclone(NCURI* uri)
     /* make sure fragments and query are up to date */
     if((stat=ensurefraglist(uri))) goto done;
     if((stat=ensurequerylist(uri))) goto done;
-    
+
     if((newuri = (NCURI*)calloc(1,sizeof(NCURI)))==NULL)
         {stat = NC_ENOMEM; goto done;}
     *newuri = *uri; /* copy */
     /* deep clone fields */
-    
+
     newuri->uri = nulldup(uri->uri);
     newuri->protocol = nulldup(uri->protocol);
     newuri->user = nulldup(uri->user);
@@ -1207,7 +1207,7 @@ ensurefraglist(NCURI* uri)
     int haslist = 0;
     NClist* fraglist = nclistnew();
     NCbytes* frag = NULL;
-	
+
     if(nulllen(uri->fragment) == 0)
         {nullfree(uri->fragment); uri->fragment = NULL; hastext=0;}
     else hastext = 1;
@@ -1219,7 +1219,7 @@ ensurefraglist(NCURI* uri)
     if(!haslist && !hastext) {
 	/* do nothing */
     } else if(!haslist && hastext) {
-	if((stat = parselist(uri->fragment,fraglist))) goto done;	
+	if((stat = parselist(uri->fragment,fraglist))) goto done;
 	removedups(fraglist);
 	uri->fraglist = fraglist; fraglist = NULL;
     } else if(haslist && !hastext) {
@@ -1245,19 +1245,19 @@ ensurequerylist(NCURI* uri)
     int haslist = 0;
     NClist* querylist = nclistnew();
     NCbytes* query = NULL;
-	
+
     if(nulllen(uri->query) == 0)
         {nullfree(uri->query); uri->query = NULL; hastext=0;}
     else hastext = 1;
     if(nclistlength((NClist*)uri->querylist) == 0)
         {nclistfree((NClist*)uri->querylist); uri->querylist = NULL; haslist=0;}
     else haslist = 1;
-    
+
     /* Four cases: */
     if(!haslist && !hastext) {
 	/* do nothing */
     } else if(!haslist && hastext) {
-	if((stat = parselist(uri->query,querylist))) goto done;	
+	if((stat = parselist(uri->query,querylist))) goto done;
 	removedups(querylist);
 	uri->querylist = querylist; querylist = NULL;
     } else if(haslist && !hastext) {

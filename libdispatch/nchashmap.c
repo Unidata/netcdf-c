@@ -331,7 +331,7 @@ NC_hashmapith(NC_hashmap* map, size_t i, uintptr_t* datap, const char** keyp)
     } else {
 	if(datap) *datap = 0;
 	if(keyp) *((char**)keyp) = NULL;
-    }    
+    }
     return NC_NOERR;
 }
 
@@ -388,10 +388,10 @@ NC_hashmapdeactivate(NC_hashmap* map, uintptr_t data)
 static int isPrime(size_t n)
 {
     size_t i;
-    
+
     if (n <= 1)  return 0;
     if (n <= 3)  return 1;
-    
+
     for (i=1; i < NC_nprimes - 1; i++) {
       size_t prime = NC_primes[i];
       if (n % prime == 0) {
@@ -445,7 +445,7 @@ findPrimeGreaterThan(size_t val)
 
       if (v > NC_primes[n - 2]) {
         /*
-         If we have a value greater than the largest value in the 
+         If we have a value greater than the largest value in the
          NC_primes table, then search for a prime instead of just
          doing a simple lookup.
         */

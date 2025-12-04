@@ -342,7 +342,7 @@ main(int argc, char **argv)
       int test_val = 42;
       int no_fill;
       int ret;
-        
+
       if ((ret = nc_create(testfile, cmode, &ncid)))
          return ret;
       if ((ret = nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)))
@@ -359,6 +359,6 @@ main(int argc, char **argv)
       if ((ret = nc_close(ncid)))
          return ret;
    }
-   SUMMARIZE_ERR;        
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

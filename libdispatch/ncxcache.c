@@ -136,7 +136,7 @@ ncxcacheinsert(NCxcache* cache, const ncexhashkey_t hkey, void* o)
     NCxnode* node = NULL;
 
     if(cache == NULL) return THROW(NC_EINVAL);
-    
+
 #ifndef NCXUSER
     node = calloc(1,sizeof(NCxnode));
 #else

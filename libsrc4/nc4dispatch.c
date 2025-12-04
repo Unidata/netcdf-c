@@ -27,7 +27,7 @@ extern NC_Dispatch UDF1_DISPATCH;
 
 extern int nc_plugin_path_initialize(void);
 extern int nc_plugin_path_finalize(void);
-    
+
 /**
  * @internal Initialize netCDF-4. If user-defined format(s) have been
  * specified in configure, load their dispatch table(s).

@@ -5,7 +5,7 @@
    programs. See https://github.com/Unidata/netcdf-c/issues/3003.
 
    This is intended to be run on one processor only, but with MPI.
-   
+
    Edward Hartnett, 9/2/24
 */
 #include "nc_tests.h"

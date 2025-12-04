@@ -110,7 +110,7 @@ NCZ_enddef(NC_FILE_INFO_T* h5)
     ZTRACE(1,"h5=%s",h5->hdr.name);
 
     /* When exiting define mode, process all variables */
-    for (i = 0; i < nclistlength(h5->allgroups); i++) {	
+    for (i = 0; i < nclistlength(h5->allgroups); i++) {
 	NC_GRP_INFO_T* g = nclistget(h5->allgroups,i);
         for (j = 0; j < ncindexsize(g->vars); j++) {
             var = (NC_VAR_INFO_T *)ncindexith(g->vars, j);

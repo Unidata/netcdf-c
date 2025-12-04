@@ -42,7 +42,7 @@ NC4_hdf5_plugin_path_ndirs(size_t* ndirsp)
 {
     int stat = NC_NOERR;
     size_t ndirs = 0;
-    unsigned undirs = 0;  
+    unsigned undirs = 0;
     herr_t hstat = 0;
 
     /* Get the length of the HDF5 plugin path set */
@@ -73,7 +73,7 @@ NC4_hdf5_plugin_path_get(NCPluginList* dirs)
     int stat = NC_NOERR;
     unsigned i;
     herr_t hstat = 0;
-    unsigned undirs = 0;  
+    unsigned undirs = 0;
     ssize_t dirlen;
     char* dirbuf = NULL;
 
@@ -94,9 +94,9 @@ NC4_hdf5_plugin_path_get(NCPluginList* dirs)
 	nullfree(dirbuf); dirbuf = NULL; /* suspenders and belt */
 	if((dirbuf = (char*)malloc((size_t)dirlen+1))==NULL) {stat = NC_ENOMEM; goto done;} /* dirlen does not include nul term */
 	if((dirlen = H5PLget(i, dirbuf, ((size_t)dirlen)+1))<0) {stat = NC_EHDFERR; goto done;}
-	dirs->dirs[i] = dirbuf; dirbuf = NULL;	    
+	dirs->dirs[i] = dirbuf; dirbuf = NULL;
     }
-    
+
 done:
     if(hstat < 0 && stat != NC_NOERR) stat = NC_EHDFERR;
     return THROW(stat);
@@ -118,7 +118,7 @@ NC4_hdf5_plugin_path_set(NCPluginList* dirs)
     int stat = NC_NOERR;
     size_t i;
     herr_t hstat = 0;
-    unsigned undirs = 0;  
+    unsigned undirs = 0;
 
     /* validate */
     if(dirs == NULL || (dirs->ndirs > 0 && dirs->dirs == NULL))

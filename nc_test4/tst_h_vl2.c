@@ -31,7 +31,7 @@ main()
       size_t size, type_size;
       hssize_t att_npoints;
       int att_ndims;
-      hsize_t dims[1]; 
+      hsize_t dims[1];
       void *vldata;
 
       /* Open the file and read the vlen data. */
@@ -46,10 +46,10 @@ main()
       for (i = 0; i < num_obj; i++)
       {
 #if H5_VERSION_GE(1,12,0)
-	 if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
+	 if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
                                  i, &obj_info, H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR_RET;
 #else
-	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
+	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
 				i, &obj_info, H5P_DEFAULT) < 0) ERR_RET;
 #endif
 	 obj_class = obj_info.type;
@@ -58,7 +58,7 @@ main()
 	 if (size > NC_MAX_NAME) ERR_RET;
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
 				obj_name, size+1, H5P_DEFAULT) < 0) ERR_RET;
-	 /*printf("nc4_rec_read_metadata: encountered HDF5 object obj_class %d obj_name %s.\n", 
+	 /*printf("nc4_rec_read_metadata: encountered HDF5 object obj_class %d obj_name %s.\n",
 	   obj_class, obj_name);*/
 	 /* Deal with groups and datasets. */
 	 switch (obj_class)
@@ -88,18 +88,18 @@ main()
 	    default:
 	       LOG((0, "Unknown object class %d in nc4_rec_read_metadata!",
 		    obj_class));
-	 } 
+	 }
       }
 
       num_obj = H5Aget_num_attrs(grpid);
       for (i = 0; i < num_obj; i++)
       {
-	 if (attid > 0) 
+	 if (attid > 0)
 	    H5Aclose(attid);
 	 if ((attid = H5Aopen_idx(grpid, (unsigned int)i)) < 0) ERR_RET;
 	 if (H5Aget_name(attid, NC_MAX_NAME + 1, obj_name) < 0) ERR_RET;
 	 LOG((4, "reading attribute of _netCDF group, named %s", obj_name));
-	 if ((attid && H5Aclose(attid))) ERR_RET;      
+	 if ((attid && H5Aclose(attid))) ERR_RET;
       }
 
       /* Open the HDF5 attribute. */
@@ -117,7 +117,7 @@ main()
       if ((att_npoints = H5Sget_simple_extent_npoints(spaceid)) < 0) ERR;
       if (H5Sget_simple_extent_dims(spaceid, dims, NULL) < 0) ERR;
       if (dims[0] != 3) ERR;
-      
+
       if ((native_typeid = H5Tget_native_type(file_typeid, H5T_DIR_DEFAULT)) < 0) ERR;
       if (!(vldata = malloc((unsigned int)(dims[0] * sizeof(hvl_t))))) ERR;
       if (H5Aread(attid, native_typeid, vldata) < 0) ERR;
@@ -128,7 +128,7 @@ main()
       if (base_hdf_typeid && H5Tclose(base_hdf_typeid) < 0) ERR;
 
       if (H5Aclose(attid) ||
-	  H5Gclose(grpid) < 0 || 
+	  H5Gclose(grpid) < 0 ||
 	  H5Fclose(fileid) < 0) ERR;
    }
 

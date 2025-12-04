@@ -67,7 +67,7 @@ main(int argc, char** argv)
     url = makeurl(utoptions.file,impl,&utoptions);
 
     if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
-    
+
 done:
     nullfree(tmp);
     nullfree(url); url = NULL;
@@ -96,29 +96,29 @@ simplecreate(void)
     case NC_NOERR: break; /*created*/
     default: goto done;
     }
-    
+
     printf("Pass: create: create: %s\n",url);
 
     truekey = makekey(ZMETAROOT);
     if((stat = nczmap_write(map, truekey, 0, NULL)))
 	goto done;
     printf("Pass: create: defineobj: %s\n",truekey);
-    
+
     /* Do not delete */
     if((stat = nczmap_close(map,0)))
 	goto done;
     map = NULL;
     printf("Pass: create: close\n");
-    
+
     /* Reopen and see if exists */
     if((stat = nczmap_open(impl,url,0,0,NULL,&map)))
 	goto done;
     printf("Pass: create: open: %s\n",url);
-    
+
     if((stat = nczmap_exists(map,truekey)))
 	goto done;
     printf("Pass: create: exists: %s\n",truekey);
-    
+
     /* close again */
     if((stat = nczmap_close(map,0)))
 	goto done;
@@ -145,7 +145,7 @@ simpledelete(void)
 	break;
     default:
         {report(FAIL,"open",map); goto done;}
-    }     
+    }
     /* Delete dataset while closing */
     if((stat = nczmap_close(map,1))) goto done;
     map = NULL;
@@ -161,7 +161,7 @@ simpledelete(void)
 	break;
     case NC_EEMPTY:
     default: abort();
-    }     
+    }
 
 done:
     return THROW(stat);
@@ -182,7 +182,7 @@ simplemeta(void)
     if((stat = nczmap_open(impl,url,NC_WRITE,0,NULL,&map)))
 	goto done;
     report(PASS,"open",map);
-	
+
     /* Make sure .nczarr exists (from simplecreate) */
     truekey = makekey(ZMETAROOT);
     if((stat = nczmap_exists(map,truekey)))
@@ -204,17 +204,17 @@ simplemeta(void)
 	goto done;
     report(PASS,".nczarr: writemetadata",map);
     free(truekey); truekey = NULL;
-    
+
     if((stat=nczm_concat(META1,ZARRAY,&key)))
 	goto done;
     truekey = makekey(key);
-    free(key); key = NULL;    
+    free(key); key = NULL;
 
     if((stat = nczmap_write(map, truekey, strlen(metaarray1), metaarray1)))
 	goto done;
     report(PASS,".zarray: writemetaarray1",map);
     free(truekey); truekey = NULL;
-    
+
     if((stat = nczmap_close(map,0)))
 	goto done;
     map = NULL;
@@ -267,7 +267,7 @@ simplemeta(void)
     else
         report(PASS,".zarray:content verify",map);
     nullfree(content); content = NULL;
-    
+
     if((stat = nczmap_close(map,0)))
 	goto done;
     map = NULL;
@@ -302,14 +302,14 @@ simpledata(void)
     if((stat = nczmap_open(impl,url,NC_WRITE,0,NULL,&map)))
 	goto done;
     report(PASS,"open",map);
-	
+
     truekey = makekey(DATA1);
 
     if((stat = nczmap_write(map, truekey, totallen, data1p)))
 	goto done;
 
     report(PASS,DATA1": write",map);
-    
+
     if((stat = nczmap_close(map,0)))
 	goto done;
     map = NULL;
@@ -352,7 +352,7 @@ searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
     NClist* matches = nclistnew();
     char prefix[4096]; /* only ok because we know testdata */
     size_t prefixlen;
-    
+
     nclistpush(objects,strdup(prefix0));
 
     prefix[0] = '\0';
@@ -431,7 +431,7 @@ setkeyprefix(const char* file)
     /* verify that this could be an S3 url */
     if(uri == NULL) return; /* oh well */
     if(strcmp(uri->protocol,"file")==0) return;
-    
+
     segments = nclistnew();
     NC_split_delim(uri->path,'/',segments);
     /* Extract the first two segments */

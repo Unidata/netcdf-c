@@ -82,7 +82,7 @@ main(int argc, char **argv)
       size_t len;
       double pi = 3.1459;
       double data[NUM_VALUES_TO_WRITE], data_in[NUM_VALUES_TO_WRITE];
-      int a, i, j; 
+      int a, i, j;
 
       /* Generate phoney data. */
       for (i = 0; i < NUM_VALUES_TO_WRITE; i++)
@@ -95,18 +95,18 @@ main(int argc, char **argv)
 	 if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 	 if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
 	 if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, dimids)) ERR;
-       
+
 	 /* According to Quncey, a square chunk around 1 MB in size is a
 	  * reasonable idea. */
 	 chunksize[0] = DIM_LEN/pow(2, a+6);
 	 for (i = 0; i < NUMVARS; i++)
 	 {
-	    if (nc_def_var(ncid, var_name[i], NC_DOUBLE, NUMDIMS, 
+	    if (nc_def_var(ncid, var_name[i], NC_DOUBLE, NUMDIMS,
 			   dimids, &varid[i])) ERR;
 	    if (nc_def_var_chunking(ncid, i, NC_CHUNKED, chunksize)) ERR;
 	 }
 	 if (nc_enddef(ncid)) ERR;
-	  
+
 	 /* Write the data and time it. */
 	 if (gettimeofday(&start_time, NULL))
 	    ERR;
@@ -117,9 +117,9 @@ main(int argc, char **argv)
 	 if (nc_close(ncid)) ERR;
 	 if (gettimeofday(&end_time, NULL)) ERR;
 	 if (timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
-	 printf("chunksize %d write time %d sec %d usec\n", chunksize[0], 
+	 printf("chunksize %d write time %d sec %d usec\n", chunksize[0],
 		(int)diff_time.tv_sec, (int)diff_time.tv_usec);
-	  
+
 	 /* Reopen and check the file metadata. */
 	 if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 	 if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -131,7 +131,7 @@ main(int argc, char **argv)
 	 for (i = 0; i < NUMVARS; i++)
 	 {
 	    if (nc_inq_var(ncid, i, name_in, &xtype, &ndims, dimids, &natts)) ERR;
-	    if (strcmp(name_in, var_name[i]) || xtype != NC_DOUBLE || ndims != 1 || 
+	    if (strcmp(name_in, var_name[i]) || xtype != NC_DOUBLE || ndims != 1 ||
 		dimids[0] != 0 || natts != 0) ERR;
 	 }
 
@@ -142,7 +142,7 @@ main(int argc, char **argv)
 	       if (nc_get_vara_double(ncid, i, start, count, data_in)) ERR;
 	 if (gettimeofday(&end_time, NULL)) ERR;
 	 if (timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
-	 printf("chunksize %d read time %d sec %d usec\n", chunksize[0], 
+	 printf("chunksize %d read time %d sec %d usec\n", chunksize[0],
 		(int)diff_time.tv_sec, (int)diff_time.tv_usec);
 
 	 /* Reread, and check the data (but don't time this operation). */
@@ -153,7 +153,7 @@ main(int argc, char **argv)
 	       for (j = 0; j < NUM_VALUES_TO_WRITE; j++)
 		  if (data[j] != data_in[j]) ERR;
 	    }
-	  
+
 
 	 if (nc_close(ncid)) ERR;
       }

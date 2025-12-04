@@ -32,7 +32,7 @@ dapodom_fromsegment(DCEsegment* segment, size_t startindex, size_t stopindex)
 #endif
 	odom->declsize[i] = segment->slices[i+startindex].declsize;
 	odom->index[i] = odom->start[i];
-    }    
+    }
     return odom;
 }
 
@@ -58,7 +58,7 @@ dapodom_new(size_t rank,
 	odom->stride[i] = istride;
 	odom->declsize[i] = ideclsize;
 	odom->index[i] = odom->start[i];
-    }    
+    }
     return odom;
 }
 
@@ -84,7 +84,7 @@ dapodom_print(Dapodometer* odom)
 		(size_t)odom->start[i],
 		(size_t)odom->stride[i],
 		(size_t)odom->length[i]);
-	strlcat(line,tmp,sizeof(line));	
+	strlcat(line,tmp,sizeof(line));
     }
     return line;
 }
@@ -104,14 +104,14 @@ dapodom_count(Dapodometer* odom)
     for(size_t i=0;i<odom->rank;i++) {
         offset *= odom->declsize[i];
         offset += odom->index[i];
-    } 
+    }
     return offset;
 }
 
 int
 dapodom_next(Dapodometer* odom)
 {
-    if(odom->rank == 0) return 0; 
+    if(odom->rank == 0) return 0;
     for(size_t i = odom->rank; i-->0;) {
         odom->index[i] += odom->stride[i];
         if(odom->index[i] < odom->stop[i]) break;
@@ -134,7 +134,7 @@ dapodom_varmcount(Dapodometer* odom, const ptrdiff_t* steps, const size_t* decls
 	tmp = tmp / odom->stride[i];
 	tmp = tmp * (size_t)steps[i];
 	offset += tmp;
-    } 
+    }
     return offset;
 }
 

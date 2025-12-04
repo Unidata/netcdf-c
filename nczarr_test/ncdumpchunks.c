@@ -185,10 +185,10 @@ odom_print(Odometer* odom)
     static char s[4096];
     static char tmp[4096];
     const char* sv;
-    
+
     s[0] = '\0';
     snprintf(tmp,sizeof(tmp),"{rank=%u",(unsigned)odom->rank);
-    strcat(s,tmp);    
+    strcat(s,tmp);
     strcat(s," start=("); sv = printvector(odom->rank,odom->start); strcat(s,sv); strcat(s,")");
     strcat(s," stop=("); sv = printvector(odom->rank,odom->stop); strcat(s,sv); strcat(s,")");
     strcat(s," max=("); sv = printvector(odom->rank,odom->max); strcat(s,sv); strcat(s,")");
@@ -256,7 +256,7 @@ printchunk2d(Format* format, int* chunkdata, size_t indent)
             if(chunkdata[pos] == format->fillvalue) printf(" _"); else printf(" %02d", chunkdata[pos]);
 	}
         printf("\n");
-    }	
+    }
 }
 
 static void
@@ -274,19 +274,19 @@ printchunk(Format* format, int* chunkdata, size_t indent)
     case 1:
         cols[0] = 1;
         cols[1] = 1;
-        cols[2] = chl[0];	
+        cols[2] = chl[0];
 	break;
     case 2:
         cols[0] = 1;
         cols[1] = chl[0];
-        cols[2] = chl[1];	
+        cols[2] = chl[1];
 	break;
     case 3:
         cols[0] = chl[0];
         cols[1] = chl[1];
-        cols[2] = chl[2];	
+        cols[2] = chl[2];
 	break;
-    default:	
+    default:
 	cols[0] = 1;
 	cols[1] = 1;
 	cols[2] = format->chunkprod;
@@ -371,13 +371,13 @@ dump(Format* format)
 	if ((fileid = H5Fopen(format->file_name, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) usage(NC_EHDFERR);
         if ((grpid = H5Gopen1(fileid, "/")) < 0) usage(NC_EHDFERR);
         if ((datasetid = H5Dopen1(grpid, format->var_name)) < 0) usage(NC_EHDFERR);
-	break; 
+	break;
 #endif
 #ifdef NZ
      case NC_FORMATX_NCZARR:
 	if((stat=nc_open(format->file_name,0,&ncid))) usage(stat);
 	if((stat=nc_inq_varid(ncid,format->var_name,&varid))) usage(stat);
-	break;	
+	break;
 #endif
      default: usage(NC_EINVAL);
      }
@@ -523,18 +523,18 @@ main(int argc, char** argv)
     /* Init some format fields */
     format.xtype = NC_INT;
     format.holevalue = -2;
-    
+
     while ((c = getopt(argc, argv, "bhv:DT:L")) != EOF) {
     switch(c) {
 	case 'b':
 	    format.xtype = NC_UBYTE;
-	    break;	
+	    break;
 	case 'h':
 	    usage(0);
-	    break;	
+	    break;
 	case 'v':
 	    strcpy(format.var_name,optarg);
-	    break;	
+	    break;
 	case 'D':
 	    format.debug = 1;
 	    break;

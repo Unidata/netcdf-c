@@ -99,7 +99,7 @@ static int
 reopen(void)
 {
     size_t i;
-    
+
     CHECK(nc_open(testfile, NC_NETCDF4, &ncid));
     for(i=0;i<ndims;i++) {
         char dimname[1024];
@@ -172,7 +172,7 @@ test_test2(void)
 	ok = 0;
 	goto done;
     }
-    /* verify the data */    
+    /* verify the data */
     for(i=0;i<actualproduct;i++) {
 	unsigned value = 0xffffffff;
 	if(array[i] != NULL)
@@ -199,7 +199,7 @@ test_test3(void)
 
     fprintf(stderr,"test4: re-open variable with filter on a variable length type and verify state.\n");
 
-    reopen();    
+    reopen();
 
     /* verify filter state */
     memset(filterids,0,sizeof(filterids));
@@ -218,7 +218,7 @@ test_test3(void)
 	ok = 0;
 	goto done;
     }
-    /* verify the data */    
+    /* verify the data */
     for(i=0;i<actualproduct;i++) {
 	unsigned value = 0xffffffff;
 	if(array[i] != NULL)

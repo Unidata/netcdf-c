@@ -156,9 +156,9 @@ dumpdataprim(NCConstant* ci, Bytebuffer* buf)
 void
 dumpgroup(Symbol* g)
 {
-    if(debug <= 1) return; 
+    if(debug <= 1) return;
     fdebug("group %s {\n",(g==NULL?"null":g->name));
-    if(g != NULL && g->subnodes != NULL) {    
+    if(g != NULL && g->subnodes != NULL) {
 	for(size_t i=0;i<listlength(g->subnodes);i++) {
 	    Symbol* sym = (Symbol*)listget(g->subnodes,i);
 	    char* tname;
@@ -192,7 +192,7 @@ dumpconstant1(NCConstant* con)
 	else
 	    fprintf(stderr,"{%s}",bbDup(buf));
 	bbFree(buf);
-	} break;	
+	} break;
     case NC_STRING:
 	if(con->value.stringv.len > 0 && con->value.stringv.stringv != NULL)
 	    fprintf(stderr,"\"%s\"",con->value.stringv.stringv);

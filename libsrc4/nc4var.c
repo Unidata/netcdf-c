@@ -39,10 +39,10 @@
 
 /** Used in quantize code. Number of explicit bits in significand for
  * doubles. Bits 0-51 of DP significands are explicit. Bit 52 is
- * implicitly 1. Currently redundant with NC_QUANTIZE_MAX_DOUBLE_NSB 
+ * implicitly 1. Currently redundant with NC_QUANTIZE_MAX_DOUBLE_NSB
  * and with limits.h/climit (DBL_MANT_DIG-1) */
-#define BIT_XPL_NBR_SGN_DBL (52) 
-  
+#define BIT_XPL_NBR_SGN_DBL (52)
+
 /** Pointer union for floating point and bitmask types. */
 typedef union { /* ptr_unn */
   float *fp;
@@ -458,8 +458,8 @@ NC4_var_par_access(int ncid, int varid, int par_access)
  * values that overflow the type.
  *
  * This function applies quantization to float and double data, if
- * desired. The code to do this is derived from the corresponding 
- * filter in the CCR project (e.g., 
+ * desired. The code to do this is derived from the corresponding
+ * filter in the CCR project (e.g.,
  * https://github.com/ccr/ccr/blob/master/hdf5_plugins/BITGROOM/src/H5Zbitgroom.c).
  *
  * @param src Pointer to source of data.
@@ -470,12 +470,12 @@ NC4_var_par_access(int ncid, int varid, int par_access)
  * @param range_error Pointer that gets 1 if there was a range error.
  * @param fill_value The fill value.
  * @param strict_nc3 Non-zero if strict model in effect.
- * @param quantize_mode May be ::NC_NOQUANTIZE, ::NC_QUANTIZE_BITGROOM, 
+ * @param quantize_mode May be ::NC_NOQUANTIZE, ::NC_QUANTIZE_BITGROOM,
  * ::NC_QUANTIZE_GRANULARBR, or ::NC_QUANTIZE_BITROUND.
  * @param nsd Number of significant digits for quantize. Ignored
- * unless quantize_mode is ::NC_QUANTIZE_BITGROOM, 
+ * unless quantize_mode is ::NC_QUANTIZE_BITGROOM,
  * ::NC_QUANTIZE_GRANULARBR, or ::NC_QUANTIZE_BITROUND
- * 
+ *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADTYPE Type not found.
  * @author Ed Hartnett, Dennis Heimbigner
@@ -511,7 +511,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
     unsigned long long int msk_f64_u64_hshv;
     unsigned short prc_bnr_xpl_rqr; /* [nbr] Explicitly represented binary digits required to retain */
     ptr_unn op1; /* I/O [frc] Values to quantize */
-    
+
     char *cp, *cp1;
     float *fp, *fp1;
     double *dp, *dp1;
@@ -547,7 +547,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 	  }
         else
 	  {
-	
+
             /* Determine the fill value. */
             if (fill_value)
 	      mss_val_cmp_dbl = *(double *)fill_value;
@@ -577,9 +577,9 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 
 	      /* BitRound interprets nsd as number of significant binary digits (bits) */
 	      prc_bnr_xpl_rqr = (unsigned short)nsd;
-	      
+
 	    }
-	    
+
 	    if (dest_type == NC_FLOAT)
 	      {
 
@@ -588,11 +588,11 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		/* Create mask */
 		msk_f32_u32_zro = 0U; /* Zero all bits */
 		msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
-		
+
 		/* BitShave mask for AND: Left shift zeros into bits to be
 		 * rounded, leave ones in untouched bits. */
 		msk_f32_u32_zro <<= bit_xpl_nbr_zro;
-		
+
 		/* BitSet mask for OR: Put ones into bits to be set, zeros in
 		 * untouched bits. */
 		msk_f32_u32_one = ~msk_f32_u32_zro;
@@ -608,11 +608,11 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		/* Create mask. */
 		msk_f64_u64_zro = 0UL; /* Zero all bits. */
 		msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones. */
-		
+
 		/* BitShave mask for AND: Left shift zeros into bits to be
 		 * rounded, leave ones in untouched bits. */
 		msk_f64_u64_zro <<= bit_xpl_nbr_zro;
-		
+
 		/* BitSet mask for OR: Put ones into bits to be set, zeros in
 		 * untouched bits. */
 		msk_f64_u64_one =~ msk_f64_u64_zro;
@@ -623,9 +623,9 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 	      }
 
 	  }
-	  
+
       } /* endif quantize */
-	    
+
     /* OK, this is ugly. If you can think of anything better, I'm open
        to suggestions!
 
@@ -1443,7 +1443,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 	    }
 	  }
       } /* endif BitRound */
-    
+
     if (quantize_mode == NC_QUANTIZE_GRANULARBR)
     {
         if (dest_type == NC_FLOAT)
@@ -1478,7 +1478,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 
 		  } /* !mss_val_cmp_flt */
 
-	      } 
+	      }
         }
         else
         {
@@ -1857,7 +1857,7 @@ nc4_get_default_fill_value(NC_TYPE_INFO_T* tinfo, void *fill_value)
     case NC_COMPOUND:
 	if(fill_value)
 	    memset(fill_value,0,tinfo->size);
-	break;	
+	break;
     default: return NC_EBADTYPE;
     }
 #endif

@@ -36,7 +36,7 @@
 */
 
 /** @internal List of reserved attributes.
-    WARNING: This list will be sorted in (strcmp) sorted order for binary search. 
+    WARNING: This list will be sorted in (strcmp) sorted order for binary search.
     So order here does not matter; the table will be modified by sorting.
 */
 static NC_reservedatt NC_reserved[] = {
@@ -348,7 +348,7 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
     h5->controller = nc;
 
     h5->hdr.sort = NCFIL;
-    h5->hdr.name = strdup(path);    
+    h5->hdr.name = strdup(path);
     h5->hdr.id = nc->ext_ncid;
 
     /* Hang on to cmode, and note that we're in define mode. */
@@ -1785,8 +1785,8 @@ nc4_finalize_logging(void)
 }
 
 /**
- * Use this to set the global log level. 
- * 
+ * Use this to set the global log level.
+ *
  * Set it to NC_TURN_OFF_LOGGING (-1) to turn off all logging. Set it
  * to 0 to show only errors, and to higher numbers to show more and
  * more logging details. If logging is not enabled when building
@@ -1815,10 +1815,10 @@ nc_set_log_level(int new_level)
     else
         nc4_finalize_logging();
 #endif /* NC_HAS_PARALLEL4 */
-    
+
     LOG((1, "log_level changed to %d", nc_log_level));
 #endif /* LOGGING */
-    
+
     return NC_NOERR;
 }
 #endif /* NETCDF_ENABLE_SET_LOG_LEVEL */

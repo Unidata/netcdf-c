@@ -19,11 +19,11 @@ main(int argc, char **argv)
 {
     int ret = NC_NOERR;
     int ncid;
-    
+
     if(argc < 2) {
 	fprintf(stderr,"Usage: tst_notzarr <url>\n");
 	exit(1);
-    }    
+    }
     ret = nc_open(argv[1],NC_NETCDF4,&ncid);
     printf("%d",ret);
     if(ret == NC_NOERR) nc_close(ncid);

@@ -114,8 +114,8 @@ val_fill_zero(nc_type type, long len, void *vals)
 
 
 
-/* 
- * compare two typed value blocks, return 0 if equal, 1+n otherwise, 
+/*
+ * compare two typed value blocks, return 0 if equal, 1+n otherwise,
  * where n is the index of the first differing element.
  */
 /* type: netcdf type, NC_BYTE, ..., NC_DOUBLE */

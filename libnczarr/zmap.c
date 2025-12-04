@@ -37,7 +37,7 @@ nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* 
     int stat = NC_NOERR;
     NCZMAP* map = NULL;
     NCURI* uri = NULL;
-    
+
     if(path == NULL || strlen(path) == 0)
 	{stat = NC_EINVAL; goto done;}
 
@@ -260,14 +260,14 @@ nczm_divide_at(const char* key, int nsegs, char** prefixp, char** suffixp)
     const char* p;
     size_t abssegs = (size_t)(nsegs >= 0 ?nsegs: -nsegs);
     size_t presegs = 0;
- 
+
     /* Special case */
     if(key == NULL || strlen(key) == 0) goto done;
 
     p = (key[0] == '/' ? key+1 : key);
     /* Count number of segments */
     for(len=0;;) {
-        const char* q = strchr(p,'/');    
+        const char* q = strchr(p,'/');
 	len++;
 	if(q == NULL) break;
 	p = q+1; /* start past leading '/' of next segment */
@@ -282,18 +282,18 @@ nczm_divide_at(const char* key, int nsegs, char** prefixp, char** suffixp)
 
     /* skip past the first presegs segments */
     for(p=key,i=0;i<presegs;i++) {
-        const char* q = strchr(p+1,'/'); 
+        const char* q = strchr(p+1,'/');
 	if(q == NULL) {p = (p + strlen(p)); break;}
 	else p = q;
     }
     /* p should point at the presegs+1 start point */
-    delta = (p-key);    
+    delta = (p-key);
     if(prefixp) {
         prefix = malloc((size_t)delta+1);
         memcpy(prefix,key,(size_t)delta);
         prefix[delta] = '\0';
         *prefixp = prefix;
-    } 
+    }
     if(suffixp) {
         suffix = strdup(p);
         *suffixp = suffix;
@@ -305,7 +305,7 @@ done:
 int
 nczm_clear(NCZMAP* map)
 {
-    if(map) 
+    if(map)
 	nullfree(map->url);
     return NC_NOERR;
 }
@@ -369,7 +369,7 @@ nczm_canonicalpath(const char* path, char** cpathp)
     char* cpath = NULL;
     char* tmp1 = NULL;
 
-    if(path == NULL) 
+    if(path == NULL)
 	{cpath = NULL; goto done;}
 
     /* Process path to make it be absolute*/
@@ -382,7 +382,7 @@ nczm_canonicalpath(const char* path, char** cpathp)
 done:
     nullfree(tmp1);
     nullfree(cpath);
-    return THROW(ret);    
+    return THROW(ret);
 }
 
 /* extract the first segment of a path */
@@ -395,7 +395,7 @@ nczm_segment1(const char* path, char** seg1p)
     const char* q = NULL;
     ptrdiff_t delta;
 
-    if(path == NULL) 
+    if(path == NULL)
 	{seg1 = NULL; goto done;}
 
     p = path;
@@ -411,7 +411,7 @@ nczm_segment1(const char* path, char** seg1p)
     if(seg1p) {*seg1p = seg1; seg1 = NULL;}
 done:
     nullfree(seg1);
-    return THROW(ret);    
+    return THROW(ret);
 }
 
 /*
@@ -433,7 +433,7 @@ nczm_lastsegment(const char* path, char** lastp)
     if(lastp) *lastp = strdup(last);
 
 done:
-    return THROW(ret);    
+    return THROW(ret);
 }
 
 /*
@@ -464,7 +464,7 @@ nczm_basename(const char* path, char** basep)
 done:
     nullfree(last);
     nullfree(base);
-    return THROW(stat);    
+    return THROW(stat);
 }
 
 static int

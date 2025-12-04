@@ -52,13 +52,13 @@ main(int argc, char** argv)
 
     while ((c = getopt(argc, argv, "dt")) != EOF) {
 	switch(c) {
-	case 'd': 
-	    options.debug = 1;	    
+	case 'd':
+	    options.debug = 1;
 	    break;
-	case 't': 
-	    options.typetag = 1;	    
+	case 't':
+	    options.typetag = 1;
 	    break;
-	case 'v': 
+	case 'v':
 	    usage();
 	    goto done;
 	case '?':
@@ -88,12 +88,12 @@ main(int argc, char** argv)
     default:
 	fprintf(stderr,"Unimplemented action\n");
 	goto fail;
-    }    
+    }
 
 done:
     if(stat)
 	nc_strerror(stat);
-    return (stat ? 1 : 0);    
+    return (stat ? 1 : 0);
 fail:
     stat = NC_EINVAL;
     goto done;
@@ -142,7 +142,7 @@ objdump(void)
 	    for(i=(ngrps-1);i>=0;i--) {
 		nclistinsert(stack,0,(void*)(uintptr_t)subgrps[i]); /* push in order */
 	    }
-	}        
+	}
     }
 
 done:
