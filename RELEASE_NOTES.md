@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.10.0 - TBD
 
-* Modify the way xarray attribute sets are handled. See [Github ????](https://github.com/Unidata/netcdf-c/issues/????) for more information. 
+* Modify the way xarray attribute sets are handled. See [Github 3218](https://github.com/Unidata/netcdf-c/issues/3218) for more information. 
 * Fix Issue with Numcodecs encoding problems where integer filter parameters are being encoded as strings. See [Github 3201](https://github.com/Unidata/netcdf-c/issues/3201) for more information. 
 * Clean up minor problems with DAP2/DAP4 code. See [Github #3215](https://github.com/Unidata/netcdf-c/pull/3215) for more information.
 * Cleanup RELEASE_NOTES.md. See [Github 3190](https://github.com/Unidata/netcdf-c/issues/3190) for more information. 
