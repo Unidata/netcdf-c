@@ -78,21 +78,6 @@ static const char* queryallow =
 static const char* userpwdallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!$&'()*+,-.;=_~?#/";
 
-#ifndef HAVE_STRNDUP
-#define strndup ncstrndup
-/* Not all systems have strndup, so provide one*/
-char*
-ncstrndup(const char* s, size_t len)
-{
-    char* dup;
-    if(s == NULL) return NULL;
-    dup = (char*)malloc(len+1);
-    if(dup == NULL) return NULL;
-    memcpy((void*)dup,s,len);
-    dup[len] = '\0';
-    return dup;
-}
-#endif
 /* Forward */
 static int collectprefixparams(char* text, char** nextp);
 static void freestringlist(NClist* list);

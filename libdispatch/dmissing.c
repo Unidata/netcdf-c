@@ -43,6 +43,20 @@ strdup(const char* s)
 }
 #endif
 
+#ifndef HAVE_STRNDUP
+char*
+strndup(const char* s, size_t len)
+{
+    char* dup;
+    if(s == NULL) return NULL;
+    dup = (char*)malloc(len+1);
+    if(dup == NULL) return NULL;
+    memcpy((void*)dup,s,len);
+    dup[len] = '\0';
+    return dup;
+}
+#endif
+
 #if !defined(_MSC_VER) && !defined(WIN32)
 
 #ifndef HAVE_STRLCAT
