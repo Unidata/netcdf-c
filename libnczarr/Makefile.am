@@ -59,6 +59,7 @@ zdispatch.h \
 zincludes.h \
 zinternal.h \
 zmap.h \
+zmetadata.h \
 zodom.h \
 zprovenance.h \
 zplugins.h \
