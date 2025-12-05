@@ -18,7 +18,7 @@ cd $ISOPATH
 testcase() {
 zext=$1
 
-echo "*** Test: pure zarr write then read; format=$zext"
+echo "*** Test: pure zarr -- no xarray -- write then read; format=$zext"
 fileargs tmp_purezarr "mode=zarr,noxarray,$zext"
 deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_purezarr_base.cdl
@@ -26,11 +26,11 @@ ${NCDUMP} $fileurl > tmp_purezarr_${zext}.cdl
 diff -b ${srcdir}/ref_purezarr.cdl tmp_purezarr_${zext}.cdl
 
 echo "*** Test: xarray zarr write then read; format=$zext"
-fileargs tmp_xarray "mode=zarr,$zext"
+fileargs tmp_purezarr_xarray "mode=zarr,$zext"
 #deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_purezarr_base.cdl
-${NCDUMP} $fileurl > tmp_xarray_${zext}.cdl
-diff -b ${srcdir}/ref_xarray.cdl tmp_xarray_${zext}.cdl
+${NCDUMP} $fileurl > tmp_purezarr_xarray_${zext}.cdl
+diff -b ${srcdir}/ref_purezarr_xarray.cdl tmp_purezarr_xarray_${zext}.cdl
 
 echo "*** Test: pure zarr reading nczarr; format=$zext"
 fileargs tmp_nczarr "mode=nczarr,noxarray,$zext"
