@@ -59,11 +59,6 @@ typedef struct NCURI {
 extern "C" {
 #endif
 
-#ifndef HAVE_STRNDUP
-#define strndup ncstrndup
-/* Not all systems have strndup, so provide one*/
-char *ncstrndup(const char *s, size_t len);
-#endif
 
 EXTERNL int ncuriparse(const char* s, NCURI** ncuri);
 EXTERNL void ncurifree(NCURI* ncuri);
