@@ -38,11 +38,10 @@
 #  endif
 #endif
 
-#define ZMETAROOT "/.zgroup"
-#define ZMETAATTR "/.zattrs"
-#define ZGROUP ".zgroup"
-#define ZATTRS ".zattrs"
-#define ZARRAY ".zarray"
+#define Z2GROUPROOT "/.zgroup"
+#define Z2GROUP ".zgroup"
+#define Z2ATTRS ".zattrs"
+#define Z2ARRAY ".zarray"
 
 /* V2 Reserved Attributes */
 /*
@@ -123,6 +122,7 @@ typedef struct NCZ_FILE_INFO {
     NCZcommon common;
     struct NCZMAP* map; /* implementation */
     struct NCauth* auth;
+    struct NCZ_Metadata metadata;
     struct nczarr {
 	int zarr_version;
 	struct {
@@ -141,6 +141,7 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_LOGGING     4
 #		define FLAG_XARRAYDIMS  8
 #		define FLAG_NCZARR_KEY  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
+#		define FLAG_CONSOLIDATED 32
 	NCZM_IMPL mapimpl;
     } controls;
     int default_maxstrlen; /* default max str size for variables of type string */
