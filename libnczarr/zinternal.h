@@ -13,6 +13,7 @@
 #define ZINTERNAL_H
 
 #define ZARRVERSION "2"
+#define ZARRFORMAT2 2
 
 /* NCZARRVERSION is independent of Zarr version,
    but NCZARRVERSION => ZARRVERSION */
@@ -21,6 +22,11 @@
 /* These have to do with creating chunked datasets in ZARR. */
 #define NCZ_CHUNKSIZE_FACTOR (10)
 #define NCZ_MIN_CHUNK_SIZE (2)
+
+/* The name of the env var for controlling .zmetadata use*/
+#define NCZARR_CONSOLIDATED_KEY_ENV "NCZARR_METADATA_CONSOLIDATED_KEY"
+#define NCZARR_CONSOLIDATED_ENV "NCZARR_CONSOLIDATED"
+#define NCZARR_CONSOLIDATED_DEFAULT 0 /* default to consolidated metadata */
 
 /**************************************************/
 /* Constants */
@@ -38,11 +44,12 @@
 #  endif
 #endif
 
-#define ZMETAROOT "/.zgroup"
-#define ZMETAATTR "/.zattrs"
-#define ZGROUP ".zgroup"
-#define ZATTRS ".zattrs"
-#define ZARRAY ".zarray"
+/* V2 Reserved Objects */
+#define Z2METAROOT "/.zgroup"
+#define Z2ATTSROOT "/.zattrs"
+#define Z2GROUP ".zgroup"
+#define Z2ATTRS ".zattrs"
+#define Z2ARRAY ".zarray"
 
 /* V2 Reserved Attributes */
 /*
@@ -141,8 +148,10 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_LOGGING     4
 #		define FLAG_XARRAYDIMS  8
 #		define FLAG_NCZARR_KEY  16 /* _nczarr_xxx keys are stored in object and not in _nczarr_attrs */
+#       define FLAG_CONSOLIDATED 32 /* Use/set consolidated metadata */
 	NCZM_IMPL mapimpl;
     } controls;
+    struct NCZ_Metadata metadata;
     int default_maxstrlen; /* default max str size for variables of type string */
 } NCZ_FILE_INFO_T;
 

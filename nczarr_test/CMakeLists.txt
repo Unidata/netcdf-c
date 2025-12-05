@@ -186,6 +186,7 @@ IF(NETCDF_ENABLE_TESTS)
     ENDIF()
 
     add_sh_test(nczarr_test run_purezarr)
+    add_sh_test(nczarr_test run_consolidated_zarr)
     add_sh_test(nczarr_test run_misc)
     add_sh_test(nczarr_test run_nczarr_fill)
     add_sh_test(nczarr_test run_jsonconvention)

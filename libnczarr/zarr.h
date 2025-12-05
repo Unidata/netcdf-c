@@ -69,7 +69,7 @@ EXTERNL int NCZ_inferattrtype(const NCjson* value, nc_type typehint, nc_type* ty
 EXTERNL int NCZ_inferinttype(unsigned long long u64, int negative);
 EXTERNL int ncz_fill_value_sort(nc_type nctype, int*);
 EXTERNL int NCZ_createobject(NCZMAP* zmap, const char* key, size64_t size);
-EXTERNL int NCZ_uploadjson(NCZMAP* zmap, const char* key, NCjson* json);
+EXTERNL int NCZ_uploadjson(NCZMAP* zmap, const char* key, const NCjson* json);
 EXTERNL int NCZ_downloadjson(NCZMAP* zmap, const char* key, NCjson** jsonp);
 EXTERNL int NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, char dimsep, NClist* objlist);
 EXTERNL int NCZ_grpname_full(int gid, char** pathp);
