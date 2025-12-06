@@ -233,9 +233,13 @@ IF(NETCDF_ENABLE_TESTS)
 
   if(NETCDF_ENABLE_NCZARR_ZIP)
       add_sh_test(nczarr_test run_newformat)
-      # Test various corrupted files
-      ADD_SH_TEST(nczarr_test run_corrupt)
   endif()
+
+  # Test various corrupted files
+  ADD_SH_TEST(nczarr_test run_corrupt)
+
+  # Test xarray support
+  ADD_SH_TEST(nczarr_test run_xarray_misc)
 
   IF(FALSE) # Obsolete tests
       add_sh_test(nczarr_test run_ut_chunk)
