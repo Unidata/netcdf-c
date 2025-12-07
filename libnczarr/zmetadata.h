@@ -81,7 +81,7 @@ extern int NCZMD_set_metadata_handler(struct NCZ_FILE_INFO *zfile);
 /// 	probing the dataset for the existence of zarr metadata objects (.z*).
 /// @param zfile - The zarr file info structure
 /// @param zarrformat - Pointer to int to receive the zarr format version
-extern int NCZMD_get_metadata_format(struct NCZ_FILE_INFO*zfile, int *zarrformat);
+extern int NCZMD_get_metadata_format(struct NCZ_FILE_INFO* zfile, int *zarrformat);
 
 /// @brief Frees any resources associated with the metadata handler
 /// @param zmd - Potinter to the metadata handler structure
@@ -89,7 +89,7 @@ extern void NCZMD_free_metadata_handler(NCZ_Metadata * zmd);
 
 /// @brief Upload the .zmetadata object
 /// @param zfile - The zarr file info structure
-extern int NCZMD_consolidate(struct NCZ_FILE_INFO_T *zfile) {
+extern int NCZMD_consolidate(struct NCZ_FILE_INFO* zfile) {
 
 /// @brief Lists groups and/or variables under a given group key.
 /// @param zfile - The zarr file info structure
