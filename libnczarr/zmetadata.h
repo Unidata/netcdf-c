@@ -89,7 +89,7 @@ extern void NCZMD_free_metadata_handler(NCZ_Metadata * zmd);
 
 /// @brief Upload the .zmetadata object
 /// @param zfile - The zarr file info structure
-extern int NCZMD_consolidate(NCZ_FILE_INFO_T *zfile) {
+extern int NCZMD_consolidate(struct NCZ_FILE_INFO_T *zfile) {
 
 /// @brief Lists groups and/or variables under a given group key.
 /// @param zfile - The zarr file info structure
