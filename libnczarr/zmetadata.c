@@ -136,7 +136,8 @@ void NCZMD_free_metadata_handler(NCZ_Metadata * zmd){
     zmd->jcsl = NULL;
 }
 
-int NCZMD_consolidate(NCZ_FILE_INFO_T *zfile) {
+int NCZMD_consolidate(NCZ_FILE_INFO_T *zfile)
+{
 	int stat = NC_NOERR;
 	if (zfile->creating == 1 && zfile->metadata.jcsl !=NULL){
 		stat = NCZ_uploadjson(zfile->map, Z2METADATA ,zfile->metadata.jcsl);
