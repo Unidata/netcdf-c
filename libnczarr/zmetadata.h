@@ -87,6 +87,10 @@ extern int NCZMD_get_metadata_format(struct NCZ_FILE_INFO*zfile, int *zarrformat
 /// @param zmd - Potinter to the metadata handler structure
 extern void NCZMD_free_metadata_handler(NCZ_Metadata * zmd);
 
+/// @brief Upload the .zmetadata object
+/// @param zfile - The zarr file info structure
+externint NCZMD_consolidate(NCZ_FILE_INFO_T *zfile) {
+
 /// @brief Lists groups and/or variables under a given group key.
 /// @param zfile - The zarr file info structure
 /// @param key - The group key within which to list nodes
