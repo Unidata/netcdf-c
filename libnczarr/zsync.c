@@ -36,7 +36,7 @@ static int define_subgrps(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* subg
 static int searchvars(NCZ_FILE_INFO_T*, NC_GRP_INFO_T*, NClist*);
 static int searchsubgrps(NCZ_FILE_INFO_T*, NC_GRP_INFO_T*, NClist*);
 static int locategroup(NC_FILE_INFO_T* file, size_t nsegs, NClist* segments, NC_GRP_INFO_T** grpp);
-static int createdim(NC_FILE_INFO_T* file, const char* name, size64_t dimlen, NC_DIM_INFO_T** dimp);
+static int createdim(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* name, size64_t dimlen, NC_DIM_INFO_T** dimp);
 static int parsedimrefs(NC_FILE_INFO_T*, NClist* dimnames,  size64_t* shape, NC_DIM_INFO_T** dims, int create);
 static int decodeints(const NCjson* jshape, size64_t* shapes);
 static int computeattrdata(nc_type typehint, nc_type* typeidp, const NCjson* values, size_t* typelenp, size_t* lenp, void** datap);
@@ -768,36 +768,27 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, NCjson*
 	goto done;
 
     if(container->sort == NCVAR) { 
-        if(inrootgroup && isxarray) {
-	    int dimsinroot = 1;
-	    /* Insert the XARRAY _ARRAY_ATTRIBUTE attribute */
+        if(isxarray) {
+	    /* Optionally insert XARRAY-related attributes:
+		- XARRAYSCALAR
+		- _ARRAY_ATTRIBUTE
+	    */
 	    NCJnew(NCJ_ARRAY,&jdimrefs);
 	    /* Fake the scalar case */
-	    if(var->ndims == 0) {
+	    if(var->ndims == 0)
 	        NCJaddstring(jdimrefs,NCJ_STRING,XARRAYSCALAR);
-	    } else /* Walk the dimensions and capture the names */
+	    /* Walk the dimensions and capture the names */
 	    for(i=0;i<var->ndims;i++) {
+		char* dimname;
 	        NC_DIM_INFO_T* dim = var->dim[i];
-		/* Verify that the dimension is in the root group */
-		if(dim->container && dim->container->parent != NULL) {
-		    dimsinroot = 0; /* dimension is not in root */
-		    break;
-		}
+		dimname = strdup(dim->hdr.name);
+		if(dimname == NULL) {stat = NC_ENOMEM; goto done;}
+	        NCJaddstring(jdimrefs,NCJ_STRING,dimname);
+   	        nullfree(dimname); dimname = NULL;
 	    }
-	    if(dimsinroot) {
-		/* Walk the dimensions and capture the names */
-		for(i=0;i<var->ndims;i++) {
-		    char* dimname;
-	            NC_DIM_INFO_T* dim = var->dim[i];
-		    dimname = strdup(dim->hdr.name);
-		    if(dimname == NULL) {stat = NC_ENOMEM; goto done;}
-	            NCJaddstring(jdimrefs,NCJ_STRING,dimname);
-   	            nullfree(dimname); dimname = NULL;
-		}
-	        /* Add the _ARRAY_DIMENSIONS attribute */
-	        if((stat = NCJinsert(jatts,NC_XARRAY_DIMS,jdimrefs))<0) {stat = NC_EINVAL; goto done;}
-	        jdimrefs = NULL;
-	    }
+	    /* Add the _ARRAY_DIMENSIONS attribute */
+	    if((stat = NCJinsert(jatts,NC_XARRAY_DIMS,jdimrefs))<0) {stat = NC_EINVAL; goto done;}
+	    jdimrefs = NULL;
         }
     }
     /* Add Quantize Attribute */
@@ -2069,12 +2060,13 @@ done:
 
 /* This code is a subset of NCZ_def_dim */
 static int
-createdim(NC_FILE_INFO_T* file, const char* name, size64_t dimlen, NC_DIM_INFO_T** dimp)
+createdim(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* name, size64_t dimlen, NC_DIM_INFO_T** dimp)
 {
     int stat = NC_NOERR;
-    NC_GRP_INFO_T* root = file->root_grp;
     NC_DIM_INFO_T* thed = NULL;
-    if((stat = nc4_dim_list_add(root, name, (size_t)dimlen, -1, &thed)))
+    if(grp == NULL) grp = file->root_grp;
+
+    if((stat = nc4_dim_list_add(grp, name, (size_t)dimlen, -1, &thed)))
         goto done;
     assert(thed != NULL);
     /* Create struct for NCZ-specific dim info. */
@@ -2154,7 +2146,7 @@ parsedimrefs(NC_FILE_INFO_T* file, NClist* dimnames, size64_t* shape, NC_DIM_INF
 	}
 	if(dims[i] == NULL && create) {
 	    /* If not found and create then create it */
-	    if((stat = createdim(file, dimname, shape[i], &dims[i])))
+	    if((stat = createdim(file, g, dimname, shape[i], &dims[i])))
 	        goto done;
 	} else {
 	    /* Verify consistency */
@@ -2246,10 +2238,13 @@ computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarra
 {
     int stat = NC_NOERR;
     size_t i;
-    int createdims = 0; /* 1 => we need to create the dims in root if they do not already exist */
+    int createdims = 0; /* 1 => we need to create the dims in current group
+                                if they do not already exist */
     NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)file->format_file_info;
     NCZ_VAR_INFO_T* zvar = (NCZ_VAR_INFO_T*)(var->format_var_info);
     NCjson* jatts = NULL;
+    NC_GRP_INFO_T* grp = var->container; /* Immediate parent group for var */
+    char* grpfqn = NULL; /* FQN for grp */
 
     ZTRACE(3,"file=%s var=%s purezarr=%d xarray=%d ndims=%d shape=%s",
     	file->controller->path,var->hdr.name,purezarr,xarray,(int)ndims,nczprint_vector(ndims,shapes));
@@ -2263,9 +2258,17 @@ computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarra
 	    if((stat = ncz_read_atts(file,(NC_OBJ*)var))) goto done;
 	}
 	if(zvar->xarray != NULL) {
-	    /* convert xarray to the dimnames */
+	    size_t len;
+	    /* get the FQN of the current group */
+	    if((stat = NCZ_grpkey(grp, &grpfqn))) goto done;
+	    assert(grpfqn != NULL);
+	    len = strlen(grpfqn);
+	    assert(len > 0);
+	    /* supress any trailing '/' */
+	    if(grpfqn[len - 1] == '/') grpfqn[len -1] = '\0';
+	    /* convert xarray to FQN dimnames */
 	    for(i=0;i<nclistlength(zvar->xarray);i++) {
-	        snprintf(zdimname,sizeof(zdimname),"/%s",(const char*)nclistget(zvar->xarray,i));
+	        snprintf(zdimname,sizeof(zdimname),"%s/%s",grpfqn,(const char*)nclistget(zvar->xarray,i));
 	        nclistpush(dimnames,strdup(zdimname));
 	    }
 	}
@@ -2273,6 +2276,7 @@ computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarra
     }
 
     /* If pure zarr and we have no dimref names, then fake it */
+    /* Note that to avoid creating duplicates of anonymous dims, we create dim in root group */
     if(purezarr && nclistlength(dimnames) == 0) {
 	int i;
 	createdims = 1;
@@ -2289,6 +2293,7 @@ computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarra
         goto done;
 
 done:
+    nullfree(grpfqn);
     NCJreclaim(jatts);
     return ZUNTRACE(THROW(stat));
 }
