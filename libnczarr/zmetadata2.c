@@ -176,7 +176,7 @@ int NCZMD_v2_csl_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *gr
 	int stat = NC_NOERR;
 	char *subkey = NULL;
 	char *zgroup = NULL;
-	NClist *matches = nclistnew();
+	NClist *segments = nclistnew();
 
 	const char *group = key + (key[0] == '/');
 	size_t lgroup = strlen(group);
@@ -194,23 +194,26 @@ int NCZMD_v2_csl_list_nodes(NCZ_FILE_INFO_T *zfile, const char * key, NClist *gr
 		{
 			continue;
 		}
-		const char *start = fullname + lgroup + (lgroup > 0);
-		const char *end = strchr(start, NCZM_SEP[0]) + 1;
-		if (end == NULL || end <= start)
+
+		nclistclearall(segments);
+		NC_split_delim(fullname + lgroup + (lgroup > 0), NCZM_SEP[0] ,segments);
+		size_t slen = nclistlength(segments);
+		if (slen != 2) {
 			continue;
-		size_t lname = (size_t)(end - start) - 1;
-		if (strncmp(Z2GROUP, end, sizeof(Z2GROUP)) == 0 && groups != NULL)
-		{
-			nclistpush(groups, strndup(start, lname));
 		}
-		else if (strncmp(Z2ARRAY, end, sizeof(Z2ARRAY)) == 0 && variables != NULL)
+
+		if (strncmp(Z2GROUP, nclistget(segments,1), sizeof(Z2GROUP)) == 0 && groups != NULL)
 		{
-			nclistpush(variables, strndup(start, lname));
+			nclistpush(groups, strdup(nclistget(segments,0)));
+		}
+		else if (strncmp(Z2ARRAY, nclistget(segments,1), sizeof(Z2ARRAY)) == 0 && variables != NULL)
+		{
+			nclistpush(variables, strdup(nclistget(segments,0)));
 		}
 	}
 	nullfree(subkey);
 	nullfree(zgroup);
-	nclistfreeall(matches);
+	nclistfreeall(segments);
 	return stat;
 }
 
