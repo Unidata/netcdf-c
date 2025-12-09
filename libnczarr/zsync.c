@@ -1136,6 +1136,10 @@ define_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
     if((stat = NCZ_grpkey(grp,&key))) goto done;
 
     /* Download .zgroup and .zattrs */
+    nullfree(zgrp->zgroup.prefix);
+    zgrp->zgroup.prefix = strdup(key);
+    NCJreclaim(zgrp->zgroup.obj);
+    NCJreclaim(zgrp->zgroup.atts);
     if ((stat = NCZMD_fetch_json_group(zinfo, key, &zgrp->zgroup.obj)) \
     || (stat = NCZMD_fetch_json_attrs(zinfo, key, &zgrp->zgroup.atts))) {
         goto done;
