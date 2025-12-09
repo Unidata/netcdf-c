@@ -54,6 +54,10 @@ diff -w ${srcdir}/ref_oldformat.cdl ./tmp_oldformat_non_consolidated.cdl
 NCZARR_CONSOLIDATED=TRUE ${NCDUMP} -n ref_oldformat "file://tmp_newformat_consolidated.file#mode=zarr,file" > ./tmp_pure_consolidated.cdl
 NCZARR_CONSOLIDATED=FALSE ${NCDUMP} -n ref_oldformat "file://tmp_newformat_consolidated.file#mode=zarr,file" > ./tmp_pure_non_consolidated.cdl
 diff -w ./tmp_pure_consolidated.cdl ./tmp_pure_non_consolidated.cdl
+rm ./tmp_pure_consolidated.cdl ./tmp_pure_non_consolidated.cdl
+${NCDUMP} -n ref_oldformat "file://tmp_newformat_consolidated.file#mode=zarr,file,consolidated" > ./tmp_pure_consolidated.cdl
+${NCDUMP} -n ref_oldformat "file://tmp_newformat_consolidated.file#mode=zarr,file" > ./tmp_pure_non_consolidated.cdl
+diff -w ./tmp_pure_consolidated.cdl ./tmp_pure_non_consolidated.cdl
 set +x
 }
 
