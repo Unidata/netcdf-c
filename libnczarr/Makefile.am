@@ -43,6 +43,8 @@ zgrp.c \
 zinternal.c \
 zmap.c \
 zmap_file.c \
+zmetadata.c \
+zmetadata2.c\
 zodom.c \
 zopen.c \
 zprov.c \
