@@ -99,7 +99,7 @@ simplecreate(void)
     
     printf("Pass: create: create: %s\n",url);
 
-    truekey = makekey(ZMETAROOT);
+    truekey = makekey(Z2GROUPROOT);
     if((stat = nczmap_write(map, truekey, 0, NULL)))
 	goto done;
     printf("Pass: create: defineobj: %s\n",truekey);
@@ -184,13 +184,13 @@ simplemeta(void)
     report(PASS,"open",map);
 	
     /* Make sure .nczarr exists (from simplecreate) */
-    truekey = makekey(ZMETAROOT);
+    truekey = makekey(Z2GROUPROOT);
     if((stat = nczmap_exists(map,truekey)))
 	goto done;
     report(PASS,".nczarr: exists",map);
     free(truekey); truekey = NULL;
 
-    if((stat=nczm_concat(META1,ZARRAY,&key)))
+    if((stat=nczm_concat(META1,Z2ARRAY,&key)))
 	goto done;
     truekey = makekey(key);
     nullfree(key); key = NULL;
@@ -199,13 +199,13 @@ simplemeta(void)
     report(PASS,".zarray: def",map);
     free(truekey); truekey = NULL;
 
-    truekey = makekey(ZMETAROOT);
+    truekey = makekey(Z2GROUPROOT);
     if((stat = nczmap_write(map, truekey, strlen(metadata1), metadata1)))
 	goto done;
     report(PASS,".nczarr: writemetadata",map);
     free(truekey); truekey = NULL;
     
-    if((stat=nczm_concat(META1,ZARRAY,&key)))
+    if((stat=nczm_concat(META1,Z2ARRAY,&key)))
 	goto done;
     truekey = makekey(key);
     free(key); key = NULL;    
@@ -225,7 +225,7 @@ simplemeta(void)
     report(PASS,"re-open",map);
 
     /* Read previously written */
-    truekey = makekey(ZMETAROOT);
+    truekey = makekey(Z2GROUPROOT);
     if((stat = nczmap_exists(map, truekey)))
 	goto done;
     report(PASS,".nczarr: exists",map);
@@ -245,7 +245,7 @@ simplemeta(void)
     else report(PASS,".nczarr: content verify",map);
     nullfree(content); content = NULL;
 
-    if((stat=nczm_concat(META1,ZARRAY,&key)))
+    if((stat=nczm_concat(META1,Z2ARRAY,&key)))
 	goto done;
     truekey = makekey(key);
     nullfree(key); key = NULL;
