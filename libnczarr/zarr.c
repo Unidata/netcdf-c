@@ -276,6 +276,7 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     /* Process the modelist first */
     zinfo->controls.mapimpl = NCZM_DEFAULT;
     zinfo->controls.flags |= FLAG_XARRAYDIMS; /* Always support XArray convention where possible */
+    zinfo->controls.flags |= (NCZARR_CONSOLIDATED_DEFAULT ? FLAG_CONSOLIDATED : 0);
     for(i=0;i<nclistlength(modelist);i++) {
         const char* p = nclistget(modelist,i);
 	if(strcasecmp(p,PUREZARRCONTROL)==0)
@@ -287,6 +288,8 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
 	else if(strcasecmp(p,"zip")==0) zinfo->controls.mapimpl = NCZM_ZIP;
 	else if(strcasecmp(p,"file")==0) zinfo->controls.mapimpl = NCZM_FILE;
 	else if(strcasecmp(p,"s3")==0) zinfo->controls.mapimpl = NCZM_S3;
+	else if(strcasecmp(p,"consolidated") == 0)
+	        zinfo->controls.flags |= FLAG_CONSOLIDATED;
     }
     /* Apply negative controls by turning off negative flags */
     /* This is necessary to avoid order dependence of mode flags when both positive and negative flags are defined */
