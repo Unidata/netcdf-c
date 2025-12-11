@@ -145,6 +145,10 @@ extern int NCZMD_update_json_attrs(struct NCZ_FILE_INFO*zfile, const char *key, 
 /// @return NO_ERROR on success, error code on failure
 extern int NCZMD_update_json_array(struct NCZ_FILE_INFO *zfile, const char *key, const NCjson *jarrays);
 
+/// @brief Consolidates dataset by updating the storage
+/// @param zfile The zarr file info structure
+/// @return `NC_NOERR` On sucess, other error code on failure
+int NCZMD_consolidate(struct NCZ_FILE_INFO *zfile);
 #if defined(__cplusplus)
 }
 #endif
