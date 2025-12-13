@@ -31,6 +31,7 @@
 
 /* Always needed */
 #include "nc.h"
+#include "ncglobal.h"
 
 /** The file ID is stored in the first two bytes of ncid. */
 #define FILE_ID_MASK (0xffff0000)
@@ -189,11 +190,7 @@ typedef struct NC_VAR_INFO
     int storage;                 /**< Storage of this var, compact, contiguous, or chunked. */
     int endianness;              /**< What endianness for the var? */
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
-    struct ChunkCache {
-        size_t size;     /**< Size in bytes of the var chunk cache. */
-        size_t nelems;   /**< Number of slots in var chunk cache. */
-        float preemption; /**< Chunk cache preemtion policy. */
-    } chunkcache;
+    struct ChunkCache chunkcache; /* ChunkCache now defined in ncglobal.h */
     int quantize_mode;           /**< Quantize mode. NC_NOQUANTIZE is 0, and means no quantization. */
     int nsd;                     /**< Number of significant digits if quantization is used, 0 if not. */
     void *format_var_info;       /**< Pointer to any binary format info. */
@@ -456,46 +453,6 @@ extern int NC4_get_atomic_typeclass(nc_type xtype, int *type_class);
 
 extern int nc_set_alignment(int threshold, int alignment);
 extern int nc_get_alignment(int* thresholdp, int* alignmentp);
-
-/**************************************************/
-/* Begin to collect global state info in one place (more to do) */
-
-typedef struct NCglobalstate {
-    int initialized;
-    char* tempdir; /* track a usable temp dir */
-    char* home; /* track $HOME */
-    char* cwd; /* track getcwd */
-    struct NCRCinfo* rcinfo; /* Currently only one rc file per session */
-    NClist* pluginpaths; /* Global Plugin State */
-    struct GlobalZarr { /* Zarr specific parameters */
-	char dimension_separator;
-	int default_zarrformat;
-	NClist* pluginpaths; /* NCZarr mirror of plugin paths */
-	NClist* codec_defaults;
-	NClist* default_libs;
-	/* All possible HDF5 filter plugins */
-	/* Consider onverting to linked list or hash table or
-	   equivalent since very sparse */
-	struct NCZ_Plugin** loaded_plugins; //[H5Z_FILTER_MAX+1];
-	size_t loaded_plugins_max; /* plugin filter id index. 0<loaded_plugins_max<=H5Z_FILTER_MAX */
-    } zarr;
-    struct GlobalAWS { /* AWS S3 specific parameters/defaults */
-	char* default_region;
-	char* config_file;
-	char* profile;
-	char* access_key_id;
-	char* secret_access_key;
-    } aws;
-    struct Alignment { /* H5Pset_alignment parameters */
-        int defined; /* 1 => threshold and alignment explicitly set */
-	int threshold;
-	int alignment;
-    } alignment;
-    struct ChunkCache chunkcache;
-} NCglobalstate;
-
-extern struct NCglobalstate* NC_getglobalstate(void);
-extern void NC_freeglobalstate(void);
 
 /**************************************************/
 /* Binary searcher for reserved attributes */
