@@ -59,6 +59,7 @@ typedef struct NCURI {
 extern "C" {
 #endif
 
+
 EXTERNL int ncuriparse(const char* s, NCURI** ncuri);
 EXTERNL void ncurifree(NCURI* ncuri);
 
