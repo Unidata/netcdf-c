@@ -16,6 +16,8 @@
  * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 #include "config.h"
+#include <stdarg.h>
+#include <stddef.h>
 #include "netcdf.h"
 #include "netcdf_filter.h"
 #include "netcdf_meta.h"
@@ -23,9 +25,8 @@
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
-#include <stdarg.h>
-#include <stddef.h>
 #include "ncrc.h"
+#include "nc4internal.h"
 
 /** @internal Number of reserved attributes. These attributes are
  * hidden from the netcdf user, but exist in the implementation
@@ -754,6 +755,8 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
         return NC_ENOMEM;
     new_var->hdr.sort = NCVAR;
     new_var->container = grp;
+
+    memset(&new_var->chunkcache,0,sizeof(struct ChunkCache));
 
     /* These are the HDF5-1.8.4 defaults. */
     new_var->chunkcache.size = gs->chunkcache.size;
