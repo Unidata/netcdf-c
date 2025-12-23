@@ -130,6 +130,7 @@ jobs:
         shell: pwsh
       - uses: actions/checkout@v4
       - uses: cygwin/cygwin-install-action@v4
+        id: install-cygwin
         with:
           platform: x86_64
           install-dir: 'C:\cygwin'
@@ -140,9 +141,10 @@ jobs:
             libdeflate-devel gcc-core gcc-g++ libcurl-devel libiconv-devel
             libssl-devel libcrypt-devel cmake ninja make m4 diffutils zip unzip
 
+            
       - name: Install HDF5 1.14.6
         run: |
-          setup-x86_64.exe -P libhdf5-devel=1.14.6-1
+          ${{ steps.install-cygwin.outputs.setup }} -P libhdf5-devel=1.14.6-1
 
 ###
 # Configure and build
