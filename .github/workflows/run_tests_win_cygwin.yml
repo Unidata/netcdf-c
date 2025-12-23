@@ -142,7 +142,7 @@ jobs:
 
       - name: Install HDF5 1.14.6
         run: |
-          setup-x86-64.exe -P libhdf5-devel=1.14.6-1
+          setup-x86_64.exe -P libhdf5-devel=1.14.6-1
 
 ###
 # Configure and build
