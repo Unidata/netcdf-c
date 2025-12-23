@@ -79,11 +79,11 @@ jobs:
         run: cat libnetcdf.settings
 
       - name: (Autotools) Build library and utilities
-        run: make -j8 SHELL=/bin/dash
+        run: make -j8 
 
       - name: (Autotools) Test DESTDIR install
         run: |
-          make install DESTDIR=/tmp/pretend-root SHELL=/bin/dash
+          make install DESTDIR=/tmp/pretend-root 
           if [ -d "/tmp/pretend-root/$(pwd)" ];
           then
               find /tmp/pretend-root/$(pwd)
@@ -93,16 +93,16 @@ jobs:
       - name: (Autotools) Build tests
         timeout-minutes: 30
         run: |
-          make check -j$(nproc) TESTS="" SHELL=/bin/dash
+          make check -j$(nproc) TESTS="" 
 
       - name: (Autotools) Run tests
         timeout-minutes: 30
         run: |
-          make check -j$(nproc) SHELL=/bin/dash
+          make check -j$(nproc) 
  
       - name: (Autotools) Examine test failures.
         run: |
-          cat $(find . -name 'test-suite.log') SHELL=/bin/dash
+          cat $(find . -name 'test-suite.log') 
         if: ${{ failure() }}
 
       - name: Upload autoconf test results
