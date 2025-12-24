@@ -45,9 +45,9 @@ jobs:
             libssl-devel libcrypt-devel attr libattr-devel unzip zip dash
 
       - name: Install HDF5 1.14.6-1
-          shell: pwsh
-          run: |
-            C:\setup.exe -q -P libhdf5-devel=1.14.6-1
+        shell: pwsh
+        run: |
+          C:\setup.exe -q -P libhdf5-devel=1.14.6-1
 
       - name: (Autotools) Run autoconf and friends
         run: |
