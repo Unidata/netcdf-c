@@ -147,9 +147,9 @@ jobs:
             libssl-devel libcrypt-devel cmake ninja make m4 diffutils zip unzip
 
       - name: Install HDF5 1.14.6-1
-          shell: pwsh
-          run: |
-            C:\setup.exe -q -P libhdf5-devel=1.14.6-1
+        shell: pwsh
+        run: |
+          C:\setup.exe -q -P libhdf5-devel=1.14.6-1
 
 ###
 # Configure and build
