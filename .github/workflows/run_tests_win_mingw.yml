@@ -43,7 +43,7 @@ jobs:
 ###
 
       - name: Downgrade hdf5
-        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.3-1-any.pkg.tar.zst
+        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst
 
 ###
 # Configure and build
@@ -110,7 +110,7 @@ jobs:
 ###
 
       - name: Downgrade hdf5
-        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.3-1-any.pkg.tar.zst
+        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst
 
 
 ###
