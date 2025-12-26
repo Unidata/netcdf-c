@@ -35,7 +35,7 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           update: true
-          pacboy: cc:p autotools:p hdf5:p curl:p libxml2:p zlib:p blosc:p bzip2:p
+          pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p
           install: diffutils m4 git unzip
 
 ###
@@ -43,7 +43,7 @@ jobs:
 ###
 
       - name: Downgrade hdf5
-        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst
+        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
 
 ###
 # Configure and build
@@ -102,7 +102,7 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           update: true
-          pacboy: cc:p cmake:p hdf5:p curl:p libxml2:p zlib:p blosc:p bzip2:p
+          pacboy: cc:p cmake:p curl:p libxml2:p zlib:p blosc:p bzip2:p
           install: make m4 diffutils git unzip
 
 ###
@@ -110,7 +110,7 @@ jobs:
 ###
 
       - name: Downgrade hdf5
-        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst
+        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
 
 
 ###
