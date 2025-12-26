@@ -43,8 +43,12 @@ jobs:
 ###
 
       - name: Downgrade hdf5
-        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
-
+        run: |
+          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
+            pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
+          else
+            pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
+          fi
 ###
 # Configure and build
 ###
@@ -110,9 +114,12 @@ jobs:
 ###
 
       - name: Downgrade hdf5
-        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
-
-
+        run: |
+          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
+            pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
+          else
+            pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
+          fi
 ###
 # Configure and build
 ###
