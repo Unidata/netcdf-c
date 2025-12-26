@@ -39,6 +39,13 @@ jobs:
           install: diffutils m4 git unzip
 
 ###
+# Downgrade hdf5 
+###
+
+      - name: Downgrade hdf5
+        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.3-1-any.pkg.tar.zst
+
+###
 # Configure and build
 ###
 
@@ -97,6 +104,14 @@ jobs:
           update: true
           pacboy: cc:p cmake:p hdf5:p curl:p libxml2:p zlib:p blosc:p bzip2:p
           install: make m4 diffutils git unzip
+
+###
+# Downgrade hdf5 
+###
+
+      - name: Downgrade hdf5
+        run: pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.3-1-any.pkg.tar.zst
+
 
 ###
 # Configure and build
