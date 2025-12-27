@@ -119,11 +119,12 @@ The fragment part of a URL is used to specify information that is interpreted to
 For reading, _key=value_ pairs are provided for specifying the storage format.
 - mode=nczarr|zarr
 
-Additional pairs are provided to specify the Zarr version.
-- mode=v2<!--|v3-->
+Additional pairs are provided to specify
+- Zarr version `mode=v2`<!--|v3-->
 
-Additional pairs are provided to specify the storage medium: Amazon S3 vs File tree vs Zip file.
-- mode=file|zip|s3
+- Storage medium: S3, File or Zip `mode=file|zip|s3`
+
+- Additional options like consolidate(d) metadata `mode=consolidated`
 
 Note that when reading, an attempt will be made to infer the
 format and Zarr version and storage medium format by probing the
@@ -164,6 +165,12 @@ This means that every variable in the root group whose named dimensions
 are also in the root group will have an attribute called
 *\_ARRAY\_DIMENSIONS* that stores those dimension names.
 The _noxarray_ mode tells the library to disable the XArray support.
+
+### Consolidated Metadata
+
+In the zarr specification, there is no mention to consolidated metadata. However the python implementation introduced 2 functions, `open_consolidated` and `consolidate` that given a dataset, read/write all the metadata from/to a single object (`/.zmetadata` for zarr 2). This was introduced mainly to improve the performance when accessing data remotely.
+
+The current NetCDF's zarr implementation supports consolidated operations via url fragments containing `mode=zarr,consolidated` or via environment variable `NCZARR_CONSOLIDATED`
 
 # NCZarr Map Implementation {#nczarr_mapimpl}
 
@@ -865,6 +872,9 @@ Note, this log was only started as of 8/11/2022 and is not
 intended to be a detailed chronology. Rather, it provides highlights
 that will be of interest to NCZarr users. In order to see exact changes,
 It is necessary to use the 'git diff' command.
+
+## 15/12/2025
+1. Include consolidated metadata.
 
 ## 03/31/2024
 1. Document the change to V2 to using attributes to hold NCZarr metadata.
