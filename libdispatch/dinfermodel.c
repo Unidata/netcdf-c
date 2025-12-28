@@ -1547,10 +1547,10 @@ done:
 
 /* Define a macro to wrap getxattr calls */
 #ifdef __APPLE__
-#define GETXATTR(path,p,xvalue,xlen) (void)getxattr(path, p, xvalue, (size_t)xlen, 0, 0);
+#define GETXATTR(path,p,xvalue,xlen) getxattr(path, p, xvalue, (size_t)xlen, 0, 0);
 #define LISTXATTR(path,xlist,xlen) listxattr(path, xlist, (size_t)xlen, 0)
 #else
-#define GETXATTR(path,p,xvalue,xlen) (void)getxattr(path, p, xvalue, (size_t)xlen);
+#define GETXATTR(path,p,xvalue,xlen) getxattr(path, p, xvalue, (size_t)xlen);
 #define LISTXATTR(path,xlist,xlen) listxattr(path, xlist, (size_t)xlen)
 #endif
 
