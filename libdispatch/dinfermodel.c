@@ -1593,7 +1593,7 @@ isdaoscontainer(const char* path)
 		/* Look for '.daos' in the key */
 		if(strstr(p,".daos") != NULL) {rc = 1; break;} /* success */
 		/* Else get the p'th xattr's value size */
-		xlen = GETXATTR(path,p,null,0);
+		xlen = GETXATTR(path,p,NULL,0);
 		if((xvalue = (char*)calloc(1,(size_t)xlen))==NULL)
 		    {stat = NC_ENOMEM; goto done;}
 		/* Read the value */
