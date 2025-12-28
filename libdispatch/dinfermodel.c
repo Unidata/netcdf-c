@@ -1545,7 +1545,7 @@ done:
      return check(status);
 }
 
-/* Define a macro to wrap getxattr calls */
+/* Define macros to wrap getxattr and listxattrcalls */
 #ifdef __APPLE__
 #define GETXATTR(path,p,xvalue,xlen) getxattr(path, p, xvalue, (size_t)xlen, 0, 0);
 #define LISTXATTR(path,xlist,xlen) listxattr(path, xlist, (size_t)xlen, 0)
