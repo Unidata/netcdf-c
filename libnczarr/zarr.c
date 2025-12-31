@@ -79,6 +79,10 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* controls)
     if((stat = nczmap_create(zinfo->controls.mapimpl,nc->path,nc->mode,zinfo->controls.flags,NULL,&zinfo->map)))
 	goto done;
 
+    if((stat = NCZMD_set_metadata_handler(zinfo))){
+        goto done;
+    }
+
 done:
     ncurifree(uri);
     NCJreclaim(json);
@@ -142,6 +146,10 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* controls)
     /* initialize map handle*/
     if((stat = nczmap_open(zinfo->controls.mapimpl,nc->path,mode,zinfo->controls.flags,NULL,&zinfo->map)))
 	goto done;
+
+    if((stat = NCZMD_set_metadata_handler(zinfo))) {
+        goto done;
+    }
 
     /* Ok, try to read superblock */
     if((stat = ncz_read_superblock(file,&nczarr_version,&zarr_format))) goto done;
@@ -268,6 +276,7 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     /* Process the modelist first */
     zinfo->controls.mapimpl = NCZM_DEFAULT;
     zinfo->controls.flags |= FLAG_XARRAYDIMS; /* Always support XArray convention where possible */
+    zinfo->controls.flags |= (NCZARR_CONSOLIDATED_DEFAULT ? FLAG_CONSOLIDATED : 0);
     for(i=0;i<nclistlength(modelist);i++) {
         const char* p = nclistget(modelist,i);
 	if(strcasecmp(p,PUREZARRCONTROL)==0)
@@ -279,6 +288,8 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
 	else if(strcasecmp(p,"zip")==0) zinfo->controls.mapimpl = NCZM_ZIP;
 	else if(strcasecmp(p,"file")==0) zinfo->controls.mapimpl = NCZM_FILE;
 	else if(strcasecmp(p,"s3")==0) zinfo->controls.mapimpl = NCZM_S3;
+	else if(strcasecmp(p,"consolidated") == 0)
+	        zinfo->controls.flags |= FLAG_CONSOLIDATED;
     }
     /* Apply negative controls by turning off negative flags */
     /* This is necessary to avoid order dependence of mode flags when both positive and negative flags are defined */

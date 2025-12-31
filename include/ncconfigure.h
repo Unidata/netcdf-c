@@ -67,6 +67,12 @@ char* strdup(const char*);
 #endif
 #endif
 
+#ifndef HAVE_STRNDUP
+#ifndef strndup
+char *strndup(const char *s, size_t len);
+#endif
+#endif
+
 #ifndef HAVE_STRLCAT
 #ifndef strlcat
 #define strlcat nc_strlcat
@@ -95,6 +101,12 @@ long long int strtoll(const char*, char**, int);
 #ifndef HAVE_STRTOULL
 #ifndef strtoull
 unsigned long long int strtoull(const char*, char**, int);
+#endif
+#endif
+
+#ifndef HAVE_MEMMOVE
+#ifndef memmove
+void* memmove(void *dest, const void *src, size_t count);
 #endif
 #endif
 

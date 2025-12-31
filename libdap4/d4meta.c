@@ -436,7 +436,7 @@ buildStructureType(NCD4meta* builder, NCD4node* structtype)
 
     /* Step 2: See if already defined */
     if(nc_inq_typeid(group->meta.id,name,&tid) == NC_NOERR) {/* Already exists */
-	FAIL(NC_ENAMEINUSE,"Inferred type name conflict",name);
+	FAIL(NC_ENAMEINUSE,"Inferred type name conflict: %s",name);
     }
 
     /* Since netcdf does not support forward references,
@@ -469,7 +469,7 @@ buildVlenType(NCD4meta* builder, NCD4node* vlentype)
 
     /* See if already defined */
     if(nc_inq_typeid(group->meta.id,name,&tid) == NC_NOERR) {/* Already exists */
-	FAIL(NC_ENAMEINUSE,"Inferred type name conflict",name);
+	FAIL(NC_ENAMEINUSE,"Inferred type name conflict: %s",name);
     }
 
     /* Get the baseline type */
@@ -607,7 +607,7 @@ savevarbyid(NCD4node* group, NCD4node* var)
 {
     if(group->group.varbyid == NULL)
         group->group.varbyid = nclistnew();
-    nclistsetalloc(group->group.varbyid, (size_t)var->meta.id);
+    nclistsetlength(group->group.varbyid, (size_t)var->meta.id+1);
     nclistinsert(group->group.varbyid, (size_t)var->meta.id,var);
 }
 
