@@ -1410,7 +1410,7 @@ AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
                 strdup strtoll strtoull \
 		mkstemp mktemp random \
 		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c \
-		strncasecmp])
+		strncasecmp strndup])
 
 # See if clock_gettime is available and its arg types.
 AC_CHECK_FUNCS([clock_gettime])
