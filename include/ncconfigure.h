@@ -67,10 +67,12 @@ char* strdup(const char*);
 #endif
 #endif
 
-#ifndef HAVE_STRNDUP
-#ifndef strndup
+#ifndef __cplusplus
+# ifndef HAVE_STRNDUP
+#  ifndef strndup
 char *strndup(const char *s, size_t len);
-#endif
+#  endif
+# endif
 #endif
 
 #ifndef HAVE_STRLCAT
