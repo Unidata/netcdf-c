@@ -38,11 +38,16 @@ jobs:
           platform: x86_64
           install-dir: 'C:\cygwin'
           packages: >-
-            git automake libtool autoconf2.5 make libhdf5-devel
+            git automake libtool autoconf2.5 make
             libhdf4-devel zipinfo libxml2-devel perl zlib-devel
             libzstd-devel libbz2-devel libaec-devel libzip-devel
             libdeflate-devel gcc-core gcc-g++ libcurl-devel libiconv-devel
-            libssl-devel libcrypt-devel attr libattr-devel unzip zip
+            libssl-devel libcrypt-devel attr libattr-devel unzip zip dash
+
+      - name: Install HDF5 1.14.6-1
+        shell: pwsh
+        run: |
+          C:\setup.exe -q -P libhdf5-devel=1.14.6-1
 
       - name: (Autotools) Run autoconf and friends
         run: |
@@ -130,15 +135,21 @@ jobs:
         shell: pwsh
       - uses: actions/checkout@v4
       - uses: cygwin/cygwin-install-action@v4
+        id: install-cygwin
         with:
           platform: x86_64
           install-dir: 'C:\cygwin'
           packages: >-
-            git automake libtool autoconf2.5 make libhdf5-devel
+            git automake libtool autoconf2.5 make 
             libhdf4-devel zipinfo libxml2-devel perl zlib-devel
             libzstd-devel libbz2-devel libaec-devel libzip-devel
             libdeflate-devel gcc-core gcc-g++ libcurl-devel libiconv-devel
             libssl-devel libcrypt-devel cmake ninja make m4 diffutils zip unzip
+
+      - name: Install HDF5 1.14.6-1
+        shell: pwsh
+        run: |
+          C:\setup.exe -q -P libhdf5-devel=1.14.6-1
 
 ###
 # Configure and build
