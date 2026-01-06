@@ -15,6 +15,7 @@ target_sources(dispatch
     ncproplist.c 
     ncindex.c
     dglobal.c
+    daws.c
 )
 
 if (NETCDF_ENABLE_DLL)
