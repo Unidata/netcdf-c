@@ -56,7 +56,6 @@ export NC_TEST_AWS_DIR=${THISDIR}
 export AWS_PROFILE=unidata
 ${CMD} ${execdir}/aws_config  endpoint_url region dummy_key
 echo "Status: $?"
-exit
 export AWS_PROFILE=play
 ${CMD} ${execdir}/aws_config  endpoint_url region 
 echo "Status: $?"

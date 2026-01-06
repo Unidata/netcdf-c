@@ -6,12 +6,6 @@
 #ifndef D4UTIL_H
 #define D4UTIL_H 1
 
-#ifdef HAVE_MEMMOVE
-#define d4memmove(dst,src,n) memmove(dst,src,n)
-#else
-#define d4memmove(dst,src,n) localmemmove(dst,src,n)
-#endif
-
 /* This is intended to be big enough to work as
    an offset/position/size for a file or a memory block.
 */
@@ -82,6 +76,6 @@ typedef struct D4blob {d4size_t size; void* memory;} D4blob;
 #define HASANY   (HASNIL|HASSEQ|HASSTR|HASOPTFIX|HASOPVAR)
 /***************************************************/
 
-extern int ncd4__testurl(const char* parth, char** basename);
+extern int ncd4__testurl(const char* path, char** basename);
 
 #endif /*D4UTIL_H*/

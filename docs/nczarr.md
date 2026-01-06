@@ -115,11 +115,12 @@ The fragment part of a URL is used to specify information that is interpreted to
 For reading, _key=value_ pairs are provided for specifying the storage format.
 - mode=nczarr|zarr
 
-Additional pairs are provided to specify the Zarr version.
-- mode=v2<!--|v3-->
+Additional pairs are provided to specify
+- Zarr version `mode=v2`<!--|v3-->
 
-Additional pairs are provided to specify the storage medium: Amazon S3 vs File tree vs Zip file.
-- mode=file|zip|s3
+- Storage medium: S3, File or Zip `mode=file|zip|s3`
+
+- Additional options like consolidate(d) metadata `mode=consolidated`
 
 Note that when reading, an attempt will be made to infer the
 format and Zarr version and storage medium format by probing the
@@ -128,7 +129,7 @@ the client may need to add specific mode flags to avoid
 inferencing.
 
 Typically one will specify three mode flags: one to indicate what format
-to use and one to specify the way the dataset is to be stored<!--,and one to specifiy the Zarr format version-->.
+to use and one to specify the way the dataset is to be stored<!--,and one to specify the Zarr format version-->.
 For example, a common one is "mode=zarr,file<!--,v2-->"
 <!--If not specified, the version will be the default specified when
 the netcdf-c library was built.-->
@@ -160,6 +161,12 @@ This means that every variable in the root group whose named dimensions
 are also in the root group will have an attribute called
 *\_ARRAY\_DIMENSIONS* that stores those dimension names.
 The _noxarray_ mode tells the library to disable the XArray support.
+
+### Consolidated Metadata
+
+In the zarr specification, there is no mention to consolidated metadata. However the python implementation introduced 2 functions, `open_consolidated` and `consolidate` that given a dataset, read/write all the metadata from/to a single object (`/.zmetadata` for zarr 2). This was introduced mainly to improve the performance when accessing data remotely.
+
+The current NetCDF's zarr implementation supports consolidated operations via url fragments containing `mode=zarr,consolidated` or via environment variable `NCZARR_CONSOLIDATED`
 
 # NCZarr Map Implementation {#nczarr_mapimpl}
 
@@ -227,7 +234,7 @@ Specifically
 2. Avoid returning all the legal keys in the dataset because that set may be very large; although the implementation may still have to examine all legal keys to get the desired subset.
 3. Allow for use of partial read mechanisms such as iterators, if available.
 This can support processing a limited set of keys for each iteration.
-This is a straighforward tradeoff of space over time.
+This is a straightforward tradeoff of space over time.
 
 As a side note, S3 supports this kind of search using common prefixes with a delimiter of '/', although its use is a bit tricky.
 For the file system zmap implementation, the legal search keys can be obtained one level at a time, which directly implements the search semantics.
@@ -257,9 +264,9 @@ It also does not preclude the use of other error codes internal to the zmap impl
 So zmap_file, for example, uses NC_ENOTFOUND internally because it is possible to detect the existence of directories and files.
 But this does not propagate outside the zmap_file implementation.
 
-## Zmap Implementatons
+## Zmap Implementations
 
-The primary zmap implementation is _s3_ (i.e. _mode=nczarr,s3_) and indicates that the Amazon S3 cloud storage -- or some related applicance -- is to be used.
+The primary zmap implementation is _s3_ (i.e. _mode=nczarr,s3_) and indicates that the Amazon S3 cloud storage -- or some related appliance -- is to be used.
 Another storage format uses a file system tree of directories and files (_mode=nczarr,file_).
 A third storage format uses a zip file (_mode=nczarr,zip_).
 The latter two are used mostly for debugging and testing.
@@ -402,7 +409,7 @@ Specifically it contains the following keys:
 
 With some loss of netcdf-4 information, it is possible for an nczarr library to read the pure Zarr format and for other zarr libraries to read the nczarr format.
 
-The latter case, zarr reading nczarr, is trival because all of the nczarr metadata is stored as ordinary, String valued (but JSON syntax), attributes.
+The latter case, zarr reading nczarr, is trivial because all of the nczarr metadata is stored as ordinary, String valued (but JSON syntax), attributes.
 
 The former case, nczarr reading zarr is possible assuming the nczarr code can simulate or infer the contents of the missing _\_nczarr\_xxx_ attributes.
 As a rule this can be done as follows.
@@ -419,7 +426,7 @@ netcdf specific information.
 
 # Compatibility {#nczarr_compatibility}
 
-In order to accomodate existing implementations, certain mode tags are provided to tell the NCZarr code to look for information used by specific implementations.
+In order to accommodate existing implementations, certain mode tags are provided to tell the NCZarr code to look for information used by specific implementations.
 
 ## XArray
 
@@ -577,7 +584,7 @@ The current algorithm to support JSON valued attributes
 operates as follows.
 
 ## Writing an attribute:
-There are mutiple cases to consider.
+There are multiple cases to consider.
 
 1. The netcdf attribute **is not** of type NC_CHAR and its value is a single atomic value.
     * Convert to an equivalent JSON atomic value and write that JSON expression.
@@ -673,7 +680,7 @@ For writing variables and NCZarr attributes, the type mapping is as follows:
 
 Admittedly, this encoding is a bit of a hack.
 
-So when reading data with a pure zarr implementaion
+So when reading data with a pure zarr implementation
 the above types should always appear as strings,
 and the type that signals NC_CHAR (in NCZarr)
 would be handled by Zarr as a string of length 1.
@@ -861,6 +868,9 @@ Note, this log was only started as of 8/11/2022 and is not
 intended to be a detailed chronology. Rather, it provides highlights
 that will be of interest to NCZarr users. In order to see exact changes,
 It is necessary to use the 'git diff' command.
+
+## 15/12/2025
+1. Include consolidated metadata.
 
 ## 03/31/2024
 1. Document the change to V2 to using attributes to hold NCZarr metadata.

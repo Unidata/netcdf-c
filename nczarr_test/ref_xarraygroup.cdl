@@ -1,0 +1,28 @@
+netcdf tmp_xarraygroup {
+dimensions:
+	x = 2 ;
+	y = 3 ;
+variables:
+	double foo(x, y) ;
+	int64 x(x) ;
+	int64 y(y) ;
+data:
+
+ foo =
+  0.882122410001935, 0.965447248726893, 0.101624561750357,
+  0.456570884905498, 0.545247654537869, 0.497764826098154 ;
+
+ x = 10, 20 ;
+
+ y = 0, 1, 2 ;
+
+group: g {
+  dimensions:
+  	y = 4 ;
+  variables:
+  	ubyte z(y) ;
+  data:
+
+   z = 97, 0, 0, 0 ;
+  } // group g
+}

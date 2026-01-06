@@ -4,7 +4,7 @@
 #set -o xtrace
 # if this is part of a distcheck action, then this script
 # will be executed in a different directory
-# than the ontaining it; so capture the path to this script
+# than the one containing it; so capture the path to this script
 # as the location of the source directory.
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi

@@ -134,7 +134,7 @@ Notes:
 #endif /*_WIN32*/
 
 /*
-WARNING: you should never need to explictly call this function;
+WARNING: you should never need to explicitly call this function;
 rather it is invoked as part of the wrappers for e.g. NCfopen, etc.
 This function is intended to be Idempotent: f(f(x) == f(x).
 This means it is ok to call it repeatedly with no harm.
