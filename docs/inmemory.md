@@ -85,14 +85,14 @@ The netcdf API has been extended to support the inmemory capability.
 The relevant API is defined in the file `netcdf_mem.h`.
 
 The important data structure to use is `NC_memio`.
-````
+`
 typedef struct NC_memio {
     size_t size;
     void* memory;
     int flags;
 } NC_memio;
 
-````
+`
 An instance of this data structure is used when providing or
 retrieving a block of data. It specifies the memory and its size
 and also some relevant flags that define how to manage the memory.
@@ -108,7 +108,7 @@ reallocating the memory, then the modification will fail.
 ### In-Memory API
 
 The new API consists of the following functions.
-````
+`
 int nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp);
 
 int nc_create_mem(const char* path, int mode, size_t initialsize, int* ncidp);
@@ -117,7 +117,7 @@ int nc_open_memio(const char* path, int mode, NC_memio* info, int* ncidp);
 
 int nc_close_memio(int ncid, NC_memio* info);
 
-````
+`
 ### The **nc_open_mem** Function
 
 The *nc_open_mem()* function is actually a convenience

@@ -44,7 +44,7 @@ In order to use this capability at run-time, with *ncdump* for
 example, it is necessary to provide a URL pointing to the basic
 dataset to be accessed. The URL must be annotated to tell the
 netcdf-c library that byte-range access should be used. This is
-indicated by appending the phrase ````#mode=bytes````
+indicated by appending the phrase `#mode=bytes`
 to the end of the URL.
 The two examples above show how this will look.
 

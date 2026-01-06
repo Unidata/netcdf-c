@@ -213,15 +213,15 @@ Since it is so common, here is a set of templates to use to
 access *earthdata.nasa.gov*.
 
 #### *.ncrc* File
-````
+`
 HTTP.NETRC=/home/<user>/.netrc
 HTTP.COOKIEJAR=/home/<user>/.urs_cookies
-````
+`
 
 #### *.netrc* File
-````
+`
 machine urs.earthdata.nasa.gov login <user> password <password>
-````
+`
 
 ## Client-Side Certificates {#auth_clientcerts}
 
