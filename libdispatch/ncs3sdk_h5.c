@@ -15,6 +15,7 @@
 #include "ncrc.h"
 #include "ncxml.h"
 #include "ncutil.h"
+#include "ncaws.h"
 
 #include "ncs3sdk.h"
 #include "nch5s3comms.h"
@@ -117,7 +118,7 @@ static int queryinsert(NClist* list, char* ekey, char* evalue);
 static int ncs3_initialized = 0;
 static int ncs3_finalized = 0;
 
-/*EXTERNL*/ int
+int
 NC_s3sdkinitialize(void)
 {
     if(!ncs3_initialized) {
@@ -131,7 +132,7 @@ NC_s3sdkinitialize(void)
     return NC_NOERR;
 }
 
-/*EXTERNL*/ int
+int
 NC_s3sdkfinalize(void)
 {
     if(!ncs3_finalized) {
@@ -173,14 +174,16 @@ dumps3client(void* s3client0, const char* tag)
 
 /**************************************************/
 
-/*EXTERNL*/ void*
+void*
 NC_s3sdkcreateclient(NCS3INFO* info)
 {
     int stat = NC_NOERR;
     const char* accessid = NULL;
     const char* accesskey = NULL;
+    const char* session_token = NULL;
     char* urlroot = NULL;
     NCS3CLIENT* s3client = NULL;
+    NCAWSPARAMS aws = NC_awsparams_empty();
 
     NCTRACE(11,"info=%s",NC_s3dumps3info(info));
 
@@ -189,9 +192,14 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     if(info->profile != NULL) {
         if((stat = NC_s3profilelookup(info->profile, AWS_PROF_ACCESS_KEY_ID, &accessid))) goto done;
         if((stat = NC_s3profilelookup(info->profile, AWS_PROF_SECRET_ACCESS_KEY, &accesskey))) goto done;
+        if((stat = NC_s3profilelookup(info->profile, AWS_PROF_SESSION_TOKEN, &session_token))) goto done;
     }
     if((s3client->rooturl = makes3rooturl(info))==NULL) {stat = NC_ENOMEM; goto done;}
-    s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->svc,info->region,accessid,accesskey);
+    aws.region = info->region;
+    aws.access_key_id = accessid;
+    aws.secret_access_key = accesskey;
+    aws.session_token = session_token;
+    s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->svc,&aws);
     if(s3client->h5s3client == NULL) {stat = NC_ES3; goto done;}
 
 done:
@@ -204,7 +212,7 @@ done:
     return (void*)s3client;
 }
 
-/*EXTERNL*/ int
+int
 NC_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -225,7 +233,7 @@ done:
     return NCUNTRACEX(stat,"exists=%d",PTRVAL(int,existsp,-1));
 }
 
-/*EXTERNL*/ int
+int
 NC_s3sdkbucketcreate(void* s3client0, const char* region, const char* bucket, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -239,7 +247,7 @@ NC_s3sdkbucketcreate(void* s3client0, const char* region, const char* bucket, ch
     return NCUNTRACE(stat);    
 }
 
-/*EXTERNL*/ int
+int
 NC_s3sdkbucketdelete(void* s3client0, NCS3INFO* info, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -263,7 +271,7 @@ NC_s3sdkbucketdelete(void* s3client0, NCS3INFO* info, char** errmsgp)
 @return NC_ENOOBJECT if object at key does not exist
 @return NC_EXXX return true error
 */
-/*EXTERNL*/ int
+int
 NC_s3sdkinfo(void* s3client0, const char* bucket, const char* pathkey, size64_t* lenp, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -289,7 +297,7 @@ done:
 @return NC_NOERR if success
 @return NC_EXXX if fail
 */
-/*EXTERNL*/ int
+int
 NC_s3sdkread(void* s3client0, const char* bucket, const char* pathkey, size64_t start, size64_t count, void* content, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -316,7 +324,7 @@ done:
 For S3, I can see no way to do a byterange write;
 so we are effectively writing the whole object
 */
-/*EXTERNL*/ int
+int
 NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  size64_t count, const void* content, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -340,7 +348,7 @@ done:
     return NCUNTRACE(stat);
 }
 
-/*EXTERNL*/ int
+int
 NC_s3sdkclose(void* s3client0, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -351,7 +359,7 @@ NC_s3sdkclose(void* s3client0, char** errmsgp)
     return NCUNTRACE(stat);
 }
 
-/*EXTERNL*/ int
+int
 NC_s3sdktruncate(void* s3client0, const char* bucket, const char* prefix, char** errmsgp)
 {
     int stat = NC_NOERR;
@@ -462,7 +470,7 @@ Return a list of names of legal objects immediately below a specified key.
 In theory, the returned list should be sorted in lexical order,
 but it possible that it is not.
 */
-/*EXTERNL*/ int
+int
 NC_s3sdklist(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
@@ -474,14 +482,14 @@ Return a list of full keys  of legal objects anywhere below a specified key.
 Not necessarily sorted.
 Essentially same as getkeys, but with no delimiter.
 */
-/*EXTERNL*/ int
+int
 NC_s3sdklistall(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
     return NCUNTRACE(getkeys(s3client0, bucket, prefixkey0, NULL, nkeysp, keysp, errmsgp));
 }
 
-/*EXTERNL*/ int
+int
 NC_s3sdkdeletekey(void* s3client0, const char* bucket, const char* pathkey, char** errmsgp)
 {
     int stat = NC_NOERR;

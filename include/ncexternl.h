@@ -20,4 +20,16 @@
 # define EXTERNL MSC_EXTRA extern
 #endif
 
+#ifndef DECLSPEC
+#ifdef DLL_NETCDF
+  #ifdef DLL_EXPORT /* define when building the library */
+    #define DECLSPEC __declspec(dllexport)
+  #else
+    #define DECLSPEC __declspec(dllimport)
+  #endif
+#else
+  #define DECLSPEC
+#endif
+#endif /*!DECLSPEC*/
+
 #endif /*NCEXTERNL_H*/
