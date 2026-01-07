@@ -939,7 +939,9 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
+INPUT                  = @abs_top_srcdir@/docs/mainpage.md \
+                         @abs_top_srcdir@/docs/netcdf_advanced_features.md \
+                         @abs_top_srcdir@/docs/remote_data_access.md \
                          @abs_top_srcdir@/RELEASE_NOTES.md \
                          @abs_top_srcdir@/docs/install-fortran.md \
                          @abs_top_srcdir@/docs/windows-binaries.md \
@@ -1015,7 +1017,8 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
                          @abs_top_srcdir@/examples/C/simple_nc4_rd.c \
                          @abs_top_srcdir@/examples/C/simple_xy_nc4_wr.c \
                          @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c \
-                         @abs_top_srcdir@/examples/C/filter_example.c
+                         @abs_top_srcdir@/examples/C/filter_example.c \
+                         @abs_top_srcdir@/docs/appendices.md \
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1086,7 +1089,7 @@ EXCLUDE_SYMLINKS       = NO
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       =
+EXCLUDE_PATTERNS       = */.git/* */.github/* */build/* */_site/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -1195,7 +1198,7 @@ FILTER_SOURCE_PATTERNS =
 # (index.html). This can be useful if you have a project on for instance GitHub
 # and want to reuse the introduction page also for the doxygen output.
 
-USE_MDFILE_AS_MAINPAGE =
+USE_MDFILE_AS_MAINPAGE = @abs_top_srcdir@/docs/mainpage.md
 
 # The Fortran standard specifies that for fixed formatted Fortran code all
 # characters from position 72 are to be considered as comment. A common
@@ -1396,7 +1399,7 @@ HTML_STYLESHEET        =
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
 HTML_EXTRA_STYLESHEET  = @DOXYGEN_CSS_FILE@ \
-                @abs_top_srcdir@/docs/doxygen-awesome-css/doxygen-awesome.css 
+                @abs_top_srcdir@/docs/doxygen-awesome-css/doxygen-awesome.css @abs_top_srcdir@/docs/doxygen-awesome-css/custom.css
 HTML_COLORSTYLE        = LIGHT
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
