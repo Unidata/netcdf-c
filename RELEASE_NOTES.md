@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.10.0 - TBD
 
+* Add compatibility with HDF5 2.0.0.  See [Github #3247](https://github.com/Unidata/netcdf-c/pull/3247) for more information.
 * Introduce consolidated metadata [Github #3225](https://github.com/Unidata/netcdf-c/pull/3225) via `mode=consolidated` or `NCZARR_CONSOLIDATED`
 * Fix the H5FD_class_t problems. See [Github 3202](https://github.com/Unidata/netcdf-c/issues/3202) for more information. 
 * Begin the consolidation of global state into two files: libdispatch/dglobal.c and include/ncglobal.h. See [Github 3197](https://github.com/Unidata/netcdf-c/issues/3197) for more information. 
