@@ -8,6 +8,7 @@
 
 #include <nc_tests.h>
 #include "err_macros.h"
+#include "hdf5internal.h"
 #include <mpi.h>
 
 #define FILE "tst_parallel5.nc"
@@ -19,9 +20,16 @@
 #define NUM_PROC 4
 #define NUM_SLABS 10
 #define NUM_ACCESS_TESTS 2
-#define HDF5_DEFAULT_CACHE_SIZE 1048576
-#define HDF5_DEFAULT_NELEMS 521
-#define HDF5_DEFAULT_PREEMPTION 0.75
+
+#if H5_VERSION_GE(2,0,0)
+    #define HDF5_DEFAULT_CACHE_SIZE 8388608
+    #define HDF5_DEFAULT_NELEMS 8191
+    #define HDF5_DEFAULT_PREEMPTION 0.75
+#else
+    #define HDF5_DEFAULT_CACHE_SIZE 1048576
+    #define HDF5_DEFAULT_NELEMS 521
+    #define HDF5_DEFAULT_PREEMPTION 0.75
+#endif
 
 int
 nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
@@ -330,8 +338,18 @@ main(int argc, char **argv)
                           &ncid)) ERR;
         if (nc4_hdf5_get_chunk_cache(ncid, &size, &nelems, &preemption)) ERR;
         if (size != HDF5_DEFAULT_CACHE_SIZE || nelems != HDF5_DEFAULT_NELEMS ||
-            preemption != HDF5_DEFAULT_PREEMPTION) ERR;
-        /* printf("%ld %ld %g\n", size, nelems, preemption); */
+            preemption != HDF5_DEFAULT_PREEMPTION) {
+                printf("hdf5_default: size: %ld (%ld) nelems: %ld (%ld) preemption: %g (%g)\n", 
+                    size, HDF5_DEFAULT_CACHE_SIZE,
+                    nelems, HDF5_DEFAULT_NELEMS,
+                    preemption, HDF5_DEFAULT_PREEMPTION); 
+                ERR;
+            } else {
+                /*printf("hdf5_default: size: %ld (%ld) nelems: %ld (%ld) preemption: %g (%g)\n", 
+                    size, HDF5_DEFAULT_CACHE_SIZE,
+                    nelems, HDF5_DEFAULT_NELEMS,
+                    preemption, HDF5_DEFAULT_PREEMPTION); */
+            }
         if (nc_close(ncid)) ERR;
 
         /* Create a file with sequential I/O and check cache settings
@@ -344,7 +362,18 @@ main(int argc, char **argv)
             if (nc4_hdf5_get_chunk_cache(ncid, &size, &nelems, &preemption)) ERR;
             /* printf("%ld %ld %g\n", size, nelems, preemption); */
             if (size != CHUNK_CACHE_SIZE || nelems != CHUNK_CACHE_NELEMS ||
-                preemption != CHUNK_CACHE_PREEMPTION) ERR;
+                preemption != CHUNK_CACHE_PREEMPTION) {
+                    printf("netcdf_default: size: %ld (%ld) nelems: %ld (%ld) preemption: %g (%g)\n", 
+                        size, CHUNK_CACHE_SIZE,
+                        nelems, CHUNK_CACHE_NELEMS,
+                        preemption, CHUNK_CACHE_PREEMPTION); 
+                    ERR;    
+                } else {
+                    /*printf("netcdf_default: size: %ld (%ld) nelems: %ld (%ld) preemption: %g (%g)\n", 
+                        size, CHUNK_CACHE_SIZE,
+                        nelems, CHUNK_CACHE_NELEMS,
+                        preemption, CHUNK_CACHE_PREEMPTION); */
+                }
             if (nc_close(ncid)) ERR;
         }
 
@@ -352,7 +381,18 @@ main(int argc, char **argv)
         if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
         if (nc4_hdf5_get_chunk_cache(ncid, &size, &nelems, &preemption)) ERR;
         if (size != HDF5_DEFAULT_CACHE_SIZE || nelems != HDF5_DEFAULT_NELEMS ||
-            preemption != HDF5_DEFAULT_PREEMPTION) ERR;
+            preemption != HDF5_DEFAULT_PREEMPTION) {
+                printf("netcdf_default (reopen): size: %ld (%ld) nelems: %ld (%ld) preemption: %g (%g)\n", 
+                    size, HDF5_DEFAULT_CACHE_SIZE,
+                    nelems, HDF5_DEFAULT_NELEMS,
+                    preemption, HDF5_DEFAULT_PREEMPTION); 
+                ERR;    
+            } else {
+               /* printf("hdf5_default (reopen): size: %ld (%ld) nelems: %ld (%ld) preemption: %g (%g)\n", 
+                    size, HDF5_DEFAULT_CACHE_SIZE,
+                    nelems, HDF5_DEFAULT_NELEMS,
+                    preemption, HDF5_DEFAULT_PREEMPTION); */
+            }
         if (nc_close(ncid)) ERR;
 
         /* Open the file with sequential I/O and check cache settings
