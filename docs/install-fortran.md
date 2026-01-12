@@ -1,8 +1,6 @@
 Building the NetCDF-4.2 and later Fortran libraries {#building_netcdf_fortran}
 ===================================================
 
-[TOC]
-
 In versions before 4.2, the Fortran netCDF library source was bundled
 with the C library source in one distribution. With more recent
 versions, the Fortran netCDF library has been split off into an
@@ -15,8 +13,7 @@ More recently, building netcdf-fortran as an automated step in the
 netcdf-c build is now possible (for non-MSVC builds) by using new
 options at configure time, so if you haven't built and installed the
 netCDF-C library yet, you may want to try the new netCDF-C <a
-href="https://docs.unidata.ucar.edu/netcdf-c/current/netCDF-CMake.html"
->Fortran-bootstrap procedure</a>.
+href="https://docs.unidata.ucar.edu/netcdf-c/current/netCDF-CMake.html">Fortran-bootstrap procedure</a>.
 
 In the example commands below, we assume use of a
 POSIX-standard shell, such as sh, bash, ksh, or zsh. If you are using
@@ -212,7 +209,8 @@ For cross-compiles, the following environment variables can be used to override 
      export NF_REAL_IS_C_FLOAT=1
      export NF_DOUBLEPRECISION_IS_C_DOUBLE=1
      
-In this case you will need to run configure with `–disable-fortran-compiler-check` and `–disable-fortran-type-check`.
+
+In this case you will need to run configure with `–disable-fortran-compiler-check` and `–disable-fortran-type-check` .`
 
 Environment Variable Description Notes
 --------------------------

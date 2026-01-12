@@ -78,26 +78,26 @@ with "nc" or "NC" in order to avoid name conflicts outside the netcdf-c library.
 
 Modify the file *include/netcdf.h* to add an NC_FORMATX_XXX flag
 by adding a flag for this dispatch format at the appropriate places.
-````
+```
   #define NC_FORMATX_NCM  7
-````
+```
 
 Add any format specific new error codes.
-````
+```
 #define NC_ENCM  (?)
-````
+```
 
 ## Extend include/ncdispatch.h
 
 Modify the file *include/ncdispatch.h* to
 add format specific data and initialization functions;
 note the use of our NCM namespace.
-````
+```
     #ifdef ENABLE_NCM
     extern NC_Dispatch* NCM_dispatch_table;
     extern int NCM_initialize(void);
     #endif
-````
+```
 
 ## Define the dispatch table functions
 
@@ -117,17 +117,17 @@ files (from *libsrcp* for example) and modify them.
 Provide for the inclusion of this library in the final libnetcdf
 library. This is accomplished by modifying *liblib/Makefile.am* by
 adding something like the following.
-````
+```
      if ENABLE_NCM
         libnetcdf_la_LIBADD += $(top_builddir)/libsrcm/libnetcdfm.la
      endif
-````
+```
 
 ## Extend library initialization
 
 Modify the *NC_initialize* function in *liblib/nc_initialize.c* by adding
 appropriate references to the NCM dispatch function.
-````
+```
      #ifdef ENABLE_NCM
      extern int NCM_initialize(void);
      #endif
@@ -140,7 +140,7 @@ appropriate references to the NCM dispatch function.
      #endif
      ...
      }
-````
+```
 
 Finalization is handled in an analogous fashion.
 
@@ -150,7 +150,7 @@ Typically, tests for a new dispatcher are kept in a separate directory
 with a related name. For our running example, it might be *ncm_test*.
 The file *ncm_test/Makefile.am*
 will look something like this.
-````
+```
      # These files are created by the tests.
      CLEANFILES = ...
      # These are the tests which are always run.
@@ -162,21 +162,21 @@ will look something like this.
      TESTS = $(TESTPROGRAMS)
      # Any extra files required by the tests
      EXTRA_DIST = ...
-````
+```
 
 # Top-Level build of the dispatch code
 
 Provide for *libnetcdfm* to be constructed by adding the following to
 the top-level *Makefile.am*.
 
-````
+```
      if ENABLE_NCM
      NCM=libsrcm
      NCMTESTDIR=ncm_test
      endif
      ...
      SUBDIRS = ... $(DISPATCHDIR)  $(NCM) ... $(NCMTESTDIR)
-````
+```
 
 # Choosing a Dispatch Table
 
@@ -222,7 +222,7 @@ are merged into a single dispatch table entry.
 
 The create table entry and the open table entry in the dispatch table
 have the following signatures respectively.
-````
+```
      int (*create)(const char *path, int cmode,
                 size_t initialsz, int basepe, size_t *chunksizehintp,
                 int useparallel, void* parameters,
@@ -232,7 +232,7 @@ have the following signatures respectively.
               int basepe, size_t *chunksizehintp,
               int use_parallel, void* parameters,
               struct NC_Dispatch* table, NC* ncp);
-````
+```
 
 The key difference is that these are the union of all the possible
 create/open signatures from the include/netcdfXXX.h files. Note especially the last
@@ -247,15 +247,15 @@ by the dispatch open function.
 
 ## Accessing Data with put_vara() and get_vara()
 
-````
+```
      int (*put_vara)(int ncid, int varid, const size_t *start, const size_t *count,
                           const void *value, nc_type memtype);
-````
+```
 
-````
+```
      int (*get_vara)(int ncid, int varid, const size_t *start, const size_t *count,
                      void *value, nc_type memtype);
-````
+```
 
 Most of the parameters are similar to the netcdf API parameters. The
 last parameter, however, is the type of the data in
@@ -266,15 +266,15 @@ to encounter the ::NC_INT64 type.
 
 ## Accessing Attributes with put_attr() and get_attr()
 
-````
+```
      int (*get_att)(int ncid, int varid, const char *name,
                          void *value, nc_type memtype);
-````
+```
 
-````
+```
      int (*put_att)(int ncid, int varid, const char *name, nc_type datatype, size_t len,
                     const void *value, nc_type memtype);
-````
+```
 
 Again, the key difference is the memtype parameter. As with
 put/get_vara, it used ::NC_INT64 to encode the long case.
@@ -382,11 +382,11 @@ Note that the HDF4 layer is optional in the netCDF build. Not all
 users will have HDF4 installed, and those users will not build with
 the HDF4 dispatch layer enabled. For this reason HDF4 code is guarded
 as follows.
-````
+```
 #ifdef USE_HDF4
 ...
 #endif /*USE_HDF4*/
-````
+```
 Code in libhdf4 is only compiled if HDF4 is
 turned on in the build.
 
@@ -399,29 +399,29 @@ a number of header files.
 
 In the main netcdf.h file, we add the following
 to the list of NC_FORMATX_XXX definitions
-````
+```
 #define NC_FORMATX_NC_HDF4   (3)
-````
+```
 
 ### The ncdispatch.h File
 
 In ncdispatch.h we add the following:
 
-````
+```
 #ifdef USE_HDF4
 extern NC_Dispatch* HDF4_dispatch_table;
 extern int HDF4_initialize(void);
 extern int HDF4_finalize(void);
 #endif
-````
+```
 
 ### The netcdf_meta.h File
 
 The netcdf_meta.h file allows for easy determination of what features
 are in use. For HDF4, the following is added -- as set by *./configure*:
-````
+```
 #define NC_HAS_HDF4      0 /*!< HDF4 support. */
-````
+```
 
 ### The hdf4dispatch.h File
 
@@ -433,12 +433,12 @@ in either the *include* directory or (preferably) the *libhdf4* directory.
 ### Initialization Code Changes in liblib Directory
 
 The file *nc_initialize.c* is modified to include the following:
-````
+```
 #ifdef USE_HDF4
 extern int HDF4_initialize(void);
 extern int HDF4_finalize(void);
 #endif
-````
+```
 
 ### Changes to libdispatch/dfile.c
 
@@ -450,11 +450,11 @@ detect an HDF4 file.
 
 Once HDF4 is detected, the *model* variable is set to *NC_FORMATX_NC_HDF4*,
 and later this is used in a case statement:
-````
+```
       case NC_FORMATX_NC_HDF4:
          dispatcher = HDF4_dispatch_table;
          break;
-````
+```
 
 This sets the dispatcher to the HDF4 dispatcher, which is defined in
 the libhdf4 directory.
@@ -463,7 +463,7 @@ the libhdf4 directory.
 
 The file *hdf4dispatch.c* contains the definition of the HDF4 dispatch
 table. It looks like this:
-````
+```
 /* This is the dispatch object that holds pointers to all the
  * functions that make up the HDF4 dispatch interface. */
 static NC_Dispatch HDF4_dispatcher = {
@@ -479,7 +479,7 @@ NC_NOTNC4_set_var_chunk_cache,
 NC_NOTNC4_get_var_chunk_cache,
 ...
 };
-````
+```
 Note that most functions use some of the predefined dispatch
 functions. Functions that start with NC_RO* are read-only, they return
 ::NC_EPERM. Functions that start with NOTNC4* return ::NC_ENOTNC4.
