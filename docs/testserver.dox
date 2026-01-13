@@ -18,9 +18,9 @@ as a Unidata THREDDS Data Server or a OPeNDAP Hyrax server.
 The way that this is tests is to establish two servlets running
 under a Tomcat server on some machine with a known IP address
 or DNS name. For example, accessing this URL.
-````
+`
 https://remotetest.unidata.ucar.edu/dts/
-````
+`
 will bring up a page with a variety of DAP2 accessible files.
 These files are accessed by the netcdf-c test case
 _netcdf-c/ncdap_test/tst_remote3.sh_
@@ -29,9 +29,9 @@ transmission and conversions process worked correctly.
 Similarly, the DAP4 test case is
 _netcdf-c/ncdap_test/test_remote.sh_
 and it accesses the test server web page with this URL.
-````
+`
 https://remotetest.unidata.ucar.edu/d4ts/
-````
+`
 Setting up and Maintaining the test server involves a somewhat complex
 set of tasks. This document shows how to do those tasks.
 
@@ -46,38 +46,38 @@ as follows.
 
 1. Login to your machine - let us call it "testserver.unidata.edu".
 2. Use the package manager to install two packages using commands like this.
-````
+`
 sudo apt-get tomcat7
 sudo apt-get tomcat7-admin
-````
+`
 Note that this installs Tomcat version 7. Later versions should also work.
 3. Goto the tomcat7 installation, probably ''/usr/share/tomcat7'',
 and modify the configuration as described in the next section.
 4. Startup tomcat using the following commands.
-````
+`
 cd /usr/share/tomcat7/bin
 ./startup.sh
-````
+`
 It is possible that the startup command may need to be executed with ''sudo''.
 5. Verify that tomcat is running by trying this URL in your web browser.
-````
+`
 http:testserver.unidata.edu:8080
-````
+`
 The port -- 8080 -- is the default for an installed tomcat. It may be that
 you will need to change it as part of the configuration process.
 6. Try the administration web page
-````
+`
 http:testserver.unidata.edu:8080/manager
-````
+`
 This should pop-up a user+password dialog box. You should fill it in
 with the values you choose during configuration.
 The resulting final page will be the one you use to get the dts and d4ts
 servlets operating.
 7. Use the commands
-````
+`
 cd /usr/share/tomcat7/bin
 ./shutdown.sh
-````
+`
 to stop the Tomcat server.
 
 # Configuring Tomcat {#remotesvc_cfg}
@@ -96,10 +96,10 @@ with password ''dap''.
 Edit the ''tomcat-users.xml'' file.
 You will probably have to use ''sudo'' to access the file.
 Insert the following near the end of the file.
-````
+`
   <role rolename="manager-gui"/>
   <user username="dapadmin" password="dap" roles="admin,manager-gui"/>
-````
+`
 
 ## Configuring server.xml {#remotesvc_config_server_xml}
 
@@ -118,9 +118,9 @@ described in a separate section.
 
 The specific tasks are as follows:
 1. Open the web page
-````
+`
 http:testserver.unidata.edu:8080/manager
-````
+`
 Scroll down to the block labelled ''WAR file to deploy'',
 which should have two buttons: ''Browse'' and ''Deploy''.
 2. Clicking on the browse button should bring up a file dialog box.
@@ -139,9 +139,9 @@ You can now test the test server by configuring and building
 the netcdf-c library. In order to force the use
 of the newly started test server you can either:
 1. Add the option
-````
+`
 --with-testservers=testserver.unidata.edu
-````
+`
 This will override the defaults.
 
 2. Edit configure.ac and find the string "svclist".
@@ -160,9 +160,9 @@ clone the Thredds directory on github: https://github.com/Unidata/tds.
 
 Once you have a clone, you will need to enter the tds directory
 and build by invoking gradle using this command.
-````
+`
 ./gradlew --info --no-daemon  clean assemble
-````
+`
 If successful, the following two files should exist
 (the names may vary slightly).
 

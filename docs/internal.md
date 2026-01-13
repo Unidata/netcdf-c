@@ -31,19 +31,19 @@ in the following ways.
 Suppose we have a flag *ENABLE\_XXX* where that XXX
 feature entails using C++ code. Then the following must be added
 to *lib\_flags.am*
-````
+```
 if ENABLE_XXX
 AM_LDFLAGS += -lstdc++
 endif
-````
+```
 
 ## Modifications to *libxxx/Makefile.am*
 
 The Makefile in which the C++ code is included and compiled
 (assumed here to be the *libxxx* directory) must have this set.
-````
+```
 AM_CXXFLAGS = -std=c++11
-````
+```
 It is possible that other values (e.g. *-std=c++14*) may also work.
 
 # 2. Managing instances of variable-length data types {#intern_vlens}
@@ -168,12 +168,12 @@ These functions are defined in libdispatch/dinstance.c and their
 signatures are defined in include/netcdf.h. For back
 compatibility, corresponding "ncaux\_XXX" functions are defined
 in include/netcdf\_aux.h.
-````
+```
 int nc_reclaim_data(int ncid, nc_type xtypeid, void* memory, size_t count);
 int nc_reclaim_data_all(int ncid, nc_type xtypeid, void* memory, size_t count);
 int nc_copy_data(int ncid, nc_type xtypeid, const void* memory, size_t count, void* copy);
 int nc_copy_data_all(int ncid, nc_type xtypeid, const void* memory, size_t count, void** copyp);
-````
+```
 There are two variants. The two functions, nc\_reclaim\_data() and
 nc\_copy\_data(), assume the top-level vector is managed by the
 caller. For reclaim, this is so the user can use, for example, a
@@ -229,7 +229,7 @@ use this information to speed up the handling of fixed size types.
    possibly an HDF5 memory leak. All the failures revolve around
    some variant of this .cdl file. The proximate cause of failure is
    the use of a VLEN FillValue.
-````
+```
         netcdf x {
         types:
           float(*) row_of_floats ;
@@ -242,7 +242,7 @@ use this information to speed up the handling of fixed size types.
           ragged_array = {10, 11, 12, 13, 14}, {20, 21, 22, 23}, {30, 31, 32}, 
                          {40, 41}, _ ;
         }
-````
+```
 
 # 3. Inferring File Types {#intern_infer}
 
@@ -266,20 +266,20 @@ receiving the URL.
 The "fragment" part of the URL may be unfamiliar.
 The last part of a URL may optionally contain a fragment, which
 is syntactically of this form in this pseudo URL specification.
-````
+```
 <protocol>://<host>/<path>?<query>#<fragment>
-````
+```
 The form of the fragment is similar to a query and takes this general form.
-````
+```
 '#'<key>=<value>&<key>=<value>&...
-````
+```
 The key is a simple name, the value is any sequence of characters,
 although URL special characters such as '&' must be URL encoded in
 the '%XX' form where each X is a hexadecimal digit.
 An example might look like this non-sensical example:
-````
+```
 https://host.com/path#mode=nczarr,s3&bytes
-````
+```
 It is important to note that the fragment part is not intended to be
 passed to the server, but rather is processed by the client program.
 It is this property that allows the netcdf-c library to use it to
@@ -384,9 +384,9 @@ it to the fragment for later use.
 2. Fragment --
 After the protocol is processed, the initial fragment processing occurs
 by converting it to a list data structure of the form
-````
+```
         {<key>,<value>,<key>,<value>,<key>,<value>....}
-````
+```
 
 ### Macro Processing -- processmacros()
 
@@ -439,10 +439,10 @@ If the URL is determined to be a reference to a resource on the Amazon S3 cloud,
 then the URL needs to be converted to what is called "path format".
 There are four S3 URL formats:
 
-1. Virtual -- ````https://<bucket>.s3.<region>.amazonaws.com/<path>````
-2. Path -- ````https://s3.<region>.amazonaws.com/<bucket>/<path>````
-3. S3 -- ````s3://<bucket>/<path>````
-4. Other -- ````https://<host>/<bucket>/<path>````
+1. Virtual -- `https://<bucket>.s3.<region>.amazonaws.com/<path>`
+2. Path -- `https://s3.<region>.amazonaws.com/<bucket>/<path>`
+3. S3 -- `s3://<bucket>/<path>`
+4. Other -- `https://<host>/<bucket>/<path>`
 
 The S3 processing converts all of these to the Path format. In the "S3" format case
 it is necessary to find or default the region from examining the ".aws" directory files.
@@ -503,10 +503,10 @@ For background, the file filter.md should be consulted.
 
 In general, the API for a standard filter has the following prototypes.
 The case of zstandard (libzstd) is used as an example.
-````
+```
 int nc_def_var_zstandard(int ncid, int varid, int level);
 int nc_inq_var_zstandard(int ncid, int varid, int* has_filterp, int* levelp);
-````
+```
 So generally the API has the ncid and the varid as fixed, and then
 a list of parameters specific to the filter -- level in this case.
 For the inquire function, there is an additional argument -- has\_filterp --
@@ -549,7 +549,7 @@ and CMake (CMakeLists.txt)
 #### Configure.ac
 Configure.ac must have a block that similar to this that locates
 the implementing library.
-````
+```
 \# See if we have libzstd
 AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
 if test "x$have_zstd" = "xyes" ; then
@@ -558,7 +558,7 @@ if test "x$have_zstd" = "xyes" ; then
 fi
 AC_MSG_CHECKING([whether libzstd library is available])
 AC_MSG_RESULT([${have_zstd}])
-````
+```
 Note the the entry point (*ZSTD\_compress*) is library dependent
 and is used to see if the library is available.
 
@@ -567,43 +567,43 @@ and is used to see if the library is available.
 It is assumed you have an HDF5 wrapper for zstd. If you want it
 to be built as part of the netcdf-c library then you need to
 add the following to *netcdf-c/plugins/Makefile.am*.
-````
+```
 if HAVE_ZSTD
 noinst_LTLIBRARIES += libh5zstd.la
 libh5szip_la_SOURCES = H5Zzstd.c H5Zzstd.h
 endif
-````
+```
 
-````
+```
 \# Need our version of szip if libsz available and we are not using HDF5
 if HAVE_SZ
 noinst_LTLIBRARIES += libh5szip.la
 libh5szip_la_SOURCES = H5Zszip.c H5Zszip.h
 endif
-````
+```
 #### CMakeLists.txt
 In an analog to *configure.ac*, a block like
 this needs to be in *netcdf-c/CMakeLists.txt*.
-````
+```
 FIND_PACKAGE(Zstd)
 set_std_filter(Zstd)
-````
+```
 The FIND\_PACKAGE requires a CMake module for the filter
 in the cmake/modules directory.
 The *set\_std\_filter* function is a macro.
 
 An entry in the file config.h.cmake.in will also be needed.
-````
+```
 /* Define to 1 if zstd library available. */
 #cmakedefine HAVE_ZSTD 1
-````
+```
 
 ### Implementation Template
 As a template, here is the implementation for zstandard.
 It can be used as the template for adding other standard filters.
 It is currently located in *netcdf-d/libdispatch/dfilter.c*, but
 could be anywhere as indicated above.
-````
+```
 #ifdef HAVE_ZSTD
 int
 nc_def_var_zstandard(int ncid, int varid, int level)
@@ -646,7 +646,7 @@ done:
     return stat;
 }
 #endif /*HAVE_ZSTD*/
-````
+```
 
 # 5. Test Interference {#intern_isolation}
 
@@ -710,23 +710,23 @@ and specific script files.
 
 The actual cleanup requires different approaches for cmake and for automake.
 In cmake, the CTestCustom.cmake mechanism is used and contains the following command:
-````
+```
  IF(NETCDF_ENABLE_S3_TESTING)
  # Assume run in top-level CMAKE_BINARY_DIR
  set(CTEST_CUSTOM_POST_TEST "bash -x ${CMAKE_BINARY_DIR}/s3cleanup.sh")
  ENDIF()
-````
+```
 
 In automake, the "check-local" extension mechanism is used
 because it is invoked after all tests are run in the nczarr_test
 directory. So nczarr_test/Makefile.am contains the following
 equivalent code:
-````
+```
  if NETCDF_ENABLE_S3_TESTALL
  check-local:
  	bash -x ${top_srcdir}/s3cleanup.sh
  endif
-````
+```
 
 ### s3cleanup.sh
 This script is created by configuring the base file s3cleanup.in.
@@ -745,7 +745,7 @@ The pid is a small random number to avoid local interference.
 It is important to note that this script assumes that the
 AWS command line package is installed.
 This can be installed, for example, using this command:
-````apt install awscli````.
+`apt install awscli`.
 
 ### s3gc.sh
 This script is created by configuring the base file s3gc.in.

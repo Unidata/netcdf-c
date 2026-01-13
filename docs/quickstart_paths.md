@@ -45,9 +45,9 @@ The NetCDF-C library can access datasets that reside on remote computers,
 Hence NetCDF-C now also accepts URLs to specify those remote datasets.
 
 The general form of a URL is as follows:
-````
+`
 <protocol>://<user>:<pwd>@<host>:<port>/<path>?<query>#<fragment>
-````
+`
 * \<protocol\> - specifies the format of the messages between the local and remote computers. Some examples used by NetCDF-C are *http*, *https*, *s3*, *dap*, *dap4*, or *file*.
 * \<user:pwd\> - Pass authorization credentials to the remote computer.
 * \<host\>:\<port\> - The specific remote computer to access, such as *thredds.ucar.edu:8080*.

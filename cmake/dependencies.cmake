@@ -193,6 +193,11 @@ if(USE_HDF5)
   # Find out if HDF5 was built with parallel support.
   set(HDF5_PARALLEL ${HDF5_IS_PARALLEL})
 
+  ## Adjust for HDF5 2.0.0, which changed to HDF5_PROVIDES_PARALLEL
+  if(NOT HDF5_PARALLEL)
+    set(HDF5_PARALLEL ${HDF5_PROVIDES_PARALLEL})
+  endif(NOT HDF5_PARALLEL)
+
   set(CMAKE_REQUIRED_LIBRARIES HDF5::HDF5)
   include(CheckSymbolExists)
 

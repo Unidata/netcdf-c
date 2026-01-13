@@ -1,4 +1,4 @@
-# Lossy Compression with Quantize
+# Lossy Compression with Quantize {#netcdf_quantize}
 
 ## Introduction {#quantize}
 

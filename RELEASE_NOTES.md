@@ -12,6 +12,7 @@ driver. WARNING: this PR compiles and builds but the basic token
 functionality has not been tested because we have no access to a
 server that requires session tokens. See [Github PR 3244](https://github.com/Unidata/netcdf-c/pull/3244) for more information.
 * Regularize, cleanup, and refactor various AWS features, especially regularizing AWS-related constants. See [Github 3229](https://github.com/Unidata/netcdf-c/pull/3229) for more information. 
+* Add compatibility with HDF5 2.0.0.  See [Github #3247](https://github.com/Unidata/netcdf-c/pull/3247) for more information.
 * Introduce consolidated metadata [Github #3225](https://github.com/Unidata/netcdf-c/pull/3225) via `mode=consolidated` or `NCZARR_CONSOLIDATED`
 * Fix the H5FD_class_t problems. See [Github 3202](https://github.com/Unidata/netcdf-c/pull/3202) for more information. 
 * Begin the consolidation of global state into two files: libdispatch/dglobal.c and include/ncglobal.h. See [Github 3197](https://github.com/Unidata/netcdf-c/pull/3197) for more information. 
