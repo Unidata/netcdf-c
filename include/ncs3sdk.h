@@ -23,13 +23,11 @@
 #define AWS_ENV_PROFILE "AWS_PROFILE"
 #define AWS_ENV_REGION "AWS_REGION"
 #define AWS_ENV_DEFAULT_REGION "AWS_DEFAULT_REGION"
-#define AWS_ENV_SESSION_TOKEN "AWS_SESSION_TOKEN"
 
 /* Known .aws profile keys (lowercase) */
 #define AWS_PROF_ACCESS_KEY_ID "aws_access_key_id"
 #define AWS_PROF_SECRET_ACCESS_KEY "aws_secret_access_key"
 #define AWS_PROF_REGION "region"
-#define AWS_PROF_SESSION_TOKEN "aws_session_token"
 
 /* AWS .rc keys */
 #define AWS_RC_ACCESS_KEY_ID "AWS.ACCESS_KEY_ID"
@@ -38,7 +36,6 @@
 #define AWS_RC_PROFILE "AWS.PROFILE"
 #define AWS_RC_REGION "AWS.REGION"
 #define AWS_RC_DEFAULT_REGION "AWS.DEFAULT_REGION"
-#define AWS_RC_SESSION_TOKEN "AWS.SESSION_TOKEN"
 
 /* AWS URI fragment keys */
 #define AWS_FRAG_ACCESS_KEY_ID AWS_RC_ACCESS_KEY_ID
@@ -47,7 +44,6 @@
 #define AWS_FRAG_PROFILE AWS_RC_PROFILE
 #define AWS_FRAG_REGION AWS_RC_REGION
 #define AWS_FRAG_DEFAULT_REGION AWS_RC_DEFAULT_REGION
-#define AWS_FRAG_SESSION_TOKEN AWS_RC_SESSION_TOKEN
 
 /* Track the server type, if known */
 typedef enum NCS3SVC {NCS3UNK=0, /* unknown */
