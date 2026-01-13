@@ -1,8 +1,3 @@
-
-Cloud Storage Access Using The NetCDF-C Library 
-============================
-<!-- double header is needed to workaround doxygen bug -->
-
 # Cloud Storage Access Using The NetCDF-C Library {#nccloud_head}
 
 \tableofcontents
@@ -49,21 +44,21 @@ This is performed using the "byte-range" header in an HTTP request.
 
 In the Amazon S3 context, a copy of a dataset, a netcdf-3 or netdf-4 file, is uploaded into a single object in some bucket.
 Then using the key to this object, it is possible to tell the netcdf-c library to treat the object as a remote file and to use the HTTP Byte-Range protocol to access the contents of the object.
-The dataset object is referenced using a URL with the trailing fragment containing the string ````#mode=bytes````.
+The dataset object is referenced using a URL with the trailing fragment containing the string `#mode=bytes`.
 
 An examination of the test program _nc_test/test_byterange.sh_ shows simple examples using the _ncdump_ program.
 One such test is specified as follows:
-````
+```
 https://s3.us-east-1.amazonaws.com/noaa-goes16/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes
-````
+```
 Note that for S3 access, it is expected that the URL is in what is called "path" format where the bucket, _noaa-goes16_ in this case, is part of the URL path instead of the host.
 
 The _#mode=bytes_ mechanism generalizes to work with most servers that support byte-range access.
  
 Specifically, Thredds servers support such access using the HttpServer access method as can be seen from this URL taken from the above test program.
-````
+```
 https://thredds-test.unidata.ucar.edu/thredds/fileServer/irma/metar/files/METAR_20170910_0000.nc#bytes
-````
+```
 
 # References {#nccloud_bib}
 
@@ -108,9 +103,9 @@ These are as follows.
 
 __A note about using S3 with Automake.__
 If S3 support is desired, and using the Amazon "aws-sdk-cpp" SDK, and using Automake, then LDFLAGS must be properly set, namely to this.
-````
+```
 LDFLAGS="$LDFLAGS -L/usr/local/lib -laws-cpp-sdk-s3"
-````
+```
 The above assumes that these libraries were installed in '/usr/local/lib', so the above requires modification if they were installed elsewhere.
 
 Note also that if S3 support is enabled, then you need to have a C++ compiler installed because the "aws-sdk-cpp" S3 support code is written in C++.
@@ -126,20 +121,20 @@ The necessary CMake flags are as follows (with defaults)
 Note that unlike Automake, CMake can properly locate C++ libraries, so it should not be necessary to specify _-laws-cpp-sdk-s3_ assuming that the aws s3 libraries are installed in the default location.
 For CMake with Visual Studio, the default location is here:
 
-````
+```
 C:/Program Files (x86)/aws-cpp-sdk-all
-````
+```
 
 It is possible to install the sdk library in another location.
 In this case, one must add the following flag to the cmake command.
-````
+```
 cmake ... -DAWSSDK_DIR=\<awssdkdir\>
-````
+```
 where "awssdkdir" is the path to the sdk installation.
 For example, this might be as follows.
-````
+```
 cmake ... -DAWSSDK_DIR="c:\tools\aws-cpp-sdk-all"
-````
+```
 This can be useful if blanks in path names cause problems in your build environment.
 
 # Appendix B. Building the S3 SDKs {#nccloud_s3sdk}
@@ -173,7 +168,7 @@ For linux, the following context works. Of course your mileage may vary.
 * Dependencies: openssl, libcurl, cmake, ninja (ninja-build using *apt-get*)
 
 #### AWS-SDK-CPP CMake Build Recipe
-````
+```
 git clone --recurse-submodules https://www.github.com/aws/aws-sdk-cpp
 pushd aws-sdk-cpp
 mkdir build
@@ -192,7 +187,7 @@ cmake --build . --config Release
 sudo cmake --install . --config Release
 cd ..
 popd
-````
+```
 
 ### Windows build
 It is possible to build and install aws-sdk-cpp on Windows using CMake.
@@ -208,7 +203,7 @@ For Windows, the following context work. Of course your mileage may vary.
 This command-line build assumes one is using Cygwin or Mingw to provide
 tools such as bash.
 
-````
+```
 git clone --recurse-submodules https://www.github.com/aws/aws-sdk-cpp
 pushd aws-sdk-cpp
 mkdir build
@@ -233,7 +228,7 @@ cmake --build . --config ${CFG}
 cmake --install . --config ${CFG}
 cd ..
 popd
-````
+```
 Notice that the sdk is being installed in the directory "c:\tools\aws-sdk-cpp"
 rather than the default location "c:\Program Files (x86)/aws-sdk-cpp-all"
 This is because when using a command line, an install path that contains
@@ -241,17 +236,17 @@ blanks may not work.
 
 In order for CMake to find the aws sdk libraries,
 the following environment variables must be set:
-````
+```
 AWSSDK_ROOT_DIR="c:/tools/aws-sdk-cpp"
 AWSSDKBIN="/cygdrive/c/tools/aws-sdk-cpp/bin"
 PATH="$PATH:${AWSSDKBIN}"
-````
+```
 Then the following options must be specified for cmake.
-````
+```
 -DAWSSDK_ROOT_DIR=${AWSSDK_ROOT_DIR}
 -DAWSSDK_DIR=${AWSSDK_ROOT_DIR}/lib/cmake/AWSSDK"
-````
-## Building ``nch5s3comms''
+```
+## Building nch5s3comms
 
 This is an experimental SDK provided internally in the netcdf-c library.
 
@@ -278,21 +273,21 @@ This is because it uses a Unidata-specific bucket is inaccessible to the general
 # Appendix C. AWS Selection Algorithms. {#nccloud_awsselect}
 
 If byterange support is enabled, the netcdf-c library will parse the files
-````
+```
 ${HOME}/.aws/config
 and
 ${HOME}/.aws/credentials
-````
+```
 to extract profile names plus a list of key=value pairs.
 In case of duplicates, *credentials* takes precedence over *config*.
 
 This example is typical of the contents of these files.
-````
+```
 [default]
     aws_access_key_id=XXXXXXXXXXXXXXXXXXXX
     aws_secret_access_key=YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
     aws_region=ZZZZZZZZZ
-````
+```
 The keys in the profile will be used to set various parameters in the library
 
 ## Profile Selection
@@ -300,9 +295,9 @@ The keys in the profile will be used to set various parameters in the library
 The algorithm for choosing the active profile to use is as follows:
 
 1. If the "aws.profile" fragment flag is defined in the URL, then it is used. For example, see this URL.
-````
+```
 https://...#mode=nczarr,s3&aws.profile=xxx
-````
+```
 2. If the "AWS.PROFILE" entry in the .rc file (i.e. .netrc or .dodsrc) is set, then it is used.
 3. If defined, then profile "default" is used.
 4. Otherwise the profile "no" is used.
@@ -314,13 +309,13 @@ It is equivalent to the "--no-sign-request" option in the AWS CLI.
 ## Region Selection
 
 If the specified URL is of the form
-````
+```
 s3://<bucket>/key
-````
+```
 Then this is rebuilt to this form:
-````
+```
 s3://s2.&lt;region&gt.amazonaws.com>/key
-````
+```
 However this requires figuring out the region to use.
 The algorithm for picking an region is as follows.
 

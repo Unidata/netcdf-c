@@ -34,19 +34,19 @@ of the file is then read into that chunk of memory.
 
 This information is in general represented by the following struct
 (see include/netcdf_mem.h).
-````
+```
 typedef struct NC_memio {
     size_t size;
     void* memory;
     int flags;
 } NC_memio;
 
-````
+```
 The flags field describes properties and constraints to be applied
 to the given memory. At the moment, only this one flag is defined.
-````
+```
 #define NC_MEMIO_LOCKED 1
-````
+```
 If this flag is set, then the netcdf library will ensure that
 the original allocated memory is ```locked```, which means
 that it  will never be realloc'd nor free'd.
@@ -96,9 +96,9 @@ libhdf5/nc4mem.c and the defined functions are described in the next sections
 ### nc4mem.NC4_open_image_file
 
 The signature is:
-````
+```
 int NC4_open_image_file(NC_FILE_INFO_T* h5)
-````
+```
 Basically, this function sets up the necessary state information
 to use the HDF5 core driver.
 It obtains the memory chunk and size from the _h5->mem.memio_ field.
@@ -112,9 +112,9 @@ function to do the necessary HDF5 specific setup.
 ### nc4mem.NC4_create_image_file
 
 The signature is:
-````
+```
 int NC4_create_image_file(NC_FILE_INFO_T* h5, size_t initialsize)
-````
+```
 
 This function sets up the necessary state information
 to use the HDF5 core driver, but for a newly created file.
@@ -140,7 +140,7 @@ allocation and free'ing of memory. This interface is defined
 as a set of callback functions [2] that implement the functions
 of this struct.
 
-````
+```
 typedef struct {
     void *(*_malloc)(size_t size, H5_file_image_op_t op, void *udata);
     void *(*_memcpy)(void *dest, const void *src, size_t size,
@@ -152,7 +152,7 @@ typedef struct {
     herr_t (*udata_free)(void *udata); 
     void *udata;
 } H5_file_image_callbacks_t;
-````
+```
 The _udata_ field at the end defines any extra state needed by the functions.
 Each function is passed the udata as its last argument. The structure of the
 udata is arbitrary, and is passed as _void*_ to the functions.
@@ -162,7 +162,7 @@ are defined in the file _libhdf5/nc4memcb.c_. Setup is defined by the
 function _NC4_image_init_ in that same file.
 
 The _udata_ structure used by netcdf is as follows.
-````
+```
 typedef struct {
     void *app_image_ptr;	/* Pointer to application buffer */
     size_t app_image_size;	/* Size of application buffer */
@@ -176,7 +176,7 @@ typedef struct {
     int ref_count;		/* Reference counter on udata struct */
     NC_FILE_INFO_T* h5;		/* Pointer to the netcdf parent structure */
 } H5LT_file_image_ud_t;
-````
+```
 
 It is necessary to understand one more point about the callback functions.
 The first four take an argument of type _H5_file_image_op_t_ -- the operator.
@@ -316,9 +316,9 @@ These functions are defined in the following sections.
 
 ### memio_create
 Signature:
-````
+```
 int memio_create(const char* path, int ioflags, size_t initialsz, off_t igeto, size_t igetsz, size_t* sizehintp, void* parameters /*ignored*/, ncio* *nciopp, void** const mempp)
-````
+```
 Create a new file. Invoke _memio_new_ to create the _ncio_
 instance.  If it is intended that the resulting file be
 persisted to the file system, then verify that writing such a
@@ -327,9 +327,9 @@ hold the file data.  Otherwise act like e.g. _posixio_create_.
 
 ### memio_open
 Signature:
-````
+```
 int memio_open(const char* path, int ioflags, off_t igeto, size_t igetsz, size_t* sizehintp, void* parameters, ncio* *nciopp, void** const mempp)
-````
+```
 Open an existing file. Invoke _memio_new_ to create the _ncio_
 instance.  If it is intended that the resulting file be
 persisted to the file system, then verify that writing such a
@@ -340,9 +340,9 @@ Otherwise act like e.g. _posixio_open_.
 
 ### memio_extract
 Signature:
-````
+```
 int memio_extract(ncio* const nciop, size_t* sizep, void** memoryp)
-````
+```
 This function is called as part of the NC3_close function in the event that
 the user wants the final in-memory chunk returned to them via _nc_close_mem_.
 It captures the existing in-memory chunk and returns it. At this point,
