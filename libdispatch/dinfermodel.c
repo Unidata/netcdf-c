@@ -1545,6 +1545,15 @@ done:
      return check(status);
 }
 
+/* Define macros to wrap getxattr and listxattrcalls */
+#ifdef __APPLE__
+#define GETXATTR(path,p,xvalue,xlen) getxattr(path, p, xvalue, (size_t)xlen, 0, 0);
+#define LISTXATTR(path,xlist,xlen) listxattr(path, xlist, (size_t)xlen, 0)
+#else
+#define GETXATTR(path,p,xvalue,xlen) getxattr(path, p, xvalue, (size_t)xlen);
+#define LISTXATTR(path,xlist,xlen) listxattr(path, xlist, (size_t)xlen)
+#endif
+
 /* Return NC_NOERR if path is a DAOS container; return NC_EXXX otherwise */
 static int
 isdaoscontainer(const char* path)
@@ -1565,11 +1574,7 @@ isdaoscontainer(const char* path)
     if(accessible > 0) {
 #ifdef HAVE_SYS_XATTR_H
 	ssize_t xlen;
-#ifdef __APPLE__
-	xlen = listxattr(path, NULL, 0, 0);
-#else
-	xlen = listxattr(path, NULL, 0);
-#endif
+	xlen = LISTXATTR(path,NULL,0);
         if(xlen > 0) {
   	    char* xlist = NULL;
 	    char* xvalue = NULL;
@@ -1577,11 +1582,7 @@ isdaoscontainer(const char* path)
 	    char* endp;
 	    if((xlist = (char*)calloc(1,(size_t)xlen))==NULL)
 		{stat = NC_ENOMEM; goto done;}
-#ifdef __APPLE__
-	    (void)listxattr(path, xlist, (size_t)xlen, 0); /* Get xattr names */
-#else
-	    (void)listxattr(path, xlist, (size_t)xlen); /* Get xattr names */
-#endif
+	    (void)LISTXATTR(path,xlist,xlen);
 	    p = xlist; endp = p + xlen; /* delimit names */
 	    /* walk the list of xattr names */
 	    for(;p < endp;p += (strlen(p)+1)) {
@@ -1592,19 +1593,11 @@ isdaoscontainer(const char* path)
 		/* Look for '.daos' in the key */
 		if(strstr(p,".daos") != NULL) {rc = 1; break;} /* success */
 		/* Else get the p'th xattr's value size */
-#ifdef __APPLE__
-		xlen = getxattr(path, p, NULL, 0, 0, 0);
-#else
-		xlen = getxattr(path, p, NULL, 0);
-#endif
+		xlen = GETXATTR(path,p,NULL,0);
 		if((xvalue = (char*)calloc(1,(size_t)xlen))==NULL)
 		    {stat = NC_ENOMEM; goto done;}
 		/* Read the value */
-#ifdef __APPLE__
-		(void)getxattr(path, p, xvalue, (size_t)xlen, 0, 0);
-#else
-		(void)getxattr(path, p, xvalue, (size_t)xlen);
-#endif
+		(void)GETXATTR(path,p,xvalue,xlen);
 		/* Look for '.daos' in the value */
 		if(strstr(xvalue,".daos") != NULL) {rc = 1; break;} /* success */
 	    }
@@ -1616,11 +1609,15 @@ isdaoscontainer(const char* path)
 	    FILE *fp;
 	    char cmd[4096];
 	    memset(cmd,0,sizeof(cmd));
-        snprintf(cmd,sizeof(cmd),"getfattr %s | grep -c '.daos'",path);
-        if((fp = popen(cmd, "r")) != NULL) {
+            snprintf(cmd,sizeof(cmd),"getfattr %s | grep -c '.daos'",path);
+            fp = popen(cmd, "r");
+	    if(fp != NULL) {
                fscanf(fp, "%d", &rc);
                pclose(fp);
+	    } else {
+		rc = 0; /* Cannot test; assume not DAOS */
 	    }
+	}
     }
 #else /*!HAVE_GETFATTR*/
     /* We just can't test for DAOS container.*/
