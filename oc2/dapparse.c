@@ -4,7 +4,7 @@
 
 #include "config.h"
 #include "dapparselex.h"
-#include "dapy.h"
+#include "dap.tab.h"
 #include <stddef.h>
 
 /* Forward */
