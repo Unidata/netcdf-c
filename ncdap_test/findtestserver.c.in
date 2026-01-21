@@ -50,9 +50,6 @@ main(int argc, char** argv)
     char* serverlist = NULL;
     enum KIND kind = NOKIND;
 
-    kind = kind;
-    proto = proto;
-
     argc--; argv++;
     if(argc < 2)
 	usage();
@@ -74,6 +71,9 @@ main(int argc, char** argv)
 	kind = DAP4KIND;
     else
 #endif
+    (void)kind;
+    (void)proto;
+
 	usage();
 
     if(serverlist == NULL) {
