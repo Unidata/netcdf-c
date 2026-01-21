@@ -1403,6 +1403,8 @@ var_free(NC_VAR_INFO_T *var)
     if (var->dim)
         free(var->dim);
 
+    memset(&var->chunkcache,0,sizeof(struct ChunkCache));
+
     /* Delete any fill value allocation. */
     if (var->fill_value) {
 	int tid = var->type_info->hdr.id;
