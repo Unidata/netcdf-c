@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Pull and Run netCDF Regression Tests
-        uses: WardF/netcdf-test-action@v1
+        uses: WardF/netcdf-test-action@v2
         with:
           repo-type: '${{ matrix.repo-type }}'
           run-c: 'TRUE'
@@ -60,7 +60,7 @@ jobs:
       steps:
         - uses: actions/checkout@v4
         - name: Pull and Run netCDF Regression Tests
-          uses: WardF/netcdf-test-action@v1
+          uses: WardF/netcdf-test-action@v2
           with:
             repo-type: '${{ matrix.repo-type }}'
             run-c: 'TRUE'
@@ -91,7 +91,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Pull and Run netCDF Regression Tests
-        uses: WardF/netcdf-test-action@v1
+        uses: WardF/netcdf-test-action@v2
         with:
           repo-type: '${{ matrix.repo-type }}'
           run-c: 'TRUE'
@@ -124,7 +124,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Pull and Run netCDF Regression Tests
-        uses: WardF/netcdf-test-action@v1
+        uses: WardF/netcdf-test-action@v2
         with:
           repo-type: '${{ matrix.repo-type }}'
           run-c: 'TRUE'
@@ -156,7 +156,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Pull and Run netCDF Regression Tests
-        uses: WardF/netcdf-test-action@v1
+        uses: WardF/netcdf-test-action@v2
         with:
           repo-type: '${{ matrix.repo-type }}'
           run-c: 'FALSE'
