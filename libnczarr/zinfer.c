@@ -1,5 +1,30 @@
 #include "zincludes.h"
 
+int NCZ_infer_zarr_format(NC_FILE_INFO_T *file) {
+  int stat = NC_ENOTZARR;
+  NCZ_FILE_INFO_T *zfile = (NCZ_FILE_INFO_T *)file->format_file_info;
+
+  struct ZarrObjects {
+    const char *name;
+    int format;
+  } zarrobjects[] = {
+      {"/zarr.json", 3}, {"/.zgroup", 2}, {"/.zarray", 2},
+      {"/.zattrs", 2},   {NULL, -1},
+  };
+  struct ZarrObjects *zo = NULL;
+
+  /* check for the existence of **any** of the keys, infer format based on it*/
+  for (zo = zarrobjects; zo->name; zo++) {
+    if (NC_NOERR == nczmap_exists(zfile->map, zo->name)) {
+      zfile->zarr.zarr_version = zo->format;
+      stat = NC_NOERR;
+      break;
+    }
+  }
+
+  return stat;
+}
+
 int NCZ_get_map(NC_FILE_INFO_T *file, NCURI *uri, mode_t mode,
                 size64_t constraints, void *params, NCZMAP **mapp) {
   int stat = NC_NOERR;
