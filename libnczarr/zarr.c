@@ -143,6 +143,13 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* controls)
     /* Apply client controls */
     if((stat = applycontrols(zinfo))) goto done;
 
+    /* Load auth info from rc file */
+    if((stat = ncuriparse(nc->path,&uri))) goto done;
+    if(uri) {
+	if((stat = NC_authsetup(&zinfo->auth, uri)))
+	    goto done;
+    }
+
     /* initialize map handle*/
     if((stat = nczmap_open(zinfo->controls.mapimpl,nc->path,mode,zinfo->controls.flags,NULL,&zinfo->map)))
 	goto done;
@@ -166,13 +173,6 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* controls)
 		    &zinfo->zarr.nczarr_version.minor,
 		    &zinfo->zarr.nczarr_version.release) == 0)
 	{stat = NC_ENCZARR; goto done;}
-
-    /* Load auth info from rc file */
-    if((stat = ncuriparse(nc->path,&uri))) goto done;
-    if(uri) {
-	if((stat = NC_authsetup(&zinfo->auth, uri)))
-	    goto done;
-    }
 
 done:
     nullfree(zarr_format);
