@@ -165,16 +165,9 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* controls)
         goto done;
     }
 
-    /* Ok, try to read superblock */
-    if((stat = ncz_read_superblock(file,&nczarr_version,NULL))) goto done;
-
-    if(nczarr_version == NULL) /* default */
-        nczarr_version = strdup(NCZARRVERSION);
-    if(sscanf(nczarr_version,"%lu.%lu.%lu",
-		    &zinfo->zarr.nczarr_version.major,
-		    &zinfo->zarr.nczarr_version.minor,
-		    &zinfo->zarr.nczarr_version.release) == 0)
-	{stat = NC_ENCZARR; goto done;}
+    if((stat = NCZ_infer_nczarr_format(file))) {
+        goto done;
+    }
 
 done:
     nullfree(zarr_format);
