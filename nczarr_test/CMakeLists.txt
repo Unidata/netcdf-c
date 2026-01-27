@@ -210,6 +210,7 @@ IF(NETCDF_ENABLE_TESTS)
 
   IF(NETCDF_ENABLE_NCZARR_FILTERS)
   IF(NETCDF_ENABLE_FILTER_TESTING)
+	  add_sh_test(nczarr_test run_filter_errors)
 	  build_bin_test(test_nczfilter)
   	  build_bin_test(test_filter_vlen)
 	  build_bin_test(testfilter)
