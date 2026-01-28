@@ -86,14 +86,12 @@
 
 /* Necessary S3 headers */
 #include <curl/curl.h>
-//#include <openssl/evp.h>
-//#include <openssl/hmac.h>
-//#include <openssl/sha.h>
 
 #include "netcdf.h"
 #include "ncuri.h"
 #include "ncutil.h"
 #include "netcdf_vutils.h"
+#include "ncaws.h"
 
 /*****************/
 
@@ -1056,10 +1054,16 @@ done:
  *             2017-09-01
  *----------------------------------------------------------------------------
  */
+
 s3r_t *
-NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const char *access_id, const char* access_key)
+NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, NCAWSPARAMS* aws)
+
 {
     int ret_value = SUCCEED;
+    const char *region = aws->region;
+    const char *access_id = aws->access_key_id;
+    const char* access_key = aws->secret_access_key;
+    const char* session_token = aws->session_token;
     size_t         tmplen    = 0;
     CURL          *curlh     = NULL;
     s3r_t         *handle    = NULL;
@@ -1079,7 +1083,7 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
 
     handle = (s3r_t *)calloc(1,sizeof(s3r_t));
     if (handle == NULL)
-	HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for handle.");
+	HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not calloc space for handle.");
 
     handle->magic	= S3COMMS_S3R_MAGIC;
 
@@ -1105,27 +1109,15 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
 
     /* copy strings */
     if(nulllen(region) != 0) {
-        tmplen = nulllen(region) + 1;
-        handle->region = (char *)malloc(sizeof(char) * tmplen);
-        if (handle->region == NULL)
-            HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for handle region copy.");
-        memcpy(handle->region, region, tmplen);
+	handle->region = nulldup(region);
     }
 
     if(nulllen(access_id) != 0) {
-        tmplen = nulllen(access_id) + 1;
-        handle->accessid = (char *)malloc(sizeof(char) * tmplen);
-        if (handle->accessid == NULL)
-            HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for handle ID copy.");
-        memcpy(handle->accessid, access_id, tmplen);
+	handle->accessid = nulldup(access_id);
     }
     
     if(nulllen(access_key) != 0) {
-        tmplen = nulllen(access_key) + 1;
-        handle->accesskey = (char *)malloc(sizeof(char) * tmplen);
-        if (handle->accesskey == NULL)
-           HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for handle access key copy.");
-        memcpy(handle->accesskey, access_key, tmplen);
+	handle->accesskey = nulldup(access_key);
     }
 
     now = gmnow();
@@ -1145,8 +1137,18 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
             HGOTO_ERROR(H5E_ARGS, NC_EAUTH, NULL, "signing key cannot be null.");
 
         /* Compute the signing key */
-        if (SUCCEED != NCH5_s3comms_signing_key(&signing_key, access_key, signingregion, iso8601now))
+        if (SUCCEED != NCH5_s3comms_signing_key(&signing_key, access_key, region, session_token, iso8601now))
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "problem in NCH5_s3comms_s3comms_signing_key.");
+#if S3COMMS_DEBUG_TRACE
+  {
+int i;
+fprintf(stderr,"@@@ signing_key: access_key=|%s| signingregion=|%s| iso8601now=|%s|\n", access_key, signingregion, iso8601now);
+fprintf(stderr,"@@@\tsigning_key=|");
+for(i=0;i<(int)SHA256_DIGEST_LENGTH;i++)
+fprintf(stderr,"%hhu",signing_key[i]);
+fprintf(stderr,"|\n");
+  }
+#endif
         if (signing_key == NULL)
             HGOTO_ERROR(H5E_ARGS, NC_EAUTH, NULL, "signing key cannot be null.");
 	handle->signing_key = signing_key;
@@ -1159,6 +1161,7 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
      ************************/
 
     curlh = curl_easy_init();
+
     if (curlh == NULL)
         HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "problem creating curl easy handle!");
 
@@ -1167,6 +1170,11 @@ NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const c
 
     if (CURLE_OK != curl_easy_setopt(curlh, CURLOPT_FAILONERROR, 1L))
         HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "error while setting CURL option (CURLOPT_FAILONERROR).");
+
+    if(getenv("CURLOPT_VERBOSE") != NULL) {
+	if (CURLE_OK != curl_easy_setopt(curlh, CURLOPT_VERBOSE, 1L))
+            HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "error while setting CURL option (CURLOPT_VERBOSE).");
+    }
 
     handle->curlhandle = curlh;
 
@@ -1589,6 +1597,7 @@ done:
  *     + aws_access_key_id
  *     + aws_secret_access_key
  *     + region
+ *     + session_token (optional)
  *     To be valid, the setting must begin the line with one of the keywords,
  *     followed immediately by an equals sign '=', and have some data before
  *     newline at end of line.
@@ -1613,7 +1622,7 @@ done:
  */
 static int
 H5FD__s3comms_load_aws_creds_from_file(FILE *file, const char *profile_name, char *key_id, char *access_key,
-                                       char *aws_region)
+                                       char *aws_region, char* session_token)
 {
     char        profile_line[32];
     char        buffer[128];
@@ -1621,11 +1630,13 @@ H5FD__s3comms_load_aws_creds_from_file(FILE *file, const char *profile_name, cha
         AWS_PROF_REGION,
         AWS_PROF_ACCESS_KEY_ID,
         AWS_PROF_SECRET_ACCESS_KEY,
+        AWS_PROF_SESSION_TOKEN,
     };
     char *const setting_pointers[] = {
         aws_region,
         key_id,
         access_key,
+        session_token,
     };
     unsigned setting_count = 3;
     int   ret_value     = SUCCEED;
@@ -1734,7 +1745,7 @@ done:
  */
 int
 NCH5_s3comms_load_aws_profile(const char *profile_name, char *key_id_out, char *secret_access_key_out,
-                              char *aws_region_out)
+                              char *aws_region_out, char* aws_session_token_out)
 {
     int ret_value = SUCCEED;
     FILE  *credfile  = NULL;
@@ -1760,7 +1771,7 @@ NCH5_s3comms_load_aws_profile(const char *profile_name, char *key_id_out, char *
     credfile = fopen(filepath, "r");
     if (credfile != NULL) {
         if (H5FD__s3comms_load_aws_creds_from_file(credfile, profile_name, key_id_out, secret_access_key_out,
-                                                   aws_region_out) != SUCCEED)
+                                                   aws_region_out, aws_session_token_out) != SUCCEED)
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "unable to load from aws credentials");
         if (fclose(credfile) == EOF)
             HGOTO_ERROR(H5E_FILE, NC_EACCESS, FAIL, "unable to close credentials file");
@@ -1775,14 +1786,15 @@ NCH5_s3comms_load_aws_profile(const char *profile_name, char *key_id_out, char *
         if (H5FD__s3comms_load_aws_creds_from_file(
                 credfile, profile_name, (*key_id_out == 0) ? key_id_out : NULL,
                 (*secret_access_key_out == 0) ? secret_access_key_out : NULL,
-                (*aws_region_out == 0) ? aws_region_out : NULL) != SUCCEED)
+                (*aws_region_out == 0) ? aws_region_out : NULL,
+                (*aws_session_token_out == 0) ? aws_session_token_out : NULL) != SUCCEED)
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "unable to load from aws config");
         if (fclose(credfile) == EOF)
             HGOTO_ERROR(H5E_FILE, NC_EACCESS, FAIL, "unable to close config file");
         credfile = NULL;
     } /* end if credential file opened */
 
-    /* fail if not all three settings were loaded */
+    /* fail if not all three settings were loaded; note session_token is optional */
     if (*key_id_out == 0 || *secret_access_key_out == 0 || *aws_region_out == 0)
         ret_value = NC_EINVAL;
 
@@ -1995,7 +2007,7 @@ done:
  *----------------------------------------------------------------------------
  */
 int
-NCH5_s3comms_signing_key(unsigned char **mdp, const char *secret, const char *region, const char *iso8601now)
+NCH5_s3comms_signing_key(unsigned char **mdp, const char *secret, const char *region, const char* session_token, const char *iso8601now)
 {
     char         *AWS4_secret     = NULL;
     size_t        AWS4_secret_len = 0;

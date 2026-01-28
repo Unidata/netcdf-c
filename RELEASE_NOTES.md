@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.10.0 - TBD
 
+* Add extra failure handling to the daos inferencing. See [Github 3238](https://github.com/Unidata/netcdf-c/pull/3238) for more information. 
+* Regularize, cleanup, and refactor various AWS features, especially WRT regularizing AWS-related constants. See [Github 3229](https://github.com/Unidata/netcdf-c/pull/3229) for more information. 
 * Regularize, cleanup, and refactor various AWS features, especially WRT regularizing AWS-related constants. See [Github 3229](https://github.com/Unidata/netcdf-c/issues/3229) for more information. 
 * Add extra failure handling to the daos inferencing. See [Github 3238](https://github.com/Unidata/netcdf-c/issues/3238) for more information. 
 * Regularize, cleanup, and refactor various AWS features, especially WRT regularizing AWS-related constants. See [Github 3229](https://github.com/Unidata/netcdf-c/issues/3229) for more information. 

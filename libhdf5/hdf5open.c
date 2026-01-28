@@ -16,6 +16,7 @@
 #include "hdf5debug.h"
 #include "nc4internal.h"
 #include "ncrc.h"
+#include "ncaws.h"
 #include "ncauth.h"
 #include "ncmodel.h"
 #include "ncpathmgr.h"
@@ -889,6 +890,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	    H5FD_ros3_fapl_t fa;
 	    const char* awsaccessid0 = NULL;
 	    const char* awssecretkey0 = NULL;
+    	    const char* sessiontoken0 = NULL;
 	    const char* profile0 = NULL;
 	    int iss3 = NC_iss3(h5->uri,NULL);
 	    
@@ -914,6 +916,8 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		    BAIL(retval);		
 		if((retval = NC_s3profilelookup(profile0,AWS_PROF_SECRET_ACCESS_KEY,&awssecretkey0)))
 		    BAIL(retval);		
+		if((retval = NC_s3profilelookup(profile0,AWS_PROF_SESSION_TOKEN,&sessiontoken0)))
+		    BAIL(retval);		
 		if(s3.region == NULL)
 		    s3.region = strdup(AWS_GLOBAL_DEFAULT_REGION);
 	        if(awsaccessid0 == NULL || awssecretkey0 == NULL ) {
@@ -932,6 +936,11 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
                 /* create and set fapl entry */
                 if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
                     BAIL(NC_EHDFERR);
+		/* Set session token if defined */
+		if(sessiontoken0 != NULL) {
+		    if(H5Pset_fapl_ros3_token(fapl_id,sessiontoken0) < 0)
+			BAIL(NC_EHDFERR);
+		}
 	    } else
 #endif /*NETCDF_ENABLE_ROS3*/
 	    {/* Configure FAPL to use our byte-range file driver */
