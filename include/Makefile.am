@@ -40,6 +40,8 @@ EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in netcdf_dispatch.h.in
 
 MAINTAINERCLEANFILES = netcdf_json.h netcdf_proplist.h
 
+DISTCLEANFILES = netcdf_json.h netcdf_proplist.h
+
 BUILT_SOURCES = netcdf_json.h netcdf_proplist.h
 
 # netcdf_json.h is constructed as a header-only file for use by
