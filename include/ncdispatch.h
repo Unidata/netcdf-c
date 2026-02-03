@@ -145,6 +145,10 @@ extern int NCZ_finalize(void);
 #endif
 
 /* User-defined formats.*/
+extern NC_Dispatch* UDF_dispatch_tables[NC_MAX_UDF_FORMATS];
+extern char UDF_magic_numbers[NC_MAX_UDF_FORMATS][NC_MAX_MAGIC_NUMBER_LEN + 1];
+
+/* old way */
 extern NC_Dispatch* UDF0_dispatch_table;
 extern char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
 extern NC_Dispatch* UDF1_dispatch_table;

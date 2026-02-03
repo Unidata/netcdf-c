@@ -53,6 +53,7 @@ Relaxed Boundary Check:	@RELAX_COORD_BOUND@
 Plugins Enabled:        @HAS_PLUGINS@
 Plugin Install Dir:     @NETCDF_PLUGIN_INSTALL_DIR@
 Plugin Search Path:     @NETCDF_PLUGIN_SEARCH_PATH@
+UDF Self-Load:          @HAS_UDF_SELF_LOAD@
 
 Quantization:		@HAS_QUANTIZE@
 Logging:     		@HAS_LOGGING@
