@@ -102,7 +102,7 @@ main(int argc, char **argv)
       snprintf(dimNameBuf, sizeof(dimNameBuf), "%s%10lu", dimNameBase, nrowCur);
       if (H5DSset_scale(xdimId, dimNameBuf) < 0) ERR;
 
-      /* Create ydim scale */
+      /* Create ydim scale. */
       snprintf(dimNameBuf, sizeof(dimNameBuf), "%s%10lu", dimNameBase, ncolCur);
       if (H5DSset_scale(ydimId, dimNameBuf) < 0) ERR;
 
