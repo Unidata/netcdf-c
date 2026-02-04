@@ -2,7 +2,7 @@
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
-   Test user-defined formats.
+   Test user-defined formats..
 
    Ed Hartnett
 */
