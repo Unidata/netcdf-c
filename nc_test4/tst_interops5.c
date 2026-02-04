@@ -98,7 +98,7 @@ main(int argc, char **argv)
 			       H5P_DEFAULT)) < 0) ERR;
       if (H5Sclose(ydimSpaceId) < 0) ERR;
 
-      /* Create xdim scale. */
+      /* Create xdim scale */
       snprintf(dimNameBuf, sizeof(dimNameBuf), "%s%10lu", dimNameBase, nrowCur);
       if (H5DSset_scale(xdimId, dimNameBuf) < 0) ERR;
 
