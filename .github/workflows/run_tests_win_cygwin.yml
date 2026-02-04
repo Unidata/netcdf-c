@@ -37,6 +37,7 @@ jobs:
         with:
           platform: x86_64
           install-dir: 'C:\cygwin'
+          check-sig: false
           packages: >-
             git automake libtool autoconf2.5 make
             libhdf4-devel zipinfo libxml2-devel perl zlib-devel
@@ -139,6 +140,7 @@ jobs:
         with:
           platform: x86_64
           install-dir: 'C:\cygwin'
+          check-sig: false
           packages: >-
             git automake libtool autoconf2.5 make 
             libhdf4-devel zipinfo libxml2-devel perl zlib-devel
