@@ -1,5 +1,8 @@
 #include "ut_includes.h"
 
+EXTERNL const NCZ_Metadata* NCZ_metadata_handler2;
+EXTERNL const NCZ_Metadata* NCZ_csl_metadata_handler2;
+
 void showHandlers(const NCZ_Metadata *h1, const NCZ_Metadata *h2) {
 #define BOOLSTR(x) (x) ? "true" : "false"
   fprintf(stderr,
