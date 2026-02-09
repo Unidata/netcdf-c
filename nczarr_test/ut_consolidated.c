@@ -122,7 +122,11 @@ int test_consolidated_handler_selection_env() {
   NCZMD_set_metadata_handler(&zinfo);
   freemockmap(zinfo.map);
   if (consolidated_env == NULL) {
+#if _WIN32
+    _putenv_s(NCZARR_CONSOLIDATED_ENV, "");
+#else
     unsetenv(NCZARR_CONSOLIDATED_ENV);
+#endif
   } else {
     char buf[256] = {0};
     memcpy(&buf, NCZARR_CONSOLIDATED_ENV "=", sizeof(NCZARR_CONSOLIDATED_ENV));
