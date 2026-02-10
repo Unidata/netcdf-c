@@ -1527,9 +1527,11 @@ fi
 
 if test "x$enable_plugins" = xyes; then
     AC_DEFINE([NETCDF_ENABLE_PLUGINS], [1], [if true, support dynamically loaded plugins])
-    AC_DEFINE([HAVE_NETCDF_UDF_SELF_REGISTRATION], [1], [if true, UDF plugin init functions return NC_Dispatch*])
 fi
 AM_CONDITIONAL(NETCDF_ENABLE_PLUGINS, [test "x$enable_plugins" = xyes])
+
+# UDF self-registration is always enabled.
+AC_DEFINE([HAVE_NETCDF_UDF_SELF_REGISTRATION], [1], [if true, UDF plugin init functions return NC_Dispatch*])
 AC_SUBST(USEPLUGINS, [${enable_plugins}])
 
 AC_FUNC_ALLOCA
