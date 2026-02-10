@@ -115,6 +115,9 @@ jobs:
             cd build
             cmake --build . --config Release --target netcdf -j 4
 
+        # The install step may fail on Windows (e.g. permission errors or
+        # missing paths) but that should not block the test-suite build or
+        # ctest run.  Use continue-on-error so subsequent steps still execute.
         - name: Perform out-of-directory install - libnetcdf
           shell: bash -el {0}
           run: |
@@ -129,36 +132,8 @@ jobs:
             cat config.h
           if: ${{ failure() }}
 
-        - name: "Diag: build tst_udf_self_load_plugin"
-          id: build_udf_plugin
-          shell: powershell
-          run: |
-            cd build
-            cmake --build . --config Release --target tst_udf_self_load_plugin -j 1 -- /verbosity:normal
-            Write-Host "Exit code: $LASTEXITCODE"
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          continue-on-error: true
-
-        - name: "Diag: build nc_test4_tst_udf_self_load"
-          id: build_udf_self_load
-          shell: powershell
-          run: |
-            cd build
-            cmake --build . --config Release --target nc_test4_tst_udf_self_load -j 1 -- /verbosity:normal
-            Write-Host "Exit code: $LASTEXITCODE"
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          continue-on-error: true
-
-        - name: "Diag: build nc_test4_tst_udf"
-          id: build_udf_tst
-          shell: powershell
-          run: |
-            cd build
-            cmake --build . --config Release --target nc_test4_tst_udf -j 1 -- /verbosity:normal
-            Write-Host "Exit code: $LASTEXITCODE"
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          continue-on-error: true
-
+        # id: build_tests is referenced by the ctest step's 'if' condition
+        # so that ctest only runs when the full build succeeds.
         - name: Perform out-of-directory build - test suite
           id: build_tests
           shell: bash -el {0}
@@ -173,99 +148,45 @@ jobs:
             cat config.h
           if: ${{ failure() }}  
 
-        - name: Debug - find all netcdf and hdf5 DLLs
-          if: always()
-          shell: powershell
-          run: |
-            Write-Host "=== CONDA env var ==="
-            Write-Host "CONDA = $env:CONDA"
-            Write-Host ""
-            Write-Host "=== USERPROFILE env var ==="
-            Write-Host "USERPROFILE = $env:USERPROFILE"
-            Write-Host ""
-            Write-Host "=== Find netcdf.dll anywhere under USERPROFILE ==="
-            Get-ChildItem -Path $env:USERPROFILE -Recurse -Filter "netcdf.dll" -ErrorAction SilentlyContinue | Select-Object FullName, Length
-            Write-Host ""
-            Write-Host "=== Find hdf5.dll anywhere under CONDA ==="
-            Get-ChildItem -Path "$env:CONDA\Library" -Recurse -Filter "hdf5.dll" -ErrorAction SilentlyContinue | Select-Object FullName, Length
-            Write-Host ""
-            Write-Host "=== Contents of install bin dir ==="
-            Get-ChildItem "$env:USERPROFILE\tmp\bin" -ErrorAction SilentlyContinue | Select-Object Name, Length
-            Write-Host ""
-            Write-Host "=== Contents of install lib dir ==="
-            Get-ChildItem "$env:USERPROFILE\tmp\lib" -ErrorAction SilentlyContinue | Select-Object Name, Length
-            Write-Host ""
-            Write-Host "=== Find netcdf.dll in build tree ==="
-            Get-ChildItem -Path "D:\a\netcdf-c\netcdf-c\build" -Recurse -Filter "netcdf.dll" -ErrorAction SilentlyContinue | Select-Object FullName, Length
-            Write-Host ""
-            Write-Host "=== Check what ~ resolves to in bash ==="
-
-        - name: Debug - check bash tilde and HOME
-          if: always()
-          shell: bash -el {0}
-          run: |
-            echo "HOME=$HOME"
-            echo "USERPROFILE=$USERPROFILE"
-            echo "tilde expands to: $(echo ~)"
-            echo "ls ~/tmp/bin:"
-            ls -la ~/tmp/bin/ 2>&1 || echo "~/tmp/bin does not exist"
-            echo "ls ~/tmp/lib:"
-            ls -la ~/tmp/lib/ 2>&1 || echo "~/tmp/lib does not exist"
-            echo ""
-            echo "=== CMAKE_INSTALL_PREFIX from cache ==="
-            grep CMAKE_INSTALL_PREFIX build/CMakeCache.txt || true
-            echo ""
-            echo "=== find netcdf.dll in build ==="
-            find build -name "netcdf.dll" 2>/dev/null || echo "not found in build"
-            echo ""
-            echo "=== find netcdf.dll under HOME ==="
-            find "$HOME" -name "netcdf.dll" 2>/dev/null || echo "not found under HOME"
-
+        # On Windows, test executables need DLLs (netcdf.dll, hdf5.dll,
+        # etc.) on PATH at runtime.  Without this step, ctest fails with
+        # 0xc0000135 (STATUS_DLL_NOT_FOUND).  We add three directories:
+        #   1. Conda Library/bin  – hdf5.dll, zlib.dll, libcurl.dll, etc.
+        #   2. Install bin        – netcdf.dll from the install step
+        #   3. Build liblib dir   – netcdf.dll from the build tree
+        # Writing to $GITHUB_PATH makes the additions visible to all
+        # subsequent steps.  Runs with if: always() so the PATH is set
+        # even if the install step failed (continue-on-error above).
         - name: Add DLL directories to PATH
           if: always()
           shell: powershell
           run: |
-            # Add conda Library/bin for hdf5.dll etc
+            # conda Library/bin – hdf5.dll, zlib.dll, libcurl.dll, etc.
             $condaBin = "$env:CONDA\Library\bin"
             Write-Host "Adding to PATH: $condaBin"
             $condaBin | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
-            # Add install bin for netcdf.dll
+            # Install prefix bin – netcdf.dll placed by 'cmake --install'
             $installBin = "$env:USERPROFILE\tmp\bin"
             Write-Host "Adding to PATH: $installBin"
             $installBin | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
-            # Also add the build liblib directory where netcdf.dll might be
+            # Build tree – netcdf.dll built in liblib/Release
             $buildLib = "D:\a\netcdf-c\netcdf-c\build\liblib\Release"
             Write-Host "Adding to PATH: $buildLib"
             $buildLib | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
-            # Show what we wrote
             Write-Host ""
             Write-Host "=== GITHUB_PATH contents ==="
             Get-Content $env:GITHUB_PATH
 
-        - name: Verify PATH after update
-          if: always()
-          shell: powershell
-          run: |
-            Write-Host "=== Full PATH ==="
-            $env:PATH -split ';' | ForEach-Object { Write-Host $_ }
-            Write-Host ""
-            Write-Host "=== where.exe hdf5.dll ==="
-            & where.exe hdf5.dll 2>&1
-            Write-Host ""
-            Write-Host "=== where.exe netcdf.dll ==="
-            & where.exe netcdf.dll 2>&1
-            Write-Host ""
-            Write-Host "=== Try running a test exe directly ==="
-            $testExe = Get-ChildItem -Path "D:\a\netcdf-c\netcdf-c\build\nc_test4" -Filter "nc_test4_tst_put_vars.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-            if ($testExe) {
-              Write-Host "Found test exe: $($testExe.FullName)"
-              & $testExe.FullName 2>&1
-              Write-Host "Exit code: $LASTEXITCODE"
-            } else {
-              Write-Host "Test exe not found, listing nc_test4 dir:"
-              Get-ChildItem "D:\a\netcdf-c\netcdf-c\build\nc_test4" -ErrorAction SilentlyContinue | Select-Object Name
-            }
-
+        # Only run ctest when the full build succeeded (see id: build_tests).
+        # Uses PowerShell instead of bash because bash on Windows has trouble
+        # with DLL PATH resolution and tilde expansion for the install prefix.
+        # The -E exclusion pattern skips tests that rely on:
+        #   bom           – byte-order-mark tests that need Unix utilities
+        #   run_          – shell-script-based tests (bash .sh) that are
+        #                   not portable to the Windows MSVC environment
+        #   tst_ncdap     – remote OPeNDAP tests (network-dependent)
+        #   dap4_test_test_ – remote DAP4 tests (network-dependent)
+        #   do_comps      – comparison script tests requiring Unix tools
         - name: Run ctest
           if: ${{ steps.build_tests.outcome == 'success' }}
           shell: powershell
@@ -274,6 +195,9 @@ jobs:
             ctest . -j 4 -E "bom|run_|tst_ncdap|dap4_test_test_|do_comps" --output-on-failure
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             
+        # Re-run only the failed tests with maximum verbosity (-VV) to
+        # capture detailed output for debugging.  Uses PowerShell to match
+        # the ctest step above (same DLL PATH / shell environment).
         - name: Verbose Output if CTest Failure
           shell: powershell
           run: |

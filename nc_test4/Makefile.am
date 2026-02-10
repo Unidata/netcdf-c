@@ -44,11 +44,20 @@ endif
 NC4_TESTS += tst_h_strbug tst_h_refs
 
 # UDF self-registration plugin loading test.
-# Build the test plugin as a shared library.
+# Build the test plugin as a shared library (libtool module).
 check_LTLIBRARIES = tst_udf_self_load_plugin.la
 tst_udf_self_load_plugin_la_SOURCES = tst_udf_self_load_plugin.c
+# -no-undefined is required on Cygwin/MinGW: libtool refuses to build a
+# shared library on those platforms unless every symbol can be resolved at
+# link time.  Without it the build fails with:
+#   libtool: error: can't build x86_64-pc-cygwin shared library
+#                    unless -no-undefined is specified
 tst_udf_self_load_plugin_la_LDFLAGS = -module -avoid-version -shared -no-undefined -rpath /tmp
 tst_udf_self_load_plugin_la_LIBADD = ${top_builddir}/liblib/libnetcdf.la
+# The plugin file extension varies by platform: libtool -module produces
+# .so on Linux/macOS but .dll on MinGW and Cygwin.  @MODULE_EXT@ is set
+# by configure.ac (see the case $host_os block after LT_INIT) so the
+# compiled-in TEST_PLUGIN_PATH always points to the correct filename.
 tst_udf_self_load_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_PLUGIN_PATH=\"$(abs_builddir)/.libs/tst_udf_self_load_plugin@MODULE_EXT@\"
 
 # Build test programs plus programs used in test scripts.

@@ -1334,8 +1334,14 @@ AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.2])
 LT_INIT()
 
-# Determine the file extension for libtool modules (-module).
-# MinGW and Cygwin produce .dll; Linux and macOS produce .so.
+# Determine the file extension that libtool produces for shared modules
+# built with -module (e.g. UDF plugins).  This is needed because
+# nc_test4/Makefile.am compiles the plugin path into the test binary
+# via -DTEST_PLUGIN_PATH="...".  Without the correct extension the
+# test fails at runtime when dlopen() cannot find the file.
+#   MinGW / Cygwin  ->  .dll
+#   Linux / macOS   ->  .so
+# Consumed in nc_test4/Makefile.am as @MODULE_EXT@.
 case $host_os in
   mingw*|cygwin*) MODULE_EXT=".dll" ;;
   *)              MODULE_EXT=".so" ;;
