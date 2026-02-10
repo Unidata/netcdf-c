@@ -144,28 +144,28 @@ jobs:
           if: ${{ failure() }}  
 
         - name: Add DLL directories to PATH
-          shell: cmd
+          shell: powershell
           run: |
-            echo %CONDA%\Library\bin>> "%GITHUB_PATH%"
-            echo %USERPROFILE%\tmp\bin>> "%GITHUB_PATH%"
+            "$env:CONDA\Library\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+            "$env:USERPROFILE\tmp\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
 
         - name: Verify DLL paths
-          shell: cmd
+          shell: powershell
           run: |
-            echo "PATH=%PATH%"
-            where hdf5.dll 2>nul || echo hdf5.dll not found on PATH
-            where netcdf.dll 2>nul || echo netcdf.dll not found on PATH
-            dir "%CONDA%\Library\bin\hdf5.dll" 2>nul || echo hdf5.dll not in CONDA
-            dir "%USERPROFILE%\tmp\bin\netcdf.dll" 2>nul || echo netcdf.dll not in install dir
+            Write-Host "PATH = $env:PATH"
+            Get-ChildItem "$env:CONDA\Library\bin\hdf5.dll" -ErrorAction SilentlyContinue
+            Get-ChildItem "$env:USERPROFILE\tmp\bin\netcdf.dll" -ErrorAction SilentlyContinue
+            Get-ChildItem "$env:USERPROFILE\tmp\bin\*.dll" -ErrorAction SilentlyContinue
 
         - name: Run ctest
-          shell: cmd
+          shell: powershell
           run: |
             cd build
             ctest . -j 4 -E "bom|run_|tst_ncdap|dap4_test_test_|do_comps" --output-on-failure
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             
         - name: Verbose Output if CTest Failure
-          shell: cmd
+          shell: powershell
           run: |
             cd build
             ctest . --rerun-failed --output-on-failure -VV
