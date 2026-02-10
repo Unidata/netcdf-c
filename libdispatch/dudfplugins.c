@@ -1,4 +1,4 @@
-/* Copyright 2018-2024, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2026, UCAR/Unidata.
    See the COPYRIGHT file for more information. */
 
 /**
@@ -6,6 +6,7 @@
  * @internal This file contains functions for loading UDF plugins from RC files.
  *
  * @author Ed Hartnett
+ * @date 2/2/26
  */
 
 #include "config.h"
@@ -32,7 +33,7 @@
  * @return Handle to the loaded library, or NULL on failure.
  *
  * @author Edward Hartnett
- * @date 2/2/25
+ * @date 2/2/26
  */
 static void*
 load_library(const char* path)
@@ -63,7 +64,7 @@ load_library(const char* path)
  * @return Pointer to the symbol, or NULL on failure.
  *
  * @author Edward Hartnett
- * @date 2/2/25
+ * @date 2/2/26
  */
 static void*
 get_symbol(void* handle, const char* symbol)
@@ -96,7 +97,7 @@ get_symbol(void* handle, const char* symbol)
  * @return NC_NOERR on success, error code on failure.
  *
  * @author Edward Hartnett
- * @date 2/2/25
+ * @date 2/2/26
  */
 static int
 load_udf_plugin(int udf_number, const char* library_path,
@@ -229,7 +230,7 @@ done:
  * @return NC_NOERR (always succeeds, even if plugins fail to load).
  *
  * @author Edward Hartnett
- * @date 2/2/25
+ * @date 2/2/26
  */
 int
 NC_udf_load_plugins(void)

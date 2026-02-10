@@ -146,7 +146,7 @@ extern "C" {
 /** @name User-Defined Format Mode Flags
  * Mode flags for user-defined formats (UDF0-UDF9).
  * Use with nc_def_user_format() to register custom format handlers.
- * Can be combined with other mode flags (e.g., NC_NETCDF4).
+ * Can not be combined with other mode flags (e.g., NC_NETCDF4).
  * See @ref user_defined_formats for details.
  * @{ */
 #define NC_UDF0          0x0040  /**< User-defined format 0 (bit 6). */

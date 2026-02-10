@@ -1,5 +1,5 @@
-/* Copyright 2018-2024, UCAR/Unidata and OPeNDAP, Inc.
-   See the COPYRIGHT file for more information. */
+/* Copyright 2026 University Corporation for Atmospheric
+   Research/Unidata. */
 
 #ifndef NCUDFPLUGINS_H
 #define NCUDFPLUGINS_H
@@ -28,7 +28,7 @@ extern "C" {
  *         some plugins fail to load), error code on critical failure.
  *
  * @author Edward Hartnett
- * @date 2/2/25
+ * @date 2/2/26
  */
 EXTERNL int NC_udf_load_plugins(void);
 
