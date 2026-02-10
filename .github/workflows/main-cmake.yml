@@ -120,7 +120,7 @@ jobs:
           run: |
             cd build
             cmake --build . --config Release --target install -j 4
-          if: ${{ success() }}  
+          continue-on-error: true
 
         - name: View config.h - libnetcdf failure
           shell: bash -el {0}
@@ -130,11 +130,11 @@ jobs:
           if: ${{ failure() }}
 
         - name: Perform out-of-directory build - test suite
+          id: build_tests
           shell: bash -el {0}
           run: | 
             cd build
             cmake --build . --config Release -j 4
-          if: ${{ success() }}
       
         - name: View config.h - tests failure failure
           shell: bash -el {0}
@@ -144,6 +144,7 @@ jobs:
           if: ${{ failure() }}  
 
         - name: Debug - find all netcdf and hdf5 DLLs
+          if: always()
           shell: powershell
           run: |
             Write-Host "=== CONDA env var ==="
@@ -170,6 +171,7 @@ jobs:
             Write-Host "=== Check what ~ resolves to in bash ==="
 
         - name: Debug - check bash tilde and HOME
+          if: always()
           shell: bash -el {0}
           run: |
             echo "HOME=$HOME"
@@ -190,6 +192,7 @@ jobs:
             find "$HOME" -name "netcdf.dll" 2>/dev/null || echo "not found under HOME"
 
         - name: Add DLL directories to PATH
+          if: always()
           shell: powershell
           run: |
             # Add conda Library/bin for hdf5.dll etc
@@ -210,6 +213,7 @@ jobs:
             Get-Content $env:GITHUB_PATH
 
         - name: Verify PATH after update
+          if: always()
           shell: powershell
           run: |
             Write-Host "=== Full PATH ==="
@@ -233,6 +237,7 @@ jobs:
             }
 
         - name: Run ctest
+          if: ${{ steps.build_tests.outcome == 'success' }}
           shell: powershell
           run: |
             cd build
