@@ -49,7 +49,7 @@ check_LTLIBRARIES = tst_udf_self_load_plugin.la
 tst_udf_self_load_plugin_la_SOURCES = tst_udf_self_load_plugin.c
 tst_udf_self_load_plugin_la_LDFLAGS = -module -avoid-version -shared -no-undefined -rpath /tmp
 tst_udf_self_load_plugin_la_LIBADD = ${top_builddir}/liblib/libnetcdf.la
-tst_udf_self_load_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_PLUGIN_PATH=\"$(abs_builddir)/.libs/tst_udf_self_load_plugin.so\"
+tst_udf_self_load_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_PLUGIN_PATH=\"$(abs_builddir)/.libs/tst_udf_self_load_plugin@MODULE_EXT@\"
 
 # Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug \

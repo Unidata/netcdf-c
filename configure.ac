@@ -1334,6 +1334,14 @@ AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.2])
 LT_INIT()
 
+# Determine the file extension for libtool modules (-module).
+# MinGW and Cygwin produce .dll; Linux and macOS produce .so.
+case $host_os in
+  mingw*|cygwin*) MODULE_EXT=".dll" ;;
+  *)              MODULE_EXT=".so" ;;
+esac
+AC_SUBST([MODULE_EXT])
+
 AC_MSG_NOTICE([finding other utilities])
 
 # Is m4 installed? If not, bail.
