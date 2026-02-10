@@ -707,6 +707,14 @@ if(NETCDF_ENABLE_PLUGINS)
   set(USEPLUGINS yes)
 endif()
 
+# UDF self-registration: plugin init functions return NC_Dispatch*
+# instead of int, and the loader registers the dispatch table.
+option(NETCDF_ENABLE_UDF_SELF_REGISTRATION
+  "Enable UDF plugin self-registration (init returns NC_Dispatch*)" ON)
+if(NETCDF_ENABLE_UDF_SELF_REGISTRATION AND NETCDF_ENABLE_PLUGINS AND NOT WIN32)
+  set(HAVE_NETCDF_UDF_SELF_REGISTRATION ON)
+endif()
+
 # Enable some developer-only tests
 option(NETCDF_ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
 if(NETCDF_ENABLE_EXTRA_TESTS)

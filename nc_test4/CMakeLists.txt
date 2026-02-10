@@ -91,6 +91,36 @@ IF(NOT WIN32)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
 ENDIF()
 
+# UDF self-registration plugin loading test.
+# Build a test plugin as a shared library, then build a test that
+# loads it via the RC-based plugin loader to verify that init
+# functions returning NC_Dispatch* are handled correctly.
+add_library(tst_udf_self_load_plugin SHARED tst_udf_self_load_plugin.c)
+target_link_libraries(tst_udf_self_load_plugin netcdf)
+set_target_properties(tst_udf_self_load_plugin PROPERTIES
+  PREFIX ""
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(nc_test4_tst_udf_self_load tst_udf_self_load.c)
+target_link_libraries(nc_test4_tst_udf_self_load netcdf ${ALL_TLL_LIBS})
+target_compile_definitions(nc_test4_tst_udf_self_load PRIVATE
+  TEST_PLUGIN_PATH="$<TARGET_FILE:tst_udf_self_load_plugin>")
+add_test(nc_test4_tst_udf_self_load ${EXECUTABLE_OUTPUT_PATH}/nc_test4_tst_udf_self_load)
+set_tests_properties(nc_test4_tst_udf_self_load PROPERTIES
+  ENVIRONMENT srcdir=${CMAKE_CURRENT_SOURCE_DIR})
+add_dependencies(nc_test4_tst_udf_self_load tst_udf_self_load_plugin)
+IF(MSVC)
+  set_target_properties(nc_test4_tst_udf_self_load PROPERTIES
+    LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+  set_target_properties(tst_udf_self_load_plugin PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+ENDIF()
+
 # If the v2 API was built, add the test program.
 IF(ENABLE_V2_API)
   build_bin_test(tst_v2)
