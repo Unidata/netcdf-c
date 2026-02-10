@@ -70,12 +70,24 @@ plugin_abort(int ncid)
 static NC_Dispatch tst_self_load_dispatcher;
 static int initialized = 0;
 
+/* Export macro for the plugin's own symbols. EXTERNL cannot be used
+ * here because it expands to __declspec(dllimport) when consuming the
+ * netcdf DLL, and MSVC forbids defining a dllimport function (C2491).
+ * The plugin must dllexport its init function instead. */
+#if defined(_MSC_VER)
+#  define PLUGIN_EXPORT __declspec(dllexport)
+#elif defined(__GNUC__) && __GNUC__ >= 4
+#  define PLUGIN_EXPORT __attribute__((visibility("default")))
+#else
+#  define PLUGIN_EXPORT
+#endif
+
 /* Self-registration init function: returns NC_Dispatch* instead of int.
  * This is the new convention used when HAVE_NETCDF_UDF_SELF_REGISTRATION
  * is defined. The plugin loader must call this through an
  * NC_Dispatch* (*)(void) function pointer and register the returned
  * table via nc_def_user_format(). */
-EXTERNL NC_Dispatch*
+PLUGIN_EXPORT NC_Dispatch*
 tst_udf_self_load_init(void)
 {
     if (!initialized) {
