@@ -129,6 +129,21 @@ jobs:
             cat config.h
           if: ${{ failure() }}
 
+        - name: Build UDF test targets individually
+          id: build_udf
+          shell: bash -el {0}
+          run: |
+            cd build
+            echo "=== Building tst_udf_self_load_plugin ==="
+            cmake --build . --config Release --target tst_udf_self_load_plugin -j 1 -- /verbosity:normal 2>&1 || true
+            echo ""
+            echo "=== Building nc_test4_tst_udf_self_load ==="
+            cmake --build . --config Release --target nc_test4_tst_udf_self_load -j 1 -- /verbosity:normal 2>&1 || true
+            echo ""
+            echo "=== Building nc_test4_tst_udf ==="
+            cmake --build . --config Release --target nc_test4_tst_udf -j 1 -- /verbosity:normal 2>&1 || true
+          continue-on-error: true
+
         - name: Perform out-of-directory build - test suite
           id: build_tests
           shell: bash -el {0}
