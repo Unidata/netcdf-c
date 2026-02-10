@@ -148,6 +148,8 @@ jobs:
           run: | 
             cat ~/.bash_profile
             echo "" >> ~/.bash_profile
+            echo "${CONDA_PREFIX}/Library/bin" >> $GITHUB_PATH
+            echo "${USERPROFILE}/tmp/bin" >> $GITHUB_PATH
 
         - name: Run ctest
           shell: bash -el {0}
@@ -156,11 +158,11 @@ jobs:
             echo "Run ctest combined PATH: $PATH"
             echo "Run ctest combined GITHUB_PATH: $PATH"
             cd build
-            PATH="$HOME/tmp/bin:$CONDA_PREFIX/Library/bin:$PATH" ctest . -j 4 -E 'bom' --output-on-failure
+            ctest . -j 4 -E 'bom' --output-on-failure
             
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
           run: |
             cd build
-            PATH="$HOME/tmp/bin:$CONDA_PREFIX/Library/bin:$PATH" ctest . --rerun-failed --output-on-failure -VV
+            ctest . --rerun-failed --output-on-failure -VV
           if: ${{ failure() }}    
