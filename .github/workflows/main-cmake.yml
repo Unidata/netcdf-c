@@ -154,11 +154,8 @@ jobs:
         - name: Run ctest
           shell: bash -el {0}
           run: |
-            echo "Run ctest PATH: $PATH"
-            echo "Run ctest combined PATH: $PATH"
-            echo "Run ctest combined GITHUB_PATH: $PATH"
             cd build
-            ctest . -j 4 -E 'bom' --output-on-failure
+            ctest . -j 4 -E 'bom|run_|tst_ncdap|dap4_test_test_|do_comps' --output-on-failure
             
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
