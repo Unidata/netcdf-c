@@ -1,5 +1,4 @@
 #include "ut_includes.h"
-#include "zmetadata.h"
 
 void showHandlers(const NCZ_Metadata *h1, const NCZ_Metadata *h2) {
 #define BOOLSTR(x) (x) ? "true" : "false"
