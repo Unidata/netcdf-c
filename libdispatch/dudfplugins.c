@@ -104,10 +104,11 @@ load_udf_plugin(int udf_number, const char* library_path,
 {
     int stat = NC_NOERR;
     void* handle = NULL;
-    int (*init_function)(void) = NULL;
     int mode_flag;
+#ifndef HAVE_NETCDF_UDF_SELF_REGISTRATION
     NC_Dispatch* dispatch_table = NULL;
     char magic_check[NC_MAX_MAGIC_NUMBER_LEN + 1];
+#endif
     
     /* Determine mode flag from UDF number */
     if (udf_number == 0)
@@ -124,47 +125,90 @@ load_udf_plugin(int udf_number, const char* library_path,
         goto done;
     }
     
-    /* Get the initialization function */
-    init_function = (int (*)(void))get_symbol(handle, init_func);
-    if (!init_function) {
-        stat = NC_ENOTNC;
-        goto done;
-    }
-    
-    /* Call the initialization function */
-    if ((stat = init_function())) {
-        nclog(NCLOGERR, "Plugin init function %s failed: %d", init_func, stat);
-        goto done;
-    }
-    
-    /* Verify the dispatch table was registered */
-    memset(magic_check, 0, sizeof(magic_check));
-    if ((stat = nc_inq_user_format(mode_flag, &dispatch_table, magic_check))) {
-        nclog(NCLOGERR, "Plugin did not register dispatch table for UDF%d", udf_number);
-        goto done;
-    }
-    
-    if (dispatch_table == NULL) {
-        nclog(NCLOGERR, "Plugin registered NULL dispatch table for UDF%d", udf_number);
-        stat = NC_EINVAL;
-        goto done;
-    }
-    
-    /* Verify dispatch ABI version */
-    if (dispatch_table->dispatch_version != NC_DISPATCH_VERSION) {
-        nclog(NCLOGERR, "Plugin dispatch ABI mismatch for UDF%d: expected %d, got %d",
-              udf_number, NC_DISPATCH_VERSION, dispatch_table->dispatch_version);
-        stat = NC_EINVAL;
-        goto done;
-    }
-    
-    /* Optionally verify magic number matches */
-    if (magic != NULL && strlen(magic_check) > 0) {
-        if (strcmp(magic, magic_check) != 0) {
-            nclog(NCLOGWARN, "Plugin magic number mismatch for UDF%d: expected %s, got %s",
-                  udf_number, magic, magic_check);
+#ifdef HAVE_NETCDF_UDF_SELF_REGISTRATION
+    /* Self-registration mode: init function returns NC_Dispatch* */
+    {
+        NC_Dispatch* (*init_function)(void) = NULL;
+        NC_Dispatch* table = NULL;
+        
+        /* Get the initialization function */
+        init_function = (NC_Dispatch* (*)(void))get_symbol(handle, init_func);
+        if (!init_function) {
+            stat = NC_ENOTNC;
+            goto done;
+        }
+        
+        /* Call the initialization function to get the dispatch table */
+        table = init_function();
+        if (!table) {
+            nclog(NCLOGERR, "Plugin init function %s returned NULL", init_func);
+            stat = NC_ENOTNC;
+            goto done;
+        }
+        
+        /* Verify dispatch ABI version */
+        if (table->dispatch_version != NC_DISPATCH_VERSION) {
+            nclog(NCLOGERR, "Plugin dispatch ABI mismatch for UDF%d: expected %d, got %d",
+                  udf_number, NC_DISPATCH_VERSION, table->dispatch_version);
+            stat = NC_EINVAL;
+            goto done;
+        }
+        
+        /* Register the dispatch table returned by the plugin */
+        if ((stat = nc_def_user_format(mode_flag, table, (char*)magic))) {
+            nclog(NCLOGERR, "Failed to register dispatch table for UDF%d: %d",
+                  udf_number, stat);
+            goto done;
         }
     }
+#else
+    /* Legacy mode: init function returns int and registers itself */
+    {
+        int (*init_function)(void) = NULL;
+        
+        /* Get the initialization function */
+        init_function = (int (*)(void))get_symbol(handle, init_func);
+        if (!init_function) {
+            stat = NC_ENOTNC;
+            goto done;
+        }
+        
+        /* Call the initialization function */
+        if ((stat = init_function())) {
+            nclog(NCLOGERR, "Plugin init function %s failed: %d", init_func, stat);
+            goto done;
+        }
+        
+        /* Verify the dispatch table was registered */
+        memset(magic_check, 0, sizeof(magic_check));
+        if ((stat = nc_inq_user_format(mode_flag, &dispatch_table, magic_check))) {
+            nclog(NCLOGERR, "Plugin did not register dispatch table for UDF%d", udf_number);
+            goto done;
+        }
+        
+        if (dispatch_table == NULL) {
+            nclog(NCLOGERR, "Plugin registered NULL dispatch table for UDF%d", udf_number);
+            stat = NC_EINVAL;
+            goto done;
+        }
+        
+        /* Verify dispatch ABI version */
+        if (dispatch_table->dispatch_version != NC_DISPATCH_VERSION) {
+            nclog(NCLOGERR, "Plugin dispatch ABI mismatch for UDF%d: expected %d, got %d",
+                  udf_number, NC_DISPATCH_VERSION, dispatch_table->dispatch_version);
+            stat = NC_EINVAL;
+            goto done;
+        }
+        
+        /* Optionally verify magic number matches */
+        if (magic != NULL && strlen(magic_check) > 0) {
+            if (strcmp(magic, magic_check) != 0) {
+                nclog(NCLOGWARN, "Plugin magic number mismatch for UDF%d: expected %s, got %s",
+                      udf_number, magic, magic_check);
+            }
+        }
+    }
+#endif
     
     nclog(NCLOGNOTE, "Successfully loaded UDF%d plugin from %s", 
           udf_number, library_path);

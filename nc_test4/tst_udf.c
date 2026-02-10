@@ -270,6 +270,27 @@ static NC_Dispatch tst_dispatcher_bad_version = {
 #endif
 };
 
+/* Simulate a self-registration init function that returns NC_Dispatch*. */
+static NC_Dispatch*
+tst_self_reg_init(void)
+{
+    return &tst_dispatcher;
+}
+
+/* Simulate a self-registration init function that fails (returns NULL). */
+static NC_Dispatch*
+tst_self_reg_init_null(void)
+{
+    return NULL;
+}
+
+/* Simulate a self-registration init function returning a bad ABI version. */
+static NC_Dispatch*
+tst_self_reg_init_bad_ver(void)
+{
+    return &tst_dispatcher_bad_version;
+}
+
 #define NUM_UDFS 2
 
 int mode[NUM_UDFS] = {NC_UDF0, NC_UDF1};
@@ -372,6 +393,64 @@ main(int argc, char **argv)
             /* Make sure defining a magic number with netcdf3 is rejected. */
             if (nc_def_user_format(NC_CLASSIC_MODEL, &tst_dispatcher, 
                                    magic_number) != NC_EINVAL) ERR;
+        }
+    }
+    SUMMARIZE_ERR;
+    printf("*** testing self-registration init pattern (returns NC_Dispatch*)...");
+    {
+        /* Simulate the self-registration pattern where the plugin init
+         * function returns NC_Dispatch* instead of int. This is the
+         * pattern used when HAVE_NETCDF_UDF_SELF_REGISTRATION is
+         * defined. The loader must call through an NC_Dispatch*-returning
+         * function pointer and register the table itself. */
+        NC_Dispatch* (*init_returning_dispatch)(void);
+        NC_Dispatch* table;
+        NC_Dispatch* disp_in;
+        int i;
+
+        /* Point our function-pointer at a helper that returns the
+         * dispatch table pointer (simulating a plugin init). */
+        init_returning_dispatch = (NC_Dispatch* (*)(void))(void*)tst_self_reg_init;
+        table = init_returning_dispatch();
+
+        /* The returned pointer must not be NULL. */
+        if (!table) ERR;
+
+        /* The returned table must have the correct ABI version. */
+        if (table->dispatch_version != NC_DISPATCH_VERSION) ERR;
+
+        /* Register it via nc_def_user_format, as the fixed loader does. */
+        for (i = 0; i < NUM_UDFS; i++)
+        {
+            if (nc_def_user_format(mode[i], table, NULL)) ERR;
+
+            /* Verify it was registered. */
+            if (nc_inq_user_format(mode[i], &disp_in, NULL)) ERR;
+            if (disp_in != table) ERR;
+        }
+
+        /* Test NULL-returning init (simulates plugin failure). */
+        {
+            NC_Dispatch* (*null_init)(void);
+            NC_Dispatch* bad_table;
+
+            null_init = (NC_Dispatch* (*)(void))(void*)tst_self_reg_init_null;
+            bad_table = null_init();
+            if (bad_table != NULL) ERR;
+        }
+
+        /* Test bad ABI version via self-registration path. */
+        {
+            NC_Dispatch* (*bad_init)(void);
+            NC_Dispatch* bad_table;
+
+            bad_init = (NC_Dispatch* (*)(void))(void*)tst_self_reg_init_bad_ver;
+            bad_table = bad_init();
+            if (!bad_table) ERR;
+            if (bad_table->dispatch_version == NC_DISPATCH_VERSION) ERR;
+
+            /* nc_def_user_format should reject a bad version table. */
+            if (nc_def_user_format(NC_UDF0, bad_table, NULL) != NC_EINVAL) ERR;
         }
     }
     SUMMARIZE_ERR;
