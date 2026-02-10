@@ -143,22 +143,29 @@ jobs:
             cat config.h
           if: ${{ failure() }}  
 
-        - name: Prepare ctest Paths and env
-          shell: bash -el {0}
-          run: | 
-            cat ~/.bash_profile
-            echo "" >> ~/.bash_profile
-            echo "${CONDA_PREFIX}/Library/bin" >> $GITHUB_PATH
-            echo "${USERPROFILE}/tmp/bin" >> $GITHUB_PATH
+        - name: Add DLL directories to PATH
+          shell: cmd
+          run: |
+            echo %CONDA%\Library\bin>> "%GITHUB_PATH%"
+            echo %USERPROFILE%\tmp\bin>> "%GITHUB_PATH%"
+
+        - name: Verify DLL paths
+          shell: cmd
+          run: |
+            echo "PATH=%PATH%"
+            where hdf5.dll 2>nul || echo hdf5.dll not found on PATH
+            where netcdf.dll 2>nul || echo netcdf.dll not found on PATH
+            dir "%CONDA%\Library\bin\hdf5.dll" 2>nul || echo hdf5.dll not in CONDA
+            dir "%USERPROFILE%\tmp\bin\netcdf.dll" 2>nul || echo netcdf.dll not in install dir
 
         - name: Run ctest
-          shell: bash -el {0}
+          shell: cmd
           run: |
             cd build
-            ctest . -j 4 -E 'bom|run_|tst_ncdap|dap4_test_test_|do_comps' --output-on-failure
+            ctest . -j 4 -E "bom|run_|tst_ncdap|dap4_test_test_|do_comps" --output-on-failure
             
         - name: Verbose Output if CTest Failure
-          shell: bash -el {0}
+          shell: cmd
           run: |
             cd build
             ctest . --rerun-failed --output-on-failure -VV
