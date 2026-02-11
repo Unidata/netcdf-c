@@ -149,6 +149,9 @@ int test_consolidated_handler_selection_controls() {
   memset(&zinfo, 0, sizeof(NCZ_FILE_INFO_T));
   zinfo.map = mockmap();
   zinfo.controls.flags = FLAG_CONSOLIDATED;
+  const char * e = getenv(NCZARR_CONSOLIDATED_ENV);
+  e = e == NULL ? "NULL" : e;
+  printf("CONTROLS: %llx|%x|%d << (%s) \n", zinfo.controls.flags, FLAG_CONSOLIDATED, (&zinfo)->controls.flags & FLAG_CONSOLIDATED,e );
   NCZMD_set_metadata_handler(&zinfo);
   freemockmap(zinfo.map);
   int result = !cmpHandlers(&zinfo.metadata, NCZ_csl_metadata_handler2);
