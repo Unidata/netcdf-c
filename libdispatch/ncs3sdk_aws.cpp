@@ -242,7 +242,7 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     Aws::Client::ClientConfiguration config = s3sdkcreateconfig(info);
     AWSS3CLIENT s3client;
 
-    if(info->profile == NULL || strcmp(info->profile,"no")==0) {
+    if(info->profile == NULL || strcmp(info->profile,"none")==0) {
         Aws::Auth::AWSCredentials creds;
         creds.SetAWSAccessKeyId(Aws::String(""));
         creds.SetAWSSecretKey(Aws::String(""));
