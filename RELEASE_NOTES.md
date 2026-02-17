@@ -5,7 +5,7 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.10.0 - TBD
+## 4.10.0 - February 20, 2026
 
 * Regularize, cleanup, and refactor various AWS features, especially WRT regularizing AWS-related constants. See [Github 3229](https://github.com/Unidata/netcdf-c/issues/3229) for more information. 
 * Add extra failure handling to the daos inferencing. See [Github 3238](https://github.com/Unidata/netcdf-c/issues/3238) for more information. 
