@@ -28,8 +28,6 @@ See COPYRIGHT for license information.
 #include "ncdispatch.h"
 #include "ncutil.h"
 
-#undef NOREAD
-
 #undef DRCDEBUG
 #undef LEXDEBUG
 #undef PARSEDEBUG
@@ -137,23 +135,15 @@ This is set by the environment variable NC_TEST_AWS_DIR.
 void
 ncrc_initialize(void)
 {
-    if(NCRCinitialized) return;
-    NCRCinitialized = 1; /* prevent recursion */
-
-#ifndef NOREAD
-    {
     int stat = NC_NOERR;
     NCglobalstate* ncg = NC_getglobalstate();
+
+    if(NCRCinitialized) return;
+    NCRCinitialized = 1; /* prevent recursion */
     /* Load entries */
     if((stat = NC_rcload())) {
         nclog(NCLOGWARN,".rc loading failed");
     }
-    /* Load .aws/config &/ credentials */
-    if((stat = NC_aws_load_credentials(ncg))) {
-        nclog(NCLOGWARN,"AWS config file not loaded");
-    }
-    }
-#endif
 }
 
 static void
@@ -293,10 +283,14 @@ char*
 NC_rclookupx(NCURI* uri, const char* key)
 {
     char* hostport = NULL;
+    char* path = NULL;
     char* result = NULL;
 
-    hostport = NC_combinehostport(uri);
-    result = NC_rclookup(key,hostport,uri->path);
+    if(uri != NULL) {
+	hostport = NC_combinehostport(uri);
+	path = uri->path;
+    }
+    result = NC_rclookup(key,hostport,path);
     nullfree(hostport);
     return result;
 }

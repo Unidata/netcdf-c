@@ -20,6 +20,7 @@ See COPYRIGHT for license information.
 #include "nclog.h"
 #include "ncpathmgr.h"
 #include "ncs3sdk.h"
+#include "ncaws.h"
 #include "ncauth.h"
 
 #ifdef _MSC_VER

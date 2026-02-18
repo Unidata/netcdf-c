@@ -75,6 +75,7 @@
 struct CURL;
 struct NCURI;
 struct VString;
+struct NCAWSPARAMS;
 
 /*****************
  * PUBLIC MACROS *
@@ -440,6 +441,12 @@ typedef struct {
  *
  *     Required to authenticate.
  *
+ * `session_token` (char *)
+ *
+ *     Pointer to NULL-terminated string for short-term session token to access S3 resource.
+ *
+ *     Optional ato authenticate.
+ *
  * `signing_key` (unsigned char *)
  *
  *     Pointer to `SHA256_DIGEST_LENGTH`-long string for "reusable" signing
@@ -460,6 +467,7 @@ typedef struct {
     char          *region;
     char          *accessid;
     char          *accesskey;
+    char          *session_token;
     char           httpverb[S3COMMS_VERB_MAX];
     unsigned char *signing_key; /*|signing_key| = SHA256_DIGEST_LENGTH*/
     char          iso8601now[ISO8601_SIZE];
@@ -502,7 +510,7 @@ EXTERNL hrb_t *NCH5_s3comms_hrb_init_request(const char *resource, const char *h
  * DECLARATION OF S3REQUEST ROUTINES *
  *************************************/
 
-EXTERNL s3r_t *NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char* region, const char* id, const char* access_key);
+EXTERNL s3r_t *NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, struct NCAWSPARAMS* aws);
 
 EXTERNL int NCH5_s3comms_s3r_close(s3r_t *handle);
 
@@ -538,13 +546,13 @@ EXTERNL int NCH5_s3comms_HMAC_SHA256(const unsigned char *key, size_t key_len, c
                                        size_t msg_len, char *dest);
 
 EXTERNL int NCH5_s3comms_load_aws_profile(const char *name, char *key_id_out, char *secret_access_key_out,
-                                            char *aws_region_out);
+                                            char *aws_region_out, char* aws_session_token_out);
 
 EXTERNL int NCH5_s3comms_nlowercase(char *dest, const char *s, size_t len);
 
 EXTERNL int NCH5_s3comms_percent_encode_char(char *repr, const unsigned char c, size_t *repr_len);
 
-EXTERNL int NCH5_s3comms_signing_key(unsigned char **mdp, const char *secret, const char *region,
+EXTERNL int NCH5_s3comms_signing_key(unsigned char **mdp, const char *secret, const char *region, const char* session_token,
                                        const char *iso8601now);
 
 EXTERNL int NCH5_s3comms_tostringtosign(struct VString* dest, const char *req_str, const char *now,
