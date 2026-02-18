@@ -93,10 +93,6 @@ tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
 tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh        \
 test_radix.sh test_rcmerge.sh
 
-# tst_output.sh runs ref_ctest and ref_ctest64 internally and
-# writes to the same files (ctest0.nc, ctest0_64.nc).
-tst_output.log: ref_ctest.log ref_ctest64.log
-
 # The tst_nccopy3.sh test uses output from a bunch of other
 # tests. This records the dependency so parallel builds work.
 tst_nccopy3.log: tst_calendars.log run_utf8_tests.log tst_output.log	\

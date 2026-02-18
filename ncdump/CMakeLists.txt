@@ -246,7 +246,6 @@ endif()
 
   if(NOT MSVC AND NOT MINGW)
     add_sh_test(ncdump tst_output)
-    set_tests_properties(ncdump_tst_output PROPERTIES DEPENDS "ref_ctest;ref_ctest64")
     add_sh_test(ncdump tst_nccopy3)
     # Known failure on MSVC; the number of 0's padding
     # is different, but the result is actually correct.
