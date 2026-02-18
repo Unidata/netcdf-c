@@ -43,8 +43,8 @@ files in one program context is limited to 32767.
 
 /** \{*/ /* All these functions are part of the above defgroup... */
 
-/*! Return the group ID for a group given the name.
-
+/*! @ingroup groups
+Return the group ID for a group given the name.
 
   @param[in] ncid      A valid file or group ncid.
   @param[in] name      The name of the group you are querying.
@@ -63,7 +63,8 @@ int nc_inq_ncid(int ncid, const char *name, int *grp_ncid)
     return ncp->dispatch->inq_ncid(ncid,name,grp_ncid);
 }
 
-/*! Get a list of groups or subgroups from a file or groupID.
+/*! @ingroup groups
+Get a list of groups or subgroups from a file or groupID.
 
   @param[in]  ncid    The ncid of the file or parent group.
   @param[out] numgrps Pointer to memory to hold the number of groups.
@@ -80,7 +81,8 @@ int nc_inq_grps(int ncid, int *numgrps, int *ncids)
     return ncp->dispatch->inq_grps(ncid,numgrps,ncids);
 }
 
-/*! Get the name of a group given an ID.
+/*! @ingroup groups
+Get the name of a group given an ID.
 
   @param[in]  ncid The ncid of the file or parent group.
   @param[out] name The name of the group associated with the id.
@@ -96,7 +98,8 @@ int nc_inq_grpname(int ncid, char *name)
     return ncp->dispatch->inq_grpname(ncid,name);
 }
 
-/*! Get the full path/groupname of a group/subgroup given an ID.
+/*! @ingroup groups
+Get the full path/groupname of a group/subgroup given an ID.
 
   @param[in]  ncid      The ncid of the file or parent group.
   @param[out] lenp      Pointer to memory to hold the length of the full name.
@@ -115,7 +118,8 @@ int nc_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
     return ncp->dispatch->inq_grpname_full(ncid,lenp,full_name);
 }
 
-/*! Get the length of a group name given an ID.
+/*! @ingroup groups
+Get the length of a group name given an ID.
 
   @param[in] ncid  The ncid of the group in question.
   @param[out] lenp Pointer to memory to hold the length of the name of the group in question.
@@ -130,7 +134,8 @@ int nc_inq_grpname_len(int ncid, size_t *lenp)
     return stat;
 }
 
-/*! Get the ID of the parent based on a group ID.
+/*! @ingroup groups
+Get the ID of the parent based on a group ID.
 
   @param[in] ncid         The ncid of the group in question.
   @param[out] parent_ncid Pointer to memory to hold the identifier of the parent of the group in question.
@@ -147,7 +152,8 @@ int nc_inq_grp_parent(int ncid, int *parent_ncid)
     return ncp->dispatch->inq_grp_parent(ncid,parent_ncid);
 }
 
-/*! Get a group ncid given the group name.
+/*! @ingroup groups
+Get a group ncid given the group name.
 
   @param[in] ncid      The ncid of the file.
   @param[in] grp_name  The name of the group in question.
@@ -166,7 +172,8 @@ int nc_inq_grp_ncid(int ncid, const char *grp_name, int *grp_ncid)
     return nc_inq_ncid(ncid,grp_name,grp_ncid);
 }
 
-/*! Get the full ncid given a group name.
+/*! @ingroup groups
+Get the full ncid given a group name.
 
   @param[in] ncid      The ncid of the file.
   @param[in] full_name The full name of the group in question.
@@ -187,7 +194,8 @@ int nc_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
 }
 
 
-/*! Get a list of varids associated with a group given a group ID.
+/*! @ingroup groups
+Get a list of varids associated with a group given a group ID.
 
   @param[in] ncid    The ncid of the group in question.
   @param[out] nvars  Pointer to memory to hold the number of variables in the group in question.
@@ -204,7 +212,8 @@ int nc_inq_varids(int ncid, int *nvars, int *varids)
     return ncp->dispatch->inq_varids(ncid,nvars,varids);
 }
 
-/*! Retrieve a list of dimension ids associated with a group.
+/*! @ingroup groups
+Retrieve a list of dimension ids associated with a group.
 
   @param[in] ncid    The ncid of the group in question.
   @param[out] ndims  Pointer to memory to contain the number of dimids associated with the group.
@@ -222,7 +231,8 @@ int nc_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
     return ncp->dispatch->inq_dimids(ncid,ndims,dimids,include_parents);
 }
 
-/*! Retrieve a list of types associated with a group
+/*! @ingroup groups
+Retrieve a list of types associated with a group.
 
   @param[in] ncid     The ncid for the group in question.
   @param[out] ntypes  Pointer to memory to hold the number of typeids contained by the group in question.
@@ -240,7 +250,8 @@ int nc_inq_typeids(int ncid, int *ntypes, int *typeids)
     return ncp->dispatch->inq_typeids(ncid,ntypes,typeids);
 }
 
-/*! Define a new group.
+/*! @ingroup groups
+Define a new group.
 
   The function nc_def_grp() adds a new
   group to an open netCDF dataset in define mode.  It returns (as an
@@ -290,7 +301,8 @@ int nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
     return ncp->dispatch->def_grp(parent_ncid,name,new_ncid);
 }
 
-/*! Rename a group.
+/*! @ingroup groups
+Rename a group.
 
   @param[in] grpid The ID for the group in question.
   @param[in] name  The new name for the group.
@@ -310,7 +322,8 @@ int nc_rename_grp(int grpid, const char *name)
     return ncp->dispatch->rename_grp(grpid,name);
 }
 
-/*! Print the metadata for a file.
+/*! @ingroup groups
+Print the metadata for a file.
 
   @param[in] ncid The ncid of an open file.
 
