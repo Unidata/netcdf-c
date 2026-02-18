@@ -2191,7 +2191,7 @@ const NC_Dispatch *NCP_dispatch_table = NULL;
  * Initialize the PnetCDF dispatch table.
  *
  * @return ::NC_NOERR No error.
- * @author Edward Hartnett
+ * @author Dennis Heimbigner
  */
 int
 NCP_initialize(void)
@@ -2204,7 +2204,7 @@ NCP_initialize(void)
  * Finalize the PnetCDF dispatch layer.
  *
  * @return ::NC_NOERR No error.
- * @author Edward Hartnett
+ * @author Dennis Heimbigner
  */
 int
 NCP_finalize(void)
