@@ -36,10 +36,12 @@ commonsrc = ut_util.c ut_test.c ut_includes.h ut_test.h ut_util.h test_nczarr_ut
 #ut_chunking_SOURCES = ut_chunking.c ${commonsrc}
 #ut_walk_SOURCES = ut_walk.c ${commonsrc}
 
-check_PROGRAMS += ut_map ut_mapapi ut_map ut_json
+check_PROGRAMS += ut_map ut_mapapi ut_map ut_json ut_consolidated
 ut_map_SOURCES = ut_map.c ${commonsrc}
 ut_mapapi_SOURCES = ut_mapapi.c ${commonsrc}
 ut_json_SOURCES = ut_json.c ${commonsrc}
+ut_consolidated_SOURCES = ut_consolidated.c ${commonsrc}
+TESTS += ut_consolidated
 
 test_fillonlyz_SOURCES = test_fillonlyz.c ${testcommonsrc}
 
