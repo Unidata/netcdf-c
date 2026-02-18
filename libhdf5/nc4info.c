@@ -209,7 +209,7 @@ NC4_read_provenance(NC_FILE_INFO_T* file)
 done:
     nullfree(propstring);
     if(ncstat) {
-        LOG((0,"Could not create _NCProperties attribute"));
+        LOG((0,"Could not read _NCProperties attribute"));
     }
     return NC_NOERR;
 }
