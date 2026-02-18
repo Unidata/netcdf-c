@@ -6,6 +6,14 @@
  * parallel I/O for classic netCDF formats (CDF-1, CDF-2, CDF-5)
  * via the PnetCDF library.
  *
+ * PnetCDF is a high-performance parallel I/O library for accessing
+ * netCDF files in classic formats (CDF-1, CDF-2, and CDF-5),
+ * built on top of MPI-IO. It provides both blocking and nonblocking
+ * APIs, allowing multiple read/write requests to be aggregated for
+ * better performance. For more information, see
+ * https://parallel-netcdf.github.io/ and the source repository at
+ * https://github.com/Parallel-NetCDF/PnetCDF.
+ *
  * @author Edward Hartnett
  */
 /*********************************************************************
