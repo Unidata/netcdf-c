@@ -57,7 +57,7 @@ main()
             printf("zstandard filter not available, but expected to be.\n");
             ERR;
         }
-        
+
         /* Open file and create group. */
         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                                 H5P_DEFAULT)) < 0) ERR;
@@ -128,7 +128,7 @@ main()
 
 	for (i = 0; i < DIM1_LEN_20; i++)
 	    int_out[i] = i * 10;
-	
+
         /* Open file and create group. */
         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                                 H5P_DEFAULT)) < 0) ERR;

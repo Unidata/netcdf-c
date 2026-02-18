@@ -3,7 +3,7 @@
    COPYRIGHT file for conditions of use.
 
    Test that NetCDF-4 can read HDF4 files.
-   
+
    Dennis Heimbigner, Ward Fisher, Ed Hartnett
 */
 #include <config.h>
