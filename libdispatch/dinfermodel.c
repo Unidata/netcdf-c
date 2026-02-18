@@ -125,6 +125,14 @@ static struct FORMATMODES {
 {"enhanced",NC_FORMATX_NC4,NC_FORMAT_NETCDF4},
 {"udf0",NC_FORMATX_UDF0,0},
 {"udf1",NC_FORMATX_UDF1,0},
+{"udf2",NC_FORMATX_UDF2,0},
+{"udf3",NC_FORMATX_UDF3,0},
+{"udf4",NC_FORMATX_UDF4,0},
+{"udf5",NC_FORMATX_UDF5,0},
+{"udf6",NC_FORMATX_UDF6,0},
+{"udf7",NC_FORMATX_UDF7,0},
+{"udf8",NC_FORMATX_UDF8,0},
+{"udf9",NC_FORMATX_UDF9,0},
 {"nczarr",NC_FORMATX_NCZARR,NC_FORMAT_NETCDF4},
 {"zarr",NC_FORMATX_NCZARR,NC_FORMAT_NETCDF4},
 {"bytes",NC_FORMATX_NC4,NC_FORMAT_NETCDF4}, /* temporary until 3 vs 4 is determined */
@@ -190,6 +198,14 @@ static struct Readable {
 {NC_FORMATX_DAP4,0},
 {NC_FORMATX_UDF0,1},
 {NC_FORMATX_UDF1,1},
+{NC_FORMATX_UDF2,1},
+{NC_FORMATX_UDF3,1},
+{NC_FORMATX_UDF4,1},
+{NC_FORMATX_UDF5,1},
+{NC_FORMATX_UDF6,1},
+{NC_FORMATX_UDF7,1},
+{NC_FORMATX_UDF8,1},
+{NC_FORMATX_UDF9,1},
 {NC_FORMATX_NCZARR,0}, /* eventually make readable */
 {0,0},
 };
@@ -742,16 +758,28 @@ NC_omodeinfer(int useparallel, int cmode, NCmodel* model)
     /* Process the cmode; may override some already set flags. The
      * user-defined formats must be checked first. They may choose to
      * use some of the other flags, like NC_NETCDF4, so we must first
-     * check NC_UDF0 and NC_UDF1 before checking for any other
-     * flag. */
-    if(fIsSet(cmode, NC_UDF0)  || fIsSet(cmode, NC_UDF1))
+     * check NC_UDF0-NC_UDF9 before checking for any other flag. */
+    int udf_found = 0;
+    /* Lookup table for all UDF mode flags. This replaces the previous bit-shift
+     * calculation which was fragile due to non-sequential bit positions
+     * (bits 16, 19-25 to avoid conflicts with NC_NOATTCREORD and NC_NODIMSCALE_ATTACH). */
+    static const int udf_flags[NC_MAX_UDF_FORMATS] = {
+        NC_UDF0, NC_UDF1, NC_UDF2, NC_UDF3, NC_UDF4,
+        NC_UDF5, NC_UDF6, NC_UDF7, NC_UDF8, NC_UDF9
+    };
+    /* Check if any UDF format flag is set in the mode */
+    for(int i = 0; i < NC_MAX_UDF_FORMATS; i++) {
+        if(fIsSet(cmode, udf_flags[i])) {
+            /* Convert array index to format constant (handles gap in numbering) */
+            int formatx = (i <= 1) ? (NC_FORMATX_UDF0 + i) : (NC_FORMATX_UDF2 + i - 2);
+            model->impl = formatx;
+            udf_found = 1;
+            break;
+        }
+    }
+    
+    if(udf_found)
     {
-        if(fIsSet(cmode, NC_UDF0))
-        {
-	    model->impl = NC_FORMATX_UDF0;
-	} else {
-	    model->impl = NC_FORMATX_UDF1;
-	}
         if(fIsSet(cmode,NC_64BIT_OFFSET)) 
         {
             model->format = NC_FORMAT_64BIT_OFFSET;
@@ -1023,6 +1051,14 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	break;
     case NC_FORMATX_UDF0:
     case NC_FORMATX_UDF1:
+    case NC_FORMATX_UDF2:
+    case NC_FORMATX_UDF3:
+    case NC_FORMATX_UDF4:
+    case NC_FORMATX_UDF5:
+    case NC_FORMATX_UDF6:
+    case NC_FORMATX_UDF7:
+    case NC_FORMATX_UDF8:
+    case NC_FORMATX_UDF9:
         if(model->format == NC_FORMAT_64BIT_OFFSET) 
             omode |= NC_64BIT_OFFSET;
         else if(model->format == NC_FORMAT_64BIT_DATA)
@@ -1485,8 +1521,10 @@ NC_interpret_magic_number(char* magic, NCmodel* model)
 {
     int status = NC_NOERR;
     int tmpimpl = 0;
-    /* Look at the magic number */
-    if(model->impl == NC_FORMATX_UDF0 || model->impl == NC_FORMATX_UDF1)
+    /* Look at the magic number - save any UDF format on entry */
+    if(model->impl >= NC_FORMATX_UDF0 && model->impl <= NC_FORMATX_UDF1)
+        tmpimpl = model->impl;
+    else if(model->impl >= NC_FORMATX_UDF2 && model->impl <= NC_FORMATX_UDF9)
         tmpimpl = model->impl;
 
     /* Use the complete magic number string for HDF5 */
@@ -1525,21 +1563,19 @@ NC_interpret_magic_number(char* magic, NCmodel* model)
      goto done;
 
 done:
-     /* if model->impl was UDF0 or UDF1 on entry, make it so on exit */
+     /* if model->impl was any UDF format (0-9) on entry, make it so on exit */
      if(tmpimpl)
          model->impl = tmpimpl;
      /* if this is a UDF magic_number update the model->impl */
-     if (strlen(UDF0_magic_number) && !strncmp(UDF0_magic_number, magic,
-                                               strlen(UDF0_magic_number)))
-     {
-         model->impl = NC_FORMATX_UDF0;
-         status = NC_NOERR;
-     }
-     if (strlen(UDF1_magic_number) && !strncmp(UDF1_magic_number, magic,
-                                               strlen(UDF1_magic_number)))
-     {
-         model->impl = NC_FORMATX_UDF1;
-         status = NC_NOERR;
+     for(int i = 0; i < NC_MAX_UDF_FORMATS; i++) {
+         if (strlen(UDF_magic_numbers[i]) && !strncmp(UDF_magic_numbers[i], magic,
+                                                       strlen(UDF_magic_numbers[i])))
+         {
+             int formatx = (i <= 1) ? (NC_FORMATX_UDF0 + i) : (NC_FORMATX_UDF2 + i - 2);
+             model->impl = formatx;
+             status = NC_NOERR;
+             break;
+         }
      }    
 
      return check(status);
