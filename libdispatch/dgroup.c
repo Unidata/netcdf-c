@@ -50,8 +50,10 @@ files in one program context is limited to 32767.
   @param[in] name      The name of the group you are querying.
   @param[out] grp_ncid Pointer to memory to hold the group ncid.
 
-  @returns Error code or ::NC_NOERR or no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
+  @returns ::NC_ENOTNC4 Not a netCDF-4 file.
+  @returns ::NC_ENOGRP Group not found.
  */
 int nc_inq_ncid(int ncid, const char *name, int *grp_ncid)
 {
@@ -67,8 +69,8 @@ int nc_inq_ncid(int ncid, const char *name, int *grp_ncid)
   @param[out] numgrps Pointer to memory to hold the number of groups.
   @param[out] ncids   Pointer to memory to hold the ncid for each group.
 
-  @returns Error code or ::NC_NOERR for no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
  */
 int nc_inq_grps(int ncid, int *numgrps, int *ncids)
 {
@@ -83,7 +85,8 @@ int nc_inq_grps(int ncid, int *numgrps, int *ncids)
   @param[in]  ncid The ncid of the file or parent group.
   @param[out] name The name of the group associated with the id.
 
-  @returns Error code or ::NC_NOERR for no error.
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
 */
 int nc_inq_grpname(int ncid, char *name)
 {
@@ -99,8 +102,9 @@ int nc_inq_grpname(int ncid, char *name)
   @param[out] lenp      Pointer to memory to hold the length of the full name.
   @param[out] full_name Pointer to memory to hold the full name of the group including root/parent.
 
-  @returns Error code or ::NC_NOERR for no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
+  @returns ::NC_ENOMEM Out of memory.
 */
 
 int nc_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
@@ -116,8 +120,9 @@ int nc_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
   @param[in] ncid  The ncid of the group in question.
   @param[out] lenp Pointer to memory to hold the length of the name of the group in question.
 
-  @returns Error code or ::NC_NOERR for no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
+  @returns ::NC_ENOMEM Out of memory.
 */
 int nc_inq_grpname_len(int ncid, size_t *lenp)
 {
@@ -130,8 +135,9 @@ int nc_inq_grpname_len(int ncid, size_t *lenp)
   @param[in] ncid         The ncid of the group in question.
   @param[out] parent_ncid Pointer to memory to hold the identifier of the parent of the group in question.
 
-  @returns Error code or ::NC_NOERR for no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
+  @returns ::NC_ENOGRP No parent group (i.e. the root group was given).
  */
 int nc_inq_grp_parent(int ncid, int *parent_ncid)
 {
@@ -147,7 +153,10 @@ int nc_inq_grp_parent(int ncid, int *parent_ncid)
   @param[in] grp_name  The name of the group in question.
   @param[out] grp_ncid Pointer to memory to hold the identifier of the group in question.
 
-  @returns Error code or ::NC_NOERR for no error.
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
+  @returns ::NC_ENOTNC4 Not a netCDF-4 file.
+  @returns ::NC_ENOGRP Group not found.
 
 \note{This has same semantics as nc_inq_ncid}
 
@@ -163,8 +172,11 @@ int nc_inq_grp_ncid(int ncid, const char *grp_name, int *grp_ncid)
   @param[in] full_name The full name of the group in question.
   @param[out] grp_ncid Pointer to memory to hold the identifier of the full group in question.
 
-  @returns Error code or ::NC_NOERR for no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
+  @returns ::NC_ENOGRP Group not found.
+  @returns ::NC_ENOMEM Out of memory.
+  @returns ::NC_EINVAL Name is required.
  */
 int nc_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
 {
@@ -181,8 +193,8 @@ int nc_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
   @param[out] nvars  Pointer to memory to hold the number of variables in the group in question.
   @param[out] varids Pointer to memory to hold the variable ids contained by the group in question.
 
-  @returns Error code or ::NC_NOERR for no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
 */
 int nc_inq_varids(int ncid, int *nvars, int *varids)
 {
@@ -199,8 +211,8 @@ int nc_inq_varids(int ncid, int *nvars, int *varids)
   @param[out] dimids Pointer to memory to contain the number of dimensions associated with the group.
   @param[in] include_parents If non-zero, parent groups are also traversed.
 
-  @returns Error code or ::NC_NOERR for no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
  */
 int nc_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
 {
@@ -216,8 +228,8 @@ int nc_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
   @param[out] ntypes  Pointer to memory to hold the number of typeids contained by the group in question.
   @param[out] typeids Pointer to memory to hold the typeids contained by the group in question.
 
-  @returns Error code or ::NC_NOERR for no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
 */
 
 int nc_inq_typeids(int ncid, int *ntypes, int *typeids)
@@ -241,27 +253,32 @@ int nc_inq_typeids(int ncid, int *ntypes, int *typeids)
   @param[in]  name        Name of the new group.
   @param[out] new_ncid    Pointer to memory to hold the new ncid.
 
-  @returns Error code or ::NC_NOERR for no error.
-
-  @retval ::NC_NOERR No error.
-  @retval ::NC_ENOTNC4 Not an nc4 file.
-  @retval ::NC_ENOTINDEFINE Not in define mode.
-  @retval ::NC_ESTRICTNC3 Not permissible in nc4 classic mode.
-  @retval ::NC_EPERM Write to read only.
-  @retval ::NC_ENOMEM Memory allocation (malloc) failure.
-  @retval ::NC_ENAMEINUSE String match to name in use.
+  @returns ::NC_NOERR No error.
+  @returns ::NC_ENOTNC4 Not a netCDF-4 file.
+  @returns ::NC_ENOTINDEFINE Not in define mode.
+  @returns ::NC_ESTRICTNC3 Not permissible in nc4 classic mode.
+  @returns ::NC_EPERM Write to read only.
+  @returns ::NC_ENOMEM Memory allocation (malloc) failure.
+  @returns ::NC_ENAMEINUSE String match to name in use.
 
   \section nc_def_grp_example Example
 
-  Here is an example using nc_def_grp() to create a new group.
+  Here is an example using nc_def_grp() to create a new group and
+  define a variable in it.
 
   \code{.c}
-
   #include <netcdf.h>
   ...
-  int status, ncid, grpid, latid, recid;
-  ...
+  int ncid, grpid, varid, dimid;
 
+  if (nc_create("foo.nc", NC_NETCDF4, &ncid)) ERR;
+
+  if (nc_def_grp(ncid, "my_group", &grpid)) ERR;
+
+  if (nc_def_dim(grpid, "x", 10, &dimid)) ERR;
+  if (nc_def_var(grpid, "data", NC_INT, 1, &dimid, &varid)) ERR;
+
+  if (nc_close(ncid)) ERR;
   \endcode
 
 */
@@ -278,8 +295,12 @@ int nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
   @param[in] grpid The ID for the group in question.
   @param[in] name  The new name for the group.
 
-  @returns Error code or ::NC_NOERR for no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
+  @returns ::NC_ENOTNC4 Not a netCDF-4 file.
+  @returns ::NC_EPERM Write to read only.
+  @returns ::NC_EBADNAME Bad name.
+  @returns ::NC_ENAMEINUSE Name already in use.
 */
 int nc_rename_grp(int grpid, const char *name)
 {
@@ -293,8 +314,8 @@ int nc_rename_grp(int grpid, const char *name)
 
   @param[in] ncid The ncid of an open file.
 
-  @returns Error code or ::NC_NOERR for no error.
-
+  @returns ::NC_NOERR No error.
+  @returns ::NC_EBADID Bad ncid.
  */
 int nc_show_metadata(int ncid)
 {

@@ -256,7 +256,7 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
    @return ::NC_ENOTINDEFINE Not in define mode.  This is returned for
    netCDF classic, 64-bit offset, or 64-bit data files, or for
    netCDF-4 files, when they were created with ::NC_CLASSIC_MODEL flag by
-   nc_creae().
+   nc_create().
    @return ::NC_EPERM Attempt to create object in read-only file.
    @return ::NC_ELATEDEF (NetCDF-4 only). Returned when user attempts
    to set fill value after data are written.
@@ -554,6 +554,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    netcdf-4 file.
    @return ::NC_ELATEDEF Too late to change settings for this variable.
    @return ::NC_EINVAL Invalid input.
+   @since 4.9.0
    @author Charlie Zender, Ed Hartnett
  */
 int
@@ -644,7 +645,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    variable, they cannot be changed.
 
    @note Scalar variables may have a storage of NC_CONTIGUOUS or
-   NC_COMPACT. Attempts to set chunking on a scalare variable will
+   NC_COMPACT. Attempts to set chunking on a scalar variable will
    cause ::NC_EINVAL to be returned. Only non-scalar variables can
    have chunking.
 
@@ -674,7 +675,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    to set the chunking for that variable.
    @return ::NC_ENOTINDEFINE Not in define mode.  This is returned for
    netCDF classic or 64-bit offset files, or for netCDF-4 files, when
-   they wwere created with ::NC_CLASSIC_MODEL flag by nc_create().
+   they were created with ::NC_CLASSIC_MODEL flag by nc_create().
    @return ::NC_EPERM Attempt to create object in read-only file.
    @return ::NC_EBADCHUNK Returns if the chunk size specified for a
    variable is larger than the length of the dimensions associated with
@@ -769,7 +770,7 @@ nc_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
    set the chunking for that variable.
    @return ::NC_ENOTINDEFINE Not in define mode. This is returned for
    netCDF classic or 64-bit offset files, or for netCDF-4 files, when
-   they wwere created with ::NC_CLASSIC_MODEL flag by nc_create().
+   they were created with ::NC_CLASSIC_MODEL flag by nc_create().
    @return ::NC_EPERM Attempt to create object in read-only file.
 
    @section nc_def_var_endian_example Example
@@ -858,6 +859,7 @@ nc_def_var_endian(int ncid, int varid, int endian)
  * @returns ::NC_ENOTINDEFINE Not in define mode.
  * @returns ::NC_EINVAL Invalid input, or zlib filter already applied
  * to this var.
+ * @since 4.0.0
  * @author Ed Hartnett
  */
 int
@@ -1415,7 +1417,7 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
    will be put here. @ref ignored_if_null.
    @param nelemsp The number of chunk slots in the raw data chunk
    cache hash table will be put here. @ref ignored_if_null.
-   @param preemptionp The preemption will be put here. The preemtion
+   @param preemptionp The preemption will be put here. The preemption
    value is between 0 and 1 inclusive and indicates how much chunks
    that have been fully read are favored for preemption. A value of
    zero means fully read chunks are treated no differently than other

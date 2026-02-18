@@ -58,7 +58,7 @@ the two types are equal, a zero if they are not equal.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer. This
 will occur if either of the types have not been committed to the file
 (with an nc_enddef()).
@@ -94,7 +94,7 @@ found.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 \author Ed Hartnett, Dennis Heimbigner
  */
@@ -138,7 +138,7 @@ compound types. \ref ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 \author Ed Hartnett, Dennis Heimbigner
  */
