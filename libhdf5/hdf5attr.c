@@ -15,7 +15,7 @@
  * @internal Get the attribute list for either a varid or NC_GLOBAL
  *
  * @param grp Group
- * @param varid Variable ID | NC_BLOGAL
+ * @param varid Variable ID | NC_GLOBAL
  * @param varp Pointer that gets pointer to NC_VAR_INFO_T
  * instance. Ignored if NULL.
  * @param attlist Pointer that gets pointer to attribute list.
@@ -129,8 +129,7 @@ nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
 }
 
 /**
- * @internal I think all atts should be named the exact same thing, to
- * avoid confusion!
+ * @internal Rename an attribute in a netCDF-4/HDF5 file.
  *
  * @param ncid File and group ID.
  * @param varid Variable ID.
