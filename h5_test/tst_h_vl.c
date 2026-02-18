@@ -26,7 +26,7 @@ main()
       int *phoney;
       size_t i, j;
       size_t size;
-      
+
       /* Create some phoney data, an array of struct s1, which holds a
        * pointer to a variable length array of int. */
       for (i=0; i<DIM1_LEN; i++)
@@ -37,9 +37,9 @@ main()
 	 data[i].p = phoney;
 	 data[i].len = i+1;
       }
-      
+
       /* Open file. */
-      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
       if ((grpid = H5Gcreate1(fileid, GROUP_NAME, 0)) < 0) ERR;
 
@@ -52,7 +52,7 @@ main()
 
       /* Write an attribute of this vlen type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate1(grpid, ATT_NAME, typeid, spaceid, 
+      if ((attid = H5Acreate1(grpid, ATT_NAME, typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, data) < 0) ERR;
       if (H5Aclose(attid) < 0) ERR;
@@ -89,9 +89,9 @@ main()
 
       /* Close everything. */
       if (H5Aclose(attid) < 0 ||
-	  H5Sclose(spaceid) < 0 || 
-	  H5Tclose(typeid) < 0 || 
-	  H5Gclose(grpid) < 0 || 
+	  H5Sclose(spaceid) < 0 ||
+	  H5Tclose(typeid) < 0 ||
+	  H5Gclose(grpid) < 0 ||
 	  H5Fclose(fileid) < 0) ERR;
    }
 
@@ -107,7 +107,7 @@ main()
 /*       } data[DIM1_LEN]; */
 /*       float *phoney; */
 /*       int i, j; */
-      
+
 /*       /\* Create phoney data. *\/ */
 /*       for (i=0; i<DIM1_LEN; i++) */
 /*       { */
@@ -122,7 +122,7 @@ main()
 /*       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,  */
 /* 			      H5P_DEFAULT)) < 0) ERR; */
 /*       if ((grpid = H5Gcreate1(fileid, "grp1", 0)) < 0) ERR; */
-      
+
 /*       /\* Create VLEN type. *\/ */
 /*       if ((vlen_typeid =  H5Tvlen_create(H5T_NATIVE_FLOAT)) < 0) ERR; */
 

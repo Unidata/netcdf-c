@@ -51,7 +51,7 @@ main(int argc, char **argv)
 #endif
 
     /* We might have szip. */
-#ifdef HAVE_H5Z_SZIP    
+#ifdef HAVE_H5Z_SZIP
     id[num_compress_filters] = H5Z_FILTER_SZIP;
     strcpy(filter_name[num_compress_filters], "szip");
     num_compress_filters++;
@@ -71,7 +71,7 @@ main(int argc, char **argv)
 	    int data[SC1], data_in[SC1];
 	    int num_steps;
 	    int deflate_level = 4;
-	    unsigned int ulevel = 1;	    
+	    unsigned int ulevel = 1;
 	    int i, s;
 
 	    /* We will write the same slice of random data over and over to
@@ -95,13 +95,13 @@ main(int argc, char **argv)
 
 	    /* Create property list for dataset. */
 	    if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
-	
+
 	    /* Turn off object tracking times in HDF5 (as is done in nc4hdf.c). */
 	    if (H5Pset_obj_track_times(plistid, 0) < 0) ERR;
-	
+
 	    /* Required to truly turn HDF5 fill values off */
 	    if (H5Pset_fill_time(plistid, H5D_FILL_TIME_NEVER) < 0) ERR;
-	
+
 	    /* Set compression, either deflate or szip. */
 	    if (id[cf] == H5Z_FILTER_DEFLATE)
 	    {
@@ -109,7 +109,7 @@ main(int argc, char **argv)
 	    }
 	    else if (id[cf] == H5Z_FILTER_ZSTD)
 	    {
-		herr_t code;		
+		herr_t code;
 		if ((code = H5Pset_filter(plistid, H5Z_FILTER_ZSTD, H5Z_FLAG_OPTIONAL, 1, &ulevel)))
 		    ERR;
 	    }
@@ -126,7 +126,7 @@ main(int argc, char **argv)
 	    /* Turn on creation order tracking. */
 	    if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
 					   H5P_CRT_ORDER_INDEXED) < 0) ERR;
-	
+
 	    /* Create dataset. */
 	    if ((dsid = H5Dcreate2(fileid, VAR_NAME, H5T_NATIVE_INT,
 				   whole_spaceid, H5P_DEFAULT, plistid, H5P_DEFAULT)) < 0) ERR;
@@ -219,14 +219,14 @@ main(int argc, char **argv)
 	    SUMMARIZE_ERR;
 
     } /* next cf */
-#else 
+#else
     {
 	if (!my_rank)
 	    printf("*** HDF5 1.10.3 or greater required for this test.\n");
     }
 
 #endif /* HDF5_SUPPORTS_PAR_FILTERS */
-    
+
     MPI_Finalize();
 
     if (!my_rank)
