@@ -9,7 +9,7 @@
  * program sfc_pres_temp_rd.c shows how to read the netCDF data file
  * created by this program.
  *
- * @author Ed Hartnett
+ * @author Edward Hartnett
 */
 
 #include <stdio.h>
