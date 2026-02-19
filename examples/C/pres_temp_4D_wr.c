@@ -3,6 +3,7 @@
 /**
  * @file
  * @defgroup tutorial Tutorial Examples
+ *
  * A more complex example of writing a netCDF file.
  *
  * This is an example program which writes some 4D pressure and
@@ -10,7 +11,7 @@
  * API. The companion program pres_temp_4D_rd.c shows how to read the
  * netCDF data file created by this program.
  *
- * @author Ed Hartnett
+ * @author Edward Hartnett
 */
 
 #include <stdio.h>
@@ -46,7 +47,6 @@
 #define START_LON -125.0f
 
 /* For the units attributes. */
-#define UNITS "units"
 #define PRES_UNITS "hPa"
 #define TEMP_UNITS "celsius"
 #define LAT_UNITS "degrees_north"

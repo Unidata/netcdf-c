@@ -1,39 +1,26 @@
-/*! \file
-
-Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-2015, 2016, 2017, 2018
-University Corporation for Atmospheric Research/Unidata.
-
-See \ref copyright file for more info.
-
-*/
-
-/* This example program is part of Unidata's netCDF library for
-   scientific data access.
-
-   This program demonstrates various ways to create netCDF dimensions
-   and variables.
-
-   We will create a dataset with 4 variables. We'll store a 3D surface
-   temperature (lat x lon x timestep), 4D pressure (lat x lon x height x
-   timestep), a 2D initial temperature (lat x lon) and a 3D initial
-   pressure (lat x lon x height). All variables will be stored as
-   single precision floating point.
-
-   All variables are intended to share dimensions. For example, the
-   latitude axis is the same for all of them.
-
-   We'll also include the coordinate axis data for three of the four
-   dimensions, that is, labels for the lat, lon, and height axes.
-
-   Finally, we'll use some attributes to store some metadata about the
-   variables, the units. Also we'll use a file-level, or global,
-   attribute to record some information about the dataset as a whole.
-
-   Ed Hartnett, 6/3/4
-   $Id: met4D.c,v 1.1 2004/07/26 14:04:42 ed Exp $
-*/
+/* Copyright 2018 University Corporation for Atmospheric
+   Research/Unidata.  See COPYRIGHT file for conditions of use. */
+/**
+ * @file
+ * Demonstrate creating netCDF dimensions and variables for 4D
+ * meteorological data.
+ *
+ * This example program is part of Unidata's netCDF library for
+ * scientific data access. It demonstrates various ways to create
+ * netCDF dimensions and variables.
+ *
+ * We create a dataset with 4 variables: a 3D surface temperature
+ * (lat x lon x timestep), 4D pressure (lat x lon x height x
+ * timestep), a 2D initial temperature (lat x lon), and a 3D initial
+ * pressure (lat x lon x height). All variables are stored as single
+ * precision floating point and share dimensions.
+ *
+ * We also include coordinate axis data for three of the four
+ * dimensions (lat, lon, and height), and use attributes to store
+ * units metadata and a global history attribute.
+ *
+ * @author Edward Hartnett
+ */
 
 #include <netcdf.h>
 #include <stdio.h>

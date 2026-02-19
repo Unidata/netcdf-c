@@ -1,19 +1,15 @@
-/*! \file
-
-  Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-  2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018
-  University Corporation for Atmospheric Research/Unidata.
-  See \ref copyright file for more info.
-*/
-
-/* This example program is part of Unidata's netCDF library for
-   scientific data access.
-
-   How about a short, but meaningful, netCDF program?
-
-   Ed Hartnett, 6/19/4
-*/
+/* Copyright 2018 University Corporation for Atmospheric
+   Research/Unidata.  See COPYRIGHT file for conditions of use. */
+/**
+ * @file
+ * A short but meaningful netCDF example program.
+ *
+ * This example program is part of Unidata's netCDF library for
+ * scientific data access. It creates a small netCDF file with
+ * surface temperature data and a units attribute.
+ *
+ * @author Edward Hartnett
+ */
 
 #include <netcdf.h>
 #include <stdio.h>

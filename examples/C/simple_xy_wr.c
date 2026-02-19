@@ -1,12 +1,18 @@
-/*! \file
-An example program demonstrating a simple 2D write.
-Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-2015, 2016, 2017, 2018
-University Corporation for Atmospheric Research/Unidata.
-
-See netcdf-c/COPYRIGHT file for more info.
-*/
+/* Copyright 2018 University Corporation for Atmospheric
+   Research/Unidata.  See COPYRIGHT file for conditions of use. */
+/**
+ * @file
+ * An example program demonstrating a simple 2D write.
+ *
+ * This is a simple example which writes a 2D array of sample integer
+ * data. The companion program simple_xy_rd.c shows how to read the
+ * netCDF data file created by this program.
+ *
+ * Full documentation for netCDF can be found at:
+ * https://docs.unidata.ucar.edu/netcdf-c.
+ *
+ * @author Edward Hartnett
+ */
 
 #include <stdlib.h>
 #include <stdio.h>

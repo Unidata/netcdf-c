@@ -1,22 +1,19 @@
-/*
-  Copyright 2018, UCAR/Unidata
-  See COPYRIGHT file for copying and redistribution conditions.
-*/
-/*
-This file is the same as nc_test4/test_filter.c 
-*/
-
-/*! \file
-Example program for write then read of a variable using bzip2 compression.
-
-@ingroup tutorial
-
-This is an example which 
-creates a file with a variable that is compressed using bzip2.
-Then it reads that file and verifies that it returned the correct
-uncompressed data.
-
-The meta-data (.cdl) for the created file is as follows:
+/* Copyright 2018, UCAR/Unidata.
+   See COPYRIGHT file for conditions of use. */
+/**
+ * @file
+ * @ingroup tutorial
+ * Example program for write then read of a variable using bzip2
+ * compression.
+ *
+ * This is an example which creates a file with a variable that is
+ * compressed using bzip2. Then it reads that file and verifies that
+ * it returned the correct uncompressed data.
+ *
+ * The meta-data (.cdl) for the created file is as follows:
+ * @author Dennis Heimbigner
+ */
+/**
 \code
 netcdf bzip2 {
 dimensions:
@@ -121,7 +118,7 @@ verifychunks(void)
     size_t chunksizes[NDIMS];
     memset(chunksizes,0,sizeof(chunksizes));
     CHECK(nc_inq_var_chunking(ncid, varid, &store, chunksizes));
-    /* Storate must be chunked, not contiguous */
+    /* Storage must be chunked, not contiguous */
     if(store != NC_CHUNKED) {
 	fprintf(stderr,"bad chunk store\n");
 	return NC_ESTORAGE;
