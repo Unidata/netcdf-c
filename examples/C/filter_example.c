@@ -3,12 +3,12 @@
 /**
  * @file
  * @ingroup tutorial
- * Example program for write then read of a variable using bzip2
+ * Example program for writing and reading a variable using bzip2
  * compression.
  *
- * This is an example which creates a file with a variable that is
- * compressed using bzip2. Then it reads that file and verifies that
- * it returned the correct uncompressed data.
+ * This example creates a file with a variable that is compressed
+ * using bzip2, then reads it back and verifies that the
+ * uncompressed data is correct.
  *
  * The meta-data (.cdl) for the created file is as follows:
  * @author Dennis Heimbigner

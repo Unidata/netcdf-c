@@ -8,7 +8,7 @@
  * scientific data access. It creates a small netCDF file with
  * surface temperature data and a units attribute.
  *
- * @author Edward Hartnett
+ * @author Edward Hartnett, 6/19/4
  */
 
 #include <netcdf.h>

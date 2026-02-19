@@ -19,7 +19,7 @@
  * dimensions (lat, lon, and height), and use attributes to store
  * units metadata and a global history attribute.
  *
- * @author Edward Hartnett
+ * @author Edward Hartnett, 6/3/4
  */
 
 #include <netcdf.h>

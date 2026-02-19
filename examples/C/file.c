@@ -2,13 +2,14 @@
    Research/Unidata.  See COPYRIGHT file for conditions of use. */
 /**
  * @file
- * Demonstrate creating, opening, and closing a netCDF file.
+ * Demonstrate the full create, write, reopen, and read cycle.
  *
  * This example program is part of Unidata's netCDF library for
- * scientific data access. It demonstrates various ways to create a
- * netCDF file, open an existing file, and close a file.
+ * scientific data access. It creates a netCDF file, writes a
+ * variable, closes the file, then reopens it and reads the data
+ * back for verification.
  *
- * @author Edward Hartnett
+ * @author Edward Hartnett, 5/29/4
  */
 
 #include <netcdf.h>
