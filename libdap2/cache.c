@@ -16,11 +16,15 @@ So this flag controls this. By default, it is on.
 
 static int iscacheableconstraint(DCEconstraint* con);
 
-/* Return 1 if we can reuse cached data to address
-   the current get_vara request; return 0 otherwise.
-   Target is in the constrained tree space.
-   Currently, if the target matches a cache that is not
-   a whole variable, then match is false.
+/**
+Test whether a variable's data can be satisfied from the cache.
+Searches the prefetch node first, then other cache nodes (LRU order).
+Only whole-variable cache nodes are considered for matching.
+Target must be in the constrained tree space.
+@param nccomm the common DAP state containing the cache
+@param target the CDFnode variable to look up in the cache
+@param cachenodep output pointer to the matching cache node, or unchanged if not found
+@return 1 if a usable cache node was found, 0 otherwise
 */
 int
 iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
@@ -87,11 +91,12 @@ else
     return found;
 }
 
-/* Compute the set of prefetched data.
-   Notes:
-   1. All prefetches are whole variable fetches.
-   2. If the data set is unconstrainable, we
-      will prefetch the whole thing
+/**
+Fetch and cache the set of prefetchable variables.
+All prefetches are whole-variable fetches. If the dataset is
+unconstrainable, the entire dataset is prefetched.
+@param nccomm the common DAP state
+@return NC_NOERR on success, an NC error code on failure
 */
 NCerror
 prefetchdata(NCDAPCOMMON* nccomm)
@@ -210,6 +215,18 @@ done:
     return THROW(ncstat);
 }
 
+/**
+Fetch data from the server and build a new cache node.
+Issues a constrained DATADDS fetch, restructures the resulting tree,
+and inserts the new node into the cache (evicting old entries as needed
+to stay within the cache size and count limits).
+@param nccomm the common DAP state
+@param constraint the DAP constraint to use for the fetch; ownership is transferred
+@param varlist the list of CDFnode variables covered by this cache node
+@param cachep output pointer to the newly created cache node
+@param flags cache control flags (e.g., NCF_PREFETCH)
+@return NC_NOERR on success, an NC error code on failure
+*/
 NCerror
 buildcachenode(NCDAPCOMMON* nccomm,
 	        DCEconstraint* constraint,
@@ -319,6 +336,10 @@ done:
     return THROW(ncstat);
 }
 
+/**
+Allocate and zero-initialize a new NCcachenode.
+@return pointer to the new NCcachenode, or NULL on allocation failure
+*/
 NCcachenode*
 createnccachenode(void)
 {
@@ -326,6 +347,12 @@ createnccachenode(void)
     return mem;
 }
 
+/**
+Free an NCcachenode and all resources it owns.
+Releases the OC data content, constraint, datadds tree, and variable list.
+@param nccomm the common DAP state (used for the OC connection)
+@param node the cache node to free; no-op if NULL
+*/
 void
 freenccachenode(NCDAPCOMMON* nccomm, NCcachenode* node)
 {
@@ -342,6 +369,11 @@ fprintf(stderr,"freecachenode: %s\n",
 
 }
 
+/**
+Free an NCcache and all cache nodes it contains.
+@param nccomm the common DAP state (passed to freenccachenode)
+@param cache the cache to free; no-op if NULL
+*/
 void
 freenccache(NCDAPCOMMON* nccomm, NCcache* cache)
 {
@@ -355,6 +387,10 @@ freenccache(NCDAPCOMMON* nccomm, NCcache* cache)
     nullfree(cache);
 }
 
+/**
+Allocate and initialize a new NCcache with default limits.
+@return pointer to the new NCcache, or NULL on allocation failure
+*/
 NCcache*
 createnccache(void)
 {
@@ -396,11 +432,14 @@ iscacheableconstraint(DCEconstraint* con)
     return 1;
 }
 
-/*
-A variable is prefetchable if
-1. it is atomic
-2. it's size is sufficiently small
-3. it is not contained in sequence or a dimensioned structure.
+/**
+Mark variables in the unconstrained DDS as eligible for prefetching.
+A variable is prefetchable if:
+1. it is atomic,
+2. its total element count is within the smallsizelimit, and
+3. it is not contained in a sequence.
+@param nccomm the common DAP state
+@return NC_NOERR always
 */
 NCerror
 markprefetch(NCDAPCOMMON* nccomm)
