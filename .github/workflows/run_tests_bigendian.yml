@@ -142,6 +142,9 @@ jobs:
             make check TESTS="" -j 1
             make check -j 1
 
-      - name: Show config.log on failure
+      - name: Show test logs on failure
         if: ${{ failure() }}
-        run: cat config.log || true
+        run: |
+          find /home/runner/work/netcdf-c/netcdf-c -name 'test-suite.log' | \
+            xargs -I{} sh -c 'echo "=== {} ==="; cat "{}"' || true
+          cat config.log || true
