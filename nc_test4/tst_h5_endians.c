@@ -318,6 +318,7 @@ int main() {
     }
   }
 
+#ifndef TESTNCZARR
   /*
    * 4. Regression test for GitHub issue #1802:
    *    Create a file with a big-endian variable, close it WITHOUT writing data,
@@ -443,6 +444,7 @@ int main() {
     if ((retval = nc_close(ncid)))
         return retval;
   }
+#endif /* TESTNCZARR */
 
   printf("** Failures Returned: [%d]\n",failures);
   return failures;
