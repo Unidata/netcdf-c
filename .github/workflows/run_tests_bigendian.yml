@@ -49,7 +49,8 @@ jobs:
               libzip-dev \
               libhdf5-dev \
               libhdf5-103-1 \
-              libtool
+              libtool \
+              g++-s390x-linux-gnu
 
           run: |
             set -e
