@@ -137,11 +137,9 @@ jobs:
             # Build and run the test suite.
             # make check TESTS="" builds the test binaries without running them,
             # then make check runs the full suite.
-            # Tests are kept serial (-j 1) to avoid file-name conflicts between
-            # concurrent test processes writing to the same working directory.
             ###
             make check TESTS="" -j 4
-            make check -j 1
+            make check -j 4
 
       - name: Show test logs on failure
         if: ${{ failure() }}
