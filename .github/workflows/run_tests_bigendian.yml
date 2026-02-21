@@ -48,7 +48,8 @@ jobs:
               cmake \
               libzip-dev \
               libhdf5-dev \
-              libhdf5-103-1
+              libhdf5-103-1 \
+              libtool
 
           run: |
             set -e
