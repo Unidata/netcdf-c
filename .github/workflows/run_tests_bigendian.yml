@@ -64,8 +64,10 @@ jobs:
               --enable-hdf5 \
               --enable-dap \
               --disable-dap-remote-tests \
+              --disable-nczarr \
               --disable-shared \
-              --enable-static
+              --enable-static \
+              || { tail -200 config.log; exit 1; }
 
             cat libnetcdf.settings
 
