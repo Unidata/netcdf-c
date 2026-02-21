@@ -46,37 +46,17 @@ jobs:
               flex \
               bison \
               cmake \
-              libzip-dev
+              libzip-dev \
+              libhdf5-dev \
+              libhdf5-103-1
 
           run: |
             set -e
             set -x
 
             ###
-            # Build HDF5 1.14.6 from source
+            # Configure and build netCDF-C against apt-installed HDF5
             ###
-            HDF5_PREFIX="${HOME}/environments/hdf5"
-            mkdir -p "${HDF5_PREFIX}"
-
-            wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.6.tar.gz
-            tar -zxf hdf5_1.14.6.tar.gz
-            pushd hdf5-hdf5_1.14.6
-            ./configure \
-              --disable-static \
-              --enable-shared \
-              --prefix="${HDF5_PREFIX}" \
-              --enable-hl
-            make -j 2
-            make install -j 2
-            popd
-
-            ###
-            # Configure and build netCDF-C
-            ###
-            export CFLAGS="-I${HDF5_PREFIX}/include"
-            export LDFLAGS="-L${HDF5_PREFIX}/lib"
-            export LD_LIBRARY_PATH="${HDF5_PREFIX}/lib"
-
             autoreconf -if
 
             ./configure \
@@ -84,9 +64,7 @@ jobs:
               --enable-dap \
               --disable-dap-remote-tests \
               --disable-shared \
-              --enable-static \
-              CFLAGS="${CFLAGS}" \
-              LDFLAGS="${LDFLAGS}"
+              --enable-static
 
             cat libnetcdf.settings
 
@@ -96,7 +74,7 @@ jobs:
             # Build and run tests
             ###
             make check TESTS="" -j 2
-            LD_LIBRARY_PATH="${LD_LIBRARY_PATH}" make check -j 2
+            make check -j 2
 
       - name: Show config.log on failure
         if: ${{ failure() }}
