@@ -63,7 +63,7 @@ jobs:
             ./configure \
               --host=s390x-linux-gnu \
               --enable-hdf5 \
-              --enable-dap \
+              --disable-dap \
               --disable-dap-remote-tests \
               --disable-nczarr \
               --disable-libxml2 \
