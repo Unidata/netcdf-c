@@ -35,7 +35,7 @@ tst_h_scalar tst_rename tst_rename2 tst_rename3 tst_h5_endians		\
 tst_atts_string_rewrite tst_hdf5_file_compat tst_fill_attr_vanish	\
 tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
 tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
-tst_bug1442 tst_quantize tst_h_transient_types tst_udf_self_load
+tst_bug1442 tst_quantize tst_h_transient_types
 
 if HAS_PAR_FILTERS
 NC4_TESTS += tst_alignment
@@ -44,6 +44,10 @@ endif
 NC4_TESTS += tst_h_strbug tst_h_refs
 
 # UDF self-registration plugin loading test.
+# Requires a shared library build: the test dlopen()s a .so plugin.
+# Skip entirely when built with --disable-shared.
+if ENABLE_SHARED
+NC4_TESTS += tst_udf_self_load
 # Build the test plugin as a shared library (libtool module).
 check_LTLIBRARIES = tst_udf_self_load_plugin.la
 tst_udf_self_load_plugin_la_SOURCES = tst_udf_self_load_plugin.c
@@ -59,6 +63,7 @@ tst_udf_self_load_plugin_la_LIBADD = ${top_builddir}/liblib/libnetcdf.la
 # by configure.ac (see the case $host_os block after LT_INIT) so the
 # compiled-in TEST_PLUGIN_PATH always points to the correct filename.
 tst_udf_self_load_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_PLUGIN_PATH=\"$(abs_builddir)/.libs/tst_udf_self_load_plugin@MODULE_EXT@\"
+endif # ENABLE_SHARED
 
 # Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug \
