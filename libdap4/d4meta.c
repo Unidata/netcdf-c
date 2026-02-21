@@ -3,6 +3,17 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4meta.c
+ * @brief Builds NetCDF-4 substrate metadata from the parsed DMR node tree.
+ *
+ * Implements NCD4_metabuild(), which walks the NCD4node tree produced by
+ * NCD4_parse() and creates the corresponding dimensions, types, and
+ * variables in the substrate NetCDF-4 file.  Also provides
+ * NCD4_newmeta(), NCD4_reclaimMeta(), NCD4_findvar(), and
+ * NCD4_computeTypeSize().
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include <stdarg.h>
 #include <stddef.h>
@@ -55,6 +66,19 @@ static int buildBytestringType(NCD4meta* builder);
 /***************************************************/
 /* API */
 
+/**
+ * Build the NetCDF-4 substrate metadata from the parsed DMR node tree.
+ *
+ * Walks the NCD4node tree in @p metadata and creates the corresponding
+ * dimensions, user-defined types, groups, and variables in the substrate
+ * NetCDF-4 file identified by @p ncid.  Computes type sizes, field
+ * offsets, and alignment, and writes translation attributes
+ * (_edu.ucar.*) where needed.
+ *
+ * @param metadata Parsed DMR metadata produced by NCD4_parse().
+ * @param ncid     Root ncid of the substrate NetCDF-4 file.
+ * @return NC_NOERR on success, or a netCDF error code.
+ */
 int
 NCD4_metabuild(NCD4meta* metadata, int ncid)
 {
