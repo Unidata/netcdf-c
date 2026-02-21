@@ -25,13 +25,14 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: s390x
-          distro: ubuntu22.04
+          distro: ubuntu24.04
 
           # Pass the checked-out source into the container
           githubToken: ${{ github.token }}
 
           install: |
             apt-get update -q -y
+            apt-cache search libhdf5 | sort
             apt-get install -q -y \
               libaec-dev \
               zlib1g-dev \
@@ -48,9 +49,10 @@ jobs:
               cmake \
               libzip-dev \
               libhdf5-dev \
-              libhdf5-103-1 \
+              libhdf5-103-1t64 \
               libtool \
-              g++-s390x-linux-gnu
+              g++-s390x-linux-gnu \
+              gcc-s390x-linux-gnu
 
           run: |
             set -e
