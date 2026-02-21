@@ -1,0 +1,103 @@
+###
+# Build and test netCDF-C on a big-endian platform (IBM s390x) using QEMU emulation.
+###
+
+name: Run Big-Endian (s390x) netCDF Tests
+
+on: [workflow_dispatch]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  nc-bigendian-s390x:
+
+    name: Autotools build on s390x (big-endian)
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Build and test on s390x via QEMU
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: s390x
+          distro: ubuntu22.04
+
+          # Pass the checked-out source into the container
+          githubToken: ${{ github.token }}
+
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y \
+              libaec-dev \
+              zlib1g-dev \
+              automake \
+              autoconf \
+              libcurl4-openssl-dev \
+              libjpeg-dev \
+              wget \
+              curl \
+              bzip2 \
+              m4 \
+              flex \
+              bison \
+              cmake \
+              libzip-dev
+
+          run: |
+            set -e
+            set -x
+
+            ###
+            # Build HDF5 1.14.6 from source
+            ###
+            HDF5_PREFIX="${HOME}/environments/hdf5"
+            mkdir -p "${HDF5_PREFIX}"
+
+            wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.6.tar.gz
+            tar -zxf hdf5_1.14.6.tar.gz
+            pushd hdf5-hdf5_1.14.6
+            ./configure \
+              --disable-static \
+              --enable-shared \
+              --prefix="${HDF5_PREFIX}" \
+              --enable-hl
+            make -j 2
+            make install -j 2
+            popd
+
+            ###
+            # Configure and build netCDF-C
+            ###
+            export CFLAGS="-I${HDF5_PREFIX}/include"
+            export LDFLAGS="-L${HDF5_PREFIX}/lib"
+            export LD_LIBRARY_PATH="${HDF5_PREFIX}/lib"
+
+            autoreconf -if
+
+            ./configure \
+              --enable-hdf5 \
+              --enable-dap \
+              --disable-dap-remote-tests \
+              --disable-shared \
+              --enable-static \
+              CFLAGS="${CFLAGS}" \
+              LDFLAGS="${LDFLAGS}"
+
+            cat libnetcdf.settings
+
+            make -j 2
+
+            ###
+            # Build and run tests
+            ###
+            make check TESTS="" -j 2
+            LD_LIBRARY_PATH="${LD_LIBRARY_PATH}" make check -j 2
+
+      - name: Show config.log on failure
+        if: ${{ failure() }}
+        run: cat config.log || true
