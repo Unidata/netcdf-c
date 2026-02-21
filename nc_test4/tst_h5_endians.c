@@ -26,6 +26,36 @@
 #define FILE_NAME_NC "tst_h5_endians.nc"
 #endif
 
+static float
+f32swap(float x)
+{
+  union {
+    unsigned char bytes[4];
+    float f;
+  } u;
+  unsigned char c;
+  u.f = x;
+  c = u.bytes[0]; u.bytes[0] = u.bytes[3]; u.bytes[3] = c;
+  c = u.bytes[1]; u.bytes[1] = u.bytes[2]; u.bytes[2] = c;  
+  return u.f;
+}
+
+static double
+f64swap(double x)
+{
+  union {
+    unsigned char bytes[8];
+    double d;
+  } u;
+  unsigned char c;
+  u.d = x;
+  c = u.bytes[0]; u.bytes[0] = u.bytes[7]; u.bytes[7] = c;
+  c = u.bytes[1]; u.bytes[1] = u.bytes[6]; u.bytes[6] = c;
+  c = u.bytes[2]; u.bytes[2] = u.bytes[5]; u.bytes[5] = c;
+  c = u.bytes[3]; u.bytes[3] = u.bytes[4]; u.bytes[4] = c;  
+  return u.d;
+}
+
 #define NDIM 10
 #define NLON 20
 #define DIM_NAME "x"
@@ -240,6 +270,10 @@ int main() {
             return retval;
         if ((retval = nc_get_var(ncid,be_float_varid,fdata_be_out)))
             return retval;
+	for(i=0;i<NDIM;i++) {
+	    float f = f32swap(fdata_be_out[i]);
+	    fprintf(stderr,"[%d] %f\n",i,f);
+	}
 	for(failed=0,i=0;i<NDIM;i++) {if(fdata_in[i] != fdata_be_out[i]) {printf("failed\n"); failures++; failed++; break;}}
 	if(!failed) printf("passed\n");
 
@@ -272,6 +306,10 @@ int main() {
             return retval;
         if ((retval = nc_get_var(ncid,be_dbl_varid,ddata_be_out)))
             return retval;
+	for(i=0;i<NDIM;i++) {
+	    double d = f64swap(ddata_be_out[i]);
+	    fprintf(stderr,"[%d] %lf\n",i,d);
+	}
 	for(failed=0,i=0;i<NDIM;i++) {if(ddata_in[i] != ddata_be_out[i]) {printf("failed\n"); failures++; failed++; break;}}
 	if(!failed) printf("passed\n");
 
