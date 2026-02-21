@@ -25,7 +25,7 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: s390x
-          distro: ubuntu24.04
+          distro: ubuntu22.04
 
           # Pass the checked-out source into the container
           githubToken: ${{ github.token }}
@@ -49,7 +49,7 @@ jobs:
               cmake \
               libzip-dev \
               libhdf5-dev \
-              libhdf5-103-1t64 \
+              libhdf5-103-1 \
               libtool \
               g++-s390x-linux-gnu \
               gcc-s390x-linux-gnu
@@ -76,6 +76,7 @@ jobs:
               --disable-libxml2 \
               --disable-shared \
               --enable-static \
+              --disable-utilities \
               || { tail -200 config.log; exit 1; }
 
             cat libnetcdf.settings
