@@ -21,6 +21,14 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Add swap space
+        run: |
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+
       - name: Build and test on s390x via QEMU
         uses: uraimo/run-on-arch-action@v2
         with:
