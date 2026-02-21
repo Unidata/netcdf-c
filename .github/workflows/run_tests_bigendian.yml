@@ -1,8 +1,8 @@
 ###
-# Build and test netCDF-C on a big-endian platform (IBM s390x) using QEMU emulation.
+# Build and test netCDF-C on a big-endian platform (ppc64) using QEMU emulation.
 ###
 
-name: Run Big-Endian (s390x) netCDF Tests
+name: Run Big-Endian (ppc64) netCDF Tests
 
 on: [workflow_dispatch]
 
@@ -12,9 +12,9 @@ concurrency:
 
 jobs:
 
-  nc-bigendian-s390x:
+  nc-bigendian-ppc64:
 
-    name: Autotools build on s390x (big-endian)
+    name: Autotools build on ppc64 (big-endian)
     runs-on: ubuntu-latest
 
     steps:
@@ -30,10 +30,10 @@ jobs:
           sudo swapon /swapfile
           free -h
 
-      - name: Build and test on s390x via QEMU
+      - name: Build and test on ppc64 via QEMU
         uses: uraimo/run-on-arch-action@v2
         with:
-          arch: s390x
+          arch: ppc64
           distro: ubuntu22.04
 
           # Pass the checked-out source into the container
@@ -73,7 +73,7 @@ jobs:
             autoreconf -if
 
             CPPFLAGS="-I/usr/include/hdf5/serial" \
-            LDFLAGS="-L/usr/lib/s390x-linux-gnu/hdf5/serial" \
+            LDFLAGS="-L/usr/lib/powerpc64-linux-gnu/hdf5/serial" \
             LIBS="-lhdf5_serial -lz" \
             CC=gcc \
             ./configure \
