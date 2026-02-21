@@ -39,11 +39,12 @@ jobs:
 
       - name: Add swap space
         # QEMU emulation is memory-intensive. The default GitHub Actions runner
-        # has limited swap, which can cause GCC to crash (ICE/segfault) when
-        # compiling under emulation. Adding 8GB of swap reduces this risk.
+        # has limited swap, which can cause GCC's collect2 linker to segfault.
+        # Adding 16GB of swap reduces this risk. We also pass -Wl,--no-keep-memory
+        # to the linker to reduce its peak memory usage.
         run: |
           sudo swapoff -a || true
-          sudo dd if=/dev/zero of=/swapfile bs=1M count=8192
+          sudo dd if=/dev/zero of=/swapfile bs=1M count=16384
           sudo chmod 600 /swapfile
           sudo mkswap /swapfile
           sudo swapon /swapfile
@@ -112,7 +113,7 @@ jobs:
             #                             which are not needed to test the library
             ###
             CPPFLAGS="-I/usr/include/hdf5/serial" \
-            LDFLAGS="-L/usr/lib/s390x-linux-gnu/hdf5/serial" \
+            LDFLAGS="-L/usr/lib/s390x-linux-gnu/hdf5/serial -Wl,--no-keep-memory" \
             LIBS="-lhdf5_serial -lz" \
             CC=gcc \
             ./configure \
