@@ -318,6 +318,9 @@ int main() {
     }
   }
 
+  /* Section 4 is HDF5-only: nc_def_var_endian() is not supported by the
+   * NCZarr backend, so this block is skipped when compiled as test_endians
+   * (nczarr_test/Makefile.am prepends #define TESTNCZARR to this file). */
 #ifndef TESTNCZARR
   /*
    * 4. Regression test for GitHub issue #1802:
