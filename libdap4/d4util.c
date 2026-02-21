@@ -3,6 +3,17 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4util.c
+ * @brief General utility functions for the DAP4 client.
+ *
+ * Provides NCD4_dimproduct(), NCD4_typesize(), NCD4_isLittleEndian(),
+ * NCD4_makeFQN(), NCD4_makeName(), NCD4_parseFQN(), NCD4_deescape(),
+ * NCD4_entityescape(), NCD4_elidenuls(), NCD4_getheader(),
+ * NCD4_reporterror(), NCD4_error(), NCD4_errorNC(), and the cursor
+ * helpers NCD4_buildoffset(), NCD4_incr(), NCD4_decr(), NCD4_getcounter().
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include <stddef.h>
 #ifdef HAVE_SYS_STAT_H

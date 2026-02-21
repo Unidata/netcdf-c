@@ -3,10 +3,14 @@
   *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
   *********************************************************************/
 
-/*
-External functions and state variables are
-defined here, including function-like #defines.
-*/
+/** @file ncd4.h
+ * @brief External function declarations and macro utilities for libdap4.
+ *
+ * Declares all EXTERNL functions grouped by source file, and defines
+ * the error-handling, offset-arithmetic, and counter macros used
+ * throughout the DAP4 client implementation.
+ * @author Dennis Heimbigner
+ */
 
 #ifndef NCD4_H
 #define NCD4_H 1
@@ -155,36 +159,75 @@ EXTERNL void NCD4_dumpvars(NCD4node* group);
 EXTERNL union ATOMICS* NCD4_dumpatomic(NCD4node* var, void* data);
 
 /* From d4rc.c */
+/** Load the DAP RC file into the global RC table. */
 EXTERNL int NCD4_rcload(void);
+/** Apply RC-file settings to an open NCD4INFO connection. */
 EXTERNL int NCD4_rcprocess(NCD4INFO* info);
+/** Free an RC table returned by NCD4_rcload(). */
 EXTERNL void NCD4_rcfree(NClist* rc);
+/**
+ * Look up a key in the RC table for a given host:port.
+ * @param key      RC key string.
+ * @param hostport Host and port string ("host:port" or just "host").
+ * @return Value string, or NULL if not found.
+ */
 EXTERNL char* NCD4_rclookup(char* key, char* hostport);
+/** Parse a proxy URL string and store the result in @p info. */
 EXTERNL int NCD4_parseproxy(NCD4INFO* info, const char* surl);
-EXTERNL int NCD4_rcdefault(NCD4INFO*);
+/** Apply default RC settings to @p info when no RC file entry matches. */
+EXTERNL int NCD4_rcdefault(NCD4INFO* info);
 
 /* From d4cvt.c */
+/**
+ * Convert @p count values from @p srctype to @p dsttype in place.
+ * @param srctype  Source nc_type.
+ * @param dsttype  Destination nc_type.
+ * @param memory0  Destination buffer (receives converted values).
+ * @param value0   Source buffer.
+ * @param count    Number of values to convert.
+ * @return NC_NOERR on success, or a netCDF error code.
+ */
 EXTERNL int NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count);
 
 /* d4file.c */
+/**
+ * Fetch the DMR or full DAP response according to @p mode.
+ * @param d4info NCD4INFO for the open connection.
+ * @param mode   NCD4_DMR to fetch metadata only, NCD4_DAP for data too.
+ * @return NC_NOERR on success, or a netCDF error code.
+ */
 EXTERNL int NCD4_readDMRorDAP(NCD4INFO* d4info, NCD4mode mode);
+/** Apply URL fragment control parameters to @p d4info->controls. */
 EXTERNL void NCD4_applyclientfragmentcontrols(NCD4INFO* d4info);
-EXTERNL void NCD4_applychecksumcontrols(NCD4INFO* d4info, NCD4response*);
+/** Apply checksum-related URL controls to @p d4info and @p resp. */
+EXTERNL void NCD4_applychecksumcontrols(NCD4INFO* d4info, NCD4response* resp);
+/** Allocate and zero-initialize a new NCD4INFO object. */
 EXTERNL int NCD4_newInfo(NCD4INFO** d4infop);
+/** Free all resources owned by @p d4info. */
 EXTERNL void NCD4_reclaimInfo(NCD4INFO* d4info);
+/** Reset per-read transient state in @p d4info before a new fetch. */
 EXTERNL void NCD4_resetInfoforRead(NCD4INFO* d4info);
-EXTERNL int NCD4_newResponse(NCD4INFO*,NCD4response** respp);
+/** Allocate a new NCD4response and append it to @p d4info->responses. */
+EXTERNL int NCD4_newResponse(NCD4INFO* d4info, NCD4response** respp);
+/** Free all resources owned by @p d4resp. */
 EXTERNL void NCD4_reclaimResponse(NCD4response* d4resp);
+/** Reset per-read transient state in @p d4info (alternate spelling). */
 EXTERNL void NCD4_resetInfoForRead(NCD4INFO* d4info);
-EXTERNL int NCD4_newMeta(NCD4INFO*,NCD4meta**);
-EXTERNL void NCD4_reclaimMeta(NCD4meta*);
+/** Allocate a new NCD4meta and attach it to @p d4info. */
+EXTERNL int NCD4_newMeta(NCD4INFO* d4info, NCD4meta** metap);
+/** Free all resources owned by @p meta. */
+EXTERNL void NCD4_reclaimMeta(NCD4meta* meta);
 
 /* ncd4dispatch.c */
 struct NC_reservedatt; /*forward*/
+/**
+ * Look up a reserved attribute name in the DAP4 reserved-attribute table.
+ * @param name Attribute name to look up.
+ * @return Pointer to the NC_reservedatt entry, or NULL if not reserved.
+ */
 EXTERNL const struct NC_reservedatt* NCD4_lookupreserved(const char* name);
 
-/* Add an extra function whose sole purpose is to allow
-   configure(.ac) to test for the presence of this code.
-*/
+/** Stub used by configure to verify that libdap4 is present. */
 EXTERNL int nc__dap4(void);
 
 /**************************************************/
@@ -192,28 +235,44 @@ EXTERNL int nc__dap4(void);
 
 #undef NCCHECK
 #undef FAIL
+/**
+ * Evaluate @p expr; on error log it and jump to the @c done label.
+ *
+ * Assigns the result to @c ret.  Requires a local @c int @c ret and a
+ * @c done label in the enclosing function.
+ */
 #define NCCHECK(expr) if((ret=(expr))) {ret = NCD4_errorNC(ret,__LINE__,__FILE__); goto done;}else{}
+/**
+ * Set @c ret to the given error @p code, log a formatted message, and
+ * jump to the @c done label.
+ *
+ * Requires a local @c int @c ret and a @c done label in the enclosing function.
+ */
 #define FAIL(code,fmt,...) do{ret=NCD4_error(code,__LINE__,__FILE__,fmt , ##__VA_ARGS__); goto done;}while(0)
 
-#undef BUILDOFFSET
+/** Allocate an NCD4offset covering [@p base, @p base+@p size). */
 #define BUILDOFFSET(base,size) NCD4_buildoffset(base,size)
+/** @internal Allocate and initialise an NCD4offset. */
 EXTERNL NCD4offset* NCD4_buildoffset(void* base, d4size_t size);
 
 #undef INCR
 #undef DECR
 #undef DELTA
-#if 0
-#define INCR(offset,size) ((void*)(((char*)(offset->offset))+(size)))
-#define DECR(offset,size) ((void*)(((char*)(offset->offset))-(size)))
-#define DELTA(p1,p2) ((ptrdiff_t)(((char*)(p1))-((char*)(p2))))
-#endif
+/** @internal Advance cursor @p offset forward by @p size bytes. */
 EXTERNL void NCD4_incr(NCD4offset* p, d4size_t size);
+/** @internal Move cursor @p offset backward by @p size bytes. */
 EXTERNL void NCD4_decr(NCD4offset* p, d4size_t size);
+/** Advance cursor @p offset forward by @p size bytes. */
 #define INCR(offset,size) NCD4_incr(offset,size)
+/** Move cursor @p offset backward by @p size bytes. */
 #define DECR(offset,size) NCD4_decr(offset,size)
+/** Byte distance from saved position @p mark to current position @p p. */
 #define OFFSETSIZE(p,mark) ((d4size_t)(((ptrdiff_t)(p)->offset) - ((ptrdiff_t)(mark))))
+/** Copy @p size bytes from cursor @p src into buffer @p dst. */
 #define TRANSFER(dst,src,size) memcpy((dst),(src)->offset,size)
+/** Signed byte difference between two raw pointers @p p1 and @p p2. */
 #define DELTA(p1,p2) ((ptrdiff_t)(((char*)(p1))-((char*)(p2))))
+/** Save the current offset position of @p p into @p mark. */
 #define MARK(p,mark) do {(mark) = (p)->offset;} while(0)
 
 #undef GETCOUNTER
@@ -230,42 +289,51 @@ EXTERNL d4size_t NCD4_getcounter(void* p);
 #define GETCOUNTER(p) ((d4size_t)*((COUNTERTYPE*)(p)))
 #endif
 #endif /*0*/
+/** @internal Read the COUNTERTYPE-sized counter at the current cursor position. */
 EXTERNL d4size_t NCD4_getcounter(NCD4offset* p);
+/** Read the sequence/vlen counter at the current cursor position. */
 #define GETCOUNTER(p) NCD4_getcounter(p)
-
+/** Advance the cursor past the current counter value. */
 #define SKIPCOUNTER(p) INCR(p,COUNTERSIZE)
 
 #undef PUSH
+/** Append @p value to @p list, allocating the list if it is NULL. */
 #define PUSH(list,value) do{if((list)==NULL) {(list)=nclistnew();} else{}; nclistpush((list),(value));}while(0)
 
+/** Return the substrate nc4id from a DAP4 NC object. */
 #define getnc3id(d4) (getdap(d4)->nc4id)
-
+/** True if @p var is a top-level variable (its container is NULL or a group). */
 #define ISTOPLEVEL(var) ((var)->container == NULL || (var)->container->sort == NCD4_GROUP)
 
-#define FILEIDPART(NCID) (((unsigned int) (NCID)) >> ID_SHIFT)
-#define GROUPIDPART(NCID) (((unsigned int) (NCID)) & GRP_ID_MASK)
+/** Extract the file-id portion of a combined ncid. */
+#define FILEIDPART(NCID)  (((unsigned int)(NCID)) >> ID_SHIFT)
+/** Extract the group-id portion of a combined ncid. */
+#define GROUPIDPART(NCID) (((unsigned int)(NCID)) & GRP_ID_MASK)
+/** Combine a group id and file id into a single ncid. */
 #define MAKENCID(grp,file) ((((unsigned int)(file)) << ID_SHIFT) | (grp))
 
+/** Return the NCD4INFO pointer from an NC object. */
 #define getdap(ncp) ((NCD4INFO*)((NC*)ncp)->dispatchdata)
+/** Return the substrate nc4id from an NC object. */
 #define getnc4id(ncp) (getdap(ncp)->substrate.nc4id)
 
-/* Convert a dap4 grpid to a substrate id */
+/** Convert a DAP4 group id to the corresponding substrate nc4 id. */
 #define makenc4id(ncp,dap4id) (((dap4id) & GRP_ID_MASK) | getdap(ncp)->substrate.nc4id)
-/* and the inverse */
+/** Convert a substrate nc4 id back to the corresponding DAP4 group id. */
 #define makedap4id(ncp,nc4id) (((nc4id) & GRP_ID_MASK) | (ncp)->ext_ncid)
 
 #ifdef CLEARMEM
+/** Allocate @p n bytes, zero-filled when CLEARMEM is defined. */
 #define d4alloc(n) (calloc(1,(size_t)(n)))
 #else
+/** Allocate @p n bytes. */
 #define d4alloc(n) (malloc((size_t)(n)))
 #endif
 
-/* A number of hacks have been inserted
-   to deal with issues in accessing hyrax
-   using DAP4.
-*/
+/** Defined when Hyrax-specific workarounds are compiled in. */
 #define HYRAXHACK
 
+/** Return the substrate NC object for a DAP4 NC object. */
 EXTERNL NC* NCD4_get_substrate_nc(NC* nc);
 
 #endif /*NCD4_H*/

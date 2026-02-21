@@ -2,6 +2,16 @@
  *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
+
+/** @file d4cvt.c
+ * @brief DAP4 type-conversion utility.
+ *
+ * Implements NCD4_convert(), which converts an array of values from
+ * one nc_type to another.  Used when the server returns data in a
+ * wider type than the variable's declared type.
+ * @author Dennis Heimbigner
+ */
+
 #include "config.h"
 #include <assert.h>
 #include "netcdf.h"
@@ -17,7 +27,21 @@ Code taken directly from libdap4/dapcvt.c
 /* Forward */
 static size_t nctypesizeof(nc_type nctype);
 
-
+/**
+ * Convert @p count values from @p srctype to @p dsttype in place.
+ *
+ * Reads each value from @p value0, converts it to @p dsttype while
+ * preserving the bit pattern where possible, and writes the result
+ * to @p memory0.  Used to handle DAP4 type-upgrade situations where
+ * the server sends a wider type than the variable's declared type.
+ *
+ * @param srctype  Source nc_type.
+ * @param dsttype  Destination nc_type.
+ * @param memory0  Destination buffer (receives converted values).
+ * @param value0   Source buffer.
+ * @param count    Number of values to convert.
+ * @return NC_NOERR on success, or a netCDF error code.
+ */
 int
 NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count)
 {

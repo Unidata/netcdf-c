@@ -3,6 +3,14 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4curlflags.c
+ * @brief Sets libcurl option flags for DAP4 HTTP connections.
+ *
+ * Applies authentication, proxy, SSL, and other CURLOPT settings
+ * to a CURL easy handle based on the NCD4INFO controls and RC file.
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include "d4curlfunctions.h"
 

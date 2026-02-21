@@ -2,6 +2,15 @@
    See the COPYRIGHT file for more information.
 */
 
+/** @file d4dump.c
+ * @brief Debug dump utilities for the DAP4 client.
+ *
+ * Implements NCD4_dumpbytes(), NCD4_tagdump(), NCD4_dumpvars(), and
+ * NCD4_dumpatomic() for printing raw bytes and variable information
+ * to stderr during debugging.
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include <stddef.h>
 
