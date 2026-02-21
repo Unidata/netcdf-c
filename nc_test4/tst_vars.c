@@ -592,7 +592,8 @@ main(int argc, char **argv)
       if (nc_get_var_schar(ncid, float_varid, (signed char *)byte_in) != NC_ERANGE) ERR;
       for (i = 0; i < DIM1_LEN; i++)
 	 for (j = 0; j < DIM2_LEN; j++)
-	    if (byte_in[i][j] != (signed char)float_out[i][j]) ERR;
+	    if (float_out[i][j] >= (float)X_SCHAR_MIN && float_out[i][j] <= (float)X_SCHAR_MAX)
+	       if (byte_in[i][j] != (signed char)float_out[i][j]) ERR;
       if (nc_get_var_schar(ncid, int64_varid, (signed char *)byte_in) != NC_ERANGE) ERR;
       for (i = 0; i < DIM1_LEN; i++)
 	 for (j = 0; j < DIM2_LEN; j++)
@@ -796,7 +797,8 @@ main(int argc, char **argv)
       if (nc_get_var_schar(ncid, float_varid, (signed char *)byte_in) != NC_ERANGE) ERR;
       for (i = 0; i < DIM1_LEN; i++)
 	 for (j = 0; j < DIM2_LEN; j++)
-	    if (byte_in[i][j] != (signed char)float_out[i][j]) ERR;
+	    if (float_out[i][j] >= (float)X_SCHAR_MIN && float_out[i][j] <= (float)X_SCHAR_MAX)
+	       if (byte_in[i][j] != (signed char)float_out[i][j]) ERR;
       if (nc_get_var_schar(ncid, int64_varid, (signed char *)byte_in) != NC_ERANGE) ERR;
       for (i = 0; i < DIM1_LEN; i++)
 	 for (j = 0; j < DIM2_LEN; j++)
