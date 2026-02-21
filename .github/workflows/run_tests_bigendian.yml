@@ -89,13 +89,13 @@ jobs:
 
             cat libnetcdf.settings
 
-            for attempt in 1 2 3; do make -j 1 && break || echo "make attempt $attempt failed, retrying..."; done
+            make -j 1
 
             ###
             # Build and run tests
             ###
-            for attempt in 1 2 3; do make check TESTS="" -j 1 && break || echo "attempt $attempt failed, retrying..."; done
-            for attempt in 1 2 3; do make check -j 1 && break || echo "attempt $attempt failed, retrying..."; done
+            make check TESTS="" -j 1
+            make check -j 1
 
       - name: Show config.log on failure
         if: ${{ failure() }}
