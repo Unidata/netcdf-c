@@ -65,6 +65,7 @@ jobs:
               --enable-dap \
               --disable-dap-remote-tests \
               --disable-nczarr \
+              --disable-libxml2 \
               --disable-shared \
               --enable-static \
               || { tail -200 config.log; exit 1; }
