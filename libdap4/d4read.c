@@ -7,7 +7,7 @@
  *
  * Copyright 1993-2018 University Corporation for Atmospheric Research/Unidata.
  * See the copyright file for more info.
-
+ * @author Dennis Heimbigner
 */
 
 #include "d4includes.h"
@@ -17,8 +17,7 @@
 #endif
 #include "ncpathmgr.h"
 
-/* Do conversion if this code was compiled via Vis. Studio or Mingw * @author Dennis Heimbigner
- */
+/* Do conversion if this code was compiled via Vis. Studio or Mingw */
 
 /*Forward*/
 static int readpacket(NCD4INFO* state, NCURI*, NCbytes*, NCD4mode, NCD4format, int*, long*);

@@ -4,7 +4,7 @@
  *********************************************************************/
 
 /** @file ncd4types.h
- * @brief Type declarations and associated constants for the DAP4 client.
+ * Type declarations and associated constants for the DAP4 client.
  *
  * Defines all structs, enums, typedefs, and compile-time constants used
  * throughout the libdap4 implementation, including the central NCD4node
@@ -176,7 +176,7 @@ union ATOMICS {
 
 /**************************************************/
 /**
- * @brief DAP4 chunk header (4 bytes on the wire).
+ * DAP4 chunk header (4 bytes on the wire).
  *
  * Each chunk in a DAP4 serialization is preceded by this header.
  * @c flags carries NCD4_LAST_CHUNK, NCD4_ERR_CHUNK, and/or
@@ -190,7 +190,7 @@ struct NCD4HDR {
 
 /**************************************************/
 /**
- * @brief Bounded cursor for walking a serialized DAP4 byte stream.
+ * Bounded cursor for walking a serialized DAP4 byte stream.
  *
  * Invariant: @c base <= @c offset <= @c limit.
  * Use the INCR/DECR macros in ncd4.h for all pointer arithmetic.
@@ -201,12 +201,12 @@ struct NCD4offset {
     char* limit;  /**< One past the last valid byte. */
 };
 
-/** @brief Saved cursor position within an NCD4offset stream. */
+/** Saved cursor position within an NCD4offset stream. */
 typedef char* NCD4mark;
 
 /**************************************************/
 /**
- * @brief Universal node type for the DMR metadata tree.
+ * Universal node type for the DMR metadata tree.
  *
  * A single node type is used for every kind of DMR object (groups,
  * variables, dimensions, types, attributes, enum constants).  The
@@ -282,7 +282,7 @@ struct NCD4node {
 };
 
 /**
- * @brief Parsed DMR metadata for one server response.
+ * Parsed DMR metadata for one server response.
  *
  * Created by NCD4_parse() and consumed by NCD4_metabuild().  Owns the
  * NCD4node tree rooted at @c root and the flat @c allnodes list.
@@ -300,7 +300,7 @@ struct NCD4meta {
 };
 
 /**
- * @brief Internal state for the DMR XML parser.
+ * Internal state for the DMR XML parser.
  *
  * Allocated on entry to NCD4_parse() and freed on return.  Accumulates
  * node lists that are later transferred into the NCD4meta structure.
@@ -320,7 +320,7 @@ typedef struct NCD4parser {
 } NCD4parser;
 
 /**
- * @brief Holds a complete (possibly processed) response from a DAP4 server.
+ * Holds a complete (possibly processed) response from a DAP4 server.
  *
  * Created by NCD4_newResponse() and freed by NCD4_reclaimResponse().
  * The @c raw blob holds the unmodified bytes from the wire; after
@@ -353,7 +353,7 @@ struct NCD4response {
 
 /**************************************************/
 /**
- * @brief libcurl state for one DAP4 connection.
+ * libcurl state for one DAP4 connection.
  *
  * Wraps the CURL easy handle and associated buffers and options.
  */
@@ -376,7 +376,7 @@ struct NCD4curl {
 
 /**************************************************/
 /**
- * @brief Top-level connection and session state for one DAP4 open file.
+ * Top-level connection and session state for one DAP4 open file.
  *
  * One NCD4INFO is allocated per nc_open() call on a DAP4 URL and is
  * stored as NC::dispatchdata.  It owns the curl handle, the substrate

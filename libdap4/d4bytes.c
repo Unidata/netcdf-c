@@ -1,5 +1,5 @@
 /* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
-   See the COPYRIGHT file for more information. * @author Dennis Heimbigner
+   See the COPYRIGHT file for more information. * 
  */
 
 /** @file d4bytes.c
@@ -7,6 +7,8 @@
  *
  * Provides low-level byte-array allocation and manipulation helpers
  * used by the DAP4 serialization and dechunking code.
+ *
+ * @author Dennis Heimbigner
  */
 
 #include <stdlib.h>
