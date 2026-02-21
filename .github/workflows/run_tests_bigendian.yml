@@ -111,11 +111,10 @@ jobs:
             #   --disable-nczarr         : requires additional zip/cloud libs
             #   --disable-libxml2        : not needed without DAP
             #   --disable-shared         : simplifies linking under emulation
-            #   --disable-utilities      : skips ncgen/ncdump/etc. binaries
-            #                             which are not needed to test the library
+            #   --enable-utilities       : builds ncgen/ncdump/etc. binaries
             ###
             CPPFLAGS="-I/usr/include/hdf5/serial" \
-            LDFLAGS="-L/usr/lib/s390x-linux-gnu/hdf5/serial -fuse-ld=gold" \
+            LDFLAGS="-L/usr/lib/s390x-linux-gnu/hdf5/serial -fuse-ld=gold -Wl,--no-keep-memory" \
             LIBS="-lhdf5_serial -lz" \
             CFLAGS="-O0 -g" \
             CC=clang \
@@ -132,14 +131,16 @@ jobs:
 
             cat libnetcdf.settings
 
-            make -j 1
+            make -j 4
 
             ###
             # Build and run the test suite.
             # make check TESTS="" builds the test binaries without running them,
             # then make check runs the full suite.
+            # Tests are kept serial (-j 1) to avoid file-name conflicts between
+            # concurrent test processes writing to the same working directory.
             ###
-            make check TESTS="" -j 1
+            make check TESTS="" -j 4
             make check -j 1
 
       - name: Show test logs on failure
