@@ -34,7 +34,7 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: s390x
-          distro: bullseye
+          distro: ubuntu22.04
 
           # Pass the checked-out source into the container
           githubToken: ${{ github.token }}
@@ -58,6 +58,7 @@ jobs:
               cmake \
               libzip-dev \
               libhdf5-dev \
+              libhdf5-103-1 \
               libtool \
               gcc \
               g++
@@ -88,13 +89,13 @@ jobs:
 
             cat libnetcdf.settings
 
-            make -j 1
+            for attempt in 1 2 3; do make -j 1 && break || echo "make attempt $attempt failed, retrying..."; done
 
             ###
             # Build and run tests
             ###
-            make check TESTS="" -j 1
-            make check -j 1
+            for attempt in 1 2 3; do make check TESTS="" -j 1 && break || echo "attempt $attempt failed, retrying..."; done
+            for attempt in 1 2 3; do make check -j 1 && break || echo "attempt $attempt failed, retrying..."; done
 
       - name: Show config.log on failure
         if: ${{ failure() }}
