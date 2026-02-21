@@ -51,8 +51,8 @@ jobs:
               libhdf5-dev \
               libhdf5-103-1 \
               libtool \
-              g++-s390x-linux-gnu \
-              gcc-s390x-linux-gnu
+              gcc \
+              g++
 
           run: |
             set -e
@@ -66,9 +66,8 @@ jobs:
             CPPFLAGS="-I/usr/include/hdf5/serial" \
             LDFLAGS="-L/usr/lib/s390x-linux-gnu/hdf5/serial" \
             LIBS="-lhdf5_serial -lz" \
-            CFLAGS="-O0" \
+            CC=gcc \
             ./configure \
-              --host=s390x-linux-gnu \
               --enable-hdf5 \
               --disable-dap \
               --disable-dap-remote-tests \
