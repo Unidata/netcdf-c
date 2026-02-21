@@ -61,6 +61,7 @@ jobs:
             autoreconf -if
 
             ./configure \
+              --host=s390x-linux-gnu \
               --enable-hdf5 \
               --enable-dap \
               --disable-dap-remote-tests \
