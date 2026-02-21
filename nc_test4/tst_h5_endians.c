@@ -38,37 +38,6 @@
 #define LE_DBL_VARNAME "dbl_le"
 #define BE_DBL_VARNAME "dbl_be"
 
-#if defined BE_DEBUG || defined TESTNCZARR
-static float
-f32swap(float x)
-{
-  union {
-    unsigned char bytes[4];
-    float f;
-  } u;
-  unsigned char c;
-  u.f = x;
-  c = u.bytes[0]; u.bytes[0] = u.bytes[3]; u.bytes[3] = c;
-  c = u.bytes[1]; u.bytes[1] = u.bytes[2]; u.bytes[2] = c;  
-  return u.f;
-}
-
-static double
-f64swap(double x)
-{
-  union {
-    unsigned char bytes[8];
-    double d;
-  } u;
-  unsigned char c;
-  u.d = x;
-  c = u.bytes[0]; u.bytes[0] = u.bytes[7]; u.bytes[7] = c;
-  c = u.bytes[1]; u.bytes[1] = u.bytes[6]; u.bytes[6] = c;
-  c = u.bytes[2]; u.bytes[2] = u.bytes[5]; u.bytes[5] = c;
-  c = u.bytes[3]; u.bytes[3] = u.bytes[4]; u.bytes[4] = c;  
-  return u.d;
-}
-#endif
 
 int main() {
 
@@ -242,10 +211,8 @@ int main() {
         float fdata_le_out[NDIM];
 	double ddata_le_out[NDIM];
         int idata_be_out[NDIM];
-#if defined BE_DEBUG || defined TESTNCZARR
         float fdata_be_out[NDIM];
-	double ddata_be_out[NDIM];
-#endif
+        double ddata_be_out[NDIM];
 
 	/* Setup data in/out */
 	for(i=0;i<NDIM;i++) {
@@ -256,10 +223,8 @@ int main() {
     	    fdata_le_out[i] = 0.0f;
 	    ddata_le_out[i] = 0.0;
 	    idata_be_out[i] = 0;
-#if defined BE_DEBUG || defined TESTNCZARR
 	    fdata_be_out[i] = 0.0f;
 	    ddata_be_out[i] = 0.0;
-#endif
 	}
 
         printf("\tLittle-Endian Float...\t");
@@ -270,24 +235,13 @@ int main() {
 	for(failed=0,i=0;i<NDIM;i++) {if(fdata_in[i] != fdata_le_out[i]) {printf("failed\n"); failures++; failed++; break;}}
 	if(!failed) printf("passed\n");
 
-#if defined BE_DEBUG || defined TESTNCZARR
-        /* There appears to be a bug in the handling of big-endian floats and doubles */
         printf("\tBig-Endian Float...\t");
         if ((retval = nc_put_var(ncid,be_float_varid,fdata_in)))
             return retval;
         if ((retval = nc_get_var(ncid,be_float_varid,fdata_be_out)))
             return retval;
-	for(i=0;i<NDIM;i++) {
-	    float f = f32swap(fdata_be_out[i]);
-	    fprintf(stderr,"[%d] %f\n",i,f);
-	}
-	for(failed=0,i=0;i<NDIM;i++) {
-	    if(fdata_in[i] != fdata_be_out[i]) {
-	        printf("failed\n"); failures++; failed++; break;
-	    }
-	}
+	for(failed=0,i=0;i<NDIM;i++) {if(fdata_in[i] != fdata_be_out[i]) {printf("failed\n"); failures++; failed++; break;}}
 	if(!failed) printf("passed\n");
-#endif
 
         printf("\tLittle-Endian Int...\t");
         if ((retval = nc_put_var(ncid,le_int_varid,idata_in)))
@@ -301,6 +255,7 @@ int main() {
         if ((retval = nc_put_var(ncid,be_int_varid,idata_in)))
             return retval;
         if ((retval = nc_get_var(ncid,be_int_varid,idata_be_out)))
+            return retval;
 	for(failed=0,i=0;i<NDIM;i++) {if(idata_in[i] != idata_be_out[i]) {printf("failed\n"); failures++; failed++; break;}}
 	if(!failed) printf("passed\n");
 
@@ -312,24 +267,143 @@ int main() {
 	for(failed=0,i=0;i<NDIM;i++) {if(ddata_in[i] != ddata_le_out[i]) {printf("failed\n"); failures++; failed++; break;}}
 	if(!failed) printf("passed\n");
 
-#if defined BE_DEBUG || defined TESTNCZARR
-        /* There appears to be a bug in the handling of big-endian floats and doubles */
         printf("\tBig-Endian Double...\t");
         if ((retval = nc_put_var(ncid,be_dbl_varid,ddata_in)))
             return retval;
         if ((retval = nc_get_var(ncid,be_dbl_varid,ddata_be_out)))
             return retval;
-	for(i=0;i<NDIM;i++) {
-	    double d = f64swap(ddata_be_out[i]);
-	    fprintf(stderr,"[%d] %lf\n",i,d);
-	}
 	for(failed=0,i=0;i<NDIM;i++) {if(ddata_in[i] != ddata_be_out[i]) {printf("failed\n"); failures++; failed++; break;}}
 	if(!failed) printf("passed\n");
-#endif
 
         if ((retval = nc_close(ncid)))
             return retval;
     }
+  }
+
+  /*
+   * 4. Regression test for GitHub issue #1802:
+   *    Create a file with a big-endian variable, close it WITHOUT writing data,
+   *    reopen it, write data, close, reopen read-only and verify the values.
+   *    On a little-endian host this exposed the H5Dwrite memory-type bug where
+   *    hdf_typeid (on-disk type) was used instead of native_hdf_typeid.
+   */
+  printf("** Regression test: write-after-close-reopen (issue #1802).\n");
+  {
+#define FILE_1802 "tst_h5_endians_1802.nc"
+#define DIM_1802 "x"
+#define DIM_LEN_1802 10
+    int i, failed;
+    int data_out[DIM_LEN_1802];
+    int data_in[DIM_LEN_1802];
+    float fdata_out[DIM_LEN_1802];
+    float fdata_in[DIM_LEN_1802];
+    double ddata_out[DIM_LEN_1802];
+    double ddata_in[DIM_LEN_1802];
+    int varid_be_int, varid_be_float, varid_be_dbl;
+    int varid_le_int, varid_le_float, varid_le_dbl;
+    int dim1802;
+
+    for (i = 0; i < DIM_LEN_1802; i++) {
+        data_out[i]  = i;
+        fdata_out[i] = (float)i;
+        ddata_out[i] = (double)i;
+        data_in[i]   = -1;
+        fdata_in[i]  = -1.0f;
+        ddata_in[i]  = -1.0;
+    }
+
+    /* Create file, define vars, close WITHOUT writing any data. */
+    if ((retval = nc_create(FILE_1802, NC_NETCDF4 | NC_CLOBBER, &ncid)))
+        return retval;
+    if ((retval = nc_def_dim(ncid, DIM_1802, DIM_LEN_1802, &dim1802)))
+        return retval;
+    if ((retval = nc_def_var(ncid, "be_int", NC_INT, 1, &dim1802, &varid_be_int)))
+        return retval;
+    if ((retval = nc_def_var_endian(ncid, varid_be_int, NC_ENDIAN_BIG)))
+        return retval;
+    if ((retval = nc_def_var(ncid, "be_float", NC_FLOAT, 1, &dim1802, &varid_be_float)))
+        return retval;
+    if ((retval = nc_def_var_endian(ncid, varid_be_float, NC_ENDIAN_BIG)))
+        return retval;
+    if ((retval = nc_def_var(ncid, "be_dbl", NC_DOUBLE, 1, &dim1802, &varid_be_dbl)))
+        return retval;
+    if ((retval = nc_def_var_endian(ncid, varid_be_dbl, NC_ENDIAN_BIG)))
+        return retval;
+    if ((retval = nc_def_var(ncid, "le_int", NC_INT, 1, &dim1802, &varid_le_int)))
+        return retval;
+    if ((retval = nc_def_var_endian(ncid, varid_le_int, NC_ENDIAN_LITTLE)))
+        return retval;
+    if ((retval = nc_def_var(ncid, "le_float", NC_FLOAT, 1, &dim1802, &varid_le_float)))
+        return retval;
+    if ((retval = nc_def_var_endian(ncid, varid_le_float, NC_ENDIAN_LITTLE)))
+        return retval;
+    if ((retval = nc_def_var(ncid, "le_dbl", NC_DOUBLE, 1, &dim1802, &varid_le_dbl)))
+        return retval;
+    if ((retval = nc_def_var_endian(ncid, varid_le_dbl, NC_ENDIAN_LITTLE)))
+        return retval;
+    if ((retval = nc_close(ncid)))
+        return retval;
+
+    /* Reopen, write data, close. */
+    if ((retval = nc_open(FILE_1802, NC_WRITE, &ncid)))
+        return retval;
+    if ((retval = nc_inq_varid(ncid, "be_int",   &varid_be_int)))   return retval;
+    if ((retval = nc_inq_varid(ncid, "be_float", &varid_be_float))) return retval;
+    if ((retval = nc_inq_varid(ncid, "be_dbl",   &varid_be_dbl)))   return retval;
+    if ((retval = nc_inq_varid(ncid, "le_int",   &varid_le_int)))   return retval;
+    if ((retval = nc_inq_varid(ncid, "le_float", &varid_le_float))) return retval;
+    if ((retval = nc_inq_varid(ncid, "le_dbl",   &varid_le_dbl)))   return retval;
+    if ((retval = nc_put_var_int(ncid,    varid_be_int,   data_out)))  return retval;
+    if ((retval = nc_put_var_float(ncid,  varid_be_float, fdata_out))) return retval;
+    if ((retval = nc_put_var_double(ncid, varid_be_dbl,   ddata_out))) return retval;
+    if ((retval = nc_put_var_int(ncid,    varid_le_int,   data_out)))  return retval;
+    if ((retval = nc_put_var_float(ncid,  varid_le_float, fdata_out))) return retval;
+    if ((retval = nc_put_var_double(ncid, varid_le_dbl,   ddata_out))) return retval;
+    if ((retval = nc_close(ncid)))
+        return retval;
+
+    /* Reopen read-only, verify all values round-tripped correctly. */
+    if ((retval = nc_open(FILE_1802, NC_NOWRITE, &ncid)))
+        return retval;
+    if ((retval = nc_inq_varid(ncid, "be_int",   &varid_be_int)))   return retval;
+    if ((retval = nc_inq_varid(ncid, "be_float", &varid_be_float))) return retval;
+    if ((retval = nc_inq_varid(ncid, "be_dbl",   &varid_be_dbl)))   return retval;
+    if ((retval = nc_inq_varid(ncid, "le_int",   &varid_le_int)))   return retval;
+    if ((retval = nc_inq_varid(ncid, "le_float", &varid_le_float))) return retval;
+    if ((retval = nc_inq_varid(ncid, "le_dbl",   &varid_le_dbl)))   return retval;
+
+    printf("\tBig-Endian Int (write-after-reopen)...\t");
+    if ((retval = nc_get_var_int(ncid, varid_be_int, data_in))) return retval;
+    for (failed=0,i=0;i<DIM_LEN_1802;i++) {if(data_out[i]!=data_in[i]){printf("failed\n");failures++;failed++;break;}}
+    if (!failed) printf("passed\n");
+
+    printf("\tBig-Endian Float (write-after-reopen)...\t");
+    if ((retval = nc_get_var_float(ncid, varid_be_float, fdata_in))) return retval;
+    for (failed=0,i=0;i<DIM_LEN_1802;i++) {if(fdata_out[i]!=fdata_in[i]){printf("failed\n");failures++;failed++;break;}}
+    if (!failed) printf("passed\n");
+
+    printf("\tBig-Endian Double (write-after-reopen)...\t");
+    if ((retval = nc_get_var_double(ncid, varid_be_dbl, ddata_in))) return retval;
+    for (failed=0,i=0;i<DIM_LEN_1802;i++) {if(ddata_out[i]!=ddata_in[i]){printf("failed\n");failures++;failed++;break;}}
+    if (!failed) printf("passed\n");
+
+    printf("\tLittle-Endian Int (write-after-reopen)...\t");
+    if ((retval = nc_get_var_int(ncid, varid_le_int, data_in))) return retval;
+    for (failed=0,i=0;i<DIM_LEN_1802;i++) {if(data_out[i]!=data_in[i]){printf("failed\n");failures++;failed++;break;}}
+    if (!failed) printf("passed\n");
+
+    printf("\tLittle-Endian Float (write-after-reopen)...\t");
+    if ((retval = nc_get_var_float(ncid, varid_le_float, fdata_in))) return retval;
+    for (failed=0,i=0;i<DIM_LEN_1802;i++) {if(fdata_out[i]!=fdata_in[i]){printf("failed\n");failures++;failed++;break;}}
+    if (!failed) printf("passed\n");
+
+    printf("\tLittle-Endian Double (write-after-reopen)...\t");
+    if ((retval = nc_get_var_double(ncid, varid_le_dbl, ddata_in))) return retval;
+    for (failed=0,i=0;i<DIM_LEN_1802;i++) {if(ddata_out[i]!=ddata_in[i]){printf("failed\n");failures++;failed++;break;}}
+    if (!failed) printf("passed\n");
+
+    if ((retval = nc_close(ncid)))
+        return retval;
   }
 
   printf("** Failures Returned: [%d]\n",failures);
