@@ -127,7 +127,7 @@ jobs:
               --disable-libxml2 \
               --disable-shared \
               --enable-static \
-              --disable-utilities \
+              --enable-utilities \
               || { tail -200 config.log; exit 1; }
 
             cat libnetcdf.settings
