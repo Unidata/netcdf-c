@@ -30,7 +30,7 @@ check_PROGRAMS += test_parse test_meta test_data
 
 noinst_PROGRAMS =
 
-TESTS += test_parse.sh test_meta.sh test_data.sh test_raw.sh 
+TESTS += test_parse.sh test_meta.sh test_data.sh test_raw.sh
 
 # Note test_curlopt.sh is intended to be run manually; see comments in file.
 

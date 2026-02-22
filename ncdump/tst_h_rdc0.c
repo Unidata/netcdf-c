@@ -21,7 +21,7 @@ int
 main()
 {
    printf("\n*** Checking HDF5 file c0.nc.\n");
-   printf("*** Checking HDF5 objcts...");
+   printf("*** Checking HDF5 objects...");
    {
       hid_t fileid, grpid;
       hsize_t num_obj, i;

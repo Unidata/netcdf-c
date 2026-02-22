@@ -449,7 +449,7 @@ EXTERNL OCerror oc_data_readscalar(OClink, OCdatanode, size_t, void*);
 */
 EXTERNL OCerror oc_data_readn(OClink, OCdatanode, const size_t*, size_t, size_t, void*);
 
-/* Return the indices for this datas; Assumes the data
+/* Return the indices for this data; Assumes the data
    was obtained using oc_data_ithelement or oc_data_ithrecord;
    if not, then an error is returned.
 */

@@ -16,6 +16,8 @@
  * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 #include "config.h"
+#include <stdarg.h>
+#include <stddef.h>
 #include "netcdf.h"
 #include "netcdf_filter.h"
 #include "netcdf_meta.h"
@@ -23,9 +25,8 @@
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
-#include <stdarg.h>
-#include <stddef.h>
 #include "ncrc.h"
+#include "nc4internal.h"
 
 /** @internal Number of reserved attributes. These attributes are
  * hidden from the netcdf user, but exist in the implementation
@@ -262,7 +263,7 @@ nc4_file_change_ncid(int ncid, unsigned short new_ncid_index)
     if ((ret = NC_check_id(ncid, &nc)))
         return ret;
 
-    /* Move it in the list. It will faile if list spot is already
+    /* Move it in the list. It will fail if list spot is already
      * occupied. */
     LOG((3, "moving nc->ext_ncid %d nc->ext_ncid >> ID_SHIFT %d",
          nc->ext_ncid, nc->ext_ncid >> ID_SHIFT));
@@ -754,6 +755,8 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
         return NC_ENOMEM;
     new_var->hdr.sort = NCVAR;
     new_var->container = grp;
+
+    memset(&new_var->chunkcache,0,sizeof(struct ChunkCache));
 
     /* These are the HDF5-1.8.4 defaults. */
     new_var->chunkcache.size = gs->chunkcache.size;
@@ -1400,6 +1403,8 @@ var_free(NC_VAR_INFO_T *var)
     if (var->dim)
         free(var->dim);
 
+    memset(&var->chunkcache,0,sizeof(struct ChunkCache));
+
     /* Delete any fill value allocation. */
     if (var->fill_value) {
 	int tid = var->type_info->hdr.id;
@@ -1665,7 +1670,7 @@ nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
     assert(h5);
 
     /* Order is important here. We must delete the attribute contents
-       before deleteing any metadata because nc_reclaim_data depends
+       before deleting any metadata because nc_reclaim_data depends
        on the existence of the type info.
     */
 

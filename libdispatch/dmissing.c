@@ -43,6 +43,20 @@ strdup(const char* s)
 }
 #endif
 
+#ifndef HAVE_STRNDUP
+char*
+strndup(const char* s, size_t len)
+{
+    char* dup;
+    if(s == NULL) return NULL;
+    dup = (char*)malloc(len+1);
+    if(dup == NULL) return NULL;
+    memcpy((void*)dup,s,len);
+    dup[len] = '\0';
+    return dup;
+}
+#endif
+
 #if !defined(_MSC_VER) && !defined(WIN32)
 
 #ifndef HAVE_STRLCAT
@@ -160,3 +174,31 @@ NC_strcasestr(const char *s, const char *find)
     return ((char *)s);
 }
 #endif
+
+#ifndef HAVE_MEMMOVE
+/**
+Define an implementation of memmove
+in the event that it is not available.
+@param dst target of the move
+@param src source of the move
+@param count number of bytes to move.
+Note: dst and src can overlap
+*/
+void*
+memmove(void *dst, const void *src, size_t count)
+{
+    char *d = dst;
+    const char *s = src;
+
+    if (d < s) {
+        while (count--) {*d++ = *s++;}
+    } else {
+        d += count; /* Point to one past the end of destination */
+        s += count; /* Point to one past the end of source */
+        while (count--) {*(--d) = *(--s);} /* Decrement pointers and copy */
+    }
+    return dst;
+}
+
+#endif /*HAVE_MEMMOVE*/
+

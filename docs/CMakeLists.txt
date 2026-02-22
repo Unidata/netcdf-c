@@ -89,7 +89,7 @@ ENDIF(NETCDF_ENABLE_DOXYGEN)
 # Should match list in Makefile.am
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST}
 netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html
-mainpage.dox tutorial.dox guide.dox types.dox
+mainpage.md tutorial.dox guide.dox types.dox
 architecture.dox internal.dox windows-binaries.md
 building-with-cmake.md CMakeLists.txt groups.dox install.md notes.md
 install-fortran.md credits.md auth.md

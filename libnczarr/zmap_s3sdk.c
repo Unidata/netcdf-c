@@ -30,7 +30,7 @@ all keys are assumed to exist, but may have no content.
 
 Notes:
 1. Our canonical URLs use path style rather than virtual-host, although
-   virtual-host URLs will be accepted anc converted to path-style.
+   virtual-host URLs will be accepted and converted to path-style.
 */
 
 #undef DEBUG
@@ -225,15 +225,6 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
         stat = NC_ES3; goto done;
     }
 
-    /* Search the root for content */
-    content = nclistnew();
-    if((stat = NC_s3sdklist(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
-	goto done;
-    if(nkeys == 0) {
-	/* dataset does not actually exist; we choose to return ENOOBJECT instead of EEMPTY */
-	stat = NC_ENOOBJECT;
-	goto done;
-    }
     if(mapp) *mapp = (NCZMAP*)z3map;    
 
 done:

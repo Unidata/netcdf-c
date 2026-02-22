@@ -128,7 +128,7 @@ NCZ_bzip2_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
         {stat = NC_EFILTER; goto done;}
 
     level = params[0];
-    snprintf(json,sizeof(json),"{\"id\": \"%s\", \"level\": \"%u\"}",NCZ_bzip2_codec.codecid,level);
+    snprintf(json,sizeof(json),"{\"id\": \"%s\", \"level\": %u}",NCZ_bzip2_codec.codecid,level);
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }
@@ -206,7 +206,7 @@ NCZ_zstd_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
         {stat = NC_EFILTER; goto done;}
 
     level = params[0];
-    snprintf(json,sizeof(json),"{\"id\": \"%s\", \"level\": \"%u\"}",NCZ_zstd_codec.codecid,level);
+    snprintf(json,sizeof(json),"{\"id\": \"%s\", \"level\": %u}",NCZ_zstd_codec.codecid,level);
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }

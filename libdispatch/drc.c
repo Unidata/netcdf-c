@@ -53,7 +53,7 @@ static int rcsearch(const char* prefix, const char* rcname, char** pathp);
 static void rcfreeentries(NClist* rc);
 static void rcfreeentry(NCRCentry* t);
 #ifdef DRCDEBUG
-static void storedump(char* msg, NClist* entrys);
+static void storedump(char* msg, NClist* entries);
 #endif
 
 /* Define default rc files and aliases, also defines load order*/
@@ -144,7 +144,7 @@ ncrc_initialize(void)
     {
     int stat = NC_NOERR;
     NCglobalstate* ncg = NC_getglobalstate();
-    /* Load entrys */
+    /* Load entries */
     if((stat = NC_rcload())) {
         nclog(NCLOGWARN,".rc loading failed");
     }

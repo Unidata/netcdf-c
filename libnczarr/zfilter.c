@@ -191,7 +191,7 @@ static int paramclone(size_t nparams, unsigned** dstp, const unsigned* src);
  * Internal netcdf nczarr filter functions.
  *
  * This file contains functions internal to the libnczarr library.
- * None of the functions in this file are exposed in the exernal API. These
+ * None of the functions in this file are exposed in the external API. These
  * functions all relate to the manipulation of netcdf-4's var->filters list.
  *
  * @author Dennis Heimbigner
@@ -702,7 +702,13 @@ NCZ_applyfilterchain(const NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NClist* cha
     for(i=0;i<nclistlength(chain);i++) {
 	struct NCZ_Filter* f = (struct NCZ_Filter*)nclistget(chain,i);
 	assert(f != NULL);
-	if(FILTERINCOMPLETE(f)) {stat = THROW(NC_ENOFILTER); goto done;}
+	if(FILTERINCOMPLETE(f)) {
+        char * pluginpaths = NULL;
+        NC_joinwith(NC_getglobalstate()->pluginpaths, ":", NULL, NULL, &pluginpaths);
+        nclog(NCLOGERR, "Variable '%s' has unsupported codec: (%s). Not found in %s", var->hdr.name, f->codec.id, pluginpaths ? pluginpaths : "");
+        stat = THROW(NC_ENOFILTER);
+        goto done;
+    }
 	assert(f->hdf5.id > 0 && f->plugin != NULL);
 	if(!(f->flags & FLAG_WORKING)) {/* working not yet available */
 	    if((stat = ensure_working(var,f))) goto done;

@@ -193,6 +193,7 @@ IF(NETCDF_ENABLE_TESTS)
     add_sh_test(nczarr_test run_scalar)
     add_sh_test(nczarr_test run_nulls)
     add_sh_test(nczarr_test run_external)
+    add_sh_test(nczarr_test run_s3_credentials)
     add_sh_test(nczarr_test run_quantize)
     add_sh_test(nczarr_test run_notzarr)
 
@@ -210,6 +211,7 @@ IF(NETCDF_ENABLE_TESTS)
 
   IF(NETCDF_ENABLE_NCZARR_FILTERS)
   IF(NETCDF_ENABLE_FILTER_TESTING)
+	  add_sh_test(nczarr_test run_filter_errors)
 	  build_bin_test(test_nczfilter)
   	  build_bin_test(test_filter_vlen)
 	  build_bin_test(testfilter)
@@ -233,9 +235,13 @@ IF(NETCDF_ENABLE_TESTS)
 
   if(NETCDF_ENABLE_NCZARR_ZIP)
       add_sh_test(nczarr_test run_newformat)
-      # Test various corrupted files
-      ADD_SH_TEST(nczarr_test run_corrupt)
   endif()
+
+  # Test various corrupted files
+  ADD_SH_TEST(nczarr_test run_corrupt)
+
+  # Test xarray support
+  ADD_SH_TEST(nczarr_test run_xarray_misc)
 
   IF(FALSE) # Obsolete tests
       add_sh_test(nczarr_test run_ut_chunk)

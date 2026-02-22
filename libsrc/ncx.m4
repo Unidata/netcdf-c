@@ -305,14 +305,16 @@ swapn2b(void *dst, const void *src, IntType nn)
 {
     /* it is OK if dst == src */
     IntType i;
-    uint16_t *op = (uint16_t*) dst;
-    uint16_t *ip = (uint16_t*) src;
+    char *op = (char*) dst;
+    char *ip = (char*) src;
     uint16_t tmp;
     for (i=0; i<nn; i++) {
         /* memcpy is used to handle the case of unaligned memory */
-        memcpy(&tmp, &ip[i], sizeof(tmp));
+        memcpy(&tmp, ip, sizeof(tmp));
         tmp = SWAP2(tmp);
-        memcpy(&op[i], &tmp, sizeof(tmp));
+        memcpy(op, &tmp, sizeof(tmp));
+        ip += sizeof(uint16_t);
+        op += sizeof(uint16_t);
     }
 }
 
@@ -332,14 +334,16 @@ inline static void
 swapn4b(void *dst, const void *src, IntType nn)
 {
     IntType i;
-    uint32_t *op = (uint32_t*) dst;
-    uint32_t *ip = (uint32_t*) src;
+    char *op = (char*) dst;
+    char *ip = (char*) src;
     uint32_t tmp;
     for (i=0; i<nn; i++) {
         /* memcpy is used to handle the case of unaligned memory */
-        memcpy(&tmp, &ip[i], sizeof(tmp));
+        memcpy(&tmp, ip, sizeof(tmp));
         tmp = SWAP4(tmp);
-        memcpy(&op[i], &tmp, sizeof(tmp));
+        memcpy(op, &tmp, sizeof(tmp));
+        ip += sizeof(uint32_t);
+        op += sizeof(uint32_t);
     }
 }
 
@@ -360,14 +364,16 @@ inline static void
 swapn8b(void *dst, const void *src, IntType nn)
 {
     IntType i;
-    uint64_t *op = (uint64_t*) dst;
-    uint64_t *ip = (uint64_t*) src;
+    char *op = (char*) dst;
+    char *ip = (char*) src;
     uint64_t tmp;
     for (i=0; i<nn; i++) {
         /* memcpy is used to handle the case of unaligned memory */
-        memcpy(&tmp, &ip[i], sizeof(tmp));
+        memcpy(&tmp, ip, sizeof(tmp));
         tmp = SWAP8(tmp);
-        memcpy(&op[i], &tmp, sizeof(tmp));
+        memcpy(op, &tmp, sizeof(tmp));
+        ip += sizeof(uint64_t);
+        op += sizeof(uint64_t);
     }
 }
 # endif /* !vax */
@@ -415,7 +421,7 @@ define(`GETF_CheckBND',
 	*ip = ($1)xx;')dnl
 
 dnl
-dnl For GET APIs boudnary check for when $1 is either 'longlong' or 'ulonglong'
+dnl For GET APIs boundary check for when $1 is either 'longlong' or 'ulonglong'
 dnl
 define(`GETF_CheckBND2',
        `ifelse(index(`$1',`u'), 0,
@@ -915,10 +921,10 @@ get_ix_uint(const void *xp, ix_uint *ip)
 {
 	const uchar *cp = (const uchar *) xp;
 
-	*ip = (ix_uint)(*cp++ << 24);
-	*ip = (ix_uint)(*ip | (ix_uint)(*cp++ << 16));
-	*ip = (ix_uint)(*ip | (ix_uint)(*cp++ << 8));
-	*ip = (ix_uint)(*ip | *cp);
+	*ip =       (ix_uint)(*cp++) << 24;
+	*ip = *ip | (ix_uint)(*cp++) << 16;
+	*ip = *ip | (ix_uint)(*cp++) << 8;
+	*ip = *ip | (ix_uint)(*cp);
 }
 
 static void
@@ -1865,14 +1871,14 @@ get_ix_int64(const void *xp, ix_int64 *ip)
 {
     const uchar *cp = (const uchar *) xp;
 
-    *ip  = ((ix_int64)(*cp++) << 56);
-    *ip |= ((ix_int64)(*cp++) << 48);
-    *ip |= ((ix_int64)(*cp++) << 40);
-    *ip |= ((ix_int64)(*cp++) << 32);
-    *ip |= ((ix_int64)(*cp++) << 24);
-    *ip |= ((ix_int64)(*cp++) << 16);
-    *ip |= ((ix_int64)(*cp++) <<  8);
-    *ip |=  (ix_int64)*cp;
+    *ip  = (ix_int64)((uint64_t)(*cp++) << 56);
+    *ip |= (ix_int64)((uint64_t)(*cp++) << 48);
+    *ip |= (ix_int64)((uint64_t)(*cp++) << 40);
+    *ip |= (ix_int64)((uint64_t)(*cp++) << 32);
+    *ip |= (ix_int64)((uint64_t)(*cp++) << 24);
+    *ip |= (ix_int64)((uint64_t)(*cp++) << 16);
+    *ip |= (ix_int64)((uint64_t)(*cp++) <<  8);
+    *ip |= (ix_int64)*cp;
 }
 
 static void
