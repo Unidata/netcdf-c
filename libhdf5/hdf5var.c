@@ -1993,8 +1993,14 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 BAIL(NC_ENOMEM);
     }
     else
+    {
+        /* No type conversion needed: read directly into the caller's
+         * buffer. Guard against a NULL data pointer (issue #2668). */
+        if (!data)
+            BAIL(NC_EINVAL);
         if (!bufr)
             bufr = data;
+    }
 
     /* Check dimension bounds. Remember that unlimited dimensions can
      * get data beyond the length of the dataset, but within the
