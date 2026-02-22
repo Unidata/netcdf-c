@@ -25,11 +25,13 @@ IF(TEST_PARALLEL4)
   add_sh_test(h5_test run_par_tests)
 ENDIF()
 
-# If zstd is enabled, run a test for it.
+# If zstd is enabled and utilities are built, run a test for it.
 if(NETCDF_ENABLE_PLUGINS)
   if(NETCDF_ENABLE_FILTER_ZSTD)
-    build_bin_test(tst_h_zstd)
-    add_sh_test(h5_test run_h5_zstd_tests)    
+    if(NETCDF_BUILD_UTILITIES)
+      build_bin_test(tst_h_zstd)
+      add_sh_test(h5_test run_h5_zstd_tests)
+    endif()
   endif()
 endif()
 
