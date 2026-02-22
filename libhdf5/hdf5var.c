@@ -2032,7 +2032,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 if (start[d2] >= (hssize_t)fdims[d2])
                     fill_value_size[d2] = count[d2];
                 else if (endindex >= fdims[d2])
-                    fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2])/stride[d2]);
+                    fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2] + stride[d2] - 1)/stride[d2]);
                 else
                     fill_value_size[d2] = 0;
                 count[d2] -= fill_value_size[d2];

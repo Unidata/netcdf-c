@@ -15,20 +15,19 @@ See \ref copyright file for more info.
   of doing performance test on the
   new NC4_get/put_vars functions.
 
-  WARNING: do not attempt to run this
-  under windows because of the use
-  of gettimeofday().
-
-  WARNING: This test can only be run manually
-  and should not be run as part of the testsuite.
-
+  The performance timing portion requires gettimeofday() and is
+  skipped on platforms that lack sys/time.h (e.g. Windows MSVC).
+  The correctness tests (including the issue #1380 regression test)
+  always run.
 */
 
 #include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 #include "netcdf.h"
 #include "nc4dispatch.h"
 #include "err_macros.h"
@@ -42,6 +41,7 @@ See \ref copyright file for more info.
 #define DIMSIZE1 512
 #define TOTALSIZE (DIMSIZE0*DIMSIZE1)
 
+#ifdef HAVE_SYS_TIME_H
 static int data[TOTALSIZE];
 static int read[TOTALSIZE];
 
@@ -145,6 +145,7 @@ readfile(int default_vars)
    delta = endt - startt;
    return delta;
 }
+#endif /* HAVE_SYS_TIME_H */
 
 
 /*
@@ -159,7 +160,7 @@ readfile(int default_vars)
 int
 test_unlim_stride(void)
 {
-    int ncid, varid, dimid[2];
+    int ncid, varid1, varid2, dimid[2];
     size_t start[2], count[2];
     ptrdiff_t stride[2];
     int data[55];
@@ -173,25 +174,22 @@ test_unlim_stride(void)
     if (nc_create(filename, NC_NETCDF4, &ncid)) ERR;
     if (nc_def_dim(ncid, "time", NC_UNLIMITED, &dimid[0])) ERR;
     if (nc_def_dim(ncid, "x", 10, &dimid[1])) ERR;
-    if (nc_def_var(ncid, "temperature", NC_INT, 2, dimid, &varid)) ERR;
+    if (nc_def_var(ncid, "temperature", NC_INT, 2, dimid, &varid1)) ERR;
+    if (nc_def_var(ncid, "pressure", NC_INT, 2, dimid, &varid2)) ERR;
     if (nc_enddef(ncid)) ERR;
 
-    /* Write 50 records (dataset size = 50, unlimited dim = 50) */
+    /* Write 50 records to var1 (dataset size = 50, unlimited dim = 50) */
     for (i = 0; i < 50; i++)
         data[i] = i + 1;
     start[0] = 0;
     start[1] = 0;
     count[0] = 50;
     count[1] = 1;
-    if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+    if (nc_put_vara_int(ncid, varid1, start, count, data)) ERR;
     
-    /* Now write at position 54 - this extends unlimited dim to 55.
-     * HDF5 dataset extends to 55 with fill values at 50-53 and 0 at 54.
-     * So fdims = 55, ulen = 55. No gap.
-     * 
-     * To trigger bug #1380, we need fdims < ulen.
-     * This can happen if unlimited dim is extended without HDF5 dataset extension.
-     * Let's verify current state first. */
+    /* Now write at position 54 of var2 - this extends unlimited dim to 55.
+     * var2 HDF5 dataset extends to 55, but var1 HDF5 dataset stays at 50.
+     * So for var1: fdims = 50, ulen = 55. This triggers bug #1380! */
     {
         int extra = 100;  /* Use distinct value */
         size_t len;
@@ -204,7 +202,7 @@ test_unlim_stride(void)
         start[1] = 0;
         count[0] = 1;
         count[1] = 1;
-        if (nc_put_vara_int(ncid, varid, start, count, &extra)) ERR;
+        if (nc_put_vara_int(ncid, varid2, start, count, &extra)) ERR;
         
         /* Check unlimited dimension length after write */
         if (nc_inq_dim(ncid, dimid[0], NULL, &len)) ERR;
@@ -226,12 +224,12 @@ test_unlim_stride(void)
     /* Positions: 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54
      * Values at 0-49: indices 0-48 (17 positions) have valid data (values 1,4,7,...,49)
      * Position 51: we never wrote here, should be fill value
-     * Position 54: we wrote 0 here explicitly
+     * Position 54: we never wrote here for var1, should be fill value
      */
 
     memset(read, 0, sizeof(read));
     {
-        int retval = nc_get_vars_int(ncid, varid, start, count, stride, read);
+        int retval = nc_get_vars_int(ncid, varid1, start, count, stride, read);
         if (retval) {
             printf("ERROR: nc_get_vars_int returned %d\n", retval);
             ERR;
@@ -260,9 +258,9 @@ test_unlim_stride(void)
         printf("OK: position 51 correctly returned fill value\n");
     }
 
-    /* Verify position 54 (index 18) has the value we wrote (100) */
-    if (read[18] != 100) {
-        printf("ERROR: position 54 (index 18): expected 100, got %d\n", read[18]);
+    /* Verify position 54 (index 18) is fill value for var1 */
+    if (read[18] != NC_FILL_INT) {
+        printf("ERROR: position 54 (index 18): expected fill value %d, got %d\n", NC_FILL_INT, read[18]);
         return 1;
     }
 
@@ -277,19 +275,25 @@ test_unlim_stride(void)
 int
 main(int argc, char **argv)
 {
-    long long defaultdelta, nc4delta, factor;
-
     printf("testing speed of vars improvements...\n");
-    if (buildfile()) ERR;
-    if ((defaultdelta = readfile(1)) == -1)
-       return 1;
-    if ((nc4delta = readfile(0)) == -1)
-       return 1;
 
-    /* Print results to the millisec */
-    factor = defaultdelta / nc4delta;
-    printf("NCDEFAULT time=%lld NC4 time=%lld Speedup=%lld\n",
-           defaultdelta, nc4delta, factor);
+#ifdef HAVE_SYS_TIME_H
+    {
+        long long defaultdelta, nc4delta, factor;
+        if (buildfile()) ERR;
+        if ((defaultdelta = readfile(1)) == -1)
+            return 1;
+        if ((nc4delta = readfile(0)) == -1)
+            return 1;
+
+        /* Print results to the millisec */
+        factor = defaultdelta / nc4delta;
+        printf("NCDEFAULT time=%lld NC4 time=%lld Speedup=%lld\n",
+               defaultdelta, nc4delta, factor);
+    }
+#else
+    printf("Skipping performance timing (no sys/time.h on this platform).\n");
+#endif /* HAVE_SYS_TIME_H */
 
     /* Test for issue #1380 */
     if (test_unlim_stride()) ERR;

@@ -183,7 +183,7 @@ testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
 testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
 tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp                 \
 tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp tmp_*.cdl ref_fixedstring.h5 \
-zero-len-attribute-test.nc
+zero-len-attribute-test.nc tst_varsperf_bigvars.nc
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh run_par_warn_test.sh	
 
