@@ -11,7 +11,7 @@
 SET(srcdir ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Some extra tests
-SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
+SET(NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_vars tst_varms tst_unlim_vars tst_converts tst_converts2
   tst_grps tst_grps2 tst_compounds tst_compounds2 tst_compounds3
   tst_opaques tst_strings tst_strings2 tst_interops tst_interops4
@@ -23,7 +23,7 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
   tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_broken_files
-  tst_quantize tst_h_transient_types tst_chunk_cache)
+  tst_quantize tst_h_transient_types tst_chunk_cache tst_varsperf)
 
 IF(HAS_PAR_FILTERS)
 SET(NC4_tests $NC4_TESTS tst_alignment)
