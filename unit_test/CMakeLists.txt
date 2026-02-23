@@ -21,7 +21,9 @@ SET(UNIT_TESTS test_ncuri)
 add_bin_test(unit_test test_ncuri)
 
 add_executable(tst_hashmap tst_hashmap.c
-  ${CMAKE_SOURCE_DIR}/libdispatch/nchashmap.c)
+  ${CMAKE_SOURCE_DIR}/libdispatch/nchashmap.c
+  ${CMAKE_SOURCE_DIR}/libdispatch/dcrc64.c
+  ${CMAKE_SOURCE_DIR}/libdispatch/dcrc32.c)
 target_include_directories(tst_hashmap PRIVATE
   ${CMAKE_SOURCE_DIR}/include
   ${CMAKE_BINARY_DIR}/include)
