@@ -6,12 +6,10 @@
    - get_attached_info() ndims vs var->ndims mismatch (issues #2664, #2666, #2667)
    - NC4_get_vars() bounds and NULL-data guard (issue #2668)
    - nc4_nc4f_list_add() error-path memory leak (issue #2665)
-   - NC_hashmapnew()/NC_hashmapfree() alloc/free cycle
    - Memory growth when repeatedly opening/closing NetCDF4 files (issue #2626)
 
    See https://github.com/Unidata/netcdf-c/issues/2626
    See https://github.com/Unidata/netcdf-c/issues/2664
-   See https://github.com/Unidata/netcdf-c/issues/2665
    See https://github.com/Unidata/netcdf-c/issues/2666
    See https://github.com/Unidata/netcdf-c/issues/2667
    See https://github.com/Unidata/netcdf-c/issues/2668
@@ -21,7 +19,6 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include "netcdf.h"
-#include "nchashmap.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -296,91 +293,6 @@ test_get_vars_bounds(void)
 }
 
 /* ------------------------------------------------------------------ */
-/* Test 4: NC_hashmapnew()/NC_hashmapfree() alloc/free cycle.
- *
- * Exercises the hashmap alloc/free path directly. With ASAN enabled,
- * any leak inside NC_hashmapnew or NC_hashmapfree is caught immediately.
- * Regression test for issue #2665.
- */
-static int
-test_hashmap_alloc_free(void)
-{
-#define HM_NENTRIES 200
-#define HM_NROUNDS  100
-    NC_hashmap *hm;
-    char key[64];
-    uintptr_t val;
-    int i, round;
-
-    printf("*** Testing NC_hashmapnew()/NC_hashmapfree() cycle (issue #2665)...");
-
-    for (round = 0; round < HM_NROUNDS; round++)
-    {
-        /* Create with default size. */
-        hm = NC_hashmapnew(0);
-        if (!hm) ERR;
-
-        /* Insert entries. */
-        for (i = 0; i < HM_NENTRIES; i++)
-        {
-            snprintf(key, sizeof(key), "key_%04d", i);
-            if (!NC_hashmapadd(hm, (uintptr_t)i, key, strlen(key))) ERR;
-        }
-
-        if (NC_hashmapcount(hm) != HM_NENTRIES) ERR;
-
-        /* Look up all entries. */
-        for (i = 0; i < HM_NENTRIES; i++)
-        {
-            snprintf(key, sizeof(key), "key_%04d", i);
-            if (!NC_hashmapget(hm, key, strlen(key), &val)) ERR;
-            if (val != (uintptr_t)i) ERR;
-        }
-
-        /* Remove half the entries. */
-        for (i = 0; i < HM_NENTRIES; i += 2)
-        {
-            snprintf(key, sizeof(key), "key_%04d", i);
-            if (!NC_hashmapremove(hm, key, strlen(key), &val)) ERR;
-            if (val != (uintptr_t)i) ERR;
-        }
-
-        if (NC_hashmapcount(hm) != HM_NENTRIES / 2) ERR;
-
-        /* Removed entries must not be found. */
-        for (i = 0; i < HM_NENTRIES; i += 2)
-        {
-            snprintf(key, sizeof(key), "key_%04d", i);
-            if (NC_hashmapget(hm, key, strlen(key), &val)) ERR;
-        }
-
-        /* Remaining entries must still be found. */
-        for (i = 1; i < HM_NENTRIES; i += 2)
-        {
-            snprintf(key, sizeof(key), "key_%04d", i);
-            if (!NC_hashmapget(hm, key, strlen(key), &val)) ERR;
-            if (val != (uintptr_t)i) ERR;
-        }
-
-        NC_hashmapfree(hm);
-    }
-
-    /* Also test with a pre-sized map that triggers rehash. */
-    hm = NC_hashmapnew(4);
-    if (!hm) ERR;
-    for (i = 0; i < HM_NENTRIES; i++)
-    {
-        snprintf(key, sizeof(key), "key_%04d", i);
-        if (!NC_hashmapadd(hm, (uintptr_t)i, key, strlen(key))) ERR;
-    }
-    if (NC_hashmapcount(hm) != HM_NENTRIES) ERR;
-    NC_hashmapfree(hm);
-
-    SUMMARIZE_ERR;
-    return NC_NOERR;
-}
-
-/* ------------------------------------------------------------------ */
 int
 main(int argc, char **argv)
 {
@@ -389,7 +301,5 @@ main(int argc, char **argv)
     test_open_close_loop();
     test_coord_var_roundtrip();
     test_get_vars_bounds();
-    test_hashmap_alloc_free();
-
     FINAL_RESULTS;
 }

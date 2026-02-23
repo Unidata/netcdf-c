@@ -43,7 +43,7 @@ See \ref copyright file for more info.
 
 #ifdef HAVE_SYS_TIME_H
 static int data[TOTALSIZE];
-static int read[TOTALSIZE];
+static int data_in[TOTALSIZE];
 
 int
 buildfile(void)
@@ -112,13 +112,13 @@ readfile(int default_vars)
       stride[i] = 2;
    }
 
-   memset(read,0,sizeof(read));
+   memset(data_in,0,sizeof(data_in));
    gettimeofday(&starttime,NULL);
 
    if(default_vars) {
-      if(NCDEFAULT_get_vars(ncid,varid,start,count,stride,read,NC_INT)) ERR;
+      if(NCDEFAULT_get_vars(ncid,varid,start,count,stride,data_in,NC_INT)) ERR;
    } else {
-      if(NC4_get_vars(ncid,varid,start,count,stride,read,NC_INT)) ERR;
+      if(NC4_get_vars(ncid,varid,start,count,stride,data_in,NC_INT)) ERR;
    }
    gettimeofday(&endtime,NULL);
 
@@ -132,7 +132,7 @@ readfile(int default_vars)
          for(d1=0;d1<DIMSIZE1;d1+=stride[1]) {
             size_t dataindex = (d0 * DIMSIZE0) + d1;
             size_t readindex = i;
-            if (data[dataindex] != read[readindex])
+            if (data[dataindex] != data_in[readindex])
                return -1;
             i++;
          }
