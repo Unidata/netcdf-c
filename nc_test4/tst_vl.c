@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include "err_macros.h"
 #include "netcdf.h"
+#include "hdf5.h"
 
 #define FILE_NAME "tst_vl.nc"
 #define FILE_NAME2 "tst_vl_2.nc"
@@ -226,5 +227,75 @@ main(int argc, char **argv)
 	 if (nc_free_vlen(&data[i]) || nc_free_vlen(&data_in[i])) ERR;
    }
    SUMMARIZE_ERR;
+
+#if H5_VERSION_GE(1,14,6)
+   printf("*** Testing two NC_VLEN vars with unlimited dim at different offsets (issue #2181)...");
+   {
+#define FILE_2181 "tst_vl_2181.nc"
+#define VLEN_2181 "RAGGED_DOUBLE"
+#define DIM_X_NAME "xdim"
+#define DIM_Y_NAME "ydim"
+#define DIM_Y_LEN 10
+#define NDATA_2181 6
+      int ncid, varid1, varid2, dimid_x, dimid_y;
+      nc_type vlen_typeid;
+      int dims[2];
+      double vals[NDATA_2181][6] = {
+         {65,66,67,68,69,70}, {65,66,67,68,69,70},
+         {65,66,67,68,69,0},  {65,66,67,68,69,0},
+         {65,66,67,68,69,70}, {65,66,67,68,0,0}
+      };
+      int vlens[NDATA_2181] = {6, 6, 5, 5, 8, 4};
+      nc_vlen_t data[NDATA_2181];
+      size_t start1[2] = {0, 1};
+      size_t start2[2] = {0, 2};
+      size_t wcount[2] = {2, 3};
+      ptrdiff_t stride[2] = {1, 1};
+      size_t rstart[2] = {0, 0};
+      size_t rcount[2];
+      nc_vlen_t *data_read;
+      size_t num_items;
+      size_t k;
+
+      for (k = 0; k < NDATA_2181; k++)
+      {
+         data[k].p = vals[k];
+         data[k].len = (size_t)vlens[k];
+      }
+
+      /* Write two VLEN vars at different offsets on the unlimited dim. */
+      if (nc_create(FILE_2181, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_vlen(ncid, VLEN_2181, NC_DOUBLE, &vlen_typeid)) ERR;
+      if (nc_def_dim(ncid, DIM_X_NAME, NC_UNLIMITED, &dimid_x)) ERR;
+      if (nc_def_dim(ncid, DIM_Y_NAME, DIM_Y_LEN, &dimid_y)) ERR;
+      dims[0] = dimid_y;
+      dims[1] = dimid_x;
+      if (nc_def_var(ncid, "Var1", vlen_typeid, 2, dims, &varid1)) ERR;
+      if (nc_def_var(ncid, "Var2", vlen_typeid, 2, dims, &varid2)) ERR;
+      /* Var1 starts at unlimited offset 1, Var2 at offset 2. */
+      if (nc_put_vars(ncid, varid1, start1, wcount, stride, data)) ERR;
+      if (nc_put_vars(ncid, varid2, start2, wcount, stride, data)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Read back Var1 (the one with the smaller offset). On older HDF5
+       * this crashed with "free(): invalid pointer" (issue #2181). */
+      if (nc_open(FILE_2181, NC_NOWRITE, &ncid)) ERR;
+      if (nc_inq_varid(ncid, "Var1", &varid1)) ERR;
+
+      /* Var2 was written at offset 2 with count 3, so unlimited dim = 5. */
+      rcount[0] = DIM_Y_LEN;
+      rcount[1] = 5;
+      num_items = rcount[0] * rcount[1];
+      if (!(data_read = (nc_vlen_t *)calloc(num_items, sizeof(nc_vlen_t)))) ERR;
+
+      if (nc_get_vara(ncid, varid1, rstart, rcount, data_read)) ERR;
+
+      if (nc_free_vlens(num_items, data_read)) ERR;
+      free(data_read);
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+#endif /* H5_VERSION_GE(1,14,6) */
+
    FINAL_RESULTS;
 }

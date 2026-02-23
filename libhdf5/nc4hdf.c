@@ -863,14 +863,33 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                 if ((retval = nc4_get_hdf_typeid(grp->nc4_info, var->type_info->hdr.id, &fill_typeid,
                                                  NC_ENDIAN_NATIVE)))
                     BAIL(retval);
-                if (H5Pset_fill_value(plistid, fill_typeid, fillp) < 0)
+                /* For compound types with no user-set fill value whose
+                 * size meets or exceeds the HDF5 object header message
+                 * size limit, skip H5Pset_fill_value. H5Dcreate2 will
+                 * fail trying to write the fill value into the dataset
+                 * object header for types this large (issue #2738). The
+                 * netcdf-c default compound fill is all-zeros, identical
+                 * to HDF5's own default, so skipping is correct here.
+                 * The limit was determined empirically to be 65528 bytes. */
+#define NC_HDF5_COMPOUND_FILL_LIMIT 65528
+                if (var->type_info->nc_type_class == NC_COMPOUND &&
+                    !var->fill_value &&
+                    var->type_info->size >= NC_HDF5_COMPOUND_FILL_LIMIT)
                 {
                     if (H5Tclose(fill_typeid) < 0)
                         BAIL(NC_EHDFERR);
-                    BAIL(NC_EHDFERR);
                 }
-                if (H5Tclose(fill_typeid) < 0)
-                    BAIL(NC_EHDFERR);
+                else
+                {
+                    if (H5Pset_fill_value(plistid, fill_typeid, fillp) < 0)
+                    {
+                        if (H5Tclose(fill_typeid) < 0)
+                            BAIL(NC_EHDFERR);
+                        BAIL(NC_EHDFERR);
+                    }
+                    if (H5Tclose(fill_typeid) < 0)
+                        BAIL(NC_EHDFERR);
+                }
             }
         }
     }
