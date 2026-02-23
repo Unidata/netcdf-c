@@ -1995,8 +1995,9 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     else
     {
         /* No type conversion needed: read directly into the caller's
-         * buffer. Guard against a NULL data pointer (issue #2668). */
-        if (!data)
+         * buffer. Guard against a NULL data pointer (issue #2668), but
+         * only when there is actually data to read. */
+        if (!data && !no_read)
             BAIL(NC_EINVAL);
         if (!bufr)
             bufr = data;
