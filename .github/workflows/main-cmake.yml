@@ -154,13 +154,13 @@ jobs:
           run: |
             echo "Run ctest PATH: $PATH"
             cd build
-            PATH=~/tmp/bin:${CONDA_PREFIX}/Library/bin:$(pwd)/liblib/Release:$PATH ctest . -j 4 -E 'bom|filter_vlen' --output-on-failure
+            PATH=~/tmp/bin:${CONDA_PREFIX}/Library/bin:$(pwd)/liblib:$PATH ctest . -j 4 -E 'bom|filter_vlen' --output-on-failure
             
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
           run: |
             cd build
-            PATH=~/tmp/bin:${CONDA_PREFIX}/Library/bin:$(pwd)/liblib/Release:$PATH ctest . --rerun-failed --output-on-failure -VV
+            PATH=~/tmp/bin:${CONDA_PREFIX}/Library/bin:$(pwd)/liblib:$PATH ctest . --rerun-failed --output-on-failure -VV
           if: ${{ failure() }}
 
         - name: Debug - show effective PATH and DLL locations
@@ -178,8 +178,8 @@ jobs:
             echo "=== ~/tmp/bin contents ==="
             ls ~/tmp/bin 2>/dev/null || echo "(empty or missing)"
             echo ""
-            echo "=== build/liblib/Release contents ==="
-            ls build/liblib/Release 2>/dev/null || echo "(empty or missing)"
+            echo "=== build/liblib contents ==="
+            ls build/liblib 2>/dev/null || echo "(empty or missing)"
           if: always()
 
         - name: Debug - CTest last run log
