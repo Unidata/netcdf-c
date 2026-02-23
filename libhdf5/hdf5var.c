@@ -1561,6 +1561,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     int need_to_convert = 0;
     int zero_count = 0; /* true if a count is zero */
     size_t len = 1;
+    hsize_t old_fdims[NC_MAX_VAR_DIMS]; /* extent before any H5Dset_extent call */
 
     /* Find info for this file, group, and var. */
     if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
@@ -1617,6 +1618,11 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     /* Get the sizes of all the dims and put them in fdims. */
     if (H5Sget_simple_extent_dims(file_spaceid, fdims, fmaxdims) < 0)
         BAIL(NC_EHDFERR);
+
+    /* Save the current extents before any extension, so we can detect
+     * gaps for NC_STRING fill-value initialization (issue #734). */
+    for (d2 = 0; d2 < var->ndims; d2++)
+        old_fdims[d2] = fdims[d2];
 
 #ifdef LOGGING
     log_dim_info(var, fdims, fmaxdims, start, count);
@@ -1784,6 +1790,94 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 BAIL2(NC_EHDFERR);
             if ((file_spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
                 BAIL(NC_EHDFERR);
+
+            /* For NC_STRING variables, HDF5 does not initialize newly
+             * allocated vlen elements with valid pointers, so H5Dread
+             * on those elements fails (issue #734). Explicitly write
+             * the fill value to any gap between the old extent and the
+             * start of this write on the unlimited dimension. */
+            if (var->type_info->nc_type_class == NC_STRING)
+            {
+                for (d2 = 0; d2 < var->ndims; d2++)
+                {
+                    dim = var->dim[d2];
+                    assert(dim && dim->hdr.id == var->dimids[d2]);
+                    if (dim->unlimited && start[d2] > old_fdims[d2])
+                    {
+                        hsize_t gap_start[NC_MAX_VAR_DIMS];
+                        hsize_t gap_count[NC_MAX_VAR_DIMS];
+                        hsize_t gap_len;
+                        hid_t gap_fspaceid = 0, gap_mspaceid = 0;
+                        void *fillvalue = NULL;
+                        char **fillbuf = NULL;
+                        size_t k;
+
+                        /* Gap covers [old_fdims[d2], start[d2]) on the
+                         * unlimited dim; full extent on all other dims. */
+                        gap_len = 1;
+                        for (i = 0; i < var->ndims; i++)
+                        {
+                            if (i == d2)
+                            {
+                                gap_start[i] = old_fdims[d2];
+                                gap_count[i] = start[d2] - old_fdims[d2];
+                            }
+                            else
+                            {
+                                gap_start[i] = 0;
+                                gap_count[i] = fdims[i];
+                            }
+                            gap_len *= gap_count[i];
+                        }
+
+                        if (gap_len > 0)
+                        {
+                            /* Get the fill value (allocates memory). */
+                            if ((retval = nc4_get_fill_value(h5, var, &fillvalue)))
+                                BAIL(retval);
+
+                            /* Build a buffer of fill-value pointers. */
+                            if (!(fillbuf = (char **)malloc(gap_len * sizeof(char *))))
+                                BAIL(NC_ENOMEM);
+                            for (k = 0; k < gap_len; k++)
+                                fillbuf[k] = fillvalue ? *(char **)fillvalue : NULL;
+
+                            gap_fspaceid = H5Dget_space(hdf5_var->hdf_datasetid);
+                            if (gap_fspaceid < 0)
+                                { free(fillbuf); BAIL(NC_EHDFERR); }
+                            if (H5Sselect_hyperslab(gap_fspaceid, H5S_SELECT_SET,
+                                                    gap_start, NULL, ones, gap_count) < 0)
+                                { free(fillbuf); H5Sclose(gap_fspaceid); BAIL(NC_EHDFERR); }
+                            gap_mspaceid = H5Screate_simple((int)var->ndims, gap_count, NULL);
+                            if (gap_mspaceid < 0)
+                                { free(fillbuf); H5Sclose(gap_fspaceid); BAIL(NC_EHDFERR); }
+
+                            if (H5Dwrite(hdf5_var->hdf_datasetid,
+                                         ((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->native_hdf_typeid,
+                                         gap_mspaceid, gap_fspaceid,
+                                         xfer_plistid, fillbuf) < 0)
+                            {
+                                free(fillbuf);
+                                H5Sclose(gap_mspaceid);
+                                H5Sclose(gap_fspaceid);
+                                BAIL(NC_EHDFERR);
+                            }
+
+                            free(fillbuf);
+                            H5Sclose(gap_mspaceid);
+                            H5Sclose(gap_fspaceid);
+
+                            if (fillvalue)
+                            {
+                                if (*(char **)fillvalue)
+                                    free(*(char **)fillvalue);
+                                free(fillvalue);
+                            }
+                        }
+                        break; /* only one unlimited dim can have a gap */
+                    }
+                }
+            }
 
             if (stridep == NULL)
                 herr = H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,

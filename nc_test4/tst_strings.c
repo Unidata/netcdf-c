@@ -598,6 +598,27 @@ main(int argc, char **argv)
          if (nc_put_vara_string(ncid, varid, start, count, (const char **)string_data)) ERR;
       }
       if (nc_close(ncid)) ERR;
+
+      /* Read back the file and verify all elements (issue #734: reading
+       * uninitialized string elements from an unlimited-dim variable caused
+       * an HDF error in ncdump and nc_get_vara_string). */
+      {
+         size_t start[NUM_DIMS] = {0, 0};
+         size_t count[NUM_DIMS] = {2, DIM_1_LEN};
+         char *data_in[2 * DIM_1_LEN];
+
+         if (nc_open(FILE_NAME_NCDUMP, NC_NOWRITE, &ncid)) ERR;
+         if (nc_inq_varid(ncid, VAR_NAME_NCDUMP, &varid)) ERR;
+
+         /* This read used to fail with an HDF error (issue #734). */
+         if (nc_get_vara_string(ncid, varid, start, count, data_in)) ERR;
+
+         /* Element [1][0] was written; the rest should be fill values. */
+         if (strcmp(data_in[DIM_1_LEN], string_data[0])) ERR;
+
+         if (nc_free_string(2 * DIM_1_LEN, data_in)) ERR;
+         if (nc_close(ncid)) ERR;
+      }
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
