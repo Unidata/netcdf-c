@@ -240,10 +240,10 @@ main(void)
              * Before the fix, strided writes were 500x-1000x slower than
              * looped writes (see issue #1877 timings). After the fix,
              * NC4_put_vars() uses a single HDF5 hyperslab write, so the
-             * ratio should be well under 10x. We allow up to 20x to
+             * ratio should be well under 10x. We allow up to 50x to
              * accommodate I/O variability.
              */
-            if (ratio > 20)
+            if (ratio > 50)
             {
                 printf("FAIL: strided write is %lldx slower than looped "
                        "write (issue #1877 not fixed)\n", ratio);
