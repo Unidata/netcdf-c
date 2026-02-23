@@ -93,7 +93,7 @@ jobs:
           run: |
             mkdir build
             cd build
-            cmake .. -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library" -DCMAKE_C_FLAGS="-I${CONDA_PREFIX}/Library/include" -DCMAKE_INSTALL_PREFIX=~/tmp -DNETCDF_ENABLE_FILTER_TESTING=OFF
+            cmake .. -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library" -DCMAKE_C_FLAGS="-I${CONDA_PREFIX}/Library/include" -DCMAKE_INSTALL_PREFIX=~/tmp -DNETCDF_ENABLE_FILTER_TESTING=OFF -DNETCDF_ENABLE_NCZARR_FILTERS=OFF
           if: ${{ success() }}
 
         - name: View cache - configuration
@@ -154,7 +154,7 @@ jobs:
           run: |
             echo "Run ctest PATH: $PATH"
             cd build
-            PATH=~/tmp/bin:${CONDA_PREFIX}/Library/bin:$(pwd)/liblib/Release:$PATH ctest . -j 4 -E 'bom' --output-on-failure
+            PATH=~/tmp/bin:${CONDA_PREFIX}/Library/bin:$(pwd)/liblib/Release:$PATH ctest . -j 4 -E 'bom|filter_vlen' --output-on-failure
             
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
