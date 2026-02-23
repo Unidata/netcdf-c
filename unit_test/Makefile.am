@@ -69,7 +69,7 @@ EXTRA_DIST += run_auxmisc.sh
 EXTRA_DIST += nctest_netcdf4_classic.nc reclaim_tests.cdl
 EXTRA_DIST += ref_get.txt ref_set.txt
 EXTRA_DIST += ref_xget.txt ref_xset.txt
-EXTRA_DIST += ref_provparse.txt ref_purezarr.cdl ref_data.zarr
+EXTRA_DIST += ref_provparse.txt 
 EXTRA_DIST += reclaim_tests.baseline
 CLEANFILES = reclaim_tests*.txt reclaim_tests.nc reclaim_tests.dmp tmp_*.txt
 
