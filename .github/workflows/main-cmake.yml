@@ -153,14 +153,43 @@ jobs:
           shell: bash -el {0}
           run: |
             echo "Run ctest PATH: $PATH"
-            echo "Run ctest combined PATH: $PATH"
-            echo "Run ctest combined GITHUB_PATH: $PATH"
             cd build
-            PATH=~/tmp/bin:$PATH ctest . -j 4 -E 'bom' --output-on-failure
+            PATH=~/tmp/bin:${CONDA_PREFIX}/Library/bin:$(pwd)/liblib/Release:$PATH ctest . -j 4 -E 'bom' --output-on-failure
             
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
           run: |
             cd build
-            PATH=~/tmp/bin:$PATH ctest . --rerun-failed --output-on-failure -VV
-          if: ${{ failure() }}    
+            PATH=~/tmp/bin:${CONDA_PREFIX}/Library/bin:$(pwd)/liblib/Release:$PATH ctest . --rerun-failed --output-on-failure -VV
+          if: ${{ failure() }}
+
+        - name: Debug - show effective PATH and DLL locations
+          shell: bash -el {0}
+          run: |
+            echo "=== PATH ==="
+            echo "$PATH"
+            echo ""
+            echo "=== netcdf DLLs in build tree ==="
+            find build -name 'netcdf*.dll' 2>/dev/null || true
+            echo ""
+            echo "=== HDF5 DLLs in conda ==="
+            find "${CONDA_PREFIX}/Library/bin" -name 'hdf5*.dll' 2>/dev/null || true
+            echo ""
+            echo "=== ~/tmp/bin contents ==="
+            ls ~/tmp/bin 2>/dev/null || echo "(empty or missing)"
+            echo ""
+            echo "=== build/liblib/Release contents ==="
+            ls build/liblib/Release 2>/dev/null || echo "(empty or missing)"
+          if: always()
+
+        - name: Debug - CTest last run log
+          shell: bash -el {0}
+          run: |
+            LOG=build/Testing/Temporary/LastTest.log
+            if test -f "$LOG" ; then
+              echo "=== $LOG (last 200 lines) ==="
+              tail -200 "$LOG"
+            else
+              echo "No LastTest.log found"
+            fi
+          if: always()
