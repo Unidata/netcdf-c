@@ -210,7 +210,7 @@ EXTRA_DIST = CMakeLists.txt \
 run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh \
 run_purezarr.sh run_interop.sh run_misc.sh \
-run_filter.sh run_filter_errors.sh\
+run_filter.sh run_filter_errors.sh \
 run_newformat.sh run_nczarr_fill.sh run_quantize.sh \
 run_jsonconvention.sh run_nczfilter.sh run_unknown.sh \
 run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh run_external.sh \
@@ -238,18 +238,27 @@ ref_jsonconvention.cdl ref_jsonconvention.zmap \
 ref_string.cdl ref_string_nczarr.baseline ref_string_zarr.baseline ref_scalar.cdl ref_scalar_nczarr.cdl \
 ref_nulls_nczarr.baseline ref_nulls_zarr.baseline ref_nulls.cdl ref_notzarr.tar.gz \
 ref_oldkeys.cdl ref_oldkeys.file.zip ref_oldkeys.zmap ref_noshape.file.zip \
-ref_xarraygroup.cdl ref_xarrayanon.cdl
+ref_xarraygroup.cdl ref_xarrayanon.cdl ref_purezarr.cdl
 
 # Interoperability files from external sources
-EXTRA_DIST += ref_power_901_constants_orig.zip ref_power_901_constants.cdl ref_quotes_orig.zip ref_quotes.cdl \
-ref_zarr_test_data.cdl.gz ref_zarr_test_data_2d.cdl.gz
+EXTRA_DIST += ref_power_901_constants_orig.zip ref_power_901_constants.cdl \
+			  ref_quotes_orig.zip ref_quotes.cdl \
+			  ref_zarr_test_data.cdl.gz ref_zarr_test_data_2d.cdl.gz
+
+# Copy full directory tree for ref_data.zarr into the distribution tarball
+dist-hook:
+	chmod +w $(distdir)
+	rm -rf $(distdir)/ref_data.zarr
+	cp -R $(top_srcdir)/nczarr_test/ref_data.zarr $(distdir)/
+	
+
 
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp*.zmap tmp_ngc.c ref_zarr_test_data.cdl tst_*.nc.zip ref_quotes.zip ref_power_901_constants.zip
 
 BUILT_SOURCES = test_quantize.c test_filter_vlen.c test_unlim_vars.c test_endians.c \
                 test_put_vars_two_unlim_dim.c test_chunking.c \
                 run_unknown.sh run_specific_filters.sh run_filter_vlen.sh run_filterinstall.sh \
-		run_mud.sh run_nccopy5.sh run_filter_misc.sh
+				run_mud.sh run_nccopy5.sh run_filter_misc.sh
 
 test_quantize.c: $(top_srcdir)/nc_test4/tst_quantize.c
 	rm -f $@
@@ -356,6 +365,7 @@ check-local:
 endif
 
 DISTCLEANFILES = findplugin.sh ${BUILT_SOURCES}
+
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
