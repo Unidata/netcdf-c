@@ -17,11 +17,11 @@ fi
 export NCZARR_S3_TEST_URL="https://${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
 
 if test "x$VALGRIND" != x ; then
-    ZMD="valgrind --leak-check=full ${execdir}/zmapio"
-    S3UTIL="valgrind --leak-check=full ${execdir}/s3util"
+    ZMD="valgrind --leak-check=full ${execdir}/zmapio${ext}"
+    S3UTIL="valgrind --leak-check=full ${execdir}/s3util${ext}"
 else
-    ZMD="${execdir}/zmapio"
-    S3UTIL="${execdir}/s3util"
+    ZMD="${execdir}/zmapio${ext}"
+    S3UTIL="${execdir}/s3util${ext}"
 fi
 
 # Check settings
@@ -66,14 +66,14 @@ deletemap() {
     case "$1" in
     file) rm -fr $2;;
     zip) rm -f $2;;
-    s3) S3KEY=`${execdir}/zs3parse -k $2`; s3sdkdelete $S3KEY ;;
+    s3) S3KEY=`${execdir}/zs3parse${ext} -k $2`; s3sdkdelete $S3KEY ;;
     *) echo "unknown kind: $1" ; exit 1;;
     esac
 }
 
 mapstillexists() {
     mapstillexists=0
-    if "${execdir}/zmapio $fileurl" &> /dev/null ; then
+    if "${execdir}/zmapio${ext} $fileurl" &> /dev/null ; then
       echo "delete failed: $1"
       mapstillexists=1
     fi
@@ -88,9 +88,9 @@ fileargs() {
     S3PATH="${NCZARR_S3_TEST_URL}/${S3ISOPATH}"
     fileurl="${S3PATH}/${f}#${frag}"
     file=$fileurl
-    S3HOST=`${execdir}/zs3parse -h $S3PATH`
-    S3BUCKET=`${execdir}/zs3parse -b $S3PATH`
-    S3PREFIX=`${execdir}/zs3parse -k $S3PATH`
+    S3HOST=`${execdir}/zs3parse${ext} -h $S3PATH`
+    S3BUCKET=`${execdir}/zs3parse${ext} -b $S3PATH`
+    S3PREFIX=`${execdir}/zs3parse${ext} -k $S3PATH`
     ;;
   *)
     file="${f}.$zext"
@@ -103,7 +103,7 @@ dumpmap() {
     zext=$1
     zbase=`basename $2 ".$zext"`
     fileargs $zbase
-    ${execdir}/zmapio -t int -x objdump $fileurl > $3
+    ${execdir}/zmapio${ext} -t int -x objdump $fileurl > $3
 }
 
 # Function to remove selected -s attributes from file;
@@ -153,7 +153,7 @@ resetrc() {
 }
 
 s3sdkdelete() {
-if test -f ${execdir}/s3util ; then
+if test -f ${execdir}/s3util${ext} ; then
   ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
 elif which aws ; then
   aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
@@ -163,7 +163,7 @@ fi
 }
 
 s3sdkcleanup() {
-if test -f ${execdir}/s3util ; then
+if test -f ${execdir}/s3util${ext} ; then
   ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
 elif which aws ; then
   aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
