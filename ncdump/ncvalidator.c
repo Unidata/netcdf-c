@@ -2051,7 +2051,7 @@ val_NC_check_vlens(NC *ncp)
 static int
 val_NC_check_voff(NC *ncp)
 {
-    int nerrs=0, status=NC_NOERR;
+    int status=NC_NOERR;
     NC_var *varp;
     long long i, prev, prev_off;
 
@@ -2072,7 +2072,6 @@ val_NC_check_voff(NC *ncp)
                 else
                     printf("\tvar \"%s\" begin offset (%lld) is less than previous variable \"%s\" end offset (%lld)\n", varp->name, varp->begin, ncp->vars.value[prev]->name, prev_off);
             }
-            nerrs++;
             DEBUG_ASSIGN_ERROR(status, NC_ENOTNC)
         }
         prev_off = varp->begin + varp->len;
@@ -2082,7 +2081,6 @@ val_NC_check_voff(NC *ncp)
     if (ncp->begin_rec < prev_off) {
         if (verbose) printf("Error:\n");
         if (verbose) printf("\tRecord variable section begin offset (%lld) is less than fixed-size variable section end offset (%lld)\n", varp->begin, prev_off);
-        nerrs++;
         DEBUG_ASSIGN_ERROR(status, NC_ENOTNC)
     }
 
@@ -2101,15 +2099,12 @@ val_NC_check_voff(NC *ncp)
                 else
                     printf("Variable \"%s\" begin offset (%lld) is less than previous variable \"%s\" end offset (%lld)\n", varp->name, varp->begin, ncp->vars.value[prev]->name, prev_off);
             }
-            nerrs++;
             DEBUG_ASSIGN_ERROR(status, NC_ENOTNC)
         }
         prev_off = varp->begin + varp->len;
         prev = i;
     }
     
-    (void)nerrs;
-
     return status;
 }
 
