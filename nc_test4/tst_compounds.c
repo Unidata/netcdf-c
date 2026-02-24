@@ -964,6 +964,70 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("*** testing compound type with size >= 2^16 bytes (issue #2738)...");
+   {
+/* FILT_SIZE_OK is just below 2^16 bytes (8191 doubles = 65528 bytes).
+ * FILT_SIZE_BIG is exactly 2^16 bytes (8192 doubles = 65536 bytes).
+ * Both must work. */
+#define FILT_SIZE_OK 8191
+#define FILT_SIZE_BIG 8192
+      typedef struct filter_ok { double values[FILT_SIZE_OK]; } filter_ok_t;
+      typedef struct filter_big { double values[FILT_SIZE_BIG]; } filter_big_t;
+      int ncid, typeid_ok, typeid_big, varid_ok, varid_big, dimid;
+      int dimids[] = {0};
+      int nelts;
+      filter_ok_t *data_ok_out, *data_ok_in;
+      filter_big_t *data_big_out, *data_big_in;
+      int i;
+
+      if (!(data_ok_out = calloc(1, sizeof(filter_ok_t)))) ERR;
+      if (!(data_ok_in = calloc(1, sizeof(filter_ok_t)))) ERR;
+      if (!(data_big_out = calloc(1, sizeof(filter_big_t)))) ERR;
+      if (!(data_big_in = calloc(1, sizeof(filter_big_t)))) ERR;
+
+      for (i = 0; i < FILT_SIZE_OK; i++)
+         data_ok_out->values[i] = (double)i;
+      for (i = 0; i < FILT_SIZE_BIG; i++)
+         data_big_out->values[i] = (double)i;
+
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, "dim", 1, &dimid)) ERR;
+
+      /* Compound just below 2^16 bytes. */
+      if (nc_def_compound(ncid, sizeof(filter_ok_t), "filter_ok", &typeid_ok)) ERR;
+      nelts = FILT_SIZE_OK;
+      if (nc_insert_array_compound(ncid, typeid_ok, "values",
+                                   NC_COMPOUND_OFFSET(filter_ok_t, values),
+                                   NC_DOUBLE, 1, &nelts)) ERR;
+      if (nc_def_var(ncid, "var_ok", typeid_ok, 1, dimids, &varid_ok)) ERR;
+      if (nc_put_var(ncid, varid_ok, data_ok_out)) ERR;
+
+      /* Compound at exactly 2^16 bytes. */
+      if (nc_def_compound(ncid, sizeof(filter_big_t), "filter_big", &typeid_big)) ERR;
+      nelts = FILT_SIZE_BIG;
+      if (nc_insert_array_compound(ncid, typeid_big, "values",
+                                   NC_COMPOUND_OFFSET(filter_big_t, values),
+                                   NC_DOUBLE, 1, &nelts)) ERR;
+      if (nc_def_var(ncid, "var_big", typeid_big, 1, dimids, &varid_big)) ERR;
+      if (nc_put_var(ncid, varid_big, data_big_out)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Reopen and verify both variables. */
+      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+      if (nc_get_var(ncid, varid_ok, data_ok_in)) ERR;
+      for (i = 0; i < FILT_SIZE_OK; i++)
+         if (data_ok_in->values[i] != data_ok_out->values[i]) ERR;
+      if (nc_get_var(ncid, varid_big, data_big_in)) ERR;
+      for (i = 0; i < FILT_SIZE_BIG; i++)
+         if (data_big_in->values[i] != data_big_out->values[i]) ERR;
+      if (nc_close(ncid)) ERR;
+
+      free(data_ok_out);
+      free(data_ok_in);
+      free(data_big_out);
+      free(data_big_in);
+   }
+   SUMMARIZE_ERR;
    printf("*** testing with user-contributed code...");
    {
 #define DATA_LEN 1

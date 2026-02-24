@@ -10,6 +10,7 @@
 #include "config.h"
 #endif
 #include <stdint.h>
+#include "ncexternl.h"
 
 /*
 This hashmap is optimized to assume null-terminated strings as the
@@ -70,35 +71,35 @@ There are two "kinds" of functions:
 */
 
 /** Creates a new hashmap near the given size. */
-extern NC_hashmap* NC_hashmapnew(size_t startsize);
+EXTERNL NC_hashmap* NC_hashmapnew(size_t startsize);
 
 /** Inserts a new element into the hashmap; takes key+size */
 /* key points to size bytes to convert to hash key */
-extern int NC_hashmapadd(NC_hashmap*, uintptr_t data, const char* key, size_t keysize);
+EXTERNL int NC_hashmapadd(NC_hashmap*, uintptr_t data, const char* key, size_t keysize);
 
 /** Removes the storage for the element of the key; takes key+size.
     Return 1 if found, 0 otherwise; returns the data in datap if !null
 */
-extern int NC_hashmapremove(NC_hashmap*, const char* key, size_t keysize, uintptr_t* datap);
+EXTERNL int NC_hashmapremove(NC_hashmap*, const char* key, size_t keysize, uintptr_t* datap);
 
 /** Returns the data for the key; takes key+size.
     Return 1 if found, 0 otherwise; returns the data in datap if !null
 */
-extern int NC_hashmapget(NC_hashmap*, const char* key, size_t keysize, uintptr_t* datap);
+EXTERNL int NC_hashmapget(NC_hashmap*, const char* key, size_t keysize, uintptr_t* datap);
 
 /** Change the data for the specified key; takes hashkey.
     Return 1 if found, 0 otherwise
 */
-extern int NC_hashmapsetdata(NC_hashmap*, const char* key, size_t keylen, uintptr_t newdata);
+EXTERNL int NC_hashmapsetdata(NC_hashmap*, const char* key, size_t keylen, uintptr_t newdata);
 
 /** Returns the number of active elements. */
-extern size_t NC_hashmapcount(NC_hashmap*);
+EXTERNL size_t NC_hashmapcount(NC_hashmap*);
 
 /** Reclaims the hashmap structure. */
-extern int NC_hashmapfree(NC_hashmap*);
+EXTERNL int NC_hashmapfree(NC_hashmap*);
 
 /* Return the hash key for specified key; takes key+size*/
-extern nchashkey_t NC_hashmapkey(const char* key, size_t size);
+EXTERNL nchashkey_t NC_hashmapkey(const char* key, size_t size);
 
 /* Return the ith entry info:
 @param map
@@ -107,7 +108,7 @@ extern nchashkey_t NC_hashmapkey(const char* key, size_t size);
 @param keyp contains null if not active, otherwise the key
 @return NC_EINVAL if no more entries
 */
-extern int NC_hashmapith(NC_hashmap* map, size_t i, uintptr_t* datap, const char** keyp);
+EXTERNL int NC_hashmapith(NC_hashmap* map, size_t i, uintptr_t* datap, const char** keyp);
 
 #endif /*NCHASHMAP_H*/
 

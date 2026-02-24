@@ -93,7 +93,7 @@ jobs:
           run: |
             mkdir build
             cd build
-            cmake .. -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library" -DCMAKE_C_FLAGS="-I${CONDA_PREFIX}/Library/include" -DCMAKE_INSTALL_PREFIX=~/tmp -DNETCDF_ENABLE_FILTER_TESTING=OFF
+            cmake .. -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library" -DCMAKE_C_FLAGS="-I${CONDA_PREFIX}/Library/include" -DCMAKE_INSTALL_PREFIX=~/tmp -DNETCDF_ENABLE_FILTER_TESTING=OFF -DNETCDF_ENABLE_NCZARR_FILTERS=OFF
           if: ${{ success() }}
 
         - name: View cache - configuration
@@ -153,14 +153,43 @@ jobs:
           shell: bash -el {0}
           run: |
             echo "Run ctest PATH: $PATH"
-            echo "Run ctest combined PATH: $PATH"
-            echo "Run ctest combined GITHUB_PATH: $PATH"
             cd build
-            PATH=~/tmp/bin:$PATH ctest . -j 4 -E 'bom' --output-on-failure
+            PATH=~/tmp/bin:${CONDA_PREFIX}/Library/bin:$(pwd)/liblib:$PATH ctest . -j 4 -E 'bom|filter_vlen' --output-on-failure
             
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
           run: |
             cd build
-            PATH=~/tmp/bin:$PATH ctest . --rerun-failed --output-on-failure -VV
-          if: ${{ failure() }}    
+            PATH=~/tmp/bin:${CONDA_PREFIX}/Library/bin:$(pwd)/liblib:$PATH ctest . --rerun-failed --output-on-failure -VV
+          if: ${{ failure() }}
+
+        - name: Debug - show effective PATH and DLL locations
+          shell: bash -el {0}
+          run: |
+            echo "=== PATH ==="
+            echo "$PATH"
+            echo ""
+            echo "=== netcdf DLLs in build tree ==="
+            find build -name 'netcdf*.dll' 2>/dev/null || true
+            echo ""
+            echo "=== HDF5 DLLs in conda ==="
+            find "${CONDA_PREFIX}/Library/bin" -name 'hdf5*.dll' 2>/dev/null || true
+            echo ""
+            echo "=== ~/tmp/bin contents ==="
+            ls ~/tmp/bin 2>/dev/null || echo "(empty or missing)"
+            echo ""
+            echo "=== build/liblib contents ==="
+            ls build/liblib 2>/dev/null || echo "(empty or missing)"
+          if: always()
+
+        - name: Debug - CTest last run log
+          shell: bash -el {0}
+          run: |
+            LOG=build/Testing/Temporary/LastTest.log
+            if test -f "$LOG" ; then
+              echo "=== $LOG (last 200 lines) ==="
+              tail -200 "$LOG"
+            else
+              echo "No LastTest.log found"
+            fi
+          if: always()

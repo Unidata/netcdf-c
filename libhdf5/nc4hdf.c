@@ -863,14 +863,33 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                 if ((retval = nc4_get_hdf_typeid(grp->nc4_info, var->type_info->hdr.id, &fill_typeid,
                                                  NC_ENDIAN_NATIVE)))
                     BAIL(retval);
-                if (H5Pset_fill_value(plistid, fill_typeid, fillp) < 0)
+                /* For compound types with no user-set fill value whose
+                 * size meets or exceeds the HDF5 object header message
+                 * size limit, skip H5Pset_fill_value. H5Dcreate2 will
+                 * fail trying to write the fill value into the dataset
+                 * object header for types this large (issue #2738). The
+                 * netcdf-c default compound fill is all-zeros, identical
+                 * to HDF5's own default, so skipping is correct here.
+                 * The limit was determined empirically to be 65528 bytes. */
+#define NC_HDF5_COMPOUND_FILL_LIMIT 65528
+                if (var->type_info->nc_type_class == NC_COMPOUND &&
+                    !var->fill_value &&
+                    var->type_info->size >= NC_HDF5_COMPOUND_FILL_LIMIT)
                 {
                     if (H5Tclose(fill_typeid) < 0)
                         BAIL(NC_EHDFERR);
-                    BAIL(NC_EHDFERR);
                 }
-                if (H5Tclose(fill_typeid) < 0)
-                    BAIL(NC_EHDFERR);
+                else
+                {
+                    if (H5Pset_fill_value(plistid, fill_typeid, fillp) < 0)
+                    {
+                        if (H5Tclose(fill_typeid) < 0)
+                            BAIL(NC_EHDFERR);
+                        BAIL(NC_EHDFERR);
+                    }
+                    if (H5Tclose(fill_typeid) < 0)
+                        BAIL(NC_EHDFERR);
+                }
             }
         }
     }
@@ -1132,16 +1151,27 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
     /* If the chunk cache is too small, and the user has not changed
      * the default value of the chunk cache size, then increase the
-     * size of the cache. */
+     * size of the cache to hold DEFAULT_CHUNKS_IN_CACHE chunks.
+     *
+     * The original code checked (chunk_size_bytes > CHUNK_CACHE_SIZE)
+     * which only triggered when a single chunk exceeded the cache.
+     * This missed the case where the cache was too small to hold
+     * enough chunks for efficient access patterns, causing the
+     * 4.7.3->4.7.4 regression (see GitHub issue #1757). We now
+     * check whether the cache can hold DEFAULT_CHUNKS_IN_CACHE
+     * chunks. */
     if (var->chunkcache.size == CHUNK_CACHE_SIZE)
-        if (chunk_size_bytes > var->chunkcache.size)
+    {
+        size_t min_cache = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
+        if (min_cache > DEFAULT_CHUNK_CACHE_SIZE)
+            min_cache = DEFAULT_CHUNK_CACHE_SIZE;
+        if (var->chunkcache.size < min_cache)
         {
-            var->chunkcache.size = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
-            if (var->chunkcache.size > DEFAULT_CHUNK_CACHE_SIZE)
-                var->chunkcache.size = DEFAULT_CHUNK_CACHE_SIZE;
+            var->chunkcache.size = min_cache;
             if ((retval = nc4_reopen_dataset(grp, var)))
                 return retval;
         }
+    }
 
     return NC_NOERR;
 }
