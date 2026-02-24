@@ -1334,6 +1334,20 @@ AC_MSG_NOTICE([setting up libtool])
 LT_PREREQ([2.2])
 LT_INIT()
 
+# Determine the file extension that libtool produces for shared modules
+# built with -module (e.g. UDF plugins).  This is needed because
+# nc_test4/Makefile.am compiles the plugin path into the test binary
+# via -DTEST_PLUGIN_PATH="...".  Without the correct extension the
+# test fails at runtime when dlopen() cannot find the file.
+#   MinGW / Cygwin  ->  .dll
+#   Linux / macOS   ->  .so
+# Consumed in nc_test4/Makefile.am as @MODULE_EXT@.
+case $host_os in
+  mingw*|cygwin*) MODULE_EXT=".dll" ;;
+  *)              MODULE_EXT=".so" ;;
+esac
+AC_SUBST([MODULE_EXT])
+
 AC_MSG_NOTICE([finding other utilities])
 
 # Is m4 installed? If not, bail.
@@ -1529,6 +1543,9 @@ if test "x$enable_plugins" = xyes; then
     AC_DEFINE([NETCDF_ENABLE_PLUGINS], [1], [if true, support dynamically loaded plugins])
 fi
 AM_CONDITIONAL(NETCDF_ENABLE_PLUGINS, [test "x$enable_plugins" = xyes])
+
+# UDF self-registration is always enabled.
+AC_DEFINE([HAVE_NETCDF_UDF_SELF_REGISTRATION], [1], [if true, UDF plugin init functions return NC_Dispatch*])
 AC_SUBST(USEPLUGINS, [${enable_plugins}])
 
 AC_FUNC_ALLOCA
@@ -2127,6 +2144,7 @@ AC_SUBST(HAS_DEFLATE,[$have_deflate])
 AC_SUBST(HAS_SZLIB,[$have_sz])
 AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
 AC_SUBST(HAS_ZSTD,[$have_zstd])
+AC_SUBST(HAS_UDF_SELF_LOAD,[yes])
 AC_SUBST(DO_LARGE_TESTS,[$enable_large_file_tests])
 AC_SUBST(DO_REMOTE_FUNCTIONALITY,[$enable_remote_functionality])
 
@@ -2326,6 +2344,7 @@ AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
 AX_SET_META([NC_HAS_ZSTD],[$have_zstd],[yes])
 AX_SET_META([NC_HAS_BLOSC],[$have_blosc],[yes])
 AX_SET_META([NC_HAS_BZ2],[$have_bz2],[yes])
+AX_SET_META([NC_HAS_UDF_SELF_LOAD],[yes],[yes])
 
 # This is the version of the dispatch table. If the dispatch table is
 # changed, this should be incremented, so that user-defined format

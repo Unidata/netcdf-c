@@ -1830,7 +1830,7 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     if(jsuper == NULL) {
 	/* See if this is looks like a NCZarr/Zarr dataset at all
            by looking for anything here of the form ".z*" */
-        if((stat = ncz_validate(file))) goto done;
+        if ((zinfo->metadata.flags & ZARR_CONSOLIDATED) == 0 && (stat = ncz_validate(file))) goto done;
 	/* ok, assume pure zarr with no groups */
 	zinfo->controls.flags |= FLAG_PUREZARR;	
 	if(zarr_format == NULL) zarr_format = strdup("2");
