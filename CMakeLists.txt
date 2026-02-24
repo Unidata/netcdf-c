@@ -1642,6 +1642,9 @@ endforeach()
 
 if(NC_LIBS)
   string(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+  string(REGEX REPLACE " -l[^ :]*::" " -l" NC_LIBS " ${NC_LIBS}")
+  string(REPLACE " -lHDF5" " -lhdf5" NC_LIBS "${NC_LIBS}")
+  string(REPLACE " -llibcurl" " -lcurl" NC_LIBS "${NC_LIBS}")
 endif()
 
 string(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
