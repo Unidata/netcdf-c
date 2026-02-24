@@ -957,7 +957,6 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.md \
                          @abs_top_srcdir@/docs/credits.md \
                          @abs_top_srcdir@/docs/tutorial.dox \
                          @abs_top_srcdir@/docs/internal.md \
-                         @abs_top_srcdir@/docs/dispatch.md \
                          @abs_top_srcdir@/docs/inmeminternal.dox \
                          @abs_top_srcdir@/docs/indexing.dox \
                          @abs_top_srcdir@/docs/testserver.dox \
@@ -970,8 +969,9 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.md \
                          @abs_top_srcdir@/docs/pluginpath.md \
                          @abs_top_srcdir@/docs/quickstart_paths.md \
                          @abs_top_srcdir@/docs/quickstart_env.md \
-                         @abs_top_srcdir@/docs/user_defined_formats.md \
                          @abs_top_srcdir@/docs/udf_plugin_development.md \
+                         @abs_top_srcdir@/docs/user_defined_formats.md \
+                         @abs_top_srcdir@/docs/dispatch.md \
                          @abs_top_srcdir@/include/netcdf.h \
                          @abs_top_srcdir@/include/netcdf_mem.h \
                          @abs_top_srcdir@/include/netcdf_par.h \

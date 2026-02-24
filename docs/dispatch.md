@@ -40,7 +40,7 @@ and the specific code should be consulted to see the actual parameters.
 
 Note that UDF0 through UDF9 (10 slots total) allow for user-defined dispatch tables to
 be implemented. These can be registered programmatically via nc_def_user_format() or
-automatically loaded from RC file configuration. See [User-Defined Formats](user_defined_formats.md)
+automatically loaded from RC file configuration. See [User-Defined Formats](#user_defined_formats)
 for details.
 
 The idea is that when a user opens or creates a netcdf file, a
