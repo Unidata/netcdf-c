@@ -665,6 +665,7 @@ AX_DISABLE_FALSE
 AX_DISABLE_TRUE
 ISCMAKE
 NC_DISPATCH_VERSION
+NC_HAS_UDF_SELF_LOAD
 NC_HAS_BZ2
 NC_HAS_BLOSC
 NC_HAS_ZSTD
@@ -711,6 +712,7 @@ S3TESTBUCKET
 WHICH_S3_SDK
 DO_REMOTE_FUNCTIONALITY
 DO_LARGE_TESTS
+HAS_UDF_SELF_LOAD
 HAS_SZLIB_WRITE
 HAS_SZLIB
 HAS_DEFLATE
@@ -862,6 +864,7 @@ HAVE_DOT
 DOT
 DOXYGEN
 NC_M4
+MODULE_EXT
 CXXCPP
 LT_SYS_LIBRARY_PATH
 OTOOL64
@@ -24699,6 +24702,20 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+# Determine the file extension that libtool produces for shared modules
+# built with -module (e.g. UDF plugins).  This is needed because
+# nc_test4/Makefile.am compiles the plugin path into the test binary
+# via -DTEST_PLUGIN_PATH="...".  Without the correct extension the
+# test fails at runtime when dlopen() cannot find the file.
+#   MinGW / Cygwin  ->  .dll
+#   Linux / macOS   ->  .so
+# Consumed in nc_test4/Makefile.am as @MODULE_EXT@.
+case $host_os in
+  mingw*|cygwin*) MODULE_EXT=".dll" ;;
+  *)              MODULE_EXT=".so" ;;
+esac
+
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: finding other utilities" >&5
 printf "%s\n" "$as_me: finding other utilities" >&6;}
 
@@ -25783,6 +25800,11 @@ else
   NETCDF_ENABLE_PLUGINS_TRUE='#'
   NETCDF_ENABLE_PLUGINS_FALSE=
 fi
+
+
+# UDF self-registration is always enabled.
+
+printf "%s\n" "#define HAVE_NETCDF_UDF_SELF_REGISTRATION 1" >>confdefs.h
 
 USEPLUGINS=${enable_plugins}
 
@@ -29624,6 +29646,8 @@ HAS_SZLIB_WRITE=$have_sz
 
 HAS_ZSTD=$have_zstd
 
+HAS_UDF_SELF_LOAD=yes
+
 DO_LARGE_TESTS=$enable_large_file_tests
 
 DO_REMOTE_FUNCTIONALITY=$enable_remote_functionality
@@ -30015,6 +30039,13 @@ NETCDF_PLUGIN_SEARCH_PATH=${DEFAULT_PLUGIN_SEARCH_PATH}
       NC_HAS_BZ2=1
   else
       NC_HAS_BZ2=0
+  fi
+
+
+  if  test "xyes" = "xyes" ; then
+      NC_HAS_UDF_SELF_LOAD=1
+  else
+      NC_HAS_UDF_SELF_LOAD=0
   fi
 
 

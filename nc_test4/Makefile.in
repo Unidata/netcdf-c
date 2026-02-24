@@ -222,7 +222,8 @@ am__EXEEXT_2 = tst_dims$(EXEEXT) tst_dims2$(EXEEXT) tst_dims3$(EXEEXT) \
 	tst_elatefill$(EXEEXT) tst_udf$(EXEEXT) \
 	tst_put_vars_two_unlim_dim$(EXEEXT) tst_bug1442$(EXEEXT) \
 	tst_quantize$(EXEEXT) tst_h_transient_types$(EXEEXT) \
-	$(am__EXEEXT_1) tst_h_strbug$(EXEEXT) tst_h_refs$(EXEEXT)
+	tst_udf_self_load$(EXEEXT) $(am__EXEEXT_1) \
+	tst_h_strbug$(EXEEXT) tst_h_refs$(EXEEXT)
 @LARGE_FILE_TESTS_TRUE@am__EXEEXT_3 = tst_large$(EXEEXT) \
 @LARGE_FILE_TESTS_TRUE@	tst_large2$(EXEEXT)
 @BUILD_V2_TRUE@am__EXEEXT_4 = tst_v2$(EXEEXT)
@@ -251,14 +252,23 @@ am__EXEEXT_2 = tst_dims$(EXEEXT) tst_dims2$(EXEEXT) tst_dims3$(EXEEXT) \
 @TEST_PARALLEL4_TRUE@	tst_parallel_compress$(EXEEXT) \
 @TEST_PARALLEL4_TRUE@	tst_quantize_par$(EXEEXT) \
 @TEST_PARALLEL4_TRUE@	tst_parallel6$(EXEEXT) tst_warn$(EXEEXT)
-build_fixedstring_SOURCES = build_fixedstring.c
-build_fixedstring_OBJECTS = build_fixedstring.$(OBJEXT)
-build_fixedstring_LDADD = $(LDADD)
-build_fixedstring_DEPENDENCIES = ${top_builddir}/liblib/libnetcdf.la
+tst_udf_self_load_plugin_la_DEPENDENCIES =  \
+	${top_builddir}/liblib/libnetcdf.la
+am_tst_udf_self_load_plugin_la_OBJECTS = tst_udf_self_load_plugin.lo
+tst_udf_self_load_plugin_la_OBJECTS =  \
+	$(am_tst_udf_self_load_plugin_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+tst_udf_self_load_plugin_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(tst_udf_self_load_plugin_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
+build_fixedstring_SOURCES = build_fixedstring.c
+build_fixedstring_OBJECTS = build_fixedstring.$(OBJEXT)
+build_fixedstring_LDADD = $(LDADD)
+build_fixedstring_DEPENDENCIES = ${top_builddir}/liblib/libnetcdf.la
 cdm_sea_soundings_SOURCES = cdm_sea_soundings.c
 cdm_sea_soundings_OBJECTS = cdm_sea_soundings.$(OBJEXT)
 cdm_sea_soundings_LDADD = $(LDADD)
@@ -620,6 +630,11 @@ tst_udf_SOURCES = tst_udf.c
 tst_udf_OBJECTS = tst_udf.$(OBJEXT)
 tst_udf_LDADD = $(LDADD)
 tst_udf_DEPENDENCIES = ${top_builddir}/liblib/libnetcdf.la
+tst_udf_self_load_SOURCES = tst_udf_self_load.c
+tst_udf_self_load_OBJECTS =  \
+	tst_udf_self_load-tst_udf_self_load.$(OBJEXT)
+tst_udf_self_load_LDADD = $(LDADD)
+tst_udf_self_load_DEPENDENCIES = ${top_builddir}/liblib/libnetcdf.la
 tst_unlim_vars_SOURCES = tst_unlim_vars.c
 tst_unlim_vars_OBJECTS = tst_unlim_vars.$(OBJEXT)
 tst_unlim_vars_LDADD = $(LDADD)
@@ -745,6 +760,8 @@ am__depfiles_remade = ./$(DEPDIR)/build_fixedstring.Po \
 	./$(DEPDIR)/tst_simplerw_coll_r.Po ./$(DEPDIR)/tst_strings.Po \
 	./$(DEPDIR)/tst_strings2.Po ./$(DEPDIR)/tst_sync.Po \
 	./$(DEPDIR)/tst_types.Po ./$(DEPDIR)/tst_udf.Po \
+	./$(DEPDIR)/tst_udf_self_load-tst_udf_self_load.Po \
+	./$(DEPDIR)/tst_udf_self_load_plugin.Plo \
 	./$(DEPDIR)/tst_unlim_vars.Po ./$(DEPDIR)/tst_utf8.Po \
 	./$(DEPDIR)/tst_v2.Po ./$(DEPDIR)/tst_varms.Po \
 	./$(DEPDIR)/tst_vars.Po ./$(DEPDIR)/tst_vars2.Po \
@@ -772,7 +789,37 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = build_fixedstring.c cdm_sea_soundings.c h5testszip.c \
+SOURCES = $(tst_udf_self_load_plugin_la_SOURCES) build_fixedstring.c \
+	cdm_sea_soundings.c h5testszip.c renamegroup.c t_type.c \
+	test_filter.c test_filter_misc.c test_filter_order.c \
+	test_filter_repeat.c test_szip.c tst_alignment.c tst_atts.c \
+	tst_atts1.c tst_atts2.c tst_atts3.c tst_atts_string_rewrite.c \
+	tst_bug1442.c tst_bug324.c tst_camrun.c tst_charvlenbug.c \
+	tst_chunks.c tst_chunks2.c tst_compounds.c tst_compounds2.c \
+	tst_compounds3.c tst_converts.c tst_converts2.c tst_coords.c \
+	tst_coords2.c tst_coords3.c tst_dims.c tst_dims2.c tst_dims3.c \
+	tst_elatefill.c tst_empty_vlen_unlim.c tst_endian_fill.c \
+	tst_enums.c tst_files.c tst_files4.c tst_files5.c tst_files6.c \
+	tst_fill_attr_vanish.c tst_fillbug.c tst_fillonly.c \
+	tst_fills.c tst_fills2.c tst_filter_vlen.c tst_filterparser.c \
+	tst_grps.c tst_grps2.c tst_h5_endians.c tst_h_refs.c \
+	tst_h_scalar.c tst_h_strbug.c tst_h_transient_types.c \
+	tst_hdf5_file_compat.c tst_interops.c tst_interops4.c \
+	tst_interops5.c tst_interops6.c tst_interops_dims.c \
+	tst_large.c tst_large2.c tst_mode.c tst_mpi_parallel.c \
+	tst_multifilter.c tst_nc4perf.c tst_opaques.c tst_parallel.c \
+	tst_parallel3.c tst_parallel4.c tst_parallel5.c \
+	tst_parallel6.c tst_parallel_compress.c tst_parallel_zlib.c \
+	tst_put_vars.c tst_put_vars_two_unlim_dim.c tst_quantize.c \
+	tst_quantize_par.c tst_rehash.c tst_rename.c tst_rename2.c \
+	tst_rename3.c tst_simplerw_coll_r.c tst_strings.c \
+	tst_strings2.c tst_sync.c tst_types.c tst_udf.c \
+	tst_udf_self_load.c tst_unlim_vars.c tst_utf8.c tst_v2.c \
+	tst_varms.c tst_vars.c tst_vars2.c tst_vars3.c tst_vars4.c \
+	tst_vl.c tst_vlenstr.c tst_warn.c tst_xplatform.c \
+	tst_xplatform2.c tst_zero_len_att.c tst_zstd.c
+DIST_SOURCES = $(tst_udf_self_load_plugin_la_SOURCES) \
+	build_fixedstring.c cdm_sea_soundings.c h5testszip.c \
 	renamegroup.c t_type.c test_filter.c test_filter_misc.c \
 	test_filter_order.c test_filter_repeat.c test_szip.c \
 	tst_alignment.c tst_atts.c tst_atts1.c tst_atts2.c tst_atts3.c \
@@ -797,39 +844,10 @@ SOURCES = build_fixedstring.c cdm_sea_soundings.c h5testszip.c \
 	tst_quantize_par.c tst_rehash.c tst_rename.c tst_rename2.c \
 	tst_rename3.c tst_simplerw_coll_r.c tst_strings.c \
 	tst_strings2.c tst_sync.c tst_types.c tst_udf.c \
-	tst_unlim_vars.c tst_utf8.c tst_v2.c tst_varms.c tst_vars.c \
-	tst_vars2.c tst_vars3.c tst_vars4.c tst_vl.c tst_vlenstr.c \
-	tst_warn.c tst_xplatform.c tst_xplatform2.c tst_zero_len_att.c \
-	tst_zstd.c
-DIST_SOURCES = build_fixedstring.c cdm_sea_soundings.c h5testszip.c \
-	renamegroup.c t_type.c test_filter.c test_filter_misc.c \
-	test_filter_order.c test_filter_repeat.c test_szip.c \
-	tst_alignment.c tst_atts.c tst_atts1.c tst_atts2.c tst_atts3.c \
-	tst_atts_string_rewrite.c tst_bug1442.c tst_bug324.c \
-	tst_camrun.c tst_charvlenbug.c tst_chunks.c tst_chunks2.c \
-	tst_compounds.c tst_compounds2.c tst_compounds3.c \
-	tst_converts.c tst_converts2.c tst_coords.c tst_coords2.c \
-	tst_coords3.c tst_dims.c tst_dims2.c tst_dims3.c \
-	tst_elatefill.c tst_empty_vlen_unlim.c tst_endian_fill.c \
-	tst_enums.c tst_files.c tst_files4.c tst_files5.c tst_files6.c \
-	tst_fill_attr_vanish.c tst_fillbug.c tst_fillonly.c \
-	tst_fills.c tst_fills2.c tst_filter_vlen.c tst_filterparser.c \
-	tst_grps.c tst_grps2.c tst_h5_endians.c tst_h_refs.c \
-	tst_h_scalar.c tst_h_strbug.c tst_h_transient_types.c \
-	tst_hdf5_file_compat.c tst_interops.c tst_interops4.c \
-	tst_interops5.c tst_interops6.c tst_interops_dims.c \
-	tst_large.c tst_large2.c tst_mode.c tst_mpi_parallel.c \
-	tst_multifilter.c tst_nc4perf.c tst_opaques.c tst_parallel.c \
-	tst_parallel3.c tst_parallel4.c tst_parallel5.c \
-	tst_parallel6.c tst_parallel_compress.c tst_parallel_zlib.c \
-	tst_put_vars.c tst_put_vars_two_unlim_dim.c tst_quantize.c \
-	tst_quantize_par.c tst_rehash.c tst_rename.c tst_rename2.c \
-	tst_rename3.c tst_simplerw_coll_r.c tst_strings.c \
-	tst_strings2.c tst_sync.c tst_types.c tst_udf.c \
-	tst_unlim_vars.c tst_utf8.c tst_v2.c tst_varms.c tst_vars.c \
-	tst_vars2.c tst_vars3.c tst_vars4.c tst_vl.c tst_vlenstr.c \
-	tst_warn.c tst_xplatform.c tst_xplatform2.c tst_zero_len_att.c \
-	tst_zstd.c
+	tst_udf_self_load.c tst_unlim_vars.c tst_utf8.c tst_v2.c \
+	tst_varms.c tst_vars.c tst_vars2.c tst_vars3.c tst_vars4.c \
+	tst_vl.c tst_vlenstr.c tst_warn.c tst_xplatform.c \
+	tst_xplatform2.c tst_zero_len_att.c tst_zstd.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -1158,6 +1176,7 @@ HAS_S3_AWS = @HAS_S3_AWS@
 HAS_S3_INTERNAL = @HAS_S3_INTERNAL@
 HAS_SZLIB = @HAS_SZLIB@
 HAS_SZLIB_WRITE = @HAS_SZLIB_WRITE@
+HAS_UDF_SELF_LOAD = @HAS_UDF_SELF_LOAD@
 HAS_ZSTD = @HAS_ZSTD@
 HAVE_DOT = @HAVE_DOT@
 HAVE_GETFATTR = @HAVE_GETFATTR@
@@ -1187,6 +1206,7 @@ MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
+MODULE_EXT = @MODULE_EXT@
 MPIEXEC = @MPIEXEC@
 NC_DISPATCH_VERSION = @NC_DISPATCH_VERSION@
 NC_HAS_BENCHMARKS = @NC_HAS_BENCHMARKS@
@@ -1214,6 +1234,7 @@ NC_HAS_S3 = @NC_HAS_S3@
 NC_HAS_S3_AWS = @NC_HAS_S3_AWS@
 NC_HAS_S3_INTERNAL = @NC_HAS_S3_INTERNAL@
 NC_HAS_SZIP = @NC_HAS_SZIP@
+NC_HAS_UDF_SELF_LOAD = @NC_HAS_UDF_SELF_LOAD@
 NC_HAS_ZSTD = @NC_HAS_ZSTD@
 NC_LIBS = @NC_LIBS@
 NC_M4 = @NC_M4@
@@ -1360,7 +1381,25 @@ NC4_TESTS = tst_dims tst_dims2 tst_dims3 tst_files tst_files4 tst_vars \
 	tst_fill_attr_vanish tst_rehash tst_filterparser tst_bug324 \
 	tst_types tst_atts3 tst_put_vars tst_elatefill tst_udf \
 	tst_put_vars_two_unlim_dim tst_bug1442 tst_quantize \
-	tst_h_transient_types $(am__append_5) tst_h_strbug tst_h_refs
+	tst_h_transient_types tst_udf_self_load $(am__append_5) \
+	tst_h_strbug tst_h_refs
+
+# UDF self-registration plugin loading test.
+# Build the test plugin as a shared library (libtool module).
+check_LTLIBRARIES = tst_udf_self_load_plugin.la
+tst_udf_self_load_plugin_la_SOURCES = tst_udf_self_load_plugin.c
+# -no-undefined is required on Cygwin/MinGW: libtool refuses to build a
+# shared library on those platforms unless every symbol can be resolved at
+# link time.  Without it the build fails with:
+#   libtool: error: can't build x86_64-pc-cygwin shared library
+#                    unless -no-undefined is specified
+tst_udf_self_load_plugin_la_LDFLAGS = -module -avoid-version -shared -no-undefined -rpath /tmp
+tst_udf_self_load_plugin_la_LIBADD = ${top_builddir}/liblib/libnetcdf.la
+# The plugin file extension varies by platform: libtool -module produces
+# .so on Linux/macOS but .dll on MinGW and Cygwin.  @MODULE_EXT@ is set
+# by configure.ac (see the case $host_os block after LT_INIT) so the
+# compiled-in TEST_PLUGIN_PATH always points to the correct filename.
+tst_udf_self_load_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_PLUGIN_PATH=\"$(abs_builddir)/.libs/tst_udf_self_load_plugin@MODULE_EXT@\"
 XFAIL_TESTS = $(am__append_16)
 
 # Filter Tests (requires ncdump and ncgen and HDF5)
@@ -1439,6 +1478,18 @@ run_par_warn_test.sh: $(top_builddir)/config.status $(srcdir)/run_par_warn_test.
 clean-checkPROGRAMS:
 	$(am__rm_f) $(check_PROGRAMS)
 	test -z "$(EXEEXT)" || $(am__rm_f) $(check_PROGRAMS:$(EXEEXT)=)
+
+clean-checkLTLIBRARIES:
+	-$(am__rm_f) $(check_LTLIBRARIES)
+	@list='$(check_LTLIBRARIES)'; \
+	locs=`for p in $$list; do echo $$p; done | \
+	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
+	      sort -u`; \
+	echo rm -f $${locs}; \
+	$(am__rm_f) $${locs}
+
+tst_udf_self_load_plugin.la: $(tst_udf_self_load_plugin_la_OBJECTS) $(tst_udf_self_load_plugin_la_DEPENDENCIES) $(EXTRA_tst_udf_self_load_plugin_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(tst_udf_self_load_plugin_la_LINK)  $(tst_udf_self_load_plugin_la_OBJECTS) $(tst_udf_self_load_plugin_la_LIBADD) $(LIBS)
 
 build_fixedstring$(EXEEXT): $(build_fixedstring_OBJECTS) $(build_fixedstring_DEPENDENCIES) $(EXTRA_build_fixedstring_DEPENDENCIES) 
 	@rm -f build_fixedstring$(EXEEXT)
@@ -1796,6 +1847,10 @@ tst_udf$(EXEEXT): $(tst_udf_OBJECTS) $(tst_udf_DEPENDENCIES) $(EXTRA_tst_udf_DEP
 	@rm -f tst_udf$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(tst_udf_OBJECTS) $(tst_udf_LDADD) $(LIBS)
 
+tst_udf_self_load$(EXEEXT): $(tst_udf_self_load_OBJECTS) $(tst_udf_self_load_DEPENDENCIES) $(EXTRA_tst_udf_self_load_DEPENDENCIES) 
+	@rm -f tst_udf_self_load$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tst_udf_self_load_OBJECTS) $(tst_udf_self_load_LDADD) $(LIBS)
+
 tst_unlim_vars$(EXEEXT): $(tst_unlim_vars_OBJECTS) $(tst_unlim_vars_DEPENDENCIES) $(EXTRA_tst_unlim_vars_DEPENDENCIES) 
 	@rm -f tst_unlim_vars$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(tst_unlim_vars_OBJECTS) $(tst_unlim_vars_LDADD) $(LIBS)
@@ -1951,6 +2006,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tst_sync.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tst_types.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tst_udf.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tst_udf_self_load-tst_udf_self_load.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tst_udf_self_load_plugin.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tst_unlim_vars.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tst_utf8.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tst_v2.Po@am__quote@ # am--include-marker
@@ -1996,6 +2053,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+tst_udf_self_load-tst_udf_self_load.o: tst_udf_self_load.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tst_udf_self_load_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tst_udf_self_load-tst_udf_self_load.o -MD -MP -MF $(DEPDIR)/tst_udf_self_load-tst_udf_self_load.Tpo -c -o tst_udf_self_load-tst_udf_self_load.o `test -f 'tst_udf_self_load.c' || echo '$(srcdir)/'`tst_udf_self_load.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/tst_udf_self_load-tst_udf_self_load.Tpo $(DEPDIR)/tst_udf_self_load-tst_udf_self_load.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tst_udf_self_load.c' object='tst_udf_self_load-tst_udf_self_load.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tst_udf_self_load_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tst_udf_self_load-tst_udf_self_load.o `test -f 'tst_udf_self_load.c' || echo '$(srcdir)/'`tst_udf_self_load.c
+
+tst_udf_self_load-tst_udf_self_load.obj: tst_udf_self_load.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tst_udf_self_load_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT tst_udf_self_load-tst_udf_self_load.obj -MD -MP -MF $(DEPDIR)/tst_udf_self_load-tst_udf_self_load.Tpo -c -o tst_udf_self_load-tst_udf_self_load.obj `if test -f 'tst_udf_self_load.c'; then $(CYGPATH_W) 'tst_udf_self_load.c'; else $(CYGPATH_W) '$(srcdir)/tst_udf_self_load.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/tst_udf_self_load-tst_udf_self_load.Tpo $(DEPDIR)/tst_udf_self_load-tst_udf_self_load.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='tst_udf_self_load.c' object='tst_udf_self_load-tst_udf_self_load.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tst_udf_self_load_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o tst_udf_self_load-tst_udf_self_load.obj `if test -f 'tst_udf_self_load.c'; then $(CYGPATH_W) 'tst_udf_self_load.c'; else $(CYGPATH_W) '$(srcdir)/tst_udf_self_load.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -2206,7 +2277,7 @@ echo "information.  Thanks.";                                                \
 	fi;								\
 	$$success || exit 1
 
-check-TESTS: $(check_PROGRAMS)
+check-TESTS: $(check_PROGRAMS) $(check_LTLIBRARIES)
 	@$(am__rm_f) $(RECHECK_LOGS)
 	@$(am__rm_f) $(RECHECK_LOGS:.log=.trs)
 	@$(am__rm_f) $(TEST_SUITE_LOG)
@@ -2215,7 +2286,7 @@ check-TESTS: $(check_PROGRAMS)
 	log_list=`echo $$log_list`; \
 	$(MAKE) $(AM_MAKEFLAGS) $(TEST_SUITE_LOG) TEST_LOGS="$$log_list"; \
 	exit $$?;
-recheck: all $(check_PROGRAMS)
+recheck: all $(check_PROGRAMS) $(check_LTLIBRARIES)
 	@$(am__rm_f) $(TEST_SUITE_LOG)
 	@set +e; $(am__set_TESTS_bases); \
 	bases=`for i in $$bases; do echo $$i; done \
@@ -2709,6 +2780,13 @@ tst_h_transient_types.log: tst_h_transient_types$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+tst_udf_self_load.log: tst_udf_self_load$(EXEEXT)
+	@p='tst_udf_self_load$(EXEEXT)'; \
+	b='tst_udf_self_load'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 tst_alignment.log: tst_alignment$(EXEEXT)
 	@p='tst_alignment$(EXEEXT)'; \
 	b='tst_alignment'; \
@@ -2800,7 +2878,7 @@ distdir-am: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
+	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS) $(check_LTLIBRARIES)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
 all-am: Makefile
@@ -2862,8 +2940,8 @@ check-valgrind-sgcheck-am: check-valgrind-sgcheck-local
 
 clean: clean-am
 
-clean-am: clean-checkPROGRAMS clean-generic clean-libtool clean-local \
-	mostlyclean-am
+clean-am: clean-checkLTLIBRARIES clean-checkPROGRAMS clean-generic \
+	clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 	-rm -f ./$(DEPDIR)/build_fixedstring.Po
@@ -2955,6 +3033,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/tst_sync.Po
 	-rm -f ./$(DEPDIR)/tst_types.Po
 	-rm -f ./$(DEPDIR)/tst_udf.Po
+	-rm -f ./$(DEPDIR)/tst_udf_self_load-tst_udf_self_load.Po
+	-rm -f ./$(DEPDIR)/tst_udf_self_load_plugin.Plo
 	-rm -f ./$(DEPDIR)/tst_unlim_vars.Po
 	-rm -f ./$(DEPDIR)/tst_utf8.Po
 	-rm -f ./$(DEPDIR)/tst_v2.Po
@@ -3104,6 +3184,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/tst_sync.Po
 	-rm -f ./$(DEPDIR)/tst_types.Po
 	-rm -f ./$(DEPDIR)/tst_udf.Po
+	-rm -f ./$(DEPDIR)/tst_udf_self_load-tst_udf_self_load.Po
+	-rm -f ./$(DEPDIR)/tst_udf_self_load_plugin.Plo
 	-rm -f ./$(DEPDIR)/tst_unlim_vars.Po
 	-rm -f ./$(DEPDIR)/tst_utf8.Po
 	-rm -f ./$(DEPDIR)/tst_v2.Po
@@ -3145,15 +3227,16 @@ uninstall-am:
 	check-valgrind-helgrind-local check-valgrind-local \
 	check-valgrind-memcheck-am check-valgrind-memcheck-local \
 	check-valgrind-sgcheck-am check-valgrind-sgcheck-local clean \
-	clean-checkPROGRAMS clean-generic clean-libtool clean-local \
-	cscopelist-am ctags ctags-am distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+	clean-checkLTLIBRARIES clean-checkPROGRAMS clean-generic \
+	clean-libtool clean-local cscopelist-am ctags ctags-am \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	recheck tags tags-am uninstall uninstall-am

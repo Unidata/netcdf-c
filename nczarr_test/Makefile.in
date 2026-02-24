@@ -134,7 +134,8 @@ TESTS = $(am__EXEEXT_10) $(am__append_7) $(am__append_8) \
 @NETCDF_BUILD_UTILITIES_TRUE@	run_jsonconvention.sh \
 @NETCDF_BUILD_UTILITIES_TRUE@	run_strings.sh run_scalar.sh \
 @NETCDF_BUILD_UTILITIES_TRUE@	run_nulls.sh run_notzarr.sh
-@NETCDF_BUILD_UTILITIES_TRUE@@NETCDF_ENABLE_EXTERNAL_SERVER_TESTS_TRUE@am__append_10 = run_external.sh
+@NETCDF_BUILD_UTILITIES_TRUE@@NETCDF_ENABLE_EXTERNAL_SERVER_TESTS_TRUE@am__append_10 = run_external.sh \
+@NETCDF_BUILD_UTILITIES_TRUE@@NETCDF_ENABLE_EXTERNAL_SERVER_TESTS_TRUE@	run_s3_credentials.sh
 
 # Unlimited Dimension tests (at least in part)
 @NETCDF_BUILD_UTILITIES_TRUE@am__append_11 = run_mud.sh \
@@ -876,6 +877,7 @@ HAS_S3_AWS = @HAS_S3_AWS@
 HAS_S3_INTERNAL = @HAS_S3_INTERNAL@
 HAS_SZLIB = @HAS_SZLIB@
 HAS_SZLIB_WRITE = @HAS_SZLIB_WRITE@
+HAS_UDF_SELF_LOAD = @HAS_UDF_SELF_LOAD@
 HAS_ZSTD = @HAS_ZSTD@
 HAVE_DOT = @HAVE_DOT@
 HAVE_GETFATTR = @HAVE_GETFATTR@
@@ -905,6 +907,7 @@ MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
+MODULE_EXT = @MODULE_EXT@
 MPIEXEC = @MPIEXEC@
 NC_DISPATCH_VERSION = @NC_DISPATCH_VERSION@
 NC_HAS_BENCHMARKS = @NC_HAS_BENCHMARKS@
@@ -932,6 +935,7 @@ NC_HAS_S3 = @NC_HAS_S3@
 NC_HAS_S3_AWS = @NC_HAS_S3_AWS@
 NC_HAS_S3_INTERNAL = @NC_HAS_S3_INTERNAL@
 NC_HAS_SZIP = @NC_HAS_SZIP@
+NC_HAS_UDF_SELF_LOAD = @NC_HAS_UDF_SELF_LOAD@
 NC_HAS_ZSTD = @NC_HAS_ZSTD@
 NC_LIBS = @NC_LIBS@
 NC_M4 = @NC_M4@
@@ -1084,8 +1088,9 @@ EXTRA_DIST = CMakeLists.txt run_ut_map.sh run_ut_mapapi.sh \
 	run_filter_errors.sh run_newformat.sh run_nczarr_fill.sh \
 	run_quantize.sh run_jsonconvention.sh run_nczfilter.sh \
 	run_unknown.sh run_scalar.sh run_strings.sh run_nulls.sh \
-	run_notzarr.sh run_external.sh run_unlim_io.sh run_corrupt.sh \
-	run_oldkeys.sh run_xarray_misc.sh ref_ut_map_create.cdl \
+	run_notzarr.sh run_external.sh run_s3_credentials.sh \
+	run_unlim_io.sh run_corrupt.sh run_oldkeys.sh \
+	run_xarray_misc.sh ref_ut_map_create.cdl \
 	ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl \
 	ref_ut_map_writemeta.cdl ref_ut_map_readmeta.txt \
 	ref_ut_map_readmeta2.txt ref_ut_map_search.txt \
@@ -1111,14 +1116,14 @@ EXTRA_DIST = CMakeLists.txt run_ut_map.sh run_ut_mapapi.sh \
 	ref_nulls_zarr.baseline ref_nulls.cdl ref_notzarr.tar.gz \
 	ref_oldkeys.cdl ref_oldkeys.file.zip ref_oldkeys.zmap \
 	ref_noshape.file.zip ref_xarraygroup.cdl ref_xarrayanon.cdl \
-	ref_power_901_constants_orig.zip ref_power_901_constants.cdl \
-	ref_quotes_orig.zip ref_quotes.cdl ref_zarr_test_data.cdl.gz \
-	ref_zarr_test_data_2d.cdl.gz
+	ref_purezarr.cdl ref_power_901_constants_orig.zip \
+	ref_power_901_constants.cdl ref_quotes_orig.zip ref_quotes.cdl \
+	ref_zarr_test_data.cdl.gz ref_zarr_test_data_2d.cdl.gz
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp*.zmap tmp_ngc.c ref_zarr_test_data.cdl tst_*.nc.zip ref_quotes.zip ref_power_901_constants.zip
 BUILT_SOURCES = test_quantize.c test_filter_vlen.c test_unlim_vars.c test_endians.c \
                 test_put_vars_two_unlim_dim.c test_chunking.c \
                 run_unknown.sh run_specific_filters.sh run_filter_vlen.sh run_filterinstall.sh \
-		run_mud.sh run_nccopy5.sh run_filter_misc.sh
+				run_mud.sh run_nccopy5.sh run_filter_misc.sh
 
 DISTCLEANFILES = findplugin.sh ${BUILT_SOURCES}
 all: $(BUILT_SOURCES)
@@ -1708,6 +1713,9 @@ distdir-am: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
+	$(MAKE) $(AM_MAKEFLAGS) \
+	  top_distdir="$(top_distdir)" distdir="$(distdir)" \
+	  dist-hook
 @NETCDF_ENABLE_S3_TESTALL_FALSE@check-local:
 check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
@@ -1929,21 +1937,27 @@ uninstall-am:
 	check-valgrind-memcheck-am check-valgrind-memcheck-local \
 	check-valgrind-sgcheck-am check-valgrind-sgcheck-local clean \
 	clean-checkPROGRAMS clean-generic clean-libtool clean-local \
-	clean-noinstPROGRAMS cscopelist-am ctags ctags-am distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am recheck tags tags-am uninstall \
-	uninstall-am
+	clean-noinstPROGRAMS cscopelist-am ctags ctags-am dist-hook \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	recheck tags tags-am uninstall uninstall-am
 
 .PRECIOUS: Makefile
 
+
+# Copy full directory tree for ref_data.zarr into the distribution tarball
+dist-hook:
+	chmod +w $(distdir)
+	rm -rf $(distdir)/ref_data.zarr
+	cp -R $(top_srcdir)/nczarr_test/ref_data.zarr $(distdir)/
 
 test_quantize.c: $(top_srcdir)/nc_test4/tst_quantize.c
 	rm -f $@
