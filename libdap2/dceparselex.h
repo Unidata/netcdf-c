@@ -76,7 +76,7 @@ extern Object function(DCEparsestate* state, Object fcnname, Object args);
 extern Object arg_list(DCEparsestate* state, Object list0, Object decl);
 extern Object value_list(DCEparsestate* state, Object list0, Object decl);
 extern Object value(DCEparsestate* state, Object value);
-extern Object makeselectiontag(CEsort);
+extern Object makeselectiontag(CEops);
 extern Object indexer(DCEparsestate* state, Object name, Object indices);
 extern Object indexpath(DCEparsestate* state, Object list0, Object index);
 extern Object var(DCEparsestate* state, Object indexpath);
