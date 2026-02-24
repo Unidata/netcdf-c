@@ -301,8 +301,8 @@ int main() {
 # See Also {#udf_seealso}
 
 - [Dispatch Table Architecture](dispatch.md) - Internal architecture
-- [UDF Plugin Development Guide](udf_plugin_development.md) - Creating plugins
-- [RC File Reference](auth.md) - RC file format details
+- [UDF Plugin Development Guide](#udf_plugin_development) - Creating plugins
+- [RC File Reference](#auth_support) - RC file format details
 - API Reference: nc_def_user_format(), nc_inq_user_format()
 
 # References {#udf_references}
