@@ -738,7 +738,7 @@ nc_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
 /**
    Define endianness of a variable.
 
-   With this function the endianness (i.e. order of bits in integers) can
+   With this function the endianness (i.e. order of bytes in integers) can
    be changed on a per-variable basis. By default, the endianness is the
    same as the default endianness of the platform. But with
    nc_def_var_endianness the endianness can be explicitly set for a

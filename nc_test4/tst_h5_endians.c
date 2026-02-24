@@ -301,6 +301,7 @@ int main() {
         if ((retval = nc_put_var(ncid,be_int_varid,idata_in)))
             return retval;
         if ((retval = nc_get_var(ncid,be_int_varid,idata_be_out)))
+            return retval;
 	for(failed=0,i=0;i<NDIM;i++) {if(idata_in[i] != idata_be_out[i]) {printf("failed\n"); failures++; failed++; break;}}
 	if(!failed) printf("passed\n");
 
