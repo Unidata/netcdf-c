@@ -128,7 +128,7 @@ int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant*    constant;
 
-#line 132 "ncgeny.h"
+#line 132 "ncgen.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

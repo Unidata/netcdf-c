@@ -76,10 +76,10 @@
 
 #include "config.h"
 #include "dapparselex.h"
-#include "dapy.h"
+#include "dap.tab.h"
 int dapdebug = 0;
 
-#line 83 "dapy.c"
+#line 83 "dap.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -102,7 +102,7 @@ int dapdebug = 0;
 #  endif
 # endif
 
-#include "dapy.h"
+#include "dap.tab.h"
 /* Symbol kind.  */
 enum yysymbol_kind_t
 {
@@ -1581,611 +1581,611 @@ yyreduce:
   case 6: /* start: error  */
 #line 58 "dap.y"
                 {dap_unrecognizedresponse(parsestate); YYABORT;}
-#line 1585 "dapy.c"
+#line 1585 "dap.tab.c"
     break;
 
   case 7: /* dataset: SCAN_DATASET  */
 #line 63 "dap.y"
             {dap_tagparse(parsestate,SCAN_DATASET);}
-#line 1591 "dapy.c"
+#line 1591 "dap.tab.c"
     break;
 
   case 8: /* attr: SCAN_ATTR  */
 #line 67 "dap.y"
             {dap_tagparse(parsestate,SCAN_ATTR);}
-#line 1597 "dapy.c"
+#line 1597 "dap.tab.c"
     break;
 
   case 9: /* err: SCAN_ERROR  */
 #line 71 "dap.y"
             {dap_tagparse(parsestate,SCAN_ERROR);}
-#line 1603 "dapy.c"
+#line 1603 "dap.tab.c"
     break;
 
   case 10: /* datasetbody: '{' declarations '}' datasetname ';'  */
 #line 76 "dap.y"
                 {dap_datasetbody(parsestate,yyvsp[-1],yyvsp[-3]);}
-#line 1609 "dapy.c"
+#line 1609 "dap.tab.c"
     break;
 
   case 11: /* declarations: %empty  */
 #line 81 "dap.y"
                       {yyval=dap_declarations(parsestate,null,null);}
-#line 1615 "dapy.c"
+#line 1615 "dap.tab.c"
     break;
 
   case 12: /* declarations: declarations declaration  */
 #line 82 "dap.y"
                                    {yyval=dap_declarations(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1621 "dapy.c"
+#line 1621 "dap.tab.c"
     break;
 
   case 13: /* declaration: base_type var_name array_decls ';'  */
 #line 89 "dap.y"
                 {yyval=dap_makebase(parsestate,yyvsp[-2],yyvsp[-3],yyvsp[-1]);}
-#line 1627 "dapy.c"
+#line 1627 "dap.tab.c"
     break;
 
   case 14: /* declaration: SCAN_STRUCTURE '{' declarations '}' var_name array_decls ';'  */
 #line 91 "dap.y"
             {if((yyval=dap_makestructure(parsestate,yyvsp[-2],yyvsp[-1],yyvsp[-4]))==null) {YYABORT;}}
-#line 1633 "dapy.c"
+#line 1633 "dap.tab.c"
     break;
 
   case 15: /* declaration: SCAN_SEQUENCE '{' declarations '}' var_name ';'  */
 #line 93 "dap.y"
             {if((yyval=dap_makesequence(parsestate,yyvsp[-1],yyvsp[-3]))==null) {YYABORT;}}
-#line 1639 "dapy.c"
+#line 1639 "dap.tab.c"
     break;
 
   case 16: /* declaration: SCAN_GRID '{' SCAN_ARRAY ':' declaration SCAN_MAPS ':' declarations '}' var_name ';'  */
 #line 96 "dap.y"
             {if((yyval=dap_makegrid(parsestate,yyvsp[-1],yyvsp[-6],yyvsp[-3]))==null) {YYABORT;}}
-#line 1645 "dapy.c"
+#line 1645 "dap.tab.c"
     break;
 
   case 17: /* declaration: error  */
 #line 98 "dap.y"
             {dapsemanticerror(parsestate,OC_EBADTYPE,"Unrecognized type"); YYABORT;}
-#line 1651 "dapy.c"
+#line 1651 "dap.tab.c"
     break;
 
   case 18: /* base_type: SCAN_BYTE  */
 #line 103 "dap.y"
                     {yyval=(Object)SCAN_BYTE;}
-#line 1657 "dapy.c"
+#line 1657 "dap.tab.c"
     break;
 
   case 19: /* base_type: SCAN_INT16  */
 #line 104 "dap.y"
                      {yyval=(Object)SCAN_INT16;}
-#line 1663 "dapy.c"
+#line 1663 "dap.tab.c"
     break;
 
   case 20: /* base_type: SCAN_UINT16  */
 #line 105 "dap.y"
                       {yyval=(Object)SCAN_UINT16;}
-#line 1669 "dapy.c"
+#line 1669 "dap.tab.c"
     break;
 
   case 21: /* base_type: SCAN_INT32  */
 #line 106 "dap.y"
                      {yyval=(Object)SCAN_INT32;}
-#line 1675 "dapy.c"
+#line 1675 "dap.tab.c"
     break;
 
   case 22: /* base_type: SCAN_UINT32  */
 #line 107 "dap.y"
                       {yyval=(Object)SCAN_UINT32;}
-#line 1681 "dapy.c"
+#line 1681 "dap.tab.c"
     break;
 
   case 23: /* base_type: SCAN_FLOAT32  */
 #line 108 "dap.y"
                        {yyval=(Object)SCAN_FLOAT32;}
-#line 1687 "dapy.c"
+#line 1687 "dap.tab.c"
     break;
 
   case 24: /* base_type: SCAN_FLOAT64  */
 #line 109 "dap.y"
                        {yyval=(Object)SCAN_FLOAT64;}
-#line 1693 "dapy.c"
+#line 1693 "dap.tab.c"
     break;
 
   case 25: /* base_type: SCAN_URL  */
 #line 110 "dap.y"
                    {yyval=(Object)SCAN_URL;}
-#line 1699 "dapy.c"
+#line 1699 "dap.tab.c"
     break;
 
   case 26: /* base_type: SCAN_STRING  */
 #line 111 "dap.y"
                       {yyval=(Object)SCAN_STRING;}
-#line 1705 "dapy.c"
+#line 1705 "dap.tab.c"
     break;
 
   case 27: /* array_decls: %empty  */
 #line 115 "dap.y"
                       {yyval=dap_arraydecls(parsestate,null,null);}
-#line 1711 "dapy.c"
+#line 1711 "dap.tab.c"
     break;
 
   case 28: /* array_decls: array_decls array_decl  */
 #line 116 "dap.y"
                                  {yyval=dap_arraydecls(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1717 "dapy.c"
+#line 1717 "dap.tab.c"
     break;
 
   case 29: /* array_decl: '[' WORD_WORD ']'  */
 #line 120 "dap.y"
                              {yyval=dap_arraydecl(parsestate,null,yyvsp[-1]);}
-#line 1723 "dapy.c"
+#line 1723 "dap.tab.c"
     break;
 
   case 30: /* array_decl: '[' '=' WORD_WORD ']'  */
 #line 121 "dap.y"
                                  {yyval=dap_arraydecl(parsestate,null,yyvsp[-1]);}
-#line 1729 "dapy.c"
+#line 1729 "dap.tab.c"
     break;
 
   case 31: /* array_decl: '[' name '=' WORD_WORD ']'  */
 #line 122 "dap.y"
                                       {yyval=dap_arraydecl(parsestate,yyvsp[-3],yyvsp[-1]);}
-#line 1735 "dapy.c"
+#line 1735 "dap.tab.c"
     break;
 
   case 32: /* array_decl: error  */
 #line 124 "dap.y"
             {dapsemanticerror(parsestate,OC_EDIMSIZE,"Illegal dimension declaration"); YYABORT;}
-#line 1741 "dapy.c"
+#line 1741 "dap.tab.c"
     break;
 
   case 33: /* datasetname: var_name  */
 #line 128 "dap.y"
                    {yyval=yyvsp[0];}
-#line 1747 "dapy.c"
+#line 1747 "dap.tab.c"
     break;
 
   case 34: /* datasetname: error  */
 #line 130 "dap.y"
             {dapsemanticerror(parsestate,OC_EDDS,"Illegal dataset declaration"); YYABORT;}
-#line 1753 "dapy.c"
+#line 1753 "dap.tab.c"
     break;
 
   case 35: /* var_name: name  */
 #line 133 "dap.y"
                {yyval=yyvsp[0];}
-#line 1759 "dapy.c"
+#line 1759 "dap.tab.c"
     break;
 
   case 36: /* attributebody: '{' attr_list '}'  */
 #line 136 "dap.y"
                             {dap_attributebody(parsestate,yyvsp[-1]);}
-#line 1765 "dapy.c"
+#line 1765 "dap.tab.c"
     break;
 
   case 37: /* attributebody: error  */
 #line 138 "dap.y"
             {dapsemanticerror(parsestate,OC_EDAS,"Illegal DAS body"); YYABORT;}
-#line 1771 "dapy.c"
+#line 1771 "dap.tab.c"
     break;
 
   case 38: /* attr_list: %empty  */
 #line 142 "dap.y"
                       {yyval=dap_attrlist(parsestate,null,null);}
-#line 1777 "dapy.c"
+#line 1777 "dap.tab.c"
     break;
 
   case 39: /* attr_list: attr_list attribute  */
 #line 143 "dap.y"
                               {yyval=dap_attrlist(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1783 "dapy.c"
+#line 1783 "dap.tab.c"
     break;
 
   case 40: /* attribute: alias ';'  */
 #line 147 "dap.y"
                     {yyval=null;}
-#line 1789 "dapy.c"
+#line 1789 "dap.tab.c"
     break;
 
   case 41: /* attribute: SCAN_BYTE name bytes ';'  */
 #line 149 "dap.y"
             {yyval=dap_attribute(parsestate,yyvsp[-2],yyvsp[-1],(Object)SCAN_BYTE);}
-#line 1795 "dapy.c"
+#line 1795 "dap.tab.c"
     break;
 
   case 42: /* attribute: SCAN_INT16 name int16 ';'  */
 #line 151 "dap.y"
             {yyval=dap_attribute(parsestate,yyvsp[-2],yyvsp[-1],(Object)SCAN_INT16);}
-#line 1801 "dapy.c"
+#line 1801 "dap.tab.c"
     break;
 
   case 43: /* attribute: SCAN_UINT16 name uint16 ';'  */
 #line 153 "dap.y"
             {yyval=dap_attribute(parsestate,yyvsp[-2],yyvsp[-1],(Object)SCAN_UINT16);}
-#line 1807 "dapy.c"
+#line 1807 "dap.tab.c"
     break;
 
   case 44: /* attribute: SCAN_INT32 name int32 ';'  */
 #line 155 "dap.y"
             {yyval=dap_attribute(parsestate,yyvsp[-2],yyvsp[-1],(Object)SCAN_INT32);}
-#line 1813 "dapy.c"
+#line 1813 "dap.tab.c"
     break;
 
   case 45: /* attribute: SCAN_UINT32 name uint32 ';'  */
 #line 157 "dap.y"
             {yyval=dap_attribute(parsestate,yyvsp[-2],yyvsp[-1],(Object)SCAN_UINT32);}
-#line 1819 "dapy.c"
+#line 1819 "dap.tab.c"
     break;
 
   case 46: /* attribute: SCAN_FLOAT32 name float32 ';'  */
 #line 159 "dap.y"
             {yyval=dap_attribute(parsestate,yyvsp[-2],yyvsp[-1],(Object)SCAN_FLOAT32);}
-#line 1825 "dapy.c"
+#line 1825 "dap.tab.c"
     break;
 
   case 47: /* attribute: SCAN_FLOAT64 name float64 ';'  */
 #line 161 "dap.y"
             {yyval=dap_attribute(parsestate,yyvsp[-2],yyvsp[-1],(Object)SCAN_FLOAT64);}
-#line 1831 "dapy.c"
+#line 1831 "dap.tab.c"
     break;
 
   case 48: /* attribute: SCAN_STRING name strs ';'  */
 #line 163 "dap.y"
             {yyval=dap_attribute(parsestate,yyvsp[-2],yyvsp[-1],(Object)SCAN_STRING);}
-#line 1837 "dapy.c"
+#line 1837 "dap.tab.c"
     break;
 
   case 49: /* attribute: SCAN_URL name urls ';'  */
 #line 165 "dap.y"
             {yyval=dap_attribute(parsestate,yyvsp[-2],yyvsp[-1],(Object)SCAN_URL);}
-#line 1843 "dapy.c"
+#line 1843 "dap.tab.c"
     break;
 
   case 50: /* attribute: name '{' attr_list '}'  */
 #line 166 "dap.y"
                                  {yyval=dap_attrset(parsestate,yyvsp[-3],yyvsp[-1]);}
-#line 1849 "dapy.c"
+#line 1849 "dap.tab.c"
     break;
 
   case 51: /* attribute: error  */
 #line 168 "dap.y"
             {dapsemanticerror(parsestate,OC_EDAS,"Illegal attribute"); YYABORT;}
-#line 1855 "dapy.c"
+#line 1855 "dap.tab.c"
     break;
 
   case 52: /* bytes: WORD_WORD  */
 #line 172 "dap.y"
                     {yyval=dap_attrvalue(parsestate,null,yyvsp[0],(Object)SCAN_BYTE);}
-#line 1861 "dapy.c"
+#line 1861 "dap.tab.c"
     break;
 
   case 53: /* bytes: bytes ',' WORD_WORD  */
 #line 174 "dap.y"
                 {yyval=dap_attrvalue(parsestate,yyvsp[-2],yyvsp[0],(Object)SCAN_BYTE);}
-#line 1867 "dapy.c"
+#line 1867 "dap.tab.c"
     break;
 
   case 54: /* int16: WORD_WORD  */
 #line 177 "dap.y"
                     {yyval=dap_attrvalue(parsestate,null,yyvsp[0],(Object)SCAN_INT16);}
-#line 1873 "dapy.c"
+#line 1873 "dap.tab.c"
     break;
 
   case 55: /* int16: int16 ',' WORD_WORD  */
 #line 179 "dap.y"
                 {yyval=dap_attrvalue(parsestate,yyvsp[-2],yyvsp[0],(Object)SCAN_INT16);}
-#line 1879 "dapy.c"
+#line 1879 "dap.tab.c"
     break;
 
   case 56: /* uint16: WORD_WORD  */
 #line 182 "dap.y"
                     {yyval=dap_attrvalue(parsestate,null,yyvsp[0],(Object)SCAN_UINT16);}
-#line 1885 "dapy.c"
+#line 1885 "dap.tab.c"
     break;
 
   case 57: /* uint16: uint16 ',' WORD_WORD  */
 #line 184 "dap.y"
                 {yyval=dap_attrvalue(parsestate,yyvsp[-2],yyvsp[0],(Object)SCAN_UINT16);}
-#line 1891 "dapy.c"
+#line 1891 "dap.tab.c"
     break;
 
   case 58: /* int32: WORD_WORD  */
 #line 187 "dap.y"
                     {yyval=dap_attrvalue(parsestate,null,yyvsp[0],(Object)SCAN_INT32);}
-#line 1897 "dapy.c"
+#line 1897 "dap.tab.c"
     break;
 
   case 59: /* int32: int32 ',' WORD_WORD  */
 #line 189 "dap.y"
                 {yyval=dap_attrvalue(parsestate,yyvsp[-2],yyvsp[0],(Object)SCAN_INT32);}
-#line 1903 "dapy.c"
+#line 1903 "dap.tab.c"
     break;
 
   case 60: /* uint32: WORD_WORD  */
 #line 192 "dap.y"
                     {yyval=dap_attrvalue(parsestate,null,yyvsp[0],(Object)SCAN_UINT32);}
-#line 1909 "dapy.c"
+#line 1909 "dap.tab.c"
     break;
 
   case 61: /* uint32: uint32 ',' WORD_WORD  */
 #line 193 "dap.y"
                                 {yyval=dap_attrvalue(parsestate,yyvsp[-2],yyvsp[0],(Object)SCAN_UINT32);}
-#line 1915 "dapy.c"
+#line 1915 "dap.tab.c"
     break;
 
   case 62: /* float32: WORD_WORD  */
 #line 196 "dap.y"
                     {yyval=dap_attrvalue(parsestate,null,yyvsp[0],(Object)SCAN_FLOAT32);}
-#line 1921 "dapy.c"
+#line 1921 "dap.tab.c"
     break;
 
   case 63: /* float32: float32 ',' WORD_WORD  */
 #line 197 "dap.y"
                                  {yyval=dap_attrvalue(parsestate,yyvsp[-2],yyvsp[0],(Object)SCAN_FLOAT32);}
-#line 1927 "dapy.c"
+#line 1927 "dap.tab.c"
     break;
 
   case 64: /* float64: WORD_WORD  */
 #line 200 "dap.y"
                     {yyval=dap_attrvalue(parsestate,null,yyvsp[0],(Object)SCAN_FLOAT64);}
-#line 1933 "dapy.c"
+#line 1933 "dap.tab.c"
     break;
 
   case 65: /* float64: float64 ',' WORD_WORD  */
 #line 201 "dap.y"
                                  {yyval=dap_attrvalue(parsestate,yyvsp[-2],yyvsp[0],(Object)SCAN_FLOAT64);}
-#line 1939 "dapy.c"
+#line 1939 "dap.tab.c"
     break;
 
   case 66: /* strs: str_or_id  */
 #line 204 "dap.y"
                     {yyval=dap_attrvalue(parsestate,null,yyvsp[0],(Object)SCAN_STRING);}
-#line 1945 "dapy.c"
+#line 1945 "dap.tab.c"
     break;
 
   case 67: /* strs: strs ',' str_or_id  */
 #line 205 "dap.y"
                              {yyval=dap_attrvalue(parsestate,yyvsp[-2],yyvsp[0],(Object)SCAN_STRING);}
-#line 1951 "dapy.c"
+#line 1951 "dap.tab.c"
     break;
 
   case 68: /* urls: url  */
 #line 209 "dap.y"
               {yyval=dap_attrvalue(parsestate,null,yyvsp[0],(Object)SCAN_URL);}
-#line 1957 "dapy.c"
+#line 1957 "dap.tab.c"
     break;
 
   case 69: /* urls: urls ',' url  */
 #line 210 "dap.y"
                        {yyval=dap_attrvalue(parsestate,yyvsp[-2],yyvsp[0],(Object)SCAN_URL);}
-#line 1963 "dapy.c"
+#line 1963 "dap.tab.c"
     break;
 
   case 70: /* url: str_or_id  */
 #line 214 "dap.y"
                   {yyval=yyvsp[0];}
-#line 1969 "dapy.c"
+#line 1969 "dap.tab.c"
     break;
 
   case 71: /* str_or_id: name  */
 #line 218 "dap.y"
                {yyval=yyvsp[0];}
-#line 1975 "dapy.c"
+#line 1975 "dap.tab.c"
     break;
 
   case 72: /* str_or_id: WORD_STRING  */
 #line 219 "dap.y"
                       {yyval=yyvsp[0];}
-#line 1981 "dapy.c"
+#line 1981 "dap.tab.c"
     break;
 
   case 73: /* alias: SCAN_ALIAS WORD_WORD WORD_WORD  */
 #line 230 "dap.y"
                                        {yyval=yyvsp[-1]; yyval=yyvsp[0]; yyval=null;}
-#line 1987 "dapy.c"
+#line 1987 "dap.tab.c"
     break;
 
   case 74: /* errorbody: '{' errorcode errormsg errorptype errorprog '}' ';'  */
 #line 235 "dap.y"
                 {dap_errorbody(parsestate,yyvsp[-5],yyvsp[-4],yyvsp[-3],yyvsp[-2]);}
-#line 1993 "dapy.c"
+#line 1993 "dap.tab.c"
     break;
 
   case 75: /* errorcode: %empty  */
 #line 238 "dap.y"
                       {yyval=null;}
-#line 1999 "dapy.c"
+#line 1999 "dap.tab.c"
     break;
 
   case 76: /* errorcode: SCAN_CODE '=' WORD_WORD ';'  */
 #line 238 "dap.y"
                                                                   {yyval=yyvsp[-1];}
-#line 2005 "dapy.c"
+#line 2005 "dap.tab.c"
     break;
 
   case 77: /* errormsg: %empty  */
 #line 239 "dap.y"
                       {yyval=null;}
-#line 2011 "dapy.c"
+#line 2011 "dap.tab.c"
     break;
 
   case 78: /* errormsg: SCAN_MESSAGE '=' WORD_STRING ';'  */
 #line 239 "dap.y"
                                                                     {yyval=yyvsp[-1];}
-#line 2017 "dapy.c"
+#line 2017 "dap.tab.c"
     break;
 
   case 79: /* errorptype: %empty  */
 #line 240 "dap.y"
                       {yyval=null;}
-#line 2023 "dapy.c"
+#line 2023 "dap.tab.c"
     break;
 
   case 80: /* errorptype: SCAN_PTYPE '=' WORD_WORD ';'  */
 #line 240 "dap.y"
                                                                   {yyval=yyvsp[-1];}
-#line 2029 "dapy.c"
+#line 2029 "dap.tab.c"
     break;
 
   case 81: /* errorprog: %empty  */
 #line 241 "dap.y"
                       {yyval=null;}
-#line 2035 "dapy.c"
+#line 2035 "dap.tab.c"
     break;
 
   case 82: /* errorprog: SCAN_PROG '=' WORD_WORD ';'  */
 #line 241 "dap.y"
                                                                   {yyval=yyvsp[-1];}
-#line 2041 "dapy.c"
+#line 2041 "dap.tab.c"
     break;
 
   case 83: /* name: WORD_WORD  */
 #line 247 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2047 "dapy.c"
+#line 2047 "dap.tab.c"
     break;
 
   case 84: /* name: SCAN_ALIAS  */
 #line 248 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2053 "dapy.c"
+#line 2053 "dap.tab.c"
     break;
 
   case 85: /* name: SCAN_ARRAY  */
 #line 249 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2059 "dapy.c"
+#line 2059 "dap.tab.c"
     break;
 
   case 86: /* name: SCAN_ATTR  */
 #line 250 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2065 "dapy.c"
+#line 2065 "dap.tab.c"
     break;
 
   case 87: /* name: SCAN_BYTE  */
 #line 251 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2071 "dapy.c"
+#line 2071 "dap.tab.c"
     break;
 
   case 88: /* name: SCAN_DATASET  */
 #line 252 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2077 "dapy.c"
+#line 2077 "dap.tab.c"
     break;
 
   case 89: /* name: SCAN_DATA  */
 #line 253 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2083 "dapy.c"
+#line 2083 "dap.tab.c"
     break;
 
   case 90: /* name: SCAN_ERROR  */
 #line 254 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2089 "dapy.c"
+#line 2089 "dap.tab.c"
     break;
 
   case 91: /* name: SCAN_FLOAT32  */
 #line 255 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2095 "dapy.c"
+#line 2095 "dap.tab.c"
     break;
 
   case 92: /* name: SCAN_FLOAT64  */
 #line 256 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2101 "dapy.c"
+#line 2101 "dap.tab.c"
     break;
 
   case 93: /* name: SCAN_GRID  */
 #line 257 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2107 "dapy.c"
+#line 2107 "dap.tab.c"
     break;
 
   case 94: /* name: SCAN_INT16  */
 #line 258 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2113 "dapy.c"
+#line 2113 "dap.tab.c"
     break;
 
   case 95: /* name: SCAN_INT32  */
 #line 259 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2119 "dapy.c"
+#line 2119 "dap.tab.c"
     break;
 
   case 96: /* name: SCAN_MAPS  */
 #line 260 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2125 "dapy.c"
+#line 2125 "dap.tab.c"
     break;
 
   case 97: /* name: SCAN_SEQUENCE  */
 #line 261 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2131 "dapy.c"
+#line 2131 "dap.tab.c"
     break;
 
   case 98: /* name: SCAN_STRING  */
 #line 262 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2137 "dapy.c"
+#line 2137 "dap.tab.c"
     break;
 
   case 99: /* name: SCAN_STRUCTURE  */
 #line 263 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2143 "dapy.c"
+#line 2143 "dap.tab.c"
     break;
 
   case 100: /* name: SCAN_UINT16  */
 #line 264 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2149 "dapy.c"
+#line 2149 "dap.tab.c"
     break;
 
   case 101: /* name: SCAN_UINT32  */
 #line 265 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2155 "dapy.c"
+#line 2155 "dap.tab.c"
     break;
 
   case 102: /* name: SCAN_URL  */
 #line 266 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2161 "dapy.c"
+#line 2161 "dap.tab.c"
     break;
 
   case 103: /* name: SCAN_CODE  */
 #line 267 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2167 "dapy.c"
+#line 2167 "dap.tab.c"
     break;
 
   case 104: /* name: SCAN_MESSAGE  */
 #line 268 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2173 "dapy.c"
+#line 2173 "dap.tab.c"
     break;
 
   case 105: /* name: SCAN_PROG  */
 #line 269 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2179 "dapy.c"
+#line 2179 "dap.tab.c"
     break;
 
   case 106: /* name: SCAN_PTYPE  */
 #line 270 "dap.y"
                          {yyval=dapdecode(parsestate->lexstate,yyvsp[0]);}
-#line 2185 "dapy.c"
+#line 2185 "dap.tab.c"
     break;
 
 
-#line 2189 "dapy.c"
+#line 2189 "dap.tab.c"
 
       default: break;
     }

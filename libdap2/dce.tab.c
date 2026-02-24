@@ -84,7 +84,7 @@
 #include "dceconstraints.h"
 #include "dceparselex.h"
 
-#line 88 "dcetab.c"
+#line 88 "dce.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -107,7 +107,7 @@
 #  endif
 # endif
 
-#include "dcetab.h"
+#include "dce.tab.h"
 /* Symbol kind.  */
 enum yysymbol_kind_t
 {
@@ -1182,317 +1182,317 @@ yyreduce:
   case 8: /* projections: projectionlist  */
 #line 43 "dce.y"
                        {projections(parsestate,yyvsp[0]);}
-#line 1186 "dcetab.c"
+#line 1186 "dce.tab.c"
     break;
 
   case 9: /* selections: clauselist  */
 #line 47 "dce.y"
                    {selections(parsestate,yyvsp[0]);}
-#line 1192 "dcetab.c"
+#line 1192 "dce.tab.c"
     break;
 
   case 10: /* projectionlist: projection  */
 #line 52 "dce.y"
             {yyval=projectionlist(parsestate,(Object)null,yyvsp[0]);}
-#line 1198 "dcetab.c"
+#line 1198 "dce.tab.c"
     break;
 
   case 11: /* projectionlist: projectionlist ',' projection  */
 #line 54 "dce.y"
             {yyval=projectionlist(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1204 "dcetab.c"
+#line 1204 "dce.tab.c"
     break;
 
   case 12: /* projection: segmentlist  */
 #line 59 "dce.y"
             {yyval=projection(parsestate,yyvsp[0]);}
-#line 1210 "dcetab.c"
+#line 1210 "dce.tab.c"
     break;
 
   case 13: /* projection: function  */
 #line 61 "dce.y"
             {yyval=projection(parsestate,yyvsp[0]);}
-#line 1216 "dcetab.c"
+#line 1216 "dce.tab.c"
     break;
 
   case 14: /* function: ident '(' ')'  */
 #line 66 "dce.y"
             {yyval=function(parsestate,yyvsp[-2],null);}
-#line 1222 "dcetab.c"
+#line 1222 "dce.tab.c"
     break;
 
   case 15: /* function: ident '(' arg_list ')'  */
 #line 68 "dce.y"
             {yyval=function(parsestate,yyvsp[-3],yyvsp[-1]);}
-#line 1228 "dcetab.c"
+#line 1228 "dce.tab.c"
     break;
 
   case 16: /* segmentlist: segment  */
 #line 73 "dce.y"
             {yyval=segmentlist(parsestate,null,yyvsp[0]);}
-#line 1234 "dcetab.c"
+#line 1234 "dce.tab.c"
     break;
 
   case 17: /* segmentlist: segmentlist '.' segment  */
 #line 75 "dce.y"
             {yyval=segmentlist(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1240 "dcetab.c"
+#line 1240 "dce.tab.c"
     break;
 
   case 18: /* segment: word  */
 #line 80 "dce.y"
             {yyval=segment(parsestate,yyvsp[0],null);}
-#line 1246 "dcetab.c"
+#line 1246 "dce.tab.c"
     break;
 
   case 19: /* segment: word rangelist  */
 #line 82 "dce.y"
             {yyval=segment(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1252 "dcetab.c"
+#line 1252 "dce.tab.c"
     break;
 
   case 20: /* rangelist: range  */
 #line 87 "dce.y"
             {yyval=rangelist(parsestate,null,yyvsp[0]);}
-#line 1258 "dcetab.c"
+#line 1258 "dce.tab.c"
     break;
 
   case 21: /* rangelist: rangelist range  */
 #line 89 "dce.y"
             {yyval=rangelist(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1264 "dcetab.c"
+#line 1264 "dce.tab.c"
     break;
 
   case 22: /* range: '[' number ']'  */
 #line 94 "dce.y"
             {yyval=range(parsestate,yyvsp[-1],null,null);}
-#line 1270 "dcetab.c"
+#line 1270 "dce.tab.c"
     break;
 
   case 23: /* range: '[' number ':' number ']'  */
 #line 96 "dce.y"
             {yyval=range(parsestate,yyvsp[-3],null,yyvsp[-1]);}
-#line 1276 "dcetab.c"
+#line 1276 "dce.tab.c"
     break;
 
   case 24: /* range: '[' number ':' number ':' number ']'  */
 #line 98 "dce.y"
             {yyval=range(parsestate,yyvsp[-5],yyvsp[-3],yyvsp[-1]);}
-#line 1282 "dcetab.c"
+#line 1282 "dce.tab.c"
     break;
 
   case 25: /* range1: '[' number ']'  */
 #line 102 "dce.y"
             {yyval = range1(parsestate,yyvsp[-1]);}
-#line 1288 "dcetab.c"
+#line 1288 "dce.tab.c"
     break;
 
   case 26: /* clauselist: sel_clause  */
 #line 108 "dce.y"
             {yyval=clauselist(parsestate,null,yyvsp[0]);}
-#line 1294 "dcetab.c"
+#line 1294 "dce.tab.c"
     break;
 
   case 27: /* clauselist: clauselist sel_clause  */
 #line 110 "dce.y"
             {yyval=clauselist(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1300 "dcetab.c"
+#line 1300 "dce.tab.c"
     break;
 
   case 28: /* sel_clause: '&' value rel_op '{' value_list '}'  */
 #line 115 "dce.y"
             {yyval=sel_clause(parsestate,1,yyvsp[-4],yyvsp[-3],yyvsp[-1]);}
-#line 1306 "dcetab.c"
+#line 1306 "dce.tab.c"
     break;
 
   case 29: /* sel_clause: '&' value rel_op value  */
 #line 117 "dce.y"
             {yyval=sel_clause(parsestate,2,yyvsp[-2],yyvsp[-1],yyvsp[0]);}
-#line 1312 "dcetab.c"
+#line 1312 "dce.tab.c"
     break;
 
   case 30: /* sel_clause: '&' boolfunction  */
 #line 119 "dce.y"
             {yyval=yyvsp[-1];}
-#line 1318 "dcetab.c"
+#line 1318 "dce.tab.c"
     break;
 
   case 31: /* value_list: value  */
 #line 124 "dce.y"
             {yyval=value_list(parsestate,null,yyvsp[0]);}
-#line 1324 "dcetab.c"
+#line 1324 "dce.tab.c"
     break;
 
   case 32: /* value_list: value_list ',' value  */
 #line 126 "dce.y"
             {yyval=value_list(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1330 "dcetab.c"
+#line 1330 "dce.tab.c"
     break;
 
   case 33: /* value: var  */
 #line 131 "dce.y"
             {yyval=value(parsestate,yyvsp[0]);}
-#line 1336 "dcetab.c"
+#line 1336 "dce.tab.c"
     break;
 
   case 34: /* value: function  */
 #line 133 "dce.y"
             {yyval=value(parsestate,yyvsp[0]);}
-#line 1342 "dcetab.c"
+#line 1342 "dce.tab.c"
     break;
 
   case 35: /* value: constant  */
 #line 135 "dce.y"
             {yyval=value(parsestate,yyvsp[0]);}
-#line 1348 "dcetab.c"
+#line 1348 "dce.tab.c"
     break;
 
   case 36: /* constant: number  */
 #line 140 "dce.y"
             {yyval=constant(parsestate,yyvsp[0],SCAN_NUMBERCONST);}
-#line 1354 "dcetab.c"
+#line 1354 "dce.tab.c"
     break;
 
   case 37: /* constant: string  */
 #line 142 "dce.y"
             {yyval=constant(parsestate,yyvsp[0],SCAN_STRINGCONST);}
-#line 1360 "dcetab.c"
+#line 1360 "dce.tab.c"
     break;
 
   case 38: /* var: indexpath  */
 #line 147 "dce.y"
             {yyval=var(parsestate,yyvsp[0]);}
-#line 1366 "dcetab.c"
+#line 1366 "dce.tab.c"
     break;
 
   case 39: /* indexpath: index  */
 #line 152 "dce.y"
             {yyval=indexpath(parsestate,null,yyvsp[0]);}
-#line 1372 "dcetab.c"
+#line 1372 "dce.tab.c"
     break;
 
   case 40: /* indexpath: indexpath '.' index  */
 #line 154 "dce.y"
             {yyval=indexpath(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1378 "dcetab.c"
+#line 1378 "dce.tab.c"
     break;
 
   case 41: /* index: word  */
 #line 159 "dce.y"
             {yyval=indexer(parsestate,yyvsp[0],null);}
-#line 1384 "dcetab.c"
+#line 1384 "dce.tab.c"
     break;
 
   case 42: /* index: word array_indices  */
 #line 161 "dce.y"
             {yyval=indexer(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1390 "dcetab.c"
+#line 1390 "dce.tab.c"
     break;
 
   case 43: /* array_indices: range1  */
 #line 166 "dce.y"
             {yyval=array_indices(parsestate,null,yyvsp[0]);}
-#line 1396 "dcetab.c"
+#line 1396 "dce.tab.c"
     break;
 
   case 44: /* array_indices: array_indices range1  */
 #line 168 "dce.y"
             {yyval=array_indices(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1402 "dcetab.c"
+#line 1402 "dce.tab.c"
     break;
 
   case 45: /* boolfunction: ident '(' ')'  */
 #line 173 "dce.y"
             {yyval=function(parsestate,yyvsp[-2],null);}
-#line 1408 "dcetab.c"
+#line 1408 "dce.tab.c"
     break;
 
   case 46: /* boolfunction: ident '(' arg_list ')'  */
 #line 175 "dce.y"
             {yyval=function(parsestate,yyvsp[-3],yyvsp[-1]);}
-#line 1414 "dcetab.c"
+#line 1414 "dce.tab.c"
     break;
 
   case 47: /* arg_list: value  */
 #line 180 "dce.y"
             {yyval=arg_list(parsestate,null,yyvsp[0]);}
-#line 1420 "dcetab.c"
+#line 1420 "dce.tab.c"
     break;
 
   case 48: /* arg_list: value_list ',' value  */
 #line 182 "dce.y"
             {yyval=arg_list(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1426 "dcetab.c"
+#line 1426 "dce.tab.c"
     break;
 
   case 49: /* rel_op: '='  */
 #line 186 "dce.y"
                   {yyval=makeselectiontag(CEO_EQ);}
-#line 1432 "dcetab.c"
+#line 1432 "dce.tab.c"
     break;
 
   case 50: /* rel_op: '>'  */
 #line 187 "dce.y"
                   {yyval=makeselectiontag(CEO_GT);}
-#line 1438 "dcetab.c"
+#line 1438 "dce.tab.c"
     break;
 
   case 51: /* rel_op: '<'  */
 #line 188 "dce.y"
                   {yyval=makeselectiontag(CEO_LT);}
-#line 1444 "dcetab.c"
+#line 1444 "dce.tab.c"
     break;
 
   case 52: /* rel_op: '!' '='  */
 #line 189 "dce.y"
                   {yyval=makeselectiontag(CEO_NEQ);}
-#line 1450 "dcetab.c"
+#line 1450 "dce.tab.c"
     break;
 
   case 53: /* rel_op: '>' '='  */
 #line 190 "dce.y"
                   {yyval=makeselectiontag(CEO_GE);}
-#line 1456 "dcetab.c"
+#line 1456 "dce.tab.c"
     break;
 
   case 54: /* rel_op: '<' '='  */
 #line 191 "dce.y"
                   {yyval=makeselectiontag(CEO_LE);}
-#line 1462 "dcetab.c"
+#line 1462 "dce.tab.c"
     break;
 
   case 55: /* rel_op: '=' '~'  */
 #line 192 "dce.y"
                   {yyval=makeselectiontag(CEO_RE);}
-#line 1468 "dcetab.c"
+#line 1468 "dce.tab.c"
     break;
 
   case 56: /* ident: word  */
 #line 196 "dce.y"
             {yyval = yyvsp[0];}
-#line 1474 "dcetab.c"
+#line 1474 "dce.tab.c"
     break;
 
   case 57: /* word: SCAN_WORD  */
 #line 200 "dce.y"
             {yyval = checkobject(yyvsp[0]);}
-#line 1480 "dcetab.c"
+#line 1480 "dce.tab.c"
     break;
 
   case 58: /* number: SCAN_NUMBERCONST  */
 #line 204 "dce.y"
             {yyval = checkobject(yyvsp[0]);}
-#line 1486 "dcetab.c"
+#line 1486 "dce.tab.c"
     break;
 
   case 59: /* string: SCAN_STRINGCONST  */
 #line 208 "dce.y"
             {yyval = checkobject(yyvsp[0]);}
-#line 1492 "dcetab.c"
+#line 1492 "dce.tab.c"
     break;
 
 
-#line 1496 "dcetab.c"
+#line 1496 "dce.tab.c"
 
       default: break;
     }
