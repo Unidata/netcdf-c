@@ -366,9 +366,13 @@ NCZ_convert1(const NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	    break;
 	case NC_STRING: /* NaN might be quoted */
 	    switch (naninftest(zcvt.strv,&naninf,&naninff)) {
-	    case NC_NAT: abort();
-    	    case NC_FLOAT:
-       	    case NC_DOUBLE:
+		case NC_NAT:
+			// try to parse string as destination type
+			if(sscanf(zcvt.strv,"%lf",&d))
+				break;
+			abort();
+		case NC_FLOAT:
+		case NC_DOUBLE:
 	        d = naninf; break;
 		break;
 	    }
