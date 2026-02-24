@@ -79,6 +79,7 @@ TESTS += run_notzarr.sh
 
 if NETCDF_ENABLE_EXTERNAL_SERVER_TESTS
 TESTS += run_external.sh
+TESTS += run_s3_credentials.sh
 endif
 
 # Unlimited Dimension tests (at least in part)
@@ -213,7 +214,7 @@ run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh run_filter_errors.sh \
 run_newformat.sh run_nczarr_fill.sh run_quantize.sh \
 run_jsonconvention.sh run_nczfilter.sh run_unknown.sh \
-run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh run_external.sh \
+run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh run_external.sh run_s3_credentials.sh\
 run_unlim_io.sh run_corrupt.sh run_oldkeys.sh run_xarray_misc.sh
 
 EXTRA_DIST += \

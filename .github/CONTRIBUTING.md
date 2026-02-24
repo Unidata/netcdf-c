@@ -6,6 +6,7 @@ Thanks for your interest in contributing to the netCDF project.  There are many 
 
 ## Table of Contents
 
+* [AI and LLM Guidelines](#aiguidelines)
 * [Workflow](#workflow)
 * [Characteristics of an accepted pull request](#chars)
 	* [Small bug-and-typo fixes](#smallissues)
@@ -14,6 +15,10 @@ Thanks for your interest in contributing to the netCDF project.  There are many 
 	* [Continuous Integration testing](#contint)
 	* [Regression testing with Docker](#regression)
 * [Final Remarks](#conclusion)
+
+# AI and LLM Policy <A NAME="aiguidelines"></A>
+
+Please see the NSF Unidata AI tool use policy found here: [NSF Unidata LLVM AI Tool Policy](https://github.com/Unidata/netcdf-c/blob/main/.github/AI_GUIDELINES.md).
 
 # Workflow <A NAME="workflow"></A>
 
