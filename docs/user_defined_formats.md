@@ -1,4 +1,4 @@
-User-Defined Formats {#udf}
+User-Defined Formats {#user_defined_formats}
 ====================================
 
 # Introduction {#udf_intro}
