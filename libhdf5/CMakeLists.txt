@@ -32,6 +32,11 @@ if(STATUS_PARALLEL)
     target_link_libraries(netcdfhdf5 PUBLIC MPI::MPI_C)
 endif(STATUS_PARALLEL)
 
+if(NETCDF_ENABLE_HDF5_ROS3)
+    target_include_directories(netcdfhdf5 PRIVATE ../libs3util)
+    target_sources(netcdfhdf5 PRIVATE ../libs3util/s3util.c)
+endif()
+
 target_link_libraries(netcdfhdf5 PUBLIC HDF5::HDF5)
 
 # Remember to package this file for CMake builds.

@@ -44,6 +44,9 @@
  #define nulldup(s) ((s)?strdup(s):NULL)
 #endif
 
+#ifdef S3_UTIL
+#include "s3util.h"
+#endif
 
 /* User-defined formats - expanded from 2 to 10 slots.
  * These arrays store dispatch tables and magic numbers for up to 10 custom formats.
@@ -2247,7 +2250,14 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	    goto done;
         }
     }
-
+#ifdef S3_UTIL
+    // if s3 link, set the dispatcher to hdf5
+    if (is_s3_link(path))
+    {
+        dispatcher = HDF5_dispatch_table;
+        remove_mode(path);
+    }
+#endif
 
     /* If we can't figure out what dispatch table to use, give up. */
     if (!dispatcher) {stat = NC_ENOTNC; goto done;}
