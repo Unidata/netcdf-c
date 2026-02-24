@@ -1360,6 +1360,12 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, size_t ndims
      * be taken care of. */
     if (num_scales && ndims && !hdf5_var->dimscale_attached)
     {
+        /* Guard: ndims parameter must agree with var->ndims. A mismatch
+         * indicates a corrupt file; the loop below would overrun the
+         * allocations if they differed (issues #2664, #2666, #2667). */
+        if (ndims != var->ndims)
+            return NC_EVARMETA;
+
         /* Allocate space to remember whether the dimscale has been
          * attached for each dimension, and the HDF5 object IDs of the
          * scale(s). */
@@ -1371,8 +1377,9 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, size_t ndims
             return NC_ENOMEM;
 
         /* Store id information allowing us to match hdf5 dimscales to
-         * netcdf dimensions. */
-        for (unsigned int d = 0; d < var->ndims; d++)
+         * netcdf dimensions. Use ndims (not var->ndims) to stay within
+         * the allocated buffer bounds. */
+        for (unsigned int d = 0; d < ndims; d++)
         {
             LOG((4, "about to iterate scales for dim %d", d));
             if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,

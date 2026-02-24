@@ -20,6 +20,21 @@ ENDIF()
 SET(UNIT_TESTS test_ncuri)
 add_bin_test(unit_test test_ncuri)
 
+add_executable(tst_hashmap tst_hashmap.c
+  ${CMAKE_SOURCE_DIR}/libdispatch/nchashmap.c
+  ${CMAKE_SOURCE_DIR}/libdispatch/dcrc64.c
+  ${CMAKE_SOURCE_DIR}/libdispatch/dcrc32.c)
+target_include_directories(tst_hashmap PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_BINARY_DIR}/include)
+add_test(tst_hashmap ${EXECUTABLE_OUTPUT_PATH}/tst_hashmap)
+if(MSVC)
+  set_target_properties(tst_hashmap PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+endif()
+
 IF(NETCDF_ENABLE_HDF5)
   IF(NOT WIN32)
     add_bin_test(unit_test tst_nclist)
