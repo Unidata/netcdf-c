@@ -64,3 +64,4 @@ build_llvm
 .vagrant
 Vagrantfile
 netcdf-fortran
+.windsurf
