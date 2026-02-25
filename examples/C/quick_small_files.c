@@ -17,7 +17,7 @@ info. */
  * and the offset to the beginning of this variable must be less than
  * about 2 Gbytes."
  *
- * @author Ed Hartnett
+ * @author Edward Hartnett
 */
 
 #include <netcdf.h>

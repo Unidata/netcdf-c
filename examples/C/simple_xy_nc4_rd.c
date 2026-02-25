@@ -16,7 +16,7 @@
  * Full documentation for netCDF can be found at:
  * https://docs.unidata.ucar.edu/netcdf-c.
  *
- * @author Ed Hartnett
+ * @author Edward Hartnett
 */
 
 #include <config.h>
