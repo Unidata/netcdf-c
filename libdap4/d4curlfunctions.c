@@ -3,6 +3,15 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4curlfunctions.c
+ * @brief libcurl session management for the DAP4 client.
+ *
+ * Implements NCD4_curlopen(), NCD4_curlclose(), and the helpers that
+ * configure authentication, proxy, SSL, and keepalive options on a
+ * CURL easy handle.  Parallel to oc2/occurlfunctions.c.
+ * @author Dennis Heimbigner
+ */
+
 /* WARNING: oc2/occurlfunctions.c and libdap4/d4curlfunctions.c
 should be merged since they are essentially the same file.
 In the meantime, changes to one should be propagated to the other.

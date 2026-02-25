@@ -3,6 +3,15 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4swap.c
+ * @brief Byte-swap DAP4 serialized data to host endianness.
+ *
+ * Implements NCD4_swapdata(), which walks a top-level variable's
+ * serialized data and byte-swaps every multi-byte scalar value when
+ * the server's endianness differs from the host's.
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include <stdarg.h>
 #include <stddef.h>

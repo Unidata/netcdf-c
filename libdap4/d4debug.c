@@ -2,6 +2,16 @@
  *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
+
+/** @file d4debug.c
+ * @brief Debug and panic utilities for the DAP4 client.
+ *
+ * Implements d4panic(), NCD4_sortname(), NCD4_subsortname(),
+ * NCD4_debugcopy(), and (when D4CATCH is defined) d4breakpoint()
+ * and d4throw().
+ * @author Dennis Heimbigner
+ */
+
 #include "config.h"
 #include <stdarg.h>
 #include <stddef.h>

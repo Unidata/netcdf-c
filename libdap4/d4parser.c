@@ -3,6 +3,16 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4parser.c
+ * @brief DAP4 DMR XML parser.
+ *
+ * Implements NCD4_parse(), which uses a DOM XML parser to convert a
+ * DMR document into an NCD4node tree stored in an NCD4meta object.
+ * Also provides NCD4_findAttr(), NCD4_groupFor(), NCD4_defineattr(),
+ * and NCD4_setdebuglevel().
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include <stdarg.h>
 #include <assert.h>
@@ -156,6 +166,19 @@ static int defineBytestringType(NCD4parser*);
 /***************************************************/
 /* API */
 
+/**
+ * Parse a DMR XML document and populate an NCD4meta node tree.
+ *
+ * Allocates an NCD4parser, invokes the DOM XML parser on the DMR text
+ * in @p resp->serial.dmr, builds the NCD4node tree, resolves dimension
+ * and type references, and performs a topological sort.
+ *
+ * @param metadata Metadata object to populate.
+ * @param resp     Response object containing the raw DMR XML text.
+ * @param dapparse Non-zero when parsing the DMR from a full DAP response
+ *                 (as opposed to a DMR-only response).
+ * @return NC_NOERR on success, or a netCDF error code.
+ */
 int
 NCD4_parse(NCD4meta* metadata, NCD4response* resp, int dapparse)
 {
