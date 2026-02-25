@@ -3,10 +3,11 @@
  * conditions.
  */
 /**
- * @file @internal Internal netcdf-4 functions for filters
+ * @file
+ * @internal Internal netcdf-4 functions for filters.
  *
  * This file contains functions internal to the netcdf4 library. None of
- * the functions in this file are exposed in the exetnal API. These
+ * the functions in this file are exposed in the external API. These
  * functions all relate to the manipulation of netcdf-4 filters
  *
  * @author Dennis Heimbigner
@@ -30,17 +31,7 @@
 static int NC4_hdf5_filter_free(struct NC_HDF5_Filter* spec);
 
 /**************************************************/
-/**
- * @file
- * @internal
- * Internal netcdf hdf5 filter functions.
- *
- * This file contains functions internal to the libhdf5 library.
- * None of the functions in this file are exposed in the exetnal API. These
- * functions all relate to the manipulation of netcdf-4's var->filters list.
- *
- * @author Dennis Heimbigner
- */
+/* Internal netcdf hdf5 filter functions for the var->filters list. */
 #ifdef TFILTERS
 static void
 printfilter1(struct NC_HDF5_Filter* nfs)
@@ -402,7 +393,7 @@ NC4_hdf5_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
                 goto done;
 #ifdef USE_PARALLEL
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
-        /* Switch to collective access. HDF5 requires collevtive access
+        /* Switch to collective access. HDF5 requires collective access
          * for filter use with parallel I/O. */
         if (h5->parallel)
             var->parallel_access = NC_COLLECTIVE;
