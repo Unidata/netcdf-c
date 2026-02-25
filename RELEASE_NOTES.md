@@ -29,6 +29,102 @@ This file contains a high-level description of this package's evolution. Release
 * Provide an auxiliary function, `ncaux_parse_provenance()`, that allows users to parse the _NCProperties attribute into a collection of character pointers. See [Github #3088](https://github.com/Unidata/netcdf-c/pull/3088) for more information.
 * Fix a namespace problem in tinyxml2.cpp. Note that this is a visual studio problem hence use of _MSC_VER. Also turn off DAP4 tests against Hyrax server until DAP4 spec problems are fixed. See [Github #3089](https://github.com/Unidata/netcdf-c/pull/3089) for more information.
 
+### What's Changed
+* Merge v4.9.3 wellspring changes back upstream.  by @WardF in https://github.com/Unidata/netcdf-c/pull/3084
+* Provide an auxilliary function that allows users to parse the _NCProperties attribute. by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3088
+* Correct issue with .exe installer generation. by @WardF in https://github.com/Unidata/netcdf-c/pull/3096
+* Correct a syntax error in previous packaging fix.  by @WardF in https://github.com/Unidata/netcdf-c/pull/3097
+* Fix SIGFPE with -0.0 values and quantization by @czender in https://github.com/Unidata/netcdf-c/pull/3093
+* Give `config.h` a higher precedence. by @drwells in https://github.com/Unidata/netcdf-c/pull/3100
+* Fix reported memory leak by @WardF in https://github.com/Unidata/netcdf-c/pull/3102
+* Fix bug in copying compound types with variable length fields. by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3111
+* Step 1 in splitting PR 3068 by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3086
+* Create docker_regression_testing.yml by @WardF in https://github.com/Unidata/netcdf-c/pull/3116
+* Add a one-off test for java. by @WardF in https://github.com/Unidata/netcdf-c/pull/3117
+* Step 2 in splitting PR 3068 by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3089
+* Updated copyright by @WardF in https://github.com/Unidata/netcdf-c/pull/3119
+* Fix various problems with S3 related code by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3090
+* Broken S3 implementation for netcdf files on non-AWS + Authenticated buckets by @mannreis in https://github.com/Unidata/netcdf-c/pull/3098
+* Modify provenance check "_IsNetcdf4" to check for existence of "_NCProperties" by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3125
+* Fix pointer type on 64-bit Windows by @WardF in https://github.com/Unidata/netcdf-c/pull/3140
+* Rebase of #3138 by @WardF in https://github.com/Unidata/netcdf-c/pull/3142
+* Remove strlcpy from libdispatch by @weiznich in https://github.com/Unidata/netcdf-c/pull/3138
+* Updates for versioned H5Dread_chunk by @brtnfld in https://github.com/Unidata/netcdf-c/pull/3143
+* Change order of operations so that data is not referenced after being freed. by @WardF in https://github.com/Unidata/netcdf-c/pull/3146
+* Fix Segmentation Fault when testing URLs with no path by @mannreis in https://github.com/Unidata/netcdf-c/pull/3095
+* Only conditionally copy test files by @magnusuMET in https://github.com/Unidata/netcdf-c/pull/3133
+* hdf5open.c: Handle null dataspace gracefully by @Dave-Allured in https://github.com/Unidata/netcdf-c/pull/3135
+* CMake: correct the byterange flag by @jmckenna in https://github.com/Unidata/netcdf-c/pull/3131
+* CMake: handle _INCLUDE_DIR not leveraged at compile time  by @jmckenna in https://github.com/Unidata/netcdf-c/pull/3132
+* CMake: Bring nczarr dependency when enabling S3 in line with autotools by @WardF in https://github.com/Unidata/netcdf-c/pull/3149
+* Create PR to support refactor of drc.c code. by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3094
+* Patch #3090 - Fix and test S3 enabled builds by @mannreis in https://github.com/Unidata/netcdf-c/pull/3122
+* Update Software list with contribution. by @WardF in https://github.com/Unidata/netcdf-c/pull/3152
+* Fix integer overflow vulnerability in NC string memory allocation by @dkjsone in https://github.com/Unidata/netcdf-c/pull/3153
+* Remove unneeded dependency  by @WardF in https://github.com/Unidata/netcdf-c/pull/3158
+* Address logging via environmental variable issues. by @WardF in https://github.com/Unidata/netcdf-c/pull/3160
+* Add failover default AWS region `aws_default_region` "us-east-1" by @WardF in https://github.com/Unidata/netcdf-c/pull/3164
+* Added NC4LOGGING to RELEASE_NOTES.md by @WardF in https://github.com/Unidata/netcdf-c/pull/3166
+* Xattr header detection fix.wif by @WardF in https://github.com/Unidata/netcdf-c/pull/3167
+* nc4hdf.c: Fix overwrite with zero-length attribute by @Dave-Allured in https://github.com/Unidata/netcdf-c/pull/3169
+* CMake Builder Docs: document m4 dependency by @johnwparent in https://github.com/Unidata/netcdf-c/pull/3173
+* Fix an issue with using AWS S3 SDK and Cmake.  by @WardF in https://github.com/Unidata/netcdf-c/pull/3174
+* Updated Github MacOS runners from macos-13 to macos-14 by @WardF in https://github.com/Unidata/netcdf-c/pull/3180
+* Fix bug in ncdump when printing dimension FQN by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3185
+* Fix the problems around ncdap_test/test_manyurls.c. by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3182
+* General Cleanup to provide a clean base for future PRs. by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3159
+* Cleanup RELEASE_NOTES.md by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3190
+* ticket #TSP-8629412 bug fix by @dkjsone in https://github.com/Unidata/netcdf-c/pull/3191
+* `ncgen` unsigned suffix fix by @jatkinson1000 in https://github.com/Unidata/netcdf-c/pull/3189
+* run_zero_len_att_test.sh: Improve error message by @Dave-Allured in https://github.com/Unidata/netcdf-c/pull/3170
+* Fix S3 internal configuration error by @gsjaardema in https://github.com/Unidata/netcdf-c/pull/3175
+* Fix UBSan warnings about out-of-range assignment by @seanm in https://github.com/Unidata/netcdf-c/pull/3210
+* Clean up minor issues in DAP2+DAP4 code by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3215
+* Added codespell config file, fixed a bunch of spelling mistakes by @seanm in https://github.com/Unidata/netcdf-c/pull/3211
+* Fixed UBSan warnings about left shifts into the sign bit by @seanm in https://github.com/Unidata/netcdf-c/pull/3207
+* Fix Issue with Numcodecs encoding problems by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3201
+* Initial basic editorconfig support by @seanm in https://github.com/Unidata/netcdf-c/pull/3212
+* Fixed UBSan warnings about offsetting a NULL pointer by @seanm in https://github.com/Unidata/netcdf-c/pull/3206
+* Modify the way xarray attribute sets are handled. by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3218
+* Part 1 - Zarr consolidated metadata   by @mannreis in https://github.com/Unidata/netcdf-c/pull/3219
+* Part 2 - Zarr consolidated metadata by @mannreis in https://github.com/Unidata/netcdf-c/pull/3220
+* Part 3 - Zarr consolidated metadata by @mannreis in https://github.com/Unidata/netcdf-c/pull/3221
+* Part 4 - Zarr consolidated metadata by @mannreis in https://github.com/Unidata/netcdf-c/pull/3222
+* Part 5 - Zarr consolidated metadata by @mannreis in https://github.com/Unidata/netcdf-c/pull/3223
+* Part 6 - Zarr consolidated metadata by @mannreis in https://github.com/Unidata/netcdf-c/pull/3224
+* Part 7 - Zarr consolidated metadata by @mannreis in https://github.com/Unidata/netcdf-c/pull/3225
+* Initial consolidation of global state by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3197
+* See if we can add 'dash' shell to packages installed. by @WardF in https://github.com/Unidata/netcdf-c/pull/3235
+* Fix source directory macro for FetchContent support by @WardF in https://github.com/Unidata/netcdf-c/pull/3234
+* Fix H5FD_class_t problems by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3237
+* Document Consolidated Metadata by @mannreis in https://github.com/Unidata/netcdf-c/pull/3231
+* Clean up treeview in doxygen-generated documentation by @WardF in https://github.com/Unidata/netcdf-c/pull/3245
+* Fix parallel hdf5 2.0.0 by @WardF in https://github.com/Unidata/netcdf-c/pull/3247
+* Add extra failure handling to the daos inferencing by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3238
+* Fixed UBSan warning, added missing clamping for `text` case by @seanm in https://github.com/Unidata/netcdf-c/pull/3209
+* ncs3sdk_aws.cpp: remove duplicate function by @mannreis in https://github.com/Unidata/netcdf-c/pull/3248
+* Regularize, cleanup, and refactor various AWS features by @DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3229
+* Update netcdf-test-action to @v2 by @WardF in https://github.com/Unidata/netcdf-c/pull/3252
+* Updated docker-based regression testing by @WardF in https://github.com/Unidata/netcdf-c/pull/3253
+* Zarr: Error logging improvement by @mannreis in https://github.com/Unidata/netcdf-c/pull/3250
+* fixed make distclean by @edhartnett in https://github.com/Unidata/netcdf-c/pull/3256
+* fixed warning by @edhartnett in https://github.com/Unidata/netcdf-c/pull/3258
+* Fixed UBSan warnings about unaligned memory access by @seanm in https://github.com/Unidata/netcdf-c/pull/3208
+* Zarr csl fully by @mannreis in https://github.com/Unidata/netcdf-c/pull/3241
+* Fix regression reported in #3259 by @mannreis in https://github.com/Unidata/netcdf-c/pull/3263
+* allow .ncrc loading of user defined format  by @edhartnett in https://github.com/Unidata/netcdf-c/pull/3264
+* Quote path parameter in shell command during `isdaoscontainer` by @larsgeb in https://github.com/Unidata/netcdf-c/pull/3196
+* AI Guidelines by @WardF in https://github.com/Unidata/netcdf-c/pull/3297
+
+### New Contributors
+* @drwells made their first contribution in https://github.com/Unidata/netcdf-c/pull/3100
+* @jmckenna made their first contribution in https://github.com/Unidata/netcdf-c/pull/3131
+* @dkjsone made their first contribution in https://github.com/Unidata/netcdf-c/pull/3153
+* @jatkinson1000 made their first contribution in https://github.com/Unidata/netcdf-c/pull/3189
+* @larsgeb made their first contribution in https://github.com/Unidata/netcdf-c/pull/3196
+
+**Full Changelog**: https://github.com/Unidata/netcdf-c/compare/v4.9.3...v4.10.0
+
 ## 4.9.3 - February 7, 2025
 
 ## Known Issues
