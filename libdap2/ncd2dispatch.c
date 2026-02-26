@@ -188,6 +188,11 @@ NC_NOOP_inq_filter_avail,
 
 const NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
 
+/**
+Initialize the DAP2 dispatch layer.
+Sets the global dispatch table pointer and marks the layer as initialized.
+@return NC_NOERR always
+*/
 int
 NCD2_initialize(void)
 {
@@ -201,6 +206,10 @@ NCD2_initialize(void)
     return NC_NOERR;
 }
 
+/**
+Finalize the DAP2 dispatch layer.
+@return NC_NOERR always
+*/
 int
 NCD2_finalize(void)
 {
@@ -275,7 +284,20 @@ NCD2_get_vars(int ncid, int varid,
     return stat;
 }
 
-/* See ncd2dispatch.c for other version */
+/**
+Open a remote DAP2 dataset.
+Parses the DAP URL, opens an OC connection, fetches and builds the
+constrained and unconstrained DDS trees, defines netCDF metadata in
+an in-memory substrate file, and optionally prefetches small variables.
+@param path the DAP2 URL string
+@param mode the open mode flags
+@param basepe base PE for parallel I/O (unused for DAP2)
+@param chunksizehintp chunk size hint (unused for DAP2)
+@param mpidata MPI data pointer (unused for DAP2)
+@param dispatch the NC dispatch table
+@param ncid the netCDF ID assigned to this file
+@return NC_NOERR on success, an NC error code on failure
+*/
 int
 NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
           void* mpidata, const NC_Dispatch* dispatch, int ncid)
@@ -599,6 +621,13 @@ done:
     return THROW(ncstat);
 }
 
+/**
+Close a DAP2 dataset and free all associated resources.
+Aborts the in-memory substrate file and frees the NCDAPCOMMON state.
+@param ncid the netCDF ID of the dataset to close
+@param ignore unused parameter
+@return NC_NOERR on success, an NC error code on failure
+*/
 int
 NCD2_close(int ncid, void* ignore)
 {
