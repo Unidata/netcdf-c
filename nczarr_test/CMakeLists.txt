@@ -101,6 +101,8 @@ IF(NETCDF_ENABLE_TESTS)
   build_bin_test_with_util_lib(ut_map ut_util)
   build_bin_test_with_util_lib(ut_mapapi ut_util)
   build_bin_test_with_util_lib(ut_json ut_util)
+  build_bin_test_with_util_lib(ut_consolidated ut_util)
+  add_bin_test_with_util_lib(nczarr_test ut_consolidated ut_util)
 
   build_bin_test_with_util_lib(test_fillonlyz test_utils)
   build_bin_test_with_util_lib(test_quantize test_utils)
