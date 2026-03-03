@@ -18,7 +18,7 @@ Thanks for your interest in contributing to the netCDF project.  There are many 
 
 # AI and LLM Policy <A NAME="aiguidelines"></A>
 
-Please see the NSF Unidata AI tool use policy found here: [NSF Unidata LLVM AI Tool Policy](https://github.com/Unidata/netcdf-c/blob/main/.github/AI_GUIDELINES.md).
+Please see AI tool use guidelines found here: [NSF Unidata AI Tool Guidelines](https://github.com/Unidata/netcdf-c/blob/main/.github/AI_GUIDELINES.md).
 
 # Workflow <A NAME="workflow"></A>
 
