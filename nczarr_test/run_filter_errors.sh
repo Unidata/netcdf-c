@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -x 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
@@ -15,6 +15,7 @@ testfiltererror() {
     # Mess with the plugin
     set -x
     cp -r ${srcdir}/ref_data.zarr .
+    chmod -R 755 ./ref_data.zarr
     codec='faultycodecname'
     sed -i.bak 's/blosc/'${codec}'/g' ref_data.zarr/data/.zarray && rm ref_data.zarr/data/.zarray.bak
     (${NCDUMP} -v data -L0  "file://ref_data.zarr#mode=zarr" \
