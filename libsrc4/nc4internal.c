@@ -368,7 +368,17 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
      * group. Allocate space for one group's worth of information. Set
      * its grp id, name, and allocate associated empty lists. */
     if ((retval = nc4_grp_list_add(h5, NULL, NC_GROUP_NAME, &h5->root_grp)))
+    {
+        /* Free everything allocated above before returning, otherwise
+         * the NC_hashmap inside each NCindex leaks (issue #2665). */
+        free(h5->hdr.name);
+        nclistfree(h5->alldims);
+        nclistfree(h5->alltypes);
+        nclistfree(h5->allgroups);
+        free(h5);
+        nc->dispatchdata = NULL;
         return retval;
+    }
 
     return NC_NOERR;
 }

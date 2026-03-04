@@ -1,0 +1,149 @@
+###
+# Build and test netCDF-C on a big-endian platform using QEMU emulation.
+#
+# Target: IBM s390x (z/Architecture), which is big-endian.
+# The job runs on a standard x86-64 GitHub Actions runner but uses
+# uraimo/run-on-arch-action to spin up a QEMU-emulated s390x container.
+# This lets us verify that netCDF-C builds and tests correctly on a
+# big-endian architecture without needing dedicated hardware.
+#
+# HDF5 is installed from the Ubuntu apt repository (libhdf5-dev) rather
+# than built from source, because building HDF5 from source inside QEMU
+# requires running compiled test binaries which fails under emulation.
+#
+# Triggered manually (workflow_dispatch) or on pull requests to main.
+###
+
+name: Run Big-Endian (s390x) netCDF Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  nc-bigendian-s390x:
+
+    name: Autotools build on s390x (big-endian)
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Add swap space
+        # QEMU emulation is memory-intensive. The default GitHub Actions runner
+        # has limited swap, which can cause GCC's collect2 linker to segfault.
+        # Adding 16GB of swap reduces this risk. We also pass -Wl,--no-keep-memory
+        # to the linker to reduce its peak memory usage.
+        run: |
+          sudo swapoff -a || true
+          sudo dd if=/dev/zero of=/swapfile bs=1M count=16384
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+
+      - name: Build and test on s390x via QEMU
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: s390x
+          distro: ubuntu22.04
+
+          # githubToken enables caching of the QEMU container image in the
+          # GitHub Container Registry, speeding up subsequent runs.
+          githubToken: ${{ github.token }}
+
+          install: |
+            apt-get update -q -y
+            # Print available HDF5 packages for debugging purposes
+            apt-cache search libhdf5 | sort
+            apt-get install -q -y \
+              libaec-dev \
+              zlib1g-dev \
+              automake \
+              autoconf \
+              libcurl4-openssl-dev \
+              libjpeg-dev \
+              wget \
+              curl \
+              bzip2 \
+              m4 \
+              flex \
+              bison \
+              cmake \
+              libzip-dev \
+              libhdf5-dev \
+              libhdf5-103-1 \
+              libtool \
+              gcc \
+              g++ \
+              clang \
+              binutils-gold
+
+          run: |
+            set -e
+            set -x
+
+            ###
+            # Regenerate the autotools build system from source.
+            # This is required because the checked-out tree may not include
+            # generated files (configure, Makefile.in, etc.).
+            ###
+            autoreconf -if
+
+            ###
+            # Configure netCDF-C against the apt-installed HDF5 serial library.
+            #
+            # The HDF5 serial library on Ubuntu s390x lives in a non-standard
+            # path (/usr/lib/s390x-linux-gnu/hdf5/serial), so we pass explicit
+            # CPPFLAGS, LDFLAGS, and LIBS to point configure there.
+            #
+            # Features disabled to avoid missing dependencies under emulation:
+            #   --disable-dap            : requires curl/libxml2 remote access
+            #   --disable-dap-remote-tests: requires a live DAP server
+            #   --disable-nczarr         : requires additional zip/cloud libs
+            #   --disable-libxml2        : not needed without DAP
+            #   --disable-shared         : simplifies linking under emulation
+            #   --enable-utilities       : builds ncgen/ncdump/etc. binaries
+            ###
+            CPPFLAGS="-I/usr/include/hdf5/serial" \
+            LDFLAGS="-L/usr/lib/s390x-linux-gnu/hdf5/serial -fuse-ld=gold -Wl,--no-keep-memory" \
+            LIBS="-lhdf5_serial -lz" \
+            CFLAGS="-O0 -g" \
+            CC=clang \
+            ./configure \
+              --enable-hdf5 \
+              --disable-dap \
+              --disable-dap-remote-tests \
+              --disable-nczarr \
+              --disable-libxml2 \
+              --disable-shared \
+              --enable-static \
+              --enable-utilities \
+              || { tail -200 config.log; exit 1; }
+
+            cat libnetcdf.settings
+
+            make -j 4
+
+            ###
+            # Build and run the test suite.
+            # make check TESTS="" builds the test binaries without running them,
+            # then make check runs the full suite.
+            ###
+            make check TESTS="" -j 4
+            make check -j 4
+
+      - name: Show test logs on failure
+        if: ${{ failure() }}
+        run: |
+          find /home/runner/work/netcdf-c/netcdf-c -name 'test-suite.log' | \
+            xargs -I{} sh -c 'echo "=== {} ==="; cat "{}"' || true
+          cat config.log || true

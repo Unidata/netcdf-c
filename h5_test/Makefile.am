@@ -40,12 +40,14 @@ check_PROGRAMS = $(H5TESTS)
 # List of tests to run.
 TESTS = $(H5TESTS)
 
-# If zstd is enabled, run a test for it.
+# If zstd is enabled and utilities are built, run a test for it.
 if NETCDF_ENABLE_PLUGINS
+if NETCDF_BUILD_UTILITIES
 if HAVE_ZSTD
 check_PROGRAMS += tst_h_zstd
 TESTS += run_h5_zstd_tests.sh
 endif # HAVE_ZSTD
+endif # NETCDF_BUILD_UTILITIES
 endif # NETCDF_ENABLE_PLUGINS
 
 # The parallel program is run from a script.

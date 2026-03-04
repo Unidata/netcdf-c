@@ -1810,7 +1810,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     LOG((4, "about to H5Dwrite datasetid 0x%x mem_spaceid 0x%x "
          "file_spaceid 0x%x", hdf5_var->hdf_datasetid, mem_spaceid, file_spaceid));
     if (H5Dwrite(hdf5_var->hdf_datasetid,
-                 ((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->hdf_typeid,
+                 ((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->native_hdf_typeid,
                  mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
         BAIL(NC_EHDFERR);
 
@@ -1993,8 +1993,15 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 BAIL(NC_ENOMEM);
     }
     else
+    {
+        /* No type conversion needed: read directly into the caller's
+         * buffer. Guard against a NULL data pointer (issue #2668), but
+         * only when there is actually data to read. */
+        if (!data && !no_read)
+            BAIL(NC_EINVAL);
         if (!bufr)
             bufr = data;
+    }
 
     /* Check dimension bounds. Remember that unlimited dimensions can
      * get data beyond the length of the dataset, but within the
@@ -2032,7 +2039,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 if (start[d2] >= (hssize_t)fdims[d2])
                     fill_value_size[d2] = count[d2];
                 else if (endindex >= fdims[d2])
-                    fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2])/stride[d2]);
+                    fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2] + stride[d2] - 1)/stride[d2]);
                 else
                     fill_value_size[d2] = 0;
                 count[d2] -= fill_value_size[d2];
