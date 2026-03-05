@@ -39,7 +39,7 @@ ignored_if_null.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTVAR Invalid variable ID.
 
-\section nc_inq_varid_example4 Example
+\section nc_inq_varid_example Example
 
 Here is an example using nc_inq_varid to find out the ID of a variable
 named rh in an existing netCDF dataset named foo.nc:
@@ -93,7 +93,7 @@ stored. \ref ignored_if_null.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTVAR Invalid variable ID.
 
-\section nc_inq_var_example5 Example
+\section nc_inq_var_example Example
 
 Here is an example using nc_inq_var() to find out about a variable named
 rh in an existing netCDF dataset named foo.nc:
@@ -539,6 +539,7 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
  * quantization is in use. Ignored if NULL.
  *
  * @return 0 for success, error code otherwise.
+ * @since 4.9.0
  * @author Charlie Zender, Ed Hartnett
 */
 int
