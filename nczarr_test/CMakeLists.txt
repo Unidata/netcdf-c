@@ -193,6 +193,7 @@ IF(NETCDF_ENABLE_TESTS)
     add_sh_test(nczarr_test run_scalar)
     add_sh_test(nczarr_test run_nulls)
     add_sh_test(nczarr_test run_external)
+    add_sh_test(nczarr_test run_s3_credentials)
     add_sh_test(nczarr_test run_quantize)
     add_sh_test(nczarr_test run_notzarr)
 

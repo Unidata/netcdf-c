@@ -13,6 +13,7 @@ if(WIN32)
 endif()
 
 if(USE_HDF4_FILE_TESTS AND NOT WIN32)
+  include_directories(${MFHDF_H_INCLUDE_DIR})
   build_bin_test_no_prefix(tst_interops2)
   target_link_libraries(tst_interops2 netcdf ${ALL_TLL_LIBS})
   build_bin_test_no_prefix(tst_interops3)
