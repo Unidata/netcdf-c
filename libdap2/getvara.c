@@ -884,8 +884,6 @@ slicestring(OClink conn, char* stringmem, DCEslice* slice, struct NCMEMORY* memo
 {
     size_t stringlen;
     NCerror ncstat = NC_NOERR;
-    char* lastchar;
-    size_t charcount; /* number of characters inserted into memory */
 
     /* libnc-dap chooses to convert string escapes to the corresponding
        character; so we do likewise.
@@ -901,18 +899,12 @@ slice->first,slice->stride,slice->last,slice->declsize);
 #endif
 
     /* Stride across string; if we go past end of string, then pad*/
-    charcount = 0;
     for(size_t i=slice->first;i<slice->length;i+=slice->stride) {
         if(i < stringlen)
             *memory->next = stringmem[i];
         else /* i >= stringlen*/
             *memory->next = NC_FILL_CHAR;
 	memory->next++;
-	charcount++;
-    }
-    lastchar = (memory->next);
-    if(charcount > 0) {
-        lastchar--;
     }
 
     return THROW(ncstat);
