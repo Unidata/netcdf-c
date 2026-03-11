@@ -87,7 +87,7 @@
 @setchapternewpage odd
 @finalout
 @copying 
-Copyright @copyright{} 2005-2009 University Corporation for
+Copyright @copyright{} 2005-2026 University Corporation for
 Atmospheric Research
 
 @sp 2

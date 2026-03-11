@@ -5,7 +5,7 @@ netcdf-3 validator program
 */
 
 /*
-Copyright (c) 2003 Northwestern University and Argonne National Laboratory
+Copyright (c) 2026 Northwestern University and Argonne National Laboratory
 All rights reserved.
 
 Portions of this software were developed by the Unidata Program at the

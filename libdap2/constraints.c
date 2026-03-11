@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2018, UCAR/Unidata
+ *   Copyright 2026, UCAR/Unidata
  *   See netcdf/COPYRIGHT filey for copying and redistribution conditions.
  *********************************************************************/
 

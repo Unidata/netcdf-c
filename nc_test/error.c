@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2018, UCAR/Unidata
+ *   Copyright 2026, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: error.c,v 1.7 2007/05/15 01:36:57 ed Exp $
  *********************************************************************/

@@ -1,6 +1,6 @@
 /*
   This is part of ncgen, a utility which is part of netCDF. Copyright
-  2010, UCAR/Unidata. See COPYRIGHT file for copying and
+  2026, UCAR/Unidata. See COPYRIGHT file for copying and
   redistribution conditions.
  */
 

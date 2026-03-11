@@ -1,4 +1,4 @@
-/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2026, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #ifndef DAPPARSELEX_H

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2018, University Corporation for Atmospheric Research
+ *   Copyright 2026, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/nctest/nctime.c,v 1.12 1996/04/30 17:56:58 davis Exp $
  *********************************************************************/

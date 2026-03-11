@@ -88,7 +88,7 @@ __Organization__: University Corporation for Atmospheric Research
 __Initial Release__: 2015-9-28
 __Last Modified__: 2018-03-27
 
-__Copyright__: Copyright 2018, UCAR/Unidata; see COPYRIGHT file for copying and redistribution conditions. This code is Derived from the poco library (See [Poco Information](#poco-information) below).
+__Copyright__: Copyright 2026, UCAR/Unidata; see COPYRIGHT file for copying and redistribution conditions. This code is Derived from the poco library (See [Poco Information](#poco-information) below).
 
 # Change Log
 

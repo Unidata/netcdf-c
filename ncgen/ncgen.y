@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2018, UCAR/Unidata
+ *   Copyright 2026, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $
  *********************************************************************/

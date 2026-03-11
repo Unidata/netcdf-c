@@ -1,7 +1,7 @@
 /** \file 
 The V2 API Functions.
 
-Copyright 2018, University Corporation for Atmospheric Research
+Copyright 2026, University Corporation for Atmospheric Research
 See \ref copyright file for copying and redistribution conditions.
  */
 

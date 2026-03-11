@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1996-2018, UCAR/Unidata
+ *   Copyright 1996-2026, UCAR/Unidata
  *   See COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2018, UCAR/Unidata
+ *   Copyright 2026, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 /* $Id: odom.c,v 1.5 2010/05/27 21:34:18 dmh Exp $ */

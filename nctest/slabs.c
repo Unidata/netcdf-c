@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2018, UCAR/Unidata
+ *   Copyright 2026, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/nctest/slabs.c,v 1.13 2009/02/11 16:17:39 ed Exp $
  *********************************************************************/

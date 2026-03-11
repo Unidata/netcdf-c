@@ -1,4 +1,4 @@
-# This is part of Unidata's netCDF package.  Copyright 2005-2018, see
+# This is part of Unidata's netCDF package.  Copyright 2005-2026, see
 # the COPYRIGHT file for more information.
 
 # This automake file generates the Makefile to build netCDF-4.

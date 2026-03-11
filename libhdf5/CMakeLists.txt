@@ -1,5 +1,5 @@
 ## This is a CMake file, part of Unidata's netCDF package.
-# Copyright 2018-2022, see the COPYRIGHT file for more information.
+# Copyright 2018-2026, see the COPYRIGHT file for more information.
 #
 # This builds the HDF5 dispatch layer.
 #

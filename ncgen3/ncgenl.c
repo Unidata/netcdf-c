@@ -1056,7 +1056,7 @@ char *yytext;
 #line 1 "ncgen.l"
 #line 2 "ncgen.l"
 /*********************************************************************
- *   Copyright 2018, UCAR/Unidata
+ *   Copyright 2026, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: ncgen.l,v 1.24 2009/12/29 18:42:36 dmh Exp $
  *********************************************************************/

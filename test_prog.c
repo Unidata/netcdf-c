@@ -1,4 +1,4 @@
-/* This is part of Unidata's netCDF package. Copyright 2018.
+/* This is part of Unidata's netCDF package. Copyright 2026.
    This is a test program for the nc-config utility. */
 #include <netcdf.h>
 #include <stdio.h>

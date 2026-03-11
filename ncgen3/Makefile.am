@@ -1,5 +1,5 @@
 # This is a automake file, part of Unidata's netCDF package.
-# Copyright 2018, see the COPYRIGHT file for more information.
+# Copyright 2026, see the COPYRIGHT file for more information.
 # This file builds and runs the ncgen program.
 
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose

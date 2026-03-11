@@ -1,5 +1,5 @@
 /*
- *   Copyright 2018, University Corporation for Atmospheric Research
+ *   Copyright 2026, University Corporation for Atmospheric Research
  *   See top level COPYRIGHT file for copying and redistribution conditions.
  */
 /* $Id: fbits.h,v 1.2 1995/05/26 20:46:46 davis Exp $ */

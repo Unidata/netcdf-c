@@ -1,5 +1,5 @@
 /*
- Copyright 2007-2019, UCAR/Unidata
+ Copyright 2007-2026, UCAR/Unidata
  See COPYRIGHT file for copying and redistribution conditions.
 
  This program creates some test files which are used for performance

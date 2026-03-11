@@ -1,4 +1,4 @@
-/* Copyright 2018-2018 University Corporation for Atmospheric  Research/Unidata. */
+/* Copyright 2018-2026 University Corporation for Atmospheric  Research/Unidata. */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"

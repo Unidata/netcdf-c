@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2026, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
 
  *   $Header: /upc/share/CVS/netcdf-3/libncdap4/cdf4.c,v 1.16 2010/05/24 19:59:55 dmh Exp $
