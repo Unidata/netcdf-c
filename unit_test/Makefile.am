@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2019, see the COPYRIGHT file for more information.
+# Copyright 2026, see the COPYRIGHT file for more information.
 
 # This file builds and runs the unit tests. These tests are not run in
 # the CMake build, because we would then have to extern these internal

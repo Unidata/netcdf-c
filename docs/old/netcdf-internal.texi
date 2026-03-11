@@ -26,7 +26,7 @@
 
 This is internal documentation of the netCDF library.
 
-Copyright @copyright{} 2004, Unidata Program Center
+Copyright @copyright{} 2026, Unidata Program Center
 @end titlepage
 
 @ifnottex

@@ -1,4 +1,4 @@
-/* Copyright 2024
+/* Copyright 2026
    University Corporation for Atmospheric Research/Unidata. */
 
 /* This program tests for undesired HDF5 output in parallel

@@ -275,7 +275,7 @@ We hope the reader will find the software useful and will give us
 feedback on its application as well as suggestions for its
 improvement.
 
-David Fulker, 1996
+David Fulker, 2026
 
 Unidata Program Center Director,
 University Corporation for Atmospheric Research

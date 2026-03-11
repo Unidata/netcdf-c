@@ -1,5 +1,5 @@
 /*
- *	Copyright 2018, University Corporation for Atmospheric Research
+ *	Copyright 2026, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 /* $Id: var.c,v 1.144 2010/05/30 00:50:35 russ Exp $ */

@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2018, see the COPYRIGHT file for more information.
+# Copyright 2026, see the COPYRIGHT file for more information.
 
 # This automake file generates the Makefile to build netCDF-4. The
 # generated makefile is not run unless the user selected to build

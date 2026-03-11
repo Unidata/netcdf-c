@@ -1,5 +1,5 @@
 /*
- Copyright 2018 University Corporation for Atmospheric
+ Copyright 2026 University Corporation for Atmospheric
  Research/Unidata. See COPYRIGHT file for more info.
 
  This file defines most of the netcdf API in terms of the dispatch

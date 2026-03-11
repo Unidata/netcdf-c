@@ -1,4 +1,4 @@
-/* Copyright 2005, University Corporation for Atmospheric Research. See
+/* Copyright 2026, University Corporation for Atmospheric Research. See
  * the COPYRIGHT file for copying and redistribution conditions. */
 /**
  * @file

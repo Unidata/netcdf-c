@@ -1,5 +1,5 @@
 ## This is a CMake file, part of Unidata's netCDF package.
-# Copyright 2012-2018, see the COPYRIGHT file for more information.
+# Copyright 2012-2026, see the COPYRIGHT file for more information.
 
 set(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
   nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c)

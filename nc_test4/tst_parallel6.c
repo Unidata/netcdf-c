@@ -1,4 +1,4 @@
-/* Copyright 2022, UCAR/Unidata See COPYRIGHT file for copying and
+/* Copyright 2026, UCAR/Unidata See COPYRIGHT file for copying and
  * redistribution conditions.
  *
  * This parallel I/O test checks the behavior of nc_inq_dimlen() after

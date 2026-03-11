@@ -1,7 +1,7 @@
 # WARNING: this is not the libxml2 library
 # It comes from https://github.com/recp/xml
 
-# Copyright 2009, UCAR/Unidata
+# Copyright 2026, UCAR/Unidata
 # See the COPYRIGHT file for more information.
 
 # Use automake or CMake for building under nix

@@ -6,7 +6,7 @@
  * These functions support inferring the format X implementation for urls.
  * It looks at various fragment (#...) pairs.
  *
- * Copyright 2018 University Corporation for Atmospheric
+ * Copyright 2026 University Corporation for Atmospheric
  * Research/Unidata. See COPYRIGHT file for more info.
 */
 

@@ -1,7 +1,7 @@
 #ifndef HEADER_CURL_SHA256_H
 #define HEADER_CURL_SHA256_H
 /*********************************************************************
-*    Copyright 2018, UCAR/Unidata
+*    Copyright 2026, UCAR/Unidata
 *    See netcdf/COPYRIGHT file for copying and redistribution conditions.
 * ********************************************************************/
 /***************************************************************************

@@ -1,6 +1,6 @@
 #define TESTNCZARR
 /*
-  Copyright 2018, UCAR/Unidata
+  Copyright 2026, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 */
 

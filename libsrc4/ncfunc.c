@@ -1,7 +1,7 @@
 /**
  * @internal
  *
- * Copyright 2018, University Corporation for Atmospheric
+ * Copyright 2026, University Corporation for Atmospheric
  * Research. See netcdf-4/docs/COPYRIGHT file for copying and
  * redistribution conditions.
  *

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2024 University Corporation for Atmospheric
+# Copyright 2026 University Corporation for Atmospheric
 # Research/Unidata. See netcdf-c/COPYRIGHT file for more info.
 
 # This shell runs the zstandard tests.

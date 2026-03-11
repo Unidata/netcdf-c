@@ -1,4 +1,4 @@
-/* Copyright 2006-2011 University Corporation for Atmospheric
+/* Copyright 2006-2026 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for conditions of use. */
 /**
  * @file

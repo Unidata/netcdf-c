@@ -1,5 +1,5 @@
 /*
-  Copyright 2021, UCAR/Unidata See COPYRIGHT file for copying and
+  Copyright 2026, UCAR/Unidata See COPYRIGHT file for copying and
   redistribution conditions.
 
   This program tests and benchmarks netcdf-4 I/O doing compression.

@@ -1,6 +1,6 @@
 %{
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2026, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: ncgen.l,v 1.24 2009/09/25 18:22:35 dmh Exp $
  *********************************************************************/
