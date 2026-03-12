@@ -16,6 +16,8 @@ cd $ISOPATH
 
 testcase() {
 zext=$1
+host_le=`printf '\001\000\000\000' | od -An -t d4 | tr -d ' \n'`
+expected_zmap="${srcdir}/ref_jsonconvention.zmap"
 
 echo "*** Test: write then read using json convention"
 fileargs tmp_jsonconvention "mode=nczarr,$zext"
@@ -28,9 +30,12 @@ cat < tmp_jsonconvention_${zext}.cdl > tmp_jsonconvention_clean_${zext}.cdl
 cat < tmp_jsonconvention_${zext}.txt > tmp_jsonconvention_clean_${zext}.txt
 sed -i.bak -e 's|"_NCProperties": "version=[0-9],[^"]*",||' tmp_jsonconvention_clean_${zext}.txt 
 sed -i.bak -e 's|\(.z[a-z][a-z]*\) : ([0-9][0-9]*)|\1 : ()|g' tmp_jsonconvention_clean_${zext}.txt
+if test "x${host_le}" != x1 ; then
+  expected_zmap="${srcdir}/ref_jsonconvention_be.zmap"
+fi
 # compare
 diff -b ${srcdir}/ref_jsonconvention.cdl tmp_jsonconvention_clean_${zext}.cdl
-diff -b ${srcdir}/ref_jsonconvention.zmap tmp_jsonconvention_clean_${zext}.txt
+diff -b ${expected_zmap} tmp_jsonconvention_clean_${zext}.txt
 }
 
 testcase file
