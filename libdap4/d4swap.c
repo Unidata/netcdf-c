@@ -53,7 +53,7 @@ NCD4_swapdata(NCD4response* resp, NCD4node* var, int doswap)
 	    if((ret=walkSeqArray(resp,var,var,offset,doswap))) goto done;
 	    break;
 	}
-	var->data.dap4data.size = (d4size_t)DELTA(offset,var->data.dap4data.memory);
+	var->data.dap4data.size = (d4size_t)DELTA(offset->offset,var->data.dap4data.memory);
 done:
     if(offset) free(offset);
     return THROW(ret);
