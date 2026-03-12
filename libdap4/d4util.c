@@ -419,7 +419,9 @@ void
 NCD4_incr(NCD4offset* p, d4size_t size)
 {
     if((p)->offset+(size) > (p)->limit)
-        printf("\n\nERROR: p->offset+(space): %d, (off)->limit: %d\n\n",((p)->offset+(size)),(p)->limit);
+        fprintf(stderr,"\n\nERROR: p->offset+(size): %td, p->limit: %td\n\n",
+                (ptrdiff_t)((char*)(p)->offset - (char*)(p)->base) + (ptrdiff_t)(size),
+                (ptrdiff_t)((char*)(p)->limit  - (char*)(p)->base));
     VERIFY(p,size);    
     p->offset += size;
 }
