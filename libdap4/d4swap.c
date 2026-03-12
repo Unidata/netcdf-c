@@ -101,7 +101,7 @@ walkAtomicVar(NCD4response* resp, NCD4node* topvar, NCD4node* var, NCD4offset* o
 	for(i=0;i<dimproduct;i++) {
 	    /* Get string count */
 	    if(doswap)
-		swapinline64(offset);
+		swapinline64(offset->offset);
 	    count = GETCOUNTER(offset);
 	    SKIPCOUNTER(offset);
 	    /* skip count bytes */
@@ -124,7 +124,7 @@ walkOpaqueVar(NCD4response* resp, NCD4node* topvar, NCD4node* var, NCD4offset* o
     for(i=0;i<dimproduct;i++) {
 	/* Get and swap opaque count */
 	if(doswap)
-	    swapinline64(offset);
+	    swapinline64(offset->offset);
 	count = GETCOUNTER(offset);
 	SKIPCOUNTER(offset);
 	INCR(offset,count);
@@ -213,7 +213,7 @@ walkSeq(NCD4response* resp, NCD4node* topvar, NCD4node* vlentype, NCD4offset* of
 
     /* process the record count */
     if(doswap)
-        swapinline64(offset);
+        swapinline64(offset->offset);
     recordcount = GETCOUNTER(offset);
     SKIPCOUNTER(offset);
 
