@@ -35,8 +35,9 @@ NCD4_swapdata(NCD4response* resp, NCD4node* var, int doswap)
     int ret = NC_NOERR;
     NCD4offset* offset = NULL;
     
-    offset = BUILDOFFSET(resp->serial.dap,resp->serial.dapsize);
-	OFFSET2BLOB(var->data.dap4data,offset);
+    NC_UNUSED(resp);
+    offset = BUILDOFFSET(NULL,0);
+    BLOB2OFFSET(offset,var->data.dap4data);
 	switch (var->subsort) {
 	default:
 	    if((ret=walkAtomicVar(resp,var,var,offset,doswap))) goto done;
@@ -53,9 +54,6 @@ NCD4_swapdata(NCD4response* resp, NCD4node* var, int doswap)
 	    break;
 	}
 	var->data.dap4data.size = (d4size_t)DELTA(offset,var->data.dap4data.memory);
-	/* skip checksum, if there is one */
-        if(resp->inferredchecksumming)
-	    INCR(offset,CHECKSUMSIZE);
 done:
     if(offset) free(offset);
     return THROW(ret);
