@@ -1132,16 +1132,27 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
     /* If the chunk cache is too small, and the user has not changed
      * the default value of the chunk cache size, then increase the
-     * size of the cache. */
+     * size of the cache to hold DEFAULT_CHUNKS_IN_CACHE chunks.
+     *
+     * The original code checked (chunk_size_bytes > CHUNK_CACHE_SIZE)
+     * which only triggered when a single chunk exceeded the cache.
+     * This missed the case where the cache was too small to hold
+     * enough chunks for efficient access patterns, causing the
+     * 4.7.3->4.7.4 regression (see GitHub issue #1757). We now
+     * check whether the cache can hold DEFAULT_CHUNKS_IN_CACHE
+     * chunks. */
     if (var->chunkcache.size == CHUNK_CACHE_SIZE)
-        if (chunk_size_bytes > var->chunkcache.size)
+    {
+        size_t min_cache = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
+        if (min_cache > DEFAULT_CHUNK_CACHE_SIZE)
+            min_cache = DEFAULT_CHUNK_CACHE_SIZE;
+        if (var->chunkcache.size < min_cache)
         {
-            var->chunkcache.size = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
-            if (var->chunkcache.size > DEFAULT_CHUNK_CACHE_SIZE)
-                var->chunkcache.size = DEFAULT_CHUNK_CACHE_SIZE;
+            var->chunkcache.size = min_cache;
             if ((retval = nc4_reopen_dataset(grp, var)))
                 return retval;
         }
+    }
 
     return NC_NOERR;
 }

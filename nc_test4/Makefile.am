@@ -33,9 +33,10 @@ tst_endian_fill tst_atts t_type cdm_sea_soundings tst_camrun tst_vl	\
 tst_atts1 tst_atts2 tst_vars2 tst_files5 tst_files6 tst_sync		\
 tst_h_scalar tst_rename tst_rename2 tst_rename3 tst_h5_endians		\
 tst_atts_string_rewrite tst_hdf5_file_compat tst_fill_attr_vanish	\
-tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
-tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
-tst_bug1442 tst_quantize tst_h_transient_types
+tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
+tst_bug1442 tst_quantize tst_h_transient_types tst_chunk_cache tst_varsperf \
+tst_strided_write tst_chunk_cache_perf tst_chunked_deflate_perf \
+tst_mem_safety
 
 if HAS_PAR_FILTERS
 NC4_TESTS += tst_alignment
@@ -184,7 +185,7 @@ testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
 testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
 tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp                 \
 tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp tmp_*.cdl ref_fixedstring.h5 \
-zero-len-attribute-test.nc
+zero-len-attribute-test.nc tst_varsperf_bigvars.nc
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh run_par_warn_test.sh	
 

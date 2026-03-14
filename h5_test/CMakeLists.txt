@@ -17,6 +17,13 @@ FOREACH(CTEST ${H5TESTS})
     HDF5::HDF5 hdf5::hdf5_hl
     )
   ADD_TEST(${CTEST} ${EXECUTABLE_OUTPUT_PATH}/${CTEST})
+  IF(WIN32)
+    SET_TARGET_PROPERTIES(${CTEST} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+      RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+    )
+  ENDIF()
 ENDFOREACH()
 
 IF(TEST_PARALLEL4)
@@ -25,11 +32,13 @@ IF(TEST_PARALLEL4)
   add_sh_test(h5_test run_par_tests)
 ENDIF()
 
-# If zstd is enabled, run a test for it.
+# If zstd is enabled and utilities are built, run a test for it.
 if(NETCDF_ENABLE_PLUGINS)
   if(NETCDF_ENABLE_FILTER_ZSTD)
-    build_bin_test(tst_h_zstd)
-    add_sh_test(h5_test run_h5_zstd_tests)    
+    if(NETCDF_BUILD_UTILITIES)
+      build_bin_test(tst_h_zstd)
+      add_sh_test(h5_test run_h5_zstd_tests)
+    endif()
   endif()
 endif()
 

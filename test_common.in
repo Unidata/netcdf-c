@@ -170,8 +170,10 @@ cd $execdir; execdir=`pwd` ; cd $WD
 # For sun os
 export srcdir top_srcdir builddir top_builddir execdir
 
-# Figure out executable extension (probably a better way)
+# Figure out executable extension
 if test -e "${top_builddir}/ncdump${VS}/ncdump.exe" ; then
+  ext=".exe"
+elif test -e "${execdir}/ncdump.exe" ; then
   ext=".exe"
 else
   ext=""
