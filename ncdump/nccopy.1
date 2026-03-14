@@ -1,5 +1,4 @@
-.\" $Id: nccopy.1 400 2010-08-27 21:02:52Z russ $
-.TH NCCOPY 1 "2012-03-08" "Release 4.2" "UNIDATA UTILITIES"
+.TH NCCOPY 1 "2026-03-11" "Release 4.10.1" "UNIDATA UTILITIES"
 .SH NAME
 nccopy \- Copy a netCDF file, optionally changing format, compression, or chunking in the output.
 .SH SYNOPSIS
@@ -250,9 +249,9 @@ a performance tuning parameter for avoiding compressing or
 decompressing the same data multiple times while copying and changing
 chunk shapes.  A suffix of K, M, G, or T multiplies the chunk cache
 size by one thousand, million, billion, or trillion, respectively.
-The default is 4.194304 Mbytes (or whatever was specified for the
-configure-time constant CHUNK_CACHE_SIZE when the netCDF library was
-built).  Ideally, the \fBnccopy\fP utility should accept only one memory
+The default is 64 MiB (67,108,864 bytes) (or whatever was specified
+for the configure-time constant CHUNK_CACHE_SIZE when the netCDF
+library was built).  Ideally, the \fBnccopy\fP utility should accept only one memory
 buffer size and divide it optimally between a copy buffer and chunk
 cache, but no general algorithm for computing the optimum chunk cache
 size has been implemented yet. Using the '\-w' option may provide
@@ -264,7 +263,7 @@ or T multiplies the number of chunks that can be held in the cache
 by one thousand, million, billion, or trillion, respectively.  This is not a
 property of the file, but merely a performance tuning parameter for
 avoiding compressing or decompressing the same data multiple times
-while copying and changing chunk shapes.  The default is 1009 (or
+while copying and changing chunk shapes.  The default is 1000 (or
 whatever was specified for the configure-time constant
 CHUNK_CACHE_NELEMS when the netCDF library was built).  Ideally, the
 \fBnccopy\fP utility should determine an optimum value for this parameter,
@@ -307,6 +306,48 @@ is a 32-bit unsigned integer.
 .IP
 This parameter may be repeated multiple times with different
 variable names.
+.IP
+Common built-in filter IDs (always available in netCDF-4 builds):
+.RS
+.TP
+\fB1\fP \(em deflate (zlib compression)
+Levels 0\(en9; also controlled via \fB-d\fP.
+.TP
+\fB2\fP \(em shuffle
+Byte reordering to improve compression; also enabled via \fB-s\fP.
+.TP
+\fB3\fP \(em fletcher32
+Integrity checksum.
+.TP
+\fB4\fP \(em szip
+SZIP compression; requires that the library was built with SZIP support.
+Note that SZIP may be subject to patent restrictions in some jurisdictions.
+.RE
+.IP
+Additional filters require a matching HDF5 filter plugin to be installed.
+Commonly available plugin-based filters include:
+.RS
+.TP
+\fB307\fP \(em bzip2
+bzip2 compression.
+.TP
+\fB32001\fP \(em Blosc
+Blosc meta-compressor, supporting multiple internal codecs (LZ4, Snappy, etc.).
+.TP
+\fB32015\fP \(em Zstandard (zstd)
+Zstandard compression, which often offers a better speed/ratio tradeoff
+than deflate for many scientific datasets.
+.RE
+.IP
+Plugins are loaded from directories listed in the \fBHDF5_PLUGIN_PATH\fP
+environment variable.  If that variable is unset, the library searches
+the platform default plugin directory (typically
+\fI/usr/local/hdf5/lib/plugin\fP on Unix or
+\fI%ALLUSERSPROFILE%/hdf5/lib/plugin\fP on Windows).
+.IP
+Multiple filters may be chained on a single variable by repeating the
+\fB-F\fP option.  Filters are applied in the order given when writing
+data, and in reverse order when reading.
 
 .SH EXAMPLES
 .LP
@@ -439,6 +480,50 @@ as netcdf-3, cdf5, and DAP. In these cases retain all
 chunk sizes determined by previous rules, and use the full
 dimension size as the default. The exception is unlimited dimensions,
 where the default is 4 megabytes.
+
+.SH "PERFORMANCE TUNING"
+.LP
+When copying large files or files that require format conversion,
+rechunking, or recompression, the following options control how
+\fBnccopy\fP uses memory and can significantly affect throughput.
+.TP
+\fB-w\fP (in-memory copy)
+Keeps the entire output file in memory and flushes it to disk only on
+close.  This is the simplest and typically the fastest approach when
+the output fits in available RAM, as it eliminates repeated disk I/O
+during format conversion, rechunking, and recompression.  Prefer
+\fB-w\fP over manual tuning of \fB-m\fP, \fB-h\fP, and \fB-e\fP
+whenever the output file size permits.
+.TP
+\fB-m\fP \fIbufsize\fP (copy buffer)
+Controls the size of the I/O buffer used when transferring each
+variable from input to output (default: 5\ MB).  Increasing this
+value improves throughput when copying over high-latency networks or
+when individual variables are much larger than the default.  The
+buffer is automatically enlarged if necessary to hold at least one
+complete chunk of a chunked input variable.  Suffixes \fBK\fP,
+\fBM\fP, \fBG\fP, and \fBT\fP denote kilo-, mega-, giga-, and
+terabytes respectively (e.g., \fB-m 64M\fP).
+.TP
+\fB-h\fP \fIchunk_cache\fP (HDF5 chunk cache size per variable)
+Allocates a per-variable HDF5 chunk cache of the specified size
+(default: ~4\ MB) to avoid repeatedly compressing or decompressing
+the same chunks when changing chunk shapes.  This is a runtime
+performance hint only and does not affect the output file.  Increase
+this value when rechunking variables whose chunks are accessed many
+times (e.g., converting a time-first layout to a space-first layout).
+K/M/G/T suffixes are accepted.
+.TP
+\fB-e\fP \fIcache_elems\fP (chunk cache element count)
+Sets the maximum number of chunks simultaneously held in the
+per-variable chunk cache (default: 1009).  Increase this value when
+working with variables that have many small chunks, to reduce cache
+thrashing.  K/M/G/T suffixes are accepted.
+.LP
+As a general guideline: use \fB-w\fP when the output fits in memory.
+When \fB-w\fP is not feasible, set \fB-m\fP to cover at least the
+largest single variable and \fB-h\fP to cover several chunks of the
+most frequently re-read variable.
 
 .SH "SEE ALSO"
 .LP

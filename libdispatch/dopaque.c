@@ -21,7 +21,7 @@ Create an opaque type. Provide a size and a name.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 \returns ::NC_ENAMEINUSE That name is in use.
 \returns ::NC_EMAXNAME Name exceeds max length NC_MAX_NAME.
@@ -54,7 +54,7 @@ ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
