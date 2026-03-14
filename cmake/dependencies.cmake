@@ -65,7 +65,7 @@ if(USE_HDF4)
   if(NOT JPEG_LIB)
     message(FATAL_ERROR "HDF4 Support enabled but cannot find libjpeg")
   endif()
-  set(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES} CACHE STRING "")
+  set(HDF4_LIBRARIES ${HDF4_LIBRARIES} ${JPEG_LIB} CACHE STRING "")
   message(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
   target_link_libraries(netcdf

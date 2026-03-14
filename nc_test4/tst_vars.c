@@ -9,6 +9,7 @@
 #include "nc_tests.h"
 #include "err_macros.h"
 #include "netcdf.h"
+#include <limits.h>
 
 #define FILE_NAME "tst_vars.nc"
 #define VAR_BYTE_NAME "Portrait_of_Maria_Trip"
@@ -592,7 +593,8 @@ main(int argc, char **argv)
       if (nc_get_var_schar(ncid, float_varid, (signed char *)byte_in) != NC_ERANGE) ERR;
       for (i = 0; i < DIM1_LEN; i++)
 	 for (j = 0; j < DIM2_LEN; j++)
-	    if (byte_in[i][j] != (signed char)float_out[i][j]) ERR;
+	    if (float_out[i][j] >= (float)SCHAR_MIN && float_out[i][j] <= (float)SCHAR_MAX)
+	       if (byte_in[i][j] != (signed char)float_out[i][j]) ERR;
       if (nc_get_var_schar(ncid, int64_varid, (signed char *)byte_in) != NC_ERANGE) ERR;
       for (i = 0; i < DIM1_LEN; i++)
 	 for (j = 0; j < DIM2_LEN; j++)
@@ -796,7 +798,8 @@ main(int argc, char **argv)
       if (nc_get_var_schar(ncid, float_varid, (signed char *)byte_in) != NC_ERANGE) ERR;
       for (i = 0; i < DIM1_LEN; i++)
 	 for (j = 0; j < DIM2_LEN; j++)
-	    if (byte_in[i][j] != (signed char)float_out[i][j]) ERR;
+	    if (float_out[i][j] >= (float)SCHAR_MIN && float_out[i][j] <= (float)SCHAR_MAX)
+	       if (byte_in[i][j] != (signed char)float_out[i][j]) ERR;
       if (nc_get_var_schar(ncid, int64_varid, (signed char *)byte_in) != NC_ERANGE) ERR;
       for (i = 0; i < DIM1_LEN; i++)
 	 for (j = 0; j < DIM2_LEN; j++)
