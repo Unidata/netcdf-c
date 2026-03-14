@@ -72,18 +72,52 @@ NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int  id, size_t nparams, 
     return NC_ENOTNC4;
 }
 
+/**
+ * @internal Not implemented for a dispatch table.
+ *
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param nfilters Ignored.
+ * @param filterids Ignored.
+ *
+ * @return ::NC_ENOTNC4 Not a netCDF-4 file.
+ * @author Dennis Heimbigner
+ */
 int
 NC_NOTNC4_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids)
 {
     return NC_ENOTNC4;
 }
 
+/**
+ * @internal Not implemented for a dispatch table.
+ *
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param id Ignored.
+ * @param nparams Ignored.
+ * @param params Ignored.
+ *
+ * @return ::NC_ENOTNC4 Not a netCDF-4 file.
+ * @author Dennis Heimbigner
+ */
 int
 NC_NOTNC4_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params)
 {
     return NC_ENOTNC4;
 }
 
+/**
+ * @internal No-op for filter inquiry. Reports zero filters.
+ *
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param nfilters Gets 0 if non-NULL.
+ * @param filterids Ignored.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
 int
 NC_NOOP_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids)
 {
@@ -91,6 +125,18 @@ NC_NOOP_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* 
     return NC_NOERR;
 }
 
+/**
+ * @internal No-op for filter info inquiry. Always returns NC_ENOFILTER.
+ *
+ * @param ncid Ignored.
+ * @param varid Ignored.
+ * @param id Ignored.
+ * @param nparams Ignored.
+ * @param params Ignored.
+ *
+ * @return ::NC_ENOFILTER No filter defined.
+ * @author Dennis Heimbigner
+ */
 int
 NC_NOOP_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params)
 {
@@ -98,6 +144,15 @@ NC_NOOP_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparam
     return NC_ENOFILTER;
 }
 
+/**
+ * @internal No-op for filter availability check. Always returns NC_ENOFILTER.
+ *
+ * @param ncid Ignored.
+ * @param id Ignored.
+ *
+ * @return ::NC_ENOFILTER No filter available.
+ * @author Dennis Heimbigner
+ */
 int
 NC_NOOP_inq_filter_avail(int ncid, unsigned id)
 {
@@ -355,7 +410,7 @@ NC_NOTNC4_insert_enum(int ncid, nc_type typeid1, const char *identifier,
  * @param len Ignored.
  * @param data Ignored.
  *
- * @return ::NC_NOERR No error.
+ * @return ::NC_ENOTNC4 Not a netCDF-4 file.
  * @author Ed Hartnett
  */
 int

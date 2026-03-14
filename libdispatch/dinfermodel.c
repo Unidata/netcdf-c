@@ -1645,13 +1645,13 @@ isdaoscontainer(const char* path)
 	    FILE *fp;
 	    char cmd[4096];
 	    memset(cmd,0,sizeof(cmd));
-            snprintf(cmd,sizeof(cmd),"getfattr %s | grep -c '.daos'",path);
-            fp = popen(cmd, "r");
-	    if(fp != NULL) {
-               fscanf(fp, "%d", &rc);
-               pclose(fp);
+      snprintf(cmd,sizeof(cmd),"getfattr \"%s\" | grep -c '.daos'",path);
+      fp = popen(cmd, "r");
+      if(fp != NULL) {
+        fscanf(fp, "%d", &rc);
+        pclose(fp);
 	    } else {
-		rc = 0; /* Cannot test; assume not DAOS */
+    		rc = 0; /* Cannot test; assume not DAOS */
 	    }
 	}
     }

@@ -369,10 +369,14 @@ while test $# -gt 0; do
 
             libs=$(echo $libs | sed 's/hdf5::hdf5_hl/hdf5_hl/g')
             libs=$(echo $libs | sed 's/HDF5::HDF5/hdf5/g')
+            libs=$(echo $libs | sed 's/CURL::libcurl/curl/g')
+            libs=$(echo $libs | sed 's/PNETCDF::PNETCDF/pnetcdf/g')
 
             if [ "x$HAS_STATIC" = "xTRUE" ]; then
                 libsprivate=$(echo $libsprivate | sed 's/hdf5::hdf5_hl/hdf5_hl/g')
                 libsprivate=$(echo $libsprivate | sed 's/HDF5::HDF5/hdf5/g')
+                libsprivate=$(echo $libsprivate | sed 's/CURL::libcurl/curl/g')
+                libsprivate=$(echo $libsprivate | sed 's/PNETCDF::PNETCDF/pnetcdf/g')
                 echo $libs $libsprivate
             else
                 echo $libs

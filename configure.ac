@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF],[4.10.0-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
+AC_INIT([netCDF],[4.10.1-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -21,7 +21,7 @@ AC_INIT([netCDF],[4.10.0-development],[support-netcdf@unidata.ucar.edu],[netcdf-
 
 AC_SUBST([netCDF_VERSION_MAJOR]) netCDF_VERSION_MAJOR=4
 AC_SUBST([netCDF_VERSION_MINOR]) netCDF_VERSION_MINOR=10
-AC_SUBST([netCDF_VERSION_PATCH]) netCDF_VERSION_PATCH=0
+AC_SUBST([netCDF_VERSION_PATCH]) netCDF_VERSION_PATCH=1
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 ##
@@ -29,7 +29,7 @@ AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 # See http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 # for information regarding incrementing `-version-info`.
 # These values should match those in CMakeLists.txt
-AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=23:0:1
+AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=24:0:2
 
 #####
 # Set some variables used to generate a libnetcdf.settings file,
@@ -2032,6 +2032,7 @@ AM_CONDITIONAL(HAVE_H5Z_SZIP, [test "x$enable_hdf5_szip" = xyes])
 AM_CONDITIONAL(HAVE_BLOSC, [test "x$have_blosc" = xyes])
 AM_CONDITIONAL(HAVE_BZ2, [test "x$have_bz2" = xyes])
 AM_CONDITIONAL(HAVE_ZSTD, [test "x$have_zstd" = xyes])
+AM_CONDITIONAL(ENABLE_SHARED, [test "x$enable_shared" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
