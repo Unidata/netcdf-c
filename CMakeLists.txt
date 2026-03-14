@@ -13,7 +13,7 @@ project(netCDF
   LANGUAGES C CXX
   HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
   DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
-  VERSION 4.10.0
+  VERSION 4.10.1
 )
 
 #####
@@ -706,6 +706,10 @@ endif()
 if(NETCDF_ENABLE_PLUGINS)
   set(USEPLUGINS yes)
 endif()
+
+# UDF self-registration: plugin init functions return NC_Dispatch*
+# instead of int, and the loader registers the dispatch table.
+set(HAVE_NETCDF_UDF_SELF_REGISTRATION ON)
 
 # Enable some developer-only tests
 option(NETCDF_ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
@@ -1728,6 +1732,7 @@ is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 is_enabled(HAVE_ZSTD HAS_ZSTD)
 is_enabled(HAVE_BLOSC HAS_BLOSC)
 is_enabled(HAVE_BZ2 HAS_BZ2)
+is_enabled(HAVE_NETCDF_UDF_SELF_REGISTRATION HAS_UDF_SELF_LOAD)
 is_enabled(NETCDF_ENABLE_REMOTE_FUNCTIONALITY DO_REMOTE_FUNCTIONALITY)
 
 if(NETCDF_ENABLE_S3_INTERNAL)

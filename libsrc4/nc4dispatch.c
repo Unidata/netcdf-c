@@ -15,6 +15,7 @@
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 #include "nc.h"
+#include "ncudfplugins.h"
 
 /* If user-defined formats are in use, we need to declare their
  * dispatch tables. */
@@ -69,6 +70,10 @@ NC4_initialize(void)
 #if defined(USE_HDF5) || defined(NETCDF_ENABLE_NCZARR)
     nc_plugin_path_initialize();
 #endif
+
+    /* Load UDF plugins from RC file configuration */
+    if ((ret = NC_udf_load_plugins()))
+        return ret;
 
     NC_initialize_reserved();
     return ret;

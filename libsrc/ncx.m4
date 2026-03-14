@@ -3204,7 +3204,7 @@ APIPrefix`x_getn_'NC_TYPE(float)_float(const void **xpp, IntType nelems, float *
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_FLOAT, tp++)
 	{
-		const int lstatus = APIPrefix`x_get_'NC_TYPE(float)_float(xp, tp, fillp);
+		const int lstatus = APIPrefix`x_get_'NC_TYPE(float)_float(xp, tp, NULL);
 		if (status == NC_NOERR) /* report the first encountered error */
 			status = lstatus;
 	}
@@ -3314,7 +3314,7 @@ APIPrefix`x_getn_'NC_TYPE(double)_double(const void **xpp, IntType nelems, doubl
 
 	for( ; nelems != 0; nelems--, xp += X_SIZEOF_DOUBLE, tp++)
 	{
-		const int lstatus = APIPrefix`x_get_'NC_TYPE(double)_double(xp, tp, fillp);
+		const int lstatus = APIPrefix`x_get_'NC_TYPE(double)_double(xp, tp, NULL);
 		if (status == NC_NOERR) /* report the first encountered error */
 			status = lstatus;
 	}

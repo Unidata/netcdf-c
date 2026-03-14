@@ -166,6 +166,9 @@ are set when opening a binary file on Windows. */
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine NETCDF_ENABLE_PLUGINS 1
 
+/* if true, UDF plugin init functions return NC_Dispatch* */
+#cmakedefine HAVE_NETCDF_UDF_SELF_REGISTRATION 1
+
 /* Define the plugin install dir */
 #cmakedefine NETCDF_PLUGIN_INSTALL_DIR "${NETCDF_PLUGIN_INSTALL_DIR}"
 

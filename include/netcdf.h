@@ -143,8 +143,25 @@ extern "C" {
 #define NC_64BIT_DATA    0x0020  /**< CDF-5 format: classic model but 64 bit dimensions and sizes */
 #define NC_CDF5          NC_64BIT_DATA  /**< Alias NC_CDF5 to NC_64BIT_DATA */
 
-#define NC_UDF0          0x0040  /**< User-defined format 0. */
-#define NC_UDF1          0x0080  /**< User-defined format 1. */
+/** @name User-Defined Format Mode Flags
+ * Mode flags for user-defined formats (UDF0-UDF9).
+ * Use with nc_def_user_format() to register custom format handlers.
+ * Can not be combined with other mode flags (e.g., NC_NETCDF4).
+ * See @ref user_defined_formats for details.
+ * @{ */
+#define NC_UDF0          0x0040  /**< User-defined format 0 (bit 6). */
+#define NC_UDF1          0x0080  /**< User-defined format 1 (bit 7). */
+/* UDF2-UDF9 use bits 16, 19-25 (skipping bits 17-18 which are used by
+ * NC_NOATTCREORD=0x20000 and NC_NODIMSCALE_ATTACH=0x40000) */
+#define NC_UDF2          0x10000  /**< User-defined format 2 (bit 16). */
+#define NC_UDF3          0x80000  /**< User-defined format 3 (bit 19). */
+#define NC_UDF4          0x100000  /**< User-defined format 4 (bit 20). */
+#define NC_UDF5          0x200000  /**< User-defined format 5 (bit 21). */
+#define NC_UDF6          0x400000  /**< User-defined format 6 (bit 22). */
+#define NC_UDF7          0x800000  /**< User-defined format 7 (bit 23). */
+#define NC_UDF8          0x1000000  /**< User-defined format 8 (bit 24). */
+#define NC_UDF9          0x2000000  /**< User-defined format 9 (bit 25). */
+/**@}*/
 
 #define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model on netCDF-4. Mode flag for nc_create(). */
 #define NC_64BIT_OFFSET  0x0200  /**< Use large (64-bit) file offsets. Mode flag for nc_create(). */
@@ -176,6 +193,10 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_NODIMSCALE_ATTACH 0x40000 /**< Disable the netcdf-4 (hdf5) attaching of dimscales to variables (#2128) */
 
 #define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of user-defined format magic number. */
+/** Maximum number of user-defined format slots (UDF0-UDF9).
+ * @see nc_def_user_format(), nc_inq_user_format()
+ * @see @ref user_defined_formats */
+#define NC_MAX_UDF_FORMATS 10
 
 /** Format specifier for nc_set_default_format() and returned
  *  by nc_inq_format. This returns the format as provided by
@@ -200,7 +221,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMAT_CDF5    NC_FORMAT_64BIT_DATA
 
 /* Define a mask covering format flags only */
-#define NC_FORMAT_ALL (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4|NC_UDF0|NC_UDF1)
+#define NC_FORMAT_ALL (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4|NC_UDF0|NC_UDF1|NC_UDF2|NC_UDF3|NC_UDF4|NC_UDF5|NC_UDF6|NC_UDF7|NC_UDF8|NC_UDF9)
 
 /**@}*/
 
@@ -229,9 +250,27 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_PNETCDF   (4)
 #define NC_FORMATX_DAP2      (5)
 #define NC_FORMATX_DAP4      (6)
-#define NC_FORMATX_UDF0      (8)
-#define NC_FORMATX_UDF1      (9)
+/** @name User-Defined Format Constants
+ * Format constants for user-defined formats (UDF0-UDF9).
+ * Used internally to identify dispatch tables.
+ * @see nc_def_user_format(), nc_inq_user_format()
+ * @see @ref user_defined_formats
+ * @{ */
+#define NC_FORMATX_UDF0      (8)  /**< User-defined format 0 */
+#define NC_FORMATX_UDF1      (9)  /**< User-defined format 1 */
+/**@}*/
 #define NC_FORMATX_NCZARR    (10) /**< Added in version 4.8.0 */
+/** @name User-Defined Format Constants (continued)
+ * @{ */
+#define NC_FORMATX_UDF2      (11) /**< User-defined format 2 */
+#define NC_FORMATX_UDF3      (12) /**< User-defined format 3 */
+#define NC_FORMATX_UDF4      (13) /**< User-defined format 4 */
+#define NC_FORMATX_UDF5      (14) /**< User-defined format 5 */
+#define NC_FORMATX_UDF6      (15) /**< User-defined format 6 */
+#define NC_FORMATX_UDF7      (16) /**< User-defined format 7 */
+#define NC_FORMATX_UDF8      (17) /**< User-defined format 8 */
+#define NC_FORMATX_UDF9      (18) /**< User-defined format 9 */
+/**@}*/
 #define NC_FORMATX_UNDEFINED (0)
 
   /* To avoid breaking compatibility (such as in the python library),
@@ -583,11 +622,59 @@ nc_inq_libvers(void);
 EXTERNL const char *
 nc_strerror(int ncerr);
 
-/* Set up user-defined format. */
+/** Register a user-defined format.
+ *
+ * This function registers a custom format handler (dispatch table) for one of
+ * the 10 available UDF slots (UDF0-UDF9). After registration, files can be
+ * opened using the specified mode flag, or automatically via magic number detection.
+ *
+ * @param mode_flag One of NC_UDF0 through NC_UDF9, optionally combined with
+ *                  other mode flags (e.g., NC_UDF0 | NC_NETCDF4). Only one
+ *                  UDF flag should be specified.
+ * @param dispatch_table Pointer to the dispatch table containing function
+ *                       pointers for all netCDF API operations. The dispatch
+ *                       table's version field must match NC_DISPATCH_VERSION.
+ * @param magic_number Optional magic number string (max 8 bytes) for automatic
+ *                     format detection. Files starting with this string will
+ *                     automatically use this dispatch table. Pass NULL if not using
+ *                     magic number detection.
+ *
+ * @return NC_NOERR on success, error code on failure.
+ * @retval NC_EINVAL Invalid mode_flag or dispatch table version mismatch
+ * @retval NC_ENOTNC4 UDF support not enabled in this build
+ *
+ * @see nc_inq_user_format()
+ * @see @ref user_defined_formats
+ *
+ * @author Edward Hartnett
+ * @date 2/2/25
+ */
 typedef struct NC_Dispatch NC_Dispatch;
 EXTERNL int
 nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number);
 
+/** Query a registered user-defined format.
+ *
+ * This function retrieves the dispatch table and magic number for a previously
+ * registered user-defined format.
+ *
+ * @param mode_flag One of NC_UDF0 through NC_UDF9. Only one UDF flag should
+ *                  be specified.
+ * @param dispatch_table Pointer to receive the dispatch table pointer. Pass NULL
+ *                       if not needed.
+ * @param magic_number Buffer to receive the magic number string (must be at least
+ *                     NC_MAX_MAGIC_NUMBER_LEN + 1 bytes). Pass NULL if not needed.
+ *
+ * @return NC_NOERR on success, error code on failure.
+ * @retval NC_EINVAL Invalid mode_flag or UDF slot not registered
+ * @retval NC_ENOTNC4 UDF support not enabled in this build
+ *
+ * @see nc_def_user_format()
+ * @see @ref user_defined_formats
+ *
+ * @author Edward Hartnett
+ * @date 2/2/25
+ */
 EXTERNL int
 nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number);
 
