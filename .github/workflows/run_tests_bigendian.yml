@@ -14,7 +14,7 @@
 # Triggered manually (workflow_dispatch) or on pull requests to main.
 ###
 
-name: Run Big-Endian (s390x) netCDF Tests
+name: Run NON-REMOTE Big-Endian (s390x) netCDF Tests
 
 on:
   workflow_dispatch:
