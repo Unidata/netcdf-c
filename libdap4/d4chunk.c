@@ -3,6 +3,16 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4chunk.c
+ * @brief DAP4 chunk-protocol decoder.
+ *
+ * Implements NCD4_dechunk(), which converts a chunked DAP4 wire
+ * response into a contiguous buffer, and NCD4_infermode(), which
+ * determines whether a raw response is DMR-only or a full DAP
+ * (DMR + data) response.
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include "d4chunk.h"
 
@@ -25,6 +35,18 @@ Notes:
 static int processerrchunk(NCD4response*, void* errchunk, unsigned int count);
 
 /**************************************************/
+/**
+ * Convert a chunked DAP4 wire response into a contiguous buffer in place.
+ *
+ * Walks the chunk headers in @p resp->raw, concatenates the payloads,
+ * and sets @p resp->serial.dmr and (for DAP mode) @p resp->serial.dap
+ * and @p resp->serial.dapsize.  Sets @p resp->remotelittleendian from
+ * the NCD4_LITTLE_ENDIAN_CHUNK flag of the first data chunk.
+ *
+ * @param resp Response object whose @c raw field contains the raw wire bytes.
+ * @return NC_NOERR on success, NC_EDMR if only a DMR was received,
+ *         or another netCDF error code on failure.
+ */
 int
 NCD4_dechunk(NCD4response* resp)
 {

@@ -3,6 +3,16 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4file.c
+ * @brief DAP4 file open/close and session lifecycle management.
+ *
+ * Implements NCD4_open(), NCD4_close(), NCD4_abort(), and the helper
+ * functions for allocating and reclaiming NCD4INFO, NCD4response, and
+ * NCD4meta objects.  Also applies URL fragment controls and checksum
+ * settings before each fetch.
+ * @author Dennis Heimbigner
+ */
+
 #include "config.h"
 #include "ncdispatch.h"
 #include "ncd4dispatch.h"
@@ -40,6 +50,22 @@ static const char* checkseps = "+,:;";
 static const char* constrainableprotocols[] = {"http", "https",NULL};
 
 /**************************************************/
+/**
+ * Open a DAP4 URL as a read-only netCDF file.
+ *
+ * Allocates an NCD4INFO session, parses the URL, loads authentication
+ * and curl settings, fetches the DMR, builds the NetCDF-4 substrate
+ * metadata, and returns with the file ready for variable reads.
+ *
+ * @param path           DAP4 URL string.
+ * @param mode           Open mode flags (NC_NOWRITE only for DAP4).
+ * @param basepe         Unused (MPI base PE).
+ * @param chunksizehintp Unused (chunk-size hint).
+ * @param mpidata        Unused (MPI communicator/info).
+ * @param dispatch       Active NC_Dispatch table.
+ * @param ncid           Pre-allocated external ncid.
+ * @return NC_NOERR on success, or a netCDF error code.
+ */
 int
 NCD4_open(const char * path, int mode,
           int basepe, size_t *chunksizehintp,

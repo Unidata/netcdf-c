@@ -3,6 +3,16 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4varx.c
+ * @brief DAP4 variable-read dispatch functions.
+ *
+ * Implements NCD4_get_vara() and NCD4_get_vars(), which are the
+ * NC_Dispatch entry points for reading variable data from a DAP4
+ * server.  Fetches the DAP response on demand and converts the
+ * serialized data into the caller's memory buffer.
+ * @author Dennis Heimbigner
+ */
+
 #include "config.h"
 #include "ncdispatch.h"
 #include "ncd4dispatch.h"
