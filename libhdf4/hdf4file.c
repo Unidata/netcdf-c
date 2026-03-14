@@ -82,10 +82,10 @@ hdf4_rec_grp_del(NC_GRP_INFO_T *grp)
  * See http://www.hdfgroup.org/training/HDFtraining/UsersGuide/Fundmtls.fm3.html
  * for more information re: HDF4 types.
  *
- * @param h5 Pointer to HDF5 file info struct.
+ * @param h5 Pointer to file info struct.
  * @param hdf4_typeid Type ID for hdf4 datatype.
  * @param xtype Pointer that gets netcdf type. Ignored if NULL.
- * @param endniannessp Pointer that gets endianness. Ignored if NULL.
+ * @param endiannessp Pointer that gets endianness. Ignored if NULL.
  * @param type_sizep Pointer that gets type size. Ignored if NULL.
  * @param type_name Pointer that gets the type name. Ignored if NULL.
  *
@@ -251,9 +251,9 @@ nc4_set_var_type(nc_type xtype, int endianness, size_t type_size, char *type_nam
 }
 
 /**
- * @internal Read an attribute from a HDF4 file.
+ * @internal Read an attribute from an HDF4 file.
  *
- * @param h5 Pointer to the file metadata struct.
+ * @param h5 Pointer to the file info struct.
  * @param var Pointer to variable metadata struct or NULL for global
  * attributes.
  * @param a Index of attribute to read.
@@ -327,12 +327,11 @@ hdf4_read_att(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int a)
 }
 
 /**
- * @internal Read a HDF4 dimension. As new dimensions are found, add
+ * @internal Read an HDF4 dimension. As new dimensions are found, add
  * them to the metadata list of dimensions.
  *
- * @param h5 Pointer to the file metadata struct.
- * @param var Pointer to variable metadata struct or NULL for global
- * attributes.
+ * @param h5 Pointer to the file info struct.
+ * @param var Pointer to variable metadata struct.
  * @param rec_dim_len Actual length of first dim for this SD.
  * @param d Dimension index for this SD.
  *
@@ -391,11 +390,18 @@ hdf4_read_dim(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int rec_dim_len, int d)
 }
 
 /**
- * @internal Create a new variable and insert int relevant lists
+ * @internal Create a new variable and insert into relevant lists.
  *
- * @param grp the containing group
- * @param name the name for the new variable
- * @param ndims the rank of the new variable
+ * @param grp The containing group.
+ * @param name The name for the new variable.
+ * @param ndims The rank of the new variable.
+ * @param xtype The netCDF type of the variable.
+ * @param endianness The endianness of the data.
+ * @param type_size The size in bytes of one element of this type.
+ * @param type_name A name for the type.
+ * @param fill_value Pointer to fill value, or NULL.
+ * @param contiguous Non-zero for contiguous storage, zero for chunked.
+ * @param chunksizes Array of chunk sizes, or NULL.
  * @param format_var_info Pointer to format-specific var info struct.
  * @param var Pointer in which to return a pointer to the new var.
  *
@@ -424,7 +430,7 @@ nc4_var_list_add_full(NC_GRP_INFO_T* grp, const char* name, int ndims, nc_type x
     if ((retval = nc4_set_var_type(xtype, endianness, type_size, type_name,
                                    &(*var)->type_info)))
         return retval;
-    /* Propate the endianness to the variable */
+    /* Propagate the endianness to the variable */
     (*var)->endianness = (*var)->type_info->endianness;
 
     (*var)->type_info->rc++;
@@ -456,10 +462,10 @@ nc4_var_list_add_full(NC_GRP_INFO_T* grp, const char* name, int ndims, nc_type x
 }
 
 /**
- * @internal Read a HDF4 variable, including its associated dimensions
+ * @internal Read an HDF4 variable, including its associated dimensions
  * and attributes.
  *
- * @param h5 Pointer to the file metadata struct.
+ * @param h5 Pointer to the file info struct.
  * @param v Index of variable to read.
  *
  * @return ::NC_NOERR No error.
@@ -594,8 +600,8 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
  * @param parameters pointer to struct holding extra data (e.g. for
  * parallel I/O) layer. Ignored if NULL. Ignored by this function.
  * @param dispatch Pointer to the dispatch table for this file.
- * @param nc_file Pointer to an instance of NC. The ncid has already
- * been assigned, and is in nc_file->ext_ncid.
+ * Ignored by this function.
+ * @param ncid The already-assigned ncid for this file.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid input.
