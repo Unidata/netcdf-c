@@ -31,27 +31,12 @@ jobs:
     steps:
 
       - uses: actions/checkout@v4
-###
-# update:false is intentional. When update:true is set, setup-msys2 runs
-# pacman -Syu internally with no retry logic. A slow or unresponsive mirror
-# will fail the entire job with no recourse. Instead we run the update
-# explicitly below with a retry loop so transient mirror failures are handled.
-###
       - uses: msys2/setup-msys2@v2
         with:
           msystem: ${{ matrix.msystem }}
-          update: false
+          update: true
           pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p
           install: diffutils m4 git unzip
-
-      - name: Update MSYS2 packages (with retry)
-        shell: msys2 {0}
-        run: |
-          for attempt in 1 2 3; do
-            pacman -Syu --noconfirm && break
-            echo "pacman -Syu attempt $attempt failed, retrying in 15s..."
-            sleep 15
-          done
 
 ###
 # Downgrade hdf5 
@@ -125,24 +110,12 @@ jobs:
     steps:
 
       - uses: actions/checkout@v4
-###
-# update:false is intentional. See comment in build-and-test-autotools above.
-###
       - uses: msys2/setup-msys2@v2
         with:
           msystem: ${{ matrix.msystem }}
-          update: false
+          update: true
           pacboy: cc:p cmake:p curl:p libxml2:p zlib:p blosc:p bzip2:p
           install: make m4 diffutils git unzip
-
-      - name: Update MSYS2 packages (with retry)
-        shell: msys2 {0}
-        run: |
-          for attempt in 1 2 3; do
-            pacman -Syu --noconfirm && break
-            echo "pacman -Syu attempt $attempt failed, retrying in 15s..."
-            sleep 15
-          done
 
 ###
 # Downgrade hdf5 
