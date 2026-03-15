@@ -2060,6 +2060,9 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     /* mmap is not allowed for netcdf-4 */
     if(use_mmap && (omode & NC_NETCDF4)) {stat = NC_EINVAL; goto done;}
 
+    /* NC_FORMAT_OVERRIDE requires a format flag so the library knows which dispatch to use */
+    if((omode & NC_FORMAT_OVERRIDE) && !(omode & NC_FORMAT_ALL)) {stat = NC_EINVAL; goto done;}
+
     /* Attempt to do file path conversion: note that this will do
        nothing if path is a 'file:...' url, so it will need to be
        repeated in protocol code (e.g. libdap2, libdap4, etc).

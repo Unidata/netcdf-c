@@ -123,8 +123,6 @@ extern "C" {
 #define NC_NOFILL       0x100   /**< Argument to nc_set_fill() to turn off filling of data. */
 
 /* Define the ioflags bits for nc_create and nc_open.
-   Currently unused in lower 16 bits:
-        0x0002
    All upper 16 bits are unused except
         0x20000
         0x40000
@@ -134,6 +132,7 @@ extern "C" {
 
 #define NC_NOWRITE       0x0000 /**< Set read-only access for nc_open(). */
 #define NC_WRITE         0x0001 /**< Set read-write access for nc_open(). */
+#define NC_FORMAT_OVERRIDE 0x0002 /**< Skip file format detection; use mode flags to determine format. Mode flag for nc_open(). */
 
 #define NC_CLOBBER       0x0000 /**< Destroy existing file. Mode flag for nc_create(). */
 #define NC_NOCLOBBER     0x0004 /**< Don't destroy existing file. Mode flag for nc_create(). */
