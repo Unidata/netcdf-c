@@ -19,7 +19,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
+        hdf5: [ 1.10.8, 1.12.2, 1.14.3, 2.0.0 ]
         runs-on: [ ubuntu-22.04 ]
 
     runs-on: ${{ matrix.runs-on }}
@@ -58,15 +58,25 @@ jobs:
             wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.5.tar.gz
             tar -zxf hdf5_1.14.5.tar.gz
             mv hdf5_1.14.5 hdf5-1.14.5
+          elif [ "${{ matrix.hdf5 }}" = "2.0.0" ]; then
+            wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_2.0.0.tar.gz
+            tar -zxf hdf5_2.0.0.tar.gz
+            mv hdf5-hdf5_2.0.0 hdf5-2.0.0
           else
             wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
             tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           fi
-          pushd hdf5-${{ matrix.hdf5 }}
-          ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
-          make -j
-          make install -j
-          popd
+          if [ "${{ matrix.hdf5 }}" = "2.0.0" ]; then
+            cmake -S hdf5-2.0.0 -B hdf5-2.0.0/build -DCMAKE_INSTALL_PREFIX=${HOME}/environments/2.0.0 -DHDF5_BUILD_HL_LIB=ON -DHDF5_BUILD_SHARED_LIBS=ON -DHDF5_BUILD_STATIC_LIBS=OFF -DCMAKE_BUILD_TYPE=Release
+            cmake --build hdf5-2.0.0/build -j
+            cmake --install hdf5-2.0.0/build
+          else
+            pushd hdf5-${{ matrix.hdf5 }}
+            ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
+            make -j
+            make install -j
+            popd
+          fi
 
       - name: Check libhdf5-serial-${{ matrix.hdf5}}
         run: |
@@ -656,10 +666,13 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [1.10.8, 1.12.2, 1.14.3 ]
+        hdf5: [1.10.8, 1.12.2, 1.14.3, 2.0.0 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr_and_s3: [ nczarr_off, nczarr_on, nczarr_on_s3_on ]
+        exclude:
+          - hdf5: 2.0.0
+            use_nc4: nc3
         runs-on: [ ubuntu-22.04 ]
 
     runs-on: ${{ matrix.runs-on }}
@@ -828,11 +841,14 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
+        hdf5: [ 1.10.8, 1.12.2, 1.14.3, 2.0.0 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
         use_s3: [ s3_off, s3_on ]
+        exclude:
+          - hdf5: 2.0.0
+            use_nc4: nc3
     steps:
 
       - uses: actions/checkout@v4

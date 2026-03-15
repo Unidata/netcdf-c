@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.3 ]
+        hdf5: [ 1.12.2, 1.14.3, 2.0.0 ]
 
     steps:
 
@@ -41,13 +41,22 @@ jobs:
         run: |
           set -x
           set -e
-          wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
-          tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
-          pushd hdf5-${{ matrix.hdf5 }}
-          ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
-          make -j 12
-          make install -j 12
-          popd
+          if [ "${{ matrix.hdf5 }}" = "2.0.0" ]; then
+            wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_2.0.0.tar.gz
+            tar -zxf hdf5_2.0.0.tar.gz
+            mv hdf5-hdf5_2.0.0 hdf5-2.0.0
+            cmake -S hdf5-2.0.0 -B hdf5-2.0.0/build -DCMAKE_INSTALL_PREFIX=${HOME}/environments/2.0.0 -DHDF5_BUILD_HL_LIB=ON -DHDF5_BUILD_SHARED_LIBS=ON -DHDF5_BUILD_STATIC_LIBS=OFF -DCMAKE_BUILD_TYPE=Release
+            cmake --build hdf5-2.0.0/build -j 12
+            cmake --install hdf5-2.0.0/build
+          else
+            wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
+            tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+            pushd hdf5-${{ matrix.hdf5 }}
+            ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
+            make -j 12
+            make install -j 12
+            popd
+          fi
 
       - name: Handle Error for libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
         shell: bash -l {0}
@@ -179,11 +188,14 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.3 ]
+        hdf5: [ 1.12.2, 1.14.3, 2.0.0 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
         use_s3: [ s3_off, s3_on ]
+        exclude:
+          - hdf5: 2.0.0
+            use_nc4: nc3
     steps:
 
       - uses: actions/checkout@v4
@@ -371,7 +383,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.3 ]
+        hdf5: [ 1.12.2, 1.14.3, 2.0.0 ]
 
     steps:
 
@@ -445,7 +457,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.2, 1.14.3 ]
+        hdf5: [ 1.12.2, 1.14.3, 2.0.0 ]
 
     steps:
 

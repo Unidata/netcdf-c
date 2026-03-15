@@ -27,7 +27,7 @@ tst_h_atts3 tst_h_atts4 tst_h_vars tst_h_vars2 tst_h_vars3 tst_h_grps	\
 tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_vl tst_h_opaques	\
 tst_h_strings tst_h_strings1 tst_h_strings2 tst_h_ints			\
 tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3	\
-tst_h_enums tst_h_dimscales4 tst_h_rename
+tst_h_enums tst_h_dimscales4 tst_h_rename tst_h5_open_close
 
 # If benchmarks were turned on, build and run more tests.
 if BUILD_BENCHMARKS
@@ -57,7 +57,8 @@ endif
 # We must include these files in the distribution.
 EXTRA_DIST = run_par_tests.sh.in ref_tst_h_compounds.h5		\
 ref_tst_h_compounds2.h5 run_par_tests.sh ref_tst_compounds.nc	\
-h5_err_macros.h CMakeLists.txt run_h5_zstd_tests.sh
+h5_err_macros.h CMakeLists.txt run_h5_zstd_tests.sh		\
+tst_h5_open_close.c
 
 # Clean up test results.
 CLEANFILES = tst_h_*.h5
