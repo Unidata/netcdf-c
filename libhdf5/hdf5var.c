@@ -2039,6 +2039,27 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 if (start[d2] >= (hssize_t)fdims[d2])
                     fill_value_size[d2] = count[d2];
                 else if (endindex >= fdims[d2])
+		    /* Compute the number of strided steps that land within the HDF5 dataset
+		       boundary (fdims[d2]).  When an unlimited dimension causes the logical
+		       netCDF size to exceed the physical HDF5 dataset size, this value
+		       determines the split between elements read from HDF5 and elements
+		       filled with the variable's fill value.
+ 
+		       We need CEILING division here: the last valid step is the largest k
+		       such that  start[d2] + k*stride[d2] < fdims[d2], i.e.
+		       k < (fdims[d2] - start[d2]) / stride[d2]
+		       so the count of valid steps is ceil((fdims[d2]-start[d2]) / stride[d2]).
+ 
+		       Using floor division (the previous code) underestimates this count,
+		       causing fill_value_size to be inflated and count to be reduced below
+		       the true number of elements that HDF5 can supply.  When count is too
+		       small the HDF5 hyperslab read is truncated and the remaining elements
+		       fall back to the element-at-a-time NCDEFAULT_get_vars path, producing
+		       the 500-1000x read slowdown reported in issues #1381, #1757, #2668,
+		       and #2721.  Ceiling division restores the full bulk hyperslab read.
+
+		       This also fixes the problems with the unlimited
+		       dim read in issue #1380. */
                     fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2] + stride[d2] - 1)/stride[d2]);
                 else
                     fill_value_size[d2] = 0;
