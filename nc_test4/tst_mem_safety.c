@@ -43,7 +43,12 @@
 #define OPEN_CLOSE_FILE     "tst_mem_safety_2626.nc"
 #define OPEN_CLOSE_NWARMUP  20
 #define OPEN_CLOSE_NITER    500
-#define OPEN_CLOSE_MAX_GROWTH_KB (10 * 1024)  /* 10 MB */
+/* 1024 KB (1 MB) threshold: generous enough to absorb OS page-granularity
+ * noise in RSS accounting (~4–64 KB per page fault) over 500 iterations,
+ * yet tight enough to catch a real per-open leak.  At this limit the test
+ * would tolerate ~2 KB of leak per open/close cycle before failing; leaks
+ * reported in issue #2626 are expected to exceed this over 500 cycles. */
+#define OPEN_CLOSE_MAX_GROWTH_KB 1024
 
 #ifdef HAVE_SYS_RESOURCE_H
 static long
