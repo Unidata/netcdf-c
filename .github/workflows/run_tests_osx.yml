@@ -45,7 +45,7 @@ jobs:
             wget https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_2.0.0.tar.gz
             tar -zxf hdf5_2.0.0.tar.gz
             mv hdf5-hdf5_2.0.0 hdf5-2.0.0
-            cmake -S hdf5-2.0.0 -B hdf5-2.0.0/build -DCMAKE_INSTALL_PREFIX=${HOME}/environments/2.0.0 -DHDF5_BUILD_HL_LIB=ON -DHDF5_BUILD_SHARED_LIBS=ON -DHDF5_BUILD_STATIC_LIBS=OFF -DCMAKE_BUILD_TYPE=Release
+            cmake -S hdf5-2.0.0 -B hdf5-2.0.0/build -DCMAKE_INSTALL_PREFIX=${HOME}/environments/2.0.0 -DHDF5_BUILD_HL_LIB=ON -DHDF5_BUILD_SHARED_LIBS=ON -DHDF5_BUILD_STATIC_LIBS=OFF -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DCMAKE_BUILD_TYPE=Release
             cmake --build hdf5-2.0.0/build -j 12
             cmake --install hdf5-2.0.0/build
           else
