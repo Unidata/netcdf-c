@@ -277,15 +277,20 @@ ncdump \-v omega \-f fortran \-n omega foo.nc > Z.cdl
 writing a diagnostic message to standard error.
 .SH ENVIRONMENT
 .TP
-.B UDUNITS2_XML_PATH
-Path to a UDUNITS-2 XML database used when formatting time values
-with the \fB-t\fP or \fB-i\fP options.
+.B NCRCENV_RC
+Path to the netCDF RC configuration file.  If unset, the library reads
+\fI~/.ncrc\fP, \fI~/.daprc\fP, and \fI./.ncrc\fP in order.
 .TP
-.B DODS_CONF
-Configuration file for OPeNDAP (DAP2) client requests.
+.B OCDEBUG
+Integer debug level for the OPeNDAP/DAP2 (OC) client library.
+Set to a positive integer to enable DAP diagnostic output.
 .TP
-.B OC_LOGFILE
-Path to a log file for OPeNDAP/DAP debug output.
+.B CURLOPT_VERBOSE
+If set (to any value), enables verbose cURL output for DAP HTTP transfers.
+.TP
+.B NETCDF_LOG_LEVEL
+Integer log level for the netCDF-4/HDF5 library (equivalent to
+calling \fBnc_set_log_level\fP(3)).  Range: 0 (errors only) to 5 (verbose).
 .SH "SEE ALSO"
 .LP
 .BR ncgen (1),

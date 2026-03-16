@@ -545,13 +545,22 @@ writing a diagnostic message to standard error.
 Colon-separated list of directories searched for HDF5 filter plugins
 used with the \fB-F\fP option.
 .TP
-.B DODS_CONF
-Configuration file for OPeNDAP (DAP2) client requests.
+.B OCDEBUG
+Integer debug level for the OPeNDAP/DAP2 (OC) client library.
+Set to a positive integer to enable DAP diagnostic output.
 .TP
-.B OC_LOGFILE
-Path to a log file for OPeNDAP/DAP debug output.
+.B CURLOPT_VERBOSE
+If set (to any value), enables verbose cURL output for DAP HTTP transfers.
+.TP
+.B NETCDF_LOG_LEVEL
+Integer log level for the netCDF-4/HDF5 library (equivalent to
+calling \fBnc_set_log_level\fP(3)).  Range: 0 (errors only) to 5 (verbose).
+.TP
+.B NCRCENV_RC
+Path to the netCDF RC configuration file.  If unset, the library reads
+\fI~/.ncrc\fP, \fI~/.daprc\fP, and \fI./.ncrc\fP in order.
 .SH "SEE ALSO"
 .LP
 .BR ncdump (1),
 .BR ncgen (1),
-.BR 
+.BR netcdf (3) 
