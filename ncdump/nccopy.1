@@ -76,7 +76,17 @@ netcdf-4 (enhanced)).  The possible arguments are:
 Note: The old format numbers '1', '2', '3', '4', equivalent
 to the format names 'nc3', 'nc6', 'nc4', or 'nc7' respectively, are
 also still accepted but deprecated, due to easy confusion between
-format numbers and format names.
+format numbers and format names.  The mapping is:
+.RS
+.TS
+l l.
+Old number	Equivalent name
+1	nc3 (classic)
+2	nc6 (64-bit offset)
+3	nc4 (netCDF-4)
+4	nc7 (netCDF-4 classic model)
+.TE
+.RE
 .IP "[\fB-\fP\fIkind_code\fP]"
 Use format numeric code (instead of format name) to specify the kind of file to be created
 and, by inference, the data model (i.e. netcdf-3 (classic) versus
@@ -525,6 +535,21 @@ When \fB-w\fP is not feasible, set \fB-m\fP to cover at least the
 largest single variable and \fB-h\fP to cover several chunks of the
 most frequently re-read variable.
 
+.SH "EXIT STATUS"
+.LP
+\fBnccopy\fP exits 0 on success and non-zero on failure,
+writing a diagnostic message to standard error.
+.SH ENVIRONMENT
+.TP
+.B HDF5_PLUGIN_PATH
+Colon-separated list of directories searched for HDF5 filter plugins
+used with the \fB-F\fP option.
+.TP
+.B DODS_CONF
+Configuration file for OPeNDAP (DAP2) client requests.
+.TP
+.B OC_LOGFILE
+Path to a log file for OPeNDAP/DAP debug output.
 .SH "SEE ALSO"
 .LP
 .BR ncdump (1),

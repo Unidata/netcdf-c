@@ -271,6 +271,21 @@ netCDF dataset name in the resulting CDL file to `omega':
 .HP
 ncdump \-v omega \-f fortran \-n omega foo.nc > Z.cdl
 .RE
+.SH "EXIT STATUS"
+.LP
+\fBncdump\fP exits 0 on success and non-zero on failure,
+writing a diagnostic message to standard error.
+.SH ENVIRONMENT
+.TP
+.B UDUNITS2_XML_PATH
+Path to a UDUNITS-2 XML database used when formatting time values
+with the \fB-t\fP or \fB-i\fP options.
+.TP
+.B DODS_CONF
+Configuration file for OPeNDAP (DAP2) client requests.
+.TP
+.B OC_LOGFILE
+Path to a log file for OPeNDAP/DAP debug output.
 .SH "SEE ALSO"
 .LP
 .BR ncgen (1),
