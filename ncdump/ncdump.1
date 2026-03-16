@@ -110,7 +110,7 @@ fastest).  If \fIlang\fP begins with `F' or `f', then Fortran language
 conventions will be used (one-based indices, first dimension varying
 fastest).  In either case, the data will be presented in the same order;
 only the annotations will differ.  This option may be useful for browsing
-through large volumes of multidimensional data.
+through large volumes of multidimensional data.  (At most one of '\-b' or '\-f' options may be present.)
 .IP "\fB-f\fP \fI[c|f]\fP"
 Full annotations in the form of trailing CDL comments (text beginning
 with the characters ``//'') for every data value (except individual
@@ -120,7 +120,7 @@ be used.  If \fIlang\fP begins with `F' or `f', then Fortran language
 conventions will be used.  In either case, the data will be presented
 in the same order; only the annotations will differ.  This option may
 be useful for piping data into other filters, since each data value
-appears on a separate line, fully identified. (At most one of '\-b' or '\-f' options may be present.)
+appears on a separate line, fully identified.
 .IP "\fB-l\fP \fIlength\fP"
 Changes the default maximum line length (80) used in formatting lists of
 non-character data values.
@@ -152,9 +152,9 @@ precision in a CDL file for all possible floating-point values
 would require \fB-p 9,17\fP.)
 .IP "\fB-k\fP"
 Show kind of netCDF file the pathname references, one of
-`classic', `64-bit offset',`netCDF-4', or `netCDF-4 classic model'.  Before version
+`classic', `64-bit offset', `netCDF-4', or `netCDF-4 classic model'.  Before version
 3.6, there was only one kind of netCDF file, designated as `classic'
-(also know as format variant 1).  Large file support introduced
+(also known as format variant 1).  Large file support introduced
 another variant of the format, designated as `64-bit offset' (known as
 format variant 2).  NetCDF-4, uses a third variant of the format,
 `netCDF-4' (format variant 3).  Another format variant, designated
@@ -228,7 +228,7 @@ For file names that request remote access using DAP URLs, access data
 with client-side caching of entire variables.
 .IP "\fB-x\fP"
 Output XML (NcML) instead of CDL.  The NcML does not include data values.
-The NcML output option currently only works for netCDF classic model data.
+The NcML output option only works for netCDF classic model data.
 .IP "\fB-F\fP"
 When used with \fB-s\fP, display filter information using the generic
 \fI_Filter\fP and \fI_Codecs\fP virtual attributes instead of the

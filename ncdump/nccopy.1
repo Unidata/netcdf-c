@@ -293,9 +293,9 @@ or
 An fqn (fully qualified name) is the name
 of a variable prefixed by its containing
 groups with the group names separated by forward slash ('/').
-An example might be \FI/g1/g2/var\fP. Alternatively,
+An example might be \fI/g1/g2/var\fP. Alternatively,
 just the variable name can be given if it is in the root group:
-e.g. \FIvar\fP. Backslash escapes may be used as needed.
+e.g. \fIvar\fP. Backslash escapes may be used as needed.
 A note of warning: the '|' separator is a bash reserved character, so you will
 probably need to put the filter spec in some kind of quotes or otherwise escape it.
 .IP
@@ -516,7 +516,7 @@ K/M/G/T suffixes are accepted.
 .TP
 \fB-e\fP \fIcache_elems\fP (chunk cache element count)
 Sets the maximum number of chunks simultaneously held in the
-per-variable chunk cache (default: 1009).  Increase this value when
+per-variable chunk cache (default: 1000).  Increase this value when
 working with variables that have many small chunks, to reduce cache
 thrashing.  K/M/G/T suffixes are accepted.
 .LP
@@ -527,4 +527,6 @@ most frequently re-read variable.
 
 .SH "SEE ALSO"
 .LP
-.BR ncdump(1), ncgen(1), netcdf(3)
+.BR ncdump (1),
+.BR ncgen (1),
+.BR 

@@ -1,6 +1,6 @@
 .TH NCGEN3 1 "2026-03-11" "Release 4.10.1" "UNIDATA UTILITIES"
 .SH NAME
-ncgen3 \- From a CDL file generate a netCDF classic or 64 bit classicfile,
+ncgen3 \- From a CDL file generate a netCDF classic or 64-bit classic file,
 a C program, or a Fortran program
 .SH SYNOPSIS
 .HP
@@ -18,7 +18,9 @@ ncgen3
 .ft
 .SH DESCRIPTION
 \fBncgen3\fP generates either a netCDF file, or C or Fortran source code to
-create a netCDF file.  The input to \fBncgen3\fP is a description of a netCDF
+create a netCDF file.  For netCDF-4 and netCDF-5 features (groups, new types,
+64-bit integers, etc.), use \fBncgen\fP(1) instead.
+The input to \fBncgen3\fP is a description of a netCDF
 file in a small language known as CDL (network Common Data form Language),
 described below.
 If no options are specified in invoking \fBncgen3\fP, it merely checks the
@@ -62,7 +64,7 @@ generated file (or program) should use version 2 of format that
 employs 64-bit file offsets.  The default is to use version 1
 ("classic") format with 32-bit file offsets, although this limits the
 size of the netCDF file, variables, and records to the sizes supported
-by the classic format.  (NetCDF-4 will support additional kinds of
+by the classic format.  (NetCDF-4 supports additional kinds of
 netCDF files, "netCDF-4" and "netCDF-4 classic model".)
 Note: \-v is also accepted to mean the same thing as
 \-k for backward compatibility, but \-k is preferred, to match
@@ -369,4 +371,10 @@ variable-length strings to a netCDF variable, but the strings will simply be
 concatenated into a single array of characters, since netCDF cannot
 represent an array of variable-length strings in one netCDF variable.
 .LP
-NetCDF and CDL do not yet support a type corresponding to a 64-bit integer.
+NetCDF and CDL classic formats do not support a type corresponding to a
+64-bit integer.  For 64-bit integer support, use \fBncgen\fP(1) with a
+netCDF-4 or netCDF-5 format file.
+.SH "SEE ALSO"
+.BR ncdump (1),
+.BR ncgen (1),
+.BR netcdf (3)

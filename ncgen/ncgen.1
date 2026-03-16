@@ -22,7 +22,7 @@ ncgen
 \%[\-N \fIdatasetname\fP]
 \%[\-o \fInetcdf_filename\fP]
 \%[\-P]
-.\%[\-W \fImaxwholevarsize\fP]
+\%[\-W \fImaxwholevarsize\fP]
 \%[\-x]
 .hy
 .ft
@@ -99,8 +99,8 @@ The possible \fIformat_name\fP values for the \-k option are:
 .RS
 .IP "'classic' or 'nc3' => netCDF classic format"
 .IP "'64-bit offset' or 'nc6' => netCDF 64-bit format"
-.IP "'64-bit data or 'nc5' => netCDF-5 (64-bit data) format"
-.IP "'netCDF-4' 0r 'nc4' => netCDF-4 format (enhanced data model)"
+.IP "'64-bit data' or 'nc5' => netCDF-5 (64-bit data) format"
+.IP "'netCDF-4' or 'nc4' => netCDF-4 format (enhanced data model)"
 .IP "'netCDF-4 classic model' or 'nc7' => netCDF-4 classic model format"
 .RE
 .RE
@@ -220,9 +220,13 @@ a \-k flag value of 4 (netCDF-4 classic model) will be used.
 Otherwise ncgen will set the \-k flag to 1 (classic model).
 .RE
 .IP "\fB-L\fP \fRloglevel\fP"
+Set the logging verbosity level (integer).  Use 0 to disable logging.
+Higher values produce more diagnostic output to standard error.
 .IP "\fB-M\fP \fRname\fP"
 Specify the name for the main function for C, F77, or Java.
 .IP "\fB-n\fP"
+Legacy equivalent of \fB-b\fP, but names the output file with a
+\fI.cdf\fP extension instead of \fI.nc\fP.
 .IP "\fB-N\fP \fRdatasetname\fP"
 .IP "\fB-o\fP \fRnetcdf_file\fP"
 Name of the file to pass to calls to "nc_create()".
@@ -495,7 +499,7 @@ in either upper or lower case.
 .LP
 Bytes are intended to hold a full eight
 bits of data, and the zero byte has no special significance, as it
-mays for character data.
+may for character data.
 \fBncgen\fP converts \fBbyte\fP declarations to \fBchar\fP
 declarations in the output C code and to the nonstandard \fBBYTE\fP
 declaration in output Fortran code.
@@ -618,7 +622,7 @@ begins with `0', it is interpreted as octal, except that if it begins with
 `0x', it is interpreted as a hexadecimal constant.  For example:
 .RS
 .nf
-\-2ll	// an unsigned \-2
+\-2ll	// a signed \-2
 0123LL	// octal
 0x7ffLL  //hexadecimal
 .fi
@@ -700,7 +704,7 @@ contain the zero byte.
 represented using double quotes. This represents a potential
 ambiguity since a multi-character string may also indicate
 a dimensioned character value. Disambiguation usually occurs
-by context, but care should be taken to specify the\fIstring\fP
+by context, but care should be taken to specify the \fIstring\fP
 type to ensure the proper choice.
 String constants are assumed to always be UTF-8 encoded. This
 specifically means that the string constant may actually
@@ -1324,3 +1328,7 @@ constbool:
 ident: IDENT ;
 .fi
 .RE
+.SH "SEE ALSO"
+.BR ncdump (1),
+.BR ncgen3 (1),
+.BR netcdf (3)
