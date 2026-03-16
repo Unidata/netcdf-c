@@ -4,11 +4,11 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-SET(dap2_SOURCES constraints.c dapcvt.c dapodom.c daputil.c ncdaperr.c cdf.c cache.c dapdump.c dapdebug.c dapattr.c ncd2dispatch.c getvara.c dceconstraints.c dcetab.c dceparse.c dcelex.c)
+SET(dap2_SOURCES constraints.c dapcvt.c dapodom.c daputil.c ncdaperr.c cdf.c cache.c dapdump.c dapdebug.c dapattr.c ncd2dispatch.c getvara.c dceconstraints.c dce.tab.c dceparse.c dcelex.c)
 
-## 
+##
 # Turn off inclusion of particular files when using the cmake-native
-# option to turn on Unity Builds.  
+# option to turn on Unity Builds.
 #
 # For more information, see:
 #  * https://github.com/Unidata/netcdf-c/pull/2839/
