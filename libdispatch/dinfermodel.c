@@ -1015,10 +1015,10 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
            previous decisions. Note that we do this last
            because we need previously determined model info
            to guess if this file is readable.
-           If NC_FORMAT_OVERRIDE is set, skip the magic number check
-           and rely on mode flags from Phase 8 instead.
+           If NC_FORMAT_EXPLICIT is set, the caller has specified the
+           format via mode flags; forego all format checking.
         */
-        if(!iscreate && !fIsSet(omode,NC_FORMAT_OVERRIDE) && isreadable(uri,model)) {
+        if(!iscreate && !fIsSet(omode,NC_FORMAT_EXPLICIT) && isreadable(uri,model)) {
 	     /* Ok, we need to try to read the file */
             if((stat = check_file_type(path, omode, useparallel, params, model, uri))) goto done;
         }

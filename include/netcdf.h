@@ -132,7 +132,7 @@ extern "C" {
 
 #define NC_NOWRITE       0x0000 /**< Set read-only access for nc_open(). */
 #define NC_WRITE         0x0001 /**< Set read-write access for nc_open(). */
-#define NC_FORMAT_OVERRIDE 0x0002 /**< Skip file format detection; use mode flags to determine format. Mode flag for nc_open(). */
+#define NC_FORMAT_EXPLICIT 0x0002 /**< Explicitly specify the file format via mode flags; foregoes all format checking. Mode flag for nc_open(). */
 
 #define NC_CLOBBER       0x0000 /**< Destroy existing file. Mode flag for nc_create(). */
 #define NC_NOCLOBBER     0x0004 /**< Don't destroy existing file. Mode flag for nc_create(). */
