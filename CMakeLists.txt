@@ -818,6 +818,14 @@ if(NOT NETCDF_ENABLE_BYTERANGE AND NETCDF_ENABLE_HDF5_ROS3)
     set(NETCDF_ENABLE_HDF5_ROS3 OFF CACHE BOOL "ROS3 support" FORCE)
 endif()
 
+# if ROS3 enabled
+if(NETCDF_ENABLE_HDF5_ROS3)
+    add_subdirectory(libs3util)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DS3_UTIL")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DS3_UTIL")
+endif()
+
+
 ##
 # Enable Tests
 ##
