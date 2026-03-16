@@ -1,4 +1,4 @@
-/* Copyright 2018-2022 University Corporation for Atmospheric
+/* Copyright 2018-2026 University Corporation for Atmospheric
    Research/Unidata. */
 /**
  * @file This header file contains macros, types, and prototypes for

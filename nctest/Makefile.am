@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2018, see the COPYRIGHT file for more information.  
+# Copyright 2026, see the COPYRIGHT file for more information.  
 
 # This file builds and runs the nctest program, which tests the netCDF
 # version 2 interface.

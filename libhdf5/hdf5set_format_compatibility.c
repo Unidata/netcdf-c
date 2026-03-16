@@ -1,4 +1,4 @@
-/* Copyright 2022, University Corporation for Atmospheric Research.
+/* Copyright 2026, University Corporation for Atmospheric Research.
  * See COPYRIGHT file for copying and redistribution conditions. */
 /**
  * @file

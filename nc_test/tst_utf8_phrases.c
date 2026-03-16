@@ -1,6 +1,6 @@
 
 /*
- * Copyright 1998-2018 University Corporation for Atmospheric Research/Unidata
+ * Copyright 1998-2026 University Corporation for Atmospheric Research/Unidata
  *  See the LICENSE file for more information.
  */
 

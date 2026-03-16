@@ -1,5 +1,5 @@
  /*********************************************************************
-  *   Copyright 1993, UCAR/Unidata
+  *   Copyright 2026, UCAR/Unidata
   *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
   *   $Header: /upc/share/CVS/netcdf-3/libncdap4/constraints4.h,v 1.1 2009/10/01 18:50:17 dmh Exp $
   *********************************************************************/

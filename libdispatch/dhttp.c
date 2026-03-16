@@ -3,7 +3,7 @@
  *
  * Read a range of data from a remote dataset.
  *
- * Copyright 2018 University Corporation for Atmospheric
+ * Copyright 2026 University Corporation for Atmospheric
  * Research/Unidata. See COPYRIGHT file for more info.
 */
 

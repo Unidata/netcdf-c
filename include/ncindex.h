@@ -1,5 +1,5 @@
 /*
-Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+Copyright (c) 1998-2026 University Corporation for Atmospheric Research/Unidata
 See COPYRIGHT for license information.
 */
 

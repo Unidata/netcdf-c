@@ -1,5 +1,5 @@
 /*
-  Copyright 2019, UCAR/Unidata
+  Copyright 2026, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 
   This program benchmarks random access to chunked data.

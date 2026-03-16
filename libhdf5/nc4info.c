@@ -2,7 +2,7 @@
  * @file
  * @internal Add provenance info for netcdf-4 files.
  *
- * Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+ * Copyright 2026, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.
  * @author Dennis Heimbigner
  */

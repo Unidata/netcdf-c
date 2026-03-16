@@ -1,5 +1,5 @@
 /*
-   Copyright 2019, UCAR/Unidata See COPYRIGHT file for copying and
+   Copyright 2026, UCAR/Unidata See COPYRIGHT file for copying and
    redistribution conditions.
 
    This program tests netcdf-4 parallel I/O using zlib, shuffle, and

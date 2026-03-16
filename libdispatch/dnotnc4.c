@@ -1,4 +1,4 @@
-/* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
+/* Copyright 2026, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.*/
 /**
  * @file

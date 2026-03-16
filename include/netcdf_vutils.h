@@ -1,4 +1,4 @@
-/* Copyright 2018, UCAR/Unidata
+/* Copyright 2026, UCAR/Unidata
    See the COPYRIGHT file for more information. */
 
 #ifndef NCVUTILS_H

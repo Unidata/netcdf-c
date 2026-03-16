@@ -1,6 +1,6 @@
 /*! \file
 
-Copyright 2019
+Copyright 2026
 University Corporation for Atmospheric Research/Unidata.
 
 Author: Even Rouault

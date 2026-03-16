@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2018 University Corporation for Atmospheric Research/Unidata
+ * Copyright 2018-2026 University Corporation for Atmospheric Research/Unidata
  *
  * This header contains prototypes for functions only called by fortran 77.
  */

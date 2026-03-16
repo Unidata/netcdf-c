@@ -1,5 +1,5 @@
 /*********************************************************************
- * Copyright 1993-2018, UCAR/Unidata
+ * Copyright 1993-2026, UCAR/Unidata
  * See COPYRIGHT file for copying and redistribution conditions.
  *
  * Test driver for netCDF implementation.  This program performs tests
