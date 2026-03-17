@@ -45,12 +45,16 @@ TESTS = $(H5TESTS)
 # originates inside HDF5 itself (issue #2626).  HDF5 versions before 2.0.0
 # exhibit RSS growth in H5Fopen/H5Fclose that exceeds the test threshold and
 # would cause false failures -- the growth is a known HDF5 issue, not something
-# fixable in netCDF-C.  Restrict test execution to HDF5 >= 2.0.0 where the
-# HDF5-level growth is fixed.  The binary is always built so it can be run
-# manually against any HDF5 version to observe the growth.
+# fixable in netCDF-C.  The RSS measurement uses getrusage()/ru_maxrss which
+# is only reliable on Linux -- on macOS ru_maxrss is the peak (high-water mark)
+# RSS for the entire process lifetime and never decreases, making comparisons
+# useless.  Restrict test execution to Linux with HDF5 >= 2.0.0.
+# The binary is always built so it can be run manually.
 check_PROGRAMS += tst_h5_open_close
 if HDF5_VERSION_GE_200
+if HOST_IS_LINUX
 TESTS += tst_h5_open_close
+endif
 endif
 
 # If zstd is enabled, run a test for it.

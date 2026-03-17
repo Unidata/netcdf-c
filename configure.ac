@@ -1792,6 +1792,14 @@ fi
 
 AM_CONDITIONAL(ENABLE_NCDUMPCHUNKS, [test "x$has_readchunks" = xyes ])
 AM_CONDITIONAL(HDF5_VERSION_GE_200, [test "x$hdf5_version_200" = xyes])
+# Memory growth tests use getrusage()/ru_maxrss which is only reliable on
+# Linux.  On macOS ru_maxrss is the peak (high-water mark) RSS for the entire
+# process lifetime and never decreases, making growth comparisons useless.
+case $host_os in
+  linux*) host_is_linux=yes ;;
+  *)      host_is_linux=no  ;;
+esac
+AM_CONDITIONAL(HOST_IS_LINUX, [test "x$host_is_linux" = xyes])
 
 # If the user wants hdf4 built in, check it out.
 if test "x$enable_hdf4" = xyes; then
