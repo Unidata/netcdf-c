@@ -151,13 +151,14 @@ int test_consolidated_handler_selection_controls() {
   zinfo.controls.flags = FLAG_CONSOLIDATED;
   const char * e = getenv(NCZARR_CONSOLIDATED_ENV);
   e = e == NULL ? "NULL" : e;
-  printf("CONTROLS: %llx|%x|%d << (%s) \n", zinfo.controls.flags, FLAG_CONSOLIDATED, (&zinfo)->controls.flags & FLAG_CONSOLIDATED,e );
+  printf("CONTROLS: 0x%llx & 0x%x => (%lld) << (%s) \n", zinfo.controls.flags, FLAG_CONSOLIDATED, (&zinfo)->controls.flags & FLAG_CONSOLIDATED,e );
   NCZMD_set_metadata_handler(&zinfo);
   freemockmap(zinfo.map);
   int result = !cmpHandlers(&zinfo.metadata, NCZ_csl_metadata_handler2);
   fprintf(stderr, "(%s)\n", result ? "FAILED" : "OK");
   if (result)
-    showHandlers(&zinfo.metadata, NCZ_csl_metadata_handler2);
+    fprintf(stderr, "Result vs Expected\n");
+  showHandlers(&zinfo.metadata, NCZ_csl_metadata_handler2);
   return result;
 }
 
