@@ -27,7 +27,7 @@ tst_h_atts3 tst_h_atts4 tst_h_vars tst_h_vars2 tst_h_vars3 tst_h_grps	\
 tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_vl tst_h_opaques	\
 tst_h_strings tst_h_strings1 tst_h_strings2 tst_h_ints			\
 tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3	\
-tst_h_enums tst_h_dimscales4 tst_h_rename tst_h5_open_close
+tst_h_enums tst_h_dimscales4 tst_h_rename
 
 # If benchmarks were turned on, build and run more tests.
 if BUILD_BENCHMARKS
@@ -39,6 +39,19 @@ check_PROGRAMS = $(H5TESTS)
 
 # List of tests to run.
 TESTS = $(H5TESTS)
+
+# tst_h5_open_close measures RSS growth over repeated H5Fopen/H5Fclose cycles
+# using pure HDF5 (no netCDF) to isolate whether any open/close memory growth
+# originates inside HDF5 itself (issue #2626).  HDF5 versions before 2.0.0
+# exhibit RSS growth in H5Fopen/H5Fclose that exceeds the test threshold and
+# would cause false failures -- the growth is a known HDF5 issue, not something
+# fixable in netCDF-C.  Restrict test execution to HDF5 >= 2.0.0 where the
+# HDF5-level growth is fixed.  The binary is always built so it can be run
+# manually against any HDF5 version to observe the growth.
+check_PROGRAMS += tst_h5_open_close
+if HDF5_VERSION_GE_200
+TESTS += tst_h5_open_close
+endif
 
 # If zstd is enabled, run a test for it.
 if NETCDF_ENABLE_PLUGINS

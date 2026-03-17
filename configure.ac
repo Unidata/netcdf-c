@@ -1778,9 +1778,20 @@ if test "x$enable_hdf5" = xyes; then
       AC_DEFINE([HDF5_UTF8_PATHS], [1], [if true, HDF5 paths can be utf-8])
    fi
 
+   # Check to see if HDF5 library is 2.0.0 or greater.
+   # Used to gate memory safety tests that would false-fail on earlier versions.
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <H5public.h>]], [[
+#if (H5_VERS_MAJOR < 2)
+      choke me
+#endif
+  ]])], [hdf5_version_200=yes], [hdf5_version_200=no])
+  AC_MSG_CHECKING([whether HDF5 library is version 2.0.0 or later])
+  AC_MSG_RESULT([$hdf5_version_200])
+
 fi
 
 AM_CONDITIONAL(ENABLE_NCDUMPCHUNKS, [test "x$has_readchunks" = xyes ])
+AM_CONDITIONAL(HDF5_VERSION_GE_200, [test "x$hdf5_version_200" = xyes])
 
 # If the user wants hdf4 built in, check it out.
 if test "x$enable_hdf4" = xyes; then

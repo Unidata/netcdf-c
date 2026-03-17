@@ -5,7 +5,7 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
-SET(H5TESTS tst_h_files tst_h_files2 tst_h_files4 tst_h_atts tst_h_atts3 tst_h_atts4 tst_h_vars tst_h_vars2 tst_h_vars3 tst_h_grps tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_vl tst_h_opaques tst_h_strings tst_h_strings1 tst_h_strings2 tst_h_ints tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3 tst_h_enums tst_h_dimscales4 tst_h_rename tst_h5_open_close)
+SET(H5TESTS tst_h_files tst_h_files2 tst_h_files4 tst_h_atts tst_h_atts3 tst_h_atts4 tst_h_vars tst_h_vars2 tst_h_vars3 tst_h_grps tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_vl tst_h_opaques tst_h_strings tst_h_strings1 tst_h_strings2 tst_h_ints tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3 tst_h_enums tst_h_dimscales4 tst_h_rename)
 
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h5 ${CMAKE_CURRENT_SOURCE_DIR}/*.nc)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
@@ -18,6 +18,20 @@ FOREACH(CTEST ${H5TESTS})
     )
   ADD_TEST(${CTEST} ${EXECUTABLE_OUTPUT_PATH}/${CTEST})
 ENDFOREACH()
+
+# tst_h5_open_close measures RSS growth over repeated H5Fopen/H5Fclose cycles
+# using pure HDF5 (no netCDF) to isolate whether any open/close memory growth
+# originates inside HDF5 itself (issue #2626).  HDF5 versions before 2.0.0
+# exhibit RSS growth in H5Fopen/H5Fclose that exceeds the test threshold and
+# would cause false failures -- the growth is a known HDF5 issue, not something
+# fixable in netCDF-C.  Restrict test execution to HDF5 >= 2.0.0 where the
+# HDF5-level growth is fixed.  The binary is always built so it can be run
+# manually against any HDF5 version to observe the growth.
+ADD_EXECUTABLE(tst_h5_open_close tst_h5_open_close.c)
+TARGET_LINK_LIBRARIES(tst_h5_open_close netcdf HDF5::HDF5 hdf5::hdf5_hl)
+IF(${HDF5_VERSION} VERSION_GREATER_EQUAL "2.0.0")
+  ADD_TEST(tst_h5_open_close ${EXECUTABLE_OUTPUT_PATH}/tst_h5_open_close)
+ENDIF()
 
 IF(TEST_PARALLEL4)
   build_bin_test(tst_h_par)

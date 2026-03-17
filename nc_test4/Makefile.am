@@ -35,13 +35,24 @@ tst_h_scalar tst_rename tst_rename2 tst_rename3 tst_h5_endians		\
 tst_atts_string_rewrite tst_hdf5_file_compat tst_fill_attr_vanish	\
 tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
 tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
-tst_bug1442 tst_quantize tst_h_transient_types tst_mem_safety
+tst_bug1442 tst_quantize tst_h_transient_types
 
 if HAS_PAR_FILTERS
 NC4_TESTS += tst_alignment
 endif
 
 NC4_TESTS += tst_h_strbug tst_h_refs
+
+# tst_mem_safety checks for memory leaks during repeated nc_open/nc_close
+# cycles (issue #2626).  HDF5 versions before 2.0.0 have a known RSS growth
+# in H5Fopen/H5Fclose itself (confirmed by tst_h5_open_close in h5_test/)
+# that is unrelated to netCDF-C and would cause this test to false-fail.
+# Restrict test execution to HDF5 >= 2.0.0 where the HDF5-level growth is
+# fixed.  The binary is always built so it can be run manually if desired.
+check_PROGRAMS += tst_mem_safety
+if HDF5_VERSION_GE_200
+TESTS += tst_mem_safety
+endif
 
 # UDF self-registration plugin loading test.
 # Requires a shared library build: the test dlopen()s a .so plugin.
