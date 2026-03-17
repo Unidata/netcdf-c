@@ -25,6 +25,9 @@
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
+#ifdef __APPLE__
+#include <mach/mach.h>
+#endif
 
 #define FILE_NAME "tst_h5_open_close.h5"
 #define NWARMUP  20
@@ -34,20 +37,36 @@
  * this).  See https://github.com/Unidata/netcdf-c/issues/2626. */
 #define MAX_GROWTH_KB 1024
 
-#ifdef HAVE_SYS_RESOURCE_H
+#ifdef __APPLE__
+/* On macOS, getrusage()/ru_maxrss is the peak (high-water mark) RSS for the
+ * entire process lifetime -- it only ever increases and never reflects memory
+ * that has been freed.  Using it to measure growth across a loop would always
+ * show positive "growth" even for a perfectly leak-free library, because HDF5
+ * may peak higher at some point mid-loop than at the start.
+ *
+ * Instead, use task_info(TASK_BASIC_INFO) which returns the *current* resident
+ * set size of the task at the moment of the call, making before/after
+ * comparisons meaningful. */
+static long
+get_rss_kb(void)
+{
+    struct task_basic_info info;
+    mach_msg_type_number_t count = TASK_BASIC_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_BASIC_INFO,
+                  (task_info_t)&info, &count) != KERN_SUCCESS)
+        return -1;
+    return (long)(info.resident_size / 1024);
+}
+#elif defined(HAVE_SYS_RESOURCE_H)
 static long
 get_rss_kb(void)
 {
     struct rusage ru;
     if (getrusage(RUSAGE_SELF, &ru) != 0)
         return -1;
-#ifdef __APPLE__
-    return (long)(ru.ru_maxrss / 1024);
-#else
-    return (long)ru.ru_maxrss;
-#endif
+    return (long)ru.ru_maxrss;  /* Linux: current RSS, already in KB */
 }
-#endif /* HAVE_SYS_RESOURCE_H */
+#endif /* __APPLE__ / HAVE_SYS_RESOURCE_H */
 
 int
 main()
@@ -56,7 +75,7 @@ main()
     hsize_t dims[1] = {10};
     double data[10] = {0};
     int i;
-#ifdef HAVE_SYS_RESOURCE_H
+#if defined(__APPLE__) || defined(HAVE_SYS_RESOURCE_H)
     long rss_before, rss_after, growth;
 #endif
 
@@ -86,7 +105,7 @@ main()
         if (H5Fclose(fid) < 0) ERR;
     }
 
-#ifdef HAVE_SYS_RESOURCE_H
+#if defined(__APPLE__) || defined(HAVE_SYS_RESOURCE_H)
     rss_before = get_rss_kb();
 #endif
 
@@ -96,7 +115,7 @@ main()
         if (H5Fclose(fid) < 0) ERR;
     }
 
-#ifdef HAVE_SYS_RESOURCE_H
+#if defined(__APPLE__) || defined(HAVE_SYS_RESOURCE_H)
     rss_after = get_rss_kb();
     growth = (rss_before > 0 && rss_after > 0) ? rss_after - rss_before : 0;
     printf("\n    RSS growth: %ld KB over %d open/close cycles (limit %d KB)\n",
@@ -110,7 +129,7 @@ main()
                 growth, NITER, MAX_GROWTH_KB);
         ERR;
     }
-#endif /* HAVE_SYS_RESOURCE_H */
+#endif /* __APPLE__ / HAVE_SYS_RESOURCE_H */
 
     if (H5Pclose(fapl) < 0) ERR;
     remove(FILE_NAME);
