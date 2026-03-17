@@ -22,6 +22,8 @@
    See https://github.com/Unidata/netcdf-c/issues/2666
    See https://github.com/Unidata/netcdf-c/issues/2667
    See https://github.com/Unidata/netcdf-c/issues/2668
+
+   Edward Hartnett, 3/17/26
 */
 
 #include <config.h>

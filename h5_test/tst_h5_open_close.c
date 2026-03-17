@@ -16,7 +16,7 @@
    before/after comparisons meaningless.  The build system therefore skips
    registering this test on macOS CI.
 
-   Ed Hartnett
+   Ed Hartnett, 3/17/26
 */
 
 #ifdef HAVE_CONFIG_H
