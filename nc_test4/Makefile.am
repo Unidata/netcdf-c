@@ -43,17 +43,6 @@ endif
 
 NC4_TESTS += tst_h_strbug tst_h_refs
 
-# tst_mem_safety checks for memory leaks during repeated nc_open/nc_close
-# cycles (issue #2626).  HDF5 versions before 2.0.0 have a known RSS growth
-# in H5Fopen/H5Fclose itself (confirmed by tst_h5_open_close in h5_test/)
-# that is unrelated to netCDF-C and would cause this test to false-fail.
-# Restrict test execution to HDF5 >= 2.0.0 where the HDF5-level growth is
-# fixed.  The binary is always built so it can be run manually if desired.
-check_PROGRAMS += tst_mem_safety
-if HDF5_VERSION_GE_200
-TESTS += tst_mem_safety
-endif
-
 # UDF self-registration plugin loading test.
 # Requires a shared library build: the test dlopen()s a .so plugin.
 # Skip entirely when built with --disable-shared.
@@ -78,8 +67,18 @@ endif # ENABLE_SHARED
 
 # Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug \
-tst_vlenstr tst_zero_len_att
+tst_vlenstr tst_zero_len_att tst_mem_safety
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh run_zero_len_att_test.sh
+
+# tst_mem_safety checks for memory leaks during repeated nc_open/nc_close
+# cycles (issue #2626).  HDF5 versions before 2.0.0 have a known RSS growth
+# in H5Fopen/H5Fclose itself (confirmed by tst_h5_open_close in h5_test/)
+# that is unrelated to netCDF-C and would cause this test to false-fail.
+# Restrict test execution to HDF5 >= 2.0.0 where the HDF5-level growth is
+# fixed.  The binary is always built so it can be run manually if desired.
+if HDF5_VERSION_GE_200
+TESTS += tst_mem_safety
+endif
 XFAIL_TESTS =
 
 # Add these if large file tests are turned on.
