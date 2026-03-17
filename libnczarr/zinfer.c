@@ -26,7 +26,7 @@ int NCZ_infer_zarr_format(NC_FILE_INFO_T *file) {
 }
 
 int NCZ_infer_nczarr_format(NC_FILE_INFO_T *file) {
-  int stat = NC_NOERR;
+  int stat = NC_ENOTZARR;
   const NCjson *jsuperblock = NULL, *jnczarrversion = NULL;
   NCZ_FILE_INFO_T *zfile = (NCZ_FILE_INFO_T *)file->format_file_info;
   struct ZARROBJ *zobjs =
