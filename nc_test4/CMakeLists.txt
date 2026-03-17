@@ -86,10 +86,12 @@ ENDIF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
 # that is unrelated to netCDF-C and would cause this test to false-fail.
 # Restrict test execution to HDF5 >= 2.0.0 where the HDF5-level growth is
 # fixed.  The binary is always built so it can be run manually if desired.
-build_bin_test(tst_mem_safety)
 IF(${HDF5_VERSION} VERSION_GREATER_EQUAL "2.0.0")
-  add_test(nc_test4_tst_mem_safety ${EXECUTABLE_OUTPUT_PATH}/nc_test4_tst_mem_safety)
-  SET_TESTS_PROPERTIES(nc_test4_tst_mem_safety PROPERTIES ENVIRONMENT srcdir=${CMAKE_CURRENT_SOURCE_DIR})
+  add_bin_test(nc_test4 tst_mem_safety)
+  SET_TESTS_PROPERTIES(nc_test4_tst_mem_safety PROPERTIES
+    ENVIRONMENT srcdir=${CMAKE_CURRENT_SOURCE_DIR})
+ELSE()
+  build_bin_test(tst_mem_safety)
 ENDIF()
 
 ##
