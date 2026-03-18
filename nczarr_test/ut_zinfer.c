@@ -15,47 +15,60 @@
   "{\"_nczarr_group\" : {\"dimensions\": [{name: time, size: 8, unlimited: "   \
   "1}], \"arrays\": [\"v1\", \"v2\"], \"groups\": [\"g1\", \"g2\"]}}"
 
-static char *KV[][2] = {
+static char *KV2pure[][2] = {
     {"/.zmetadata", MOCK_ZMETADATA},
     {"/.zgroup", MOCK_V2_GROUP_PURE},
     {"/.zattrs", MOCK_V2_ATTRS_PURE},
+    {NULL, NULL},
 };
 
-#define KV_LEN (sizeof(KV) / sizeof(KV[0]))
+static char *KV2nczarr[][2] = {
+    {"/.zmetadata", MOCK_ZMETADATA},
+    {"/.zgroup", MOCK_V2_GROUP_NCZARR},
+    {"/.zattrs", MOCK_V2_ATTRS_NCZARR},
+    {NULL, NULL},
+};
+
+static char *KV3[][2] = {
+    {"/zarr.json", ""},
+    {NULL, NULL},
+};
+
+static char *KVempty[][2] = {
+    {NULL, NULL},
+};
+
+static char *(*KV_ptr)[2] = KV2pure;
 
 int mockunimplemented() { return 1; }
 
-int mockV2exists(NCZMAP *map, const char *key) {
-  return !(strcmp(key, "/.zmetadata") == 0 || strcmp(key, "/.zgroup") == 0 ||
-           strcmp(key, "/.zattrs") == 0);
-}
-
-int mockV3exists(NCZMAP *map, const char *key) {
-  return !(strcmp(key, "/zarr.json") == 0);
-}
-
 int mocklen(NCZMAP *map, const char *key, size64_t *sizep) {
-  for (int i = 0; i < KV_LEN; i++) {
-    if (strcmp(key, KV[i][0]) == 0) {
-      *sizep = strlen(KV[i][1]);
+  for (int i = 0; KV_ptr[i][0] != NULL; i++) {
+    if (strcmp(key, KV_ptr[i][0]) == 0) {
+      *sizep = strlen(KV_ptr[i][1]);
       return NC_NOERR;
     }
   }
   return NC_ENOOBJECT;
+}
+
+int mockexists(NCZMAP *map, const char *key) {
+  size64_t size;
+  return mocklen(map, key, &size);
 }
 
 int mockread(NCZMAP *map, const char *key, size64_t start, size64_t count,
              void *content) {
-  for (int i = 0; i < KV_LEN; i++) {
-    if (strcmp(key, KV[i][0]) == 0) {
-      memcpy(content, KV[i][1] + start, count - start);
+  for (int i = 0; KV_ptr[i][0] != NULL; i++) {
+    if (strcmp(key, KV_ptr[i][0]) == 0) {
+      memcpy(content, KV_ptr[i][1] + start, count - start);
       return NC_NOERR;
     }
   }
   return NC_ENOOBJECT;
 }
 
-NCZMAP *mockmap(int version) {
+NCZMAP *mockmap() {
   NCZMAP *m = calloc(1, sizeof(NCZMAP));
   memset(m, 0, sizeof(NCZMAP));
   m->format = NCZM_UNDEF, m->url = strdup("mockmap");
@@ -65,17 +78,9 @@ NCZMAP *mockmap(int version) {
   memset(m->api, 0, sizeof(NCZMAP_API));
   m->api->version = 0;
   m->api->close = (int (*)(NCZMAP *, int))mockunimplemented;
-
-  m->api->exists =
-      (version == 2)
-          ? (mockV2exists)
-          : ((version == 3) ? mockV3exists
-                            : (int (*)(NCZMAP * map, const char *key))
-                                  mockunimplemented);
-  m->api->len =
-      (int (*)(NCZMAP * map, const char *key, size64_t *sizep)) mocklen;
-  m->api->read = (int (*)(NCZMAP * map, const char *key, size64_t start,
-                          size64_t count, void *content)) mockread;
+  m->api->exists = mockexists;
+  m->api->len = mocklen;
+  m->api->read = mockread;
   m->api->write = (int (*)(NCZMAP *, const char *, size64_t,
                            const void *))mockunimplemented;
   m->api->search =
@@ -102,8 +107,10 @@ int test_NCZ_infer_zarr_format() {
   fprintf(stderr, "Testing NCZ_infer_zarr_format\n");
   int ret = NC_NOERR;
 
+  KV_ptr = KVempty;
+  // Expected failure
   for (int v = -1; v <= 1; v++) {
-    zinfo.map = mockmap(v);
+    zinfo.map = mockmap();
     ret = NCZ_infer_zarr_format(&file);
     freemockmap(zinfo.map);
     if (ret != NC_ENOTZARR) {
@@ -121,12 +128,15 @@ int test_NCZ_infer_zarr_format() {
     }
   }
 
+  KV_ptr = KV2pure;
+  // Expected success
   for (int v = 2; v <= 3; v++) {
-    zinfo.map = mockmap(v);
+    zinfo.map = mockmap();
     ret = NCZ_infer_zarr_format(&file);
     freemockmap(zinfo.map);
     if (ret != NC_NOERR) {
-      fprintf(stderr, "Failed! Unexpected error (%d)\n", ret);
+      fprintf(stderr, "Failed! Unexpected error (%d) when testing version %d\n",
+              ret, v);
       return 3;
     }
     if (zinfo.zarr.zarr_version != v) {
@@ -134,6 +144,7 @@ int test_NCZ_infer_zarr_format() {
               zinfo.zarr.zarr_version);
       return 4;
     }
+    KV_ptr = KV3;
   }
 
   return 0;
@@ -167,8 +178,9 @@ int test_NCZ_infer_nczarr_format() {
 
   zinfo.zarr.zarr_version = 2;
 
+  KV_ptr = KV2pure;
   // Alternative to NCZMD_set_metadata_handler();
-  zinfo.map = mockmap(2);
+  zinfo.map = mockmap();
   zinfo.metadata = *NCZ_metadata_handler2;
 
   ret = NCZ_infer_nczarr_format(&file);
@@ -186,8 +198,7 @@ int test_NCZ_infer_nczarr_format() {
     return 3;
   }
 
-  KV[1][1] = MOCK_V2_GROUP_NCZARR;
-  KV[2][1] = MOCK_V2_ATTRS_NCZARR;
+  KV_ptr = KV2nczarr;
   ret = NCZ_infer_nczarr_format(&file);
   if (2 != zinfo.zarr.nczarr_version.major ||
       0 != zinfo.zarr.nczarr_version.minor ||
@@ -197,6 +208,13 @@ int test_NCZ_infer_nczarr_format() {
             zinfo.zarr.nczarr_version.release);
     return 4;
   }
+
+  // TODO:
+  // zinfo.zarr.zarr_version = 3;
+  // KV_ptr = KV3;
+  // zinfo.map = mockmap();
+  // zinfo.metadata = *NCZ_metadata_handler3;
+  // ret = NCZ_infer_nczarr_format(&file);
 
   return 0;
 }
