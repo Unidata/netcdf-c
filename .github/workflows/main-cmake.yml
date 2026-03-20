@@ -60,8 +60,9 @@ jobs:
         #- run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
        
         - name: Install Dependencies using Micromamba
+          # Zlib (instead of libzlib) needed to get dev header/cmake file
           run: |
-            micromamba install --yes hdf5=${{ matrix.hdf5 }} m2-m4 libxml2
+            micromamba install --yes hdf5=${{ matrix.hdf5 }} m2-m4 libxml2 zlib
           shell: bash -el {0}
 
         # Double-check something
