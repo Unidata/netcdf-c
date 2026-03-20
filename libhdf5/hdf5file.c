@@ -128,7 +128,7 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
     assert(h5 && h5->format_file_info);
     LOG((3, "%s", __func__));
 
-    /* End depend mode if needed. (Error checking for classic mode has
+    /* End define mode if needed. (Error checking for classic mode has
      * already happened). */
     if (h5->flags & NC_INDEF)
     {
@@ -644,7 +644,7 @@ NC4_close(int ncid, void* params)
  * @param nvarsp Pointer that gets number of variables.
  * @param nattsp Pointer that gets number of global attributes.
  * @param unlimdimidp Pointer that gets first unlimited dimension ID,
- * or -1 if there are no unlimied dimensions.
+ * or -1 if there are no unlimited dimensions.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett

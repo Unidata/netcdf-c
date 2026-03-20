@@ -2,9 +2,10 @@
  * Research. See the COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
- * @file @internal This file is part of netcdf-4, a netCDF-like
- * interface for HDF5, or a HDF5 backend for netCDF, depending on your
- * point of view.
+ * @file
+ * @internal This file is part of netcdf-4, a netCDF-like interface
+ * for HDF5, or a HDF5 backend for netCDF, depending on your point of
+ * view.
  *
  * This file handles the nc4 user-defined type functions
  * (i.e. compound and opaque types).
@@ -316,7 +317,7 @@ NC4_insert_array_compound(int ncid, int typeid1, const char *name,
  *
  * @param ncid File and group ID.
  * @param datum_size Size in bytes of a datum.
- * @param name Name of new vlen type.
+ * @param name Name of new opaque type.
  * @param typeidp Pointer that gets new type ID.
  *
  * @return ::NC_NOERR No error.
@@ -364,8 +365,8 @@ NC4_def_vlen(int ncid, const char *name, nc_type base_typeid,
  * the moment only ints are accepted as base types.
  *
  * @param ncid File and group ID.
- * @param base_typeid Base type of vlen.
- * @param name Name of new vlen type.
+ * @param base_typeid Base type of enum.
+ * @param name Name of new enum type.
  * @param typeidp Pointer that gets new type ID.
  *
  * @return ::NC_NOERR No error.
@@ -464,14 +465,14 @@ NC4_put_vlen_element(int ncid, int typeid1, void *vlen_element,
 }
 
 /**
- * @internal Insert one element into an already allocated vlen array
+ * @internal Read one element from an already allocated vlen array
  * element.
  *
  * @param ncid File and group ID.
  * @param typeid1 Type ID.
- * @param vlen_element The VLEN element to insert.
- * @param len Length of element in bytes.
- * @param data Element data.
+ * @param vlen_element The VLEN element to read.
+ * @param len Pointer that gets length of element in bytes.
+ * @param data Pointer that gets element data.
  *
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
