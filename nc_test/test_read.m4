@@ -1546,7 +1546,7 @@ TestFunc(get_varm)(VarArgs)
     int nslabs;
     PTRDType nstarts;   /* number of different starts */
     int nok = 0;        /* total count of valid comparisons */
-    IntType j, m, nels;
+    IntType j, m;
     IntType start[MAX_RANK];
     IntType edge[MAX_RANK];
     IntType index[MAX_RANK];
@@ -1708,11 +1708,9 @@ ifdef(`PNETCDF',`dnl
                 } else {
                     err = toMixedBase(m, var_rank[i], sstride, index);
                     IF (err != 0) error("error in toMixedBase");
-                    nels = 1;
                     for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
                         count[j] = 1 + (edge[j] - index[j] - 1) /  ( (IntType)stride[j] == 0 ? 1 : (IntType)stride[j]);
                         index[j] += start[j];
-                        nels *= count[j];
                     }
                     /* Random choice of forward or backward */
 /* TODO
