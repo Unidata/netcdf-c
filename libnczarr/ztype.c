@@ -188,7 +188,7 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
         return NC_ESTRICTNC3;
 
     /* Turn on define mode if it is not on. */
-    if (!(h5->cmode & NC_INDEF))
+    if (!(h5->flags & NC_INDEF))
         if ((retval = NCZ_redef(ncid)))
             return retval;
 
