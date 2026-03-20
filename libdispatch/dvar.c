@@ -4,6 +4,8 @@
  * @file
  * Functions for defining and inquiring about variables. @note The
  * order of functions in this file affects the doxygen documentation.
+ *
+ * @author Dennis Heimbigner, Edward Hartnett
  */
 
 #include "config.h"
