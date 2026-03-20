@@ -37,11 +37,12 @@ jobs:
           with:
             update: true
         - uses: actions/checkout@v4
-        - uses: conda-incubator/setup-miniconda@v3
+        - uses: mamba-org/setup-micromamba@v2
           with:
-            miniconda-version: "latest"
-            activate-environment: ""
-            auto-activate-base: true
+            # Name is needed for caching
+            environment-name: CI
+            cache-environment: true
+            cache-environment-key: mamba-${{ matrix.hdf5 }}
 
         - name: Set up Paths and env
           shell: bash -el {0}
@@ -58,17 +59,13 @@ jobs:
         #- run: echo ""
         #- run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
        
-        # Grab miniconda and use it to install HDF5
-        - name: Install Dependencies using Miniconda
+        - name: Install Dependencies using Micromamba
           run: |
-            conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
-            conda config --add channels conda-forge
-            conda update conda
-            conda install hdf5=${{ matrix.hdf5 }} m2-m4 libxml2
+            micromamba install --yes hdf5=${{ matrix.hdf5 }} m2-m4 libxml2
           shell: bash -el {0}
 
         # Double-check something
-        - name: Check Miniconda
+        - name: Check conda env
           run: |
             which h5dump
             which m4
