@@ -80,6 +80,23 @@ IF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
   SET(NC4_TESTS ${NC4_TESTS} tst_virtual_datasets)
 ENDIF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
 
+# tst_mem_safety checks for memory leaks during repeated nc_open/nc_close
+# cycles (issue #2626).  HDF5 versions before 2.0.0 have a known RSS growth
+# in H5Fopen/H5Fclose itself (confirmed by tst_h5_open_close in h5_test/)
+# that is unrelated to netCDF-C and would cause this test to false-fail.
+# The RSS measurement uses getrusage()/ru_maxrss which is only reliable on
+# Linux -- on macOS ru_maxrss is the peak (high-water mark) for the entire
+# process lifetime and never decreases, making growth comparisons useless.
+# Restrict test execution to Linux with HDF5 >= 2.0.0.
+# The binary is always built so it can be run manually if desired.
+IF(${HDF5_VERSION} VERSION_GREATER_EQUAL "2.0.0" AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_bin_test(nc_test4 tst_mem_safety)
+  SET_TESTS_PROPERTIES(nc_test4_tst_mem_safety PROPERTIES
+    ENVIRONMENT srcdir=${CMAKE_CURRENT_SOURCE_DIR})
+ELSE()
+  build_bin_test(tst_mem_safety)
+ENDIF()
+
 ##
 # The shell script, run_empty_vlen_test.sh,
 # depends on the 'tst_empty_vlen_unlim' binary.
