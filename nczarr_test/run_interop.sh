@@ -65,7 +65,7 @@ case "$zext" in
     file)
 	# need to unpack
 	rm -fr ${ISOPATH}/ref_power_901_constants
-	unzip ref_power_901_constants.zip >> tmp_ignore.txt
+	unzip -o ref_power_901_constants.zip >> tmp_ignore.txt
 	rm -fr ${ISOPATH}/ref_power_901_constants.file
 	mv ${ISOPATH}/ref_power_901_constants ${ISOPATH}/ref_power_901_constants.file
 	testcasefile power_901_constants zarr; # test xarray as default
