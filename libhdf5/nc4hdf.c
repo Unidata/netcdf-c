@@ -1143,9 +1143,11 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
      * chunks. */
     if (var->chunkcache.size == CHUNK_CACHE_SIZE)
     {
-        size_t min_cache = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
-        if (min_cache > DEFAULT_CHUNK_CACHE_SIZE)
-            min_cache = DEFAULT_CHUNK_CACHE_SIZE;
+	size_t min_cache = 0;
+	if (chunk_size_bytes > (DEFAULT_CHUNK_CACHE_SIZE / DEFAULT_CHUNKS_IN_CACHE))
+	    min_cache = DEFAULT_CHUNK_CACHE_SIZE;
+	else
+	    min_cache = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
         if (var->chunkcache.size < min_cache)
         {
             var->chunkcache.size = min_cache;
