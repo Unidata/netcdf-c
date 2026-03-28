@@ -11,10 +11,15 @@
 /* Forward */
 static NCerror buildattribute(char*,nc_type,size_t,char**,NCattribute**);
 
-/*
-Invoke oc_merge_das and then extract special
-attributes such as "strlen" and "dimname"
-and stuff from DODS_EXTRA.
+/**
+Merge DAS attribute information into the DDS tree.
+Invokes oc_merge_das and then extracts special attributes such as
+"strlen" and "dimname" and values from DODS_EXTRA into the
+corresponding CDFnode fields.
+@param nccomm the common DAP state structure
+@param ddsroot the root CDFnode of the DDS tree to annotate
+@param dasroot the OC DAS root node to merge from
+@return NC_NOERR on success, an NC error code on failure
 */
 int
 dapmerge(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
@@ -126,12 +131,16 @@ done:
     return THROW(ncstat);
 }
 
-/*
-Build an NCattribute
-from a DAP attribute.
-As of Jun 27, 2017, we modify
-to suppress nul characters and terminate
-the name at the first nul.
+/**
+Build an NCattribute from a DAP attribute.
+As of Jun 27, 2017, nul characters in the name are suppressed and
+the name is terminated at the first nul.
+@param name the attribute name string
+@param ptype the netCDF type of the attribute values
+@param nvalues the number of string values in the values array
+@param values array of string representations of the attribute values
+@param attp output pointer to the newly allocated NCattribute
+@return NC_NOERR on success, NC_ENOMEM if allocation fails
 */
 static NCerror
 buildattribute(char* name, nc_type ptype,

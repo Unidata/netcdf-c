@@ -4,50 +4,46 @@
  *  See COPYRIGHT notice in top-level directory.
  *
  *********************************************************************/
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * This example shows how to use nc_put_vara_int() to write a 2D 4-byte integer
- * array in parallel and read it back using the same array partitioning pattern.
- * It first defines a netCDF variable of size global_nx * global_ny where
- *    global_ny == NY and
- *    global_nx == (NX * number of MPI processes).
- * The data partitioning pattern is a column-wise partitioning across all
- * processes. Each process writes a subarray of size ny * nx.
+/**
+ * @file
+ * Example of parallel I/O using nc_put_vara_int() and nc_get_vara_int().
  *
- *    To compile:
- *        mpicc -O2 parallel_vara.c -o parallel_vara -lnetcdf -lpnetcdf
+ * This example shows how to use nc_put_vara_int() to write a 2D
+ * 4-byte integer array in parallel and read it back using the same
+ * array partitioning pattern. It first defines a netCDF variable of
+ * size global_nx * global_ny where global_ny == NY and global_nx ==
+ * (NX * number of MPI processes). The data partitioning pattern is a
+ * column-wise partitioning across all processes. Each process writes a
+ * subarray of size ny * nx.
+ *
+ * To compile:
+ *     mpicc -O2 parallel_vara.c -o parallel_vara -lnetcdf -lpnetcdf
  *
  * Example commands for MPI run and outputs from running ncdump on the
  * NC file produced by this example program:
  *
- *    % mpiexec -n 4 ./parallel_vara /pvfs2/wkliao/testfile.nc
+ *     % mpiexec -n 4 ./parallel_vara /pvfs2/wkliao/testfile.nc
  *
- *    % ncdump /pvfs2/wkliao/testfile.nc
- *    netcdf testfile {
- *    dimensions:
- *            y = 10 ;
- *            x = 16 ;
- *    variables:
- *            int var(y, x) ;
- *                var:str_att_name = "example attribute of type text." ;
- *                var:float_att_name = 0.f, 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f ;
- *    // global attributes:
- *                :history = "Wed Apr 30 11:18:58 2014\n",
- *       "" ;
- *    data:
+ *     % ncdump /pvfs2/wkliao/testfile.nc
+ *     netcdf testfile {
+ *     dimensions:
+ *             y = 10 ;
+ *             x = 16 ;
+ *     variables:
+ *             int var(y, x) ;
+ *                 var:str_att_name = "example attribute of type text." ;
+ *                 var:float_att_name = 0.f, 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f ;
+ *     // global attributes:
+ *                 :history = "Wed Apr 30 11:18:58 2014" ;
+ *     data:
  *
- *     var =
- *         0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
- *         0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
- *         0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
- *         0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
- *         0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
- *         0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
- *         0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
- *         0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
- *         0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
- *         0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3 ;
- *    }
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ *      var =
+ *          0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
+ *          ...
+ *     }
+ *
+ * @author Edward Hartnett
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
