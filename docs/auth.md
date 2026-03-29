@@ -214,13 +214,13 @@ access *earthdata.nasa.gov*.
 
 #### *.ncrc* File
 `
-HTTP.NETRC=/home/<user>/.netrc
-HTTP.COOKIEJAR=/home/<user>/.urs_cookies
+HTTP.NETRC=/home/&lt;user&gt;/.netrc
+HTTP.COOKIEJAR=/home/&lt;user&gt;/.urs_cookies
 `
 
 #### *.netrc* File
 `
-machine urs.earthdata.nasa.gov login <user> password <password>
+machine urs.earthdata.nasa.gov login &lt;user&gt; password &lt;password&gt;
 `
 
 ## Client-Side Certificates {#auth_clientcerts}
