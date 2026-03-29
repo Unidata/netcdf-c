@@ -74,11 +74,11 @@ This initial global plugin path will be propagated to HDF5 and NCZarr.
 
 At build-time, the target location directory into which libraries implementing plugins are installed is specified using a special *./configure* option
 `
---with-plugin-dir=<directorypath>
+--with-plugin-dir=&lt;directorypath&gt;
 `
 or its corresponding *cmake* option.
 `
--DNETCDF_WITH_PLUGIN_DIR=<directorypath>
+-DNETCDF_WITH_PLUGIN_DIR=&lt;directorypath&gt;
 `
 
 ## Build-Time Operations

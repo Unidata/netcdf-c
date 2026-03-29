@@ -267,11 +267,11 @@ The "fragment" part of the URL may be unfamiliar.
 The last part of a URL may optionally contain a fragment, which
 is syntactically of this form in this pseudo URL specification.
 ```
-<protocol>://<host>/<path>?<query>#<fragment>
+&lt;protocol&gt;://&lt;host&gt;/&lt;path&gt;?&lt;query&gt;#&lt;fragment&gt;
 ```
 The form of the fragment is similar to a query and takes this general form.
 ```
-'#'<key>=<value>&<key>=<value>&...
+'#'&lt;key&gt;=&lt;value&gt;&&lt;key&gt;=&lt;value&gt;&...
 ```
 The key is a simple name, the value is any sequence of characters,
 although URL special characters such as '&' must be URL encoded in
@@ -385,7 +385,7 @@ it to the fragment for later use.
 After the protocol is processed, the initial fragment processing occurs
 by converting it to a list data structure of the form
 ```
-        {<key>,<value>,<key>,<value>,<key>,<value>....}
+        {&lt;key&gt;,&lt;value&gt;,&lt;key&gt;,&lt;value&gt;,&lt;key&gt;,&lt;value&gt;....}
 ```
 
 ### Macro Processing -- processmacros()
@@ -439,10 +439,10 @@ If the URL is determined to be a reference to a resource on the Amazon S3 cloud,
 then the URL needs to be converted to what is called "path format".
 There are four S3 URL formats:
 
-1. Virtual -- `https://<bucket>.s3.<region>.amazonaws.com/<path>`
-2. Path -- `https://s3.<region>.amazonaws.com/<bucket>/<path>`
-3. S3 -- `s3://<bucket>/<path>`
-4. Other -- `https://<host>/<bucket>/<path>`
+1. Virtual -- `https://&lt;bucket&gt;.s3.&lt;region&gt;.amazonaws.com/&lt;path&gt;`
+2. Path -- `https://s3.&lt;region&gt;.amazonaws.com/&lt;bucket&gt;/&lt;path&gt;`
+3. S3 -- `s3://&lt;bucket&gt;/&lt;path&gt;`
+4. Other -- `https://&lt;host&gt;/&lt;bucket&gt;/&lt;path&gt;`
 
 The S3 processing converts all of these to the Path format. In the "S3" format case
 it is necessary to find or default the region from examining the ".aws" directory files.

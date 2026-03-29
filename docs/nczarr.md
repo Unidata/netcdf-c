@@ -419,7 +419,7 @@ Constructing the set of "shared dimensions" is carried out
 by walking all the variables in the whole dataset and collecting
 the set of unique integer shapes for the variables.
 For each such dimension length, a top level dimension is created
-named  "_Anonymous_Dimension_<len>" where len is the integer length.
+named  "_Anonymous_Dimension_&lt;len&gt;" where len is the integer length.
 2. _\_nczarr_array\__ -- The dimension referencess are inferred by using the shape in _.zarray_ and creating references to the simulated shared dimensions.
 netcdf specific information.
 3. _\_nczarr_attr\__ -- The type of each attribute is inferred by trying to parse the first attribute value string.
@@ -747,9 +747,9 @@ the *zarr.json* object in that group.
 The relevant attribute has the following format:
 `
 "_nczarr_group": {
-\"dimensions\": [{name: <dimname>, size: <integer>, unlimited: 1|0},...],
-\"arrays\": ["<name>",...],
-\"subgroups\": ["<name>",...]
+\"dimensions\": [{name: &lt;dimname&gt;, size: &lt;integer&gt;, unlimited: 1|0},...],
+\"arrays\": [&quot;&lt;name&gt;&quot;, ...],
+\"subgroups\": [&quot;&lt;name&gt;&quot;, ...]
 }
 `
 Its purpose is two-fold:
@@ -764,8 +764,8 @@ the *zarr.json* object in that array.
 The relevant attribute has the following format:
 `
 "_nczarr_array": {
-\"dimension_references\": [\"/g1/g2/d1\", \"/d2\",...],
-\"type_alias\": "<string indicating special type aliasing>" // optional
+\"dimension_references\": ["/g1/g2/d1", "/d2",...],
+\"type_alias\": "&lt;string indicating special type aliasing&gt;" // optional
 }
 `
 The *dimension_references* key is an expansion of the "dimensions" key
@@ -817,7 +817,7 @@ Its form is this:
 `
 "_nczarr_attrs": {
     "attribute_types": [
-        {"name": "attr1", "configuration": {"type": "<dtype>"}},
+        {"name": "attr1", "configuration": {"type": "&lt;dtype&gt;"}},
 	...
 	]
 }
@@ -834,11 +834,11 @@ The Zarr version 3 representation of codecs is slightly different
 than that used by Zarr version 2.
 In version 2, the codec is represented by this JSON template.
 `
-{"id": "<codec name>" "<param>": "<value>", "<param>": "<value>", ...}
+{"id": "&lt;codec name&gt;" "&lt;param&gt;": "&lt;value&gt;", "&lt;param&gt;": "&lt;value&gt;", ...}
 `
 In version 3, the codec is represented by this JSON template.
 `
-{"name": "<codec name>" "configuration": {"<param>": "<value>", "<param>": "<value>", ...}}
+{"name": "&lt;codec name&gt;" "configuration": {"&lt;param&gt;": "&lt;value&gt;", "&lt;param&gt;": "&lt;value&gt;", ...}}
 `
 -->
 

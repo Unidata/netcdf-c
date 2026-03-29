@@ -78,7 +78,7 @@ when the netcdf-c library loads an rc file you did not expect.
 
 The rc file format is a series of lines of the general form:
 `
-    [<URL>]<key>=<value>
+    [&lt;URL&gt;]&lt;key&gt;=&lt;value&gt;
 `
 where the bracket-enclosed URL is optional. Note that the brackets
 are part of the line.

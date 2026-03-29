@@ -310,7 +310,7 @@ It is equivalent to the "--no-sign-request" option in the AWS CLI.
 
 If the specified URL is of the form
 ```
-s3://<bucket>/key
+s3://&lt;bucket&gt;/key
 ```
 Then this is rebuilt to this form:
 ```

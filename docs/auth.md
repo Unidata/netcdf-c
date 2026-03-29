@@ -351,7 +351,7 @@ The commands are these:
 
     openssl pkcs8 -topk8 -nocrypt -in x509up_u13615 -inform PEM -out key.der -outform DER
     openssl x509 -in x509up_u13615 -inform PEM -out cert.der -outform DER
-    java -classpath <path to ImportKey.class> -Dkeypassword="<password>" -Dkeystore=./<keystorefilename> key.der cert.der
+    java -classpath &lt;path to ImportKey.class&gt; -Dkeypassword="&lt;password&gt;" -Dkeystore=./&lt;keystorefilename&gt; key.der cert.der
 
 Note, the file names "key.der" and "cert.der" can be whatever you choose.
 It is probably best to leave the .der extension, though.
