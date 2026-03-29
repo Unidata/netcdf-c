@@ -712,7 +712,7 @@ One case worth mentioning is when there is a dataset that is using an unknown fi
 For this situation, you need to identify what filter(s) are used in the dataset.
 This can be accomplished using this command.
 
-    ncdump -s -h <dataset filename>
+    ncdump -s -h &lt;dataset filename&gt;
 
 Since ncdump is not being asked to access the data (the -h flag), it can obtain the filter information without failures.
 Then it can print out the filter id and the parameters as well as the Codecs (via the -s flag).
@@ -806,7 +806,7 @@ The current matrix of OS X build systems known to work is as follows.
 ### Generic Plugin Build
 If you do not want to use Automake or Cmake, the following has been known to work.
 
-    gcc -g -O0 -shared -o libbzip2.so <plugin source files>  -L${HDF5LIBDIR} -lhdf5\_hl -lhdf5 -L${ZLIBDIR} -lz
+    gcc -g -O0 -shared -o libbzip2.so &lt;plugin source files&gt;  -L${HDF5LIBDIR} -lhdf5\_hl -lhdf5 -L${ZLIBDIR} -lz
 
 ## References {#filters_References}
 

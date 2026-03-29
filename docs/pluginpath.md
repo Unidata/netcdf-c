@@ -131,7 +131,7 @@ Then any processor accessing the plugin paths should operate as follows:
 `
 lock(PLUGINLOCK);
 nc_plugin_path_get(...);
-<rebuild plugin path>
+&lt;rebuild plugin path&gt;
 nc_plugin_path_set(...);
 unlock(PLUGINLOCK);
 `
