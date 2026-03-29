@@ -74,7 +74,7 @@ This file contains a high-level description of this package's evolution. Release
 * Fix the problems around ncdap_test/test_manyurls.c. by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3182
 * General Cleanup to provide a clean base for future PRs. by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3159
 * Cleanup RELEASE_NOTES.md by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/3190
-* ticket #TSP-8629412 bug fix by \@dkjsone in https://github.com/Unidata/netcdf-c/pull/3191
+* ticket \#TSP-8629412 bug fix by \@dkjsone in https://github.com/Unidata/netcdf-c/pull/3191
 * `ncgen` unsigned suffix fix by \@jatkinson1000 in https://github.com/Unidata/netcdf-c/pull/3189
 * run_zero_len_att_test.sh: Improve error message by \@Dave-Allured in https://github.com/Unidata/netcdf-c/pull/3170
 * Fix S3 internal configuration error by \@gsjaardema in https://github.com/Unidata/netcdf-c/pull/3175
