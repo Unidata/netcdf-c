@@ -30,7 +30,7 @@
 #include "ncs3sdk.h"
 #endif
 
-/*Nemonic */
+/* Mnemonic */
 #define FILTERACTIVE 1
 
 #define NUM_TYPES 12 /**< Number of netCDF atomic types. */
@@ -300,7 +300,7 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     if (var->coords_read)
         return NC_NOERR;
 
-    /* Get HDF5-sepecific var info. */
+    /* Get HDF5-specific var info. */
     hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
     /* Does the COORDINATES att exist? */
@@ -436,7 +436,7 @@ create_phony_dims(NC_GRP_INFO_T *grp, hid_t hdf_datasetid, NC_VAR_INFO_T *var)
         if (!(h5dimlenmax = malloc(var->ndims * sizeof(hsize_t))))
             BAIL(NC_ENOMEM);
 
-        /* Get ndims, also len and mac len of all dims. */
+        /* Get ndims, also len and max len of all dims. */
         if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid, h5dimlen,
                                                        h5dimlenmax)) < 0)
             BAIL(NC_EHDFERR);
@@ -1083,7 +1083,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 
     assert(var);
 
-    /* Get HDF5-sepecific var info. */
+    /* Get HDF5-specific var info. */
     hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
     if ((num_filters = H5Pget_nfilters(propid)) < 0)

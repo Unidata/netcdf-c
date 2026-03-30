@@ -1,7 +1,8 @@
 /* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.*/
 /**
- * @file @internal HDF4 functions.
+ * @file
+ * @internal HDF4 functions.
  *
  * @author Ed Hartnett
  */

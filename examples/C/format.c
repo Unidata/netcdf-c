@@ -11,7 +11,7 @@
  * This example shows how to create and deal with files of different
  * netcdf formats (i.e. classic vs. 64-bit-offset).
  *
- * @author Ed Hartnett, 7/13/4
+ * @author Edward Hartnett, 7/13/4
  */
 
 #include <config.h>
