@@ -1,7 +1,8 @@
 /* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.*/
 /**
- * @file @internal This file handles the variable functions for the
+ * @file
+ * @internal This file handles the variable functions for the
  * HDF4 dispatch layer.
  *
  * @author Ed Hartnett
@@ -14,8 +15,8 @@
 #include <mfhdf.h>
 
 /**
- * Read an array of values. This is called by nc_get_vara() for
- * netCDF-4 files, as well as all the other nc_get_vara_*
+ * @internal Read an array of values. This is called by nc_get_vara()
+ * for netCDF-4 files, as well as all the other nc_get_vara_*
  * functions. HDF4 files are handled as a special case.
  *
  * @param ncid File ID.
