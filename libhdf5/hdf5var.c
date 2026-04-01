@@ -2159,6 +2159,87 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                     ((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->native_hdf_typeid,
                     mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
             BAIL(NC_EHDFERR);
+
+        /* For VLEN variables, H5Dread allocates the .p buffers using
+         * HDF5's internal allocator. Those pointers cannot be freed with
+         * free(), so we must copy the data into malloc-owned memory and
+         * then release HDF5's allocations with H5Treclaim.
+         *
+         * We read into a separate temporary buffer (hdf5_buf), copy each
+         * HDF5-allocated .p into a malloc-owned block in bufr, then call
+         * H5Treclaim on hdf5_buf to release HDF5's internal allocations.
+         * After this block every nc_vlen_t.p in bufr is safe to free()
+         * via nc_reclaim_data. */
+        if (var->type_info->nc_type_class == NC_VLEN)
+        {
+            size_t vlen_count = 1;
+            size_t vi;
+            nc_vlen_t *src_vlens;
+            nc_vlen_t *dst_vlens = (nc_vlen_t *)bufr;
+            size_t basetypesize = 0;
+            void *hdf5_buf = NULL;
+
+            /* Compute total number of vlen elements read. */
+            if (var->ndims)
+                for (d2 = 0; d2 < var->ndims; d2++)
+                    vlen_count *= (size_t)count[d2];
+            else
+                vlen_count = 1; /* scalar */
+
+            /* Get the base type size for copying .p data. */
+            if ((retval = nc4_get_typelen_mem(h5, var->type_info->u.v.base_nc_typeid,
+                                              &basetypesize)))
+                BAIL(retval);
+
+            /* Allocate a temporary buffer to hold HDF5's output so we
+             * can reclaim it separately from the user's buffer. */
+            if (!(hdf5_buf = malloc(vlen_count * sizeof(nc_vlen_t))))
+                BAIL(NC_ENOMEM);
+            memcpy(hdf5_buf, bufr, vlen_count * sizeof(nc_vlen_t));
+            src_vlens = (nc_vlen_t *)hdf5_buf;
+
+            /* Copy each HDF5-allocated .p into a malloc-owned block. */
+            for (vi = 0; vi < vlen_count; vi++)
+            {
+                if (src_vlens[vi].len > 0 && src_vlens[vi].p != NULL)
+                {
+                    void *newp = malloc(src_vlens[vi].len * basetypesize);
+                    if (!newp)
+                    {
+                        free(hdf5_buf);
+                        BAIL(NC_ENOMEM);
+                    }
+                    memcpy(newp, src_vlens[vi].p, src_vlens[vi].len * basetypesize);
+                    dst_vlens[vi].p   = newp;
+                    dst_vlens[vi].len = src_vlens[vi].len;
+                }
+                else
+                {
+                    dst_vlens[vi].p   = NULL;
+                    dst_vlens[vi].len = 0;
+                }
+            }
+
+            /* Release HDF5's internal VLEN allocations from the temp buf.
+             * H5Treclaim() was introduced in HDF5 1.12.0; use the
+             * deprecated H5Dvlen_reclaim() for older versions. */
+#if H5_VERSION_GE(1,12,0)
+            if (H5Treclaim(((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->native_hdf_typeid,
+                           mem_spaceid, xfer_plistid, hdf5_buf) < 0)
+            {
+                free(hdf5_buf);
+                BAIL(NC_EHDFERR);
+            }
+#else
+            if (H5Dvlen_reclaim(((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->native_hdf_typeid,
+                                mem_spaceid, xfer_plistid, hdf5_buf) < 0)
+            {
+                free(hdf5_buf);
+                BAIL(NC_EHDFERR);
+            }
+#endif
+            free(hdf5_buf);
+        }
     } /* endif ! no_read */
     else
     {

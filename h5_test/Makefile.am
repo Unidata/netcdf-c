@@ -40,11 +40,30 @@ check_PROGRAMS = $(H5TESTS)
 # List of tests to run.
 TESTS = $(H5TESTS)
 
+# tst_h5_open_close measures RSS growth over repeated H5Fopen/H5Fclose cycles
+# using pure HDF5 (no netCDF) to isolate whether any open/close memory growth
+# originates inside HDF5 itself (issue #2626).  HDF5 versions before 2.0.0
+# exhibit RSS growth in H5Fopen/H5Fclose that exceeds the test threshold and
+# would cause false failures -- the growth is a known HDF5 issue, not something
+# fixable in netCDF-C.  The RSS measurement uses getrusage()/ru_maxrss which
+# is only reliable on Linux -- on macOS ru_maxrss is the peak (high-water mark)
+# RSS for the entire process lifetime and never decreases, making comparisons
+# useless.  Restrict test execution to Linux with HDF5 >= 2.0.0.
+# The binary is always built so it can be run manually.
+check_PROGRAMS += tst_h5_open_close
+if HDF5_VERSION_GE_200
+if HOST_IS_LINUX
+TESTS += tst_h5_open_close
+endif
+endif
+
 # If zstd is enabled, run a test for it.
 if NETCDF_ENABLE_PLUGINS
 if HAVE_ZSTD
 check_PROGRAMS += tst_h_zstd
+if NETCDF_BUILD_UTILITIES
 TESTS += run_h5_zstd_tests.sh
+endif # NETCDF_BUILD_UTILITIES
 endif # HAVE_ZSTD
 endif # NETCDF_ENABLE_PLUGINS
 
@@ -57,7 +76,8 @@ endif
 # We must include these files in the distribution.
 EXTRA_DIST = run_par_tests.sh.in ref_tst_h_compounds.h5		\
 ref_tst_h_compounds2.h5 run_par_tests.sh ref_tst_compounds.nc	\
-h5_err_macros.h CMakeLists.txt run_h5_zstd_tests.sh
+h5_err_macros.h CMakeLists.txt run_h5_zstd_tests.sh		\
+tst_h5_open_close.c
 
 # Clean up test results.
 CLEANFILES = tst_h_*.h5

@@ -45,9 +45,17 @@ jobs:
       - name: Downgrade hdf5
         run: |
           if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
-            pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
+            for attempt in 1 2 3; do
+              pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
+              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            done
           else
-            pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
+            for attempt in 1 2 3; do
+              pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
+              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            done
           fi
 ###
 # Configure and build
@@ -116,9 +124,17 @@ jobs:
       - name: Downgrade hdf5
         run: |
           if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
-            pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
+            for attempt in 1 2 3; do
+              pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
+              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            done
           else
-            pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm
+            for attempt in 1 2 3; do
+              pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
+              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            done
           fi
 ###
 # Configure and build

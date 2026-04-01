@@ -99,11 +99,11 @@ main(int argc, char **argv)
       if (H5Sclose(ydimSpaceId) < 0) ERR;
 
       /* Create xdim scale */
-      snprintf(dimNameBuf, sizeof(dimNameBuf), "%s%10lu", dimNameBase, nrowCur);
+      snprintf(dimNameBuf, sizeof(dimNameBuf), "%s%10llu", dimNameBase, (unsigned long long)nrowCur);
       if (H5DSset_scale(xdimId, dimNameBuf) < 0) ERR;
 
       /* Create ydim scale */
-      snprintf(dimNameBuf, sizeof(dimNameBuf), "%s%10lu", dimNameBase, ncolCur);
+      snprintf(dimNameBuf, sizeof(dimNameBuf), "%s%10llu", dimNameBase, (unsigned long long)ncolCur);
       if (H5DSset_scale(ydimId, dimNameBuf) < 0) ERR;
 
       /* Attach dimension scales to the dataset */
