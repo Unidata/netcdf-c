@@ -36,7 +36,7 @@ tst_atts_string_rewrite tst_hdf5_file_compat tst_fill_attr_vanish	\
 tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
 tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
 tst_bug1442 tst_quantize tst_h_transient_types tst_strided_write	\
-tst_varsperf
+tst_varsperf tst_vlen_fill_chunk tst_large_compound
 
 if HAS_PAR_FILTERS
 NC4_TESTS += tst_alignment
@@ -68,8 +68,8 @@ endif # ENABLE_SHARED
 
 # Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug \
-tst_vlenstr tst_zero_len_att tst_mem_safety
-TESTS = $(NC4_TESTS) run_empty_vlen_test.sh run_zero_len_att_test.sh
+tst_vlenstr tst_vlen_unlim tst_zero_len_att tst_mem_safety
+TESTS = $(NC4_TESTS) run_empty_vlen_test.sh tst_vlen_unlim run_zero_len_att_test.sh
 
 # tst_mem_safety checks for memory leaks during repeated nc_open/nc_close
 # cycles (issue #2626).  HDF5 versions before 2.0.0 have a known RSS growth
