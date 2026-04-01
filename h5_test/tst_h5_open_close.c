@@ -37,7 +37,7 @@
 #define MAX_GROWTH_KB 1024
 
 #ifdef HAVE_SYS_RESOURCE_H
-/* Linux: getrusage()/ru_maxrss is the current RSS in KB. */
+/* Linux: getrusage()/ru_maxrss is the peak RSS in KB. */
 static long
 get_rss_kb(void)
 {

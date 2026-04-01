@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2024 University Corporation for Atmospheric Research/Unidata
+   Copyright 2026 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Tests for memory safety issues in libhdf5:
@@ -62,7 +62,7 @@
 #define OPEN_CLOSE_MAX_GROWTH_KB 1024
 
 #ifdef HAVE_SYS_RESOURCE_H
-/* Linux: getrusage()/ru_maxrss is the current RSS in KB. */
+/* Linux: getrusage()/ru_maxrss is the peak RSS in KB. */
 static long
 get_rss_kb(void)
 {
