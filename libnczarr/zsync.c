@@ -988,7 +988,7 @@ computeattrinfo(const char* name, const NCjson* jtypes, nc_type typehint, int pu
 	if(strcmp(NCJstring(akey),name)==0) {
 	    const NCjson* avalue = NULL;
 	    NCJdictget(jtypes,NCJstring(akey),&avalue);
-	    if((stat = ncz_dtype2nctype(NCJstring(avalue),typehint,purezarr,&typeid,NULL,NULL))) goto done;
+	    if((stat = ncz_dtype2nctype(NCJstring(avalue),typehint,purezarr,&typeid,NULL,NULL,NULL))) goto done;
 //		if((stat = ncz_nctypedecode(atype,&typeid))) goto done;
 	    break;
 	}
@@ -1460,7 +1460,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	int endianness;
 	if((stat = NCJdictget(jvar,"dtype",&jvalue))<0) {stat = NC_EINVAL; goto done;}
 	/* Convert dtype to nc_type + endianness */
-	if((stat = ncz_dtype2nctype(NCJstring(jvalue),NC_NAT,purezarr,&vtype,&endianness,&vtypelen)))
+	if((stat = ncz_dtype2nctype(NCJstring(jvalue),NC_NAT,purezarr,&vtype,&endianness,&vtypelen, NULL)))
 	    goto done;
 	if(vtype > NC_NAT && vtype <= NC_MAX_ATOMIC_TYPE) {
 	    /* Locate the NC_TYPE_INFO_T object */
