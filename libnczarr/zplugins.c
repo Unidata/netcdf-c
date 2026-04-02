@@ -172,7 +172,7 @@ NCZ_plugin_path_get(NCPluginList* dirs)
 	size_t i;
 	for(i=0;i<dirs->ndirs;i++) {
 	    const char* dir = (const char*)nclistget(gs->zarr.pluginpaths,i);
-	    dirs->dirs[i] = nulldup(dir);
+	    dirs->dirs[i] = (char*) nulldup(dir);
 	}
     }
 done:
