@@ -442,7 +442,7 @@ ocxdrsize(OCtype etype, int isscalar)
     return 0;
 }
 
-#define tag "Error {\n"
+#define OC_ERROR_TAG "Error {\n"
 
 static int
 ocerrorstring(XXDR* xdrs)
@@ -455,7 +455,7 @@ ocerrorstring(XXDR* xdrs)
     MEMCHECK(data,0);    
     if(!xxdr_opaque(xdrs,data,avail)) {free(data); return 0;}
     /* check for error tag at front */
-    if(ocstrncmp(data,tag,sizeof(tag))==0) {
+    if(ocstrncmp(data,OC_ERROR_TAG,sizeof(OC_ERROR_TAG))==0) {
 	char* p;
         if((p=strchr(data,'}')) != NULL) *(++p)='\0';
         nclog(NCLOGERR,"Server error: %s",data);
