@@ -211,7 +211,7 @@ EXTERNL void NCD4_incr(NCD4offset* p, d4size_t size);
 EXTERNL void NCD4_decr(NCD4offset* p, d4size_t size);
 #define INCR(offset,size) NCD4_incr(offset,size)
 #define DECR(offset,size) NCD4_decr(offset,size)
-#define OFFSETSIZE(p,mark) ((d4size_t)(((ptrdiff_t)(p)->offset) - ((ptrdiff_t)(mark))))
+#define OFFSETSIZE(p,mark) ((d4size_t)(((char*)((p)->offset)) - ((char*)(mark))))
 #define TRANSFER(dst,src,size) memcpy((dst),(src)->offset,size)
 #define DELTA(p1,p2) ((ptrdiff_t)(((char*)(p1))-((char*)(p2))))
 #define MARK(p,mark) do {(mark) = (p)->offset;} while(0)
@@ -269,4 +269,3 @@ EXTERNL d4size_t NCD4_getcounter(NCD4offset* p);
 EXTERNL NC* NCD4_get_substrate_nc(NC* nc);
 
 #endif /*NCD4_H*/
-
