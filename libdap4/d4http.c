@@ -3,6 +3,14 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4http.c
+ * @brief HTTP fetch functions for the DAP4 client using libcurl.
+ *
+ * Implements NCD4_fetchurl(), NCD4_fetchhttpcode(), NCD4_fetchlastmodified(),
+ * NCD4_curlopen(), NCD4_curlclose(), and NCD4_ping().
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include "d4curlfunctions.h"
 
@@ -32,6 +40,19 @@ NCD4_fetchhttpcode(CURL* curl)
     return httpcode;
 }
 
+/**
+ * Fetch the content of @p url into @p buf using an existing curl handle.
+ *
+ * Configures the write callback, sets the URL, performs the transfer,
+ * and optionally returns the HTTP response code and Last-Modified time.
+ *
+ * @param curl      Initialized libcurl easy handle.
+ * @param url       URL to fetch.
+ * @param buf       Destination buffer; content is appended.
+ * @param filetime  Receives the server Last-Modified time, or NULL to ignore.
+ * @param httpcodep Receives the HTTP response code, or NULL to ignore.
+ * @return NC_NOERR on success, or a netCDF error code.
+ */
 int
 NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime, int* httpcodep)
 {
