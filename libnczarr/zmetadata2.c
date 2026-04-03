@@ -95,7 +95,7 @@ int validate_consolidated_json_noop_v2(const NCjson *json);
 /// @return `NC_NOERR` if valid, `NC_EZARRMETA` otherwise
 int validate_consolidated_json_v2(const NCjson *json);
 
-static const NCZ_Metadata NCZ_md2_table = {
+const NCZ_Metadata NCZ_md2_table = {
 	ZARRFORMAT2,
 	NCZ_METADATA_VERSION,
 	ZARR_NOT_CONSOLIDATED,
@@ -112,7 +112,7 @@ static const NCZ_Metadata NCZ_md2_table = {
 
 const NCZ_Metadata *NCZ_metadata_handler2 = &NCZ_md2_table;
 
-static const NCZ_Metadata NCZ_csl_md2_table = {
+const NCZ_Metadata NCZ_csl_md2_table = {
 	ZARRFORMAT2,
 	NCZ_METADATA_VERSION,
 	ZARR_CONSOLIDATED,
