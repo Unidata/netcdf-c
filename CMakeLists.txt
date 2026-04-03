@@ -1352,8 +1352,8 @@ endif()
 endif()
 
 # Check to see if MAP_ANONYMOUS is defined.
-if(MSVC)
-  message(WARNING "mmap not supported under visual studio: disabling MMAP support.")
+if(WIN32)
+  message(WARNING "mmap not supported on Windows: disabling MMAP support.")
   set(NETCDF_ENABLE_MMAP OFF)
 else()
   CHECK_C_SOURCE_COMPILES("
