@@ -68,8 +68,23 @@ endif # ENABLE_SHARED
 
 # Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug \
-tst_vlenstr tst_zero_len_att
+tst_vlenstr tst_zero_len_att tst_mem_safety
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh run_zero_len_att_test.sh
+
+# tst_mem_safety checks for memory leaks during repeated nc_open/nc_close
+# cycles (issue #2626).  HDF5 versions before 2.0.0 have a known RSS growth
+# in H5Fopen/H5Fclose itself (confirmed by tst_h5_open_close in h5_test/)
+# that is unrelated to netCDF-C and would cause this test to false-fail.
+# The RSS measurement uses getrusage()/ru_maxrss which is only reliable on
+# Linux -- on macOS ru_maxrss is the peak (high-water mark) RSS for the
+# entire process lifetime and never decreases, making comparisons useless.
+# Restrict test execution to Linux with HDF5 >= 2.0.0.
+# The binary is always built so it can be run manually if desired.
+if HDF5_VERSION_GE_200
+if HOST_IS_LINUX
+TESTS += tst_mem_safety
+endif
+endif
 XFAIL_TESTS =
 
 # Add these if large file tests are turned on.
