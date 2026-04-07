@@ -403,9 +403,10 @@ endif(NOT NETCDF_ENABLE_V2_API)
 option(NETCDF_BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 option(NETCDF_GENERATE_NCGEN "Automatically regenerate ncgen C files if required" OFF)
 
+include(CMakeDependentOption)
 
 # Option to use MMAP
-option(NETCDF_ENABLE_MMAP "Use MMAP." ON)
+cmake_dependent_option(NETCDF_ENABLE_MMAP "Use MMAP." ON "NOT WIN32" OFF)
 
 # Option to use examples.
 option(NETCDF_ENABLE_EXAMPLES "Build Examples" ON)
@@ -689,8 +690,6 @@ set(NETCDF_PLUGIN_SEARCH_PATH "${DEFAULT_PLUGIN_SEARCH_PATH}")
 
 # Try to enable NCZarr zip support
 option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ${NETCDF_ENABLE_NCZARR})
-
-include(CMakeDependentOption)
 
 # libdl is always available; built-in in Windows and OSX
 cmake_dependent_option(NETCDF_ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
@@ -1352,10 +1351,7 @@ endif()
 endif()
 
 # Check to see if MAP_ANONYMOUS is defined.
-if(MSVC)
-  message(WARNING "mmap not supported under visual studio: disabling MMAP support.")
-  set(NETCDF_ENABLE_MMAP OFF)
-else()
+if(NETCDF_ENABLE_MMAP)
   CHECK_C_SOURCE_COMPILES("
   #include <sys/mman.h>
   int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
