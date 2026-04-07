@@ -35,6 +35,8 @@ test-driver
 #####
 
 ### 'Normal' gitignore files.
+AI-REPORTS/
+.github/copilot-instructions*.md
 docs/auth.html
 .vscode
 nug.tag
