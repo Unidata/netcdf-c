@@ -77,7 +77,7 @@ static int buildBytestringType(NCD4meta* builder);
  *
  * @param metadata Parsed DMR metadata produced by NCD4_parse().
  * @param ncid     Root ncid of the substrate NetCDF-4 file.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 int
 NCD4_metabuild(NCD4meta* metadata, int ncid)

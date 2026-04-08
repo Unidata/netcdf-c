@@ -51,7 +51,7 @@ NCD4_fetchhttpcode(CURL* curl)
  * @param buf       Destination buffer; content is appended.
  * @param filetime  Receives the server Last-Modified time, or NULL to ignore.
  * @param httpcodep Receives the HTTP response code, or NULL to ignore.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 int
 NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime, int* httpcodep)

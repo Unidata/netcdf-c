@@ -40,7 +40,7 @@ static size_t nctypesizeof(nc_type nctype);
  * @param memory0  Destination buffer (receives converted values).
  * @param value0   Source buffer.
  * @param count    Number of values to convert.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 int
 NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count)

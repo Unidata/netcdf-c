@@ -44,7 +44,7 @@ static int processerrchunk(NCD4response*, void* errchunk, unsigned int count);
  * the NCD4_LITTLE_ENDIAN_CHUNK flag of the first data chunk.
  *
  * @param resp Response object whose @c raw field contains the raw wire bytes.
- * @return NC_NOERR on success, NC_EDMR if only a DMR was received,
+ * @return ::NC_NOERR on success, ::NC_EDMR if only a DMR was received,
  *         or another netCDF error code on failure.
  */
 int

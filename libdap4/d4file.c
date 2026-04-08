@@ -64,7 +64,7 @@ static const char* constrainableprotocols[] = {"http", "https",NULL};
  * @param mpidata        Unused (MPI communicator/info).
  * @param dispatch       Active NC_Dispatch table.
  * @param ncid           Pre-allocated external ncid.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 int
 NCD4_open(const char * path, int mode,

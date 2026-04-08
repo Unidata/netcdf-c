@@ -104,7 +104,7 @@ done:
  *
  * @param meta Metadata object with the parsed DMR tree.
  * @param resp Response object with dechunked DAP data.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 int
 NCD4_processdata(NCD4meta* meta, NCD4response* resp)

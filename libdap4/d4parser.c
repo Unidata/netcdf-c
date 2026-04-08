@@ -177,7 +177,7 @@ static int defineBytestringType(NCD4parser*);
  * @param resp     Response object containing the raw DMR XML text.
  * @param dapparse Non-zero when parsing the DMR from a full DAP response
  *                 (as opposed to a DMR-only response).
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 int
 NCD4_parse(NCD4meta* metadata, NCD4response* resp, int dapparse)
@@ -1118,8 +1118,8 @@ WARNING: This is highly specialized in that it assumes
 that the final object is one of: dimension, type, or var.
 This means that e.g. groups, attributes, econsts, cannot
 be found by this procedure.
-@return NC_NOERR found; result != NULL
-@return NC_EINVAL !found; result == NULL
+@return ::NC_NOERR found; result != NULL
+@return ::NC_EINVAL !found; result == NULL
 */
 static int
 lookupFQNList(NCD4parser* parser, NClist* fqn, NCD4sort sort, NCD4node** result)
