@@ -12,7 +12,7 @@ AM_CPPFLAGS =  -I.. -I$(top_srcdir) -I$(top_srcdir)/include
 
 # OC Sources; include the dapy.[ch] to avoid the need for bison by user
 SRC=oc.c \
-daplex.c dapparse.c dapy.c \
+daplex.c dapparse.c dap.tab.c \
 occompile.c occurlfunctions.c \
 ocdata.c ocdebug.c ocdump.c  \
 ocinternal.c ocnode.c \
@@ -21,7 +21,7 @@ ocread.c ocutil.c \
 xxdr.c
 
 HDRS=oc.h ocx.h \
-dapparselex.h dapy.h \
+dapparselex.h dap.tab.h \
 occompile.h occonstraints.h occurlfunctions.h \
 ocdata.h ocdatatypes.h ocdebug.h ocdump.h \
 ocinternal.h ocnode.h \
@@ -40,8 +40,5 @@ liboc_la_CPPFLAGS = $(AM_CPPFLAGS)
 # autoconf will forcibly delete files of the name *.tab.*
 
 makeparser::
-	rm -f dap.tab.c dap.tab.h dapy.c dapy.h
-	bison --debug -d -p dap dap.y
-	sed -e 's/dap[.]tab[.]c/dapy.c/g' -e 's/dap[.]tab[.]h/dapy.h/g' <dap.tab.c >dapy.c
-	mv dap.tab.h dapy.h
-	rm -f dap.tab.c
+	rm -f dap.tab.c dap.tab.h
+	bison --debug --defines -p dap dap.y
