@@ -25,13 +25,13 @@ static size_t nccpadding(unsigned long offset, size_t alignment);
 
 /**************************************************/
 
-/*
-Given a legal dap name with arbitrary characters,
-convert to equivalent legal cdf name.
-Currently, the only change is to convert '/'
-names to %2f.
+/**
+Convert a legal DAP name to an equivalent legal CDF name.
+Currently the only transformation is to percent-encode '/' as %2F.
+A leading '/' is stripped before encoding.
+@param name the DAP name to convert (modified in place for leading slash)
+@return a newly allocated string containing the CDF-legal name
 */
-
 char*
 cdflegalname(char* name)
 {
@@ -40,15 +40,14 @@ cdflegalname(char* name)
     return repairname(name,"/");
 }
 
-/* Define the type conversion of the DAP variables
-   to the external netCDF variable type.
-   The proper way is to, for example, convert unsigned short
-   to an int to maintain the values.
-   Unfortunately, libnc-dap does not do this:
-   it translates the types directly. For example
-   libnc-dap upgrades the DAP byte type, which is unsigned char,
-   to NC_BYTE, which signed char.
-   Oh well. So we do the same.
+/**
+Convert a DAP variable type to the external netCDF variable type.
+Follows the libnc-dap convention of direct type mapping rather than
+value-preserving upgrades. For example, NC_UBYTE maps to NC_BYTE
+rather than NC_SHORT.
+@param drno the common DAP state (unused, reserved for future use)
+@param nctype the input netCDF/DAP type
+@return the corresponding external netCDF type, or NC_NAT if unrecognized
 */
 nc_type
 nctypeconvert(NCDAPCOMMON* drno, nc_type nctype)
@@ -72,6 +71,11 @@ nctypeconvert(NCDAPCOMMON* drno, nc_type nctype)
     return upgrade;
 }
 
+/**
+Convert an OC type to the corresponding netCDF type.
+@param etype the OC type to convert
+@return the corresponding nc_type, or NC_NAT if unrecognized
+*/
 nc_type
 octypetonc(OCtype etype)
 {
@@ -100,6 +104,11 @@ octypetonc(OCtype etype)
     return NC_NAT;
 }
 
+/**
+Convert a netCDF type to the corresponding OC/DAP type.
+@param nctype the netCDF type to convert
+@return the corresponding OCtype, or OC_NAT if unrecognized
+*/
 OCtype
 nctypetodap(nc_type nctype)
 {
@@ -121,6 +130,11 @@ nctypetodap(nc_type nctype)
     return OC_NAT;
 }
 
+/**
+Return the size in bytes of a single element of the given netCDF type.
+@param nctype the netCDF type
+@return the size in bytes; calls PANIC for unrecognized types
+*/
 size_t
 nctypesizeof(nc_type nctype)
 {
@@ -142,6 +156,11 @@ nctypesizeof(nc_type nctype)
     return 0;
 }
 
+/**
+Return a string representation of a netCDF type constant.
+@param nctype the netCDF type
+@return a static string such as "NC_INT", or NULL if unrecognized
+*/
 char*
 nctypetostring(nc_type nctype)
 {
@@ -176,7 +195,14 @@ nctypetostring(nc_type nctype)
     return NULL;
 }
 
-/* Pad a buffer */
+/**
+Pad an NCbytes buffer to the specified alignment boundary.
+Appends zero bytes as needed so that the buffer length is a
+multiple of alignment.
+@param buf the buffer to pad
+@param alignment the required alignment in bytes
+@return 1 on success, 0 if buf is NULL
+*/
 int
 dapalignbuffer(NCbytes* buf, int alignment)
 {
@@ -194,6 +220,11 @@ dapalignbuffer(NCbytes* buf, int alignment)
     return 1;
 }
 
+/**
+Compute the product of all declared dimension sizes in a dimension list.
+@param dimensions NClist of CDFnode dimension nodes
+@return the product of all declsize values, or 1 if the list is NULL or empty
+*/
 size_t
 dapdimproduct(NClist* dimensions)
 {
@@ -208,7 +239,12 @@ dapdimproduct(NClist* dimensions)
 }
 
 
-/* Return value of param or NULL if not found */
+/**
+Look up a URL fragment parameter value by key.
+@param nccomm the common DAP state containing the parsed URL
+@param key the parameter key to look up
+@return the parameter value string, or NULL if not found or inputs are NULL
+*/
 const char*
 dapparamvalue(NCDAPCOMMON* nccomm, const char* key)
 {
@@ -221,8 +257,13 @@ dapparamvalue(NCDAPCOMMON* nccomm, const char* key)
 
 static const char* checkseps = "+,:;";
 
-/* Search for substring in value of param. If substring == NULL; then just
-   check if param is defined.
+/**
+Check whether a URL fragment parameter contains a given substring.
+If subkey is NULL, simply tests whether the parameter key is defined.
+@param nccomm the common DAP state containing the parsed URL
+@param key the parameter key to look up
+@param subkey the substring to search for within the parameter value, or NULL
+@return 1 if the key exists and (if subkey is non-NULL) the subkey is found, 0 otherwise
 */
 int
 dapparamcheck(NCDAPCOMMON* nccomm, const char* key, const char* subkey)
@@ -242,7 +283,13 @@ dapparamcheck(NCDAPCOMMON* nccomm, const char* key, const char* subkey)
 }
 
 
-/* This is NOT UNION */
+/**
+Append all elements of l2 onto l1 (concatenation, not union).
+Duplicate elements are not removed.
+@param l1 the destination list
+@param l2 the source list whose elements are appended to l1
+@return 1 always
+*/
 int
 nclistconcat(NClist* l1, NClist* l2)
 {
@@ -251,6 +298,12 @@ nclistconcat(NClist* l1, NClist* l2)
     return 1;
 }
 
+/**
+Remove all elements of l2 from l1 (set difference, in place).
+@param l1 the list to remove elements from
+@param l2 the list of elements to remove
+@return 1 if any elements were removed, 0 otherwise
+*/
 int
 nclistminus(NClist* l1, NClist* l2)
 {
@@ -264,6 +317,12 @@ nclistminus(NClist* l1, NClist* l2)
     return found;
 }
 
+/**
+Remove all occurrences of a specific element pointer from a list.
+@param l the list to modify
+@param elem the element pointer to remove
+@return 1 if any elements were removed, 0 otherwise
+*/
 int
 nclistdeleteall(NClist* l, void* elem)
 {
@@ -278,7 +337,13 @@ nclistdeleteall(NClist* l, void* elem)
     return found;
 }
 
-/* Collect the set of container nodes ending in "container"*/
+/**
+Collect the ancestor container path from the root down to a given node.
+The resulting path list begins at the root and ends with node.
+@param node the CDFnode whose path is to be collected
+@param path the NClist to which path nodes are prepended/appended
+@param withdataset if non-zero, include the NC_Dataset root node in the path
+*/
 void
 collectnodepath(CDFnode* node, NClist* path, int withdataset)
 {
@@ -291,7 +356,12 @@ collectnodepath(CDFnode* node, NClist* path, int withdataset)
     }
 }
 
-/* Like collectnodepath3, but in ocspace */
+/**
+Collect the ancestor path of an OC DDS node from root down to node.
+@param conn the OC connection handle
+@param node the OC DDS node whose path is collected
+@param path the NClist to which ancestor nodes are appended
+*/
 void
 collectocpath(OClink conn, OCddsnode node, NClist* path)
 {
@@ -307,6 +377,14 @@ collectocpath(OClink conn, OCddsnode node, NClist* path)
     nclistpush(path,(void*)node);
 }
 
+/**
+Build a path string for an OC DDS node using a given separator.
+Dataset-level nodes return just the dataset name.
+@param conn the OC connection handle
+@param node the OC DDS node to build a path string for
+@param sep the separator string to use between path components
+@return a newly allocated path string; caller must free
+*/
 char*
 makeocpathstring(OClink conn, OCddsnode node, const char* sep)
 {
@@ -348,6 +426,13 @@ makeocpathstring(OClink conn, OCddsnode node, const char* sep)
     return result;
 }
 
+/**
+Build a path string from a list of CDFnodes using a given separator.
+@param path NClist of CDFnode pointers from root to target
+@param separator the separator string between path components
+@param flags bitfield controlling path construction (e.g., PATHELIDE, PATHNC)
+@return a newly allocated path string; caller must free
+*/
 char*
 makepathstring(NClist* path, const char* separator, int flags)
 {
@@ -383,7 +468,12 @@ makepathstring(NClist* path, const char* separator, int flags)
     return result;
 }
 
-/* convert path to string using the ncname field */
+/**
+Build a full CDF path string for a CDFnode using the ncbasename field.
+@param var the CDFnode for which to build the path string
+@param separator the separator string between path components
+@return a newly allocated path string; caller must free
+*/
 char*
 makecdfpathstring(CDFnode* var, const char* separator)
 {
@@ -395,7 +485,12 @@ makecdfpathstring(CDFnode* var, const char* separator)
     return spath;
 }
 
-/* Collect the set names of container nodes ending in "container"*/
+/**
+Collect a list of cloned ncbasename strings for the ancestor path of a node.
+@param node the CDFnode whose ancestor names are collected
+@param path the NClist to which name strings are appended
+@param withdataset if non-zero, include the NC_Dataset root name
+*/
 void
 clonenodenamepath(CDFnode* node, NClist* path, int withdataset)
 {
@@ -407,6 +502,12 @@ clonenodenamepath(CDFnode* node, NClist* path, int withdataset)
         nclistpush(path,(void*)nulldup(node->ncbasename));
 }
 
+/**
+Join a list of name strings into a single path string with a separator.
+@param names NClist of char* name strings
+@param separator the separator string to insert between names
+@return a newly allocated joined string; caller must free
+*/
 char*
 simplepathstring(NClist* names,  char* separator)
 {
@@ -430,9 +531,11 @@ simplepathstring(NClist* names,  char* separator)
     return result;
 }
 
-/* Define a number of location tests */
-
-/* Is node contained (transitively) in a sequence ? */
+/**
+Test whether a CDFnode is transitively contained within a sequence.
+@param node the CDFnode to test
+@return TRUE if node has a sequence ancestor, FALSE otherwise
+*/
 int
 dapinsequence(CDFnode* node)
 {
@@ -443,7 +546,11 @@ dapinsequence(CDFnode* node)
     return FALSE;
 }
 
-/* Is node contained (transitively) in a structure array */
+/**
+Test whether a CDFnode is transitively contained within a dimensioned structure.
+@param node the CDFnode to test
+@return TRUE if node has a dimensioned NC_Structure ancestor, FALSE otherwise
+*/
 int
 dapinstructarray(CDFnode* node)
 {
@@ -456,7 +563,11 @@ dapinstructarray(CDFnode* node)
     return FALSE;
 }
 
-/* Is node a map field of a grid? */
+/**
+Test whether a CDFnode is a map field (non-array subnode) of a DAP Grid.
+@param node the CDFnode to test
+@return TRUE if node is a map field of its parent grid, FALSE otherwise
+*/
 int
 dapgridmap(CDFnode* node)
 {
@@ -468,7 +579,11 @@ dapgridmap(CDFnode* node)
     return FALSE;
 }
 
-/* Is node an array field of a grid? */
+/**
+Test whether a CDFnode is the array field (first subnode) of a DAP Grid.
+@param node the CDFnode to test
+@return TRUE if node is the array field of its parent grid, FALSE otherwise
+*/
 int
 dapgridarray(CDFnode* node)
 {
@@ -480,6 +595,11 @@ dapgridarray(CDFnode* node)
     return FALSE;
 }
 
+/**
+Test whether a CDFnode is any field (array or map) of a DAP Grid.
+@param node the CDFnode to test
+@return TRUE if node is either the array or a map field of a parent grid
+*/
 int
 dapgridelement(CDFnode* node)
 {
@@ -487,7 +607,11 @@ dapgridelement(CDFnode* node)
            || dapgridmap(node);
 }
 
-/* Is node a top-level grid node? */
+/**
+Test whether a CDFnode is a top-level DAP Grid node.
+@param grid the CDFnode to test
+@return TRUE if grid is an NC_Grid node directly under the dataset root
+*/
 int
 daptopgrid(CDFnode* grid)
 {
@@ -495,7 +619,11 @@ daptopgrid(CDFnode* grid)
     return daptoplevel(grid);
 }
 
-/* Is node a top-level sequence node? */
+/**
+Test whether a CDFnode is a top-level DAP Sequence node.
+@param seq the CDFnode to test
+@return TRUE if seq is an NC_Sequence node directly under the dataset root
+*/
 int
 daptopseq(CDFnode* seq)
 {
@@ -503,7 +631,11 @@ daptopseq(CDFnode* seq)
     return daptoplevel(seq);
 }
 
-/* Is node a top-level node? */
+/**
+Test whether a CDFnode is a direct child of the dataset root.
+@param node the CDFnode to test
+@return TRUE if node's container is the NC_Dataset root, FALSE otherwise
+*/
 int
 daptoplevel(CDFnode* node)
 {
@@ -512,6 +644,14 @@ daptoplevel(CDFnode* node)
     return TRUE;
 }
 
+/**
+Decode a model string into a set of flags using a translation table.
+@param translation the translation mode to match in the table
+@param smodel the model string to look up
+@param models the null-terminated array of NCTMODEL entries to search
+@param dfalt the default flags value to return if no match is found
+@return the flags from the matching table entry, or dfalt if not found
+*/
 unsigned int
 modeldecode(int translation, const char* smodel,
             const struct NCTMODEL* models,
@@ -528,6 +668,12 @@ modeldecode(int translation, const char* smodel,
     return dfalt;
 }
 
+/**
+Parse a size limit string with optional K/M/G suffix into bytes.
+Recognizes suffixes: K/k (kilobytes), M/m (megabytes), G/g (gigabytes).
+@param limit the string to parse, e.g. "10M" or "512"
+@return the numeric value in bytes, or 0 if limit is NULL, empty, or unparseable
+*/
 unsigned long
 getlimitnumber(const char* limit)
 {
@@ -549,6 +695,12 @@ getlimitnumber(const char* limit)
     return (lu*multiplier);
 }
 
+/**
+Expand C-style backslash escape sequences in a string in place.
+Handles \a, \b, \f, \n, \r, \t, \v, \\, \?, \xHH (hex), and \OOO (octal).
+The string is only ever shortened or unchanged, never lengthened.
+@param termstring the string to process in place
+*/
 void
 dapexpandescapes(char *termstring)
 {
@@ -643,7 +795,17 @@ deltatime(struct timeval time0, struct timeval time1)
 }
 #endif
 
-/* Provide a wrapper for oc_fetch so we can log what it does */
+/**
+Fetch a DAP object from the server, with optional logging and timing.
+Wraps oc_fetch with fetch logging (if NCF_SHOWFETCH is set) and maps
+HTTP error codes to appropriate NC error codes.
+@param nccomm the common DAP state (used for control flags and URL)
+@param conn the OC connection handle
+@param ce the constraint expression string, or NULL for no constraint
+@param dxd the type of object to fetch (OCDDS, OCDAS, or OCDATADDS)
+@param rootp output pointer to the fetched OC DDS root node
+@return NC_NOERR on success, or an NC error code on failure
+*/
 NCerror
 dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
              OCdxd dxd, OCddsnode* rootp)
@@ -725,6 +887,12 @@ oc_dumpnode(conn,*rootp);
 
 static const char* baddapchars = "./";
 
+/**
+Test whether a name contains characters that are illegal in DAP names.
+Currently checks for '.' and '/'.
+@param name the name string to check
+@return 1 if the name contains illegal characters, 0 otherwise
+*/
 int
 dap_badname(char* name)
 {
@@ -787,6 +955,11 @@ repairname(const char* name, const char* badchars)
     return newname;
 }
 
+/**
+Extract the selection clause (everything after the first '&') from a DAP URL query.
+@param uri the parsed NCURI whose query field is examined
+@return a newly allocated string containing the selection, or NULL if none exists
+*/
 char*
 dap_getselection(NCURI* uri)
 {
@@ -807,6 +980,14 @@ nccpadding(unsigned long offset, size_t alignment)
     return pad;
 }
 
+/**
+Split a delimited string into tokens and append them to a list.
+Empty tokens (consecutive delimiters) are skipped.
+@param s0 the input string to split
+@param delim the delimiter character
+@param list the NClist to which non-empty token strings are appended
+@return NC_NOERR always
+*/
 int
 dapparamparselist(const char* s0, int delim, NClist* list)
 {

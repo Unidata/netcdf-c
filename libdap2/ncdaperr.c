@@ -5,6 +5,12 @@
 
 #include "dapincludes.h"
 
+/**
+Convert an OC library error code to the equivalent netCDF error code.
+Positive values are passed through as-is since they represent system errors.
+@param ocerr the OC error code to convert
+@return the corresponding NC error code, or NC_EDAP if no mapping exists
+*/
 NCerror
 ocerrtoncerr(OCerror ocerr)
 {

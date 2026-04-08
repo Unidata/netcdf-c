@@ -191,6 +191,11 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->svc,info->region,accessid,accesskey);
     if(s3client->h5s3client == NULL) {stat = NC_ES3; goto done;}
 
+    // Establish connection and report any errors!
+    if (NC_NOERR != (stat = NCH5_s3comms_s3r_connect(s3client->h5s3client, s3client->rooturl, NULL))) {
+        goto done;
+    }
+
 done:
     nullfree(urlroot);
     if(stat && s3client) {

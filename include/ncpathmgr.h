@@ -94,7 +94,7 @@ Notes:
 #define WINPATH 1
 #endif
 #endif
-#ifdef _WIN64
+#ifdef _WIN32
 #define STAT struct _stat64 *
 #else
 #define STAT struct _stat *
