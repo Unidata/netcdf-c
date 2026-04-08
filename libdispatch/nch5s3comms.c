@@ -94,6 +94,7 @@
 #include "ncuri.h"
 #include "ncutil.h"
 #include "netcdf_vutils.h"
+#include "nclog.h"
 
 /*****************/
 
@@ -1195,6 +1196,61 @@ done:
     (void)UNTRACEX(ret_value,"handle=%p",handle);
     return handle;
 } /* NCH5_s3comms_s3r_open */
+
+
+/*----------------------------------------------------------------------------
+ * Function: NCH5_s3comms_s3r_connect()
+ * Purpose:
+ *     Establish connection to the server specified by the provided url.
+ *     Useful for early connection troubleshooting.
+ *     If `err` is passed and not NULL, it is set underlying to static CURL error
+ *
+ * Return:
+ *     - SUCCESS: `SUCCEED`
+ *     - FAILURE: `FAIL`
+ * Programmer: Jacob Smith
+ *             2017-08-22
+ *----------------------------------------------------------------------------
+ */
+int NCH5_s3comms_s3r_connect(s3r_t *handle, const char *url, const char **err) {
+  int ret_value = NC_NOERR;
+  if (CURLE_OK != curl_easy_setopt(handle->curlhandle, CURLOPT_URL, url)) {
+    HGOTO_ERROR(H5E_ARGS, NC_ECURL, NULL,
+                "error while setting CURL option (CURLOPT_URL).");
+  }
+  if (CURLE_OK !=
+      curl_easy_setopt(handle->curlhandle, CURLOPT_CONNECT_ONLY, 1L)) {
+    HGOTO_ERROR(H5E_ARGS, NC_ECURL, NULL,
+                "error while setting CURL option (CURLOPT_CONNECT_ONLY).");
+  }
+
+  char errbuf[CURL_ERROR_SIZE];
+  errbuf[0] = 0;
+
+  if (CURLE_OK !=
+      curl_easy_setopt(handle->curlhandle, CURLOPT_ERRORBUFFER, errbuf)) {
+    HGOTO_ERROR(H5E_ARGS, NC_ECURL, NULL,
+                "error while setting CURL option (CURLOPT_ERRORBUFFER).");
+  }
+
+  CURLcode result = CURLE_OK;
+  if (CURLE_OK == (result = curl_easy_perform(handle->curlhandle))) {
+    ret_value = NC_NOERR;
+  } else { // log and save error msg
+    const char *basic_err = curl_easy_strerror(result);
+    if (err) {
+      *err = basic_err;
+    }
+    nclog(NCLOGERR, "CURL error (%d) while connecting: %s (%s)", result,
+          basic_err, errbuf);
+    HGOTO_ERROR(H5E_ARGS, NC_ECURL, NULL, "error while perfoming connect.");
+  }
+done:
+  // We are done
+  (void)curl_easy_setopt(handle->curlhandle, CURLOPT_ERRORBUFFER, NULL);
+  (void)curl_easy_setopt(handle->curlhandle, CURLOPT_CONNECT_ONLY, NULL);
+  return ret_value;
+}
 
 /*----------------------------------------------------------------------------
  * Function: NCH5_s3comms_s3r_read()
@@ -2678,6 +2734,9 @@ curl_reset(s3r_t* handle)
 {
     int ret_value = SUCCEED;
     CURL* curlh = handle->curlhandle;
+
+    if (CURLE_OK != curl_easy_setopt(curlh, CURLOPT_CONNECT_ONLY, NULL))
+        HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "error while setting CURL option (CURLOPT_CONNECT_ONLY).");
 
     if (CURLE_OK != curl_easy_setopt(curlh, CURLOPT_NOBODY, NULL))
         HGOTO_ERROR(H5E_ARGS, NC_EINVAL, FAIL, "error while setting CURL option (CURLOPT_NOBODY).");
