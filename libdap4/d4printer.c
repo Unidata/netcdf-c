@@ -3,6 +3,15 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4printer.c
+ * @brief Serializes an NCD4meta tree back to DMR XML text.
+ *
+ * Implements NCD4_print(), which walks the NCD4node tree and writes
+ * a DMR XML document into an NCbytes buffer.  Used primarily for
+ * debugging and diagnostic output.
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include <stddef.h>
 
