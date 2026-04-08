@@ -100,7 +100,7 @@ typedef struct D4blob {
  * @param basename  If non-NULL and the path is a URL, receives the
  *                  basename of the URL path (without extension);
  *                  caller must free.
- * @return NC_NOERR if @p path is a valid URL, NC_EURL otherwise.
+ * @return ::NC_NOERR if @p path is a valid URL, NC_EURL otherwise.
  */
 extern int ncd4__testurl(const char* path, char** basename);
 
