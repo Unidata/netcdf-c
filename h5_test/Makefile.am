@@ -61,7 +61,9 @@ endif
 if NETCDF_ENABLE_PLUGINS
 if HAVE_ZSTD
 check_PROGRAMS += tst_h_zstd
+if NETCDF_BUILD_UTILITIES
 TESTS += run_h5_zstd_tests.sh
+endif # NETCDF_BUILD_UTILITIES
 endif # HAVE_ZSTD
 endif # NETCDF_ENABLE_PLUGINS
 
