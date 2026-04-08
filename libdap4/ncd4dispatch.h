@@ -31,7 +31,7 @@ extern "C" {
  * @param mpidata        MPI communicator/info (unused for DAP4).
  * @param dispatch       Active NC_Dispatch table.
  * @param ncid           Pre-allocated external ncid.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 extern int
 NCD4_open(const char *path, int mode,
@@ -41,14 +41,14 @@ NCD4_open(const char *path, int mode,
 /**
  * Close a DAP4 file and release all associated resources.
  * @param ncid External ncid of the file to close.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 extern int NCD4_close(int ncid, void* unused);
 
 /**
  * Abort (close without saving) a DAP4 file.
  * @param ncid External ncid of the file to abort.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 extern int NCD4_abort(int ncid);
 
@@ -58,7 +58,7 @@ extern int NCD4_abort(int ncid);
  * @param dimid Dimension id.
  * @param name  Receives the dimension name (may be NULL).
  * @param lenp  Receives the dimension length (may be NULL).
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 extern int NCD4_inq_dim(int ncid, int dimid, char* name, size_t* lenp);
 
@@ -70,7 +70,7 @@ extern int NCD4_inq_dim(int ncid, int dimid, char* name, size_t* lenp);
  * @param edges   Edge lengths (one per dimension).
  * @param value   Destination buffer.
  * @param memtype In-memory type for the values.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 extern int
 NCD4_get_vara(int ncid, int varid,
@@ -86,7 +86,7 @@ NCD4_get_vara(int ncid, int varid,
  * @param strides Strides (one per dimension).
  * @param value   Destination buffer.
  * @param memtype In-memory type for the values.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 extern int
 NCD4_get_vars(int ncid, int varid,

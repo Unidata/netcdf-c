@@ -90,7 +90,7 @@ extern const char* NCD4_subsortname(nc_type subsort);
  * @internal Copy all top-level variable data from the DAP4 response into
  * the substrate NetCDF-4 file for debugging purposes.
  * @param info NCD4INFO for the open connection.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 extern int NCD4_debugcopy(NCD4INFO* info);
 

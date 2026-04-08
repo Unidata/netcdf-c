@@ -185,7 +185,7 @@ EXTERNL int NCD4_rcdefault(NCD4INFO* info);
  * @param memory0  Destination buffer (receives converted values).
  * @param value0   Source buffer.
  * @param count    Number of values to convert.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 EXTERNL int NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count);
 
@@ -194,7 +194,7 @@ EXTERNL int NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* 
  * Fetch the DMR or full DAP response according to @p mode.
  * @param d4info NCD4INFO for the open connection.
  * @param mode   NCD4_DMR to fetch metadata only, NCD4_DAP for data too.
- * @return NC_NOERR on success, or a netCDF error code.
+ * @return ::NC_NOERR on success, or a netCDF error code.
  */
 EXTERNL int NCD4_readDMRorDAP(NCD4INFO* d4info, NCD4mode mode);
 /** Apply URL fragment control parameters to @p d4info->controls. */
