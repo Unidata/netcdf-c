@@ -3,6 +3,15 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4includes.h
+ * @brief Master include file for the DAP4 client implementation.
+ *
+ * Every libdap4 .c file includes this header first.  It pulls in all
+ * system headers, third-party headers (libcurl), and the internal
+ * netcdf and DAP4 headers needed throughout the implementation.
+ * @author Dennis Heimbigner
+ */
+
 #ifndef D4INCLUDES_H
 #define D4INCLUDES_H 1
 

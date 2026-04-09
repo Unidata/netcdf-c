@@ -3,6 +3,16 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4fix.c
+ * @brief DAP4 serialization walkers: topological sort, delimiting, and moveto.
+ *
+ * Implements NCD4_toposort() (topological sort of the DMR node tree),
+ * NCD4_delimit() (walks a variable's serialized data to find its byte
+ * extent and embedded checksum), and NCD4_moveto() (advances a cursor
+ * by a given number of type instances).
+ * @author Dennis Heimbigner
+ */
+
 #include <stdarg.h>
 #include <assert.h>
 #include <stddef.h>
