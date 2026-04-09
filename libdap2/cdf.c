@@ -31,7 +31,14 @@ static void free1cdfnode(CDFnode* node);
 static NCerror fixnodes(NCDAPCOMMON*, NClist* cdfnodes);
 static void defdimensions(OCddsnode ocnode, CDFnode* cdfnode, NCDAPCOMMON* nccomm, CDFtree* tree);
 
-/* Accumulate useful node sets  */
+/**
+Accumulate useful node sets within a CDFtree.
+Populates tree->varnodes, tree->seqnodes, and tree->gridnodes
+by walking all nodes in the tree.
+@param nccomm the common DAP state
+@param tree the CDFtree to process
+@return NC_NOERR always
+*/
 NCerror
 computecdfnodesets(NCDAPCOMMON* nccomm, CDFtree* tree)
 {
@@ -68,6 +75,15 @@ computecdfnodesets(NCDAPCOMMON* nccomm, CDFtree* tree)
     return NC_NOERR;
 }
 
+/**
+Compute the ordered list of variable nodes from a flat node list.
+Orders variables as: top-level vars first, then grid arrays and maps,
+then all remaining atomic nodes.
+@param nccomm the common DAP state
+@param allnodes flat list of all CDFnodes in the tree
+@param varnodes output list to which variable nodes are appended
+@return NC_NOERR always
+*/
 NCerror
 computevarnodes(NCDAPCOMMON* nccomm, NClist* allnodes, NClist* varnodes)
 {
@@ -132,6 +148,15 @@ fprintf(stderr,"computevarnodes: var: %s\n",makecdfpathstring(node,"."));
 
 
 
+/**
+Validate and fix up a DAP Grid node.
+Renames the grid array to match the grid name (in NC3 mode),
+validates map/dimension correspondence, and prefixes map names
+with the grid name (in NCDAP/NC3 mode).
+@param nccomm the common DAP state
+@param grid the CDFnode of type NC_Grid to fix
+@return NC_NOERR on success, NC_EINVAL if the grid is malformed
+*/
 NCerror
 fixgrid(NCDAPCOMMON* nccomm, CDFnode* grid)
 {
@@ -195,6 +220,12 @@ invalid:
     return NC_EINVAL; /* mal-formed grid */
 }
 
+/**
+Fix all grid nodes in the constrained DDS tree.
+Calls fixgrid on each grid node; malformed grids are silently ignored.
+@param nccomm the common DAP state
+@return NC_NOERR always
+*/
 NCerror
 fixgrids(NCDAPCOMMON* nccomm)
 {
@@ -209,8 +240,14 @@ fixgrids(NCDAPCOMMON* nccomm)
     return NC_NOERR;
 }
 
-/*
-Figure out the names for variables.
+/**
+Compute and assign full netCDF path names to all variable nodes.
+Clears elided marks, builds ncfullname for each variable, unifies
+duplicate grid variables via the basevar field, and verifies uniqueness.
+@param nccomm the common DAP state
+@param root the root CDFnode of the tree
+@param varnodes the list of variable CDFnodes to process
+@return NC_NOERR on success, calls PANIC on duplicate names
 */
 NCerror
 computecdfvarnames(NCDAPCOMMON* nccomm, CDFnode* root, NClist* varnodes)
@@ -286,13 +323,13 @@ fprintf(stderr,"basevar invoked: %s\n",var->ncfullname);
 }
 
 
-/* locate and connect usable sequences and vars.
-A sequence is usable iff:
-1. it has a path from one of its subnodes to a leaf and that
-   path does not contain a sequence.
-2. No parent container has dimensions.
+/**
+Locate and mark usable sequence nodes in the DDS tree.
+A sequence is usable if it has a path to a leaf that does not
+pass through another sequence, and no parent container has dimensions.
+@param nccomm the common DAP state
+@return NC_NOERR always
 */
-
 NCerror
 sequencecheck(NCDAPCOMMON* nccomm)
 {
@@ -382,6 +419,17 @@ Input is
 
 */
 
+/**
+Re-grid a constrained DDS tree to match the structure of the pattern tree.
+Some servers return partial grids as top-level variables; this function
+wraps such variables in synthesized structure nodes to restore proper
+grid scoping. See the block comment above for full details.
+@param ncc the common DAP state
+@param ddsroot the root of the constrained DDS tree to fix
+@param patternroot the root of the unconstrained DDS pattern tree
+@param projections the projections used to produce ddsroot from patternroot
+@return NC_NOERR on success, NC_EDATADDS if the trees cannot be matched
+*/
 NCerror
 restruct(NCDAPCOMMON* ncc, CDFnode* ddsroot, CDFnode* patternroot, NClist* projections)
 {
@@ -570,11 +618,13 @@ makenewstruct(NCDAPCOMMON* ncc, CDFnode* node, CDFnode* patternnode)
 }
 
 /**
-Make the constrained dds nodes (root)
-point to the corresponding unconstrained
-dds nodes (fullroot).
- */
-
+Map constrained DDS nodes to their corresponding unconstrained DDS nodes.
+Clears any existing mapping, then recursively matches nodes by name
+and sets the basenode field on each constrained node.
+@param root the root of the constrained DDS tree
+@param fullroot the root of the unconstrained DDS tree
+@return NC_NOERR on success, NC_EINVAL if the roots do not match
+*/
 NCerror
 mapnodes(CDFnode* root, CDFnode* fullroot)
 {
@@ -653,6 +703,10 @@ mapfcn(CDFnode* dstnode, CDFnode* srcnode)
     return NC_NOERR;
 }
 
+/**
+Clear all basenode mappings in a CDFtree.
+@param root the root CDFnode of the tree to unmap
+*/
 void
 unmap(CDFnode* root)
 {
@@ -664,10 +718,13 @@ unmap(CDFnode* root)
     }
 }
 
-/*
-Move dimension data from basenodes to nodes
+/**
+Copy unconstrained dimension sizes into constrained dimension nodes.
+For each node that has a basenode mapping, copies the declsize from
+the base dimensions into the declsize0 field of the constrained dimensions.
+@param nccomm the common DAP state
+@return NC_NOERR always
 */
-
 NCerror
 dimimprint(NCDAPCOMMON* nccomm)
 {
@@ -827,6 +884,13 @@ Recursively define the transitive closure of dimensions
 (dimsettrans) based on the original dimension set (dimset0):
 */
 
+/**
+Recursively define the transitive closure of dimension sets (dimsettrans)
+for all nodes in a CDFtree, based on each node's original dimset0.
+@param nccomm the common DAP state
+@param tree the CDFtree to process
+@return NC_NOERR on success
+*/
 NCerror
 definedimsettrans(NCDAPCOMMON* nccomm, CDFtree* tree)
 {
@@ -867,6 +931,14 @@ based on the original dimension set (dimset0):
 2. dimsetall = parent-dimsetall + dimsetplus
 */
 
+/**
+Recursively define dimsetplus and dimsetall for all nodes in a CDFtree.
+dimsetplus = dimset0 + pseudo-dimensions (string, sequence).
+dimsetall = parent dimsetall + dimsetplus.
+@param nccomm the common DAP state
+@param tree the CDFtree to process
+@return NC_NOERR on success
+*/
 NCerror
 definedimsets(NCDAPCOMMON* nccomm, CDFtree* tree)
 {
@@ -900,6 +972,16 @@ definedimsetsR(NCDAPCOMMON* nccomm, CDFnode* node)
     return ncstat;
 }
 
+/**
+Allocate and initialize a new CDFnode.
+The name is truncated to NC_MAX_NAME-1 characters if necessary.
+@param nccomm the common DAP state
+@param ocname the OC base name for the node (may be NULL)
+@param octype the OC type of the node
+@param ocnode the corresponding OC DDS node (optional, may be NULL)
+@param container the parent CDFnode (may be NULL for the root)
+@return pointer to the new CDFnode, or NULL on allocation failure
+*/
 CDFnode*
 makecdfnode(NCDAPCOMMON* nccomm, char* ocname, OCtype octype,
              /*optional*/ OCddsnode ocnode, CDFnode* container)
@@ -933,9 +1015,15 @@ makecdfnode(NCDAPCOMMON* nccomm, char* ocname, OCtype octype,
     return node;
 }
 
-/* Given an OCnode tree, mimic it as a CDFnode tree;
-   Add DAS attributes if DAS is available. Accumulate set
-   of all nodes in preorder.
+/**
+Build a CDFnode tree that mirrors an OC DDS node tree.
+Walks the OC tree in preorder, creating a CDFnode for each OC node
+and accumulating all nodes in tree->nodes.
+@param nccomm the common DAP state
+@param ocroot the root OC DDS node to mirror
+@param occlass the class of the OC tree (e.g., OCDDS, OCDATA)
+@param cdfrootp output pointer to the root CDFnode of the new tree
+@return NC_NOERR on success, an NC error code on failure
 */
 NCerror
 buildcdftree(NCDAPCOMMON* nccomm, OCddsnode ocroot, OCdxd occlass, CDFnode** cdfrootp)
@@ -1053,6 +1141,11 @@ buildcdftreer(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
     return ncerr;
 }
 
+/**
+Free a CDFtree rooted at the given CDFnode.
+Frees the OC root, all CDFnodes in the tree, and the CDFtree struct itself.
+@param root the root CDFnode of the tree to free; no-op if NULL
+*/
 void
 freecdfroot(CDFnode* root)
 {
@@ -1114,8 +1207,12 @@ free1cdfnode(CDFnode* node)
 
 
 
-/* Return true if node and node1 appear to refer to the same thing;
-   takes grid->structure changes into account.
+/**
+Test whether two CDFnodes appear to refer to the same DAP object.
+Takes grid-to-structure substitution into account.
+@param node1 the first CDFnode
+@param node2 the second CDFnode
+@return 1 if the nodes match, 0 otherwise
 */
 int
 nodematch(CDFnode* node1, CDFnode* node2)
@@ -1123,13 +1220,14 @@ nodematch(CDFnode* node1, CDFnode* node2)
     return simplenodematch(node1,node2);
 }
 
-/*
-Try to figure out if two nodes
-are the "related" =>
-    same name && same nc_type and same arity
-but: Allow Grid == Structure
+/**
+Test whether two CDFnodes are structurally related.
+Nodes match if they have the same name, same arity (dimension count),
+and the same nc_type (with Grid == Structure allowed).
+@param node1 the first CDFnode
+@param node2 the second CDFnode
+@return 1 if the nodes are related, 0 otherwise
 */
-
 int
 simplenodematch(CDFnode* node1, CDFnode* node2)
 {
