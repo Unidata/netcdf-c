@@ -20,6 +20,7 @@ zdim.c
 zdispatch.c
 zfile.c
 zgrp.c
+zinfer.c
 zinternal.c
 zmap.c
 zmap_file.c
@@ -38,6 +39,7 @@ zarr.h
 zcache.h
 zchunking.h
 zdispatch.h
+zformat.h
 zincludes.h
 zinternal.h
 zmap.h
