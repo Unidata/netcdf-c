@@ -5,6 +5,7 @@
 
 #include "ut_includes.h"
 #include <stddef.h>
+#include <stdint.h>
 
 #undef DEBUG
 
@@ -36,6 +37,8 @@ static int simplemeta(void);
 static int simpledata(void);
 static int search(void);
 
+static void encode_le32(uint32_t v, unsigned char* p);
+
 struct Test tests[] = {
 {"create",simplecreate},
 {"delete",simpledelete},
@@ -44,6 +47,15 @@ struct Test tests[] = {
 {"search", search},
 {NULL,NULL}
 };
+
+static void
+encode_le32(uint32_t v, unsigned char* p)
+{
+    p[0] = (unsigned char)(v & 0xffu);
+    p[1] = (unsigned char)((v >> 8) & 0xffu);
+    p[2] = (unsigned char)((v >> 16) & 0xffu);
+    p[3] = (unsigned char)((v >> 24) & 0xffu);
+}
 
 int
 main(int argc, char** argv)
@@ -287,17 +299,16 @@ simpledata(void)
     int stat = NC_NOERR;
     NCZMAP* map = NULL;
     char* truekey = NULL;
-    int data1[DATA1LEN];
-    int readdata[DATA1LEN];
+    unsigned char data1[DATA1LEN * sizeof(uint32_t)];
+    unsigned char readdata[DATA1LEN * sizeof(uint32_t)];
     int i;
     size64_t totallen, size;
-    char* data1p = (char*)&data1[0]; /* byte level version of data1 */
 
     title(__func__);
 
     /* Create the data */
-    for(i=0;i<DATA1LEN;i++) data1[i] = i;
-    totallen = sizeof(int)*DATA1LEN;
+    for(i=0;i<DATA1LEN;i++) encode_le32((uint32_t)i,&data1[i * sizeof(uint32_t)]);
+    totallen = sizeof(data1);
 
     if((stat = nczmap_open(impl,url,NC_WRITE,0,NULL,&map)))
 	goto done;
@@ -305,7 +316,7 @@ simpledata(void)
 	
     truekey = makekey(DATA1);
 
-    if((stat = nczmap_write(map, truekey, totallen, data1p)))
+    if((stat = nczmap_write(map, truekey, totallen, data1)))
 	goto done;
 
     report(PASS,DATA1": write",map);
@@ -331,7 +342,7 @@ simpledata(void)
     if((stat = nczmap_read(map, truekey, 0, totallen, readdata)))
 	goto done;
     report(PASS,DATA1": read",map);
-    if(memcmp(data1,readdata,size)!=0)
+    if(memcmp(data1,readdata,(size_t)size)!=0)
         report(FAIL,DATA1": content verify",map);
     else report(PASS,DATA1": content verify",map);
     free(truekey); truekey = NULL;

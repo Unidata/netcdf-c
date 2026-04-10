@@ -74,6 +74,9 @@ NCD4_parcelvars(NCD4meta* meta, NCD4response* resp)
     NCD4node* root = meta->root;
     NCD4offset* offset = NULL;
 
+    /* Delimiting reads serialized counters before NCD4_processdata(). */
+    meta->swap = (meta->controller->platform.hostlittleendian != resp->remotelittleendian);
+
     /* Recursively walk the tree in prefix order 
        to get the top-level variables; also mark as unvisited */
     toplevel = nclistnew();
@@ -520,4 +523,3 @@ NCD4_addchecksumattr(NCD4meta* meta, NClist* toplevel)
     return THROW(ret);
 }
 #endif
-

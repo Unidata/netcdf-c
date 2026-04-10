@@ -266,9 +266,11 @@ EXTERNL void NCD4_decr(NCD4offset* p, d4size_t size);
 #define INCR(offset,size) NCD4_incr(offset,size)
 /** Move cursor @p offset backward by @p size bytes. */
 #define DECR(offset,size) NCD4_decr(offset,size)
+
 /** Byte distance from saved position @p mark to current position @p p. */
-#define OFFSETSIZE(p,mark) ((d4size_t)(((ptrdiff_t)(p)->offset) - ((ptrdiff_t)(mark))))
+#define OFFSETSIZE(p,mark) ((d4size_t)(((char*)((p)->offset)) - ((char*)(mark))))
 /** Copy @p size bytes from cursor @p src into buffer @p dst. */
+
 #define TRANSFER(dst,src,size) memcpy((dst),(src)->offset,size)
 /** Signed byte difference between two raw pointers @p p1 and @p p2. */
 #define DELTA(p1,p2) ((ptrdiff_t)(((char*)(p1))-((char*)(p2))))
@@ -337,4 +339,3 @@ EXTERNL d4size_t NCD4_getcounter(NCD4offset* p);
 EXTERNL NC* NCD4_get_substrate_nc(NC* nc);
 
 #endif /*NCD4_H*/
-
