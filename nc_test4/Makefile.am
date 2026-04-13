@@ -154,12 +154,14 @@ endif # USE_HDF5
 endif # NETCDF_BUILD_UTILITIES
 
 # Zstandard tests.
+if NETCDF_BUILD_UTILITIES
 if NETCDF_ENABLE_PLUGINS
 if HAVE_ZSTD
 check_PROGRAMS += tst_zstd
 TESTS += run_zstd_test.sh
 endif # HAVE_ZSTD
 endif # NETCDF_ENABLE_PLUGINS
+endif # NETCDF_BUILD_UTILITIES
 
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
