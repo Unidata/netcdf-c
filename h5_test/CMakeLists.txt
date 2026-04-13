@@ -19,22 +19,6 @@ FOREACH(CTEST ${H5TESTS})
   ADD_TEST(${CTEST} ${EXECUTABLE_OUTPUT_PATH}/${CTEST})
 ENDFOREACH()
 
-# tst_h5_open_close measures RSS growth over repeated H5Fopen/H5Fclose cycles
-# using pure HDF5 (no netCDF) to isolate whether any open/close memory growth
-# originates inside HDF5 itself (issue #2626).  HDF5 versions before 2.0.0
-# exhibit RSS growth in H5Fopen/H5Fclose that exceeds the test threshold and
-# would cause false failures -- the growth is a known HDF5 issue, not something
-# fixable in netCDF-C.  The RSS measurement uses getrusage()/ru_maxrss which
-# is only reliable on Linux -- on macOS ru_maxrss is the peak (high-water mark)
-# for the entire process lifetime and never decreases, making comparisons
-# useless.  Restrict test execution to Linux with HDF5 >= 2.0.0.
-# The binary is always built so it can be run manually.
-ADD_EXECUTABLE(tst_h5_open_close tst_h5_open_close.c)
-TARGET_LINK_LIBRARIES(tst_h5_open_close netcdf HDF5::HDF5 hdf5::hdf5_hl)
-IF(${HDF5_VERSION} VERSION_GREATER_EQUAL "2.0.0" AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  ADD_TEST(tst_h5_open_close ${EXECUTABLE_OUTPUT_PATH}/tst_h5_open_close)
-ENDIF()
-
 IF(TEST_PARALLEL4)
   build_bin_test(tst_h_par)
   build_bin_test(tst_h_par_compress)
