@@ -71,10 +71,12 @@ main(int argc, char** argv)
 	kind = DAP4KIND;
     else
 #endif
+	usage();
+
     (void)kind;
     (void)proto;
 
-	usage();
+
 
     if(serverlist == NULL) {
 #ifdef REMOTETESTSERVERS
