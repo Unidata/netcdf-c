@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2025 University
+/* This is part of the netCDF package. Copyright 2026 University
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
@@ -6,15 +6,15 @@
    - Crash reading NC_VLEN variable with unlimited dimension
    - Error with "charvlenbug" test (char VLEN with unlimited dim)
 
-   Root cause: after H5Dread for VLEN data the .p pointers point to
-   HDF5-internal memory that must be released with H5Treclaim, not
-   free().  Without the H5Treclaim call, nc_reclaim_data/nc_free_vlens
-   corrupt the heap.
-
    These tests write partial data to a VLEN variable that has an
    unlimited dimension (triggering the fill-value path on read), then
    read back the entire variable and verify both the data values and
    that all memory can be freed without crashing.
+
+   These bugs were actually fixed by Dennis some time ago. This test,
+   run under the ASAN, proves that the fixes work.
+
+   Ed Hartnett, 4/15/26
 */
 
 #include <nc_tests.h>
@@ -194,7 +194,7 @@ test_vlen_2d_unlim_first(void)
 /* (count 2).  Var2 pushes ulen to 4; Var1's HDF5 fdims is only 3.  */
 /* Reading all of Var1 (indices 0-3) requires HDF5 to supply index   */
 /* 0 as an internal fill cell — its .p pointer is HDF5-allocated and */
-/* must not be freed with free().  Without the fix this crashes.     */
+/* must not be freed with free().                                    */
 /* ------------------------------------------------------------------ */
 static int
 test_vlen_two_vars_unlim(void)
