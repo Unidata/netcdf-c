@@ -221,7 +221,7 @@ NCZ_load_all_plugins(void)
     int ret = NC_NOERR;
     size_t i,j;
     struct NCglobalstate* gs = NC_getglobalstate();
-    #ifdef _WIN64
+    #ifdef _WIN32
         struct _stat64 buf;
     #else
         struct stat buf;

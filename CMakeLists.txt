@@ -403,9 +403,10 @@ endif(NOT NETCDF_ENABLE_V2_API)
 option(NETCDF_BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 option(NETCDF_GENERATE_NCGEN "Automatically regenerate ncgen C files if required" OFF)
 
+include(CMakeDependentOption)
 
 # Option to use MMAP
-option(NETCDF_ENABLE_MMAP "Use MMAP." ON)
+cmake_dependent_option(NETCDF_ENABLE_MMAP "Use MMAP." ON "NOT WIN32" OFF)
 
 # Option to use examples.
 option(NETCDF_ENABLE_EXAMPLES "Build Examples" ON)
@@ -689,8 +690,6 @@ set(NETCDF_PLUGIN_SEARCH_PATH "${DEFAULT_PLUGIN_SEARCH_PATH}")
 
 # Try to enable NCZarr zip support
 option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ${NETCDF_ENABLE_NCZARR})
-
-include(CMakeDependentOption)
 
 # libdl is always available; built-in in Windows and OSX
 cmake_dependent_option(NETCDF_ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
@@ -1352,10 +1351,7 @@ endif()
 endif()
 
 # Check to see if MAP_ANONYMOUS is defined.
-if(MSVC)
-  message(WARNING "mmap not supported under visual studio: disabling MMAP support.")
-  set(NETCDF_ENABLE_MMAP OFF)
-else()
+if(NETCDF_ENABLE_MMAP)
   CHECK_C_SOURCE_COMPILES("
   #include <sys/mman.h>
   int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
@@ -1620,11 +1616,11 @@ if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
   set(CMAKE_INSTALL_LIBDIR lib)
 endif(NOT DEFINED CMAKE_INSTALL_LIBDIR)
 
-# Set
+# Set for nc-config and pkgconfig files
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${CMAKE_INSTALL_PREFIX})
-set(libdir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-set(includedir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
+cmake_path(ABSOLUTE_PATH CMAKE_INSTALL_LIBDIR BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}" OUTPUT_VARIABLE libdir)
+cmake_path(ABSOLUTE_PATH CMAKE_INSTALL_INCLUDEDIR BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}" OUTPUT_VARIABLE includedir)
 set(CC ${CMAKE_C_COMPILER})
 
 # Process all dependency libraries and create a string
@@ -1642,6 +1638,9 @@ endforeach()
 
 if(NC_LIBS)
   string(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+  string(REGEX REPLACE " -l[^ :]*::" " -l" NC_LIBS " ${NC_LIBS}")
+  string(REPLACE " -lHDF5" " -lhdf5" NC_LIBS "${NC_LIBS}")
+  string(REPLACE " -llibcurl" " -lcurl" NC_LIBS "${NC_LIBS}")
 endif()
 
 string(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
@@ -1934,6 +1933,8 @@ install(EXPORT netCDFTargets
 export(EXPORT netCDFTargets FILE netCDFTargets.cmake NAMESPACE netCDF::)
 
 include(CMakePackageConfigHelpers)
+cmake_path(ABSOLUTE_PATH CMAKE_INSTALL_INCLUDEDIR BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}" OUTPUT_VARIABLE netCDF_INCLUDE_DIR)
+cmake_path(ABSOLUTE_PATH CMAKE_INSTALL_LIBDIR BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}" OUTPUT_VARIABLE netCDF_LIB_DIR)
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"

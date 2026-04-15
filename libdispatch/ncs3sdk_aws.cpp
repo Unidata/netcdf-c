@@ -251,6 +251,18 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     } else {
         s3client = buildclient(&config,NULL);
     }
+
+    // Do HEAD BUCKET just to check for connection errors
+    {
+        Aws::S3::Model::HeadBucketRequest request;
+        request.SetBucket("");
+        auto outcome = s3client->HeadBucket(request);
+        if (!outcome.IsSuccess() && outcome.GetError().GetErrorType() == Aws::S3::S3Errors::NETWORK_CONNECTION){
+            std::cerr << "ERR: " << outcome.GetError().GetMessage() << " while connecting \n";
+            delete s3client;
+            s3client = NULL;
+        }
+    }
 //    delete config;
     NCUNTRACENOOP(NC_NOERR);
     return (void*)s3client;

@@ -4,6 +4,7 @@
  */
 
 #include <stddef.h>
+#include <stdint.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -22,6 +23,7 @@
 #include <stddef.h>
 
 #include "ncconfigure.h"
+#include "ncutil.h"
 #include "zincludes.h"
 #include "ncpathmgr.h"
 #include "nclog.h"
@@ -94,12 +96,14 @@ struct Dumpptions {
 /* Forward */
 static int objdump(void);
 static NCZM_IMPL implfor(const char* path);
-static void printcontent(size64_t len, const char* content, OBJKIND kind);
+static int printcontent(NCZMAP* map, const char* key, size64_t len, const char* content, OBJKIND kind);
 static int breadthfirst(NCZMAP* map, const char*, NClist* stack);
 static char* rootpathfor(const char* path);
 static OBJKIND keykind(const char* key);
 static void sortlist(NClist* l);
 static const char* filenamefor(const char* f0);
+static int chunkendianness(NCZMAP* map, const char* key, int* endianp);
+static int hostendianness(void);
 
 #define NCCHECK(expr) nccheck((expr),__LINE__)
 static void nccheck(int stat, int line)
@@ -116,6 +120,63 @@ zmapusage(void)
 {
     fprintf(stderr,"usage: zmapio [-t <type>][-d][-v][-x] <file>\n");
     exit(1);
+}
+
+static int
+hostendianness(void)
+{
+    return (NC_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
+}
+
+static int
+chunkendianness(NCZMAP* map, const char* key, int* endianp)
+{
+    int stat = NC_NOERR;
+    char* prefix = NULL;
+    char* zarraykey = NULL;
+    char* metadata = NULL;
+    NCjson* jzarray = NULL;
+    const NCjson* jdtype = NULL;
+    size64_t len = 0;
+    int endianness = hostendianness();
+
+    if(endianp) *endianp = endianness;
+
+    if((stat = nczm_divide_at(key,-1,&prefix,NULL))) goto done;
+    if(prefix == NULL || prefix[0] == '\0') goto done;
+
+    zarraykey = calloc(1,strlen(prefix) + strlen("/" Z2ARRAY) + 1);
+    if(zarraykey == NULL) {stat = NC_ENOMEM; goto done;}
+    strcpy(zarraykey,prefix);
+    strcat(zarraykey,"/" Z2ARRAY);
+
+    switch ((stat = nczmap_len(map,zarraykey,&len))) {
+    case NC_NOERR:
+        break;
+    case NC_EEMPTY:
+    case NC_ENOOBJECT:
+        stat = NC_NOERR;
+        goto done;
+    default:
+        goto done;
+    }
+
+    metadata = calloc(1,(size_t)len + 1);
+    if(metadata == NULL) {stat = NC_ENOMEM; goto done;}
+    if((stat = nczmap_read(map,zarraykey,0,len,metadata))) goto done;
+    if((stat = NCJparse(metadata,0,&jzarray)) < 0) {stat = NC_EINVAL; goto done;}
+    if((stat = NCJdictget(jzarray,"dtype",&jdtype)) < 0) {stat = NC_EINVAL; goto done;}
+    if((stat = ncz_dtype2nctype(NCJstring(jdtype),NC_NAT,0,NULL,&endianness,NULL))) goto done;
+    if(endianness == NC_ENDIAN_NATIVE)
+        endianness = hostendianness();
+    if(endianp) *endianp = endianness;
+
+done:
+    nullfree(prefix);
+    nullfree(zarraykey);
+    nullfree(metadata);
+    NCJreclaim(jzarray);
+    return stat;
 }
 
 static Mapop
@@ -371,13 +432,13 @@ objdump(void)
                 switch(kind) {
 		case OK_GROUP:
 		case OK_META:
-	            printcontent(len,content,kind);
+	            if((stat = printcontent(map,obj,len,content,kind))) goto done;
 		    break;
 		case OK_CHUNK:
 		    if(dumpoptions.meta_only) {
 			printf("...");
 		    } else {
-	                printcontent(len,content,kind);
+	                if((stat = printcontent(map,obj,len,content,kind))) goto done;
 		    }
 		    break;
 		default: break;
@@ -448,18 +509,28 @@ breadthfirst(NCZMAP* map, const char* key, NClist* stack)
 }
 
 
-static void
-printcontent(size64_t len, const char* content, OBJKIND kind)
+static int
+printcontent(NCZMAP* map, const char* key, size64_t len, const char* content, OBJKIND kind)
 {
+    int stat = NC_NOERR;
     size64_t i, count;
 
     const char* format = NULL;
     size64_t strlen = (size64_t)dumpoptions.strlen;
+    int data_endianness = hostendianness();
+    int doswap = 0;
 
     format = dumpoptions.nctype->format;
     if(dumpoptions.format[0] != '\0')
         format = dumpoptions.format;
     count = len;
+
+    if(kind == OK_CHUNK
+       && dumpoptions.nctype->typesize > 1
+       && dumpoptions.nctype->nctype != NC_STRING) {
+        if((stat = chunkendianness(map,key,&data_endianness))) goto done;
+        doswap = (data_endianness != hostendianness());
+    }
 
 #ifdef DEBUG
     printf("debug: len=%d strlen=%d count=%d\n",(int)len,(int)strlen,(int)count); fflush(stdout);
@@ -472,15 +543,59 @@ printcontent(size64_t len, const char* content, OBJKIND kind)
 	    if(i > 0) printf(", ");
 	    switch(dumpoptions.nctype->nctype) {
 	    case NC_BYTE: printf(format,((char*)content)[i]); break;
-	    case NC_SHORT: printf(format,((short*)content)[i]); break;		
-	    case NC_INT: printf(format,((int*)content)[i]); break;		
-	    case NC_INT64: printf(format,((long long*)content)[i]); break;		
+	    case NC_SHORT: {
+		int16_t v;
+		memcpy(&v,content + (i * sizeof(v)),sizeof(v));
+		if(doswap) swapinline16(&v);
+		printf(format,(int)v);
+		} break;		
+	    case NC_INT: {
+		int32_t v;
+		memcpy(&v,content + (i * sizeof(v)),sizeof(v));
+		if(doswap) swapinline32(&v);
+		printf(format,(int)v);
+		} break;		
+	    case NC_INT64: {
+		int64_t v;
+		memcpy(&v,content + (i * sizeof(v)),sizeof(v));
+		if(doswap) swapinline64(&v);
+		printf(format,(long long)v);
+		} break;		
 	    case NC_UBYTE: printf(format,((unsigned char*)content)[i]); break;
-	    case NC_USHORT: printf(format,((unsigned short*)content)[i]); break;		
-	    case NC_UINT: printf(format,((unsigned int*)content)[i]); break;		
-	    case NC_UINT64: printf(format,((unsigned long long*)content)[i]); break;		
-	    case NC_FLOAT: printf(format,((float*)content)[i]); break;		
-	    case NC_DOUBLE: printf(format,((double*)content)[i]); break;		
+	    case NC_USHORT: {
+		uint16_t v;
+		memcpy(&v,content + (i * sizeof(v)),sizeof(v));
+		if(doswap) swapinline16(&v);
+		printf(format,(unsigned int)v);
+		} break;		
+	    case NC_UINT: {
+		uint32_t v;
+		memcpy(&v,content + (i * sizeof(v)),sizeof(v));
+		if(doswap) swapinline32(&v);
+		printf(format,(unsigned int)v);
+		} break;		
+	    case NC_UINT64: {
+		uint64_t v;
+		memcpy(&v,content + (i * sizeof(v)),sizeof(v));
+		if(doswap) swapinline64(&v);
+		printf(format,(unsigned long long)v);
+		} break;		
+	    case NC_FLOAT: {
+		uint32_t raw;
+		float v;
+		memcpy(&raw,content + (i * sizeof(raw)),sizeof(raw));
+		if(doswap) swapinline32(&raw);
+		memcpy(&v,&raw,sizeof(v));
+		printf(format,v);
+		} break;		
+	    case NC_DOUBLE: {
+		uint64_t raw;
+		double v;
+		memcpy(&raw,content + (i * sizeof(raw)),sizeof(raw));
+		if(doswap) swapinline64(&raw);
+		memcpy(&v,&raw,sizeof(v));
+		printf(format,v);
+		} break;		
 	    case NC_CHAR: printf(format,((char*)content)[i]); break;
 	    case NC_STRING: printf(format,(int)strlen,((char*)(&content[i*strlen]))); break;
 	    default: abort();
@@ -493,6 +608,8 @@ printcontent(size64_t len, const char* content, OBJKIND kind)
 	    printf("%.2hhx", content[i]);
         }
     }
+done:
+    return stat;
 }
 
 static char chunkchars[] = ".0123456789";

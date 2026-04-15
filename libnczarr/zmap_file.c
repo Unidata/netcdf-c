@@ -688,7 +688,7 @@ static int
 platformtestcontentbearing(const char* canonpath)
 {
     int ret = 0;
-    #ifdef _WIN64
+    #ifdef _WIN32
         struct _stat64 buf;
     #else
         struct stat buf;
@@ -1173,7 +1173,7 @@ static int
 verify(const char* path, int isdir)
 {
     int ret = 0;
-    #ifdef _WIN64
+    #ifdef _WIN32
         struct _stat64 buf;
     #else
         struct stat buf;
@@ -1193,7 +1193,7 @@ static int
 verifykey(const char* key, int isdir)
 {
     int ret = 0;
-    #ifdef _WIN64
+    #ifdef _WIN32
         struct _stat64 buf;
     #else
         struct stat buf;

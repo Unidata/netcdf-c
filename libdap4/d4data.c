@@ -3,6 +3,16 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4data.c
+ * @brief DAP4 data pre-processing and conversion to NetCDF-4 memory layout.
+ *
+ * Implements NCD4_processdata() (endian swap + checksum verification),
+ * NCD4_parcelvars() (assigns each variable's slice in the dechunked
+ * buffer), NCD4_movetoinstance() (copies one type instance into
+ * NetCDF-4 memory), and NCD4_getToplevelVars().
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include <stdarg.h>
 #include <assert.h>
@@ -64,6 +74,9 @@ NCD4_parcelvars(NCD4meta* meta, NCD4response* resp)
     NCD4node* root = meta->root;
     NCD4offset* offset = NULL;
 
+    /* Delimiting reads serialized counters before NCD4_processdata(). */
+    meta->swap = (meta->controller->platform.hostlittleendian != resp->remotelittleendian);
+
     /* Recursively walk the tree in prefix order 
        to get the top-level variables; also mark as unvisited */
     toplevel = nclistnew();
@@ -84,7 +97,18 @@ done:
     return THROW(ret);
 }
 
-/* Process top level vars wrt checksums and swapping */
+/**
+ * Pre-process the dechunked DAP data (endian swap + checksum verification).
+ *
+ * For each top-level variable: byte-swaps multi-byte scalars if the
+ * server's endianness differs from the host's, then verifies the
+ * embedded CRC32 checksum against a locally computed value when
+ * checksumming is enabled.
+ *
+ * @param meta Metadata object with the parsed DMR tree.
+ * @param resp Response object with dechunked DAP data.
+ * @return ::NC_NOERR on success, or a netCDF error code.
+ */
 int
 NCD4_processdata(NCD4meta* meta, NCD4response* resp)
 {
@@ -499,4 +523,3 @@ NCD4_addchecksumattr(NCD4meta* meta, NClist* toplevel)
     return THROW(ret);
 }
 #endif
-
