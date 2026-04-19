@@ -11,8 +11,8 @@
    read back the entire variable and verify both the data values and
    that all memory can be freed without crashing.
 
-   These bugs were actually fixed by Dennis some time ago. This test,
-   run under the ASAN, proves that the fixes work.
+   These bugs were actually fixed by Dennis Heimbigner some time
+   ago. This test, run under the ASAN, proves that the fixes work.
 
    Ed Hartnett, 4/15/26
 */
