@@ -70,10 +70,10 @@ Inserted into any .zattrs
 }
 */
 
-#define NCZ_V2_SUPERBLOCK "_nczarr_superblock"
-#define NCZ_V2_GROUP   "_nczarr_group"
-#define NCZ_V2_ARRAY   "_nczarr_array"
-#define NCZ_V2_ATTR    "_nczarr_attr" /* Must match value in include/nc4internal.h */
+#define NCZ_V2_SUPERBLOCK NC_NCZARR_SUPERBLOCK
+#define NCZ_V2_GROUP   NC_NCZARR_GROUP // "_nczarr_group"
+#define NCZ_V2_ARRAY   NC_NCZARR_ARRAY //"_nczarr_array"
+#define NCZ_V2_ATTR    NC_NCZARR_ATTR //"_nczarr_attr" /* Must match value in include/nc4internal.h */
 
 #define NCZARRCONTROL "nczarr"
 #define PUREZARRCONTROL "zarr"
