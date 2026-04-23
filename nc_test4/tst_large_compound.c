@@ -121,7 +121,7 @@ test_compound_larger_than_64k(void)
 }
 
 /* ------------------------------------------------------------------ */
-/* Test 3: small compound type still works (regression guard).        */
+/* Test 3: small compound type works.                                 */
 /* ------------------------------------------------------------------ */
 static int
 test_compound_small(void)
@@ -157,16 +157,16 @@ main(int argc, char **argv)
 {
     printf("\n*** Testing large compound types (issue #2738).\n");
 
+    printf("*** testing small compound type...");
+    if (test_compound_small()) ERR;
+    SUMMARIZE_ERR;
+
     printf("*** testing compound type exactly 64 KB...");
     if (test_compound_64k()) ERR;
     SUMMARIZE_ERR;
 
     printf("*** testing compound type larger than 64 KB (128 KB)...");
     if (test_compound_larger_than_64k()) ERR;
-    SUMMARIZE_ERR;
-
-    printf("*** testing small compound type still works...");
-    if (test_compound_small()) ERR;
     SUMMARIZE_ERR;
 
     FINAL_RESULTS;
