@@ -4,8 +4,6 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-set(CMAKE_BUILD_TYPE "")
-
 if(WIN32)
   set(PLUGINEXT "dll")
   set(PLUGINPRE "__nc")
@@ -60,11 +58,13 @@ macro(buildplugin TARGET TARGETLIB)
     set_target_properties(${TARGET} PROPERTIES SUFFIX ".${PLUGINEXT}")
     target_link_libraries(${TARGET} PUBLIC ${ALL_TLL_LIBS};${ARGN})
   if(MSVC)
-    target_compile_options(${TARGET} PRIVATE /Zi)
-    # Tell linker to include symbol data
-    set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "/INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF")
-    # Set file name & location
-    set_target_properties(${TARGET} PROPERTIES COMPILE_PDB_NAME ${TARGET} COMPILE_PDB_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+    if (NOT CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+      target_compile_options(${TARGET} PRIVATE /Zi)
+      # Tell linker to include symbol data
+      set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "/INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF")
+      # Set file name & location
+      set_target_properties(${TARGET} PROPERTIES COMPILE_PDB_NAME ${TARGET} COMPILE_PDB_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+    endif ()
     if(MPI_C_INCLUDE_PATH)
       target_include_directories(${TARGET} PRIVATE ${MPI_C_INCLUDE_PATH})
     endif(MPI_C_INCLUDE_PATH)
