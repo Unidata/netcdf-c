@@ -400,7 +400,7 @@ Build Instructions for netCDF-C using CMake {#netCDF-CMake}
 
 ## Overview {#cmake_overview}
 
-Starting with netCDF-C 4.3.0, we are happy to announce the inclusion of CMake support.  CMake will allow for building netCDF on a wider range of platforms, include Microsoft Windows with Visual Studio.  CMake support also provides robust unit and regression testing tools.  We will also maintain the standard autotools-based build system in parallel.
+netCDF-C includes CMake support alongside the autotools-based build system. CMake supports building netCDF on a wide range of platforms, including Microsoft Windows with Visual Studio, and provides robust unit and regression testing hooks.
 
 In addition to providing new build options for netCDF-C, we will also provide pre-built binary downloads for the shared versions of netCDF for use with Visual Studio.
 
@@ -409,10 +409,10 @@ In addition to providing new build options for netCDF-C, we will also provide pr
 The following packages are required to build netCDF-C using CMake.
 
 * netCDF-C Source Code
-* CMake version 2.8.12 or greater.
+* CMake version 3.20.0 or greater.
 * Optional Requirements:
-	* HDF5 Libraries for netCDF4/HDF5 support.
-	* libcurl for DAP support.
+	* HDF5 libraries for netCDF-4/HDF5 support.
+	* libcurl for DAP, byte-range, and other remote-access features.
 
 <center>
 <img src="deptree.jpg" height="250px" />
@@ -443,32 +443,28 @@ The output of the configuration step is a project file based on the appropriate 
 | **Option** | **Autotools** | **CMake** |
 | :------- | :---- | :----- |
 Specify Install Location | --prefix=PREFIX | -D"CMAKE\_INSTALL\_PREFIX=PREFIX"
-Enable/Disable netCDF-4 | --enable-netcdf-4<br>--disable-netcdf-4 | -D"ENABLE\_NETCDF\_4=ON" <br> -D"ENABLE\_NETCDF\_4=OFF"
-Enable/Disable DAP | --enable-dap <br> --disable-dap | -D"ENABLE\_DAP=ON" <br> -D"ENABLE\_DAP=OFF"
-Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -D"BUILD\_UTILITIES=ON" <br> -D"BUILD\_UTILITIES=OFF"
+Enable/Disable netCDF-4 / HDF5 backend | --enable-hdf5<br>--disable-hdf5 | -D"NETCDF\_ENABLE\_HDF5=ON" <br> -D"NETCDF\_ENABLE\_HDF5=OFF"
+Enable/Disable DAP | --enable-dap <br> --disable-dap | -D"NETCDF\_ENABLE\_DAP=ON" <br> -D"NETCDF\_ENABLE\_DAP=OFF"
+Enable/Disable NCZarr | --enable-nczarr <br> --disable-nczarr | -D"NETCDF\_ENABLE\_NCZARR=ON" <br> -D"NETCDF\_ENABLE\_NCZARR=OFF"
+Enable/Disable HDF4 read support | --enable-hdf4 <br> --disable-hdf4 | -D"NETCDF\_ENABLE\_HDF4=ON" <br> -D"NETCDF\_ENABLE\_HDF4=OFF"
+Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -D"NETCDF\_BUILD\_UTILITIES=ON" <br> -D"NETCDF\_BUILD\_UTILITIES=OFF"
 Specify shared/Static Libraries | --enable-shared <br> --enable-static | -D"BUILD\_SHARED\_LIBS=ON" <br> -D"BUILD\_SHARED\_LIBS=OFF"
-Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -D"ENABLE\_TESTS=ON" <br> -D"ENABLE\_TESTS=OFF"
+Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -D"NETCDF\_ENABLE\_TESTS=ON" <br> -D"NETCDF\_ENABLE\_TESTS=OFF"
 Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -D"CMAKE\_PREFIX\_PATH=/usr/custom_libs/"
 
-A full list of *basic* options can be found by invoking `cmake [Source Directory] -L`. To enable a list of *basic* and *advanced* options, one would invoke `cmake [Source Directory] -LA`.
+A full list of *basic* options can be found by invoking `cmake -S [Source Directory] -B [Build Directory] -L`. To enable a list of *basic* and *advanced* options, invoke `cmake -S [Source Directory] -B [Build Directory] -LA`.
 
 ### Configuring your build from the command line. {#cmake_command_line}
 
-The easiest configuration case would be one in which all of the dependent libraries are installed on the system path (in either Unix/Linux or Windows) and all the default options are desired. From the build directory (often, but not required to be located within the source directory):
+The easiest configuration case is one in which all dependent libraries are installed on the system path and the default options are acceptable:
 
-> $ cmake [Source Directory]
+> $ cmake -S [Source Directory] -B [Build Directory]
 
-If you have libraries installed in a custom directory, you may need to specify the **CMAKE\_PREFIX_PATH** variable to tell cmake where the libraries are installed. For example:
+If you have libraries installed in a custom directory, you may need to specify **CMAKE\_PREFIX\_PATH** to tell CMake where the libraries are installed. For example:
 
-> $ cmake [Source Directory] -DCMAKE\_PREFIX\_PATH=/usr/custom_libraries/
+> $ cmake -S [Source Directory] -B [Build Directory] -DCMAKE\_PREFIX\_PATH=/usr/custom_libraries/
 
 ## Building {#cmake_building}
-
-The compiler can be executed directly with 'make' or the appropriate command for the configurator which was used.
-
-> $ make
-
-Building can also be executed indirectly via cmake:
 
 > $ cmake --build [Build Directory]
 
@@ -476,11 +472,7 @@ Building can also be executed indirectly via cmake:
 
 Testing can be executed several different ways:
 
-> $ make test
-
-or
-
-> $ ctest
+> $ ctest --test-dir [Build Directory]
 
 or
 
@@ -488,11 +480,7 @@ or
 
 ### Installation {#cmake_installation}
 
-Once netCDF has been built and tested, it may be installed using the following commands:
-
-> $ make install
-
-or
+Once netCDF has been built and tested, it may be installed using the following command:
 
 > $ cmake --build [Build Directory] --target install
 
