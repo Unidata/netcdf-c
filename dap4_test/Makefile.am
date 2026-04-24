@@ -16,21 +16,19 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
 
-
 AM_CPPFLAGS += -I$(top_srcdir)/liblib
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
 AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
 AM_CPPFLAGS += -DTOPBINDIR=${abs_top_builddir}
 
 # Set up the tests; do the .sh first, then .c
-check_PROGRAMS =
-TESTS =
-
-check_PROGRAMS += test_parse test_meta test_data
-
+check_PROGRAMS = test_parse test_meta test_data
 noinst_PROGRAMS =
 
-TESTS += test_parse.sh test_meta.sh test_data.sh test_raw.sh
+TESTS = test_parse.sh
+if NETCDF_BUILD_UTILITIES
+TESTS += test_meta.sh test_data.sh test_raw.sh
+endif # NETCDF_BUILD_UTILITIES
 
 # Note test_curlopt.sh is intended to be run manually; see comments in file.
 
