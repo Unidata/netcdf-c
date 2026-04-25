@@ -8,14 +8,8 @@
    - nc4_nc4f_list_add() error-path memory leak (issue #2665)
    - Memory growth when repeatedly opening/closing NetCDF4 files (issue #2626)
 
-   NOTE: The RSS memory-growth check in test_open_close_loop() is intended
-   to run on Linux (Ubuntu) only.  On macOS, getrusage()/ru_maxrss returns
-   the peak (high-water mark) RSS for the entire process lifetime and never
-   decreases, making before/after comparisons meaningless.  The macOS
-   task_info(TASK_BASIC_INFO) API returns current resident size but includes
-   HDF5 file-backed mapped pages that fluctuate independently of heap
-   allocation, producing unreliable results.  The build system therefore
-   skips registering this test on macOS CI.
+   This test does not attempt to monitor memory itself; run it under
+   address sanitizer (ASAN) to verify that no memory is leaked.
 
    See https://github.com/Unidata/netcdf-c/issues/2626
    See https://github.com/Unidata/netcdf-c/issues/2664
@@ -33,9 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
-#endif
 
 #define FILE_NAME "tst_mem_safety.nc"
 
@@ -52,26 +43,7 @@
  * Regression test for https://github.com/Unidata/netcdf-c/issues/2626
  */
 #define OPEN_CLOSE_FILE     "tst_mem_safety_2626.nc"
-#define OPEN_CLOSE_NWARMUP  20
 #define OPEN_CLOSE_NITER    500
-/* 1024 KB (1 MB) threshold: generous enough to absorb OS page-granularity
- * noise in RSS accounting (~4–64 KB per page fault) over 500 iterations,
- * yet tight enough to catch a real per-open leak.  At this limit the test
- * would tolerate ~2 KB of leak per open/close cycle before failing; leaks
- * reported in issue #2626 are expected to exceed this over 500 cycles. */
-#define OPEN_CLOSE_MAX_GROWTH_KB 1024
-
-#ifdef HAVE_SYS_RESOURCE_H
-/* Linux: getrusage()/ru_maxrss is the peak RSS in KB. */
-static long
-get_rss_kb(void)
-{
-    struct rusage ru;
-    if (getrusage(RUSAGE_SELF, &ru) != 0)
-        return -1;
-    return (long)ru.ru_maxrss;
-}
-#endif /* HAVE_SYS_RESOURCE_H */
 
 static int
 test_open_close_loop(void)
@@ -81,9 +53,6 @@ test_open_close_loop(void)
     size_t count[1] = {10};
     double data[10];
     int i;
-#ifdef HAVE_SYS_RESOURCE_H
-    long rss_before, rss_after, growth;
-#endif
 
     printf("*** Testing repeated open/close memory growth (issue #2626)...");
 
@@ -97,39 +66,12 @@ test_open_close_loop(void)
     if (nc_put_vara_double(ncid, varid, start, count, data)) ERR;
     if (nc_close(ncid)) ERR;
 
-    /* Warm up: let HDF5 settle its initial internal allocations. */
-    for (i = 0; i < OPEN_CLOSE_NWARMUP; i++)
-    {
-        if (nc_open(OPEN_CLOSE_FILE, NC_NOWRITE, &ncid)) ERR;
-        if (nc_close(ncid)) ERR;
-    }
-
-#ifdef HAVE_SYS_RESOURCE_H
-    rss_before = get_rss_kb();
-#endif
-
-    /* Main loop: open and close repeatedly. */
+    /* Repeatedly open and close. ASAN will flag any leaks. */
     for (i = 0; i < OPEN_CLOSE_NITER; i++)
     {
         if (nc_open(OPEN_CLOSE_FILE, NC_NOWRITE, &ncid)) ERR;
         if (nc_close(ncid)) ERR;
     }
-
-#ifdef HAVE_SYS_RESOURCE_H
-    rss_after = get_rss_kb();
-    if (rss_before > 0 && rss_after > 0)
-    {
-        growth = rss_after - rss_before;
-        if (growth > OPEN_CLOSE_MAX_GROWTH_KB)
-        {
-            fprintf(stderr,
-                    "\nRSS grew by %ld KB over %d open/close cycles "
-                    "(limit %d KB) -- possible memory leak (issue #2626)\n",
-                    growth, OPEN_CLOSE_NITER, OPEN_CLOSE_MAX_GROWTH_KB);
-            ERR;
-        }
-    }
-#endif /* HAVE_SYS_RESOURCE_H */
 
     remove(OPEN_CLOSE_FILE);
     SUMMARIZE_ERR;

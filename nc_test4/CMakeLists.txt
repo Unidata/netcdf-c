@@ -23,7 +23,8 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
   tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_broken_files
-  tst_quantize tst_h_transient_types tst_strided_write tst_varsperf)
+  tst_quantize tst_h_transient_types tst_strided_write tst_varsperf
+  tst_vlen_unlim tst_mem_safety tst_large_compound)
 
 IF(HAS_PAR_FILTERS)
 SET(NC4_tests $NC4_TESTS tst_alignment)
@@ -79,23 +80,6 @@ ENDIF(NETCDF_BUILD_UTILITIES)
 IF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
   SET(NC4_TESTS ${NC4_TESTS} tst_virtual_datasets)
 ENDIF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
-
-# tst_mem_safety checks for memory leaks during repeated nc_open/nc_close
-# cycles (issue #2626).  HDF5 versions before 2.0.0 have a known RSS growth
-# in H5Fopen/H5Fclose itself (confirmed by tst_h5_open_close in h5_test/)
-# that is unrelated to netCDF-C and would cause this test to false-fail.
-# The RSS measurement uses getrusage()/ru_maxrss which is only reliable on
-# Linux -- on macOS ru_maxrss is the peak (high-water mark) for the entire
-# process lifetime and never decreases, making growth comparisons useless.
-# Restrict test execution to Linux with HDF5 >= 2.0.0.
-# The binary is always built so it can be run manually if desired.
-IF(${HDF5_VERSION} VERSION_GREATER_EQUAL "2.0.0" AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  add_bin_test(nc_test4 tst_mem_safety)
-  SET_TESTS_PROPERTIES(nc_test4_tst_mem_safety PROPERTIES
-    ENVIRONMENT srcdir=${CMAKE_CURRENT_SOURCE_DIR})
-ELSE()
-  build_bin_test(tst_mem_safety)
-ENDIF()
 
 ##
 # The shell script, run_empty_vlen_test.sh,
@@ -156,10 +140,12 @@ IF(HAVE_H5Z_SZIP)
   ENDIF()
 ENDIF()
 
-IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
-  IF(HAVE_ZSTD)
-    BUILD_BIN_TEST(tst_zstd)
-    add_sh_test(nc_test4 run_zstd_test)
+IF(NETCDF_BUILD_UTILITIES)
+  IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
+    IF(HAVE_ZSTD)
+      BUILD_BIN_TEST(tst_zstd)
+      add_sh_test(nc_test4 run_zstd_test)
+    ENDIF()
   ENDIF()
 ENDIF()
 

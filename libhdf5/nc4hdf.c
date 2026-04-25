@@ -844,8 +844,21 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         if ((retval = nc4_get_fill_value(grp->nc4_info, var, &fillp)))
             BAIL(retval);
 
-        /* If there is a fill value, set it. */
-        if (fillp)
+        /* If there is a fill value, set it.
+         *
+         * NC_VLEN and NC_COMPOUND types are excluded from H5Pset_fill_value:
+         *  - NC_VLEN: HDF5 VLEN fill values are not reliably supported
+         *    and result in undefined behavior on chunked datasets.
+         *  - NC_COMPOUND: HDF5 stores the fill value in the object header,
+         *    which has a fixed size limit (~64 KB). Compound types at or
+         *    above that limit cause H5Dcreate2 to fail with "object header
+         *    message is too large" (issue #2738). NetCDF-C manages fill
+         *    values for both of these classes itself via the provide_fill
+         *    path in NC4_get_vars, so HDF5 does not need to store them. */
+        if (fillp &&
+            var->type_info->nc_type_class != NC_VLEN &&
+            var->type_info->nc_type_class != NC_COMPOUND)
+        /* if (fillp) */
         {
             if (var->type_info->nc_type_class == NC_STRING)
             {
