@@ -855,10 +855,10 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
          *    message is too large" (issue #2738). NetCDF-C manages fill
          *    values for both of these classes itself via the provide_fill
          *    path in NC4_get_vars, so HDF5 does not need to store them. */
-        /* if (fillp && */
-        /*     var->type_info->nc_type_class != NC_VLEN && */
-        /*     var->type_info->nc_type_class != NC_COMPOUND) */
-        if (fillp)
+        if (fillp &&
+            var->type_info->nc_type_class != NC_VLEN &&
+            var->type_info->nc_type_class != NC_COMPOUND)
+        /* if (fillp) */
         {
             if (var->type_info->nc_type_class == NC_STRING)
             {
