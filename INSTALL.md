@@ -466,11 +466,24 @@ If you have libraries installed in a custom directory, you may need to specify *
 
 ## Building {#cmake_building}
 
+The compiler can be executed directly with 'make' or the appropriate command for the configurator which was used.
+
+> $ make
+
+Building can also be executed indirectly via cmake:
+
 > $ cmake --build [Build Directory]
 
 ## Testing {#cmake_testing}
 
 Testing can be executed several different ways:
+
+> $ make test
+
+or
+
+> $ ctest
+
 
 > $ ctest --test-dir [Build Directory]
 
@@ -480,7 +493,11 @@ or
 
 ### Installation {#cmake_installation}
 
-Once netCDF has been built and tested, it may be installed using the following command:
+Once netCDF has been built and tested, it may be installed using the following commands:
+
+> $ make install
+
+or
 
 > $ cmake --build [Build Directory] --target install
 
