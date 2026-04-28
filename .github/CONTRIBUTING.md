@@ -58,9 +58,11 @@ There are several ways to test your changes to ensure that your pull request pas
 * `make check` if you are using configure/autotools.
 * `make test` if you are using cmake.
 
-## Continuous Integration testing with Travis CI <A NAME="contint"></A>
+## Continuous Integration testing with GitHub Actions <A NAME="contint"></A>
 
-Travis CI is a system for providing **automated** continuous integration testing, without requiring any effort on the part of the contributor.  Any time a change is pushed out to GitHub, a series of tests will run automatically and will ultimately report a success or a failure.  You may view the Unidata Travis dashboard [here](https://travis-ci.org/Unidata/).  Each project listed may be "drilled down" into, where specific information may be found.
+GitHub Actions provides the project's **automated** continuous integration testing. Pull requests and selected manual workflows run build and test matrices across supported platforms and configurations, and the workflow definitions live under `.github/workflows/`. You can inspect current runs, logs, and artifacts from the repository's Actions tab on GitHub.
+
+Some workflows also use CTest/CDash infrastructure for deeper reporting, and the helper scripts for that live in `ctest_scripts/`.
 
 ## Regression testing with Docker <A NAME="regression"></A>
 
