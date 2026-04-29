@@ -137,7 +137,7 @@ include(GNUInstallDirs)
 
 if(MSVC)
   set(GLOBAL PROPERTY USE_FOLDERS ON)
-  target_compile_options(netcdf PUBLIC "/utf-8")
+  target_compile_options(netcdf PRIVATE "/utf-8")
 endif()
 
 # auto-configure style checks, other CMake modules.
@@ -162,7 +162,7 @@ endif(${BIGENDIAN})
 # Define a function to convert various true or false values
 # to either TRUE|FALSE (uppercase).
 # If value is not a recognized boolean, then return NOTFOUND
-#1, ON, YES, TRUE, Y, 
+#1, ON, YES, TRUE, Y,
 #0, OFF, NO, FALSE, N, IGNORE, NOTFOUND -NOTFOUND ""
 
 set(TRUELIST "on;yes;y;true")
@@ -454,22 +454,22 @@ endif()
 
 # Figure out which options are defined and process options
 if(DEFINED NETCDF_ENABLE_NETCDF_4)
-    set(UNDEF_NETCDF_4 OFF CACHE BOOL "") 
+    set(UNDEF_NETCDF_4 OFF CACHE BOOL "")
     option(NETCDF_ENABLE_NETCDF_4 "" ON)
 else()
-    set(UNDEF_NETCDF_4 ON CACHE BOOL "") 
+    set(UNDEF_NETCDF_4 ON CACHE BOOL "")
 endif()
 if(DEFINED NETCDF_ENABLE_NETCDF4)
-    set(UNDEF_NETCDF4 OFF CACHE BOOL "") 
+    set(UNDEF_NETCDF4 OFF CACHE BOOL "")
     option(NETCDF_ENABLE_NETCDF4 "" ON)
 else()
-    set(UNDEF_NETCDF4 ON CACHE BOOL "") 
+    set(UNDEF_NETCDF4 ON CACHE BOOL "")
 endif()
 if(DEFINED NETCDF_ENABLE_HDF5)
-    set(UNDEF_HDF5 OFF CACHE BOOL "") 
+    set(UNDEF_HDF5 OFF CACHE BOOL "")
     option(NETCDF_ENABLE_HDF5 "" ON)
 else()
-    set(UNDEF_HDF5 ON CACHE BOOL "") 
+    set(UNDEF_HDF5 ON CACHE BOOL "")
 endif()
 
 if(NOT UNDEF_NETCDF_4)
@@ -483,15 +483,15 @@ endif()
 # NETCDF_ENABLE_NETCDF_4 overrides NETCDF_ENABLE_NETCDF4 if latter not defined.
 
 if((NOT "${UNDEF_NETCDF_4}") AND UNDEF_NETCDF4)
-set(NETCDF_ENABLE_NETCDF4 ${NETCDF_ENABLE_NETCDF_4} CACHE BOOL "" FORCE) 
+set(NETCDF_ENABLE_NETCDF4 ${NETCDF_ENABLE_NETCDF_4} CACHE BOOL "" FORCE)
 endif()
 # NETCDF_ENABLE_NETCDF4 overrides NETCDF_ENABLE_HDF5 if latter not defined.
 if((NOT "${UNDEF_NETCDF4}") AND UNDEF_HDF5)
-set(NETCDF_ENABLE_HDF5 "${NETCDF_ENABLE_HDF5}" CACHE BOOL "" FORCE) 
+set(NETCDF_ENABLE_HDF5 "${NETCDF_ENABLE_HDF5}" CACHE BOOL "" FORCE)
 endif()
 # Otherwise, use NETCDF_ENABLE_HDF5 default
 if(UNDEF_HDF5)
-set(NETCDF_ENABLE_HDF5 ON CACHE BOOL "" FORCE) 
+set(NETCDF_ENABLE_HDF5 ON CACHE BOOL "" FORCE)
 endif()
 
 # Turn off NETCDF_ENABLE_NETCDF4 because it will be used
@@ -545,7 +545,7 @@ else()
   set(NETCDF_ENABLE_HDF4 OFF)
 endif()
 
-# Option legacy  macros 
+# Option legacy  macros
 # Do we want to enable unsafe macros, e.g. _FillValue in addition to NC_FillValue.
 # See https://github.com/Unidata/netcdf-c/issues/3029
 option(NETCDF_ENABLE_LEGACY_MACROS "Enable legacy macros for backwards compatibility. Use with Caution." ON)
@@ -775,7 +775,7 @@ if (NOT NETCDF_ENABLE_S3 AND NETCDF_ENABLE_NCZARR_S3)
 endif()
 unset(NETCDF_ENABLE_NCZARR_S3)
 
-# If NETCDF_ENABLE_S3 is ON/TRUE, then enable NETCDF_ENABLE_NCZARR, in order to keep 
+# If NETCDF_ENABLE_S3 is ON/TRUE, then enable NETCDF_ENABLE_NCZARR, in order to keep
 # things congruent with autotools.
 if (NETCDF_ENABLE_S3)
   set(NETCDF_ENABLE_NCZARR ON CACHE BOOL "Enable NCZarr Client" FORCE)
@@ -794,11 +794,11 @@ endif()
 if(NETCDF_ENABLE_S3)
   if(NOT NETCDF_ENABLE_S3_AWS AND NOT NETCDF_ENABLE_S3_INTERNAL)
     message(FATAL_ERROR "S3 support library not found; please specify option -DNETCDF_ENABLE_S3=NO")
-    set(NETCDF_ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)        
+    set(NETCDF_ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)
   endif()
   if(NETCDF_ENABLE_S3_AWS AND NETCDF_ENABLE_S3_INTERNAL)
     message(WARNING "Both aws-sdk-cpp and s3-internal enabled => use s3-internal")
-    set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)        
+    set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
   endif()
 endif()
 
@@ -978,7 +978,7 @@ set(USE_PNETCDF ${NETCDF_ENABLE_PNETCDF})
 if(NETCDF_ENABLE_PNETCDF)
   set(STATUS_PARALLEL ON)
   set(USE_PARALLEL ON CACHE BOOL "")
-  ### 
+  ###
   # Generate pnetcdf test
   ###
   configure_file("${netCDF_SOURCE_DIR}/nc_test/run_pnetcdf_tests.sh.in"
@@ -1066,7 +1066,7 @@ if (NOT NETCDF_ENABLE_PLUGINS AND NETCDF_ENABLE_NCZARR_FILTERS)
   set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 endif()
 
-IF (NOT NETCDF_ENABLE_NCZARR AND NETCDF_ENABLE_NCZARR_FILTERS) 
+IF (NOT NETCDF_ENABLE_NCZARR AND NETCDF_ENABLE_NCZARR_FILTERS)
     message(WARNING "NETCDF_ENABLE_NCZARR==NO => NETCDF_ENABLE_NCZARR_FILTERS==NO")
   set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Disable NCZARR_FILTERS" FORCE)
 endif()
@@ -1567,9 +1567,9 @@ if(MSVC)
   if(NOT CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "")
     set(CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
   endif()
-  
+
   foreach(CPP ${CMAKE_PREFIX_PATH})
-    
+
     CMAKE_PATH(CONVERT ${CPP} TO_CMAKE_PATH_LIST CPP)
 
     file(GLOB COPY_FILES ${CPP}/*.lib ${CPP}/lib/*.lib)
@@ -1579,7 +1579,7 @@ if(MSVC)
         COMPONENT dependencies)
     endif()
   endforeach()
-  
+
   foreach(CPP ${CMAKE_PREFIX_PATH})
 
     CMAKE_PATH(CONVERT ${CPP} TO_CMAKE_PATH_LIST CPP)
@@ -1592,7 +1592,7 @@ if(MSVC)
         COMPONENT dependencies)
     endif()
   endforeach()
-  
+
 endif()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -1685,7 +1685,7 @@ set(host_vendor "${osname}")
 set(host_os "${osrel}")
 string(RANDOM LENGTH 3 ALPHABET "0123456789" PLATFORMUID)
 math(EXPR PLATFORMUID "${PLATFORMUID} + 1" OUTPUT_FORMAT DECIMAL)
-       
+
 set(CC_VERSION "${CMAKE_C_COMPILER}")
 
 # Build *FLAGS for libnetcdf.settings.
@@ -1805,7 +1805,7 @@ file(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
   LIBNETCDF_SETTINGS)
 message(STATUS ${LIBNETCDF_SETTINGS})
 
-### 
+###
 # Report deprecated options detected by
 # cmake/deprecated.cmake. Added in support of
 # https://github.com/Unidata/netcdf-c/pull/2895
@@ -1907,7 +1907,7 @@ if(NETCDF_ENABLE_TESTS)
     # Build CTestCustom.cmake to cleanup S3 after tests are done.
     #####
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake NEWLINE_STYLE LF)
-   
+
 
 endif()
 
