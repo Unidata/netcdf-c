@@ -1,5 +1,5 @@
 # This is part of the netCDF package.
-# Copyright 2018 University Corporation for Atmospheric Research/Unidata
+# Copyright 2026 University Corporation for Atmospheric Research/Unidata
 # See COPYRIGHT file for conditions of use.
 #
 # This directory contains tests that only use HDF5; these tests don't

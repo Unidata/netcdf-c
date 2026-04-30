@@ -51,9 +51,11 @@ IF(NETCDF_ENABLE_TESTS)
   ENDIF(NETCDF_BUILD_UTILITIES)
 
   IF(NETCDF_ENABLE_DAP_REMOTE_TESTS)
+    IF(NETCDF_BUILD_UTILITIES)
       add_sh_test(dap4_test test_remote)
 #Suppress until reconciled with hyrax: add_sh_test(dap4_test test_hyrax)
       add_sh_test(dap4_test test_dap4url)
+    ENDIF(NETCDF_BUILD_UTILITIES)
     IF(RUN_MANUAL_TESTS)
         # The following test can only be run by hand.
         # It tests earthdata authorization.
