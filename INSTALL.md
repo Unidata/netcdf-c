@@ -4,7 +4,7 @@ Getting and Building netCDF {#getting_and_building_netcdf}
 [TOC]
 
 This document is for getting and building the netCDF C library and
-utilities, version 4.7.1 and later.  Other libraries that depend on the netCDF C
+utilities.  Other libraries that depend on the netCDF C
 library, such as the Fortran and C++ libraries, are available as
 separate distributions that can be built and installed after the C
 library is successfully installed.  The netCDF-Java library is also a
@@ -80,7 +80,7 @@ full functionality. (See \ref architecture).
 Requirements {#netcdf_requirements}
 ----------------------------------
 
-* HDF5 1.8.15 (netcdf-4 support)
+* HDF5 1.10.2 (netcdf-4 support)
 * zlib 1.2.5
 * curl 7.18.0 (DAP support)
 
@@ -100,7 +100,7 @@ Building with netCDF-4 and the Remote Data Client {#build_default}
 
 The usual way of building netCDF requires the HDF5, zlib, and curl
 libraries. (And, optionally, the szlib library). Versions required are
-at least HDF5 1.8.15, zlib 1.2.5, and curl 7.18.0 or later.
+at least HDF5 1.10.2, zlib 1.2.5, and curl 7.18.0 or later.
 (Optionally, if building with szlib, get szip 2.0 or later.)
 
 These packages are available at:
