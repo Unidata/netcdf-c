@@ -66,11 +66,9 @@ tst_udf_self_load_plugin_la_LIBADD = ${top_builddir}/liblib/libnetcdf.la
 tst_udf_self_load_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_PLUGIN_PATH=\"$(abs_builddir)/.libs/tst_udf_self_load_plugin@MODULE_EXT@\"
 endif # ENABLE_SHARED
 
-# Build test programs plus programs used in test scripts.
-check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug \
-tst_vlenstr tst_zero_len_att
-TESTS = $(NC4_TESTS) run_empty_vlen_test.sh run_zero_len_att_test.sh
-
+# Build test programs.
+check_PROGRAMS = $(NC4_TESTS)
+TESTS = $(NC4_TESTS)
 XFAIL_TESTS =
 
 # Add these if large file tests are turned on.
@@ -87,6 +85,11 @@ endif # BUILD_V2
 
 # The rest of the tests require ncgen/ncdump.
 if NETCDF_BUILD_UTILITIES
+
+check_PROGRAMS += tst_empty_vlen_unlim tst_charvlenbug tst_vlenstr	\
+tst_zero_len_att
+TESTS += run_empty_vlen_test.sh run_zero_len_att_test.sh
+
 check_PROGRAMS += renamegroup
 TESTS += run_grp_rename.sh tst_misc.sh
 
