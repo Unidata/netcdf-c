@@ -8,7 +8,7 @@
 
 #include "oc.h"
 #include "dapparselex.h"
-#include "dapy.h"
+#include "dap.tab.h"
 
 #undef URLCVT /* NEVER turn this on */
 
