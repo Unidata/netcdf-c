@@ -2065,7 +2065,7 @@ fetchpatternmetadata(NCDAPCOMMON* dapcomm)
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE))
 	ce = NULL;
     else
-        ce = nulldup(dap_getselection(dapcomm->oc.url));
+        ce = dap_getselection(dapcomm->oc.url);
 
     /* Get selection constrained DDS */
     ncstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDDS,&ocroot);
