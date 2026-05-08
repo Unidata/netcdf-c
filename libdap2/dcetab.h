@@ -63,7 +63,19 @@ extern int dcedebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+union YYSTYPE
+{
+#line 29 "dce.y"
+
+    void* node;   /* DCEnode subclasses; dcefree walks all of them */
+    void* list;   /* NClist of DCEnodes;  dcefreelist handles */
+    void* leaf;   /* lexer-owned token strings; reclaim list frees */
+    void* tag;    /* integer cast in Object*; no allocation */
+
+#line 76 "dcetab.h"
+
+};
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
