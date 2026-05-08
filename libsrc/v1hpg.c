@@ -1546,7 +1546,13 @@ nc_get_NC(NC3_INFO* ncp)
 	NC_set_numrecs(ncp, nrecs);
 	}
 
-	assert((char *)gs.pos < (char *)gs.end);
+	/* Header truncated: numrecs consumed the remaining buffer; the dim/attr/var
+	 * array parsers below would read past gs.end.  Used to be an assert(),
+	 * which aborts on malformed input -- return NC_ENOTNC instead. */
+	if((char *)gs.pos >= (char *)gs.end) {
+		status = NC_ENOTNC;
+		goto unwind_get;
+	}
 
 	status = v1h_get_NC_dimarray(&gs, &ncp->dims);
     if(status != NC_NOERR)
