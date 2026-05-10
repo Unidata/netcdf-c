@@ -132,13 +132,17 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
     int c;
     unsigned int i;
     char* p;
+    char* end;
     char* tmp;
     YYSTYPE lval = NULL;
 
     token = 0;
     ncbytesclear(lexstate->yytext);
+    /* lexstate->input is allocated via strdup, so the trailing NUL sits at
+     * input + strlen(input). p must never advance past that NUL. */
+    end = lexstate->input + strlen(lexstate->input);
     /* invariant: p always points to current char */
-    for(p=lexstate->next;token==0&&(c=*p);p++) {
+    for(p=lexstate->next;token==0&&p<=end&&(c=*p);p++) {
 	if(c == '\n') {
 	    lexstate->lineno++;
 	} else if(c <= ' ' || c == '\177') {
@@ -262,6 +266,9 @@ daplex(YYSTYPE* lvalp, DAPparsestate* state)
 	} else { /* illegal */
 	}
     }
+    /* The for-loop's post-increment can leave p one past end; clamp so the
+     * stored pointer is always within the strdup'd buffer. */
+    if(p > end) p = end;
     lexstate->next = p;
     strncpy(lexstate->lasttokentext,ncbytescontents(lexstate->yytext),MAX_TOKEN_LENGTH);
     lexstate->lasttoken = token;
