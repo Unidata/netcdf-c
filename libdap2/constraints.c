@@ -34,8 +34,14 @@ dapparsedapconstraints(NCDAPCOMMON* dapcomm, char* constraints,
     ncstat = dapceparse(constraints,dceconstraint,&errmsg);
     if(ncstat) {
       nclog(NCLOGWARN,"DCE constraint parse failure: %s",errmsg);
-      nclistclear(dceconstraint->projections);
-      nclistclear(dceconstraint->selections);
+      /* On a parse error these lists may already hold partial DCEnode
+       * trees installed by the projections()/selections() actions before
+       * the syntax error was hit.  nclistclear only zeroes the length,
+       * leaking the trees -- free them properly and start fresh. */
+      dcefreelist(dceconstraint->projections);
+      dceconstraint->projections = nclistnew();
+      dcefreelist(dceconstraint->selections);
+      dceconstraint->selections = nclistnew();
     }
     /* errmsg is freed whether ncstat or not. */
     nullfree(errmsg);
