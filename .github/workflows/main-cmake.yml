@@ -37,9 +37,10 @@ jobs:
           with:
             update: true
         - uses: actions/checkout@v6
-        - uses: mamba-org/setup-micromamba@v3
+        - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v2
           with:
             # Name is needed for caching
+            micromamba-version: '2.6.0-0'
             environment-name: CI
             cache-environment: true
             cache-environment-key: mamba-${{ matrix.hdf5 }}
