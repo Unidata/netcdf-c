@@ -454,6 +454,11 @@ nc_create_par_fortran(const char *path, int cmode, int comm,
 #ifdef HAVE_MPI_COMM_F2C
     comm_c = MPI_Comm_f2c(comm);
 #else
+    /* Only safe if sizeof(MPI_Comm) == sizeof(int) (MPI-1 only)
+       See https://github.com/Unidata/netcdf-c/issues/3199 */
+    #if SIZEOF_VOIDP != 4
+        #error "MPI_Comm_f2c unavailable on a 64-bit system: cannot safely convert Fortran comm handle"
+    #endif
     comm_c = (MPI_Comm)comm;
 #endif
 #ifdef HAVE_MPI_INFO_F2C
