@@ -5,6 +5,7 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
+build_bin_test(tst_h_perf tst_utils.c)
 build_bin_test(bm_file tst_utils.c)
 build_bin_test(tst_chunks3 tst_utils.c)
 build_bin_test(tst_ar4 tst_utils.c)
