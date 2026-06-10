@@ -397,7 +397,7 @@ there. */
 /**@{*/
 /** For quantization, the allowed value of number of significant
  * decimal and binary digits, respectively, for float. */
-#define NC_QUANTIZE_MAX_FLOAT_NSD (7)
+#define NC_QUANTIZE_MAX_FLOAT_NSD (6)
 #define NC_QUANTIZE_MAX_FLOAT_NSB (23)
 /**@}*/
 
