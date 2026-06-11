@@ -515,69 +515,6 @@ test_redef(int format)
    else if (format == NC_FORMAT_NETCDF4)
       cflags |= NC_NETCDF4;
 
-#ifdef USE_HDF5
-   /* When cache is at true 64MB default, verify file actually uses it */
-   if (cache_size_in == 67108864 && (format == NC_FORMAT_NETCDF4 ||
-                                       format == NC_FORMAT_NETCDF4_CLASSIC)) {
-       int ncid_test, dimid_test, varid_test;
-       hid_t h5_file_id, h5_var_id, h5_dapl;
-       size_t h5_cache_size, h5_nelems;
-       double h5_preemption;
-
-       printf("    Verifying netCDF file uses 64MB chunk cache...\n");
-
-       /* Create netCDF-4 file with chunked variable */
-       if (nc_create("tst_cache_verify.nc", NC_NETCDF4 | NC_CLOBBER,
-                     &ncid_test)) ERR;
-       if (nc_def_dim(ncid_test, "d1", 1000, &dimid_test)) ERR;
-       if (nc_def_var(ncid_test, "v1", NC_INT, 1, &dimid_test,
-                      &varid_test)) ERR;
-       {
-           size_t chunksizes[1] = {100};
-           if (nc_def_var_chunking(ncid_test, varid_test, NC_CHUNKED, chunksizes)) ERR;
-       }
-       if (nc_enddef(ncid_test)) ERR;
-
-       /* Check var chunk cache before close */
-       {
-           size_t var_cache_size, var_cache_nelems;
-           float var_cache_preemption;
-           if (nc_get_var_chunk_cache(ncid_test, varid_test, &var_cache_size,
-                                      &var_cache_nelems, &var_cache_preemption)) ERR;
-           printf("    netCDF var cache before close: size=%zu nelems=%zu preemption=%f\n",
-                  var_cache_size, var_cache_nelems, var_cache_preemption);
-       }
-
-       if (nc_close(ncid_test)) ERR;
-
-       /* Reopen with HDF5 and check actual chunk cache */
-       h5_file_id = H5Fopen("tst_cache_verify.nc", H5F_ACC_RDONLY, H5P_DEFAULT);
-       if (h5_file_id >= 0) {
-           h5_var_id = H5Dopen2(h5_file_id, "/v1", H5P_DEFAULT);
-           if (h5_var_id >= 0) {
-               h5_dapl = H5Dget_access_plist(h5_var_id);
-               if (h5_dapl >= 0) {
-                   if (H5Pget_chunk_cache(h5_dapl, &h5_nelems,
-                                        &h5_cache_size, &h5_preemption) >= 0) {
-                       printf("    HDF5 actual file cache: nelems=%zu size=%zu preemption=%f\n",
-                              h5_nelems, h5_cache_size, h5_preemption);
-                       if (h5_cache_size == 67108864) {
-                           printf("    SUCCESS: file uses 64MB chunk cache\n");
-                       } else {
-                           printf("    UNEXPECTED: file cache %zu != 67108864 (64MB)\n",
-                                  h5_cache_size);
-                       }
-                   }
-                   H5Pclose(h5_dapl);
-               }
-               H5Dclose(h5_var_id);
-           }
-           H5Fclose(h5_file_id);
-       }
-       remove("tst_cache_verify.nc");
-   }
-#endif
-
    /* Change chunk cache. */
    if (nc_set_chunk_cache(NEW_CACHE_SIZE, NEW_CACHE_NELEMS,
                           NEW_CACHE_PREEMPTION)) ERR;
