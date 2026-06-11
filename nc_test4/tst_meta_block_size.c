@@ -30,7 +30,7 @@ main(int argc, char **argv)
     printf("\n*** Testing nc_set_meta_block_size and nc_get_meta_block_size.\n");
 
     /*
-     * Test 1: nc_set_meta_block_size / nc_get_meta_block_size round-trip. 
+     * Test 1: nc_set_meta_block_size / nc_get_meta_block_size  
      */
     printf("*** Test 1: round-trip nc_set_meta_block_size / nc_get_meta_block_size...");
     {

@@ -428,9 +428,6 @@ locked in when the file is opened and forgotten when the file is closed.
 Multiple files with different values can coexist by interleaving
 nc_set_meta_block_size and nc_create/nc_open calls.
 
-This function has no effect on classic, 64-bit offset, or CDF-5 format
-files, which do not use HDF5.
-
 Refer to H5Pset_meta_block_size in the HDF5 documentation for
 implementation specifics, defaults, and interactions with other FAPL
 properties.
@@ -439,7 +436,6 @@ properties.
             HDF5 default (2048 bytes).
 
 @return ::NC_NOERR No error.
-@author See issue https://github.com/Unidata/netcdf-c/issues/3386
 @ingroup datasets
 */
 int
@@ -462,7 +458,6 @@ nc_set_meta_block_size has not been called, or was last called with size
              bytes, or 0 if the override is disabled.
 
 @return ::NC_NOERR No error.
-@author See issue https://github.com/Unidata/netcdf-c/issues/3386
 @ingroup datasets
 */
 int

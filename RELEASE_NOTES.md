@@ -5,6 +5,10 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
+## 4,10.1 - TBD
+
+* Added new functions `nc_set_meta_block_size()` and `nc_get_meta_block_size()`, to allow for runtime modification of downstream `libhdf5` block size.  See [GitHub 3386](https://github.com/Unidata/netcdf-c/issues/3386) and [Github 3391](https://github.com/Unidata/netcdf-c/pull/3391) for more information.   
+
 ## 4.10.0 - February 25, 2026
 
 * Regularize, cleanup, and refactor various AWS features, especially WRT regularizing AWS-related constants. See [Github 3229](https://github.com/Unidata/netcdf-c/issues/3229) for more information. 
