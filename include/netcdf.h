@@ -686,6 +686,14 @@ nc_set_alignment(int threshold, int alignment);
 EXTERNL int
 nc_get_alignment(int* thresholdp, int* alignmentp);
 
+/* Set the global minimum HDF5 metadata block size property. */
+EXTERNL int
+nc_set_meta_block_size(size_t size);
+
+/* Get the global minimum HDF5 metadata block size property. */
+EXTERNL int
+nc_get_meta_block_size(size_t* sizep);
+
 EXTERNL int
 nc__create(const char *path, int cmode, size_t initialsz,
          size_t *chunksizehintp, int *ncidp);
