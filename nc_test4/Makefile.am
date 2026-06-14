@@ -34,7 +34,7 @@ tst_atts1 tst_atts2 tst_vars2 tst_files5 tst_files6 tst_sync		\
 tst_h_scalar tst_rename tst_rename2 tst_rename3 tst_h5_endians		\
 tst_atts_string_rewrite tst_hdf5_file_compat tst_fill_attr_vanish	\
 tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
-tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
+tst_put_vars tst_elatefill tst_udf tst_udf_multi tst_put_vars_two_unlim_dim		\
 tst_bug1442 tst_quantize tst_h_transient_types tst_strided_write	\
 tst_varsperf
 
