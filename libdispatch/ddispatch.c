@@ -469,3 +469,35 @@ nc_get_meta_block_size(size_t* sizep)
 }
 
 /** \} */
+
+/*
+ * Set the global minimum HDF5 metadata block size using an int
+ * argument, added for netcdf-fortran compatibility in line with other
+ * similar functions.
+ *
+ * @param size Minimum metadata block size in bytes as an int.
+ * @return ::NC_NOERR No error.
+ */
+int
+nc_set_meta_block_size_ints(int size)
+{
+    return nc_set_meta_block_size((size_t)size);
+}
+
+/*
+ * Retrieve the current global minimum HDF5 metadata block size as an
+ * int, added for netcdf-fortran compatibility. 
+ *
+ * @param sizep On return, the current minimum metadata block size in
+ *              bytes as an int, or 0 if the override is disabled.
+ * @return ::NC_NOERR No error.
+ */
+int
+nc_get_meta_block_size_ints(int *sizep)
+{
+    size_t sz = 0;
+    int stat = nc_get_meta_block_size(&sz);
+    if (stat == NC_NOERR && sizep)
+        *sizep = (int)sz;
+    return stat;
+}
