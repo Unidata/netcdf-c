@@ -48,8 +48,10 @@ endif # USE_HDF5
 
 if USE_HDF5
 if NETCDF_ENABLE_NCZARR_FILTERS
+if NETCDF_BUILD_UTILITIES
 check_PROGRAMS += tst_pluginpaths
 TESTS += run_pluginpaths.sh run_dfaltpluginpath.sh
+endif
 endif
 endif
 
