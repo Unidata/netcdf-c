@@ -13,7 +13,7 @@ Building and Installing the Interface Libraries {#nc_filters_qs_building}
 When configuring netcdf via either the `configure` script or via `cmake`, you'll need to specify the location to install the interface libraries, as follows:
 
 * configure: `--enable-plugins` `--with-plugin-dir=$NCPLUGIN_DIR`
-* cmake: `-DPLUGIN_INSTALL_DIR=$NCPLUGIN_DIR`
+* cmake: `-DNETCDF_WITH_PLUGIN_DIR=$NCPLUGIN_DIR`
 
 where `$NCPLUGIN_DIR` is the path to the user-defined directory, e.g. `/usr/local/nc-plugins`
 

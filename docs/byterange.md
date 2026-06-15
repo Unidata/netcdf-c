@@ -10,7 +10,7 @@ NetCDF Byterange Support {#netcdf_byterange}
 Suppose that you have the URL to a remote dataset
 which is a normal netcdf-3 or netcdf-4 file.
 
-The netCDF-c library now supports read-only access to such
+The netCDF-C library now supports read-only access to such
 datasets using the HTTP byte range capability [], assuming that
 the remote server supports byte-range access.
 
@@ -99,7 +99,7 @@ adapter between the *H5FD* API and the *dhttp.c* code.
 #### The dhttp.c Code {#byterange_dhttp}
 
 The core of all this is *dhttp.c* (and its header
-*include/nchttp.c*). It is a wrapper over *libcurl*
+*include/nchttp.h*). It is a wrapper over *libcurl*
 and so exposes the libcurl handles -- albeit as _void*_.
 
 The API for *dhttp.c* consists of the following procedures:

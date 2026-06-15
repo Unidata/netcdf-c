@@ -169,6 +169,14 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 	}
     }
 
+    {
+	NCglobalstate* gs = NC_getglobalstate();
+        if(gs->meta_block_size.defined) {
+            if (H5Pset_meta_block_size(fapl_id, (hsize_t)gs->meta_block_size.size) < 0) {
+                BAIL(NC_EHDFERR);
+            }
+    	}
+    }
     /* Set HDF5 format compatibility in the FILE ACCESS property list.
      * Compatibility is transient and must be reselected every time
      * a file is opened for writing. */

@@ -99,7 +99,7 @@ H5Z_filter_zstd(unsigned int flags, size_t cd_nelmts,
   }
 
   /* Prepare the input buffer. */
-  inbuflen = *buf_size;
+  inbuflen = nbytes;
   inbuf = (char*)*buf;
 
   if (flags & H5Z_FLAG_REVERSE) { /** Decompress data. */
