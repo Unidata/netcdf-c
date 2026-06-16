@@ -775,6 +775,14 @@ if (NOT NETCDF_ENABLE_S3 AND NETCDF_ENABLE_NCZARR_S3)
 endif()
 unset(NETCDF_ENABLE_NCZARR_S3)
 
+# S3_INTERNAL requires S3. If S3_INTERNAL is explicitly enabled while S3 is not,
+# force S3 on. This mirrors configure.ac which gates S3_INTERNAL processing
+# inside "if test x$enable_s3 = xyes"].
+if(NETCDF_ENABLE_S3_INTERNAL AND NOT NETCDF_ENABLE_S3)
+  message(STATUS "NETCDF_ENABLE_S3_INTERNAL=ON requires NETCDF_ENABLE_S3; enabling automatically.")
+  set(NETCDF_ENABLE_S3 ON CACHE BOOL "Enable S3 Support" FORCE)
+endif()
+
 # If NETCDF_ENABLE_S3 is ON/TRUE, then enable NETCDF_ENABLE_NCZARR, in order to keep
 # things congruent with autotools.
 if (NETCDF_ENABLE_S3)
