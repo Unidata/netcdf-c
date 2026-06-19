@@ -64,7 +64,7 @@ EXTERNL int NCZ_dimkey(const NC_DIM_INFO_T* dim, char** pathp);
 EXTERNL int ncz_splitkey(const char* path, NClist* segments);
 EXTERNL int ncz_nctypedecode(const char* snctype, nc_type* nctypep);
 EXTERNL int ncz_nctype2dtype(nc_type nctype, int endianness, int purezarr,int len, char** dnamep);
-EXTERNL int ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nctypep, int* endianp, int* typelenp);
+EXTERNL int ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nctypep, int* endianp, int* typelenp, const char **unitp);
 EXTERNL int NCZ_inferattrtype(const NCjson* value, nc_type typehint, nc_type* typeidp);
 EXTERNL int NCZ_inferinttype(unsigned long long u64, int negative);
 EXTERNL int ncz_fill_value_sort(nc_type nctype, int*);
