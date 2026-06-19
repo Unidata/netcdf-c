@@ -70,14 +70,14 @@ typedef struct NCZ_Metadata
 	int (*validate_consolidated)(const NCjson *jobj);
 } NCZ_Metadata;
 
-extern const NCZ_Metadata *NCZ_metadata_handler2;
-extern const NCZ_Metadata *NCZ_csl_metadata_handler2;
+EXTERNL const NCZ_Metadata *NCZ_metadata_handler2;
+EXTERNL const NCZ_Metadata *NCZ_csl_metadata_handler2;
 
 /// @brief Sets the metadata handler for the given zarr file based on
 /// 	environment variables, file creation mode, and dataset contents.
 /// @param zfile - The zarr file info structure
 /// @return NC_NOERR on success, NC_EZARRMETA on failure
-extern int NCZMD_set_metadata_handler(struct NCZ_FILE_INFO *zfile);
+EXTERNL int NCZMD_set_metadata_handler(struct NCZ_FILE_INFO *zfile);
 
 /// @brief Determines the Zarr format version set on the metadata handler or by
 /// 	probing the dataset for the existence of zarr metadata objects (.z*).
