@@ -316,22 +316,19 @@ v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 	if(status != NC_NOERR)
 		return status;
 
+	/* Bound nchars against the input before allocating; otherwise a
+	 * malformed header that declares a multi-GB string makes us malloc
+	 * before we check whether the bytes are actually there.  check_v1hs
+	 * is what the post-allocation path used to call -- just move it up. */
+	status = check_v1hs(gsp, _RNDUP(nchars, X_ALIGN));
+	if(status != NC_NOERR)
+		return status;
+
 	ncstrp = new_NC_string(nchars, NULL);
 	if(ncstrp == NULL)
 	{
 		return NC_ENOMEM;
 	}
-
-#if 0
-/* assert(ncstrp->nchars == nchars || ncstrp->nchars - nchars < X_ALIGN); */
-	assert(ncstrp->nchars % X_ALIGN == 0);
-	status = check_v1hs(gsp, ncstrp->nchars);
-#else
-
-	status = check_v1hs(gsp, _RNDUP(ncstrp->nchars, X_ALIGN));
-#endif
-	if(status != NC_NOERR)
-		goto unwind_alloc;
 
 	status = ncx_pad_getn_text((const void **)(&gsp->pos),
 		 nchars, ncstrp->cp);
