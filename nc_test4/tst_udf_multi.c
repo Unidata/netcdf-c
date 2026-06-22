@@ -131,6 +131,16 @@ static inq_format_func udf_inq_formats[NC_MAX_UDF_FORMATS] = {
     tst_inq_format_udf9
 };
 
+#ifdef _MSC_VER
+static int
+NC4_no_show_metadata(int ncid)
+{
+    return NC_NOERR;
+}
+#define NC4_show_metadata NC4_no_show_metadata
+#endif
+
+
 /* Initialize all 10 dispatch tables */
 static void
 init_dispatchers(void)
