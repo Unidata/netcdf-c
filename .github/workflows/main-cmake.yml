@@ -109,6 +109,7 @@ jobs:
             cat libnetcdf.settings  
 
         - name: Perform out-of-directory build - libnetcdf
+          id: build_libnetcdf
           shell: bash -el {0}
           run: |
             cd build
@@ -119,34 +120,36 @@ jobs:
           run: |
             cd build
             cmake --build . --config Release --target install -j 4
-          if: ${{ success() }}  
+          if: ${{ steps.build_libnetcdf.outcome == 'success' }}
 
         - name: View config.h - libnetcdf failure
           shell: bash -el {0}
           run: |
             cd build
             cat config.h
-          if: ${{ failure() }}
+          if: ${{ always() && steps.build_libnetcdf.outcome == 'failure' }}
 
         - name: Perform out-of-directory build - test suite
+          id: build_tests
           shell: bash -el {0}
           run: | 
             cd build
             cmake --build . --config Release -j 4
-          if: ${{ success() }}
+          if: ${{ steps.build_libnetcdf.outcome == 'success' }}
       
         - name: View config.h - tests failure failure
           shell: bash -el {0}
           run: |
             cd build
             cat config.h
-          if: ${{ failure() }}  
+          if: ${{ always() && steps.build_tests.outcome == 'failure' }}
 
         - name: Prepare ctest Paths and env
           shell: bash -el {0}
           run: | 
             cat ~/.bash_profile
             echo "" >> ~/.bash_profile
+          if: ${{ steps.build_libnetcdf.outcome == 'success' && steps.build_tests.outcome == 'success' }}
 
         - name: Run ctest
           shell: bash -el {0}
@@ -156,6 +159,7 @@ jobs:
             echo "Run ctest combined GITHUB_PATH: $PATH"
             cd build
             PATH=~/tmp/bin:$PATH ctest . -j 4 -E 'bom' --output-on-failure
+          if: ${{ steps.build_libnetcdf.outcome == 'success' && steps.build_tests.outcome == 'success' }}
             
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
