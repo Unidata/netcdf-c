@@ -152,6 +152,7 @@ jobs:
           if: ${{ steps.build_libnetcdf.outcome == 'success' && steps.build_tests.outcome == 'success' }}
 
         - name: Run ctest
+          id: run_ctest
           shell: bash -el {0}
           run: |
             echo "Run ctest PATH: $PATH"
@@ -166,4 +167,4 @@ jobs:
           run: |
             cd build
             PATH=~/tmp/bin:$PATH ctest . --rerun-failed --output-on-failure -VV
-          if: ${{ failure() }}    
+          if: ${{ steps.build_libnetcdf.outcome == 'success' && steps.run_ctest.outcome == 'failure' }}
