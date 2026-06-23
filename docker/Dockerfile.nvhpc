@@ -1,0 +1,40 @@
+# nvidia rate limits requests. You can get around this by restarting docker if for 
+# some reason you have to build this image many times
+# https://stackoverflow.com/a/75757516/5217293
+#
+# Container versions, and sizes, can be found at https://catalog.ngc.nvidia.com/orgs/nvidia/containers/nvhpc/tags
+#
+FROM nvcr.io/nvidia/nvhpc:23.7-devel-cuda12.2-ubuntu22.04
+
+# Install necessary dependencies
+RUN apt update -y && \
+    apt install -y \
+        bzip2 \
+        cmake \
+        libcurl4-openssl-dev \
+        libhdf5-dev \
+        git \
+        m4 \
+        make \
+        unzip \
+        wget \
+        zlib1g-dev \
+    && apt clean all
+
+# Set working directory
+WORKDIR /usr/local/src
+
+COPY . netcdf-c
+
+# Set environment variables for nvidia compilers
+ENV CXX=nvc++
+ENV CC=nvc
+ENV FC=nvfortran
+
+# Build and install NetCDF
+WORKDIR /usr/local/src/netcdf-c
+RUN cmake -S . -B build && \
+    cd build && make -j  && \
+    make install
+
+WORKDIR /usr/local/src/netcdf-c/build
