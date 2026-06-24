@@ -148,7 +148,7 @@ ncproplistadd(NCproplist* plist, const char* key, uintptr_t value)
     if(!hasspace(plist,1)) {if((stat = extendplist(plist,(plist->count+1)*EXPANDFACTOR))) goto done;} /* extra space */
     prop = &plist->properties[plist->count];
     keylen = strlen(key);
-    if(keylen > NCPROPSMAXKEY) keylen = NCPROPSMAXKEY; /* truncate */
+    if(keylen >= sizeof(prop->pair.key)) keylen = sizeof(prop->pair.key) - 1; /* truncate to fit */
     memcpy(prop->pair.key,key,keylen);
     prop->pair.key[keylen] = '\0';
     prop->pair.value = value;
@@ -179,7 +179,7 @@ ncproplistaddbytes(NCproplist* plist, const char* key, void* value, uintptr_t si
     if(!hasspace(plist,1)) {if((stat = extendplist(plist,(plist->count+1)*EXPANDFACTOR))) goto done;} /* extra space */
     prop = &plist->properties[plist->count];
     keylen = strlen(key);
-    if(keylen > NCPROPSMAXKEY) keylen = NCPROPSMAXKEY; /* truncate */
+    if(keylen >= sizeof(prop->pair.key)) keylen = sizeof(prop->pair.key) - 1; /* truncate to fit */
     memcpy(prop->pair.key,key,keylen);
     prop->pair.key[keylen] = '\0';
     prop->pair.value = (uintptr_t)value;
@@ -229,7 +229,7 @@ ncproplistaddx(NCproplist* plist, const char* key, void* value, uintptr_t size, 
     if(!hasspace(plist,1)) {if((stat = extendplist(plist,(plist->count+1)*EXPANDFACTOR))) goto done;} /* extra space */
     prop = &plist->properties[plist->count];
     keylen = strlen(key);
-    if(keylen > NCPROPSMAXKEY) keylen = NCPROPSMAXKEY; /* truncate */
+    if(keylen >= sizeof(prop->pair.key)) keylen = sizeof(prop->pair.key) - 1; /* truncate to fit */
     memcpy(prop->pair.key,key,keylen);
     prop->pair.key[keylen] = '\0';
     prop->pair.value = (uintptr_t)value;
@@ -266,6 +266,7 @@ ncproplistclone(const NCproplist* src, NCproplist* clone)
 	    break;
 	case NCP_BYTES:
 	    p = malloc(cp->pair.size);
+	    if(p == NULL) {stat = NC_ENOMEM; goto done;}
 	    memcpy(p,(void*)sp->pair.value,sp->pair.size);
 	    cp->pair.value = (uintptr_t)p;
 	    break;
