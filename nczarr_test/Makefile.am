@@ -43,7 +43,9 @@ ut_json_SOURCES = ut_json.c ${commonsrc}
 
 test_fillonlyz_SOURCES = test_fillonlyz.c ${testcommonsrc}
 
-check_PROGRAMS += test_fillonlyz test_quantize test_notzarr
+tst_chunking_ints_SOURCES = tst_chunking_ints.c
+
+check_PROGRAMS += test_fillonlyz test_quantize test_notzarr tst_chunking_ints
 
 # Unlimited Dimension tests
 if USE_HDF5
@@ -59,6 +61,7 @@ if NETCDF_BUILD_UTILITIES
 TESTS += run_ut_misc.sh
 TESTS += run_ut_map.sh
 TESTS += run_ut_mapapi.sh
+TESTS += tst_chunking_ints
 
 if AX_DISABLE # Obsolete tests
 TESTS += run_ut_chunk.sh

@@ -163,23 +163,55 @@ nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 }
 
 #ifndef USE_HDF5
-/* See definitions in libhd5/hdf5var.c */
-/* Make sure they are always defined */
-/* Note: if netcdf-4 is completely disabled, then the definitions in
- * libdispatch/dfile.c take effect.
- */
-
 int
 nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
                             int preemption)
 {
     return NC_NOERR;
 }
+#endif /*USE_HDF5*/
 
+/**
+ * Fortran-compatible wrapper for nc_def_var_chunking().
+ * Converts int* chunksizes to size_t* and delegates to the
+ * format-aware nc_def_var_chunking() dispatch.
+ *
+ * This replaces the previous stub (which returned NC_NOERR
+ * without doing anything) and the HDF5-specific version in
+ * libhdf5/hdf5var.c (which set metadata but did not update
+ * NCZarr cache state).
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param storage Contiguous or chunked.
+ * @param chunksizesp Array of chunk sizes (int).
+ *
+ * @return NC_NOERR No error.
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
 int
 nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
 {
-    return NC_NOERR;
-}
+    int i, retval;
+    NC_VAR_INFO_T *var = NULL;
+    size_t *cs = NULL;
 
-#endif /*USE_HDF5*/
+    /* Find the variable to get its rank. */
+    if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
+        return retval;
+    assert(var);
+
+    /* Allocate size_t array and convert. */
+    if (var->ndims > 0) {
+        if (!(cs = malloc(var->ndims * sizeof(size_t))))
+            return NC_ENOMEM;
+        for (i = 0; i < var->ndims; i++)
+            cs[i] = (size_t)chunksizesp[i];
+    }
+
+    /* Delegate to format-aware dispatch (works for HDF5, NCZarr, etc.) */
+    retval = nc_def_var_chunking(ncid, varid, storage, cs);
+
+    if (cs) free(cs);
+    return retval;
+}

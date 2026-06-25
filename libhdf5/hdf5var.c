@@ -1040,7 +1040,12 @@ NC4_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp
 /**
  * @internal Define chunking stuff for a var. This is called by
  * the fortran API.
- * Note: see libsrc4/nc4cache.c for definition when HDF5 is disabled
+ *
+ * NOTE: This function is now defined in libsrc4/nc4cache.c as a
+ * format-agnostic wrapper that delegates to nc_def_var_chunking()
+ * (which dispatches to the correct backend). The HDF5-specific
+ * version that called nc_def_var_extra() has been removed because
+ * it did not update NCZarr cache state (see GitHub issue #487).
  *
  * @param ncid File ID.
  * @param varid Variable ID.
@@ -1058,6 +1063,10 @@ NC4_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp
  * @returns ::NC_EBADCHUNK Bad chunksize.
  * @author Ed Hartnett
  */
+#if 0
+/* Moved to libsrc4/nc4cache.c as a format-agnostic wrapper that
+ * delegates to nc_def_var_chunking() for correct dispatch to HDF5,
+ * NCZarr, etc. See fix-nczarr-chunking-cache-stale. */
 int
 nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
 {
@@ -1086,6 +1095,7 @@ nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
         free(cs);
     return retval;
 }
+#endif /* 0 */
 
 /**
  * @internal This functions sets fill value and no_fill mode for a

@@ -108,6 +108,9 @@ IF(NETCDF_ENABLE_TESTS)
 
 #  ADD_BIN_TEST(nczarr_test test_endians ${TSTCOMMONSRC})
 
+  # Test nc_def_var_chunking_ints (Fortran compatibility wrapper)
+  add_bin_test(nczarr_test tst_chunking_ints)
+
   # Unlimited Tests
   IF(USE_HDF5)
   add_bin_test_with_util_lib(nczarr_test test_unlim_vars test_utils)
