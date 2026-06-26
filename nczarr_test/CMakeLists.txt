@@ -85,7 +85,7 @@ IF(NETCDF_ENABLE_TESTS)
   endmacro()
 
   macro(add_bin_test_with_util_lib PREFIX F UTIL_LIB)
-    add_bin_test(${PREFIX} ${F})
+    add_bin_test(${PREFIX} ${F} ${ARGN})
     IF(NETCDF_ENABLE_DLL)
       target_compile_definitions(${PREFIX}_${F} PUBLIC -DDLL_NETCDF)
     ENDIF(NETCDF_ENABLE_DLL)
@@ -101,6 +101,8 @@ IF(NETCDF_ENABLE_TESTS)
   build_bin_test_with_util_lib(ut_map ut_util)
   build_bin_test_with_util_lib(ut_mapapi ut_util)
   build_bin_test_with_util_lib(ut_json ut_util)
+
+  add_bin_test_with_util_lib(nczarr_test ut_zinfer ut_util ../libnczarr/zinfer.c ../libnczarr/zmetadata.c ../libnczarr/zmetadata2.c)
 
   build_bin_test_with_util_lib(test_fillonlyz test_utils)
   build_bin_test_with_util_lib(test_quantize test_utils)

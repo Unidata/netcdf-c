@@ -41,6 +41,11 @@ ut_map_SOURCES = ut_map.c ${commonsrc}
 ut_mapapi_SOURCES = ut_mapapi.c ${commonsrc}
 ut_json_SOURCES = ut_json.c ${commonsrc}
 
+# per-file unittest
+check_PROGRAMS += ut_zinfer
+ut_zinfer_SOURCES = ut_zinfer.c ${commonsrc}
+TESTS += ut_zinfer
+
 test_fillonlyz_SOURCES = test_fillonlyz.c ${testcommonsrc}
 
 check_PROGRAMS += test_fillonlyz test_quantize test_notzarr
