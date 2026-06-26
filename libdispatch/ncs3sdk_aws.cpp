@@ -155,7 +155,10 @@ NC_s3sdkinitialize(void)
 /*EXTERNL*/ int
 NC_s3sdkfinalize(void)
 {
-    if(!ncs3_finalized) {
+    /* Only shut down the SDK if it was actually initialized. With lazy init
+     * (see NC_s3sdkcreateclient) a process that never used S3 never called
+     * Aws::InitAPI(), so it must not call Aws::ShutdownAPI() either. */
+    if(ncs3_initialized && !ncs3_finalized) {
 	ncs3_initialized = 0;
 	ncs3_finalized = 1;
         NCTRACE(11,NULL);
@@ -238,6 +241,12 @@ buildclient(Aws::Client::ClientConfiguration* config, Aws::Auth::AWSCredentials*
 NC_s3sdkcreateclient(NCS3INFO* info)
 {
     NCTRACE(11,NULL);
+
+    /* Lazily initialize the AWS SDK on first real S3 use. This is the only
+     * path that needs an initialized SDK, so programs that only touch local
+     * files never start the SDK's background threads. See Unidata/netcdf-c#2739.
+     * NC_s3sdkinitialize() is idempotent (guarded by ncs3_initialized). */
+    NC_s3sdkinitialize();
 
     Aws::Client::ClientConfiguration config = s3sdkcreateconfig(info);
     AWSS3CLIENT s3client;
