@@ -622,59 +622,10 @@ nc_inq_libvers(void);
 EXTERNL const char *
 nc_strerror(int ncerr);
 
-/** Register a user-defined format.
- *
- * This function registers a custom format handler (dispatch table) for one of
- * the 10 available UDF slots (UDF0-UDF9). After registration, files can be
- * opened using the specified mode flag, or automatically via magic number detection.
- *
- * @param mode_flag One of NC_UDF0 through NC_UDF9, optionally combined with
- *                  other mode flags (e.g., NC_UDF0 | NC_NETCDF4). Only one
- *                  UDF flag should be specified.
- * @param dispatch_table Pointer to the dispatch table containing function
- *                       pointers for all netCDF API operations. The dispatch
- *                       table's version field must match NC_DISPATCH_VERSION.
- * @param magic_number Optional magic number string (max 8 bytes) for automatic
- *                     format detection. Files starting with this string will
- *                     automatically use this dispatch table. Pass NULL if not using
- *                     magic number detection.
- *
- * @return NC_NOERR on success, error code on failure.
- * @retval NC_EINVAL Invalid mode_flag or dispatch table version mismatch
- * @retval NC_ENOTNC4 UDF support not enabled in this build
- *
- * @see nc_inq_user_format()
- * @see @ref user_defined_formats
- *
- * @author Edward Hartnett
- * @date 2/2/25
- */
 typedef struct NC_Dispatch NC_Dispatch;
 EXTERNL int
 nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number);
 
-/** Query a registered user-defined format.
- *
- * This function retrieves the dispatch table and magic number for a previously
- * registered user-defined format.
- *
- * @param mode_flag One of NC_UDF0 through NC_UDF9. Only one UDF flag should
- *                  be specified.
- * @param dispatch_table Pointer to receive the dispatch table pointer. Pass NULL
- *                       if not needed.
- * @param magic_number Buffer to receive the magic number string (must be at least
- *                     NC_MAX_MAGIC_NUMBER_LEN + 1 bytes). Pass NULL if not needed.
- *
- * @return NC_NOERR on success, error code on failure.
- * @retval NC_EINVAL Invalid mode_flag or UDF slot not registered
- * @retval NC_ENOTNC4 UDF support not enabled in this build
- *
- * @see nc_def_user_format()
- * @see @ref user_defined_formats
- *
- * @author Edward Hartnett
- * @date 2/2/25
- */
 EXTERNL int
 nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number);
 
