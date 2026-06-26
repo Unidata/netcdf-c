@@ -184,6 +184,14 @@ NC_s3sdkcreateclient(NCS3INFO* info)
 
     NCTRACE(11,"info=%s",NC_s3dumps3info(info));
 
+    /* Lazily initialize on first real S3 use. The eager NC_s3sdkinitialize()
+     * call was removed from nc_initialize() to avoid starting the AWS SDK (and
+     * its threads) for local-file-only programs; this restores the internal
+     * backend's initialization (which loads AWS env/credentials via
+     * NC_s3sdkenvironment) exactly when it is needed. NC_s3sdkinitialize() is
+     * idempotent. See Unidata/netcdf-c#2739. */
+    NC_s3sdkinitialize();
+
     s3client = (NCS3CLIENT*)calloc(1,sizeof(NCS3CLIENT));
     if(s3client == NULL) goto done;
     NC_s3getcredentials(info->profile, NULL, &accessid, &accesskey);
