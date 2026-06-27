@@ -652,7 +652,7 @@ NCJdictlookup(const NCjson* dict, const char* key)
     const NCjson* jvalue = NULL;
     stat = NCJdictget(dict,key,&jvalue);
     if(stat != NCJ_OK) jvalue = NULL;
-    return jvalue;
+    return (NCjson*)jvalue;
 }
 
 /* Unescape the text in parser->yytext; can
