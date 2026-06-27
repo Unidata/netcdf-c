@@ -154,6 +154,66 @@ done:
 }
 
 /**
+ * @internal Inquire about a dimension, returning its name and length
+ * from the in-memory metadata model.
+ *
+ * This is the generic netcdf-4 implementation that works purely from
+ * the in-memory NC_DIM_INFO_T structures. It returns dim->len
+ * directly for all dimensions, including unlimited ones.
+ *
+ * The HDF5 layer provides its own HDF5_inq_dim() (in
+ * libhdf5/hdf5dim.c) which overrides this for HDF5-backed files.
+ * HDF5_inq_dim queries the actual HDF5 datasets via nc4_find_dim_len()
+ * to determine the current extent of unlimited dimensions, since data
+ * may have been written since the dimension was created. That function
+ * requires HDF5-specific format_grp_info and cannot be used by UDF
+ * handlers or other non-HDF5 dispatch layers.
+ *
+ * UDF handlers and other non-HDF5 dispatch layers should use this
+ * function in their dispatch tables.
+ *
+ * @param ncid File and group ID.
+ * @param dimid Dimension ID.
+ * @param name Pointer that gets dimension name. Ignored if NULL.
+ * @param lenp Pointer that gets dimension length. Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EBADDIM Dimension not found.
+ * @author Edward Hartnett @date 5/7/2023
+ */
+int
+NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
+{
+    NC_GRP_INFO_T *grp;
+    NC_FILE_INFO_T *h5;
+    NC_DIM_INFO_T *dim;
+    int retval;
+
+    LOG((2, "%s: ncid 0x%x dimid %d", __func__, ncid, dimid));
+
+    /* Find our global metadata structure. */
+    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
+        return retval;
+    assert(h5 && grp);
+
+    /* Find the dimension. */
+    if ((retval = nc4_find_dim(grp, dimid, &dim, NULL)))
+        return retval;
+    assert(dim);
+
+    /* Return the dimension name, if the caller wants it. */
+    if (name && dim->hdr.name)
+        strcpy(name, dim->hdr.name);
+
+    /* Return the dimension length, if the caller wants it. */
+    if (lenp)
+        *lenp = dim->len;
+
+    return NC_NOERR;
+}
+
+/**
  * @internal Returns an array of unlimited dimension ids.The user can
  * get the number of unlimited dimensions by first calling this with
  * NULL for the second pointer.
