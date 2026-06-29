@@ -104,6 +104,10 @@ struct KeySet {
 
 static int ncs3_initialized = 0;
 static int ncs3_finalized = 0;
+/* Tracks whether Aws::InitAPI() has been called. This is deferred out of
+ * NC_s3sdkinitialize() and done lazily on first S3 client creation; see
+ * s3sdk_ensure_aws_api() and Unidata/netcdf-c#2739. */
+static int ncs3_aws_api_initialized = 0;
 
 static Aws::SDKOptions ncs3options;
 
@@ -132,24 +136,42 @@ NCS3_dumps3info(NCS3INFO* info)
 /*EXTERNL*/ int
 NC_s3sdkinitialize(void)
 {
+    /* Load AWS environment/config only. This is cheap and starts no threads,
+     * so it is safe to run eagerly from nc_initialize() (and is relied upon by
+     * code that reads AWS profiles without ever creating an S3 client). The
+     * AWS SDK itself (Aws::InitAPI, which spawns event-loop threads) is started
+     * lazily on first S3 client creation; see s3sdk_ensure_aws_api() and
+     * Unidata/netcdf-c#2739. */
     if(!ncs3_initialized) {
     	ncs3_initialized = 1;
-	    ncs3_finalized = 0;
-	
+	ncs3_finalized = 0;
+    }
+
+    /* Get environment information */
+    NC_s3sdkenvironment();
+
+    return NCUNTRACE(NC_NOERR);
+}
+
+/* Lazily start the AWS SDK on first real S3 use. Deferred out of
+ * NC_s3sdkinitialize() because Aws::ShutdownAPI() -- driven from nc_finalize()
+ * via atexit() during DLL teardown under the Windows loader lock -- deadlocks
+ * joining the SDK's event-loop threads. Programs that only touch local files
+ * never create an S3 client, so they never start the SDK and never hit the
+ * deadlock. See Unidata/netcdf-c#2739. */
+static void
+s3sdk_ensure_aws_api(void)
+{
+    if(!ncs3_aws_api_initialized) {
+	ncs3_aws_api_initialized = 1;
 #ifdef DEBUG
         //ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
         ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Trace;
-        ncs3options.httpOptions.installSigPipeHandler = true; 
+        ncs3options.httpOptions.installSigPipeHandler = true;
         ncs3options.loggingOptions.logger_create_fn = [] { return std::make_shared<Aws::Utils::Logging::ConsoleLogSystem>(Aws::Utils::Logging::LogLevel::Trace); };
-
 #endif
         Aws::InitAPI(ncs3options);
-
-	/* Get environment information */
-        NC_s3sdkenvironment();
-
     }
-    return NCUNTRACE(NC_NOERR);
 }
 
 /*EXTERNL*/ int
@@ -158,8 +180,13 @@ NC_s3sdkfinalize(void)
     if(!ncs3_finalized) {
 	ncs3_initialized = 0;
 	ncs3_finalized = 1;
-        NCTRACE(11,NULL);
-        Aws::ShutdownAPI(ncs3options);
+        /* Only shut down the SDK if it was actually started (see
+         * s3sdk_ensure_aws_api). */
+        if(ncs3_aws_api_initialized) {
+            ncs3_aws_api_initialized = 0;
+            NCTRACE(11,NULL);
+            Aws::ShutdownAPI(ncs3options);
+        }
     }
     return NCUNTRACE(NC_NOERR);
 }
@@ -238,6 +265,11 @@ buildclient(Aws::Client::ClientConfiguration* config, Aws::Auth::AWSCredentials*
 NC_s3sdkcreateclient(NCS3INFO* info)
 {
     NCTRACE(11,NULL);
+
+    /* Start the AWS SDK lazily here, on first real S3 use, rather than eagerly
+     * in NC_s3sdkinitialize(). Must run before any Aws:: object is created.
+     * See s3sdk_ensure_aws_api() and Unidata/netcdf-c#2739. */
+    s3sdk_ensure_aws_api();
 
     Aws::Client::ClientConfiguration config = s3sdkcreateconfig(info);
     AWSS3CLIENT s3client;
