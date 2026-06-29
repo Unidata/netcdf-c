@@ -130,14 +130,9 @@ nc_initialize()
 #ifdef USE_HDF4
     if((stat = NC_HDF4_initialize())) goto done;
 #endif
-    /* NOTE: The AWS C++ SDK is intentionally NOT initialized here.
-     * Aws::InitAPI() spawns background event-loop threads, and on Windows the
-     * matching Aws::ShutdownAPI() (driven from nc_finalize via atexit, i.e.
-     * during DLL teardown under the loader lock) deadlocks joining them. Most
-     * programs only ever touch local files, so eagerly starting the SDK here
-     * made every process pay that teardown cost. Instead the SDK is now
-     * initialized lazily on first actual S3 client creation
-     * (NC_s3sdkcreateclient). See Unidata/netcdf-c#2739. */
+#ifdef NETCDF_ENABLE_S3
+    if((stat = NC_s3sdkinitialize())) goto done;
+#endif
 #ifdef NETCDF_ENABLE_NCZARR
     if((stat = NCZ_initialize())) goto done;
 #endif
