@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4,10.1 - July 6, 2026
 
-
+* Fixed outstanding CVE issues. See [Github 3236](https://github.com/Unidata/netcdf-c/issues/3236) and [Github 3402](https://github.com/Unidata/netcdf-c/pull/3402) for more information.
 * Added new functions `nc_set_meta_block_size()` and `nc_get_meta_block_size()`, to allow for runtime modification of downstream `libhdf5` block size.  See [GitHub 3386](https://github.com/Unidata/netcdf-c/issues/3386) and [Github 3391](https://github.com/Unidata/netcdf-c/pull/3391) for more information.   
 * Use TARGETS to install plugins by  @@opoplawski in https://github.com/Unidata/netcdf-c/pull/3305
 * Have hdf4 tests include MFHDF_H_INCLUDE_DIR by  @@opoplawski in https://github.com/Unidata/netcdf-c/pull/3300
