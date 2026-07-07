@@ -1032,6 +1032,11 @@ v1h_get_NC_var(v1hs *gsp, NC_var **varpp)
     if(status != NC_NOERR)
 		goto unwind_name;
 
+    if(ndims > NC_MAX_VAR_DIMS) {
+        status = NC_EMAXDIMS;
+        goto unwind_name;
+    }
+
 	varp = new_x_NC_var(strp, ndims);
 	if(varp == NULL)
 	{
