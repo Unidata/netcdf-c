@@ -310,12 +310,12 @@ cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTi
 	int nconv;
 
 	/* Parse the relunits.  First parse assuming white space only. */
-	nconv = sscanf(relunits,"%s since %s %s",charunits,basetime_1,basetime_2);
+	nconv = sscanf(relunits,"%63s since %47s %47s",charunits,basetime_1,basetime_2);
 
 	/* Handle ISO-8601 "T" date-time separator in place of blank separator. */
 	if (nconv!=EOF && nconv>=2) {
 	    if (strchr (basetime_1, 'T') != NULL) {
-		nconv = sscanf(relunits,"%s since %[^T]T%s",charunits,basetime_1,basetime_2);
+		nconv = sscanf(relunits,"%63s since %47[^T]T%47s",charunits,basetime_1,basetime_2);
 	    }
 	}
 

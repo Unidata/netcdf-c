@@ -31,7 +31,7 @@ Appendix C. NetCDF Error Code Listing {#nc-error-codes}
 #define NC_EUNLIMIT     (-54)   // NC_UNLIMITED size already in use
 #define NC_ENORECVARS   (-55)   // nc_rec op when there are no record vars
 #define NC_ECHAR        (-56)   // Attempt to convert between text & numbers
-#define NC_EEDGE        (-57)   // Edge+start exceeds dimension bound
+#define NC_EEDGE        (-57)   // Start+count exceeds dimension bound
 #define NC_ESTRIDE      (-58)   // Illegal stride
 #define NC_EBADNAME     (-59)   // Attribute or variable name contains illegal characters
 
@@ -123,6 +123,8 @@ were added for new errors unique to netCDF-4.
 #define NC_EOBJECT       (-140)    // Some object exists when it should not
 #define NC_ENOOBJECT     (-141)    // Some object not found
 #define NC_EPLUGIN       (-142)    // Unclassified failure in accessing a dynamically loaded plugin
+#define NC_ENOTZARR      (-143)    // Malformed (NC)Zarr file
+#define NC_EZARRMETA     (-144)    // Invalid (NC)Zarr file consolidated metadata
 
 
 ~~~~

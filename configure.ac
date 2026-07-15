@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF],[4.10.1-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
+AC_INIT([netCDF],[4.10.2-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -21,7 +21,7 @@ AC_INIT([netCDF],[4.10.1-development],[support-netcdf@unidata.ucar.edu],[netcdf-
 
 AC_SUBST([netCDF_VERSION_MAJOR]) netCDF_VERSION_MAJOR=4
 AC_SUBST([netCDF_VERSION_MINOR]) netCDF_VERSION_MINOR=10
-AC_SUBST([netCDF_VERSION_PATCH]) netCDF_VERSION_PATCH=1
+AC_SUBST([netCDF_VERSION_PATCH]) netCDF_VERSION_PATCH=2
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 ##
@@ -29,7 +29,7 @@ AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 # See http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 # for information regarding incrementing `-version-info`.
 # These values should match those in CMakeLists.txt
-AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=24:0:2
+AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=25:0:3
 
 #####
 # Set some variables used to generate a libnetcdf.settings file,
@@ -1778,9 +1778,28 @@ if test "x$enable_hdf5" = xyes; then
       AC_DEFINE([HDF5_UTF8_PATHS], [1], [if true, HDF5 paths can be utf-8])
    fi
 
+   # Check to see if HDF5 library is 2.0.0 or greater.
+   # Used to gate memory safety tests that would false-fail on earlier versions.
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <H5public.h>]], [[
+#if (H5_VERS_MAJOR < 2)
+      choke me
+#endif
+  ]])], [hdf5_version_200=yes], [hdf5_version_200=no])
+  AC_MSG_CHECKING([whether HDF5 library is version 2.0.0 or later])
+  AC_MSG_RESULT([$hdf5_version_200])
+
 fi
 
 AM_CONDITIONAL(ENABLE_NCDUMPCHUNKS, [test "x$has_readchunks" = xyes ])
+AM_CONDITIONAL(HDF5_VERSION_GE_200, [test "x$hdf5_version_200" = xyes])
+# Memory growth tests use getrusage()/ru_maxrss which is only reliable on
+# Linux.  On macOS ru_maxrss is the peak (high-water mark) RSS for the entire
+# process lifetime and never decreases, making growth comparisons useless.
+case $host_os in
+  linux*) host_is_linux=yes ;;
+  *)      host_is_linux=no  ;;
+esac
+AM_CONDITIONAL(HOST_IS_LINUX, [test "x$host_is_linux" = xyes])
 
 # If the user wants hdf4 built in, check it out.
 if test "x$enable_hdf4" = xyes; then

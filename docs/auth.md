@@ -42,7 +42,7 @@ This is described in the file "quickstart_env.md".
 
 ## Authorization-Related Keys {#auth_keys}
 
-The currently defined set of authorization-related keys recognized in .netrc are as follows.
+The currently defined set of authorization-related keys recognized in .ncrc are as follows.
 The second column is the affected curl_easy_setopt option(s), if any
 (see reference #1).
 <table>

@@ -18,6 +18,7 @@ cleanncprops() {
   | sed -e 's/\(netcdflibversion\|netcdf\)=.*|/\1=NNNN|/' \
   | sed -e 's/\(hdf5libversion\|hdf5\)=.*"/\1=HHHH"/' \
   | grep -v '_NCProperties' \
+  | sed -e 's/|2,[0-9][0-9]*/|2/g' \
   | cat >$dst
 }
 

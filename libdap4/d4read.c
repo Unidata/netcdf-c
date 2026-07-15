@@ -1,12 +1,13 @@
-/*! \file
-
-Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-2015, 2016, 2017, 2018
-University Corporation for Atmospheric Research/Unidata.
-
-See \ref copyright file for more info.
-
+/** @file d4read.c
+ * @brief Fetches DMR and DAP responses from a DAP4 server.
+ *
+ * Implements NCD4_readDMR() and NCD4_readDAP(), which build the
+ * appropriate request URL, invoke NCD4_fetchurl(), and store the
+ * raw response bytes in an NCD4response object.
+ *
+ * Copyright 1993-2018 University Corporation for Atmospheric Research/Unidata.
+ * See the copyright file for more info.
+ * @author Dennis Heimbigner
 */
 
 #include "d4includes.h"

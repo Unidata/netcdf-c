@@ -221,7 +221,7 @@ NCZ_load_all_plugins(void)
     int ret = NC_NOERR;
     size_t i,j;
     struct NCglobalstate* gs = NC_getglobalstate();
-    #ifdef _WIN64
+    #ifdef _WIN32
         struct _stat64 buf;
     #else
         struct stat buf;
@@ -763,8 +763,8 @@ printhdf5(const NCZ_HDF5 h)
 static void static_unused(void)
 {
     void* p = NULL;
-    (void)p;
     p = static_unused;
+    (void)p;
 #if defined(DEBUGF) || defined(DEBUGL)
 (void)printplugin(NULL);
 (void)printparams(0, NULL);

@@ -9,7 +9,14 @@
 /**********************************************/
 /* Define methods for a dimension dapodometer*/
 
-/* Build an odometer covering slices startslice up to, but not including, stopslice */
+/**
+Build a dapodometer from a DCE segment slice range.
+Covers slices from startindex up to, but not including, stopindex.
+@param segment the DCE segment containing the slice definitions
+@param startindex the first slice index to include
+@param stopindex one past the last slice index to include
+@return pointer to a newly allocated Dapodometer, or NULL on allocation failure
+*/
 Dapodometer*
 dapodom_fromsegment(DCEsegment* segment, size_t startindex, size_t stopindex)
 {
@@ -36,6 +43,17 @@ dapodom_fromsegment(DCEsegment* segment, size_t startindex, size_t stopindex)
     return odom;
 }
 
+/**
+Create a new dapodometer from explicit start/count/stride/size arrays.
+Any of start, count, stride, or size may be NULL, in which case
+default values (0, size or 1, 1, stop-start) are used.
+@param rank the number of dimensions
+@param start array of per-dimension start indices, or NULL for all zeros
+@param count array of per-dimension element counts, or NULL to use size
+@param stride array of per-dimension strides, or NULL for stride 1
+@param size array of per-dimension declared sizes, or NULL
+@return pointer to a newly allocated Dapodometer, or NULL on allocation failure
+*/
 Dapodometer*
 dapodom_new(size_t rank,
 	    const size_t* start, const size_t* count,
@@ -62,6 +80,10 @@ dapodom_new(size_t rank,
     return odom;
 }
 
+/**
+Free a dapodometer previously allocated by dapodom_new or dapodom_fromsegment.
+@param odom the dapodometer to free; no-op if NULL
+*/
 void
 dapodom_free(Dapodometer* odom)
 {
@@ -90,13 +112,23 @@ dapodom_print(Dapodometer* odom)
 }
 #endif
 
+/**
+Test whether the dapodometer has more elements to iterate over.
+@param odom the dapodometer to test
+@return 1 if more elements remain, 0 if iteration is complete
+*/
 int
 dapodom_more(Dapodometer* odom)
 {
     return (odom->index[0] < odom->stop[0]);
 }
 
-/* Convert current dapodometer settings to a single integer count*/
+/**
+Convert the current dapodometer index position to a flat linear offset.
+Computes the row-major (C-order) offset into the declared array shape.
+@param odom the dapodometer whose current index is converted
+@return the flat linear offset corresponding to the current index
+*/
 size_t
 dapodom_count(Dapodometer* odom)
 {
@@ -108,6 +140,13 @@ dapodom_count(Dapodometer* odom)
     return offset;
 }
 
+/**
+Advance the dapodometer to the next position, respecting stride.
+Increments the innermost (last) dimension first, carrying over to
+outer dimensions as needed.
+@param odom the dapodometer to advance
+@return 1 if the odometer was successfully advanced, 0 if it has overflowed
+*/
 int
 dapodom_next(Dapodometer* odom)
 {
@@ -121,7 +160,14 @@ dapodom_next(Dapodometer* odom)
     return 1;
 }
 
-/**************************************************/
+/**
+Compute the offset into a variable's memory buffer for the current
+dapodometer position, using caller-supplied per-dimension step sizes.
+@param odom the dapodometer holding the current index
+@param steps per-dimension step sizes in elements
+@param declsizes per-dimension declared sizes (unused, reserved)
+@return the memory buffer offset in elements
+*/
 size_t
 dapodom_varmcount(Dapodometer* odom, const ptrdiff_t* steps, const size_t* declsizes)
 {

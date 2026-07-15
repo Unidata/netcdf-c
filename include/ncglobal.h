@@ -51,6 +51,10 @@ typedef struct NCglobalstate {
 	int threshold;
 	int alignment;
     } alignment;
+    struct MetaBlockSize { /* H5Pset_meta_block_size parameter */
+        int defined; /* 1 => size explicitly set, 0 => use HDF5 default */
+        size_t size; /* minimum metadata block size in bytes */
+    } meta_block_size;
     struct ChunkCache {
         size_t size;     /**< Size in bytes of the var chunk cache. */
         size_t nelems;   /**< Number of slots in var chunk cache. */

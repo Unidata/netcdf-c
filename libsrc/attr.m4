@@ -443,8 +443,12 @@ NC3_inq_attname(int ncid, int varid, int attnum, char *name)
 	if(attrp == NULL)
 		return NC_ENOTATT;
 
-	(void) strncpy(name, attrp->name->cp, attrp->name->nchars);
-	name[attrp->name->nchars] = 0;
+    {
+    size_t copy_len = attrp->name->nchars < NC_MAX_NAME
+                      ? attrp->name->nchars : NC_MAX_NAME;
+    (void) strncpy(name, attrp->name->cp, copy_len);
+    name[copy_len] = 0;
+    }
 
 	return NC_NOERR;
 }

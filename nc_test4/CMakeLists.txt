@@ -22,11 +22,12 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_files6 tst_sync tst_h_strbug tst_h_refs tst_h_scalar tst_rename
   tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
-  tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_broken_files
-  tst_quantize tst_h_transient_types)
+  tst_atts3 tst_put_vars tst_elatefill tst_udf tst_udf_multi tst_bug1442 tst_broken_files
+  tst_quantize tst_h_transient_types tst_strided_write tst_varsperf tst_vlen_unlim tst_mem_safety 
+  tst_meta_block_size)
 
 IF(HAS_PAR_FILTERS)
-SET(NC4_tests $NC4_TESTS tst_alignment)
+SET(NC4_tests ${NC4_TESTS} tst_alignment)
 ENDIF()
 
 # Note, renamegroup needs to be compiled before run_grp_rename
@@ -139,10 +140,12 @@ IF(HAVE_H5Z_SZIP)
   ENDIF()
 ENDIF()
 
-IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
-  IF(HAVE_ZSTD)
-    BUILD_BIN_TEST(tst_zstd)
-    add_sh_test(nc_test4 run_zstd_test)
+IF(NETCDF_BUILD_UTILITIES)
+  IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
+    IF(HAVE_ZSTD)
+      BUILD_BIN_TEST(tst_zstd)
+      add_sh_test(nc_test4 run_zstd_test)
+    ENDIF()
   ENDIF()
 ENDIF()
 

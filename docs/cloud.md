@@ -13,7 +13,7 @@ and this document will be expanded to cover those additional cases.
 # S3 Use-Cases in NetCDF-C
 
 At the moment, the NetCDF-C library provides access to S3 for the following purposes:
-* Byte-Range access to Netcdf-4/HDF5 datasets stored as single object in S3.
+* Byte-Range access to NetCDF-4/HDF5 datasets stored as single object in S3.
 * Zarr dataset access as represented as a "tree" of objects in S3.
 
 # Amazon S3 Storage Access Mechanisms {#nccloud_s3_sdks}
@@ -42,7 +42,7 @@ and to use the HTTP protocol to read a contiguous sequence of bytes
 from that remote "file".
 This is performed using the "byte-range" header in an HTTP request.
 
-In the Amazon S3 context, a copy of a dataset, a netcdf-3 or netdf-4 file, is uploaded into a single object in some bucket.
+In the Amazon S3 context, a copy of a dataset, a netcdf-3 or netCDF-4 file, is uploaded into a single object in some bucket.
 Then using the key to this object, it is possible to tell the netcdf-c library to treat the object as a remote file and to use the HTTP Byte-Range protocol to access the contents of the object.
 The dataset object is referenced using a URL with the trailing fragment containing the string `#mode=bytes`.
 
@@ -116,7 +116,7 @@ The necessary CMake flags are as follows (with defaults)
 
 1. *-DNETCDF_ENABLE_S3* -- Control S3 support
 2. *-DNETCDF_ENABLE_S3_INTERNAL* -- Force use of the *nch5s3comms* SDK instead of the *aws-cpp-sdk*.
-3. *-DWITH-S3-TESTING_=ON|OFF|PUBLIC -- "ON" means do all S3 tests, "OFF" means do no S3 testing, "PUBLIC" means do only those tests that involve publicly accessible S3 data.
+3. *-DWITH_S3_TESTING=ON|OFF|PUBLIC* -- "ON" means do all S3 tests, "OFF" means do no S3 testing, "PUBLIC" means do only those tests that involve publicly accessible S3 data.
 
 Note that unlike Automake, CMake can properly locate C++ libraries, so it should not be necessary to specify _-laws-cpp-sdk-s3_ assuming that the aws s3 libraries are installed in the default location.
 For CMake with Visual Studio, the default location is here:

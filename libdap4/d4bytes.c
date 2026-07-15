@@ -1,5 +1,15 @@
 /* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
-   See the COPYRIGHT file for more information. */
+   See the COPYRIGHT file for more information. * 
+ */
+
+/** @file d4bytes.c
+ * @brief Byte-buffer utilities for the DAP4 client.
+ *
+ * Provides low-level byte-array allocation and manipulation helpers
+ * used by the DAP4 serialization and dechunking code.
+ *
+ * @author Dennis Heimbigner
+ */
 
 #include <stdlib.h>
 #include <stdio.h>

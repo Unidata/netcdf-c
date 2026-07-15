@@ -675,7 +675,7 @@ dcedump(DCEnode* node, NCbytes* buf)
     case CES_SELECT: {
 	DCEselection* sel = (DCEselection*)node;
 	dcetobuffer((DCEnode*)sel->lhs,buf);
-        if(sel->operator == CES_NIL) break;
+        if(sel->operator == CEO_NIL) break;
         ncbytescat(buf,opstrings[(int)sel->operator]);
         if(nclistlength(sel->rhs) > 1)
             ncbytescat(buf,"{");
@@ -1129,7 +1129,7 @@ dcedumpraw(DCEnode* node, NCbytes* buf)
 	DCEselection* sel = (DCEselection*)node;
 	ncbytescat(buf," ");
 	dcedumpraw((DCEnode*)sel->lhs,buf);
-        if(sel->operator == CES_NIL) break;
+        if(sel->operator == CEO_NIL) break;
         ncbytescat(buf,opstrings[(int)sel->operator]);
         if(nclistlength(sel->rhs) > 1)
             ncbytescat(buf,"{");
