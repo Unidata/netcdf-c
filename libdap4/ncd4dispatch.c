@@ -3,6 +3,15 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file ncd4dispatch.c
+ * @brief DAP4 NC_Dispatch table and library initialization.
+ *
+ * Defines the NCD4_dispatch_table (the NC_Dispatch struct registered
+ * for DAP4 URLs), implements NCD4_initialize(), NCD4_finalize(),
+ * and the reserved-attribute lookup NCD4_lookupreserved().
+ * @author Dennis Heimbigner
+ */
+
 #include <stddef.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"

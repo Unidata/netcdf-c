@@ -36,12 +36,14 @@ jobs:
         - uses: msys2/setup-msys2@v2
           with:
             update: true
-        - uses: actions/checkout@v4
-        - uses: conda-incubator/setup-miniconda@v3
+        - uses: actions/checkout@v6
+        - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v2
           with:
-            miniconda-version: "latest"
-            activate-environment: ""
-            auto-activate-base: true
+            # Name is needed for caching
+            micromamba-version: '2.6.0-0'
+            environment-name: CI
+            cache-environment: true
+            cache-environment-key: mamba-${{ matrix.hdf5 }}
 
         - name: Set up Paths and env
           shell: bash -el {0}
@@ -58,17 +60,14 @@ jobs:
         #- run: echo ""
         #- run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
        
-        # Grab miniconda and use it to install HDF5
-        - name: Install Dependencies using Miniconda
+        - name: Install Dependencies using Micromamba
+          # Zlib (instead of libzlib) needed to get dev header/cmake file
           run: |
-            conda config --set always_yes yes --set changeps1 no --set show_channel_urls true
-            conda config --add channels conda-forge
-            conda update conda
-            conda install hdf5=${{ matrix.hdf5 }} m2-m4 libxml2
+            micromamba install --yes hdf5=${{ matrix.hdf5 }} m2-m4 libxml2 zlib
           shell: bash -el {0}
 
         # Double-check something
-        - name: Check Miniconda
+        - name: Check conda env
           run: |
             which h5dump
             which m4
@@ -110,6 +109,7 @@ jobs:
             cat libnetcdf.settings  
 
         - name: Perform out-of-directory build - libnetcdf
+          id: build_libnetcdf
           shell: bash -el {0}
           run: |
             cd build
@@ -120,36 +120,39 @@ jobs:
           run: |
             cd build
             cmake --build . --config Release --target install -j 4
-          if: ${{ success() }}  
+          if: ${{ steps.build_libnetcdf.outcome == 'success' }}
 
         - name: View config.h - libnetcdf failure
           shell: bash -el {0}
           run: |
             cd build
             cat config.h
-          if: ${{ failure() }}
+          if: ${{ always() && steps.build_libnetcdf.outcome == 'failure' }}
 
         - name: Perform out-of-directory build - test suite
+          id: build_tests
           shell: bash -el {0}
           run: | 
             cd build
             cmake --build . --config Release -j 4
-          if: ${{ success() }}
+          if: ${{ steps.build_libnetcdf.outcome == 'success' }}
       
         - name: View config.h - tests failure failure
           shell: bash -el {0}
           run: |
             cd build
             cat config.h
-          if: ${{ failure() }}  
+          if: ${{ always() && steps.build_tests.outcome == 'failure' }}
 
         - name: Prepare ctest Paths and env
           shell: bash -el {0}
           run: | 
             cat ~/.bash_profile
             echo "" >> ~/.bash_profile
+          if: ${{ steps.build_libnetcdf.outcome == 'success' && steps.build_tests.outcome == 'success' }}
 
         - name: Run ctest
+          id: run_ctest
           shell: bash -el {0}
           run: |
             echo "Run ctest PATH: $PATH"
@@ -157,10 +160,11 @@ jobs:
             echo "Run ctest combined GITHUB_PATH: $PATH"
             cd build
             PATH=~/tmp/bin:$PATH ctest . -j 4 -E 'bom' --output-on-failure
+          if: ${{ steps.build_libnetcdf.outcome == 'success' && steps.build_tests.outcome == 'success' }}
             
         - name: Verbose Output if CTest Failure
           shell: bash -el {0}
           run: |
             cd build
             PATH=~/tmp/bin:$PATH ctest . --rerun-failed --output-on-failure -VV
-          if: ${{ failure() }}    
+          if: ${{ steps.build_libnetcdf.outcome == 'success' && steps.run_ctest.outcome == 'failure' }}

@@ -13,7 +13,7 @@ Research/Unidata. See COPYRIGHT file for conditions of use. */
  * This is part of the netCDF package. Full documentation of the netCDF can be found at
  * https://docs.unidata.ucar.edu/netcdf-c.
  *
- * @author Ed Hartnett
+ * @author Edward Hartnett
  */
 
 #include <stdio.h>
@@ -49,7 +49,6 @@ Research/Unidata. See COPYRIGHT file for conditions of use. */
 #define START_LON -125.0
 
 /* For the units attributes. */
-#define UNITS "units"
 #define PRES_UNITS "hPa"
 #define TEMP_UNITS "celsius"
 #define LAT_UNITS "degrees_north"

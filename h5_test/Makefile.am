@@ -1,5 +1,5 @@
 # This is part of the netCDF package.
-# Copyright 2018 University Corporation for Atmospheric Research/Unidata
+# Copyright 2026 University Corporation for Atmospheric Research/Unidata
 # See COPYRIGHT file for conditions of use.
 #
 # This directory contains tests that only use HDF5; these tests don't
@@ -27,7 +27,7 @@ tst_h_atts3 tst_h_atts4 tst_h_vars tst_h_vars2 tst_h_vars3 tst_h_grps	\
 tst_h_compounds tst_h_compounds2 tst_h_wrt_cmp tst_h_vl tst_h_opaques	\
 tst_h_strings tst_h_strings1 tst_h_strings2 tst_h_ints			\
 tst_h_dimscales tst_h_dimscales1 tst_h_dimscales2 tst_h_dimscales3	\
-tst_h_enums tst_h_dimscales4 tst_h_rename
+tst_h_enums tst_h_dimscales4 tst_h_rename tst_h5_open_close
 
 # If benchmarks were turned on, build and run more tests.
 if BUILD_BENCHMARKS
@@ -44,7 +44,9 @@ TESTS = $(H5TESTS)
 if NETCDF_ENABLE_PLUGINS
 if HAVE_ZSTD
 check_PROGRAMS += tst_h_zstd
+if NETCDF_BUILD_UTILITIES
 TESTS += run_h5_zstd_tests.sh
+endif # NETCDF_BUILD_UTILITIES
 endif # HAVE_ZSTD
 endif # NETCDF_ENABLE_PLUGINS
 

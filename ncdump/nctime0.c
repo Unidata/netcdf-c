@@ -127,8 +127,8 @@ is_valid_time_unit(const char *units) {
 	bool_t okunit = false;
 
 	/* Allow ISO-8601 "T" date-time separator as well as blank separator */
-	nconv1 = sscanf(units,"%s since %[^T]T%s", charunits, basetime_1, basetime_2);
-	nconv2 = sscanf(units,"%s since %s %s", charunits, basetime_1, basetime_2);
+	nconv1 = sscanf(units,"%63s since %47[^T]T%47s", charunits, basetime_1, basetime_2);
+	nconv2 = sscanf(units,"%63s since %47s %47s", charunits, basetime_1, basetime_2);
 	if (!(nconv1 > 1 || nconv2 > 1))
 	    return false;
 	/* Check for unit compatible with cdtime library, no attempt

@@ -82,8 +82,17 @@ new_x_NC_var(
 	const size_t o2 = M_RNDUP(ndims * sizeof(size_t));
 
 #ifdef MALLOCHACK
-	const size_t sz =  M_RNDUP(sizeof(NC_var)) +
-		 o1 + o2 + ndims * sizeof(off_t);
+    if (ndims > SIZE_MAX / sizeof(off_t))
+        return NULL;
+    {
+        const size_t base = M_RNDUP(sizeof(NC_var));
+        if (o1 > SIZE_MAX - base ||
+            o2 > SIZE_MAX - base - o1 ||
+            ndims * sizeof(off_t) > SIZE_MAX - base - o1 - o2)
+            return NULL;
+    }
+    const size_t sz = M_RNDUP(sizeof(NC_var)) +
+         o1 + o2 + ndims * sizeof(off_t);
 #else /*!MALLOCHACK*/
 	if (ndims > SIZE_MAX / sizeof(off_t))
 		return NULL;
@@ -707,8 +716,10 @@ NC3_inq_var(int ncid,
 
 	if(name != NULL)
 	{
-		(void) strncpy(name, varp->name->cp, varp->name->nchars);
-		name[varp->name->nchars] = 0;
+        size_t copy_len = varp->name->nchars < NC_MAX_NAME
+                          ? varp->name->nchars : NC_MAX_NAME;
+        (void) strncpy(name, varp->name->cp, copy_len);
+        name[copy_len] = 0;
 	}
 
 	if(typep != 0)

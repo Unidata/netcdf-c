@@ -34,8 +34,10 @@ tst_atts1 tst_atts2 tst_vars2 tst_files5 tst_files6 tst_sync		\
 tst_h_scalar tst_rename tst_rename2 tst_rename3 tst_h5_endians		\
 tst_atts_string_rewrite tst_hdf5_file_compat tst_fill_attr_vanish	\
 tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
-tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
-tst_bug1442 tst_quantize tst_h_transient_types
+tst_put_vars tst_elatefill tst_udf tst_udf_multi tst_put_vars_two_unlim_dim		\
+tst_bug1442 tst_quantize tst_h_transient_types tst_strided_write	\
+tst_varsperf tst_vlen_unlim tst_mem_safety tst_meta_block_size
+
 
 if HAS_PAR_FILTERS
 NC4_TESTS += tst_alignment
@@ -65,10 +67,9 @@ tst_udf_self_load_plugin_la_LIBADD = ${top_builddir}/liblib/libnetcdf.la
 tst_udf_self_load_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_PLUGIN_PATH=\"$(abs_builddir)/.libs/tst_udf_self_load_plugin@MODULE_EXT@\"
 endif # ENABLE_SHARED
 
-# Build test programs plus programs used in test scripts.
-check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug \
-tst_vlenstr tst_zero_len_att
-TESTS = $(NC4_TESTS) run_empty_vlen_test.sh run_zero_len_att_test.sh
+# Build test programs.
+check_PROGRAMS = $(NC4_TESTS)
+TESTS = $(NC4_TESTS)
 XFAIL_TESTS =
 
 # Add these if large file tests are turned on.
@@ -85,6 +86,11 @@ endif # BUILD_V2
 
 # The rest of the tests require ncgen/ncdump.
 if NETCDF_BUILD_UTILITIES
+
+check_PROGRAMS += tst_empty_vlen_unlim tst_charvlenbug tst_vlenstr	\
+tst_zero_len_att
+TESTS += run_empty_vlen_test.sh run_zero_len_att_test.sh
+
 check_PROGRAMS += renamegroup
 TESTS += run_grp_rename.sh tst_misc.sh
 
@@ -138,12 +144,14 @@ endif # USE_HDF5
 endif # NETCDF_BUILD_UTILITIES
 
 # Zstandard tests.
+if NETCDF_BUILD_UTILITIES
 if NETCDF_ENABLE_PLUGINS
 if HAVE_ZSTD
 check_PROGRAMS += tst_zstd
 TESTS += run_zstd_test.sh
 endif # HAVE_ZSTD
 endif # NETCDF_ENABLE_PLUGINS
+endif # NETCDF_BUILD_UTILITIES
 
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.

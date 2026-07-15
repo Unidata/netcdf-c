@@ -2,8 +2,8 @@
    Research/Unidata. */
 /**
  * @file
- * @internal This header file contains prototypes and initialization
- * for the HDF5 dispatch layer.
+ * @internal This file contains the initialization for the HDF5
+ * dispatch layer.
  *
  * @author Ed Hartnett, Dennis Heimbigner
  */

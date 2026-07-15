@@ -43,6 +43,11 @@ ut_json_SOURCES = ut_json.c ${commonsrc}
 ut_consolidated_SOURCES = ut_consolidated.c ${commonsrc}
 TESTS += ut_consolidated
 
+# per-file unittest
+check_PROGRAMS += ut_zinfer
+ut_zinfer_SOURCES = ut_zinfer.c ${commonsrc}
+TESTS += ut_zinfer
+
 test_fillonlyz_SOURCES = test_fillonlyz.c ${testcommonsrc}
 
 check_PROGRAMS += test_fillonlyz test_quantize test_notzarr
@@ -217,7 +222,7 @@ run_filter.sh run_filter_errors.sh \
 run_newformat.sh run_nczarr_fill.sh run_quantize.sh \
 run_jsonconvention.sh run_nczfilter.sh run_unknown.sh \
 run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh run_external.sh run_s3_credentials.sh\
-run_unlim_io.sh run_corrupt.sh run_oldkeys.sh run_xarray_misc.sh
+run_unlim_io.sh run_corrupt.sh run_oldkeys.sh run_xarray_misc.sh run_cachetest.sh
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \

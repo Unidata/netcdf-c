@@ -33,6 +33,12 @@ EXTERNL int
 nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp);
 
 EXTERNL int
+nc_set_meta_block_size_ints(int size);
+
+EXTERNL int
+nc_get_meta_block_size_ints(int *sizep);
+
+EXTERNL int
 nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
 			    int preemption);
 EXTERNL int

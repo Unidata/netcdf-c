@@ -13,7 +13,7 @@ project(netCDF
   LANGUAGES C CXX
   HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
   DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
-  VERSION 4.10.1
+  VERSION 4.10.2
 )
 
 #####
@@ -137,7 +137,7 @@ include(GNUInstallDirs)
 
 if(MSVC)
   set(GLOBAL PROPERTY USE_FOLDERS ON)
-  target_compile_options(netcdf PUBLIC "/utf-8")
+  target_compile_options(netcdf PRIVATE "/utf-8")
 endif()
 
 # auto-configure style checks, other CMake modules.
@@ -162,7 +162,7 @@ endif(${BIGENDIAN})
 # Define a function to convert various true or false values
 # to either TRUE|FALSE (uppercase).
 # If value is not a recognized boolean, then return NOTFOUND
-#1, ON, YES, TRUE, Y, 
+#1, ON, YES, TRUE, Y,
 #0, OFF, NO, FALSE, N, IGNORE, NOTFOUND -NOTFOUND ""
 
 set(TRUELIST "on;yes;y;true")
@@ -403,9 +403,10 @@ endif(NOT NETCDF_ENABLE_V2_API)
 option(NETCDF_BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
 option(NETCDF_GENERATE_NCGEN "Automatically regenerate ncgen C files if required" OFF)
 
+include(CMakeDependentOption)
 
 # Option to use MMAP
-option(NETCDF_ENABLE_MMAP "Use MMAP." ON)
+cmake_dependent_option(NETCDF_ENABLE_MMAP "Use MMAP." ON "NOT WIN32" OFF)
 
 # Option to use examples.
 option(NETCDF_ENABLE_EXAMPLES "Build Examples" ON)
@@ -453,22 +454,22 @@ endif()
 
 # Figure out which options are defined and process options
 if(DEFINED NETCDF_ENABLE_NETCDF_4)
-    set(UNDEF_NETCDF_4 OFF CACHE BOOL "") 
+    set(UNDEF_NETCDF_4 OFF CACHE BOOL "")
     option(NETCDF_ENABLE_NETCDF_4 "" ON)
 else()
-    set(UNDEF_NETCDF_4 ON CACHE BOOL "") 
+    set(UNDEF_NETCDF_4 ON CACHE BOOL "")
 endif()
 if(DEFINED NETCDF_ENABLE_NETCDF4)
-    set(UNDEF_NETCDF4 OFF CACHE BOOL "") 
+    set(UNDEF_NETCDF4 OFF CACHE BOOL "")
     option(NETCDF_ENABLE_NETCDF4 "" ON)
 else()
-    set(UNDEF_NETCDF4 ON CACHE BOOL "") 
+    set(UNDEF_NETCDF4 ON CACHE BOOL "")
 endif()
 if(DEFINED NETCDF_ENABLE_HDF5)
-    set(UNDEF_HDF5 OFF CACHE BOOL "") 
+    set(UNDEF_HDF5 OFF CACHE BOOL "")
     option(NETCDF_ENABLE_HDF5 "" ON)
 else()
-    set(UNDEF_HDF5 ON CACHE BOOL "") 
+    set(UNDEF_HDF5 ON CACHE BOOL "")
 endif()
 
 if(NOT UNDEF_NETCDF_4)
@@ -482,15 +483,15 @@ endif()
 # NETCDF_ENABLE_NETCDF_4 overrides NETCDF_ENABLE_NETCDF4 if latter not defined.
 
 if((NOT "${UNDEF_NETCDF_4}") AND UNDEF_NETCDF4)
-set(NETCDF_ENABLE_NETCDF4 ${NETCDF_ENABLE_NETCDF_4} CACHE BOOL "" FORCE) 
+set(NETCDF_ENABLE_NETCDF4 ${NETCDF_ENABLE_NETCDF_4} CACHE BOOL "" FORCE)
 endif()
 # NETCDF_ENABLE_NETCDF4 overrides NETCDF_ENABLE_HDF5 if latter not defined.
 if((NOT "${UNDEF_NETCDF4}") AND UNDEF_HDF5)
-set(NETCDF_ENABLE_HDF5 "${NETCDF_ENABLE_HDF5}" CACHE BOOL "" FORCE) 
+set(NETCDF_ENABLE_HDF5 "${NETCDF_ENABLE_HDF5}" CACHE BOOL "" FORCE)
 endif()
 # Otherwise, use NETCDF_ENABLE_HDF5 default
 if(UNDEF_HDF5)
-set(NETCDF_ENABLE_HDF5 ON CACHE BOOL "" FORCE) 
+set(NETCDF_ENABLE_HDF5 ON CACHE BOOL "" FORCE)
 endif()
 
 # Turn off NETCDF_ENABLE_NETCDF4 because it will be used
@@ -544,7 +545,7 @@ else()
   set(NETCDF_ENABLE_HDF4 OFF)
 endif()
 
-# Option legacy  macros 
+# Option legacy  macros
 # Do we want to enable unsafe macros, e.g. _FillValue in addition to NC_FillValue.
 # See https://github.com/Unidata/netcdf-c/issues/3029
 option(NETCDF_ENABLE_LEGACY_MACROS "Enable legacy macros for backwards compatibility. Use with Caution." ON)
@@ -690,8 +691,6 @@ set(NETCDF_PLUGIN_SEARCH_PATH "${DEFAULT_PLUGIN_SEARCH_PATH}")
 # Try to enable NCZarr zip support
 option(NETCDF_ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ${NETCDF_ENABLE_NCZARR})
 
-include(CMakeDependentOption)
-
 # libdl is always available; built-in in Windows and OSX
 cmake_dependent_option(NETCDF_ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)."
   ON "BUILD_SHARED_LIBS" OFF)
@@ -776,7 +775,15 @@ if (NOT NETCDF_ENABLE_S3 AND NETCDF_ENABLE_NCZARR_S3)
 endif()
 unset(NETCDF_ENABLE_NCZARR_S3)
 
-# If NETCDF_ENABLE_S3 is ON/TRUE, then enable NETCDF_ENABLE_NCZARR, in order to keep 
+# S3_INTERNAL requires S3. If S3_INTERNAL is explicitly enabled while S3 is not,
+# force S3 on. This mirrors configure.ac which gates S3_INTERNAL processing
+# inside "if test x$enable_s3 = xyes"].
+if(NETCDF_ENABLE_S3_INTERNAL AND NOT NETCDF_ENABLE_S3)
+  message(STATUS "NETCDF_ENABLE_S3_INTERNAL=ON requires NETCDF_ENABLE_S3; enabling automatically.")
+  set(NETCDF_ENABLE_S3 ON CACHE BOOL "Enable S3 Support" FORCE)
+endif()
+
+# If NETCDF_ENABLE_S3 is ON/TRUE, then enable NETCDF_ENABLE_NCZARR, in order to keep
 # things congruent with autotools.
 if (NETCDF_ENABLE_S3)
   set(NETCDF_ENABLE_NCZARR ON CACHE BOOL "Enable NCZarr Client" FORCE)
@@ -795,11 +802,11 @@ endif()
 if(NETCDF_ENABLE_S3)
   if(NOT NETCDF_ENABLE_S3_AWS AND NOT NETCDF_ENABLE_S3_INTERNAL)
     message(FATAL_ERROR "S3 support library not found; please specify option -DNETCDF_ENABLE_S3=NO")
-    set(NETCDF_ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)        
+    set(NETCDF_ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)
   endif()
   if(NETCDF_ENABLE_S3_AWS AND NETCDF_ENABLE_S3_INTERNAL)
     message(WARNING "Both aws-sdk-cpp and s3-internal enabled => use s3-internal")
-    set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)        
+    set(NETCDF_ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
   endif()
 endif()
 
@@ -979,7 +986,7 @@ set(USE_PNETCDF ${NETCDF_ENABLE_PNETCDF})
 if(NETCDF_ENABLE_PNETCDF)
   set(STATUS_PARALLEL ON)
   set(USE_PARALLEL ON CACHE BOOL "")
-  ### 
+  ###
   # Generate pnetcdf test
   ###
   configure_file("${netCDF_SOURCE_DIR}/nc_test/run_pnetcdf_tests.sh.in"
@@ -1067,7 +1074,7 @@ if (NOT NETCDF_ENABLE_PLUGINS AND NETCDF_ENABLE_NCZARR_FILTERS)
   set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 endif()
 
-IF (NOT NETCDF_ENABLE_NCZARR AND NETCDF_ENABLE_NCZARR_FILTERS) 
+IF (NOT NETCDF_ENABLE_NCZARR AND NETCDF_ENABLE_NCZARR_FILTERS)
     message(WARNING "NETCDF_ENABLE_NCZARR==NO => NETCDF_ENABLE_NCZARR_FILTERS==NO")
   set(NETCDF_ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Disable NCZARR_FILTERS" FORCE)
 endif()
@@ -1326,8 +1333,21 @@ CHECK_FUNCTION_EXISTS(mkstemp HAVE_MKSTEMP)
 CHECK_FUNCTION_EXISTS(mktemp HAVE_MKTEMP)
 CHECK_FUNCTION_EXISTS(random HAVE_RANDOM)
 CHECK_FUNCTION_EXISTS(gettimeofday  HAVE_GETTIMEOFDAY)
-CHECK_FUNCTION_EXISTS(MPI_Comm_f2c  HAVE_MPI_COMM_F2C)
-CHECK_FUNCTION_EXISTS(MPI_Info_f2c  HAVE_MPI_INFO_F2C)
+
+# See https://github.com/Unidata/netcdf-c/issues/3199
+if(MPI_FOUND)
+  # Prefer compiler-wrapper include dirs, then fall back to FindMPI's search result.
+  # Nothing can ever be easy (╯°□°）╯︵ ┻━┻
+  if(MPI_C_COMPILER_INCLUDE_DIRS)
+    set(CMAKE_REQUIRED_INCLUDES "${MPI_C_COMPILER_INCLUDE_DIRS}")
+  elseif(MPI_C_INCLUDE_DIRS)
+    set(CMAKE_REQUIRED_INCLUDES "${MPI_C_INCLUDE_DIRS}")
+  endif()
+  CHECK_SYMBOL_EXISTS(MPI_Comm_f2c "mpi.h" HAVE_MPI_COMM_F2C)
+  CHECK_SYMBOL_EXISTS(MPI_Info_f2c "mpi.h" HAVE_MPI_INFO_F2C)
+  unset(CMAKE_REQUIRED_INCLUDES)
+endif()
+
 CHECK_FUNCTION_EXISTS(memmove HAVE_MEMMOVE)
 CHECK_FUNCTION_EXISTS(getpagesize HAVE_GETPAGESIZE)
 CHECK_FUNCTION_EXISTS(sysconf HAVE_SYSCONF)
@@ -1352,10 +1372,7 @@ endif()
 endif()
 
 # Check to see if MAP_ANONYMOUS is defined.
-if(MSVC)
-  message(WARNING "mmap not supported under visual studio: disabling MMAP support.")
-  set(NETCDF_ENABLE_MMAP OFF)
-else()
+if(NETCDF_ENABLE_MMAP)
   CHECK_C_SOURCE_COMPILES("
   #include <sys/mman.h>
   int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
@@ -1474,8 +1491,8 @@ if(NETCDF_ENABLE_DAP4)
   add_subdirectory(libdap4)
 endif()
 
-if (NETCDF_ENABLE_DAP4 OR NETCDF_ENABLE_S3_INTERNAL OR NETCDF_ENABLE_NCZARR OR NETCDF_ENABLE_LIBXML2)
-  add_subdirectory(libncxml)
+if (NETCDF_ENABLE_DAP4 OR NETCDF_ENABLE_S3_INTERNAL)
+    add_subdirectory(libncxml)
 else()
   set(XMLPARSER "none required")
 endif()
@@ -1571,9 +1588,9 @@ if(MSVC)
   if(NOT CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "")
     set(CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
   endif()
-  
+
   foreach(CPP ${CMAKE_PREFIX_PATH})
-    
+
     CMAKE_PATH(CONVERT ${CPP} TO_CMAKE_PATH_LIST CPP)
 
     file(GLOB COPY_FILES ${CPP}/*.lib ${CPP}/lib/*.lib)
@@ -1583,7 +1600,7 @@ if(MSVC)
         COMPONENT dependencies)
     endif()
   endforeach()
-  
+
   foreach(CPP ${CMAKE_PREFIX_PATH})
 
     CMAKE_PATH(CONVERT ${CPP} TO_CMAKE_PATH_LIST CPP)
@@ -1596,7 +1613,7 @@ if(MSVC)
         COMPONENT dependencies)
     endif()
   endforeach()
-  
+
 endif()
 
 # Subdirectory CMakeLists.txt files should specify their own
@@ -1620,11 +1637,11 @@ if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
   set(CMAKE_INSTALL_LIBDIR lib)
 endif(NOT DEFINED CMAKE_INSTALL_LIBDIR)
 
-# Set
+# Set for nc-config and pkgconfig files
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${CMAKE_INSTALL_PREFIX})
-set(libdir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-set(includedir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
+cmake_path(ABSOLUTE_PATH CMAKE_INSTALL_LIBDIR BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}" OUTPUT_VARIABLE libdir)
+cmake_path(ABSOLUTE_PATH CMAKE_INSTALL_INCLUDEDIR BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}" OUTPUT_VARIABLE includedir)
 set(CC ${CMAKE_C_COMPILER})
 
 # Process all dependency libraries and create a string
@@ -1642,6 +1659,9 @@ endforeach()
 
 if(NC_LIBS)
   string(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+  string(REGEX REPLACE " -l[^ :]*::" " -l" NC_LIBS " ${NC_LIBS}")
+  string(REPLACE " -lHDF5" " -lhdf5" NC_LIBS "${NC_LIBS}")
+  string(REPLACE " -llibcurl" " -lcurl" NC_LIBS "${NC_LIBS}")
 endif()
 
 string(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
@@ -1686,7 +1706,7 @@ set(host_vendor "${osname}")
 set(host_os "${osrel}")
 string(RANDOM LENGTH 3 ALPHABET "0123456789" PLATFORMUID)
 math(EXPR PLATFORMUID "${PLATFORMUID} + 1" OUTPUT_FORMAT DECIMAL)
-       
+
 set(CC_VERSION "${CMAKE_C_COMPILER}")
 
 # Build *FLAGS for libnetcdf.settings.
@@ -1806,7 +1826,7 @@ file(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
   LIBNETCDF_SETTINGS)
 message(STATUS ${LIBNETCDF_SETTINGS})
 
-### 
+###
 # Report deprecated options detected by
 # cmake/deprecated.cmake. Added in support of
 # https://github.com/Unidata/netcdf-c/pull/2895
@@ -1908,7 +1928,7 @@ if(NETCDF_ENABLE_TESTS)
     # Build CTestCustom.cmake to cleanup S3 after tests are done.
     #####
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake NEWLINE_STYLE LF)
-   
+
 
 endif()
 
@@ -1934,6 +1954,8 @@ install(EXPORT netCDFTargets
 export(EXPORT netCDFTargets FILE netCDFTargets.cmake NAMESPACE netCDF::)
 
 include(CMakePackageConfigHelpers)
+cmake_path(ABSOLUTE_PATH CMAKE_INSTALL_INCLUDEDIR BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}" OUTPUT_VARIABLE netCDF_INCLUDE_DIR)
+cmake_path(ABSOLUTE_PATH CMAKE_INSTALL_LIBDIR BASE_DIRECTORY "${CMAKE_INSTALL_PREFIX}" OUTPUT_VARIABLE netCDF_LIB_DIR)
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"

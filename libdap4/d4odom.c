@@ -3,6 +3,15 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4odom.c
+ * @brief Multi-dimensional odometer implementation for DAP4 array iteration.
+ *
+ * Implements d4odom_new(), d4scalarodom_new(), d4odom_free(),
+ * d4odom_more(), d4odom_next(), d4odom_offset(), d4odom_nelements(),
+ * and d4odom_isWhole() for iterating over hyperslabs of DAP4 arrays.
+ * @author Dennis Heimbigner
+ */
+
 #include "config.h"
 #include <stdlib.h>
 #include <assert.h>

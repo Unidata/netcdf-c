@@ -204,15 +204,11 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
  * Inquire about user-defined format.
  *
  * @param mode_flag NC_UDF0 or NC_UDF1
- * @param dispatch_table Pointer that gets pointer to dispatch table
- * to use for this user format, or NULL if this user-defined format is
- * not defined. Ignored if NULL.
- * @param magic_number Pointer that gets magic number used to identify
- * file, if one has been set. Magic number will be of max size
- * NC_MAX_MAGIC_NUMBER_LEN. Ignored if NULL.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EINVAL Invalid input.
+ * 
+ * @param dispatch_table Pointer that gets pointer to dispatch table to use for this user format, or NULL if this user-defined format is not defined. Ignored if NULL.
+ * @param magic_number Pointer that gets magic number used to identify file, if one has been set. Magic number will be of max size NC_MAX_MAGIC_NUMBER_LEN. Ignored if NULL.
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EINVAL Invalid input.
  * @author Ed Hartnett
  * @ingroup datasets
  */

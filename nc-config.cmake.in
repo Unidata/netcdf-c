@@ -6,14 +6,14 @@
 
 prefix="@CMAKE_INSTALL_PREFIX@"
 exec_prefix="@CMAKE_INSTALL_PREFIX@"
-libdir="@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@"
-includedir="@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
+libdir="@libdir@"
+includedir="@includedir@"
 plugindir="@NETCDF_PLUGIN_INSTALL_DIR@"
 pluginsearchpath="@NETCDF_PLUGIN_SEARCH_PATH@"
 
 cc="@CMAKE_C_COMPILER@"
-cflags="-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
-libs="-L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ @NC_LIBS@"
+cflags="-I@includedir@"
+libs="-L@libdir@ @NC_LIBS@"
 libsprivate="@LIBS@"
 HAS_STATIC="FALSE"
 PRINTLIBS="FALSE"

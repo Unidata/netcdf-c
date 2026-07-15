@@ -76,8 +76,9 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* controls)
     }
 
     /* initialize map handle*/
-    if((stat = nczmap_create(zinfo->controls.mapimpl,nc->path,nc->mode,zinfo->controls.flags,NULL,&zinfo->map)))
-	goto done;
+    if((stat = NCZ_get_map(file,uri,nc->mode,zinfo->controls.flags,NULL,&zinfo->map))){
+        goto done;
+    }
 
     if((stat = NCZMD_set_metadata_handler(zinfo))){
         goto done;
@@ -143,35 +144,29 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* controls)
     /* Apply client controls */
     if((stat = applycontrols(zinfo))) goto done;
 
-    /* initialize map handle*/
-    if((stat = nczmap_open(zinfo->controls.mapimpl,nc->path,mode,zinfo->controls.flags,NULL,&zinfo->map)))
-	goto done;
-
-    if((stat = NCZMD_set_metadata_handler(zinfo))) {
-        goto done;
-    }
-
-    /* Ok, try to read superblock */
-    if((stat = ncz_read_superblock(file,&nczarr_version,&zarr_format))) goto done;
-
-    if(nczarr_version == NULL) /* default */
-        nczarr_version = strdup(NCZARRVERSION);
-    if(zarr_format == NULL) /* default */
-       zarr_format = strdup(ZARRVERSION);
-    /* Extract the information from it */
-    if(sscanf(zarr_format,"%d",&zinfo->zarr.zarr_version)!=1)
-	{stat = NC_ENCZARR; goto done;}		
-    if(sscanf(nczarr_version,"%lu.%lu.%lu",
-		    &zinfo->zarr.nczarr_version.major,
-		    &zinfo->zarr.nczarr_version.minor,
-		    &zinfo->zarr.nczarr_version.release) == 0)
-	{stat = NC_ENCZARR; goto done;}
-
     /* Load auth info from rc file */
     if((stat = ncuriparse(nc->path,&uri))) goto done;
     if(uri) {
 	if((stat = NC_authsetup(&zinfo->auth, uri)))
 	    goto done;
+    }
+
+    /* initialize map handle*/
+    if((stat = NCZ_get_map(file, uri, mode, zinfo->controls.flags,NULL,&zinfo->map))){
+    	goto done;
+    }
+
+    /* Determine zarr format of existing dataset */
+    if((stat = NCZ_infer_zarr_format(file))) {
+        goto done;
+    }
+
+    if((stat = NCZMD_set_metadata_handler(zinfo))) {
+        goto done;
+    }
+
+    if((stat = NCZ_infer_nczarr_format(file))) {
+        goto done;
     }
 
 done:

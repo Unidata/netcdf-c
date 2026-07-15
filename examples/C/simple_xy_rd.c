@@ -2,7 +2,7 @@
    Research/Unidata.  See COPYRIGHT file for conditions of use. */
 /**
  * @file
- * Write a file demonstrating some of the features of netCDF-4.
+ * Read a simple 2D netCDF file.
  *
  * This is a simple example which reads a small dummy array, which was
  * written by simple_xy_wr.c. This is intended to illustrate the use
@@ -11,7 +11,7 @@
  * Full documentation for netCDF can be found at:
  * https://docs.unidata.ucar.edu/netcdf-c.
  *
- * @author Ed Hartnett
+ * @author Edward Hartnett
 */
 #include <stdlib.h>
 #include <stdio.h>

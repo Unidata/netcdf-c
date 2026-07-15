@@ -12,7 +12,7 @@
  * This is part of the netCDF package. Full documentation of netCDF
  * can be found at https://docs.unidata.ucar.edu/netcdf-c.
  *
- * @author Ed Hartnett
+ * @author Edward Hartnett
 */
 
 #include <stdlib.h>
