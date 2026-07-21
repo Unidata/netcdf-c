@@ -138,16 +138,16 @@ tst_h_scalar.sh tst_formatx4.sh		\
 run_utf8_nc4_tests.sh run_ncgen_nc4_tests.sh	\
 tst_ncgen4.sh test_scope.sh
 
+if NETCDF_ENABLE_PLUGINS
+TESTS += tst_udf_format.sh
+endif # NETCDF_ENABLE_PLUGINS
+
 # Record interscript dependencies so parallel builds work.
 tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
                  tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log tst_netcdf4.log
 tst_nccopy5.log: tst_nccopy4.log
 
 endif #USE_HDF5
-
-if NETCDF_ENABLE_PLUGINS
-TESTS += tst_udf_format.sh
-endif # NETCDF_ENABLE_PLUGINS
 
 TESTS += tst_inmemory_nc3.sh tst_nccopy_w3.sh
 if USE_HDF5
