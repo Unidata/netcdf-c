@@ -1,5 +1,9 @@
 #!/bin/sh
 #
+# This is part of the netCDF package. Copyright 2026 University
+# Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
+# for conditions of use.
+#
 # Test for netCDF-C issue #3411. ncdump could open a UDF file and
 # print its metadata, but then rejected the UDF extended format code
 # while generating the virtual _Format attribute or processing -K.
