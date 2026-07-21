@@ -18,19 +18,26 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-if test -f ./tst_udf_format_plugin.so; then
-    plugin=`pwd`/tst_udf_format_plugin.so
-else
+for directory in . .libs; do
     for extension in so dylib dll; do
-        if test -f .libs/tst_udf_format_plugin.$extension; then
-            plugin=`pwd`/.libs/tst_udf_format_plugin.$extension
-            break
+        if test -f $directory/tst_udf_format_plugin.$extension; then
+            plugin=`pwd`/$directory/tst_udf_format_plugin.$extension
+            break 2
         fi
     done
-fi
+done
 
 if test -z "$plugin" || test ! -f "$plugin"; then
     echo "*** Fail: UDF format test plugin was not built"
+    echo "Working directory: `pwd`"
+    echo "Plugin candidates:"
+    find . -maxdepth 2 -type f -name 'tst_udf_format_plugin*' -print
+    echo "Current directory contents:"
+    ls -la
+    if test -d .libs; then
+        echo ".libs contents:"
+        ls -la .libs
+    fi
     exit 1
 fi
 
