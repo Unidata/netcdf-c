@@ -21,7 +21,12 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 if test -f ./tst_udf_format_plugin.so; then
     plugin=`pwd`/tst_udf_format_plugin.so
 else
-    plugin=`find .libs -maxdepth 1 -type f -name 'tst_udf_format_plugin.*' | head -1`
+    for extension in so dylib dll; do
+        if test -f .libs/tst_udf_format_plugin.$extension; then
+            plugin=`pwd`/.libs/tst_udf_format_plugin.$extension
+            break
+        fi
+    done
 fi
 
 if test -z "$plugin" || test ! -f "$plugin"; then
