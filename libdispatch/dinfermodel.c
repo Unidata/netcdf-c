@@ -1573,6 +1573,7 @@ done:
          {
              int formatx = (i <= 1) ? (NC_FORMATX_UDF0 + i) : (NC_FORMATX_UDF2 + i - 2);
              model->impl = formatx;
+             model->format = NC_FORMAT_NETCDF4;
              status = NC_NOERR;
              break;
          }
