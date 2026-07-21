@@ -3,8 +3,13 @@
    for conditions of use.
 
    Minimal self-registering UDF0 plugin for tst_udf_format.sh. It
-   provides an empty root dataset whose format inquiry reports UDF0,
-   allowing ncdump -hs to test special _Format attribute output.
+   provides an empty root dataset and reports NC_FORMATX_UDF0 through
+   both format inquiry functions.
+
+   This plugin reproduces netCDF-C issue #3411 without depending on
+   an external UDF implementation. Before the fix, ncdump could read
+   the UDF dataset but rejected extended format code 8 while generating
+   its virtual _Format attribute or processing -K output.
 
    Author: Edward Hartnett, 2026-07-21
 */

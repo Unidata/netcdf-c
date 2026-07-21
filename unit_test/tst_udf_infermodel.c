@@ -2,9 +2,15 @@
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
-   Test that UDF magic-number recognition establishes both the UDF
-   implementation and the enhanced data model when format inference
-   begins with a preselected UDF implementation and no format.
+   Test for netCDF-C issue #3410. A UDF magic number could identify
+   a UDF implementation while leaving NCmodel.format unset. Callers
+   need both fields: implementation selects the UDF dispatch table and
+   format records the data model and supplies the corresponding mode.
+
+   The test begins with a preselected UDF implementation and a zero
+   format, then uses a UDF magic number to complete inference. It
+   verifies that the UDF is retained, NC_FORMAT_NETCDF4 is assigned,
+   and NC_NETCDF4 is returned in the open mode.
 
    Author: Edward Hartnett, 2026-07-21
 */

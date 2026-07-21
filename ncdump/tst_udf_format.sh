@@ -1,8 +1,13 @@
 #!/bin/sh
 #
-# Test ncdump -hs with an autoloaded UDF plugin. The test creates an
-# RC file and a UDF-magic fixture, then verifies that ncdump prints a
-# generic user-defined _Format attribute rather than rejecting UDF0.
+# Test for netCDF-C issue #3411. ncdump could open a UDF file and
+# print its metadata, but then rejected the UDF extended format code
+# while generating the virtual _Format attribute or processing -K.
+#
+# The test autoloads tst_udf_format_plugin through an RC file and opens
+# a fixture recognized by its UDF magic number. It verifies that -hs
+# prints the generic user-defined _Format value and -K prints the
+# generic extended format name with its mode.
 #
 # Author: Edward Hartnett, 2026-07-21
 
