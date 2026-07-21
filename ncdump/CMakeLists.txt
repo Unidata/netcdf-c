@@ -208,9 +208,17 @@ endif()
     # Add this test by hand, as it is also called from a script.
     # Editing the script would break autotools compatibility.
     build_bin_test_no_prefix(tst_special_atts)
-    add_library(tst_udf_format_plugin MODULE tst_udf_format_plugin.c)
-    target_link_libraries(tst_udf_format_plugin netcdf ${ALL_TLL_LIBS})
-    set_target_properties(tst_udf_format_plugin PROPERTIES PREFIX "")
+    if(NETCDF_ENABLE_PLUGINS)
+      add_library(tst_udf_format_plugin MODULE tst_udf_format_plugin.c)
+      target_link_libraries(tst_udf_format_plugin netcdf ${ALL_TLL_LIBS})
+      set_target_properties(tst_udf_format_plugin PROPERTIES PREFIX "")
+      if(WIN32)
+        set_target_properties(tst_udf_format_plugin PROPERTIES
+          RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+          RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+          RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+      endif()
+    endif()
   endif(USE_HDF5)
 
   # Base tests
@@ -265,7 +273,9 @@ endif()
 
   if(USE_HDF5)
     add_sh_test(ncdump tst_formatx4)
-    add_sh_test(ncdump tst_udf_format)
+    if(NETCDF_ENABLE_PLUGINS)
+      add_sh_test(ncdump tst_udf_format)
+    endif()
     add_sh_test(ncdump_sh tst_fillbug)
     add_sh_test(ncdump_shell tst_h_scalar)
     add_sh_test(ncdump tst_mud)
