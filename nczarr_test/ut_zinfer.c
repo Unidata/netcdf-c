@@ -197,6 +197,14 @@ int test_NCZ_infer_nczarr_format() {
     return 3;
   }
 
+  if (!(zinfo.controls.flags & FLAG_PUREZARR)) {
+    fprintf(stderr, "Failed! Expected PUREZARR flag with nczarr version: %d",
+            zinfo.format.nczarr);
+    return 4;
+  }
+  // Reset flag for next test;
+  zinfo.controls.flags &= ~(zinfo.controls.flags & FLAG_PUREZARR);
+
   KV_ptr = KV2nczarr;
   ret = NCZ_infer_nczarr_format(&file);
   if (NCZARRFORMAT2 != zinfo.format.nczarr) {
@@ -205,6 +213,11 @@ int test_NCZ_infer_nczarr_format() {
             "(" NCZARR_FORMAT_VERSION_TEMPLATE ") expected %d\n",
             zinfo.format.nczarr, NCZARRFORMAT2);
     return 5;
+  }
+  if (zinfo.controls.flags & FLAG_PUREZARR) {
+    fprintf(stderr, "Failed! PUREZARR flag NOT expected with nczarr version: %d\n",
+            zinfo.format.nczarr);
+    return 6;
   }
 
   // TODO:

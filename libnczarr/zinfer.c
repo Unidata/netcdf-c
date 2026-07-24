@@ -65,11 +65,15 @@ int NCZ_infer_nczarr_format(NC_FILE_INFO_T *file) {
           stat = NC_ENCZARR;
         }
       }
-    } else {
-      zfile->controls.flags |= FLAG_PUREZARR;
-      stat = NC_NOERR;
     }
   }
+
+  if(nczarrformat == NCZARRFORMAT0) {
+      zfile->controls.flags |= FLAG_PUREZARR;
+  }
+  zfile->format.nczarr = nczarrformat;
+
+
 done:
   return THROW(stat);
 }
