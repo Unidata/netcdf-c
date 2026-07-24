@@ -124,12 +124,12 @@ typedef struct NCZ_FILE_INFO {
     struct NCauth* auth;
     struct NCZ_Metadata metadata;
     struct nczarr {
-	int zarr_version;
-	struct {
-	    unsigned long major;
-	    unsigned long minor;
-	    unsigned long release;
-	} nczarr_version;
+      int zarr_version;
+      struct {
+        unsigned long major;
+        unsigned long minor;
+        unsigned long release;
+      } nczarr_version;
     } zarr;
     int creating; /* 1=> created 0=>open */
     int native_endianness; /* NC_ENDIAN_LITTLE | NC_ENDIAN_BIG */
