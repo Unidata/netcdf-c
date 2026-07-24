@@ -16,7 +16,7 @@ int NCZ_infer_zarr_format(NC_FILE_INFO_T *file) {
   /* check for the existence of **any** of the keys, infer format based on it*/
   for (zo = zarrobjects; zo->name; zo++) {
     if (NC_NOERR == nczmap_exists(zfile->map, zo->name)) {
-      zfile->zarr.zarr_version = zo->format;
+      zfile->format.zarr = zo->format;
       stat = NC_NOERR;
       break;
     }
@@ -32,13 +32,10 @@ int NCZ_infer_nczarr_format(NC_FILE_INFO_T *file) {
   struct ZARROBJ *zobjs =
       &(((NCZ_GRP_INFO_T *)file->root_grp->format_grp_info)->zgroup);
 
-  int zarrformat = zfile->zarr.zarr_version;
+  int zarrformat = zfile->format.zarr;
+  int nczarrformat = NCZARRFORMAT0;
 
-  zfile->zarr.nczarr_version.major = 0;
-  zfile->zarr.nczarr_version.minor = 0;
-  zfile->zarr.nczarr_version.release = 0;
-
-  if (zarrformat == 2) {
+  if (zarrformat == ZARRFORMAT2) {
     /* Fetch /.zattrs and /.zgroup contents */
     if ((stat = NCZMD_fetch_json_group(zfile, "/", &zobjs->obj)) ||
         (stat = NCZMD_fetch_json_attrs(zfile, "/", &zobjs->atts))) {
@@ -61,10 +58,8 @@ int NCZ_infer_nczarr_format(NC_FILE_INFO_T *file) {
           NCJ_OK == NCJdictget(jsuperblock, "version", &jnczarrversion) &&
           jnczarrversion != NULL && NCJsort(jnczarrversion) == NCJ_STRING) {
 
-        if (sscanf(NCJstring(jnczarrversion), "%lu.%lu.%lu",
-                   &zfile->zarr.nczarr_version.major,
-                   &zfile->zarr.nczarr_version.minor,
-                   &zfile->zarr.nczarr_version.release) != 3) {
+        if (sscanf(NCJstring(jnczarrversion), NCZARR_FORMAT_VERSION_TEMPLATE,
+                   &nczarrformat) != 1) {
           nclog(NCLOGERR, "Issue detecting NCZARR version from %s",
                 NCJstring(jnczarrversion));
           stat = NC_ENCZARR;
