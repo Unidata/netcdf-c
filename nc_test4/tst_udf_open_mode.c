@@ -2,9 +2,16 @@
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
-   Test that nc_open() with NC_UDF0 mode flag routes dispatch to the
+   Test that passing NC_UDFx in the open mode selects the corresponding
    registered UDF dispatch table, even when the file on disk is a valid
    NetCDF-4/HDF5 file that would normally be auto-detected as HDF5.
+
+   This test exercises all 10 UDF slots (UDF0 through UDF9) by
+   registering a minimal dispatch table in each slot and verifying that
+   nc_open() with the matching mode flag dispatches to the UDF handler
+   instead of to the HDF5 handler.
+
+   See https://github.com/Unidata/netcdf-c/issues/3417
 
    Ed Hartnett
 */
@@ -18,6 +25,17 @@
 #include "ncdispatch.h"
 
 #define FILE_NAME "tst_udf_open_mode.nc"
+
+static const int udf_modes[NC_MAX_UDF_FORMATS] = {
+    NC_UDF0, NC_UDF1, NC_UDF2, NC_UDF3, NC_UDF4,
+    NC_UDF5, NC_UDF6, NC_UDF7, NC_UDF8, NC_UDF9
+};
+
+static const int udf_models[NC_MAX_UDF_FORMATS] = {
+    NC_FORMATX_UDF0, NC_FORMATX_UDF1, NC_FORMATX_UDF2, NC_FORMATX_UDF3,
+    NC_FORMATX_UDF4, NC_FORMATX_UDF5, NC_FORMATX_UDF6, NC_FORMATX_UDF7,
+    NC_FORMATX_UDF8, NC_FORMATX_UDF9
+};
 
 /* Minimal UDF dispatch stubs. */
 
@@ -59,162 +77,162 @@ udf_get_vara(int ncid, int varid, const size_t *start, const size_t *count,
     return NC_NOERR;
 }
 
-/* Dispatch table populated at runtime (MSVC-compatible). */
-static NC_Dispatch udf_dispatcher;
+/* Dispatch tables populated at runtime (MSVC-compatible). */
+static NC_Dispatch udf_dispatchers[NC_MAX_UDF_FORMATS];
 
 static void
-init_dispatcher(void)
+init_dispatchers(void)
 {
-    memset(&udf_dispatcher, 0, sizeof(udf_dispatcher));
+    int i;
 
-    udf_dispatcher.model = NC_FORMATX_UDF0;
-    udf_dispatcher.dispatch_version = NC_DISPATCH_VERSION;
+    for (i = 0; i < NC_MAX_UDF_FORMATS; i++) {
+        NC_Dispatch *dsp = &udf_dispatchers[i];
+        memset(dsp, 0, sizeof(NC_Dispatch));
 
-    udf_dispatcher.create = NC_RO_create;
-    udf_dispatcher.open = udf_open;
+        dsp->model = udf_models[i];
+        dsp->dispatch_version = NC_DISPATCH_VERSION;
 
-    udf_dispatcher.redef = NC_RO_redef;
-    udf_dispatcher._enddef = NC_RO__enddef;
-    udf_dispatcher.sync = NC_RO_sync;
-    udf_dispatcher.abort = udf_abort;
-    udf_dispatcher.close = udf_close;
-    udf_dispatcher.set_fill = NC_RO_set_fill;
-    udf_dispatcher.inq_format = udf_inq_format;
-    udf_dispatcher.inq_format_extended = udf_inq_format_extended;
+        dsp->create = NC_RO_create;
+        dsp->open = udf_open;
 
-    udf_dispatcher.def_dim = NC_RO_def_dim;
-    udf_dispatcher.rename_dim = NC_RO_rename_dim;
+        dsp->redef = NC_RO_redef;
+        dsp->_enddef = NC_RO__enddef;
+        dsp->sync = NC_RO_sync;
+        dsp->abort = udf_abort;
+        dsp->close = udf_close;
+        dsp->set_fill = NC_RO_set_fill;
+        dsp->inq_format = udf_inq_format;
+        dsp->inq_format_extended = udf_inq_format_extended;
 
-    udf_dispatcher.rename_att = NC_RO_rename_att;
-    udf_dispatcher.del_att = NC_RO_del_att;
-    udf_dispatcher.put_att = NC_RO_put_att;
+        dsp->def_dim = NC_RO_def_dim;
+        dsp->rename_dim = NC_RO_rename_dim;
 
-    udf_dispatcher.def_var = NC_RO_def_var;
-    udf_dispatcher.rename_var = NC_RO_rename_var;
-    udf_dispatcher.get_vara = udf_get_vara;
-    udf_dispatcher.put_vara = NC_RO_put_vara;
-    udf_dispatcher.get_vars = NCDEFAULT_get_vars;
-    udf_dispatcher.put_vars = NCDEFAULT_put_vars;
-    udf_dispatcher.get_varm = NCDEFAULT_get_varm;
-    udf_dispatcher.put_varm = NCDEFAULT_put_varm;
+        dsp->rename_att = NC_RO_rename_att;
+        dsp->del_att = NC_RO_del_att;
+        dsp->put_att = NC_RO_put_att;
 
-    udf_dispatcher.var_par_access = NC_NOTNC4_var_par_access;
-    udf_dispatcher.def_var_fill = NC_RO_def_var_fill;
+        dsp->def_var = NC_RO_def_var;
+        dsp->rename_var = NC_RO_rename_var;
+        dsp->get_vara = udf_get_vara;
+        dsp->put_vara = NC_RO_put_vara;
+        dsp->get_vars = NCDEFAULT_get_vars;
+        dsp->put_vars = NCDEFAULT_put_vars;
+        dsp->get_varm = NCDEFAULT_get_varm;
+        dsp->put_varm = NCDEFAULT_put_varm;
 
-    udf_dispatcher.inq_ncid = NC_NOTNC4_inq_ncid;
-    udf_dispatcher.inq_grps = NC_NOTNC4_inq_grps;
-    udf_dispatcher.inq_grpname = NC_NOTNC4_inq_grpname;
-    udf_dispatcher.inq_grpname_full = NC_NOTNC4_inq_grpname_full;
-    udf_dispatcher.inq_grp_parent = NC_NOTNC4_inq_grp_parent;
-    udf_dispatcher.inq_grp_full_ncid = NC_NOTNC4_inq_grp_full_ncid;
-    udf_dispatcher.inq_varids = NC_NOTNC4_inq_varids;
-    udf_dispatcher.inq_dimids = NC_NOTNC4_inq_dimids;
-    udf_dispatcher.inq_typeids = NC_NOTNC4_inq_typeids;
-    udf_dispatcher.def_grp = NC_NOTNC4_def_grp;
-    udf_dispatcher.rename_grp = NC_NOTNC4_rename_grp;
-    udf_dispatcher.inq_user_type = NC_NOTNC4_inq_user_type;
-    udf_dispatcher.inq_typeid = NC_NOTNC4_inq_typeid;
+        dsp->var_par_access = NC_NOTNC4_var_par_access;
+        dsp->def_var_fill = NC_RO_def_var_fill;
 
-    udf_dispatcher.def_compound = NC_NOTNC4_def_compound;
-    udf_dispatcher.insert_compound = NC_NOTNC4_insert_compound;
-    udf_dispatcher.insert_array_compound = NC_NOTNC4_insert_array_compound;
-    udf_dispatcher.inq_compound_field = NC_NOTNC4_inq_compound_field;
-    udf_dispatcher.inq_compound_fieldindex = NC_NOTNC4_inq_compound_fieldindex;
-    udf_dispatcher.def_vlen = NC_NOTNC4_def_vlen;
-    udf_dispatcher.put_vlen_element = NC_NOTNC4_put_vlen_element;
-    udf_dispatcher.get_vlen_element = NC_NOTNC4_get_vlen_element;
-    udf_dispatcher.def_enum = NC_NOTNC4_def_enum;
-    udf_dispatcher.insert_enum = NC_NOTNC4_insert_enum;
-    udf_dispatcher.inq_enum_member = NC_NOTNC4_inq_enum_member;
-    udf_dispatcher.inq_enum_ident = NC_NOTNC4_inq_enum_ident;
-    udf_dispatcher.def_opaque = NC_NOTNC4_def_opaque;
-    udf_dispatcher.def_var_deflate = NC_NOTNC4_def_var_deflate;
-    udf_dispatcher.def_var_fletcher32 = NC_NOTNC4_def_var_fletcher32;
-    udf_dispatcher.def_var_chunking = NC_NOTNC4_def_var_chunking;
-    udf_dispatcher.def_var_endian = NC_NOTNC4_def_var_endian;
-    udf_dispatcher.def_var_filter = NC_NOTNC4_def_var_filter;
-    udf_dispatcher.set_var_chunk_cache = NC_NOTNC4_set_var_chunk_cache;
-    udf_dispatcher.get_var_chunk_cache = NC_NOTNC4_get_var_chunk_cache;
+        dsp->inq_ncid = NC_NOTNC4_inq_ncid;
+        dsp->inq_grps = NC_NOTNC4_inq_grps;
+        dsp->inq_grpname = NC_NOTNC4_inq_grpname;
+        dsp->inq_grpname_full = NC_NOTNC4_inq_grpname_full;
+        dsp->inq_grp_parent = NC_NOTNC4_inq_grp_parent;
+        dsp->inq_grp_full_ncid = NC_NOTNC4_inq_grp_full_ncid;
+        dsp->inq_varids = NC_NOTNC4_inq_varids;
+        dsp->inq_dimids = NC_NOTNC4_inq_dimids;
+        dsp->inq_typeids = NC_NOTNC4_inq_typeids;
+        dsp->def_grp = NC_NOTNC4_def_grp;
+        dsp->rename_grp = NC_NOTNC4_rename_grp;
+        dsp->inq_user_type = NC_NOTNC4_inq_user_type;
+        dsp->inq_typeid = NC_NOTNC4_inq_typeid;
+
+        dsp->def_compound = NC_NOTNC4_def_compound;
+        dsp->insert_compound = NC_NOTNC4_insert_compound;
+        dsp->insert_array_compound = NC_NOTNC4_insert_array_compound;
+        dsp->inq_compound_field = NC_NOTNC4_inq_compound_field;
+        dsp->inq_compound_fieldindex = NC_NOTNC4_inq_compound_fieldindex;
+        dsp->def_vlen = NC_NOTNC4_def_vlen;
+        dsp->put_vlen_element = NC_NOTNC4_put_vlen_element;
+        dsp->get_vlen_element = NC_NOTNC4_get_vlen_element;
+        dsp->def_enum = NC_NOTNC4_def_enum;
+        dsp->insert_enum = NC_NOTNC4_insert_enum;
+        dsp->inq_enum_member = NC_NOTNC4_inq_enum_member;
+        dsp->inq_enum_ident = NC_NOTNC4_inq_enum_ident;
+        dsp->def_opaque = NC_NOTNC4_def_opaque;
+        dsp->def_var_deflate = NC_NOTNC4_def_var_deflate;
+        dsp->def_var_fletcher32 = NC_NOTNC4_def_var_fletcher32;
+        dsp->def_var_chunking = NC_NOTNC4_def_var_chunking;
+        dsp->def_var_endian = NC_NOTNC4_def_var_endian;
+        dsp->def_var_filter = NC_NOTNC4_def_var_filter;
+        dsp->set_var_chunk_cache = NC_NOTNC4_set_var_chunk_cache;
+        dsp->get_var_chunk_cache = NC_NOTNC4_get_var_chunk_cache;
 #if NC_DISPATCH_VERSION >= 3
-    udf_dispatcher.inq_var_filter_ids = NC_NOOP_inq_var_filter_ids;
-    udf_dispatcher.inq_var_filter_info = NC_NOOP_inq_var_filter_info;
+        dsp->inq_var_filter_ids = NC_NOOP_inq_var_filter_ids;
+        dsp->inq_var_filter_info = NC_NOOP_inq_var_filter_info;
 #endif
 #if NC_DISPATCH_VERSION >= 4
-    udf_dispatcher.def_var_quantize = NC_NOTNC4_def_var_quantize;
-    udf_dispatcher.inq_var_quantize = NC_NOTNC4_inq_var_quantize;
+        dsp->def_var_quantize = NC_NOTNC4_def_var_quantize;
+        dsp->inq_var_quantize = NC_NOTNC4_inq_var_quantize;
 #endif
 #if NC_DISPATCH_VERSION >= 5
-    udf_dispatcher.inq_filter_avail = NC_NOOP_inq_filter_avail;
+        dsp->inq_filter_avail = NC_NOOP_inq_filter_avail;
 #endif
+    }
 }
 
 int
 main(int argc, char **argv)
 {
-    init_dispatcher();
-    printf("\n*** Testing nc_open() with NC_UDF0 mode flag dispatch override.\n");
-    printf("*** testing NC_UDF0 flag overrides HDF5 magic number detection...");
-    {
-        int ncid;
+    int ncid;
+    int i;
+    NC_Dispatch *disp_save;
 
-        /* Create a valid NetCDF-4/HDF5 file. Its magic number is
-         * \x89HDF\r\n\x1a\n, which would normally cause nc_open()
-         * to select the HDF5 dispatch table. */
-        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-        if (nc_close(ncid)) ERR;
+    init_dispatchers();
+    printf("\n*** Testing nc_open() with NC_UDFx mode flag dispatch override.\n");
 
-        /* Register UDF0 with no magic number. */
-        if (nc_def_user_format(NC_UDF0, &udf_dispatcher, NULL)) ERR;
+    printf("*** creating a valid NetCDF-4/HDF5 file...");
+    /* Its magic number is \x89HDF\r\n\x1a\n, which would normally cause
+     * nc_open() to select the HDF5 dispatch table. */
+    if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+    if (nc_close(ncid)) ERR;
+    SUMMARIZE_ERR;
 
-        /* Open the HDF5 file with NC_UDF0 — dispatch must go to UDF,
-         * not HDF5. */
-        if (nc_open(FILE_NAME, NC_UDF0, &ncid)) ERR;
+    printf("*** testing that opening with unregistered UDF slots fails...");
+    for (i = 0; i < NC_MAX_UDF_FORMATS; i++) {
+        if (nc_open(FILE_NAME, udf_modes[i], &ncid) == NC_NOERR) ERR;
+    }
+    SUMMARIZE_ERR;
 
-        /* Verify we are using the UDF dispatch table by checking
-         * that nc_inq_format returns our sentinel value. If the HDF5
-         * dispatcher were used, it would return NC_NOERR. */
+    printf("*** testing all UDF slots can be registered...");
+    for (i = 0; i < NC_MAX_UDF_FORMATS; i++) {
+        if (nc_def_user_format(udf_modes[i], &udf_dispatchers[i], NULL)) ERR;
+    }
+    SUMMARIZE_ERR;
+
+    printf("*** testing each UDF slot overrides HDF5 magic number detection...");
+    for (i = 0; i < NC_MAX_UDF_FORMATS; i++) {
+        if (nc_open(FILE_NAME, udf_modes[i], &ncid)) ERR;
         if (nc_inq_format(ncid, NULL) != TEST_VAL_42) ERR;
         if (nc_inq_format_extended(ncid, NULL, NULL) != TEST_VAL_42) ERR;
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-    printf("*** testing control: without NC_UDF0, HDF5 detection works...");
-    {
-        int ncid, fmt;
 
-        /* Open the same file without any UDF flag — should be detected
-         * as NetCDF-4/HDF5 via magic number. */
-        if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+    printf("*** testing control: without NC_UDFx, HDF5 detection works...");
+    if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+    {
+        int fmt;
         if (nc_inq_format(ncid, &fmt)) ERR;
         if (fmt != NC_FORMAT_NETCDF4) ERR;
-        if (nc_close(ncid)) ERR;
     }
+    if (nc_close(ncid)) ERR;
     SUMMARIZE_ERR;
-    printf("*** testing NC_UDF0 | NC_WRITE combined flags...");
-    {
-        int ncid;
 
-        /* NC_UDF0 can be combined with behavioral flags. */
-        if (nc_open(FILE_NAME, NC_UDF0 | NC_WRITE, &ncid)) ERR;
+    printf("*** testing each NC_UDFx | NC_WRITE combined flags...");
+    for (i = 0; i < NC_MAX_UDF_FORMATS; i++) {
+        if (nc_open(FILE_NAME, udf_modes[i] | NC_WRITE, &ncid)) ERR;
         if (nc_inq_format(ncid, NULL) != TEST_VAL_42) ERR;
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-    printf("*** testing NC_UDF0 with unregistered slot fails...");
-    {
-        int ncid;
-        NC_Dispatch *disp_save;
 
-        /* Save and unregister UDF0 by re-registering a fresh
-         * dispatcher, then check that opening with NC_UDF0 after
-         * clearing the slot returns an error. We cannot truly
-         * unregister, so instead we verify that nc_open with
-         * NC_UDF0 only works when a dispatch table is registered
-         * (already tested above). This sub-test verifies the
-         * nc_inq_user_format query path. */
-        if (nc_inq_user_format(NC_UDF0, &disp_save, NULL)) ERR;
-        if (disp_save != &udf_dispatcher) ERR;
+    printf("*** testing nc_inq_user_format returns registered dispatchers...");
+    for (i = 0; i < NC_MAX_UDF_FORMATS; i++) {
+        if (nc_inq_user_format(udf_modes[i], &disp_save, NULL)) ERR;
+        if (disp_save != &udf_dispatchers[i]) ERR;
     }
     SUMMARIZE_ERR;
+
     FINAL_RESULTS;
 }
