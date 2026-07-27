@@ -223,11 +223,48 @@ NC_authfree(NCauth* auth)
 
 /**************************************************/
 
+static int is_numeric(const char * str){
+    if (str == NULL || strlen(str) == 0) {
+        return 0;
+    }
+
+    for (const char *c = str; c < str + strlen(str); c++)
+    {
+        if ( !('0' <= *c  && *c <= '9')) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+static void value_to_int(const char* value, int*value_int) {
+    if (value == NULL || value_int == NULL) {
+        return;
+    }
+    if (strcasecmp(value, "False") == 0 || strcasecmp(value, "No") == 0)
+    {
+        *value_int = 0;
+    }
+    else if (strcasecmp(value, "True") == 0 || strcasecmp(value, "Yes") == 0)
+    {
+        *value_int = 1;
+    }
+    else if (is_numeric(value))
+    {
+        *value_int = atoi(value);
+    }
+}
+
 static int
 setauthfield(NCauth* auth, const char* flag, const char* value)
 {
     int ret = NC_NOERR;
     if(value == NULL) goto done;
+
+    int int_value = -1;
+    value_to_int(value, &int_value);
+
     if(strcmp(flag,"HTTP.ENCODE")==0) {
         if(atoi(value)) {auth->curlflags.encode = 1;} else {auth->curlflags.encode = 0;}
 #ifdef DEBUG
@@ -280,28 +317,32 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
 #endif
     }
     if(strcmp(flag,"HTTP.SSL.VERIFYPEER")==0) {
-	int v;
-        if((v = atoi(value))) {
-	    auth->ssl.verifypeer = v;
+	    auth->ssl.verifypeer = int_value;
 #ifdef DEBUG
                 nclog(NCLOGNOTE,"HTTP.SSL.VERIFYPEER: %d", v);
 #endif
-	}
     }
     if(strcmp(flag,"HTTP.SSL.VERIFYHOST")==0) {
-	int v;
-        if((v = atoi(value))) {
-	    auth->ssl.verifyhost = v;
+	    auth->ssl.verifyhost = int_value;
 #ifdef DEBUG
                 nclog(NCLOGNOTE,"HTTP.SSL.VERIFYHOST: %d", v);
 #endif
-	}
     }
     if(strcmp(flag,"HTTP.SSL.VALIDATE")==0) {
-        if(atoi(value)) {
-	    auth->ssl.verifypeer = 1;
-	    auth->ssl.verifyhost = 2;
-	}
+        switch (int_value) {
+            case -1: //default
+                auth->ssl.verifypeer = -1;
+                auth->ssl.verifyhost = -1;
+                break;
+            case 0:
+                auth->ssl.verifypeer = 0;
+                auth->ssl.verifyhost = 0;
+                break;
+            default:
+                auth->ssl.verifypeer = 1;
+                auth->ssl.verifyhost = 2;
+                break;
+        }
     }
 
     if(strcmp(flag,"HTTP.SSL.CERTIFICATE")==0) {

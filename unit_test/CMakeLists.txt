@@ -19,6 +19,8 @@ ENDIF()
 
 SET(UNIT_TESTS test_ncuri)
 add_bin_test(unit_test test_ncuri)
+SET(UNIT_TESTS test_dauth)
+add_bin_test(unit_test test_dauth)
 
 IF(NETCDF_ENABLE_HDF5)
   IF(NOT WIN32)
