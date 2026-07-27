@@ -15,6 +15,7 @@
 #include "err_macros.h"
 #include "netcdf.h"
 #include "netcdf_dispatch.h"
+#include "ncdispatch.h"
 
 #define FILE_NAME "tst_udf_open_mode.nc"
 
@@ -51,6 +52,13 @@ udf_inq_format_extended(int ncid, int *formatp, int *modep)
     return TEST_VAL_42;
 }
 
+int
+udf_get_vara(int ncid, int varid, const size_t *start, const size_t *count,
+             void *value, nc_type t)
+{
+    return NC_NOERR;
+}
+
 /* Dispatch table populated at runtime (MSVC-compatible). */
 static NC_Dispatch udf_dispatcher;
 
@@ -83,7 +91,7 @@ init_dispatcher(void)
 
     udf_dispatcher.def_var = NC_RO_def_var;
     udf_dispatcher.rename_var = NC_RO_rename_var;
-    udf_dispatcher.get_vara = NCDEFAULT_get_vars;
+    udf_dispatcher.get_vara = udf_get_vara;
     udf_dispatcher.put_vara = NC_RO_put_vara;
     udf_dispatcher.get_vars = NCDEFAULT_get_vars;
     udf_dispatcher.put_vars = NCDEFAULT_put_vars;
