@@ -9,6 +9,17 @@ unit tests for libdispatch/dauth.c
 
 #include "../libdispatch/dauth.c" //To test static function setauthfield
 
+#define AUTH_OFF {{0}}
+#define AUTH_ON {.ssl = {.verifypeer = 1, .verifyhost = 2}}
+#define AUTH_DEFAULT_SSL {.ssl = {.verifypeer = -1, .verifyhost = -1}}
+
+#define AUTH_HOST_ON {.ssl = {.verifyhost = 1}}
+#define AUTH_HOST_DEFAULT {.ssl = {.verifyhost = -1}}
+
+#define AUTH_PEER_ON {.ssl = {.verifypeer = 1}}
+#define AUTH_PEER_DEFAULT {.ssl = {.verifypeer = -1}}
+#define AUTH_UNTOUCHED {{0xF}}
+
 typedef struct Test {
   char *field;
   char *value;
@@ -16,56 +27,36 @@ typedef struct Test {
   NCauth expected;
 } Test;
 
-#define TEST_OK 0
-#define TEST_ERROR 1
-
-#define extract_auth_field(a, f) a.f
-
-NCauth testauth = {0};
-const NCauth auth_off = {0};
-const NCauth auth_on = {.ssl = {.verifypeer = 1, .verifyhost = 2}};
-const NCauth auth_default_ssl = {.ssl = {.verifypeer = -1, .verifyhost = -1}};
-
-const NCauth auth_host_on = {.ssl = {.verifyhost = 1}};
-const NCauth auth_host_default = {.ssl = {.verifyhost = -1}};
-
-const NCauth auth_peer_on = {.ssl = {.verifypeer = 1}};
-const NCauth auth_peer_default = {.ssl = {.verifypeer = -1}};
-
-const NCauth untouched = {{0xF}};
-
 static Test TESTS[] = {
   // SSL VALIDATE -> changes both verifypeer and verifyhost
-  /* 1 */ {"HTTP.SSL.VALIDATE", "1",     auth_off, auth_on},
-  /* 2 */ {"HTTP.SSL.VALIDATE", "yes",   auth_off, auth_on},
-  /* 3 */ {"HTTP.SSL.VALIDATE", "YES",   auth_off, auth_on},
-  /* 4 */ {"HTTP.SSL.VALIDATE", "true",  auth_off, auth_on},
-  /* 5 */ {"HTTP.SSL.VALIDATE", "True",  auth_off, auth_on},
-  /* 6 */ {"HTTP.SSL.VALIDATE", "0",     auth_on, auth_off},
-  /* 7 */ {"HTTP.SSL.VALIDATE", "No",    auth_on, auth_off},
-  /* 8 */ {"HTTP.SSL.VALIDATE", "no",    auth_on, auth_off},
-  /* 9 */ {"HTTP.SSL.VALIDATE", "false", auth_on, auth_off},
-  /*10 */ {"HTTP.SSL.VALIDATE", "False", auth_on, auth_off},
-  /*11 */ {"HTTP.SSL.VALIDATE", "",      auth_on, auth_default_ssl},
-  /*12 */ {"HTTP.SSL.VALIDATE", NULL, untouched, untouched},
-
+  /* 1 */ {"HTTP.SSL.VALIDATE", "1",       AUTH_OFF, AUTH_ON},
+  /* 2 */ {"HTTP.SSL.VALIDATE", "yes",     AUTH_OFF, AUTH_ON},
+  /* 3 */ {"HTTP.SSL.VALIDATE", "YES",     AUTH_OFF, AUTH_ON},
+  /* 4 */ {"HTTP.SSL.VALIDATE", "true",    AUTH_OFF, AUTH_ON},
+  /* 5 */ {"HTTP.SSL.VALIDATE", "True",    AUTH_OFF, AUTH_ON},
+  /* 6 */ {"HTTP.SSL.VALIDATE", "0",       AUTH_ON, AUTH_OFF},
+  /* 7 */ {"HTTP.SSL.VALIDATE", "No",      AUTH_ON, AUTH_OFF},
+  /* 8 */ {"HTTP.SSL.VALIDATE", "no",      AUTH_ON, AUTH_OFF},
+  /* 9 */ {"HTTP.SSL.VALIDATE", "false",   AUTH_ON, AUTH_OFF},
+  /*10 */ {"HTTP.SSL.VALIDATE", "False",   AUTH_ON, AUTH_OFF},
+  /*11 */ {"HTTP.SSL.VALIDATE", "",        AUTH_ON, AUTH_DEFAULT_SSL},
+  /*12 */ {"HTTP.SSL.VALIDATE", NULL,      AUTH_ON, AUTH_ON},
   // SSL VERIFY HOST
-  /*13 */ {"HTTP.SSL.VERIFYHOST", "1",     auth_off, auth_host_on},
-  /*14 */ {"HTTP.SSL.VERIFYHOST", "true",  auth_off, auth_host_on},
-  /*15 */ {"HTTP.SSL.VERIFYHOST", "True",  auth_off, auth_host_on},
-  /*16 */ {"HTTP.SSL.VERIFYHOST", "0",     auth_host_on, auth_off},
-  /*17 */ {"HTTP.SSL.VERIFYHOST", "false", auth_host_on, auth_off},
-  /*18 */ {"HTTP.SSL.VERIFYHOST", "False", auth_host_on, auth_off},
-  /*19 */ {"HTTP.SSL.VERIFYHOST", "",      auth_off, auth_host_default},
-  /*20 */ {"HTTP.SSL.VERIFYHOST", NULL,    auth_on, auth_on},
-
+  /*13 */ {"HTTP.SSL.VERIFYHOST", "1",     AUTH_OFF, AUTH_HOST_ON},
+  /*14 */ {"HTTP.SSL.VERIFYHOST", "true",  AUTH_OFF, AUTH_HOST_ON},
+  /*15 */ {"HTTP.SSL.VERIFYHOST", "True",  AUTH_OFF, AUTH_HOST_ON},
+  /*16 */ {"HTTP.SSL.VERIFYHOST", "0",     AUTH_HOST_ON, AUTH_OFF},
+  /*17 */ {"HTTP.SSL.VERIFYHOST", "false", AUTH_HOST_ON, AUTH_OFF},
+  /*18 */ {"HTTP.SSL.VERIFYHOST", "False", AUTH_HOST_ON, AUTH_OFF},
+  /*19 */ {"HTTP.SSL.VERIFYHOST", "",      AUTH_OFF, AUTH_HOST_DEFAULT},
+  /*20 */ {"HTTP.SSL.VERIFYHOST", NULL,    AUTH_HOST_ON, AUTH_HOST_ON},
   // SSL VERIFY PEER
-  /*21 */ {"HTTP.SSL.VERIFYPEER", "1",     auth_off, auth_peer_on},
-  /*22 */ {"HTTP.SSL.VERIFYPEER", "True",  auth_off, auth_peer_on},
-  /*23 */ {"HTTP.SSL.VERIFYPEER", "0",     auth_peer_on, auth_off},
-  /*24 */ {"HTTP.SSL.VERIFYPEER", "false", auth_peer_on, auth_off},
-  /*25 */ {"HTTP.SSL.VERIFYPEER", "",      auth_off, auth_peer_default},
-  /*26 */ {"HTTP.SSL.VERIFYPEER", NULL, untouched, untouched},
+  /*21 */ {"HTTP.SSL.VERIFYPEER", "1",     AUTH_OFF, AUTH_PEER_ON},
+  /*22 */ {"HTTP.SSL.VERIFYPEER", "True",  AUTH_OFF, AUTH_PEER_ON},
+  /*23 */ {"HTTP.SSL.VERIFYPEER", "0",     AUTH_PEER_ON, AUTH_OFF},
+  /*24 */ {"HTTP.SSL.VERIFYPEER", "false", AUTH_PEER_ON, AUTH_OFF},
+  /*25 */ {"HTTP.SSL.VERIFYPEER", "",      AUTH_OFF, AUTH_PEER_DEFAULT},
+  /*26 */ {"HTTP.SSL.VERIFYPEER", NULL,    AUTH_PEER_ON, AUTH_PEER_ON},
   // END
   { NULL, NULL, {{0}}, {{0} } }
 };
@@ -74,8 +65,8 @@ void auth_print(const NCauth *auth, FILE *f) {
   if (f == NULL) {
     f = stdout;
   }
-  fprintf(f, "NCAuth:\n");
   fprintf(f,
+          "NCAuth:\n"
           "\tHTTP.SSL.VERIFYPEER:%d\n"
           "\tHTTP.SSL.VERIFYHOST:%d\n",
           auth->ssl.verifypeer, auth->ssl.verifyhost);
@@ -85,6 +76,7 @@ int main(int argc, char **argv) {
   Test *test;
   int failcount = 0;
   int index;
+  NCauth testauth = {0};
 
   for (index = 0, test = TESTS; test->field; test++, index++) {
     int ret = 0;
