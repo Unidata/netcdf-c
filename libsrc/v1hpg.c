@@ -124,13 +124,8 @@ fprintf(stderr, "nextread %lu, remaining %lu\n",
 	(unsigned long)((char *)gsp->end - (char *)gsp->pos));
 #endif
     /*
-     * Bound the request against the space that remains, rather than by adding
-     * nextread to gsp->pos.  That addition overflows for a large nextread and
-     * the comparison then succeeds, admitting a read past gsp->end.  The
-     * element counts that reach here through ncx_len_int() and ncx_len_int64()
-     * in this file come from the file header, so nextread is attacker
-     * influenced.  Subtraction cannot overflow.  The first test keeps a window
-     * whose pos has passed end from yielding a large unsigned difference.
+     * Bound against the space that remains.  Adding nextread to gsp->pos
+     * overflows for a large nextread, and the test then wrongly succeeds.
      */
     if((char *)gsp->pos <= (char *)gsp->end
 	&& nextread <= (size_t)((char *)gsp->end - (char *)gsp->pos))
