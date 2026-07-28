@@ -81,9 +81,7 @@ int main(int argc, char **argv) {
   for (index = 0, test = TESTS; test->field; test++, index++) {
     int ret = 0;
     memcpy(&testauth, &test->initial, sizeof(test->initial));
-    // setdefaults(&testauth);
     ret = setauthfield(&testauth, test->field, test->value);
-    // auth_print(testauth, NULL);
     if (ret != NC_NOERR) {
       fprintf(stderr, "Set auth fail: %s\n", test->field);
       failcount++;
