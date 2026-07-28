@@ -28,7 +28,7 @@ See COPYRIGHT for license information.
 
 #include "ncrc.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define DEBUGLOG(...) nclog(__VA_ARGS__)
 #else
