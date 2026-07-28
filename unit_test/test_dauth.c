@@ -36,11 +36,13 @@ static Test TESTS[] = {
   /* 3 */ {"HTTP.SSL.VALIDATE", "YES",      NC_NOERR, AUTH_OFF, AUTH_ON},
   /* 4 */ {"HTTP.SSL.VALIDATE", "true",     NC_NOERR, AUTH_OFF, AUTH_ON},
   /* 5 */ {"HTTP.SSL.VALIDATE", "True",     NC_NOERR, AUTH_OFF, AUTH_ON},
+  /* 6 */ {"HTTP.SSL.VALIDATE", "on",       NC_NOERR, AUTH_OFF, AUTH_ON},
   /* 7 */ {"HTTP.SSL.VALIDATE", "0",        NC_NOERR, AUTH_ON, AUTH_OFF},
   /* 8 */ {"HTTP.SSL.VALIDATE", "No",       NC_NOERR, AUTH_ON, AUTH_OFF},
   /* 9 */ {"HTTP.SSL.VALIDATE", "no",       NC_NOERR, AUTH_ON, AUTH_OFF},
   /*10 */ {"HTTP.SSL.VALIDATE", "false",    NC_NOERR, AUTH_ON, AUTH_OFF},
   /*11 */ {"HTTP.SSL.VALIDATE", "False",    NC_NOERR, AUTH_ON, AUTH_OFF},
+  /*12 */ {"HTTP.SSL.VALIDATE", "off",      NC_NOERR, AUTH_ON, AUTH_OFF},
   /*13 */ {"HTTP.SSL.VALIDATE", "",       NC_ERCFILE, AUTH_ON, AUTH_DEFAULT_SSL},
   /*14 */ {"HTTP.SSL.VALIDATE", NULL,       NC_NOERR, AUTH_ON, AUTH_ON},
   // SSL VERIFY HOST

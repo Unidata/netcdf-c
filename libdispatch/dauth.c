@@ -246,15 +246,15 @@ static int is_numeric(const char * str){
     return 1;
 }
 
-static void value_to_int(const char* value, int*value_int) {
+static void truthy_to_int(const char* value, int*value_int) {
     if (value == NULL || value_int == NULL) {
         return;
     }
-    if (strcasecmp(value, "False") == 0 || strcasecmp(value, "No") == 0)
+    if (strcasecmp(value, "False") == 0 || strcasecmp(value, "No") == 0 || strcasecmp(value,"Off")==0)
     {
         *value_int = 0;
     }
-    else if (strcasecmp(value, "True") == 0 || strcasecmp(value, "Yes") == 0)
+    else if (strcasecmp(value, "True") == 0 || strcasecmp(value, "Yes") == 0 || strcasecmp(value, "On") == 0 )
     {
         *value_int = 1;
     }
@@ -271,7 +271,7 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
     if(value == NULL) goto done;
 
     int int_value = NCAUTH_DEFAULT_SSL_VERIFY;
-    value_to_int(value, &int_value);
+    truthy_to_int(value, &int_value);
 
     if(strcmp(flag,"HTTP.ENCODE")==0) {
         if(atoi(value)) {auth->curlflags.encode = 1;} else {auth->curlflags.encode = 0;}
@@ -311,18 +311,28 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
         DEBUGLOG(NCLOGNOTE,"HTTP.PROXY.SERVER: %s", value);
     }
     if(strcmp(flag,"HTTP.SSL.VERIFYPEER")==0) {
+        if (NCAUTH_DEFAULT_SSL_VERIFY == int_value) {
+            nclog(NCLOGWARN, "RC-File key \"HTTP.SSL.VERIFYPEER\" contains invalid value! Ignoring it.");
+            ret = NC_ERCFILE;
+        }
 	    auth->ssl.verifypeer = int_value;
         DEBUGLOG(NCLOGNOTE,"HTTP.SSL.VERIFYPEER: %d", int_value);
     }
     if(strcmp(flag,"HTTP.SSL.VERIFYHOST")==0) {
+        if (NCAUTH_DEFAULT_SSL_VERIFY == int_value) {
+            nclog(NCLOGWARN, "RC-File key \"HTTP.SSL.VERIFYHOST\" contains invalid value! Ignoring it.");
+            ret = NC_ERCFILE;
+        }
 	    auth->ssl.verifyhost = int_value;
         DEBUGLOG(NCLOGNOTE,"HTTP.SSL.VERIFYHOST: %d", int_value);
     }
     if(strcmp(flag,"HTTP.SSL.VALIDATE")==0) {
         switch (int_value) {
             case NCAUTH_DEFAULT_SSL_VERIFY: //default
-                auth->ssl.verifypeer = -1;
-                auth->ssl.verifyhost = -1;
+                nclog(NCLOGWARN, "RC-File Key \"HTTP.SSL.VALIDATE\" contains invalid value! Ignoring it.");
+                auth->ssl.verifypeer = NCAUTH_DEFAULT_SSL_VERIFY;
+                auth->ssl.verifyhost = NCAUTH_DEFAULT_SSL_VERIFY;
+                ret = NC_ERCFILE;
                 break;
             case 0:
                 auth->ssl.verifypeer = 0;
