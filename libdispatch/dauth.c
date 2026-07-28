@@ -33,10 +33,17 @@ See COPYRIGHT for license information.
 #undef MEMCHECK
 #define MEMCHECK(x) if((x)==NULL) {goto nomem;} else {}
 
+
+#define NCAUTH_SSL_VERIFY_DEFAULT -1
+
+#define TO_STR(X) #X
+#define NCAUTH_SSL_VERIFY_DEFAULT_STR TO_STR(NCAUTH_SSL_VERIFY_DEFAULT)
+
+
 /* Define the curl flag defaults in envv style */
 static const char* AUTHDEFAULTS[] = {
-"HTTP.SSL.VERIFYPEER","-1", /* Use default */
-"HTTP.SSL.VERIFYHOST","-1", /* Use default */
+"HTTP.SSL.VERIFYPEER", NCAUTH_SSL_VERIFY_DEFAULT_STR, /* Use default */
+"HTTP.SSL.VERIFYHOST", NCAUTH_SSL_VERIFY_DEFAULT_STR, /* Use default */
 "HTTP.TIMEOUT","1800", /*seconds */ /* Long but not infinite */
 "HTTP.CONNECTTIMEOUT","50", /*seconds */ /* Long but not infinite */
 "HTTP.ENCODE","1", /* Use default */
@@ -262,7 +269,7 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
     int ret = NC_NOERR;
     if(value == NULL) goto done;
 
-    int int_value = -1;
+    int int_value = NCAUTH_SSL_VERIFY_DEFAULT;
     value_to_int(value, &int_value);
 
     if(strcmp(flag,"HTTP.ENCODE")==0) {
@@ -330,7 +337,7 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
     }
     if(strcmp(flag,"HTTP.SSL.VALIDATE")==0) {
         switch (int_value) {
-            case -1: //default
+            case NCAUTH_SSL_VERIFY_DEFAULT: //default
                 auth->ssl.verifypeer = -1;
                 auth->ssl.verifyhost = -1;
                 break;
@@ -458,3 +465,5 @@ setdefaults(NCauth* auth)
 	}
     }
 }
+
+#undef TO_STR
