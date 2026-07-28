@@ -34,23 +34,19 @@ See COPYRIGHT for license information.
 #define MEMCHECK(x) if((x)==NULL) {goto nomem;} else {}
 
 
-#define NCAUTH_SSL_VERIFY_DEFAULT -1
+#define NCAUTH_DEFAULT_SSL_VERIFY -1
 
-#define TO_STR(X) #X
-#define NCAUTH_SSL_VERIFY_DEFAULT_STR TO_STR(NCAUTH_SSL_VERIFY_DEFAULT)
-
-
-/* Define the curl flag defaults in envv style */
-static const char* AUTHDEFAULTS[] = {
-"HTTP.SSL.VERIFYPEER", NCAUTH_SSL_VERIFY_DEFAULT_STR, /* Use default */
-"HTTP.SSL.VERIFYHOST", NCAUTH_SSL_VERIFY_DEFAULT_STR, /* Use default */
-"HTTP.TIMEOUT","1800", /*seconds */ /* Long but not infinite */
-"HTTP.CONNECTTIMEOUT","50", /*seconds */ /* Long but not infinite */
-"HTTP.ENCODE","1", /* Use default */
-NULL,
+static const NCauth default_auth = {
+    .ssl = {
+        .verifyhost = NCAUTH_DEFAULT_SSL_VERIFY,
+        .verifypeer = NCAUTH_DEFAULT_SSL_VERIFY,
+    },
+    .curlflags.timeout = 1800,
+    .curlflags.connecttimeout=50,
+    .curlflags.encode = 1,
 };
 
-/* Forward */
+/* Forward for helper functions */
 static int setauthfield(NCauth* auth, const char* flag, const char* value);
 static void setdefaults(NCauth*);
 
@@ -111,7 +107,7 @@ NC_authsetup(NCauth** authp, NCURI* uri)
     if((auth=calloc(1,sizeof(NCauth)))==NULL)
         {ret = NC_ENOMEM; goto done;}
 
-    setdefaults(auth);
+    memcpy(auth, &default_auth, sizeof(default_auth));
 
     /* Note, we still must do this function even if
        ncrc_getglobalstate()->rc.ignore is set in order
@@ -269,7 +265,7 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
     int ret = NC_NOERR;
     if(value == NULL) goto done;
 
-    int int_value = NCAUTH_SSL_VERIFY_DEFAULT;
+    int int_value = NCAUTH_DEFAULT_SSL_VERIFY;
     value_to_int(value, &int_value);
 
     if(strcmp(flag,"HTTP.ENCODE")==0) {
@@ -337,7 +333,7 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
     }
     if(strcmp(flag,"HTTP.SSL.VALIDATE")==0) {
         switch (int_value) {
-            case NCAUTH_SSL_VERIFY_DEFAULT: //default
+            case NCAUTH_DEFAULT_SSL_VERIFY: //default
                 auth->ssl.verifypeer = -1;
                 auth->ssl.verifyhost = -1;
                 break;
@@ -452,18 +448,3 @@ NC_parsecredentials(const char* userpwd, char** userp, char** pwdp)
   free(user);
   return NC_NOERR;
 }
-
-static void
-setdefaults(NCauth* auth)
-{
-    int ret = NC_NOERR;
-    const char** p;
-    for(p=AUTHDEFAULTS;*p;p+=2) {
-	ret = setauthfield(auth,p[0],p[1]);
-	if(ret) {
-            nclog(NCLOGERR, "RC file defaulting failed for: %s=%s",p[0],p[1]);
-	}
-    }
-}
-
-#undef TO_STR
