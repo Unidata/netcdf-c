@@ -923,8 +923,8 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		    BAIL(retval);		
 		if((retval = NC_s3profilelookup(profile0,AWS_PROF_SECRET_ACCESS_KEY,&awssecretkey0)))
 		    BAIL(retval);		
-		if(s3.region == NULL)
-		    s3.region = strdup(AWS_GLOBAL_DEFAULT_REGION);
+        //fa.aws_region should be set even in anonymous
+		strlcat(fa.aws_region,s3.region?s3.region:AWS_GLOBAL_DEFAULT_REGION,H5FD_ROS3_MAX_REGION_LEN);
 	        if(awsaccessid0 == NULL || awssecretkey0 == NULL ) {
 		    /* default, non-authenticating, "anonymous" fapl configuration */
 		    fa.authenticate = (hbool_t)0;
@@ -933,7 +933,6 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	  	    assert(s3.region != NULL && strlen(s3.region) > 0);
 		    assert(awsaccessid0 != NULL && strlen(awsaccessid0) > 0);
 		    assert(awssecretkey0 != NULL && strlen(awssecretkey0) > 0);
-		    strlcat(fa.aws_region,s3.region,H5FD_ROS3_MAX_REGION_LEN);
 		    strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
                     strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
 	        }
