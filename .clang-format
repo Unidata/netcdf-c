@@ -1,0 +1,8 @@
+---
+AllowShortFunctionsOnASingleLine: None
+BreakBeforeBraces: Attach
+IndentWidth: 8
+ContinuationIndentWidth: 8
+TabWidth: 8
+UseTab: Always
+...
