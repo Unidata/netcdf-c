@@ -12,11 +12,23 @@
 #ifndef ZINTERNAL_H
 #define ZINTERNAL_H
 
-#define ZARRVERSION "2"
+#define ZARRFORMAT2 2
 
-/* NCZARRVERSION is independent of Zarr version,
-   but NCZARRVERSION => ZARRVERSION */
-#define NCZARRVERSION "2.0.0"
+/* Define the possible NCZarr format versions */
+/* These are independent of the Zarr specification version */
+#define NCZARRFORMAT0 0 /* if this is a pure zarr dataset */
+#define NCZARRFORMAT2 2
+
+/* Map the Zarr Format version to a string */
+#define ZARR_FORMAT_VERSION_TEMPLATE "%d"
+
+/* Map the NCZarr Format version to a string */
+#define NCZARR_FORMAT_VERSION_TEMPLATE "%d.0.0"
+
+
+/* NCZARR_PACKAGE_VERSION is independent of Zarr format,
+   but NCZARR_PACKAGE_VERSION => ZARRFORMAT[2] */
+#define NCZARR_PACKAGE_VERSION "2.0.0"
 
 /* These have to do with creating chunked datasets in ZARR. */
 #define NCZ_CHUNKSIZE_FACTOR (10)
@@ -123,14 +135,10 @@ typedef struct NCZ_FILE_INFO {
     struct NCZMAP* map; /* implementation */
     struct NCauth* auth;
     struct NCZ_Metadata metadata;
-    struct nczarr {
-	int zarr_version;
-	struct {
-	    unsigned long major;
-	    unsigned long minor;
-	    unsigned long release;
-	} nczarr_version;
-    } zarr;
+    struct ZarrFormat {
+      int zarr;
+      int nczarr;
+    } format;
     int creating; /* 1=> created 0=>open */
     int native_endianness; /* NC_ENDIAN_LITTLE | NC_ENDIAN_BIG */
     NClist* controllist; /* Envv format */
