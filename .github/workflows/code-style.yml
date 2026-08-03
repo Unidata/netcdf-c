@@ -1,32 +1,11 @@
 name: Code Style checks
-on: [pull_request, push]
+on: [pull_request]
 jobs:
   clang-format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # needed for diff-based checks
-      #- name: Install clang-format
-      #  shell: bash -l {0}
-      #  run: |
-      #    apt update -y
-      #    apt install clang-format -y
-      #    curl -O https://raw.githubusercontent.com/llvm/llvm-project/main/clang/tools/clang-format/git-clang-format
-      #    chmod +x git-clang-format
-      #    mv git-clang-format /usr/local/bin/
+          fetch-depth: 0
       - name: Run code-style check on changes
-        shell: bash -l {0}
-        run: |
-          git fetch origin ${{ github.base_ref }}
-          echo $(which git-clang-format)
-          # Only check staged changes, don't modify anything, exit non-zero if unformatted
-          if ! git clang-format-18 --staged --diff --style=file > /tmp/cf-diff 2>&1; then
-              if [ -s /tmp/cf-diff ] && ! grep -q "clang-format did not modify any files" /tmp/cf-diff; then
-                  echo "clang-format found issues in staged changes:"
-                  cat /tmp/cf-diff
-                  echo
-                  echo "Run 'git clang-format' to fix, then re-stage and commit."
-                  exit 1
-              fi
-          fi
+        run: git clang-format-18 --diff ${{ github.event.pull_request.head.sha }} ${{ github.event.pull_request.base.sha }}
