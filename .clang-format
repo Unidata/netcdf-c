@@ -1,6 +1,7 @@
 ---
 AllowShortFunctionsOnASingleLine: None
 BreakBeforeBraces: Attach
+ColumnLimit: 0                          # Unchecked
 IndentWidth: 8
 ContinuationIndentWidth: 8
 TabWidth: 8
