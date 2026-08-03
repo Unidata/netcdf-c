@@ -82,9 +82,9 @@ These tests will be run against any pull request submitted; you are encouraged t
 
 ## Code-style  <A NAME="codestyle"></A>
 
-If you want format your contributed code `clang-format` is the right tool to use as it is [interaged with `git`](https://clang.llvm.org/docs/ClangFormat.html#git-integration). Calling it as a pre-commit hook ensures you add code-style respecting commits.
+If to contribute please format your code. `clang-format` is the right tool to use, as it is [interaged with `git`](https://clang.llvm.org/docs/ClangFormat.html#git-integration). Calling it in the pre-commit hook ensures you add code-style respecting commits.
 
-For that modify the `.git/hooks/pre-commit` script adding something like:
+For that modify `.git/hooks/pre-commit` to include something like:
 ```
 set -euo pipefail
 
