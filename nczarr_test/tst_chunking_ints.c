@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <netcdf.h>
+#include <netcdf_f.h>
+#include <ncpathmgr.h>
 
 #define DIM 256
 #define CHUNK 128
@@ -38,8 +40,16 @@
 static long
 get_file_size(const char *path)
 {
+    /* Use the portable stat wrapper from ncpathmgr.h; raw stat() is
+     * unreliable on Windows (_stat64 layout) and does not perform the
+     * path conversion (NCpathcvt) that the rest of the codebase relies
+     * on. See libnczarr/zmap_file.c for the same pattern. */
+#ifdef _WIN32
+    struct _stat64 st;
+#else
     struct stat st;
-    if (stat(path, &st) != 0) return -1;
+#endif
+    if (NCstat(path, &st) != 0) return -1;
     return (long)st.st_size;
 }
 
