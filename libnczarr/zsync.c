@@ -42,7 +42,6 @@ static int decodeints(const NCjson* jshape, size64_t* shapes);
 static int computeattrdata(nc_type typehint, nc_type* typeidp, const NCjson* values, size_t* typelenp, size_t* lenp, void** datap);
 static int computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarray, int ndims, NClist* dimnames, size64_t* shapes, NC_DIM_INFO_T** dims);
 static int json_convention_read(const NCjson* jdict, NCjson** jtextp);
-static int ncz_validate(NC_FILE_INFO_T* file);
 static int insert_attr(NCjson* jatts, NCjson* jtypes, const char* aname, NCjson* javalue, const char* atype);
 static int insert_nczarr_attr(NCjson* jatts, NCjson* jtypes);
 static int upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts);
@@ -2210,66 +2209,6 @@ done:
     return stat;
 }
 #endif
-
-/* See if there is reason to believe the specified path is a legitimate (NC)Zarr file
- * Do a breadth first walk of the tree starting at file path.
- * @param file to validate
- * @return NC_NOERR if it looks ok
- * @return NC_ENOTNC if it does not look ok
- */
-static int
-ncz_validate(NC_FILE_INFO_T* file)
-{
-    int stat = NC_NOERR;
-    NCZ_FILE_INFO_T* zinfo = (NCZ_FILE_INFO_T*)file->format_file_info;
-    int validate = 0;
-    NCbytes* prefix = ncbytesnew();
-    NClist* queue = nclistnew();
-    NClist* nextlevel = nclistnew();
-    NCZMAP* map = zinfo->map;
-    char* path = NULL;
-    char* segment = NULL;
-    size_t seglen;
-	    
-    ZTRACE(3,"file=%s",file->controller->path);
-
-    path = strdup("/");
-    nclistpush(queue,path);
-    path = NULL;
-    do {
-        nullfree(path); path = NULL;
-	/* This should be full path key */
-	path = nclistremove(queue,0); /* remove from front of queue */
-	/* get list of next level segments (partial keys) */
-	assert(nclistlength(nextlevel)==0);
-        if((stat=nczmap_search(map,path,nextlevel))) {validate = 0; goto done;}
-        /* For each s in next level, test, convert to full path, and push onto queue */
-	while(nclistlength(nextlevel) > 0) {
-            segment = nclistremove(nextlevel,0);
-            seglen = nulllen(segment);
-	    if((seglen >= 2 && memcmp(segment,".z",2)==0) || (seglen >= 4 && memcmp(segment,".ncz",4)==0)) {
-		validate = 1;
-	        goto done;
-	     }
-	     /* Convert to full path */
-	     ncbytesclear(prefix);
-	     ncbytescat(prefix,path);
-	     if(strlen(path) > 1) ncbytescat(prefix,"/");
-	     ncbytescat(prefix,segment);
-	     /* push onto queue */
-	     nclistpush(queue,ncbytesextract(prefix));
- 	     nullfree(segment); segment = NULL;
-	 }
-    } while(nclistlength(queue) > 0);
-done:
-    if(!validate) stat = NC_ENOTNC;
-    nullfree(path);
-    nullfree(segment);
-    nclistfreeall(queue);
-    nclistfreeall(nextlevel);
-    ncbytesfree(prefix);
-    return ZUNTRACE(THROW(stat));
-}
 
 /**
 Insert an attribute into a list of attribute, including typing
