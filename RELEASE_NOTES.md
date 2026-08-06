@@ -66,6 +66,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.10.0 - February 25, 2026
 
+* Fix the `nc_perf` build with MSVC so that `tst_chunks3` can be built and run on Windows. See [Github 3425](https://github.com/Unidata/netcdf-c/issues/3425) for more information. 
 * Regularize, cleanup, and refactor various AWS features, especially WRT regularizing AWS-related constants. See [Github 3229](https://github.com/Unidata/netcdf-c/issues/3229) for more information. 
 * Add extra failure handling to the daos inferencing. See [Github 3238](https://github.com/Unidata/netcdf-c/issues/3238) for more information. 
 * Regularize, cleanup, and refactor various AWS features, especially WRT regularizing AWS-related constants. See [Github 3229](https://github.com/Unidata/netcdf-c/issues/3229) for more information. 
