@@ -487,6 +487,37 @@ ncz_nctype2dtype(nc_type nctype, int endianness, int purezarr, int len, char** d
     return NC_NOERR;		
 }
 
+const char* datetime_unit_code_to_meaning(const char* unit, size_t len){
+    if ( len < 1 || 3 < len) {
+        return NULL;
+    }
+    if (len == 2 && unit[1] == 's'){
+        switch(unit[0]){
+            case 'm': return (unit[1])?"millisecond":NULL;
+            case 'u': return (unit[1])?"microsecond":NULL;
+            case 'n': return (unit[1])?"nanosecond":NULL;
+            case 'p': return (unit[1])?"picosecond":NULL;
+            case 'f': return (unit[1])?"femtosecond":NULL;
+            case 'a': return (unit[1])?"attosecond":NULL;
+            default:
+                return NULL;
+                break;
+        }
+    }
+
+    switch (unit[0]) {
+        case 'Y': return "year"; break;
+        case 'M': return "month"; break;
+        case 'W': return "week"; break;
+        case 'D': return "day"; break;
+        case 'h': return "hour"; break;
+        case 'm': return "minute"; break;
+        case 's': return "second"; break;
+        default:
+            break;
+    }
+    return NULL;
+}
 /*
 @internal Convert a numcodecs dtype spec to a corresponding nc_type.
 @param nctype   - [in] dtype the dtype to convert
@@ -501,7 +532,7 @@ ncz_nctype2dtype(nc_type nctype, int endianness, int purezarr, int len, char** d
 */
 
 int
-ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nctypep, int* endianp, int* typelenp)
+ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nctypep, int* endianp, int* typelenp, const char ** unitp)
 {
     int stat = NC_NOERR;
     int typelen = 0;
@@ -511,8 +542,10 @@ ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nct
     int endianness = -1;
     const char* p;
     int n;
+    const char *unit_name = NULL;
 
-    if(endianp) *endianp = NC_ENDIAN_NATIVE;
+    if (endianp)
+        *endianp = NC_ENDIAN_NATIVE;
     if(nctypep) *nctypep = NC_NAT;
 
     if(dtype == NULL) goto zerr;
@@ -529,65 +562,74 @@ ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nct
     if(count == 0) goto zerr;
     p += n;
 
-    /* Short circuit fixed length strings */
-    if(tchar == 'S') {
-	/* Fixed length string */
-	switch (typelen) {
-	case 1:
-	    nctype = (endianness == NC_ENDIAN_BIG ? NC_CHAR : NC_STRING);
-	    if(purezarr) nctype = NC_STRING; /* Zarr has no NC_CHAR type */
-	    break;
-	default:
-	    nctype = NC_STRING;
-	    break;
-	}
-	/* String/char have no endianness */
-	endianness = NC_ENDIAN_NATIVE;
-    } else {
-	switch(typelen) {
-        case 1:
-	    switch (tchar) {
-  	    case 'i': nctype = NC_BYTE; break;
-   	    case 'u': nctype = NC_UBYTE; break;
-	    default: goto zerr;
-	    }
-	    break;
-        case 2:
-	switch (tchar) {
-	case 'i': nctype = NC_SHORT; break;
-	case 'u': nctype = NC_USHORT; break;
-	default: goto zerr;
-	}
-	break;
-        case 4:
-	switch (tchar) {
-	case 'i': nctype = NC_INT; break;
-	case 'u': nctype = NC_UINT; break;
-	case 'f': nctype = NC_FLOAT; break;
-	default: goto zerr;
-	}
-	break;
-        case 8:
-	switch (tchar) {
-	case 'i': nctype = NC_INT64; break;
-	case 'u': nctype = NC_UINT64; break;
-	case 'f': nctype = NC_DOUBLE; break;
-	default: goto zerr;
-	}
-	break;
-        default: goto zerr;
-        }
+    switch (tchar) {
+        case 'S':
+            /* Fixed length string */
+            /* String/char have no endianness */
+            switch (typelen) {
+                case 1:
+                    nctype = (endianness == NC_ENDIAN_BIG ? NC_CHAR : NC_STRING);
+                    if(purezarr) nctype = NC_STRING; /* Zarr has no NC_CHAR type */
+                    break;
+                default:
+                    nctype = NC_STRING;
+                    break;
+            }
+            endianness = NC_ENDIAN_NATIVE;
+            break;
+        case 'm': //timedelta
+        case 'M': //datetime
+            if (*p != '[') {
+                nclog(NCLOGERR, "Malformed dtype %s, time datatypes MUST have units (%s)", dtype,p);
+                goto zerr;
+            }
+            const char *units = ++p;
+            const char * end = strchr(p,']');
+            if (end == NULL) {
+                nclog(NCLOGERR, "Malformed dtype %s, expected units to be within `[]`", dtype);
+                goto zerr;
+            }
+            // NULL if unable to convert
+            unit_name = datetime_unit_code_to_meaning(units, (size_t)(end - units));
+            if( unit_name == NULL ){
+                nclog(NCLOGERR, "Wrong unit value in dtype %s", dtype);
+                goto zerr;
+            }
+            break;
+        case 'i': // both are int internaly
+            switch(typelen) {
+                case 1: nctype = NC_BYTE; break;
+                case 2: nctype = NC_SHORT; break;
+                case 4: nctype = NC_INT; break;
+                case 8: nctype = NC_INT64; break;
+                default: goto zerr;
+            }
+            break;
+        case 'u':
+            switch(typelen) {
+                case 1: nctype = NC_UBYTE; break;
+                case 2: nctype = NC_USHORT; break;
+                case 4: nctype = NC_UINT; break;
+                case 8: nctype = NC_UINT64; break;
+                default: goto zerr;
+            }
+            break;
+        case 'f':
+            switch(typelen) {
+                case 4: nctype = NC_FLOAT; break;
+                case 8: nctype = NC_DOUBLE; break;
+                default: goto zerr;
+            }
+            break;
+        default:
+            goto zerr;
+            break;
     }
-
-#if 0
-    /* Convert NC_ENDIAN_NATIVE and NC_ENDIAN_NA */
-    if(endianness == NC_ENDIAN_NATIVE)
-        endianness = (NC_isLittleEndian()?NC_ENDIAN_LITTLE:NC_ENDIAN_BIG);
-#endif
 
     if(nctypep) *nctypep = nctype;
     if(typelenp) *typelenp = typelen;
     if(endianp) *endianp = endianness;
+    if(unitp)   *unitp = unit_name;
 
 done:
     return stat;
