@@ -17,14 +17,14 @@ SET(ncgen_FILES bindata.c bytebuffer.c cdata.c cvt.c data.c
 debug.c dump.c escapes.c f77data.c genbin.c
 genc.c genchar.c generate.c generr.c genf77.c
 genj.c genlib.c getfill.c jdata.c list.c
-main.c ncgeny.c semantics.c
+main.c ncgen.tab.c semantics.c
 util.c bytebuffer.h data.h debug.h dump.h
 generate.h generr.h genlib.h includes.h list.h
-ncgen.h ncgeny.h util.h ${XGETOPTSRC})
+ncgen.h ncgen.tab.h util.h ${XGETOPTSRC})
 
-## 
+##
 # Turn off inclusion of particular files when using the cmake-native
-# option to turn on Unity Builds.  
+# option to turn on Unity Builds.
 #
 # For more information, see:
 #  * https://github.com/Unidata/netcdf-c/pull/2839/

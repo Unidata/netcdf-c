@@ -13,10 +13,10 @@ ncgen_SOURCES = bindata.c bytebuffer.c cdata.c cvt.c data.c \
 debug.c dump.c escapes.c f77data.c genbin.c \
 genc.c genchar.c generate.c generr.c genf77.c \
 genj.c genlib.c getfill.c jdata.c list.c \
-main.c ncgeny.c semantics.c \
+main.c ncgen.tab.c semantics.c \
 util.c bytebuffer.h data.h debug.h dump.h \
 generate.h generr.h genlib.h includes.h list.h \
-ncgen.h ncgeny.h util.h
+ncgen.h ncgen.tab.h util.h
 
 # Obsolete
 OBSOLETE = odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c
@@ -63,8 +63,6 @@ makeparser::
 	rm -f ncgenl.c lex.ncg.c
 	flex -Pncg -8 ncgen.l
 	sed -e s/lex.ncg.c/ncgenl.c/g <lex.ncg.c >ncgenl.c
-	bison -pncg -t -d ncgen.y
-	rm -f ncgeny.c ncgeny.h
-	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.c >ncgeny.c
-	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.h >ncgeny.h
-	rm -f lex.ncg.c ncgen.tab.h ncgen.tab.c
+	rm -f lex.ncg.c
+	rm ncgen.tab.y ncgen.tab.h
+	bison --debug --defines -p ncg ncgen.y
