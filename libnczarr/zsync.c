@@ -47,7 +47,6 @@ static int insert_nczarr_attr(NCjson* jatts, NCjson* jtypes);
 static int upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts);
 static int getnczarrkey(NC_OBJ* container, const char* name, const NCjson** jncxxxp);
 static int downloadzarrobj(NC_FILE_INFO_T*, struct ZARROBJ* zobj, const char* fullpath, const char* objname);
-static int dictgetalt(const NCjson* jdict, const char* name, const char* alt, const NCjson** jvaluep);
 
 /**************************************************/
 /**************************************************/
@@ -1501,7 +1500,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	if(jvalue != NULL)
 	    var->storage = NC_CHUNKED;
 	/* Extract dimrefs list	 */
-	if((stat = dictgetalt(jncvar,"dimension_references","dimrefs",&jdimrefs))) goto done;
+	if((stat = NCJdictgetalt(jncvar,"dimension_references","dimrefs",&jdimrefs))) goto done;
 	if(jdimrefs != NULL) { /* Extract the dimref names */
 	    assert((NCJsort(jdimrefs) == NCJ_ARRAY));
 	    if(zvar->scalar) {
@@ -1791,7 +1790,7 @@ parse_group_content(const NCjson* jcontent, NClist* dimdefs, NClist* varnames, N
 
     ZTRACE(3,"jcontent=|%s| |dimdefs|=%u |varnames|=%u |subgrps|=%u",NCJtotext(jcontent,0),(unsigned)nclistlength(dimdefs),(unsigned)nclistlength(varnames),(unsigned)nclistlength(subgrps));
 
-    if((stat=dictgetalt(jcontent,"dimensions","dims",&jvalue))) goto done;
+    if((stat=NCJdictgetalt(jcontent,"dimensions","dims",&jvalue))) goto done;
     if(jvalue != NULL) {
 	if(NCJsort(jvalue) != NCJ_DICT) {stat = (THROW(NC_ENCZARR)); goto done;}
 	/* Extract the dimensions defined in this group */
@@ -1824,7 +1823,7 @@ parse_group_content(const NCjson* jcontent, NClist* dimdefs, NClist* varnames, N
 	}
     }
 
-    if((stat=dictgetalt(jcontent,"arrays","vars",&jvalue))) goto done;
+    if((stat=NCJdictgetalt(jcontent,"arrays","vars",&jvalue))) goto done;
     if(jvalue != NULL) {
 	/* Extract the variable names in this group */
 	for(i=0;i<NCJarraylength(jvalue);i++) {
@@ -2324,21 +2323,6 @@ done:
     return stat;
 }
 #endif
-
-/* Get one of two key values from a dict */
-static int
-dictgetalt(const NCjson* jdict, const char* name, const char* alt, const NCjson** jvaluep)
-{
-    int stat = NC_NOERR;
-    const NCjson* jvalue = NULL;
-    if((stat = NCJdictget(jdict,name,&jvalue))<0) {stat = NC_EINVAL; goto done;} /* try this first */
-    if(jvalue == NULL) {
-        if((stat = NCJdictget(jdict,alt,&jvalue))<0) {stat = NC_EINVAL; goto done;} /* try this alternative*/
-    }
-    if(jvaluep) *jvaluep = jvalue;
-done:
-    return THROW(stat);
-}
 
 /* Get _nczarr_xxx from either .zXXX or .zattrs */
 static int
