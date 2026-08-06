@@ -15,7 +15,12 @@ See \ref copyright file for more info.
 
 #include <nc_tests.h>
 #include <time.h>
+/* struct timeval comes from <winsock2.h> on Windows. */
+#if defined(_WIN32) && !defined(HAVE_SYS_TIME_H)
+#include <winsock2.h>
+#else
 #include <sys/time.h>
+#endif
 
 /** Subtract the `struct timeval' values X and Y, storing the result in
    RESULT.  Return 1 if the difference is negative, otherwise 0.  This
