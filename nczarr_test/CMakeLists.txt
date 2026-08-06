@@ -102,7 +102,8 @@ IF(NETCDF_ENABLE_TESTS)
   build_bin_test_with_util_lib(ut_mapapi ut_util)
   build_bin_test_with_util_lib(ut_json ut_util)
 
-  add_bin_test_with_util_lib(nczarr_test ut_zinfer ut_util ../libnczarr/zinfer.c ../libnczarr/zmetadata.c ../libnczarr/zmetadata2.c)
+  add_bin_test_with_util_lib(nczarr_test ut_consolidated ut_zinfer ut_util ../libnczarr/zinfer.c ../libnczarr/zmetadata.c ../libnczarr/zmetadata2.c)
+
 
   build_bin_test_with_util_lib(test_fillonlyz test_utils)
   build_bin_test_with_util_lib(test_quantize test_utils)
