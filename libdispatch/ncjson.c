@@ -644,6 +644,21 @@ done:
     return NCJTHROW(stat);
 }
 
+/* Get one of two key values from a dict */
+OPTSTATIC int
+NCJdictgetalt(const NCjson* jdict, const char* name, const char* alt, const NCjson** jvaluep)
+{
+    int stat = NCJ_OK;
+    const NCjson* jvalue = NULL;
+    if((stat = NCJdictget(jdict,name,&jvalue))<0) {stat = NCJ_ERR; goto done;} /* try this first */
+    if(jvalue == NULL) {
+        if((stat = NCJdictget(jdict,alt,&jvalue))<0) {stat = NCJ_OK; goto done;} /* try this alternative*/
+    }
+    if(jvaluep) *jvaluep = jvalue;
+done:
+    return NCJTHROW(stat);
+}
+
 /* Functional version of NCJdictget */
 OPTSTATIC NCjson*
 NCJdictlookup(const NCjson* dict, const char* key)

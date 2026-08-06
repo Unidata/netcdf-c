@@ -89,6 +89,9 @@ OPTEXPORT int NCJnewstringn(int sort, size_t len, const char* value, NCjson** js
 /* Get dict key value by name */
 OPTEXPORT int NCJdictget(const NCjson* dict, const char* key, const NCjson** valuep);
 
+/* Get one of two key values from a dict */
+OPTEXPORT int NCJdictgetalt(const NCjson *jdict, const char *name, const char *alt, const NCjson **jvaluep);
+
 /* Functional version of NCJdictget */
 OPTEXPORT NCjson* NCJdictlookup(const NCjson* dict, const char* key);
 
