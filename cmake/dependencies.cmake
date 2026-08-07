@@ -65,7 +65,7 @@ if(USE_HDF4)
   if(NOT JPEG_LIB)
     message(FATAL_ERROR "HDF4 Support enabled but cannot find libjpeg")
   endif()
-  set(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES} CACHE STRING "")
+  set(HDF4_LIBRARIES ${HDF4_LIBRARIES} ${JPEG_LIB} CACHE STRING "")
   message(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
   target_link_libraries(netcdf
@@ -192,6 +192,11 @@ if(USE_HDF5)
 
   # Find out if HDF5 was built with parallel support.
   set(HDF5_PARALLEL ${HDF5_IS_PARALLEL})
+
+  ## Adjust for HDF5 2.0.0, which changed to HDF5_PROVIDES_PARALLEL
+  if(NOT HDF5_PARALLEL)
+    set(HDF5_PARALLEL ${HDF5_PROVIDES_PARALLEL})
+  endif(NOT HDF5_PARALLEL)
 
   set(CMAKE_REQUIRED_LIBRARIES HDF5::HDF5)
   include(CheckSymbolExists)

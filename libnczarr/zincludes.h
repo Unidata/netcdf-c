@@ -54,6 +54,7 @@ extern "C" {
 #include "zmetadata.h"
 #include "zinternal.h"
 #include "zdispatch.h"
+#include "zformat.h"
 #include "zprovenance.h"
 #include "zodom.h"
 #include "zchunking.h"

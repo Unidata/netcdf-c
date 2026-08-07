@@ -22,6 +22,17 @@ static int cvtdbl2int(struct Value* val);
 static int cvtint2dbl(struct Value* val);
 static int cvtint2int(nc_type dsttype, struct Value*);
 
+/**
+Convert an array of values from one netCDF type to another.
+Attempts to preserve bit patterns when converting between types of the
+same size. No range checking is performed.
+@param srctype the source netCDF type
+@param dsttype the destination netCDF type
+@param memory0 output buffer to receive converted values
+@param value0 input buffer containing source values
+@param count number of elements to convert
+@return NC_NOERR on success, NC_EINVAL if the type combination is unsupported
+*/
 NCerror
 dapconvert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count)
 {
@@ -212,6 +223,8 @@ If we need an int and the string value is out of range, return NC_ERANGE.
 @param etype the target type
 @param dst the memory into which to put the converted constants
 @param src list of constants as strings
+@param att the attribute being converted, used for error messages
+@return NC_NOERR on success, NC_EBADTYPE on conversion failure, NC_ERANGE if out of range
 */
 NCerror
 dapcvtattrval(nc_type etype, void* dst, NClist* src, NCattribute* att)
@@ -317,8 +330,10 @@ next: /* inside loop */
 }
 
 /**
+Convert a numeric string constant to either a long long or double value.
+@param s the input string to parse
 @param val resulting converted numeric value
-@return NC_INT || NC_DOUBLE || NC_NAT (failure)
+@return NC_INT if parsed as integer, NC_DOUBLE if parsed as floating point, NC_INT on failure
 */
 static int
 cvtnumconst(const char* s, struct Value* val)
@@ -342,10 +357,10 @@ cvtnumconst(const char* s, struct Value* val)
 }
 
 /**
-Convert a struct Value.dval field to a long in struct Value.llval field.
-Report if the result is out of range wrt NC_MAX/MIN_INT.
- @param val store original and converted value
-@return NC_NOERR | NC_ERANGE
+Convert a struct Value.dval field to a long long in struct Value.llval field.
+Report if the result is out of range wrt NC_MAX_INT/NC_MIN_INT.
+@param val store original and converted value
+@return NC_NOERR on success, NC_ERANGE if the value is out of range
 */
 static int
 cvtdbl2int(struct Value* val)
@@ -362,6 +377,7 @@ cvtdbl2int(struct Value* val)
 
 /**
 Convert a struct Value.llval field to double in struct Value.dval field.
+@param val store original and converted value
 @return NC_NOERR
 */
 static int
@@ -374,10 +390,10 @@ cvtint2dbl(struct Value* val)
 
 /**
 Convert long long bit pattern to conform to a given
-integer type.
+integer type by truncating to the appropriate width and signedness.
 @param dsttype target integer type
-@param valp pointer to long long value to convert
-@return NC_NOERR | NC_EBADTYPE
+@param val pointer to struct Value whose llval field is converted in place
+@return NC_NOERR on success, NC_EBADTYPE if dsttype is not a supported integer type
 */
 static int
 cvtint2int(nc_type dsttype, struct Value* val)

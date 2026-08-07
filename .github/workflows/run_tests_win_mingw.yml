@@ -35,9 +35,28 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           update: true
-          pacboy: cc:p autotools:p hdf5:p curl:p libxml2:p zlib:p blosc:p bzip2:p
+          pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p
           install: diffutils m4 git unzip
 
+###
+# Downgrade hdf5 
+###
+
+      - name: Downgrade hdf5
+        run: |
+          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
+            for attempt in 1 2 3; do
+              pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
+              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            done
+          else
+            for attempt in 1 2 3; do
+              pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
+              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            done
+          fi
 ###
 # Configure and build
 ###
@@ -95,9 +114,28 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           update: true
-          pacboy: cc:p cmake:p hdf5:p curl:p libxml2:p zlib:p blosc:p bzip2:p
+          pacboy: cc:p cmake:p curl:p libxml2:p zlib:p blosc:p bzip2:p
           install: make m4 diffutils git unzip
 
+###
+# Downgrade hdf5 
+###
+
+      - name: Downgrade hdf5
+        run: |
+          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
+            for attempt in 1 2 3; do
+              pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
+              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            done
+          else
+            for attempt in 1 2 3; do
+              pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
+              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+              sleep 15
+            done
+          fi
 ###
 # Configure and build
 ###

@@ -69,7 +69,7 @@ typedef struct DCEvalue {
 
 typedef struct DCEselection {
     DCEnode node;
-    CEsort operator;
+    CEops operator;
     DCEvalue* lhs;
     NClist* rhs;
 } DCEselection;

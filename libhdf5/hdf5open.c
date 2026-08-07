@@ -30,7 +30,7 @@
 #include "ncs3sdk.h"
 #endif
 
-/*Nemonic */
+/* Mnemonic */
 #define FILTERACTIVE 1
 
 #define NUM_TYPES 12 /**< Number of netCDF atomic types. */
@@ -300,7 +300,7 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     if (var->coords_read)
         return NC_NOERR;
 
-    /* Get HDF5-sepecific var info. */
+    /* Get HDF5-specific var info. */
     hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
     /* Does the COORDINATES att exist? */
@@ -436,7 +436,7 @@ create_phony_dims(NC_GRP_INFO_T *grp, hid_t hdf_datasetid, NC_VAR_INFO_T *var)
         if (!(h5dimlenmax = malloc(var->ndims * sizeof(hsize_t))))
             BAIL(NC_ENOMEM);
 
-        /* Get ndims, also len and mac len of all dims. */
+        /* Get ndims, also len and max len of all dims. */
         if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid, h5dimlen,
                                                        h5dimlenmax)) < 0)
             BAIL(NC_EHDFERR);
@@ -841,6 +841,15 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	    }
 	}
     }
+    
+    {
+	NCglobalstate* gs = NC_getglobalstate();
+        if(gs->meta_block_size.defined) {
+            if (H5Pset_meta_block_size(fapl_id, (hsize_t)gs->meta_block_size.size) < 0) {
+                BAIL(NC_EHDFERR);
+            }
+    	}
+    }
 
     /* Set HDF5 format compatibility in the FILE ACCESS property list.
      * Compatibility is transient and must be reselected every time
@@ -910,12 +919,12 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		h5->uri = newuri;
 	        if((retval = NC_getactives3profile(h5->uri,&profile0)))
 		    BAIL(retval);
-   	        if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
+   	        if((retval = NC_s3profilelookup(profile0,AWS_PROF_ACCESS_KEY_ID,&awsaccessid0)))
 		    BAIL(retval);		
-		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
+		if((retval = NC_s3profilelookup(profile0,AWS_PROF_SECRET_ACCESS_KEY,&awssecretkey0)))
 		    BAIL(retval);		
-		if(s3.region == NULL)
-		    s3.region = strdup(AWS_GLOBAL_DEFAULT_REGION);
+        //fa.aws_region should be set even in anonymous
+		strlcat(fa.aws_region,s3.region?s3.region:AWS_GLOBAL_DEFAULT_REGION,H5FD_ROS3_MAX_REGION_LEN);
 	        if(awsaccessid0 == NULL || awssecretkey0 == NULL ) {
 		    /* default, non-authenticating, "anonymous" fapl configuration */
 		    fa.authenticate = (hbool_t)0;
@@ -924,7 +933,6 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	  	    assert(s3.region != NULL && strlen(s3.region) > 0);
 		    assert(awsaccessid0 != NULL && strlen(awsaccessid0) > 0);
 		    assert(awssecretkey0 != NULL && strlen(awssecretkey0) > 0);
-		    strlcat(fa.aws_region,s3.region,H5FD_ROS3_MAX_REGION_LEN);
 		    strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
                     strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
 	        }
@@ -1083,7 +1091,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 
     assert(var);
 
-    /* Get HDF5-sepecific var info. */
+    /* Get HDF5-specific var info. */
     hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
     if ((num_filters = H5Pget_nfilters(propid)) < 0)
@@ -1360,6 +1368,12 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, size_t ndims
      * be taken care of. */
     if (num_scales && ndims && !hdf5_var->dimscale_attached)
     {
+        /* Guard: ndims parameter must agree with var->ndims. A mismatch
+         * indicates a corrupt file; the loop below would overrun the
+         * allocations if they differed (issues #2664, #2666, #2667). */
+        if (ndims != var->ndims)
+            return NC_EVARMETA;
+
         /* Allocate space to remember whether the dimscale has been
          * attached for each dimension, and the HDF5 object IDs of the
          * scale(s). */
@@ -1371,8 +1385,9 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, size_t ndims
             return NC_ENOMEM;
 
         /* Store id information allowing us to match hdf5 dimscales to
-         * netcdf dimensions. */
-        for (unsigned int d = 0; d < var->ndims; d++)
+         * netcdf dimensions. Use ndims (not var->ndims) to stay within
+         * the allocated buffer bounds. */
+        for (unsigned int d = 0; d < ndims; d++)
         {
             LOG((4, "about to iterate scales for dim %d", d));
             if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,

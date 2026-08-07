@@ -65,6 +65,7 @@
 #define NC_HAS_BENCHMARKS    @NC_HAS_BENCHMARKS@ /*!< Benchmarks. */
 #define NC_HAS_BLOSC         @NC_HAS_BLOSC@ /*!< Blosc Support. */
 #define NC_HAS_BZ2           @NC_HAS_BZ2@ /*!< bzip2 support */
+#define NC_HAS_UDF_SELF_LOAD @NC_HAS_UDF_SELF_LOAD@ /*!< UDF plugin self-loading support. */
 #define NC_HAS_S3            @NC_HAS_S3@ /*!< Amazon S3 Support. */
 #define NC_HAS_S3_AWS        @NC_HAS_S3_AWS@ /*!< Amazon S3 SDK. */
 #define NC_HAS_S3_INTERNAL   @NC_HAS_S3_INTERNAL@ /*!< Internal S3 SDK. */

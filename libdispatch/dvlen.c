@@ -23,13 +23,12 @@ the data, and it will free the all the VLEN instances.
 The caller is still responsible for free'ing the array itself,
 if it was dynamically allocated.
 
-WARNING: this function only works if the basetype of the vlen type
+\warning This function only works if the basetype of the VLEN type
 is fixed size. This means it is an atomic type except NC_STRING,
-or an NC_ENUM, or and NC_OPAQUE, or an NC_COMPOUND where all
+or an NC_ENUM, or an NC_OPAQUE, or an NC_COMPOUND where all
 the fields of the compound type are themselves fixed size.
-
-If you have a more complex VLEN base-type, then it is better to call
-the "nc_reclaim_data" function.
+If you have a more complex VLEN base-type, use nc_reclaim_data()
+instead.
 
 \param nelems number of elements in the array.
 \param vlens pointer to the vlen object.
@@ -81,7 +80,7 @@ VLEN type will be set here.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 \returns ::NC_ENAMEINUSE That name is in use.
 \returns ::NC_EMAXNAME Name exceeds max length NC_MAX_NAME.
@@ -114,7 +113,7 @@ ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -143,7 +142,7 @@ Fortran APIs.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 \returns ::NC_EPERM Attempt to write to a read-only file.
  */
@@ -172,7 +171,7 @@ Fortran APIs.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int

@@ -1,0 +1,42 @@
+/* Custom CSS to make sidebar arrows more visible */
+
+:root {
+    /* Make arrows always visible instead of hidden */
+    --side-nav-arrow-opacity: 0.7;
+    --side-nav-arrow-hover-opacity: 1.0;
+}
+
+/* Enhanced arrow styling for better visibility */
+.arrow {
+    /* Make arrows larger and more prominent */
+    font-size: 60% !important;
+    font-weight: bold !important;
+    color: var(--primary-color) !important;
+    margin-right: 4px !important;
+}
+
+/* Additional styling for expanded/collapsed states */
+#nav-tree .arrow {
+    transition: all 0.2s ease;
+}
+
+/* Make arrows even more visible on hover */
+#nav-tree div.item:hover .arrow, 
+#nav-tree a:focus .arrow {
+    opacity: 1.0;
+    transform: scale(1.1);
+}
+
+/* Optional: Add a subtle background to arrow containers for better visibility */
+#nav-tree div.item {
+    position: relative;
+}
+
+#nav-tree div.item:has(.arrow) {
+    padding-left: 2px;
+}
+
+/* Style for dark mode compatibility */
+html.dark-mode .arrow {
+    color: var(--primary-color) !important;
+}

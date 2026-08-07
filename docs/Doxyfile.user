@@ -742,7 +742,7 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT = \
-    ./docs/mainpage.dox \
+    ./docs/mainpage.md \
     ./RELEASE_NOTES.md \
     ./docs/install-fortran.md \
     ./docs/windows-binaries.md \

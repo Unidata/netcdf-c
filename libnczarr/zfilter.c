@@ -702,7 +702,13 @@ NCZ_applyfilterchain(const NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NClist* cha
     for(i=0;i<nclistlength(chain);i++) {
 	struct NCZ_Filter* f = (struct NCZ_Filter*)nclistget(chain,i);
 	assert(f != NULL);
-	if(FILTERINCOMPLETE(f)) {stat = THROW(NC_ENOFILTER); goto done;}
+	if(FILTERINCOMPLETE(f)) {
+        char * pluginpaths = NULL;
+        NC_joinwith(NC_getglobalstate()->pluginpaths, ":", NULL, NULL, &pluginpaths);
+        nclog(NCLOGERR, "Variable '%s' has unsupported codec: (%s). Not found in %s", var->hdr.name, f->codec.id, pluginpaths ? pluginpaths : "");
+        stat = THROW(NC_ENOFILTER);
+        goto done;
+    }
 	assert(f->hdf5.id > 0 && f->plugin != NULL);
 	if(!(f->flags & FLAG_WORKING)) {/* working not yet available */
 	    if((stat = ensure_working(var,f))) goto done;

@@ -90,7 +90,7 @@ for this field.
 \returns ::NC_ENAMEINUSE That name is in use.
 \returns ::NC_EMAXNAME Name exceeds max length NC_MAX_NAME.
 \returns ::NC_EBADNAME Name contains illegal characters.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 \returns ::NC_EPERM Attempt to write to a read-only file.
 \returns ::NC_ENOTINDEFINE Not in define mode.
@@ -132,7 +132,7 @@ for this field.
 \returns ::NC_EMAXNAME Name exceeds max length NC_MAX_NAME.
 \returns ::NC_EBADNAME Name contains illegal characters.
 \returns ::NC_ESTRICTNC3 Attempting a netCDF-4 operation on a netCDF-3 file.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 \returns ::NC_EPERM Attempt to write to a read-only file.
 \returns ::NC_ENOTINDEFINE Not in define mode.
@@ -168,7 +168,7 @@ placed here. \ref ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -196,7 +196,7 @@ ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -219,7 +219,7 @@ ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -242,7 +242,7 @@ placed here. \ref ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -280,7 +280,7 @@ field. \ref ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -314,7 +314,7 @@ ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -346,7 +346,7 @@ ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -376,7 +376,7 @@ field. \ref ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -406,7 +406,7 @@ field. \ref ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -436,7 +436,7 @@ field. \ref ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -468,7 +468,7 @@ field. \ref ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int

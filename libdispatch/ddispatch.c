@@ -143,88 +143,6 @@ NCDISPATCH_finalize(void)
 }
 
 /**************************************************/
-/* Global State constants and state */
-
-/* The singleton global state object */
-static NCglobalstate* nc_globalstate = NULL;
-
-/* Forward */
-static int NC_createglobalstate(void);
-
-/** \defgroup global_state Global state functions. */
-/** \{
-
-\ingroup global_state
-*/
-
-/* NCglobal state management */
-
-static int
-NC_createglobalstate(void)
-{
-    int stat = NC_NOERR;
-    const char* tmp = NULL;
-    
-    if(nc_globalstate == NULL) {
-        nc_globalstate = calloc(1,sizeof(NCglobalstate));
-    }
-    /* Initialize struct pointers */
-    if((nc_globalstate->rcinfo = calloc(1,sizeof(struct NCRCinfo)))==NULL)
-            {stat = NC_ENOMEM; goto done;}
-    if((nc_globalstate->rcinfo->entries = nclistnew())==NULL)
-            {stat = NC_ENOMEM; goto done;}
-    if((nc_globalstate->rcinfo->s3profiles = nclistnew())==NULL)
-            {stat = NC_ENOMEM; goto done;}
-
-    /* Get environment variables */
-    if(getenv(NCRCENVIGNORE) != NULL)
-        nc_globalstate->rcinfo->ignore = 1;
-    tmp = getenv(NCRCENVRC);
-    if(tmp != NULL && strlen(tmp) > 0)
-        nc_globalstate->rcinfo->rcfile = strdup(tmp);
-    /* Initialize chunk cache defaults */
-    nc_globalstate->chunkcache.size = DEFAULT_CHUNK_CACHE_SIZE;		    /**< Default chunk cache size. */
-    nc_globalstate->chunkcache.nelems = DEFAULT_CHUNKS_IN_CACHE;	    /**< Default chunk cache number of elements. */
-    nc_globalstate->chunkcache.preemption = DEFAULT_CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
-    
-done:
-    return stat;
-}
-
-/* Get global state */
-NCglobalstate*
-NC_getglobalstate(void)
-{
-    if(nc_globalstate == NULL)
-        NC_createglobalstate();
-    return nc_globalstate;
-}
-
-void
-NC_freeglobalstate(void)
-{
-    if(nc_globalstate != NULL) {
-        nullfree(nc_globalstate->tempdir);
-        nullfree(nc_globalstate->home);
-        nullfree(nc_globalstate->cwd);
-	nullfree(nc_globalstate->aws.default_region);
-	nullfree(nc_globalstate->aws.config_file);
-	nullfree(nc_globalstate->aws.profile);
-	nullfree(nc_globalstate->aws.access_key_id);
-	nullfree(nc_globalstate->aws.secret_access_key);
-        if(nc_globalstate->rcinfo) {
-	    NC_rcclear(nc_globalstate->rcinfo);
-	    free(nc_globalstate->rcinfo);
-	}
-	nclistfree(nc_globalstate->pluginpaths);
-	free(nc_globalstate);
-	nc_globalstate = NULL;
-    }
-}
-
-/** \} */
-
-/**************************************************/
 /** \defgroup atomic_types Atomic Type functions */
 /** \{
 
@@ -474,3 +392,112 @@ nc_get_alignment(int* thresholdp, int* alignmentp)
 }
 
 /** \} */
+
+
+/**************************************************/
+/** \defgroup meta_block_size Metadata block size functions. */
+
+/** \{
+
+\ingroup meta_block_size
+*/
+
+/**
+Set the global minimum HDF5 metadata block size.
+
+If defined (size > 0), this value is passed as the FAPL meta_block_size
+argument to H5Pset_meta_block_size for every netCDF-4/HDF5 file created
+or opened after this call. Setting size to 0 disables the override and
+allows HDF5 to use its built-in default (2048 bytes).
+
+HDF5 writes metadata — chunk index B-trees, attribute headers, and other
+bookkeeping structures — into a contiguous block at the beginning of the
+file. When the block is exhausted, HDF5 appends a new block after the
+current data and records its address at the end of the previous block,
+creating a linked chain. A reader must issue one additional I/O request
+per link in the chain, which is costly over remote storage. A
+sufficiently large meta_block_size keeps all metadata in a single
+allocation and eliminates that traversal overhead.
+
+Repeated calls overwrite the previous value. The setting is global and
+not per-file; it applies to all files created or opened after this call
+until the process exits or the setting is changed.
+
+Call nc_set_meta_block_size before nc_create or nc_open. The setting is
+locked in when the file is opened and forgotten when the file is closed.
+Multiple files with different values can coexist by interleaving
+nc_set_meta_block_size and nc_create/nc_open calls.
+
+Refer to H5Pset_meta_block_size in the HDF5 documentation for
+implementation specifics, defaults, and interactions with other FAPL
+properties.
+
+@param size Minimum metadata block size in bytes, or 0 to use the
+            HDF5 default (2048 bytes).
+
+@return ::NC_NOERR No error.
+@ingroup datasets
+*/
+int
+nc_set_meta_block_size(size_t size)
+{
+    NCglobalstate* gs = NC_getglobalstate();
+    gs->meta_block_size.size = size;
+    gs->meta_block_size.defined = (size > 0) ? 1 : 0;
+    return NC_NOERR;
+}
+
+/**
+Retrieve the current global minimum HDF5 metadata block size.
+
+Returns the value most recently set by nc_set_meta_block_size. If
+nc_set_meta_block_size has not been called, or was last called with size
+0, sizep is set to 0 on return.
+
+@param sizep On return, the current minimum metadata block size in
+             bytes, or 0 if the override is disabled.
+
+@return ::NC_NOERR No error.
+@ingroup datasets
+*/
+int
+nc_get_meta_block_size(size_t* sizep)
+{
+    NCglobalstate* gs = NC_getglobalstate();
+    if (sizep) *sizep = gs->meta_block_size.size;
+    return NC_NOERR;
+}
+
+/** \} */
+
+/*
+ * Set the global minimum HDF5 metadata block size using an int
+ * argument, added for netcdf-fortran compatibility in line with other
+ * similar functions.
+ *
+ * @param size Minimum metadata block size in bytes as an int.
+ * @return ::NC_NOERR No error.
+ */
+int
+nc_set_meta_block_size_ints(int size)
+{
+    return nc_set_meta_block_size((size_t)size);
+}
+
+/*
+ * Retrieve the current global minimum HDF5 metadata block size as an
+ * int, added for netcdf-fortran compatibility. 
+ *
+ * @param sizep On return, the current minimum metadata block size in
+ *              bytes as an int, or 0 if the override is disabled.
+ * @return ::NC_NOERR No error.
+ */
+int
+nc_get_meta_block_size_ints(int *sizep)
+{
+    size_t sz = 0;
+    int stat = nc_get_meta_block_size(&sz);
+    if (stat == NC_NOERR && sizep)
+        *sizep = (int)sz;
+    return stat;
+}

@@ -36,8 +36,9 @@
 /* Local function prototypes */
 #ifdef USE_HDF5
 static herr_t H5Z__set_local_shuffle(hid_t dcpl_id, hid_t type_id, hid_t space_id);
+#define H5Zsetlocalshuffle H5Z__set_local_shuffle
 #else
-#define H5Z__set_local_shuffle NULL
+#define H5Zsetlocalshuffle NULL
 #endif
 
 static size_t H5Z__filter_shuffle(unsigned flags, size_t cd_nelmts,
@@ -51,7 +52,7 @@ const H5Z_class2_t H5Z_SHUFFLE[1] = {{
     1,                          /* decoder_present flag (set to true) */
     "shuffle",			/* Filter name for debugging	*/
     NULL,                       /* The "can apply" callback     */
-    H5Z__set_local_shuffle,     /* The "set local" callback     */
+    H5Zsetlocalshuffle,	        /* The "set local" callback     */
     H5Z__filter_shuffle,	/* The actual filter function	*/
 }};
 

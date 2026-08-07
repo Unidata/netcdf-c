@@ -223,9 +223,9 @@ makeurl(const char* file, NCZM_IMPL impl, struct UTOptions* options)
 	    /* Assume that we have a complete url */
 	    if(ncuriparse(file,&uri)) return NULL;
 	    if(options->profile) {
-		const char* profile = ncurifragmentlookup(uri,"aws.profile");
+		const char* profile = ncurifragmentlookup(uri,AWS_FRAG_PROFILE);
 		if(profile == NULL) {
-		    ncurisetfragmentkey(uri,"aws.profile",options->profile);
+		    ncurisetfragmentkey(uri,AWS_FRAG_PROFILE,options->profile);
 		    /* rebuild the url */
 		    file = (const char*)ncuribuild(uri,NULL,NULL,NCURIALL); /* BAD but simple */
 		}

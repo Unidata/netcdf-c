@@ -44,23 +44,23 @@ with the H5Lvisit function call
 
 */
 herr_t
-op_func (hid_t g_id, const char *name, 
+op_func (hid_t g_id, const char *name,
+#if !defined(H5Lget_info_vers) || H5Lget_info_vers < 2
          const H5L_info_t *info,
-	 void *op_data)  
+#else
+         const H5L_info2_t *info,
+#endif
+	 void *op_data)
 {
    hid_t id;
    H5I_type_t obj_type;
 
    strcpy((char *)op_data, name);
-#if H5_VERSION_LE(1, 10, 11) || defined(H5_USE_110_API_DEFAULT) || defined(H5_USE_18_API_DEFAULT) || defined(H5_USE_16_API_DEFAULT)
-   /* This library is either 1.10.11 (the last 1.10 release) or earlier
-    * OR this is a later version of the library built with a 1.10 or
-    * earlier API (earlier versions did not define their own USE
-    * API symbol).
-    */
+#if !defined(H5Lget_info_vers) || H5Lget_info_vers < 2
+   /* H5L_info version 1 uses addresses */
    if ((id = H5Oopen_by_addr(g_id, info->u.address)) < 0) ERR;
 #else
-   /* HDF5 1.12 switched from addresses to tokens to better support the VOL */
+   /* H5L_info version 2+ uses tokens */
    if ((id = H5Oopen_by_token(g_id, info->u.token)) < 0) ERR;
 #endif
 
@@ -166,8 +166,13 @@ main()
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
       for (i = 0; i < num_obj; i++)
       {
-	 if (H5Literate(grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, &idx, op_func, 
+#if !defined(H5Lget_info_vers) || H5Lget_info_vers < 2
+	 if (H5Literate(grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, &idx, op_func,
 			(void *)obj_name) != 1) ERR;
+#else
+	 if (H5Literate2(grpid, H5_INDEX_CRT_ORDER, H5_ITER_INC, &idx, op_func,
+			 (void *)obj_name) != 1) ERR;
+#endif
 	 printf("encountered object %s\n", obj_name);
       }
 

@@ -23,11 +23,6 @@ and accessing rc files (e.g. .daprc).
 #define NCRCENVRC "NCRCENV_RC"
 #define NCRCENVHOME "NCRCENV_HOME"
 
-/* Known .aws profile keys */
-#define AWS_ACCESS_KEY_ID "aws_access_key_id"
-#define AWS_SECRET_ACCESS_KEY "aws_secret_access_key"
-#define AWS_REGION "aws_region"
-
 typedef struct NCRCentry {
 	char* host; /* combined host:port */
 	char* urlpath; /* prefix to match or NULL */

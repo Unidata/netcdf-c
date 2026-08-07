@@ -16,6 +16,8 @@
  * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
  */
 #include "config.h"
+#include <stdarg.h>
+#include <stddef.h>
 #include "netcdf.h"
 #include "netcdf_filter.h"
 #include "netcdf_meta.h"
@@ -23,9 +25,8 @@
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
-#include <stdarg.h>
-#include <stddef.h>
 #include "ncrc.h"
+#include "nc4internal.h"
 
 /** @internal Number of reserved attributes. These attributes are
  * hidden from the netcdf user, but exist in the implementation
@@ -367,7 +368,17 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
      * group. Allocate space for one group's worth of information. Set
      * its grp id, name, and allocate associated empty lists. */
     if ((retval = nc4_grp_list_add(h5, NULL, NC_GROUP_NAME, &h5->root_grp)))
+    {
+        /* Free everything allocated above before returning, otherwise
+         * the NC_hashmap inside each NCindex leaks (issue #2665). */
+        free(h5->hdr.name);
+        nclistfree(h5->alldims);
+        nclistfree(h5->alltypes);
+        nclistfree(h5->allgroups);
+        free(h5);
+        nc->dispatchdata = NULL;
         return retval;
+    }
 
     return NC_NOERR;
 }
@@ -754,6 +765,8 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
         return NC_ENOMEM;
     new_var->hdr.sort = NCVAR;
     new_var->container = grp;
+
+    memset(&new_var->chunkcache,0,sizeof(struct ChunkCache));
 
     /* These are the HDF5-1.8.4 defaults. */
     new_var->chunkcache.size = gs->chunkcache.size;
@@ -1399,6 +1412,8 @@ var_free(NC_VAR_INFO_T *var)
 
     if (var->dim)
         free(var->dim);
+
+    memset(&var->chunkcache,0,sizeof(struct ChunkCache));
 
     /* Delete any fill value allocation. */
     if (var->fill_value) {

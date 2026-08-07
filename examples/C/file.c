@@ -1,24 +1,18 @@
-/*! \file
-
-Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-2015, 2016, 2017, 2018
-University Corporation for Atmospheric Research/Unidata.
-
-See \ref copyright file for more info.
-
-*/
-
-
-/* This example program is part of Unidata's netCDF library for
-   scientific data access.
-
-   This program demonstrates various ways to create a netCDF file,
-   open an existing file, and close a file.
-
-   Ed Hartnett, 5/29/4
-   $Id: file.c,v 1.1 2004/07/26 14:04:42 ed Exp $
-*/
+/* Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+   2015, 2016, 2017, 2018 University Corporation for Atmospheric
+   Research/Unidata.  See COPYRIGHT file for conditions of use. */
+/**
+ * @file
+ * Demonstrate the full create, write, reopen, and read cycle.
+ *
+ * This example program is part of Unidata's netCDF library for
+ * scientific data access. It creates a netCDF file, writes a
+ * variable, closes the file, then reopens it and reads the data
+ * back for verification.
+ *
+ * @author Edward Hartnett, 5/29/4
+ */
 
 #include <netcdf.h>
 #include <stdio.h>

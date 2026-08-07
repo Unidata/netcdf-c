@@ -3,7 +3,8 @@
  * conditions.
  */
 /**
- * @file @internal netcdf-4 functions for the plugin list.
+ * @file
+ * @internal netcdf-4 functions for the plugin list.
  *
  * @author Dennis Heimbigner
  */
@@ -20,13 +21,7 @@
 #undef TPLUGINS
 
 /**************************************************/
-/**
- * @file
- * @internal
- * Internal netcdf hdf5 plugin path functions.
- *
- * @author Dennis Heimbigner
- */
+/* Internal netcdf hdf5 plugin path functions. */
 /**************************************************/
 
 /**
@@ -65,8 +60,7 @@ done:
  * vector will be allocated. If not NULL, then the specified space will
  * be overwritten with the vector.
  *
- * @author: Dennis Heimbigner
-*/
+ */
 int
 NC4_hdf5_plugin_path_get(NCPluginList* dirs)
 {

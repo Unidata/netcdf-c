@@ -131,38 +131,41 @@ fprintf(stderr,">>> TC_EXPANDED: decompress: nbytes=%u buf_size=%u xdata[0..8]=|
 	    }
 	    fprintf(stderr,"|\n");
 #endif
-            /* Replace buffer */
-            newbuf = H5allocate_memory(*buf_size,0);
+            /* Read the original chunk size stored as a header by the compress path */
+            size_t orig_size;
+            memcpy(&orig_size, *buf, sizeof(size_t));
+            newbuf = H5allocate_memory(orig_size, 0);
             if(newbuf == NULL) abort();
-            memcpy(newbuf,*buf,*buf_size);
-	
+            memcpy(newbuf, (char*)*buf + sizeof(size_t), orig_size);
+            H5free_memory(*buf);
+            *buf = newbuf;
+            return orig_size;
 	} else {
             /* Replace buffer */
             newbuf = H5allocate_memory(*buf_size,0);
             if(newbuf == NULL) abort();
             memcpy(newbuf,*buf,*buf_size);
 	}
-	
+
         /* reclaim old buffer */
         H5free_memory(*buf);
         *buf = newbuf;
 
     } else { /* (flags & H5Z_FLAG_REVERSE) Compress */
         if(testcase == TC_EXPANDED) {
-	    int i;
-	    float* b;
 #ifdef DEBUG
 fprintf(stderr,">>> TC_EXPANDED: compress: nbytes=%u buf_size=%u size=%u\n",(unsigned)nbytes,(unsigned)*buf_size,(unsigned)size);
 #endif
-	    /* Replace buffer with one that is bigger than the input size */
-            newbuf = H5allocate_memory(size,0);
+            /* Store original size as header, followed by the original data,
+               in an expanded buffer to test that HDF5 handles filter expansion */
+            newbuf = H5allocate_memory(size, 0);
             if(newbuf == NULL) abort();
-	    b = (float*)newbuf;
-	    for(i=0;i<1024*2;i++) {
-		b[i] = (float)(17+i);
-	    }
-            memcpy(newbuf,*buf,*buf_size);
-	    *buf_size = size;
+            memcpy(newbuf, &nbytes, sizeof(size_t));
+            memcpy((char*)newbuf + sizeof(size_t), *buf, nbytes);
+            H5free_memory(*buf);
+            *buf = newbuf;
+            *buf_size = size;
+            return size;
         } else  {
             /* Replace buffer */
             newbuf = H5allocate_memory(*buf_size,0);

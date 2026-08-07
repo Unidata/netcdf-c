@@ -3,6 +3,15 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/**
+ * @file
+ * Library initialization and finalization.
+ *
+ * These functions handle the initialization and finalization of the
+ * netCDF library, including all dispatch tables and external
+ * libraries.
+ */
+
 #include "config.h"
 
 #ifdef USE_PARALLEL
@@ -21,6 +30,14 @@ extern int NC_HDF5_initialize(void);
 extern int NC_HDF5_finalize(void);
 #endif
 
+/*
+ * NETCDF_ENABLE_DAP is the top-level option that enables DAP support.
+ * Setting it implies NETCDF_ENABLE_DAP2; NETCDF_ENABLE_DAP4 is also
+ * set when HDF5 support is available. The extern declarations here
+ * use the protocol-specific macros, while nc_initialize() below
+ * guards the NCD2_initialize() call with the parent NETCDF_ENABLE_DAP
+ * macro since DAP2 is always enabled when DAP is enabled.
+ */
 #ifdef NETCDF_ENABLE_DAP2
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
@@ -65,13 +82,21 @@ finalize_atexit(void)
 #endif
 
 /**
-This procedure invokes all defined
-initializers, and there is an initializer
-for every known dispatch table.
-So if you modify the format of NC_Dispatch,
-then you need to fix it everywhere.
-It also initializes appropriate external libraries.
-*/
+ * Initialize the netCDF library.
+ *
+ * This function sets up all internal dispatch tables and initializes
+ * any external libraries required by the enabled protocols (e.g.,
+ * HDF5, DAP2, DAP4, PnetCDF, NCZarr). It is called automatically on
+ * first use of the library, so most users do not need to call it
+ * directly.
+ *
+ * It is safe to call this function more than once; subsequent calls
+ * are no-ops.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EXXX An error occurred during initialization.
+ * @see nc_finalize
+ */
 
 int
 nc_initialize()
@@ -123,13 +148,23 @@ done:
 }
 
 /**
-This procedure invokes all defined
-finalizers, and there should be one
-for every known dispatch table.
-So if you modify the format of NC_Dispatch,
-then you need to fix it everywhere.
-It also finalizes appropriate external libraries.
-*/
+ * Finalize the netCDF library.
+ *
+ * This function releases all internal resources and finalizes any
+ * external libraries initialized by nc_initialize(). After calling
+ * this function, the library may be re-initialized by calling
+ * nc_initialize() again.
+ *
+ * If ::NETCDF_ENABLE_ATEXIT_FINALIZE is set, this function is
+ * registered with atexit() and called automatically at program exit.
+ *
+ * It is safe to call this function more than once; subsequent calls
+ * are no-ops.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EXXX An error occurred during finalization.
+ * @see nc_initialize
+ */
 
 int
 nc_finalize(void)

@@ -11,6 +11,20 @@ API for libdispatch/dutil.c
 #define NCUTIL_H
 
 /**************************************************/
+/* Declaration modifiers for DLL support (MSC et al) */
+#if defined(DLL_NETCDF) /* define when library is a DLL */
+#  if defined(DLL_EXPORT) /* define when building the library */
+#   define MSC_EXTRA __declspec(dllexport)
+#  else
+#   define MSC_EXTRA __declspec(dllimport)
+#  endif
+#  include <io.h>
+#else
+#define MSC_EXTRA  /**< Needed for DLL build. */
+#endif  /* defined(DLL_NETCDF) */
+
+#define EXTERNL MSC_EXTRA extern /**< Needed for DLL build. */
+
 
 /* signature: void swapinline16(void* ip) */
 #define swapinline16(ip) \

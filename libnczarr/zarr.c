@@ -57,11 +57,8 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* controls)
 	{stat = NC_ENOMEM; goto done;}
 
     /* fill in some of the zinfo and zroot fields */
-    zinfo->zarr.zarr_version = atoi(ZARRVERSION);
-    sscanf(NCZARRVERSION,"%lu.%lu.%lu",
-	   &zinfo->zarr.nczarr_version.major,
-	   &zinfo->zarr.nczarr_version.minor,
-	   &zinfo->zarr.nczarr_version.release);
+    zinfo->format.zarr = ZARRFORMAT2;
+    zinfo->format.nczarr = NCZARRFORMAT2;
 
     zinfo->default_maxstrlen = NCZ_MAXSTR_DEFAULT;
 
@@ -76,8 +73,9 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* controls)
     }
 
     /* initialize map handle*/
-    if((stat = nczmap_create(zinfo->controls.mapimpl,nc->path,nc->mode,zinfo->controls.flags,NULL,&zinfo->map)))
-	goto done;
+    if((stat = NCZ_get_map(file,uri,nc->mode,zinfo->controls.flags,NULL,&zinfo->map))){
+        goto done;
+    }
 
     if((stat = NCZMD_set_metadata_handler(zinfo))){
         goto done;
@@ -143,35 +141,29 @@ ncz_open_dataset(NC_FILE_INFO_T* file, NClist* controls)
     /* Apply client controls */
     if((stat = applycontrols(zinfo))) goto done;
 
-    /* initialize map handle*/
-    if((stat = nczmap_open(zinfo->controls.mapimpl,nc->path,mode,zinfo->controls.flags,NULL,&zinfo->map)))
-	goto done;
-
-    if((stat = NCZMD_set_metadata_handler(zinfo))) {
-        goto done;
-    }
-
-    /* Ok, try to read superblock */
-    if((stat = ncz_read_superblock(file,&nczarr_version,&zarr_format))) goto done;
-
-    if(nczarr_version == NULL) /* default */
-        nczarr_version = strdup(NCZARRVERSION);
-    if(zarr_format == NULL) /* default */
-       zarr_format = strdup(ZARRVERSION);
-    /* Extract the information from it */
-    if(sscanf(zarr_format,"%d",&zinfo->zarr.zarr_version)!=1)
-	{stat = NC_ENCZARR; goto done;}		
-    if(sscanf(nczarr_version,"%lu.%lu.%lu",
-		    &zinfo->zarr.nczarr_version.major,
-		    &zinfo->zarr.nczarr_version.minor,
-		    &zinfo->zarr.nczarr_version.release) == 0)
-	{stat = NC_ENCZARR; goto done;}
-
     /* Load auth info from rc file */
     if((stat = ncuriparse(nc->path,&uri))) goto done;
     if(uri) {
 	if((stat = NC_authsetup(&zinfo->auth, uri)))
 	    goto done;
+    }
+
+    /* initialize map handle*/
+    if((stat = NCZ_get_map(file, uri, mode, zinfo->controls.flags,NULL,&zinfo->map))){
+    	goto done;
+    }
+
+    /* Determine zarr format of existing dataset */
+    if((stat = NCZ_infer_zarr_format(file))) {
+        goto done;
+    }
+
+    if((stat = NCZMD_set_metadata_handler(zinfo))) {
+        goto done;
+    }
+
+    if((stat = NCZ_infer_nczarr_format(file))) {
+        goto done;
     }
 
 done:
@@ -218,7 +210,7 @@ int
 NCZ_get_libversion(unsigned long* majorp, unsigned long* minorp,unsigned long* releasep)
 {
     unsigned long m0,m1,m2;
-    sscanf(NCZARRVERSION,"%lu.%lu.%lu",&m0,&m1,&m2);
+    sscanf(NCZARR_PACKAGE_VERSION,"%lu.%lu.%lu",&m0,&m1,&m2);
     if(majorp) *majorp = m0;
     if(minorp) *minorp = m1;
     if(releasep) *releasep = m2;
@@ -240,7 +232,7 @@ int
 NCZ_get_superblock(NC_FILE_INFO_T* file, int* superblockp)
 {
     NCZ_FILE_INFO_T* zinfo = file->format_file_info;
-    if(superblockp) *superblockp = zinfo->zarr.nczarr_version.major;
+    if(superblockp) *superblockp = zinfo->format.nczarr;
     return NC_NOERR;
 }
 

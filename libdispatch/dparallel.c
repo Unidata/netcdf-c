@@ -60,7 +60,7 @@ stored.
 \returns ::NC_EFILEMETA Error writing netCDF-4 file-level metadata in
 HDF5 file. (netCDF-4 files only).
 
-<h1>Example</h1>
+\section nc_create_par_example Example
 
 In this example from nc_test4/tst_parallel.c, a file is created for
 parallel I/O.
@@ -335,7 +335,7 @@ nc_open_par_fortran(const char *path, int omode, int comm,
    @return ::NC_EINVAL Invalid par_access specified, or attempt to set
    filtered variable to independent access.
 
-   <h1>Example</h1>
+   @section nc_var_par_access_example Example
 
    Here is an example from examples/C/parallel_vara.c which changes
    the parallel access of a variable and then writes to it.
@@ -454,6 +454,11 @@ nc_create_par_fortran(const char *path, int cmode, int comm,
 #ifdef HAVE_MPI_COMM_F2C
     comm_c = MPI_Comm_f2c(comm);
 #else
+    /* Only safe if sizeof(MPI_Comm) == sizeof(int) (MPI-1 only)
+       See https://github.com/Unidata/netcdf-c/issues/3199 */
+    #if SIZEOF_VOIDP != 4
+        #error "MPI_Comm_f2c unavailable on a 64-bit system: cannot safely convert Fortran comm handle"
+    #endif
     comm_c = (MPI_Comm)comm;
 #endif
 #ifdef HAVE_MPI_INFO_F2C

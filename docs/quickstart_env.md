@@ -77,9 +77,9 @@ when the netcdf-c library loads an rc file you did not expect.
 ### RC File Format
 
 The rc file format is a series of lines of the general form:
-````
+`
     [<URL>]<key>=<value>
-````
+`
 where the bracket-enclosed URL is optional. Note that the brackets
 are part of the line.
 
@@ -95,11 +95,11 @@ The URL path may be used for non-curl related entries.
 Also note that the protocol is ignored.
 
 Here are some examples.
-````
+`
     [https://remotetest.unidata.ucar.edu/thredds]HTTP.VERBOSE=1
 or
     [https://fake.ucar.edu:9090]HTTP.VERBOSE=0
-````
+`
 
 For selection purposes, the host+port+path is used when the path argument
 for _nc_open()_ or _nc_create()_ takes the form of a URL.
@@ -110,24 +110,24 @@ This means that an entry with a matching host+port+path will take
 precedence over an entry without a host+port+path.
 
 For example, passing this URL to _nc_open_
-````
+`
     http://remotetest.unidata.ucar.edu/thredds/dodsC/testdata/testData.nc
-````
+`
 will have HTTP.VERBOSE set to 1 because its host and path match the example above.
 
 Similarly, using this path
-````
+`
     http://fake.ucar.edu:9090/dts/test.01
-````
+`
 will have HTTP.VERBOSE set to 0 because its host+port matches the example above.
 
 ### Programmatic Access to .rc File
 
 It is possible for client programs to query and modify the internal .rc database
 through the following API.
-* ````char* nc_rc_get(const char* key);````
+* `char* nc_rc_get(const char* key);`
     Get the value corresponding to key or return NULL if not defined. The caller must free the resulting value.
-* ````int nc_rc_set(const char* key, const char* value);````
+* `int nc_rc_set(const char* key, const char* value);`
     Set/overwrite the value corresponding to the specified key.
 
 Note that this API does not (currently) support URL prefixed keys, so the client will need to take this into account.

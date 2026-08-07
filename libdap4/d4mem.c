@@ -3,6 +3,15 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4mem.c
+ * @brief Memory management for DAP4 data structures.
+ *
+ * Implements d4reclaim_data() and d4clone_data(), which recursively
+ * free or deep-copy the in-memory representation of DAP4 variable
+ * data, handling strings, VLENs, and compound types.
+ * @author Dennis Heimbigner
+ */
+
 #include <stdlib.h>
 #include "netcdf.h"
 #include "ncoffsets.h"

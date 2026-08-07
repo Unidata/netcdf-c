@@ -73,13 +73,13 @@ This initial global plugin path will be propagated to HDF5 and NCZarr.
 ## Installing Plugins at Build-Time
 
 At build-time, the target location directory into which libraries implementing plugins are installed is specified using a special *./configure* option
-````
+`
 --with-plugin-dir=<directorypath>
-````
+`
 or its corresponding *cmake* option.
-````
+`
 -DNETCDF_WITH_PLUGIN_DIR=<directorypath>
-````
+`
 
 ## Build-Time Operations
 
@@ -128,13 +128,13 @@ That is, in a multi-threaded environment, it is important that the sequence of a
 
 As an example, assume there exists a mutex lock called PLUGINLOCK.
 Then any processor accessing the plugin paths should operate as follows:
-````
+`
 lock(PLUGINLOCK);
 nc_plugin_path_get(...);
 <rebuild plugin path>
 nc_plugin_path_set(...);
 unlock(PLUGINLOCK);
-````
+`
 
 ## Internal Architecture
 
@@ -158,20 +158,20 @@ used by HDF5 and the global value used by netcdf-c. Since there is no obvious fi
 ## Appendix E.1. Programmatic Plugin Path API{#pluginpath_appendixe1}
 
 The API makes use of a counted vector of strings representing the sequence of directories in the path. The relevant type definition is as follows.
-````
+`
 typedef struct NCPluginList {size_t ndirs; char** dirs;} NCPluginList;
-````
+`
 
 The API proposed in this PR looks like this (from netcdf-c/include/netcdf_filter.h).
 
-* ````int nc_plugin_path_ndirs(size_t* ndirsp);````
+* `int nc_plugin_path_ndirs(size_t* ndirsp);`
 
     This function returns the number of directories in the sequence if internal directories of the internal plugin path list.
 
     The argument is as follows:
     - *ndirsp* store the number of directories in this memory.
 
-* ````int nc_plugin_path_get(NCPluginList* dirs);````
+* `int nc_plugin_path_get(NCPluginList* dirs);`
 
     This function returns the current sequence of directories from the internal plugin path list. Since this function does not modify the plugin path, it does not need to be locked; it is only when used to get the path to be modified that locking is required.
 
@@ -180,7 +180,7 @@ The API proposed in this PR looks like this (from netcdf-c/include/netcdf_filter
 
     If the value of *dirs.dirs is NULL (the normal case), then memory is allocated to hold the vector of directories. Otherwise, use the memory of *dirs.dirs* to hold the vector of directories.
 
-* ````int nc_plugin_path_set(const NCPluginList* dirs);````
+* `int nc_plugin_path_set(const NCPluginList* dirs);`
 
     This function empties the current internal path sequence and replaces it with the sequence of directories argument. Using an *ndirs* argument of 0 will clear the set of plugin paths.
 

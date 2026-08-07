@@ -9,7 +9,7 @@
  * companion program sfc_pres_temp_wr.c. It is intended to illustrate
  * the use of the netCDF C API.
  *
- * @author Ed Hartnett
+ * @author Edward Hartnett
 */
 
 #include <stdio.h>

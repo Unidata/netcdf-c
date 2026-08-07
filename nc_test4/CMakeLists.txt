@@ -22,11 +22,12 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_files6 tst_sync tst_h_strbug tst_h_refs tst_h_scalar tst_rename
   tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
-  tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_broken_files
-  tst_quantize tst_h_transient_types)
+  tst_atts3 tst_put_vars tst_elatefill tst_udf tst_udf_multi tst_bug1442 tst_broken_files
+  tst_quantize tst_h_transient_types tst_strided_write tst_varsperf tst_vlen_unlim tst_mem_safety 
+  tst_meta_block_size)
 
 IF(HAS_PAR_FILTERS)
-SET(NC4_tests $NC4_TESTS tst_alignment)
+SET(NC4_tests ${NC4_TESTS} tst_alignment)
 ENDIF()
 
 # Note, renamegroup needs to be compiled before run_grp_rename
@@ -91,6 +92,36 @@ IF(NOT WIN32)
   SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
 ENDIF()
 
+# UDF self-registration plugin loading test.
+# Build a test plugin as a shared library, then build a test that
+# loads it via the RC-based plugin loader to verify that init
+# functions returning NC_Dispatch* are handled correctly.
+add_library(tst_udf_self_load_plugin SHARED tst_udf_self_load_plugin.c)
+target_link_libraries(tst_udf_self_load_plugin netcdf)
+set_target_properties(tst_udf_self_load_plugin PROPERTIES
+  PREFIX ""
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(nc_test4_tst_udf_self_load tst_udf_self_load.c)
+target_link_libraries(nc_test4_tst_udf_self_load netcdf ${ALL_TLL_LIBS})
+target_compile_definitions(nc_test4_tst_udf_self_load PRIVATE
+  TEST_PLUGIN_PATH="$<TARGET_FILE:tst_udf_self_load_plugin>")
+add_test(nc_test4_tst_udf_self_load ${EXECUTABLE_OUTPUT_PATH}/nc_test4_tst_udf_self_load)
+set_tests_properties(nc_test4_tst_udf_self_load PROPERTIES
+  ENVIRONMENT srcdir=${CMAKE_CURRENT_SOURCE_DIR})
+add_dependencies(nc_test4_tst_udf_self_load tst_udf_self_load_plugin)
+IF(MSVC)
+  set_target_properties(nc_test4_tst_udf_self_load PROPERTIES
+    LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+  set_target_properties(tst_udf_self_load_plugin PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+ENDIF()
+
 # If the v2 API was built, add the test program.
 IF(ENABLE_V2_API)
   build_bin_test(tst_v2)
@@ -109,10 +140,12 @@ IF(HAVE_H5Z_SZIP)
   ENDIF()
 ENDIF()
 
-IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
-  IF(HAVE_ZSTD)
-    BUILD_BIN_TEST(tst_zstd)
-    add_sh_test(nc_test4 run_zstd_test)
+IF(NETCDF_BUILD_UTILITIES)
+  IF(USE_HDF5 AND NETCDF_ENABLE_FILTER_TESTING)
+    IF(HAVE_ZSTD)
+      BUILD_BIN_TEST(tst_zstd)
+      add_sh_test(nc_test4 run_zstd_test)
+    ENDIF()
   ENDIF()
 ENDIF()
 

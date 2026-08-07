@@ -12,7 +12,7 @@
  * This program (quickly, but not thoroughly) tests the large file
  * features.
  *
- * @author Ed Hartnett, 8/11/4
+ * @author Edward Hartnett, 8/11/4
  */
 
 #include <netcdf.h>

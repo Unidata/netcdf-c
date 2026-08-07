@@ -69,7 +69,7 @@ If you have libraries installed in a custom directory, you will need to
 set the CPPFLAGS and LDFLAGS environment variables to tell the compiler where the
 libraries are installed. For example:
 
-> $ CPPFLAGS=-I/usr/local/hdf5-1.14.3/include LDFLAGS=-L/usr/local/hdf5-1.14.3/lib ./configure --prefix=/usr/local/netcdf-c-4.9.3
+> $ CPPFLAGS=-I/usr/local/hdf5-1.14.3/include LDFLAGS=-L/usr/local/hdf5-1.14.3/lib ./configure --prefix=/usr/local/netcdf-c-4.10.1
 
 #### Building with Parallel I/O. {#autotools_parallel_io}
 
@@ -78,7 +78,7 @@ compiler, and HDF5 was built for parallel I/O. To build netcdf-c for
 parallel I/O, first build HDF5 for parallel I/O, then build netcdf-c
 like this:
 
-> $ CC=mpicc CPPFLAGS=-I/usr/local/hdf5-1.14.3_mpich/include LDFLAGS=-L/usr/local/hdf5-1.14.3_mpicj/lib ./configure --prefix=/usr/local/netcdf-c-4.9.3_mpich --enable-parallel-tests
+> $ CC=mpicc CPPFLAGS=-I/usr/local/hdf5-1.14.3_mpich/include LDFLAGS=-L/usr/local/hdf5-1.14.3_mpicj/lib ./configure --prefix=/usr/local/netcdf-c-4.10.1_mpich --enable-parallel-tests
 
 The parallel I/O tests will only run if the additional configure
 option is used: --enable-parallel-tests. Those tests run (by default)
@@ -87,7 +87,7 @@ your login-nodes, a different command can be used to launch the
 parallel I/O tests. Used the --with-mpiexec configure option to set a
 different parallel I/O job launcher:
 
-> $ CC=mpicc CPPFLAGS=-I/usr/local/hdf5-1.14.3_mpich/include LDFLAGS=-L/usr/local/hdf5-1.14.3_mpicj/lib ./configure --prefix=/usr/local/netcdf-c-4.9.3_mpich --enable-parallel-tests --with-mpiexec='srun -A acct_name -q queue_name'
+> $ CC=mpicc CPPFLAGS=-I/usr/local/hdf5-1.14.3_mpich/include LDFLAGS=-L/usr/local/hdf5-1.14.3_mpicj/lib ./configure --prefix=/usr/local/netcdf-c-4.10.1_mpich --enable-parallel-tests --with-mpiexec='srun -A acct_name -q queue_name'
 
 ## Setting the HDF5 Plugin Path
 
@@ -115,12 +115,12 @@ features are accurately set. For example:
 
 # General
 -------
-NetCDF Version:		4.9.4-development
+NetCDF Version:		4.10.1-development
 Dispatch Version:       5
 Configured On:		Wed Aug  7 06:53:22 MDT 2024
 Host System:		x86_64-pc-linux-gnu
 Build Directory: 	/home/ed/netcdf-c
-Install Prefix:         /usr/local/netcdf-c-4.9.3
+Install Prefix:         /usr/local/netcdf-c-4.10.1
 Plugin Install Prefix:  N.A.
 
 # Compiling Options

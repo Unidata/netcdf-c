@@ -3,10 +3,11 @@
  * conditions.
  */
 /**
- * @file @internal Internal netcdf-4 functions.
+ * @file
+ * @internal Internal netcdf-4 functions.
  *
  * This file contains functions internal to the netcdf4 library. None of
- * the functions in this file are exposed in the exetnal API. These
+ * the functions in this file are exposed in the external API. These
  * functions all relate to the manipulation of netcdf-4's in-memory
  * buffer of metadata information, i.e. the linked list of NC
  * structs.
@@ -56,8 +57,8 @@ int nc4_hdf5_initialized = 0; /**< True if initialization has happened. */
  * @internal Provide a wrapper for H5Eset_auto.
  *
  * If preprocessor symbol DEBUGH5 is set (at the top of this file),
- * then error messages will be pronted by the h5catch() function. If
- * not, a NULL will be passed as the second argument to H5eset_auto2()
+ * then error messages will be printed by the h5catch() function. If
+ * not, a NULL will be passed as the second argument to H5Eset_auto2()
  * and error messages will not be printed by HDF5.
  *
  * @param func Pointer to func.
@@ -855,7 +856,7 @@ nc4_hdf5_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
  * NULL.
  * @param grp Pointer to pointer that gets group info struct. Ignored
  * if NULL.
- * @param h5 Pointer to pointer that gets variable info
+ * @param var Pointer to pointer that gets variable info
  * struct. Ignored if NULL.
  * @param att Pointer to pointer that gets attribute info
  * struct. Ignored if NULL.

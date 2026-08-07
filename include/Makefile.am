@@ -10,7 +10,7 @@
 
 include_HEADERS = netcdf.h netcdf_meta.h netcdf_mem.h netcdf_aux.h	\
 netcdf_filter.h netcdf_filter_build.h netcdf_filter_hdf5_build.h 	\
-netcdf_dispatch.h netcdf_vutils.h
+netcdf_dispatch.h netcdf_vutils.h ncudfplugins.h
 
 # Built headers
 include_HEADERS += netcdf_json.h netcdf_proplist.h
@@ -26,7 +26,8 @@ nc4internal.h nctime.h nc3internal.h onstack.h ncrc.h ncauth.h		\
 ncoffsets.h nctestserver.h nc4dispatch.h nc3dispatch.h ncexternl.h	\
 ncpathmgr.h ncindex.h hdf4dispatch.h hdf5internal.h nc_provenance.h	\
 hdf5dispatch.h ncmodel.h isnan.h nccrc.h ncexhash.h ncxcache.h          \
-ncjson.h ncxml.h ncs3sdk.h ncproplist.h ncplugins.h ncutil.h
+ncjson.h ncxml.h ncs3sdk.h ncproplist.h ncplugins.h ncutil.h ncglobal.h
+
 
 if USE_DAP
 noinst_HEADERS += ncdap.h
@@ -39,6 +40,8 @@ endif
 EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in netcdf_dispatch.h.in
 
 MAINTAINERCLEANFILES = netcdf_json.h netcdf_proplist.h
+
+DISTCLEANFILES = netcdf_json.h netcdf_proplist.h
 
 BUILT_SOURCES = netcdf_json.h netcdf_proplist.h
 

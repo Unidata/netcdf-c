@@ -28,22 +28,30 @@ See COPYRIGHT for license information.
 
 #include "ncrc.h"
 
-#undef DEBUG
+#define DEBUG 0
+#if DEBUG
+#define DEBUGLOG(...) nclog(__VA_ARGS__)
+#else
+#define DEBUGLOG(...) ((void)0)
+#endif
 
 #undef MEMCHECK
 #define MEMCHECK(x) if((x)==NULL) {goto nomem;} else {}
 
-/* Define the curl flag defaults in envv style */
-static const char* AUTHDEFAULTS[] = {
-"HTTP.SSL.VERIFYPEER","-1", /* Use default */
-"HTTP.SSL.VERIFYHOST","-1", /* Use default */
-"HTTP.TIMEOUT","1800", /*seconds */ /* Long but not infinite */
-"HTTP.CONNECTTIMEOUT","50", /*seconds */ /* Long but not infinite */
-"HTTP.ENCODE","1", /* Use default */
-NULL,
+
+#define NCAUTH_DEFAULT_SSL_VERIFY -1
+
+static const NCauth default_auth = {
+    .ssl = {
+        .verifyhost = NCAUTH_DEFAULT_SSL_VERIFY,
+        .verifypeer = NCAUTH_DEFAULT_SSL_VERIFY,
+    },
+    .curlflags.timeout = 1800,
+    .curlflags.connecttimeout=50,
+    .curlflags.encode = 1,
 };
 
-/* Forward */
+/* Forward for helper functions */
 static int setauthfield(NCauth* auth, const char* flag, const char* value);
 static void setdefaults(NCauth*);
 
@@ -104,7 +112,7 @@ NC_authsetup(NCauth** authp, NCURI* uri)
     if((auth=calloc(1,sizeof(NCauth)))==NULL)
         {ret = NC_ENOMEM; goto done;}
 
-    setdefaults(auth);
+    memcpy(auth, &default_auth, sizeof(default_auth));
 
     /* Note, we still must do this function even if
        ncrc_getglobalstate()->rc.ignore is set in order
@@ -223,41 +231,68 @@ NC_authfree(NCauth* auth)
 
 /**************************************************/
 
+static int is_numeric(const char * str){
+    if (str == NULL || strlen(str) == 0) {
+        return 0;
+    }
+
+    for (const char *c = str; c < str + strlen(str); c++)
+    {
+        if ( !('0' <= *c  && *c <= '9')) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+static void truthy_to_int(const char* value, int*value_int) {
+    if (value == NULL || value_int == NULL) {
+        return;
+    }
+    if (strcasecmp(value, "False") == 0 || strcasecmp(value, "No") == 0 || strcasecmp(value,"Off")==0)
+    {
+        *value_int = 0;
+    }
+    else if (strcasecmp(value, "True") == 0 || strcasecmp(value, "Yes") == 0 || strcasecmp(value, "On") == 0 )
+    {
+        *value_int = 1;
+    }
+    else if (is_numeric(value))
+    {
+        *value_int = atoi(value);
+    }
+}
+
 static int
 setauthfield(NCauth* auth, const char* flag, const char* value)
 {
     int ret = NC_NOERR;
     if(value == NULL) goto done;
+
+    int int_value = NCAUTH_DEFAULT_SSL_VERIFY;
+    truthy_to_int(value, &int_value);
+
     if(strcmp(flag,"HTTP.ENCODE")==0) {
         if(atoi(value)) {auth->curlflags.encode = 1;} else {auth->curlflags.encode = 0;}
-#ifdef DEBUG
-        nclog(NCLOGNOTE,"HTTP.encode: %ld", (long)auth->curlflags.encode);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.encode: %ld", (long)auth->curlflags.encode);
     }
     if(strcmp(flag,"HTTP.VERBOSE")==0) {
         if(atoi(value)) auth->curlflags.verbose = 1;
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.VERBOSE: %ld", (long)auth->curlflags.verbose);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.VERBOSE: %ld", (long)auth->curlflags.verbose);
     }
     if(strcmp(flag,"HTTP.TIMEOUT")==0) {
         if(atoi(value)) auth->curlflags.timeout = atoi(value);
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.TIMEOUT: %ld", (long)auth->curlflags.timeout);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.TIMEOUT: %ld", (long)auth->curlflags.timeout);
     }
     if(strcmp(flag,"HTTP.CONNECTTIMEOUT")==0) {
         if(atoi(value)) auth->curlflags.connecttimeout = atoi(value);
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.CONNECTTIMEOUT: %ld", (long)auth->curlflags.connecttimeout);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.CONNECTTIMEOUT: %ld", (long)auth->curlflags.connecttimeout);
     }
     if(strcmp(flag,"HTTP.USERAGENT")==0) {
         if(atoi(value)) auth->curlflags.useragent = strdup(value);
         MEMCHECK(auth->curlflags.useragent);
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.USERAGENT: %s", auth->curlflags.useragent);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.USERAGENT: %s", auth->curlflags.useragent);
     }
     if(
 	strcmp(flag,"HTTP.COOKIEFILE")==0
@@ -268,93 +303,87 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
 	nullfree(auth->curlflags.cookiejar);
         auth->curlflags.cookiejar = strdup(value);
         MEMCHECK(auth->curlflags.cookiejar);
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.COOKIEJAR: %s", auth->curlflags.cookiejar);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.COOKIEJAR: %s", auth->curlflags.cookiejar);
     }
     if(strcmp(flag,"HTTP.PROXY.SERVER")==0 || strcmp(flag,"HTTP.PROXY_SERVER")==0) {
         ret = NC_parseproxy(auth,value);
         if(ret != NC_NOERR) goto done;
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.PROXY.SERVER: %s", value);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.PROXY.SERVER: %s", value);
     }
     if(strcmp(flag,"HTTP.SSL.VERIFYPEER")==0) {
-	int v;
-        if((v = atoi(value))) {
-	    auth->ssl.verifypeer = v;
-#ifdef DEBUG
-                nclog(NCLOGNOTE,"HTTP.SSL.VERIFYPEER: %d", v);
-#endif
-	}
+        if (NCAUTH_DEFAULT_SSL_VERIFY == int_value) {
+            nclog(NCLOGWARN, "RC-File key \"HTTP.SSL.VERIFYPEER\" contains invalid value! Ignoring it.");
+            ret = NC_ERCFILE;
+        }
+	    auth->ssl.verifypeer = int_value;
+        DEBUGLOG(NCLOGNOTE,"HTTP.SSL.VERIFYPEER: %d", int_value);
     }
     if(strcmp(flag,"HTTP.SSL.VERIFYHOST")==0) {
-	int v;
-        if((v = atoi(value))) {
-	    auth->ssl.verifyhost = v;
-#ifdef DEBUG
-                nclog(NCLOGNOTE,"HTTP.SSL.VERIFYHOST: %d", v);
-#endif
-	}
+        if (NCAUTH_DEFAULT_SSL_VERIFY == int_value) {
+            nclog(NCLOGWARN, "RC-File key \"HTTP.SSL.VERIFYHOST\" contains invalid value! Ignoring it.");
+            ret = NC_ERCFILE;
+        }
+	    auth->ssl.verifyhost = int_value;
+        DEBUGLOG(NCLOGNOTE,"HTTP.SSL.VERIFYHOST: %d", int_value);
     }
     if(strcmp(flag,"HTTP.SSL.VALIDATE")==0) {
-        if(atoi(value)) {
-	    auth->ssl.verifypeer = 1;
-	    auth->ssl.verifyhost = 2;
-	}
+        switch (int_value) {
+            case NCAUTH_DEFAULT_SSL_VERIFY: //default
+                nclog(NCLOGWARN, "RC-File Key \"HTTP.SSL.VALIDATE\" contains invalid value! Ignoring it.");
+                auth->ssl.verifypeer = NCAUTH_DEFAULT_SSL_VERIFY;
+                auth->ssl.verifyhost = NCAUTH_DEFAULT_SSL_VERIFY;
+                ret = NC_ERCFILE;
+                break;
+            case 0:
+                auth->ssl.verifypeer = 0;
+                auth->ssl.verifyhost = 0;
+                break;
+            default:
+                auth->ssl.verifypeer = 1;
+                auth->ssl.verifyhost = 2;
+                break;
+        }
     }
 
     if(strcmp(flag,"HTTP.SSL.CERTIFICATE")==0) {
 	nullfree(auth->ssl.certificate);
         auth->ssl.certificate = strdup(value);
         MEMCHECK(auth->ssl.certificate);
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.CERTIFICATE: %s", auth->ssl.certificate);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.SSL.CERTIFICATE: %s", auth->ssl.certificate);
     }
 
     if(strcmp(flag,"HTTP.SSL.KEY")==0) {
 	nullfree(auth->ssl.key);
         auth->ssl.key = strdup(value);
         MEMCHECK(auth->ssl.key);
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.KEY: %s", auth->ssl.key);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.SSL.KEY: %s", auth->ssl.key);
     }
 
     if(strcmp(flag,"HTTP.SSL.KEYPASSWORD")==0) {
 	nullfree(auth->ssl.keypasswd) ;
         auth->ssl.keypasswd = strdup(value);
         MEMCHECK(auth->ssl.keypasswd);
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.KEYPASSWORD: %s", auth->ssl.keypasswd);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.SSL.KEYPASSWORD: %s", auth->ssl.keypasswd);
     }
 
     if(strcmp(flag,"HTTP.SSL.CAINFO")==0) {
 	nullfree(auth->ssl.cainfo) ;
         auth->ssl.cainfo = strdup(value);
         MEMCHECK(auth->ssl.cainfo);
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.CAINFO: %s", auth->ssl.cainfo);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.SSL.CAINFO: %s", auth->ssl.cainfo);
     }
 
     if(strcmp(flag,"HTTP.SSL.CAPATH")==0) {
 	nullfree(auth->ssl.capath) ;
         auth->ssl.capath = strdup(value);
         MEMCHECK(auth->ssl.capath);
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.CAPATH: %s", auth->ssl.capath);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.SSL.CAPATH: %s", auth->ssl.capath);
     }
     if(strcmp(flag,"HTTP.NETRC")==0) {
         nullfree(auth->curlflags.netrc);
         auth->curlflags.netrc = strdup(value);
         MEMCHECK(auth->curlflags.netrc);
-#ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.NETRC: %s", auth->curlflags.netrc);
-#endif
+        DEBUGLOG(NCLOGNOTE,"HTTP.NETRC: %s", auth->curlflags.netrc);
     }
 
     if(strcmp(flag,"HTTP.CREDENTIALS.USERNAME")==0) {
@@ -403,17 +432,4 @@ NC_parsecredentials(const char* userpwd, char** userp, char** pwdp)
 	*pwdp = ncuridecode(pwd);
   free(user);
   return NC_NOERR;
-}
-
-static void
-setdefaults(NCauth* auth)
-{
-    int ret = NC_NOERR;
-    const char** p;
-    for(p=AUTHDEFAULTS;*p;p+=2) {
-	ret = setauthfield(auth,p[0],p[1]);
-	if(ret) {
-            nclog(NCLOGERR, "RC file defaulting failed for: %s=%s",p[0],p[1]);
-	}
-    }
 }

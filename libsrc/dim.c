@@ -419,9 +419,10 @@ NC3_inq_dim(int ncid, int dimid, char *name, size_t *sizep)
 
 	if(name != NULL)
 	{
-		(void)strncpy(name, dimp->name->cp,
-			dimp->name->nchars);
-		name[dimp->name->nchars] = 0;
+        size_t copy_len = dimp->name->nchars < NC_MAX_NAME
+                          ? dimp->name->nchars : NC_MAX_NAME;
+        (void)strncpy(name, dimp->name->cp, copy_len);
+        name[copy_len] = 0;
 	}
 	if(sizep != NULL)
 	{

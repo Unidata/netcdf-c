@@ -31,7 +31,7 @@ will be placed there.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 \returns ::NC_ENAMEINUSE That name is in use.
 \returns ::NC_EMAXNAME Name exceeds max length NC_MAX_NAME.
@@ -52,14 +52,14 @@ nc_def_enum(int ncid, nc_type base_typeid, const char *name, nc_type *typeidp)
 Insert a named member into a enum type. 
 
 \param ncid \ref ncid
-\param xtype
+\param xtype Typeid of the enum type.
 \param name The identifier (\ref object_name) of the new member. 
 \param value The value that is to be associated with this member. 
 
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
 \returns ::NC_ENAMEINUSE That name is in use.
 \returns ::NC_EMAXNAME Name exceeds max length NC_MAX_NAME.
@@ -79,7 +79,7 @@ nc_insert_enum(int ncid, nc_type xtype, const char *name,
 }
 
 /** \ingroup user_types
-Learn about a user-define enumeration type. 
+Learn about a user-defined enumeration type. 
 
 \param ncid \ref ncid
 
@@ -100,7 +100,7 @@ defined for this enum type. \ref ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -116,7 +116,7 @@ nc_inq_enum(int ncid, nc_type xtype, char *name, nc_type *base_nc_typep,
 }
 
 /** \ingroup user_types
-Learn about a about a member of an enum type. 
+Learn about a member of an enum type. 
 
 \param ncid \ref ncid
 
@@ -133,7 +133,7 @@ ignored_if_null.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int
@@ -149,7 +149,7 @@ nc_inq_enum_member(int ncid, nc_type xtype, int idx, char *name,
 /** \ingroup user_types
 Get the name which is associated with an enum member value. 
 
-\param ncid
+\param ncid \ref ncid
 \param xtype Typeid of the enum type.
 \param value Value of interest.
 \param identifier The identifier (\ref object_name) of this value will be copied here; ignored_if_null.
@@ -157,7 +157,7 @@ Get the name which is associated with an enum member value.
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad \ref ncid.
 \returns ::NC_EBADTYPE Bad type id.
-\returns ::NC_ENOTNC4 Not an netCDF-4 file, or classic model enabled.
+\returns ::NC_ENOTNC4 Not a netCDF-4 file, or classic model enabled.
 \returns ::NC_EHDFERR An error was reported by the HDF5 layer.
  */
 int

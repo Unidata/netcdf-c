@@ -21,7 +21,7 @@ for use with Visual Studio.
 The following packages are required to build netCDF-C using CMake.
 
 * netCDF-C Source Code
-* CMake version 2.8.12 or greater.
+* CMake version 3.20.0 or greater.
 * m4
 * Optional Requirements:
 	* HDF5 Libraries for netCDF4/HDF5 support.
@@ -56,24 +56,24 @@ The output of the configuration step is a project file based on the appropriate 
 | **Option** | **Autotools** | **CMake** |
 | :------- | :---- | :----- |
 Specify Install Location | --prefix=PREFIX | -D"CMAKE\_INSTALL\_PREFIX=PREFIX"
-Enable/Disable netCDF-4 | --enable-netcdf-4<br>--disable-netcdf-4 | -D"ENABLE\_NETCDF\_4=ON" <br> -D"ENABLE\_NETCDF\_4=OFF"
-Enable/Disable DAP | --enable-dap <br> --disable-dap | -D"ENABLE\_DAP=ON" <br> -D"ENABLE\_DAP=OFF"
-Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -D"BUILD\_UTILITIES=ON" <br> -D"BUILD\_UTILITIES=OFF"
+Enable/Disable HDF5 (netCDF-4) | --enable-netcdf-4<br>--disable-netcdf-4 | -DNETCDF\_ENABLE\_HDF5=ON <br> -DNETCDF\_ENABLE\_HDF5=OFF
+Enable/Disable DAP | --enable-dap <br> --disable-dap | -DNETCDF\_ENABLE\_DAP=ON <br> -DNETCDF\_ENABLE\_DAP=OFF
+Enable/Disable Utilities | --enable-utilities <br> --disable-utilities | -DNETCDF\_BUILD\_UTILITIES=ON <br> -DNETCDF\_BUILD\_UTILITIES=OFF
 Specify shared/Static Libraries | --enable-shared <br> --enable-static | -D"BUILD\_SHARED\_LIBS=ON" <br> -D"BUILD\_SHARED\_LIBS=OFF"
-Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -D"ENABLE\_TESTS=ON" <br> -D"ENABLE\_TESTS=OFF"
+Enable/Disable Tests | --enable-testsets <br> --disable-testsets | -DNETCDF\_ENABLE\_TESTS=ON <br> -DNETCDF\_ENABLE\_TESTS=OFF
 Specify a custom library location | Use *CFLAGS* and *LDFLAGS* | -D"CMAKE\_PREFIX\_PATH=/usr/custom_libs/"
 
-A full list of *basic* options can be found by invoking `cmake [Source Directory] -L`. To enable a list of *basic* and *advanced* options, one would invoke `cmake [Source Directory] -LA`.
+A full list of *basic* options can be found by invoking `cmake -S [Source Directory] -B [Build Directory] -L`. To enable a list of *basic* and *advanced* options, one would invoke `cmake -S [Source Directory] -B [Build Directory] -LA`.
 
 ### Configuring your build from the command line. {#cmake_command_line}
 
 The easiest configuration case would be one in which all of the dependent libraries are installed on the system path (in either Unix/Linux or Windows) and all the default options are desired. From the build directory (often, but not required to be located within the source directory):
 
-> $ cmake [Source Directory]
+> $ cmake -S [Source Directory] -B [Build Directory]
 
 If you have libraries installed in a custom directory, you may need to specify the **CMAKE\_PREFIX_PATH** variable to tell cmake where the libraries are installed. For example:
 
-> $ cmake [Source Directory] -DCMAKE\_PREFIX\_PATH=/usr/custom_libraries/
+> $ cmake -S [Source Directory] -B [Build Directory] -DCMAKE\_PREFIX\_PATH=/usr/custom_libraries/
 
 #### Building with Parallel I/O. {#cmake_parallel_io}
 
@@ -82,7 +82,7 @@ compiler, and HDF5 was built for parallel I/O. To build netcdf-c for
 parallel I/O, first build HDF5 for parallel I/O, then build netcdf-c
 like this:
 
-> $ CC=mpicc cmake [Source Directory] -DNETCDF\_ENABLE\_PARALLEL_TESTS=ON
+> $ CC=mpicc cmake -S [Source Directory] -B [Build Directory] -DNETCDF\_ENABLE\_PARALLEL_TESTS=ON
 
 The parallel I/O tests will only run if the additional configure
 option is used: NETCDF_ENABLE_PARALLEL_TESTS. Those tests run (by default)
@@ -91,7 +91,7 @@ your login-nodes, a different command can be used to launch the
 parallel I/O tests. Used the NETCDF_MPIEXEC option to set a
 different parallel I/O job launcher:
 
-> $ CC=mpicc cmake [Source Directory] -DNETCDF\_ENABLE\_PARALLEL_TESTS=ON -DNETCDF\_MPIEXEC='srun -A account'
+> $ CC=mpicc cmake -S [Source Directory] -B [Build Directory] -DNETCDF\_ENABLE\_PARALLEL_TESTS=ON -DNETCDF\_MPIEXEC='srun -A account'
 
 ## Building {#cmake_building}
 

@@ -3,6 +3,15 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/** @file d4swap.c
+ * @brief Byte-swap DAP4 serialized data to host endianness.
+ *
+ * Implements NCD4_swapdata(), which walks a top-level variable's
+ * serialized data and byte-swaps every multi-byte scalar value when
+ * the server's endianness differs from the host's.
+ * @author Dennis Heimbigner
+ */
+
 #include "d4includes.h"
 #include <stdarg.h>
 #include <stddef.h>
@@ -35,8 +44,9 @@ NCD4_swapdata(NCD4response* resp, NCD4node* var, int doswap)
     int ret = NC_NOERR;
     NCD4offset* offset = NULL;
     
-    offset = BUILDOFFSET(resp->serial.dap,resp->serial.dapsize);
-	OFFSET2BLOB(var->data.dap4data,offset);
+    NC_UNUSED(resp);
+    offset = BUILDOFFSET(NULL,0);
+    BLOB2OFFSET(offset,var->data.dap4data);
 	switch (var->subsort) {
 	default:
 	    if((ret=walkAtomicVar(resp,var,var,offset,doswap))) goto done;
@@ -52,10 +62,7 @@ NCD4_swapdata(NCD4response* resp, NCD4node* var, int doswap)
 	    if((ret=walkSeqArray(resp,var,var,offset,doswap))) goto done;
 	    break;
 	}
-	var->data.dap4data.size = (d4size_t)DELTA(offset,var->data.dap4data.memory);
-	/* skip checksum, if there is one */
-        if(resp->inferredchecksumming)
-	    INCR(offset,CHECKSUMSIZE);
+	var->data.dap4data.size = (d4size_t)DELTA(offset->offset,var->data.dap4data.memory);
 done:
     if(offset) free(offset);
     return THROW(ret);
@@ -101,7 +108,7 @@ walkAtomicVar(NCD4response* resp, NCD4node* topvar, NCD4node* var, NCD4offset* o
 	for(i=0;i<dimproduct;i++) {
 	    /* Get string count */
 	    if(doswap)
-		swapinline64(offset);
+		swapinline64(offset->offset);
 	    count = GETCOUNTER(offset);
 	    SKIPCOUNTER(offset);
 	    /* skip count bytes */
@@ -124,7 +131,7 @@ walkOpaqueVar(NCD4response* resp, NCD4node* topvar, NCD4node* var, NCD4offset* o
     for(i=0;i<dimproduct;i++) {
 	/* Get and swap opaque count */
 	if(doswap)
-	    swapinline64(offset);
+	    swapinline64(offset->offset);
 	count = GETCOUNTER(offset);
 	SKIPCOUNTER(offset);
 	INCR(offset,count);
@@ -213,7 +220,7 @@ walkSeq(NCD4response* resp, NCD4node* topvar, NCD4node* vlentype, NCD4offset* of
 
     /* process the record count */
     if(doswap)
-        swapinline64(offset);
+        swapinline64(offset->offset);
     recordcount = GETCOUNTER(offset);
     SKIPCOUNTER(offset);
 

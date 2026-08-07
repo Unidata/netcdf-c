@@ -72,7 +72,7 @@ the intent of elements of the format.
                                   // Note: '/' is not permitted.
      special2     = ' ' | '!' | '"' | '#'  | '$' | '\%' | '&' | '\'' |
                     '(' | ')' | '*' | ','  | ':' | ';' | '<' | '='  |
-                    '>' | '?' | '[' | '\\' | ']' | '^' | '`' | '{'  |
+                    '>' | '?' | '[' | '\\' | ']' | '^' | '\`' | '{'  |
                     '|' | '}' | '~'
      MUTF8        = <multibyte UTF-8 encoded, NFC-normalized Unicode character>
      dim_length   = NON_NEG       // If zero, this is the record dimension.

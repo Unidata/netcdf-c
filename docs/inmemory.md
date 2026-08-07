@@ -1,12 +1,6 @@
-NetCDF In-Memory Support
-====================================
-
-<!-- double header is needed to workaround doxygen bug -->
-
 NetCDF In-Memory Support {#inmemory}
 ====================================
 
-[TOC]
 
 Introduction {#inmemory_intro}
 --------------
@@ -20,11 +14,11 @@ Actually, three distinct but related capabilities are provided.
 
 1. DISKLESS -- Read a file into memory, operate on it, and optionally
 write it back out to disk when nc_close() is called.
-2. INMEMORY -- Tell the netcdf-c library to treat a provided block
+1. INMEMORY -- Tell the netcdf-c library to treat a provided block
 of memory as if it were a netcdf file. At close, it is possible to ask
 for the final contents of the memory chunk. Be warned that there is
 some complexity to this as described below.
-4. MMAP -- Tell the netcdf-c library to use the *mmap()* operating
+1. MMAP -- Tell the netcdf-c library to use the *mmap()* operating
 system functionality to access a file.
 
 The first two capabilities are intertwined in the sense that the
@@ -91,14 +85,14 @@ The netcdf API has been extended to support the inmemory capability.
 The relevant API is defined in the file `netcdf_mem.h`.
 
 The important data structure to use is `NC_memio`.
-````
+`
 typedef struct NC_memio {
     size_t size;
     void* memory;
     int flags;
 } NC_memio;
 
-````
+`
 An instance of this data structure is used when providing or
 retrieving a block of data. It specifies the memory and its size
 and also some relevant flags that define how to manage the memory.
@@ -114,7 +108,7 @@ reallocating the memory, then the modification will fail.
 ### In-Memory API
 
 The new API consists of the following functions.
-````
+`
 int nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp);
 
 int nc_create_mem(const char* path, int mode, size_t initialsize, int* ncidp);
@@ -123,7 +117,7 @@ int nc_open_memio(const char* path, int mode, NC_memio* info, int* ncidp);
 
 int nc_close_memio(int ncid, NC_memio* info);
 
-````
+`
 ### The **nc_open_mem** Function
 
 The *nc_open_mem()* function is actually a convenience
