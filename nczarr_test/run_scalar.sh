@@ -11,12 +11,7 @@ s3isolate "testdir_scalar"
 THISDIR=`pwd`
 cd $ISOPATH
 
-# This shell script tests support for the NC_STRING type
-
-zarrscalar() {
-    rm -f $2
-    sed -e '/dimensions:/d' -e '/_scalar_ =/d' -e '/int v/ s|(_scalar_)||' <$1 >$2
-}
+# This shell script tests support the scalars
 
 testcase() {
 zext=$1
@@ -54,8 +49,6 @@ diff -bw $top_srcdir/nczarr_test/ref_scalar_nczarr.cdl tmp_scalar_nczarr_${zext}
 
 echo "*** verify zarr"
 # Fixup
-#zarrscalar tmp_scalar_zarr_${zext}.cdl tmp_rescale_zarr_${zext}.cdl
-#diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_rescale_zarr_${zext}.cdl
 diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_scalar_zarr_${zext}.cdl
 }
 
