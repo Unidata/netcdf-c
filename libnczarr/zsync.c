@@ -764,7 +764,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, NCjson*
 		- _ARRAY_ATTRIBUTE
 	    */
 	    NCJnew(NCJ_ARRAY,&jdimrefs);
-	    /* Fake the scalar as an case */
+	    /* Fake the scalar case */
 	    if(var->ndims == 0 && !purezarr)
 	        NCJaddstring(jdimrefs,NCJ_STRING,XARRAYSCALAR);
 	    /* Walk the dimensions and capture the names */
