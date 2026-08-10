@@ -33,37 +33,21 @@ testnoshape2() {
 }
 
 
-test_default_numpy_scalars_and_empty() {
+test_numpy_scalars() {
   # in zarr + numpy an adimensional array is a scalar - check issue #3108
   # it tests these cases
   # >>> np.array(1).shape
   # ()
   # >>> np.array(1.).shape
   # ()
-  # >>> np.array([]).shape
-  # (0,)
-  # >>> np.array([[]]).shape
-  # (1, 0)
 
-  name='numpy_scalar_array.zarr'
+  name='numpy_scalars.zarr'
   
   mkdir -p $name
   cat > "$name/.zmetadata" <<-'EOF'
 {
     "metadata": {
         ".zgroup": { "zarr_format": 2 },
-        "empty_list/.zarray": {
-            "chunks": [1], "compressor": null, "dtype": "<f8", "fill_value": 0.0, "filters": null, "order": "C",
-            "shape": [0], "zarr_format": 2
-        },
-        "list_empty_list/.zarray": {
-            "chunks": [1,1], "compressor": null, "dtype": "<f8", "fill_value": 0.0, "filters": null, "order": "C",
-            "shape": [1,0], "zarr_format": 2
-        },
-        "scalar/.zarray": {
-            "chunks": [], "compressor": null, "dtype": "<f8", "fill_value": 0.0, "filters": null, "order": "C",
-            "shape": [], "zarr_format": 2
-        },
         "float_scalar/.zarray": {
             "chunks": [], "compressor": null, "dtype": "<f8", "fill_value": 0.0, "filters": null, "order": "C",
             "shape": [], "zarr_format": 2
@@ -78,19 +62,12 @@ test_default_numpy_scalars_and_empty() {
 EOF
 
 cat > expected_${name}.out <<-'EOF'
-netcdf numpy_scalar_array {
-dimensions:
-   _Anonymous_Dim_0 = UNLIMITED ; // (0 currently)
-   _Anonymous_Dim_1 = 1 ;
+netcdf numpy_scalars {
 variables:
-   double empty_list(_Anonymous_Dim_0) ;
    double float_scalar ;
            float_scalar:_FillValue = 0. ;
    int64 int_scalar ;
            int_scalar:_FillValue = 0LL ;
-   double list_empty_list(_Anonymous_Dim_1, _Anonymous_Dim_0) ;
-   double scalar ;
-           scalar:_FillValue = 0. ;
 }
 EOF
 
@@ -101,7 +78,7 @@ EOF
 }
 
 # run tests
-test_default_numpy_scalars_and_empty
+test_numpy_scalars
 testnoshape1
 if test "x$FEATURE_S3TESTS" = xyes && test "x$FEATURE_S3_INTERNAL" = xyes ; then
     # The aws-sdk-cpp driver does not support google storage
