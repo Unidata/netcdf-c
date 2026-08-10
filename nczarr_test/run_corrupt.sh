@@ -75,6 +75,11 @@ EOF
   ${NCDUMP} -h ${flags} "file://${name}#mode=zarr,file,consolidated" > result_${name}.out
 
   diff -w result_${name}.out expected_${name}.out
+
+  # Test read and write 
+  ${NCCOPY} "file://${name}#mode=zarr,file,consolidated" "${name}.nc"
+  ${NCDUMP} -n numpy_scalars -h "${name}.nc" > copy_result_${name}.out
+  diff -w copy_result_${name}.out expected_${name}.out
 }
 
 # run tests
