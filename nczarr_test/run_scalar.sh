@@ -49,12 +49,14 @@ echo "*** read nczarr"
 ${NCDUMP} -n ref_scalar $nczarrurl > tmp_scalar_nczarr_${zext}.cdl
 ${ZMD} -h $nczarrurl > tmp_scalar_nczarr_${zext}.txt
 
-echo "*** verify"
+echo "*** verify nczarr"
 diff -bw $top_srcdir/nczarr_test/ref_scalar_nczarr.cdl tmp_scalar_nczarr_${zext}.cdl
 
+echo "*** verify zarr"
 # Fixup
-zarrscalar tmp_scalar_zarr_${zext}.cdl tmp_rescale_zarr_${zext}.cdl
-diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_rescale_zarr_${zext}.cdl
+#zarrscalar tmp_scalar_zarr_${zext}.cdl tmp_rescale_zarr_${zext}.cdl
+#diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_rescale_zarr_${zext}.cdl
+diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_scalar_zarr_${zext}.cdl
 }
 
 testcase file

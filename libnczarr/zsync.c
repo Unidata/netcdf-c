@@ -361,7 +361,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     /* Integer list defining the length of each dimension of the array.*/
     /* Create the list */
     NCJnew(NCJ_ARRAY,&jtmp);
-    if(zvar->scalar) {
+    if(zvar->scalar && !purezarr) {
 	NCJaddstring(jtmp,NCJ_INT,"1");
     } else for(i=0;i<var->ndims;i++) {
 	snprintf(number,sizeof(number),"%llu",shape[i]);
@@ -390,7 +390,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     if((stat = NCJaddstring(jvar,NCJ_STRING,"chunks"))<0) {stat = NC_EINVAL; goto done;}
     /* Create the list */
     NCJnew(NCJ_ARRAY,&jtmp);
-    if(zvar->scalar) {
+    if(zvar->scalar && !purezarr) {
 	NCJaddstring(jtmp,NCJ_INT,"1"); /* one chunk of size 1 */
     } else for(i=0;i<var->ndims;i++) {
 	size64_t len = var->chunksizes[i];
@@ -764,8 +764,8 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, NCjson*
 		- _ARRAY_ATTRIBUTE
 	    */
 	    NCJnew(NCJ_ARRAY,&jdimrefs);
-	    /* Fake the scalar case */
-	    if(var->ndims == 0)
+	    /* Fake the scalar as an case */
+	    if(var->ndims == 0 && !purezarr)
 	        NCJaddstring(jdimrefs,NCJ_STRING,XARRAYSCALAR);
 	    /* Walk the dimensions and capture the names */
 	    for(i=0;i<var->ndims;i++) {
