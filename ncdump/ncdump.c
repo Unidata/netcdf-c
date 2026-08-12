@@ -2389,15 +2389,13 @@ main(int argc, char *argv[])
 	      goto fail;
 	  }
 	  break;
-        case 'L':
-#ifdef LOGGING
-	  {
-	  int level = atoi(optarg);
-	  if(level >= 0)
-	    nc_set_log_level(level);
-	  }
+	    case 'L':
+	      int level = atoi(optarg); // atoi return 0 (NCLOGOFF) on error
+	      level = !level ? NCLOGNOTE : level; // If -L NCLOGNOTE is default
+#ifdef LOGGING // This is for parallel builds
+	      nc_set_log_level(level);
 #endif
-	  ncsetloglevel(NCLOGNOTE);
+	      ncsetloglevel(level);
 	  break;
 	case 'F':
 	  formatting_specs.filter_atts = true;
