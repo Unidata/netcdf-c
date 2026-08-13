@@ -231,20 +231,20 @@ dumpR(NCjson* json, int depth)
 	printf("null");
 	break;
     case NCJ_DICT: 
-	if(NCJarraylength(json) == 0) {
+	if(NCJdictlength(json) == 0) {
 	    printf("{}");
 	} else {
 	    printf("\n");
-	    for(i=0;i<NCJarraylength(json);i+=2) {
+	    for(i=0;i<NCJdictlength(json);i++) {
 		NCjson* j = NULL;
-		j = (NCjson*)NCJith(json,i);
+		j = (NCjson*)NCJdictkey(json,i);
 		assert(NCJsort(j) == NCJ_STRING);
 	        printf("{%d} ",depth+1);
 	        printf("\"%s\" => ",NCJstring(j));
-		if(i+1 >= NCJarraylength(json)) {/* malformed */
+		if(i >= NCJdictlength(json)) {/* malformed */
 		    printf("<malformed>");
 		} else
-	            dumpR((NCjson*)NCJith(json,i+1),depth+1);
+	            dumpR((NCjson*)NCJdictvalue(json,i),depth+1);
 	    }
 	}
 	break;
