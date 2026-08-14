@@ -57,11 +57,8 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, NClist* controls)
 	{stat = NC_ENOMEM; goto done;}
 
     /* fill in some of the zinfo and zroot fields */
-    zinfo->zarr.zarr_version = atoi(ZARRVERSION);
-    sscanf(NCZARRVERSION,"%lu.%lu.%lu",
-	   &zinfo->zarr.nczarr_version.major,
-	   &zinfo->zarr.nczarr_version.minor,
-	   &zinfo->zarr.nczarr_version.release);
+    zinfo->format.zarr = ZARRFORMAT2;
+    zinfo->format.nczarr = NCZARRFORMAT2;
 
     zinfo->default_maxstrlen = NCZ_MAXSTR_DEFAULT;
 
@@ -213,7 +210,7 @@ int
 NCZ_get_libversion(unsigned long* majorp, unsigned long* minorp,unsigned long* releasep)
 {
     unsigned long m0,m1,m2;
-    sscanf(NCZARRVERSION,"%lu.%lu.%lu",&m0,&m1,&m2);
+    sscanf(NCZARR_PACKAGE_VERSION,"%lu.%lu.%lu",&m0,&m1,&m2);
     if(majorp) *majorp = m0;
     if(minorp) *minorp = m1;
     if(releasep) *releasep = m2;
@@ -235,7 +232,7 @@ int
 NCZ_get_superblock(NC_FILE_INFO_T* file, int* superblockp)
 {
     NCZ_FILE_INFO_T* zinfo = file->format_file_info;
-    if(superblockp) *superblockp = zinfo->zarr.nczarr_version.major;
+    if(superblockp) *superblockp = zinfo->format.nczarr;
     return NC_NOERR;
 }
 

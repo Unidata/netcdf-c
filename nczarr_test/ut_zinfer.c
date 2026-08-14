@@ -119,11 +119,11 @@ int test_NCZ_infer_zarr_format() {
               NC_ENOTZARR, ret);
       return 1;
     }
-    if (zinfo.zarr.zarr_version != 0) {
+    if (zinfo.format.zarr != 0) {
       fprintf(stderr,
               "Failed! Expected zarr version to be left unset (0) but it set "
               "to %d\n",
-              zinfo.zarr.zarr_version);
+              zinfo.format.zarr);
       return 2;
     }
   }
@@ -139,9 +139,9 @@ int test_NCZ_infer_zarr_format() {
               ret, v);
       return 3;
     }
-    if (zinfo.zarr.zarr_version != v) {
+    if (zinfo.format.zarr != v) {
       fprintf(stderr, "Failed! Expected version 2 detection (%d)\n",
-              zinfo.zarr.zarr_version);
+              zinfo.format.zarr);
       return 4;
     }
     KV_ptr = KV3;
@@ -168,7 +168,7 @@ int test_NCZ_infer_nczarr_format() {
   fprintf(stderr, "Testing NCZ_infer_nczarr_format\n");
   int ret = NC_NOERR;
 
-  assert(zinfo.zarr.zarr_version == 0);
+  assert(zinfo.format.zarr == 0);
   ret = NCZ_infer_nczarr_format(&file);
   if (ret != NC_ENOTZARR) {
     fprintf(stderr, "Failed! Expected return code NC_ENOTZARR (%d), got (%d)\n",
@@ -176,7 +176,7 @@ int test_NCZ_infer_nczarr_format() {
     return 1;
   }
 
-  zinfo.zarr.zarr_version = 2;
+  zinfo.format.zarr = 2;
 
   KV_ptr = KV2pure;
   // Alternative to NCZMD_set_metadata_handler();
@@ -189,28 +189,39 @@ int test_NCZ_infer_nczarr_format() {
     return 2;
   }
 
-  if (0 != zinfo.zarr.nczarr_version.major ||
-      0 != zinfo.zarr.nczarr_version.minor ||
-      0 != zinfo.zarr.nczarr_version.release) {
-    fprintf(stderr, "Failed! Wrong nczarr version detectedr (%lu.%lu.%lu)\n",
-            zinfo.zarr.nczarr_version.major, zinfo.zarr.nczarr_version.minor,
-            zinfo.zarr.nczarr_version.release);
+  if (NCZARRFORMAT0 != zinfo.format.nczarr) {
+    fprintf(stderr,
+            "Failed! Wrong nczarr version detected "
+            "(" NCZARR_FORMAT_VERSION_TEMPLATE ") expected %d\n",
+            zinfo.format.nczarr, NCZARRFORMAT0);
     return 3;
   }
 
+  if (!(zinfo.controls.flags & FLAG_PUREZARR)) {
+    fprintf(stderr, "Failed! Expected PUREZARR flag with nczarr version: %d",
+            zinfo.format.nczarr);
+    return 4;
+  }
+  // Reset flag for next test;
+  zinfo.controls.flags &= ~(zinfo.controls.flags & FLAG_PUREZARR);
+
   KV_ptr = KV2nczarr;
   ret = NCZ_infer_nczarr_format(&file);
-  if (2 != zinfo.zarr.nczarr_version.major ||
-      0 != zinfo.zarr.nczarr_version.minor ||
-      0 != zinfo.zarr.nczarr_version.release) {
-    fprintf(stderr, "Failed! Wrong nczarr version detectedr (%lu.%lu.%lu)\n",
-            zinfo.zarr.nczarr_version.major, zinfo.zarr.nczarr_version.minor,
-            zinfo.zarr.nczarr_version.release);
-    return 4;
+  if (NCZARRFORMAT2 != zinfo.format.nczarr) {
+    fprintf(stderr,
+            "Failed! Wrong nczarr version detected "
+            "(" NCZARR_FORMAT_VERSION_TEMPLATE ") expected %d\n",
+            zinfo.format.nczarr, NCZARRFORMAT2);
+    return 5;
+  }
+  if (zinfo.controls.flags & FLAG_PUREZARR) {
+    fprintf(stderr, "Failed! PUREZARR flag NOT expected with nczarr version: %d\n",
+            zinfo.format.nczarr);
+    return 6;
   }
 
   // TODO:
-  // zinfo.zarr.zarr_version = 3;
+  // zinfo.format.zarr = 3;
   // KV_ptr = KV3;
   // zinfo.map = mockmap();
   // zinfo.metadata = *NCZ_metadata_handler3;

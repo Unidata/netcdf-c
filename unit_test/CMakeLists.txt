@@ -20,6 +20,8 @@ ENDIF()
 SET(UNIT_TESTS test_ncuri)
 add_bin_test(unit_test test_ncuri)
 add_bin_test(unit_test tst_udf_infermodel)
+SET(UNIT_TESTS test_dauth)
+add_bin_test(unit_test test_dauth)
 
 IF(NETCDF_ENABLE_HDF5)
   IF(NOT WIN32)

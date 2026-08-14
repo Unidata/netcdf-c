@@ -27,8 +27,8 @@ noinst_PROGRAMS =
 noinst_PROGRAMS += ncpluginpath
 ncpluginpath_SOURCES = ncpluginpath.c
 
-check_PROGRAMS += tst_nclist test_ncuri test_pathcvt tst_udf_infermodel
-TESTS += tst_nclist test_ncuri tst_udf_infermodel run_pathcvt.sh
+check_PROGRAMS += tst_nclist test_ncuri test_pathcvt test_dauth tst_udf_infermodel
+TESTS += tst_nclist test_ncuri run_pathcvt.sh test_dauth tst_udf_infermodel
 
 # Performance tests
 if BUILD_BENCHMARKS
