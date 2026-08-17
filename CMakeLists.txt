@@ -1956,11 +1956,12 @@ export(EXPORT netCDFTargets FILE netCDFTargets.cmake NAMESPACE netCDF::)
 include(CMakePackageConfigHelpers)
 set(netCDF_INCLUDE_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
 set(netCDF_LIB_DIR "${CMAKE_INSTALL_LIBDIR}")
+set(netCDF_INSTALL_DIR ".")
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
   INSTALL_DESTINATION "${ConfigPackageLocation}"
-  PATH_VARS netCDF_INCLUDE_DIR netCDF_LIB_DIR
+  PATH_VARS netCDF_INCLUDE_DIR netCDF_LIB_DIR netCDF_INSTALL_DIR
 )
 
 target_include_directories(netcdf

@@ -5,7 +5,7 @@
 @PACKAGE_INIT@
 
 set(NetCDFVersion "@PACKAGE_VERSION@")
-set_and_check(netCDF_INSTALL_PREFIX "@PACKAGE_PREFIX_DIR@")
+set_and_check(netCDF_INSTALL_PREFIX "@PACKAGE_netCDF_INSTALL_DIR@")
 set_and_check(netCDF_INCLUDE_DIR "@PACKAGE_netCDF_INCLUDE_DIR@")
 set_and_check(netCDF_LIB_DIR "@PACKAGE_netCDF_LIB_DIR@")
 set(netCDF_LIBRARIES netCDF::netcdf)
