@@ -175,6 +175,54 @@ int ncid;
 nc_open("mydata.dat", 0, &ncid);  /* No mode flag needed! */
 ```
 
+# Opening Files with an Explicit UDF Mode Flag {#udf_open_mode}
+
+In addition to automatic detection by magic number, a file can be opened
+explicitly with a UDF mode flag. When `nc_open()` or `nc_create()` is called
+with one of `NC_UDF0` through `NC_UDF9`, the corresponding registered UDF
+dispatch table is used regardless of the file's actual contents. This makes it
+possible to read or write any other file through
+a custom dispatcher.
+
+The UDF mode flag can be combined with behavioral flags such as `NC_WRITE` or
+`NC_DISKLESS`, but it cannot be combined with other format-selection flags such
+as `NC_NETCDF4`, `NC_64BIT_OFFSET`, or another `NC_UDFx` flag. The selected UDF
+slot must already have been registered, either programmatically with
+`nc_def_user_format()` or from an RC file; otherwise the open call will fail.
+
+## Example
+
+```c
+#include <netcdf.h>
+
+extern NC_Dispatch my_dispatcher;
+
+int main() {
+    int ncid;
+
+    /* Register the UDF without a magic number. */
+    if (nc_def_user_format(NC_UDF0, &my_dispatcher, NULL)) {
+        fprintf(stderr, "Failed to register UDF\n");
+        return 1;
+    }
+
+    /* Open an existing file and force it to use the UDF0 dispatcher. */
+    if (nc_open("existing_file.nc", NC_UDF0, &ncid)) {
+        fprintf(stderr, "Failed to open file with UDF0\n");
+        return 1;
+    }
+
+    /* ... */
+
+    nc_close(ncid);
+    return 0;
+}
+```
+
+The test `nc_test4/tst_udf_open_mode.c` demonstrates this behavior by creating a
+valid NetCDF-4/HDF5 file and then opening it with `NC_UDF0` to verify that the
+registered UDF dispatch table is used instead of the HDF5 dispatcher.
+
 # Platform Considerations {#udf_platforms}
 
 ## Unix/Linux/macOS
