@@ -24,7 +24,7 @@ jobs:
         hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -73,7 +73,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -132,7 +132,7 @@ jobs:
           hdf5: [ 1.10.8, 1.12.2, 1.14.3 ]
      
       steps:          
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v7
           with:
             CDASH_TOKEN: ${{ secrets.CDASH_TOKEN }}
           env:
