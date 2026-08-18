@@ -79,9 +79,9 @@ echo "command: ${NCDUMP} -h $url"
 ${NCDUMP} "$url" >./tmp_testurl 2> ./errtmp_testurl
 if test "x${SHOW}" = x1 ; then cat ./tmp_testurl ; fi
 # Look for the value of maxStrlen in output cdl
-if ! fgrep -i "maxstrlen = 16" ./tmp_testurl ; then
+if ! grep -F -i "maxstrlen = 16" ./tmp_testurl ; then
 echo "***Fail: maxStrlen not recognized"
-fgrep -i "maxstrlen16 = 16" ./tmp_testurl > ./errtmp_testurl
+grep -F -i "maxstrlen16 = 16" ./tmp_testurl > ./errtmp_testurl
 fi
 
 fi

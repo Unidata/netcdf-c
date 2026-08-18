@@ -125,7 +125,7 @@ constrain() {
 setcache() {
   CACHE="[cache]"
   if test "x${NOCACHETESTS}" != x ; then
-    if IGNORE=`echon " ${NOCACHETESTS} " | fgrep " $1 "`; then CACHE=; fi
+    if IGNORE=`echon " ${NOCACHETESTS} " | grep -F " $1 "`; then CACHE=; fi
   fi
   PARAMS="${PARAMS}${CACHE}"
 }
@@ -133,7 +133,7 @@ setcache() {
 setprefetch() {
   PREFETCH="[prefetch]"
   if test "x${NOPREFETCHTESTS}" != x ; then
-    if IGNORE=`echon " ${NOPREFETCHTESTS} " | fgrep " $1 "`; then PREFETCH=; fi
+    if IGNORE=`echon " ${NOPREFETCHTESTS} " | grep -F " $1 "`; then PREFETCH=; fi
   fi
   PARAMS="${PARAMS}${PREFETCH}"
 }
