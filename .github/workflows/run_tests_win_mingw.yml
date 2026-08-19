@@ -30,13 +30,13 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: msys2/setup-msys2@v2
         with:
           msystem: ${{ matrix.msystem }}
           update: true
-          pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p
-          install: diffutils m4 git unzip
+          pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p
+          install: diffutils m4 git unzip 
 
 ###
 # Downgrade hdf5 
@@ -109,12 +109,12 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: msys2/setup-msys2@v2
         with:
           msystem: ${{ matrix.msystem }}
           update: true
-          pacboy: cc:p cmake:p curl:p libxml2:p zlib:p blosc:p bzip2:p
+          pacboy: cc:p cmake:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p
           install: make m4 diffutils git unzip
 
 ###
@@ -156,6 +156,7 @@ jobs:
           -DNETCDF_ENABLE_HDF5=ON \
           -DNETCDF_ENABLE_DAP=TRUE \
           -DNETCDF_ENABLE_NCZARR=TRUE \
+          -DNETCDF_ENABLE_NCZARR_FILTERS=FALSE \
           -DNETCDF_ENABLE_DAP_LONG_TESTS=TRUE \
           -DNETCDF_ENABLE_PLUGINS=ON
         if: ${{ success() }}
