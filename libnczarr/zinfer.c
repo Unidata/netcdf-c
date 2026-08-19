@@ -4,6 +4,12 @@ int NCZ_infer_zarr_format(NC_FILE_INFO_T *file) {
   int stat = NC_ENOTZARR;
   NCZ_FILE_INFO_T *zfile = (NCZ_FILE_INFO_T *)file->format_file_info;
 
+  int try_consolidated = NCZ_use_consolidated(zfile);
+  if(NC_NOERR == nczmap_exists(zfile->map, Z2METADATA)){
+    zfile->format.zarr = 2;
+    return NC_NOERR;
+  }
+
   struct ZarrObjects {
     const char *name;
     int format;

@@ -87,7 +87,7 @@ int NCZMD_get_metadata_format(NCZ_FILE_INFO_T *zfile, int *zarrformat)
 	return NC_NOERR;
 }
 
-int use_consolidated_metadata(NCZ_FILE_INFO_T *zfile) {
+int NCZ_use_consolidated(NCZ_FILE_INFO_T *zfile) {
     int use_consolidated = NCZARR_CONSOLIDATED_DEFAULT || (zfile->controls.flags & FLAG_CONSOLIDATED);
     const char *e = getenv(NCZARR_CONSOLIDATED_ENV);
 
@@ -101,7 +101,7 @@ int use_consolidated_metadata(NCZ_FILE_INFO_T *zfile) {
 int NCZMD_set_metadata_handler(NCZ_FILE_INFO_T *zfile) {
     NCjson *jcsl = NULL;
 
-    int use_consolidated = use_consolidated_metadata(zfile);
+    int use_consolidated = NCZ_use_consolidated(zfile);
     if (!use_consolidated){
         nclog(NCLOGNOTE, "Not using consolidated metadata! Doing so could improve reading performance");
     }
