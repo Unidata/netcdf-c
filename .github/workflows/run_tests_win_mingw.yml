@@ -156,6 +156,7 @@ jobs:
           -DNETCDF_ENABLE_HDF5=ON \
           -DNETCDF_ENABLE_DAP=TRUE \
           -DNETCDF_ENABLE_NCZARR=TRUE \
+          -DNETCDF_ENABLE_NCZARR_FILTERS=FALSE \
           -DNETCDF_ENABLE_DAP_LONG_TESTS=TRUE \
           -DNETCDF_ENABLE_PLUGINS=ON
         if: ${{ success() }}
