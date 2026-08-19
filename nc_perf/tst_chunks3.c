@@ -27,6 +27,61 @@
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
+
+/* MSVC has no getrusage(2), but the timing macros below are built on it.
+ * Supply the subset of the interface those macros use.
+ *
+ * GetProcessTimes reports kernel and user CPU time for the process in 100 ns
+ * ticks, which is what ru_utime/ru_stime hold here. The macros sum the two and
+ * divide by the repetition count, so the measurement remains CPU time and stays
+ * comparable with the POSIX platforms.
+ *
+ * ru_inblock/ru_oublock have no Win32 equivalent and are reported as zero; the
+ * timing macros read them but never print them. */
+#if defined(_WIN32) && !defined(HAVE_SYS_RESOURCE_H)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <winsock2.h>   /* struct timeval; must precede windows.h */
+#include <windows.h>
+
+#define RUSAGE_SELF 0
+
+struct rusage {
+    struct timeval ru_utime;
+    struct timeval ru_stime;
+    long ru_inblock;
+    long ru_oublock;
+};
+
+static __inline void
+nc_filetime_to_timeval(const FILETIME *ft, struct timeval *tv)
+{
+    /* 100 ns ticks since an epoch that cancels out: only differences are used */
+    ULARGE_INTEGER t;
+    t.LowPart = ft->dwLowDateTime;
+    t.HighPart = ft->dwHighDateTime;
+    tv->tv_sec = (long)(t.QuadPart / 10000000ULL);
+    tv->tv_usec = (long)((t.QuadPart % 10000000ULL) / 10ULL);
+}
+
+static __inline int
+getrusage(int who, struct rusage *ru)
+{
+    FILETIME creation, exit, kernel, user;
+    (void)who;
+    if (!GetProcessTimes(GetCurrentProcess(), &creation, &exit, &kernel, &user))
+        return -1;
+    nc_filetime_to_timeval(&user, &ru->ru_utime);
+    nc_filetime_to_timeval(&kernel, &ru->ru_stime);
+    ru->ru_inblock = 0;
+    ru->ru_oublock = 0;
+    return 0;
+}
+#endif /* _WIN32 && !HAVE_SYS_RESOURCE_H */
 #include "nc_tests.h"		/* The ERR macro is here... */
 #include "netcdf.h"
 
