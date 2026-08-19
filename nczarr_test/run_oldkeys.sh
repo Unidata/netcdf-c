@@ -36,7 +36,7 @@ rm -fr ref_oldkeys.file
 #echo "End Debug Stanza"
 #echo "=================================="
 rm -fr ./ref_oldkeys.file
-unzip -b ${srcdir}/ref_oldkeys.file.zip >> tmp_ignore.txt
+unzip ${srcdir}/ref_oldkeys.file.zip >> tmp_ignore.txt
 ${NCDUMP} $fileurl > tmp_oldkeys_${zext}.cdl
 ${ZMD} -t int $fileurl > tmp_oldkeys_${zext}.zmap
 diff -b ${srcdir}/ref_oldkeys.cdl tmp_oldkeys_${zext}.cdl
