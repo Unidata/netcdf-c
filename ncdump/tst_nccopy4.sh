@@ -67,10 +67,10 @@ fi
 echo "*** Test nccopy -d0 turns off compression, shuffling of compressed, shuffled file ..."
 ${NCCOPY} -d0 tst_inflated4.nc tmp_ncc4.nc
 ${NCDUMP} -sh tmp_ncc4.nc > tmp_ncc4.cdl
-if fgrep '_DeflateLevel' < tmp_ncc4.cdl ; then
+if grep -F '_DeflateLevel' < tmp_ncc4.cdl ; then
     exit 1
 fi
-if fgrep '_Shuffle' < tmp_ncc4.cdl ; then
+if grep -F '_Shuffle' < tmp_ncc4.cdl ; then
     exit 1
 fi
 rm tst_deflated.nc tst_inflated.nc tst_inflated4.nc tmp_ncc4.nc tmp_ncc4.cdl

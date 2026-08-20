@@ -361,7 +361,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     /* Integer list defining the length of each dimension of the array.*/
     /* Create the list */
     NCJnew(NCJ_ARRAY,&jtmp);
-    if(zvar->scalar) {
+    if(zvar->scalar && !purezarr) {
 	NCJaddstring(jtmp,NCJ_INT,"1");
     } else for(i=0;i<var->ndims;i++) {
 	snprintf(number,sizeof(number),"%llu",shape[i]);
@@ -390,7 +390,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     if((stat = NCJaddstring(jvar,NCJ_STRING,"chunks"))<0) {stat = NC_EINVAL; goto done;}
     /* Create the list */
     NCJnew(NCJ_ARRAY,&jtmp);
-    if(zvar->scalar) {
+    if(zvar->scalar && !purezarr) {
 	NCJaddstring(jtmp,NCJ_INT,"1"); /* one chunk of size 1 */
     } else for(i=0;i<var->ndims;i++) {
 	size64_t len = var->chunksizes[i];
@@ -765,7 +765,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, NCjson*
 	    */
 	    NCJnew(NCJ_ARRAY,&jdimrefs);
 	    /* Fake the scalar case */
-	    if(var->ndims == 0)
+	    if(var->ndims == 0 && !purezarr)
 	        NCJaddstring(jdimrefs,NCJ_STRING,XARRAYSCALAR);
 	    /* Walk the dimensions and capture the names */
 	    for(i=0;i<var->ndims;i++) {
@@ -1564,10 +1564,24 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	/* Process the rank */
 	zarr_rank = NCJarraylength(jvalue);
 	if(zarr_rank == 0) {
+	    // No shape, no chunks, no (xarray) dimensions => scalar
+	    if(zvar->xarray == NULL) {
+			// get xarray attributes
+			if((stat = ncz_read_atts(file,(NC_OBJ*)var))) goto done;
+	    }
+	    if(NC_NOERR == (stat = NCJdictget(jvar,"chunks",&jvalue)) && \
+			jvalue && NCJsort(jvalue) == NCJ_ARRAY && NCJarraylength(jvalue) == 0 && \
+			xarray && nclistlength(zvar->xarray) == 0) {
+			zvar->scalar = 1;
+			/* Save the rank of the variable */
+			if ((stat = nc4_var_set_ndims(var,1)))
+				goto done;
+	    }else{
 	    /* suppress variable */
 	    ZLOG(NCLOGWARN,"Empty shape for variable %s suppressed",var->hdr.name);
 	    suppress = 1;
 	    goto suppressvar;
+	    }
 	}
 
 	if(zvar->scalar) {

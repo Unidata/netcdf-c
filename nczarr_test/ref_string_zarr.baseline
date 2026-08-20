@@ -1,10 +1,9 @@
 netcdf ref_string {
 dimensions:
 	d2 = 2 ;
-	_scalar_ = 1 ;
 variables:
 	string c(d2) ;
-	string truncated(_scalar_) ;
+	string truncated ;
 		truncated:_nczarr_maxstrlen = 4 ;
 	string v(d2) ;
 

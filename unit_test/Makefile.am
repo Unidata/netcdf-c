@@ -27,8 +27,8 @@ noinst_PROGRAMS =
 noinst_PROGRAMS += ncpluginpath
 ncpluginpath_SOURCES = ncpluginpath.c
 
-check_PROGRAMS += tst_nclist test_ncuri test_pathcvt test_dauth
-TESTS += tst_nclist test_ncuri run_pathcvt.sh test_dauth
+check_PROGRAMS += tst_nclist test_ncuri test_pathcvt test_dauth tst_udf_infermodel
+TESTS += tst_nclist test_ncuri run_pathcvt.sh test_dauth tst_udf_infermodel
 
 # Performance tests
 if BUILD_BENCHMARKS
@@ -75,7 +75,7 @@ EXTRA_DIST += ref_get.txt ref_set.txt
 EXTRA_DIST += ref_xget.txt ref_xset.txt
 EXTRA_DIST += ref_provparse.txt 
 EXTRA_DIST += reclaim_tests.baseline
-CLEANFILES = reclaim_tests*.txt reclaim_tests.nc reclaim_tests.dmp tmp_*.txt
+CLEANFILES = reclaim_tests*.txt reclaim_tests.nc reclaim_tests.dmp tmp_*.txt tst_udf_infermodel.udf
 
 # Remove directories
 clean-local:

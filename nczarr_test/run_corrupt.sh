@@ -34,6 +34,58 @@ testnoshape2() {
   ${NCDUMP} -h $flags $fileurl > tmp_noshape2_gs.cdl
 }
 
+
+test_numpy_scalars() {
+  # in zarr + numpy an adimensional array is a scalar - check issue #3108
+  # it tests these cases
+  # >>> np.array(1).shape
+  # ()
+  # >>> np.array(1.).shape
+  # ()
+
+  name='numpy_scalars.zarr'
+  
+  mkdir -p $name
+  cat > "$name/.zmetadata" <<-'EOF'
+{
+    "metadata": {
+        ".zgroup": { "zarr_format": 2 },
+        "float_scalar/.zarray": {
+            "chunks": [], "compressor": null, "dtype": "<f8", "fill_value": 0.0, "filters": null, "order": "C",
+            "shape": [], "zarr_format": 2
+        },
+        "int_scalar/.zarray": {
+            "chunks": [], "compressor": null, "dtype": "<i8", "fill_value": 0, "filters": null, "order": "C",
+            "shape": [], "zarr_format": 2
+        }
+    },
+    "zarr_consolidated_format": 1
+}
+EOF
+
+cat > expected_${name}.out <<-'EOF'
+netcdf numpy_scalars {
+variables:
+   double float_scalar ;
+           float_scalar:_FillValue = 0. ;
+   int64 int_scalar ;
+           int_scalar:_FillValue = 0LL ;
+}
+EOF
+
+  # Ensure variable is shown
+  ${NCDUMP} -h ${flags} "file://${name}#mode=zarr,file,consolidated" > result_${name}.out
+
+  diff -w result_${name}.out expected_${name}.out
+
+  # Test read and write
+  if test "x${FEATURE_HDF5}" = xyes; then
+    ${NCCOPY} "file://${name}#mode=zarr,file,consolidated" "${name}.nc"
+    ${NCDUMP} -n numpy_scalars -h "${name}.nc" > copy_result_${name}.out
+    diff -w copy_result_${name}.out expected_${name}.out
+  fi
+}
+
 test_bad_dtype() {
   echo "*** testing bad dtype"
   name='bad_dtype'
@@ -63,7 +115,9 @@ EOF
   return 1;
 }
 
+# run tests
 test_bad_dtype
+test_numpy_scalars
 testnoshape1
 if test "x$FEATURE_S3TESTS" = xyes && test "x$FEATURE_S3_INTERNAL" = xyes ; then
     # The aws-sdk-cpp driver does not support google storage
