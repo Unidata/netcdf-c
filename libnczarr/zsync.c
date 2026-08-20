@@ -23,9 +23,6 @@ static int ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** j
 static int ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose);
 
 static int download_jatts(NC_FILE_INFO_T* file, NC_OBJ* container, const NCjson** jattsp, const NCjson** jtypesp);
-static int zconvert(const NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes* dst);
-static int computeattrinfo(const char* name, const NCjson* jtypes, nc_type typehint, int purezarr, NCjson* values,
-		nc_type* typeidp, size_t* typelenp, size_t* lenp, void** datap);
 static int parse_group_content(const NCjson* jcontent, NClist* dimdefs, NClist* varnames, NClist* subgrps);
 static int parse_group_content_pure(NCZ_FILE_INFO_T*  zinfo, NC_GRP_INFO_T* grp, NClist* varnames, NClist* subgrps);
 static int define_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp);
@@ -39,10 +36,7 @@ static int locategroup(NC_FILE_INFO_T* file, size_t nsegs, NClist* segments, NC_
 static int createdim(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* name, size64_t dimlen, NC_DIM_INFO_T** dimp);
 static int parsedimrefs(NC_FILE_INFO_T*, NClist* dimnames,  size64_t* shape, NC_DIM_INFO_T** dims, int create);
 static int decodeints(const NCjson* jshape, size64_t* shapes);
-static int computeattrdata(nc_type typehint, nc_type* typeidp, const NCjson* values, size_t* typelenp, size_t* lenp, void** datap);
 static int computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarray, int ndims, NClist* dimnames, size64_t* shapes, NC_DIM_INFO_T** dims);
-static int json_convention_read(const NCjson* jdict, NCjson** jtextp);
-static int ncz_validate(NC_FILE_INFO_T* file);
 static int insert_attr(NCjson* jatts, NCjson* jtypes, const char* aname, NCjson* javalue, const char* atype);
 static int insert_nczarr_attr(NCjson* jatts, NCjson* jtypes);
 static int upload_attrs(NC_FILE_INFO_T* file, NC_OBJ* container, NCjson* jatts);
@@ -883,181 +877,7 @@ done:
     return ZUNTRACE(THROW(stat));
 }
 
-/* Convert a JSON singleton or array of strings to a single string */
-static int
-zcharify(const NCjson* src, NCbytes* buf)
-{
-    int stat = NC_NOERR;
-    size_t i;
-    struct NCJconst jstr;
 
-    memset(&jstr,0,sizeof(jstr));
-
-    if(NCJsort(src) != NCJ_ARRAY) { /* singleton */
-        if((stat = NCJcvt(src, NCJ_STRING, &jstr))<0) {stat = NC_EINVAL; goto done;}
-        ncbytescat(buf,jstr.sval);
-    } else for(i=0;i<NCJarraylength(src);i++) {
-	NCjson* value = NCJith(src,i);
-	if((stat = NCJcvt(value, NCJ_STRING, &jstr))<0) {stat = NC_EINVAL; goto done;}
-	ncbytescat(buf,jstr.sval);
-        nullfree(jstr.sval);jstr.sval = NULL;
-    }
-done:
-    nullfree(jstr.sval);
-    return stat;
-}
-
-/* Convert a json value to actual data values of an attribute. */
-static int
-zconvert(const NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes* dst)
-{
-    int stat = NC_NOERR;
-    int i;
-    int count = 0;
-    
-    ZTRACE(3,"src=%s typeid=%d typelen=%u",NCJtotext(src,0),typeid,typelen);
-	    
-    /* 3 cases:
-       (1) singleton atomic value
-       (2) array of atomic values
-       (3) other JSON expression
-    */
-    switch (NCJsort(src)) {
-    case NCJ_INT: case NCJ_DOUBLE: case NCJ_BOOLEAN: /* case 1 */
-	count = 1;
-	if((stat = NCZ_convert1(src, typeid, dst)))
-	    goto done;
-	break;
-
-    case NCJ_ARRAY:
-        if(typeid == NC_CHAR) {
-	    if((stat = zcharify(src,dst))) goto done;
-	    count = ncbyteslength(dst);
-        } else {
-	    count = NCJarraylength(src);
-	    for(i=0;i<count;i++) {
-	        NCjson* value = NCJith(src,i);
-                if((stat = NCZ_convert1(value, typeid, dst))) goto done;
-	    }
-	}
-	break;
-    case NCJ_STRING:
-	if(typeid == NC_CHAR) {
-	    if((stat = zcharify(src,dst))) goto done;
-	    count = ncbyteslength(dst);
-	    /* Special case for "" */
-	    if(count == 0) {
-	        ncbytesappend(dst,'\0');
-	        count = 1;
-	    }
-	} else {
-	    if((stat = NCZ_convert1(src, typeid, dst))) goto done;
-	    count = 1;
-	}
-	break;
-    default: stat = (THROW(NC_ENCZARR)); goto done;
-    }
-    if(countp) *countp = count;
-
-done:
-    return ZUNTRACE(THROW(stat));
-}
-
-/*
-Extract type and data for an attribute
-*/
-static int
-computeattrinfo(const char* name, const NCjson* jtypes, nc_type typehint, int purezarr, NCjson* values,
-		nc_type* typeidp, size_t* typelenp, size_t* lenp, void** datap)
-{
-    int stat = NC_NOERR;
-    size_t i;
-    size_t len, typelen;
-    void* data = NULL;
-    nc_type typeid;
-
-    ZTRACE(3,"name=%s typehint=%d purezarr=%d values=|%s|",name,typehint,purezarr,NCJtotext(values,0));
-
-    /* Get type info for the given att */
-    typeid = NC_NAT;
-    for(i=0;i<NCJdictlength(jtypes);i++) {
-	NCjson* akey = NCJdictkey(jtypes,i);
-	if(strcmp(NCJstring(akey),name)==0) {
-	    const NCjson* avalue = NULL;
-	    NCJdictget(jtypes,NCJstring(akey),&avalue);
-	    if((stat = ncz_dtype2nctype(NCJstring(avalue),typehint,purezarr,&typeid,NULL,NULL))) goto done;
-//		if((stat = ncz_nctypedecode(atype,&typeid))) goto done;
-	    break;
-	}
-    }
-    if(typeid > NC_MAX_ATOMIC_TYPE)
-	{stat = NC_EINTERNAL; goto done;}
-    /* Use the hint if given one */
-    if(typeid == NC_NAT)
-        typeid = typehint;
-
-    if((stat = computeattrdata(typehint, &typeid, values, &typelen, &len, &data))) goto done;
-
-    if(typeidp) *typeidp = typeid;
-    if(lenp) *lenp = len;
-    if(typelenp) *typelenp = typelen;
-    if(datap) {*datap = data; data = NULL;}
-
-done:
-    nullfree(data);
-    return ZUNTRACEX(THROW(stat),"typeid=%d typelen=%d len=%u",*typeidp,*typelenp,*lenp);
-}
-
-/*
-Extract data for an attribute
-*/
-static int
-computeattrdata(nc_type typehint, nc_type* typeidp, const NCjson* values, size_t* typelenp, size_t* countp, void** datap)
-{
-    int stat = NC_NOERR;
-    NCbytes* buf = ncbytesnew();
-    size_t typelen;
-    nc_type typeid = NC_NAT;
-    NCjson* jtext = NULL;
-    int reclaimvalues = 0;
-    int isjson = 0; /* 1 => attribute value is neither scalar nor array of scalars */
-    int count = 0; /* no. of attribute values */
-
-    ZTRACE(3,"typehint=%d typeid=%d values=|%s|",typehint,*typeidp,NCJtotext(values,0));
-
-    /* Get assumed type */
-    if(typeidp) typeid = *typeidp;
-    if(typeid == NC_NAT && !isjson) {
-        if((stat = NCZ_inferattrtype(values,typehint, &typeid))) goto done;
-    }
-
-    /* See if this is a simple vector (or scalar) of atomic types */
-    isjson = NCZ_iscomplexjson(values,typeid);
-
-    if(isjson) {
-	/* Apply the JSON attribute convention and convert to JSON string */
-	typeid = NC_CHAR;
-	if((stat = json_convention_read(values,&jtext))) goto done;
-	values = jtext; jtext = NULL;
-	reclaimvalues = 1;
-    } 
-
-    if((stat = NC4_inq_atomic_type(typeid, NULL, &typelen)))
-        goto done;
-
-    /* Convert the JSON attribute values to the actual netcdf attribute bytes */
-    if((stat = zconvert(values,typeid,typelen,&count,buf))) goto done;
-
-    if(typelenp) *typelenp = typelen;
-    if(typeidp) *typeidp = typeid; /* return possibly inferred type */
-    if(countp) *countp = (size_t)count;
-    if(datap) *datap = ncbytesextract(buf);
-
-done:
-    ncbytesfree(buf);
-    if(reclaimvalues) NCJreclaim((NCjson*)values); /* we created it */
-    return ZUNTRACEX(THROW(stat),"typelen=%d count=%u",(typelenp?*typelenp:0),(countp?*countp:-1));
-}
 
 /**
  * @internal Read file data from map to memory.
@@ -1283,7 +1103,7 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 	        typehint = var->type_info->hdr.id ; /* if unknown use the var's type for _FillValue */
 	    /* Create the attribute */
 	    /* Collect the attribute's type and value  */
-	    if((stat = computeattrinfo(aname,jtypes,typehint,purezarr,value,
+	    if((stat = NCZ_computeattrinfo(aname,jtypes,typehint,purezarr,value,
 				   &typeid,&typelen,&len,&data)))
 		goto done;
 	    if((stat = ncz_makeattr(container,attlist,aname,typeid,len,data,&att)))
@@ -1545,7 +1365,7 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	    size_t fvlen;
 	    nc_type atypeid = vtype;
 	    var->no_fill = 0;
-	    if((stat = computeattrdata(var->type_info->hdr.id, &atypeid, jvalue, NULL, &fvlen, &var->fill_value)))
+	    if((stat = NCZ_computeattrdata(var->type_info->hdr.id, &atypeid, jvalue, NULL, &fvlen, &var->fill_value)))
 		goto done;
 	    assert(atypeid == vtype);
 	    /* Note that we do not create the _FillValue
@@ -2157,27 +1977,6 @@ done:
     return ZUNTRACE(THROW(stat));
 }
 
-/**
-Implement the JSON convention:
-Stringify it as the value and make the attribute be of type "char".
-*/
-
-static int
-json_convention_read(const NCjson* json, NCjson** jtextp)
-{
-    int stat = NC_NOERR;
-    NCjson* jtext = NULL;
-    char* text = NULL;
-
-    if(json == NULL) {stat = NC_EINVAL; goto done;}
-    if(NCJunparse(json,0,&text)) {stat = NC_EINVAL; goto done;}
-    NCJnewstring(NCJ_STRING,text,&jtext);
-    *jtextp = jtext; jtext = NULL;
-done:
-    NCJreclaim(jtext);
-    nullfree(text);
-    return stat;
-}
 
 #if 0
 /**
@@ -2224,66 +2023,6 @@ done:
     return stat;
 }
 #endif
-
-/* See if there is reason to believe the specified path is a legitimate (NC)Zarr file
- * Do a breadth first walk of the tree starting at file path.
- * @param file to validate
- * @return NC_NOERR if it looks ok
- * @return NC_ENOTNC if it does not look ok
- */
-static int
-ncz_validate(NC_FILE_INFO_T* file)
-{
-    int stat = NC_NOERR;
-    NCZ_FILE_INFO_T* zinfo = (NCZ_FILE_INFO_T*)file->format_file_info;
-    int validate = 0;
-    NCbytes* prefix = ncbytesnew();
-    NClist* queue = nclistnew();
-    NClist* nextlevel = nclistnew();
-    NCZMAP* map = zinfo->map;
-    char* path = NULL;
-    char* segment = NULL;
-    size_t seglen;
-	    
-    ZTRACE(3,"file=%s",file->controller->path);
-
-    path = strdup("/");
-    nclistpush(queue,path);
-    path = NULL;
-    do {
-        nullfree(path); path = NULL;
-	/* This should be full path key */
-	path = nclistremove(queue,0); /* remove from front of queue */
-	/* get list of next level segments (partial keys) */
-	assert(nclistlength(nextlevel)==0);
-        if((stat=nczmap_search(map,path,nextlevel))) {validate = 0; goto done;}
-        /* For each s in next level, test, convert to full path, and push onto queue */
-	while(nclistlength(nextlevel) > 0) {
-            segment = nclistremove(nextlevel,0);
-            seglen = nulllen(segment);
-	    if((seglen >= 2 && memcmp(segment,".z",2)==0) || (seglen >= 4 && memcmp(segment,".ncz",4)==0)) {
-		validate = 1;
-	        goto done;
-	     }
-	     /* Convert to full path */
-	     ncbytesclear(prefix);
-	     ncbytescat(prefix,path);
-	     if(strlen(path) > 1) ncbytescat(prefix,"/");
-	     ncbytescat(prefix,segment);
-	     /* push onto queue */
-	     nclistpush(queue,ncbytesextract(prefix));
- 	     nullfree(segment); segment = NULL;
-	 }
-    } while(nclistlength(queue) > 0);
-done:
-    if(!validate) stat = NC_ENOTNC;
-    nullfree(path);
-    nullfree(segment);
-    nclistfreeall(queue);
-    nclistfreeall(nextlevel);
-    ncbytesfree(prefix);
-    return ZUNTRACE(THROW(stat));
-}
 
 /**
 Insert an attribute into a list of attribute, including typing
