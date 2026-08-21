@@ -309,6 +309,13 @@ main(int argc, char **argv)
             if (nc_def_user_format(NC_CLASSIC_MODEL, &tst_dispatcher, 
                                    magic_number) != NC_EINVAL) ERR;
         }
+
+        /* A UDF mode combined with a netcdf3 flag and a magic number is
+         * rejected, for any slot including the highest one. */
+        if (nc_def_user_format(NC_UDF(63) | NC_64BIT_OFFSET, &tst_dispatcher,
+                               magic_number) != NC_EINVAL) ERR;
+        if (nc_def_user_format(NC_UDF(0) | NC_64BIT_DATA, &tst_dispatcher,
+                               magic_number) != NC_EINVAL) ERR;
     }
     SUMMARIZE_ERR;
     printf("*** testing self-registration init pattern (returns NC_Dispatch*)...");

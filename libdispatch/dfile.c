@@ -45,51 +45,34 @@
 #endif
 
 
-/* User-defined formats - expanded from 2 to 10 slots.
- * These arrays store dispatch tables and magic numbers for up to 10 custom formats.
+/* User-defined formats - 64 slots.
+ * These arrays store dispatch tables and magic numbers for up to 64 custom formats.
  * Array-based design replaces the previous individual UDF0/UDF1 global variables. */
 NC_Dispatch *UDF_dispatch_tables[NC_MAX_UDF_FORMATS] = {NULL};
 char UDF_magic_numbers[NC_MAX_UDF_FORMATS][NC_MAX_MAGIC_NUMBER_LEN + 1] = {{0}};
 
-/** Helper function to convert NC_UDFn mode flag to array index (0-9).
- * @param mode_flag The mode flag (NC_UDF0 through NC_UDF9)
- * @return Array index 0-9, or -1 if not a valid UDF flag or multiple UDF flags set
- * @note UDF flags are not sequential in bit positions due to conflicts with
- *       NC_NOATTCREORD (0x20000) and NC_NODIMSCALE_ATTACH (0x40000) */
+/** Helper function to convert a UDF mode flag to array index (0-63).
+ * A UDF mode is marked by NC_UDF_FLAG; the slot number is held in a
+ * 6-bit field at NC_UDF_NUM_SHIFT. Build UDF modes with NC_UDF(n).
+ * @param mode_flag The mode flag, e.g. NC_UDF(3)
+ * @return Array index 0-63, or -1 if NC_UDF_FLAG is not set */
 static int udf_mode_to_index(int mode_flag) {
-    int count = 0;
-    int index = -1;
-    
-    /* Count how many UDF flags are set and remember the index */
-    if (fIsSet(mode_flag, NC_UDF0)) { count++; index = 0; }
-    if (fIsSet(mode_flag, NC_UDF1)) { count++; index = 1; }
-    if (fIsSet(mode_flag, NC_UDF2)) { count++; index = 2; }
-    if (fIsSet(mode_flag, NC_UDF3)) { count++; index = 3; }
-    if (fIsSet(mode_flag, NC_UDF4)) { count++; index = 4; }
-    if (fIsSet(mode_flag, NC_UDF5)) { count++; index = 5; }
-    if (fIsSet(mode_flag, NC_UDF6)) { count++; index = 6; }
-    if (fIsSet(mode_flag, NC_UDF7)) { count++; index = 7; }
-    if (fIsSet(mode_flag, NC_UDF8)) { count++; index = 8; }
-    if (fIsSet(mode_flag, NC_UDF9)) { count++; index = 9; }
-    
-    /* Only one UDF flag should be set at a time */
-    if (count != 1)
+    if (!fIsSet(mode_flag, NC_UDF_FLAG))
         return -1;
-    
-    return index;
+    return (mode_flag >> NC_UDF_NUM_SHIFT) & NC_UDF_NUM_MASK;
 }
 
-/** Helper function to convert NC_FORMATX_UDFn to array index (0-9).
- * @param formatx The format constant (NC_FORMATX_UDF0 through NC_FORMATX_UDF9)
- * @return Array index 0-9, or -1 if not a valid UDF format constant
+/** Helper function to convert NC_FORMATX_UDF(n) to array index (0-63).
+ * @param formatx The format constant (NC_FORMATX_UDF(0) through NC_FORMATX_UDF(63))
+ * @return Array index 0-63, or -1 if not a valid UDF format constant
  * @note Handles the gap in format numbering: UDF0=8, UDF1=9, UDF2=11, UDF3=12, etc.
  *       (NC_FORMATX_NCZARR=10 occupies the slot between UDF1 and UDF2) */
 static int udf_formatx_to_index(int formatx) {
     /* UDF0 and UDF1 are sequential (8, 9) */
     if (formatx >= NC_FORMATX_UDF0 && formatx <= NC_FORMATX_UDF1)
         return formatx - NC_FORMATX_UDF0;
-    /* UDF2-UDF9 start at 11 (skipping NCZARR at 10) */
-    if (formatx >= NC_FORMATX_UDF2 && formatx <= NC_FORMATX_UDF9)
+    /* UDF2-UDF63 start at 11 (skipping NCZARR at 10) */
+    if (formatx >= NC_FORMATX_UDF2 && formatx <= NC_FORMATX_UDF_MAX)
         return formatx - NC_FORMATX_UDF2 + 2;
     return -1;
 }
@@ -152,7 +135,7 @@ static int udf_formatx_to_index(int formatx) {
  * not match the current dispatch table version), then ::NC_EINVAL
  * will be returned.
  *
- * @param mode_flag NC_UDF0 or NC_UDF1
+ * @param mode_flag NC_UDF(n) for slot n (0-63).
  * @param dispatch_table Pointer to dispatch table to use for this user format.
  * @param magic_number Magic number used to identify file. Ignored if
  * NULL.
@@ -203,7 +186,7 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
 /**
  * Inquire about user-defined format.
  *
- * @param mode_flag NC_UDF0 or NC_UDF1
+ * @param mode_flag NC_UDF(n) for slot n (0-63).
  * 
  * @param dispatch_table Pointer that gets pointer to dispatch table to use for this user format, or NULL if this user-defined format is not defined. Ignored if NULL.
  * @param magic_number Pointer that gets magic number used to identify file, if one has been set. Magic number will be of max size NC_MAX_MAGIC_NUMBER_LEN. Ignored if NULL.
@@ -1936,34 +1919,6 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         dispatcher = NCP_dispatch_table;
         break;
 #endif
-#ifdef USE_NETCDF4
-    case NC_FORMATX_UDF0:
-    case NC_FORMATX_UDF1:
-    case NC_FORMATX_UDF2:
-    case NC_FORMATX_UDF3:
-    case NC_FORMATX_UDF4:
-    case NC_FORMATX_UDF5:
-    case NC_FORMATX_UDF6:
-    case NC_FORMATX_UDF7:
-    case NC_FORMATX_UDF8:
-    case NC_FORMATX_UDF9:
-        {
-            /* Convert format constant to array index and validate */
-            int udf_index = udf_formatx_to_index(model.impl);
-            if (udf_index < 0 || udf_index >= NC_MAX_UDF_FORMATS) {
-                stat = NC_EINVAL;
-                goto done;
-            }
-            /* Get the dispatch table for this UDF slot */
-            dispatcher = UDF_dispatch_tables[udf_index];
-            /* Ensure the UDF format has been registered via nc_def_user_format() */
-            if (!dispatcher) {
-                stat = NC_ENOTBUILT;
-                goto done;
-            }
-        }
-        break;
-#endif /* USE_NETCDF4 */
 #ifdef NETCDF_ENABLE_NCZARR
     case NC_FORMATX_NCZARR:
         dispatcher = NCZ_dispatch_table;
@@ -1973,7 +1928,25 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         dispatcher = NC3_dispatch_table;
         break;
     default:
-        {stat = NC_ENOTNC; goto done;}
+        {
+#ifdef USE_NETCDF4
+            /* UDF format constants are a range, so handle them here.
+             * Convert format constant to array index and validate. */
+            int udf_index = udf_formatx_to_index(model.impl);
+            if (udf_index >= 0) {
+                /* Get the dispatch table for this UDF slot */
+                dispatcher = UDF_dispatch_tables[udf_index];
+                /* Ensure the UDF format has been registered via nc_def_user_format() */
+                if (!dispatcher) {
+                    stat = NC_ENOTBUILT;
+                    goto done;
+                }
+                break;
+            }
+#endif /* USE_NETCDF4 */
+            stat = NC_ENOTNC;
+            goto done;
+        }
     }
 
     /* Create the NC* instance and insert its dispatcher and model */
@@ -2108,14 +2081,6 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 #ifdef NETCDF_ENABLE_NCZARR
 	nczarrbuilt = 1;
 #endif
-        /* Check which UDF formats are built (i.e., have been registered).
-         * A UDF format is considered "built" if its dispatch table is non-NULL. */
-        int udfbuilt[NC_MAX_UDF_FORMATS] = {0};
-        for(int i = 0; i < NC_MAX_UDF_FORMATS; i++) {
-            if(UDF_dispatch_tables[i] != NULL)
-                udfbuilt[i] = 1;
-        }
-
         if(!hdf5built && model.impl == NC_FORMATX_NC4)
         {stat = NC_ENOTBUILT; goto done;}
         if(!hdf4built && model.impl == NC_FORMATX_NC_HDF4)
@@ -2124,11 +2089,11 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
         {stat = NC_ENOTBUILT; goto done;}
 	if(!nczarrbuilt && model.impl == NC_FORMATX_NCZARR)
         {stat = NC_ENOTBUILT; goto done;}
-        /* Check all UDF formats - ensure the requested format has been registered */
-        for(int i = 0; i < NC_MAX_UDF_FORMATS; i++) {
-            /* Convert array index to format constant (handles gap: UDF0=8, UDF1=9, UDF2=11...) */
-            int formatx = (i <= 1) ? (NC_FORMATX_UDF0 + i) : (NC_FORMATX_UDF2 + i - 2);
-            if(!udfbuilt[i] && model.impl == formatx)
+        /* If the model is a UDF format, ensure it has been registered.
+         * A UDF format is considered "built" if its dispatch table is non-NULL. */
+        {
+            int udf_index = udf_formatx_to_index(model.impl);
+            if(udf_index >= 0 && UDF_dispatch_tables[udf_index] == NULL)
                 {stat = NC_ENOTBUILT; goto done;}
         }
     }
@@ -2155,18 +2120,17 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 		| (1<<NC_FORMATX_PNETCDF)
 #endif
 		; /* end of the built flags */
-        /* Add UDF formats to built flags - set bit for each registered UDF format.
-         * Use unsigned literal (1U) to avoid integer overflow for higher bit positions. */
-        for(int i = 0; i < NC_MAX_UDF_FORMATS; i++) {
-            if(UDF_dispatch_tables[i] != NULL) {
-                /* Convert array index to format constant */
-                int formatx = (i <= 1) ? (NC_FORMATX_UDF0 + i) : (NC_FORMATX_UDF2 + i - 2);
-                built |= (1U << formatx);
-            }
+        /* Verify the requested format is available. UDF format constants
+         * can exceed 31, so they cannot be checked with a bitmask; a UDF
+         * format is available iff its dispatch table is registered. */
+        {
+            int udf_index = udf_formatx_to_index(model.impl);
+            if(udf_index >= 0) {
+                if(UDF_dispatch_tables[udf_index] == NULL)
+                    {stat = NC_ENOTBUILT; goto done;}
+            } else if((built & (1U << model.impl)) == 0)
+                {stat = NC_ENOTBUILT; goto done;}
         }
-	/* Verify the requested format is available */
-	if((built & (1U << model.impl)) == 0)
-            {stat = NC_ENOTBUILT; goto done;}
 #ifndef NETCDF_ENABLE_CDF5
 	/* Special case because there is no separate CDF5 dispatcher */
         if(model.impl == NC_FORMATX_NC3 && (omode & NC_64BIT_DATA))
@@ -2207,40 +2171,29 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
             dispatcher = HDF4_dispatch_table;
             break;
 #endif
-#ifdef USE_NETCDF4
-        case NC_FORMATX_UDF0:
-        case NC_FORMATX_UDF1:
-        case NC_FORMATX_UDF2:
-        case NC_FORMATX_UDF3:
-        case NC_FORMATX_UDF4:
-        case NC_FORMATX_UDF5:
-        case NC_FORMATX_UDF6:
-        case NC_FORMATX_UDF7:
-        case NC_FORMATX_UDF8:
-        case NC_FORMATX_UDF9:
-            {
-                /* Convert format constant to array index and validate */
-                int udf_index = udf_formatx_to_index(model.impl);
-                if (udf_index < 0 || udf_index >= NC_MAX_UDF_FORMATS) {
-                    stat = NC_EINVAL;
-                    goto done;
-                }
-                /* Get the dispatch table for this UDF slot */
-                dispatcher = UDF_dispatch_tables[udf_index];
-                /* Ensure the UDF format has been registered via nc_def_user_format() */
-                if (!dispatcher) {
-                    stat = NC_ENOTBUILT;
-                    goto done;
-                }
-            }
-            break;
-#endif /* USE_NETCDF4 */
         case NC_FORMATX_NC3:
             dispatcher = NC3_dispatch_table;
             break;
         default:
-            stat = NC_ENOTNC;
-	    goto done;
+            {
+#ifdef USE_NETCDF4
+                /* UDF format constants are a range, so handle them here.
+                 * Convert format constant to array index and validate. */
+                int udf_index = udf_formatx_to_index(model.impl);
+                if (udf_index >= 0) {
+                    /* Get the dispatch table for this UDF slot */
+                    dispatcher = UDF_dispatch_tables[udf_index];
+                    /* Ensure the UDF format has been registered via nc_def_user_format() */
+                    if (!dispatcher) {
+                        stat = NC_ENOTBUILT;
+                        goto done;
+                    }
+                    break;
+                }
+#endif /* USE_NETCDF4 */
+                stat = NC_ENOTNC;
+                goto done;
+            }
         }
     }
 
