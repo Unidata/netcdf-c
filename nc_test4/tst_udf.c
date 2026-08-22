@@ -316,6 +316,14 @@ main(int argc, char **argv)
                                magic_number) != NC_EINVAL) ERR;
         if (nc_def_user_format(NC_UDF(0) | NC_64BIT_DATA, &tst_dispatcher,
                                magic_number) != NC_EINVAL) ERR;
+
+        /* An out-of-range slot number must be rejected, not silently
+         * aliased to a valid slot. NC_UDF(64) would alias slot 0 and
+         * NC_UDF(70) would alias slot 6 if the overflow bits above the
+         * slot number field were ignored. */
+        if (nc_def_user_format(NC_UDF(64), &tst_dispatcher, NULL) != NC_EINVAL) ERR;
+        if (nc_def_user_format(NC_UDF(70), &tst_dispatcher, NULL) != NC_EINVAL) ERR;
+        if (nc_inq_user_format(NC_UDF(64), NULL, NULL) != NC_EINVAL) ERR;
     }
     SUMMARIZE_ERR;
     printf("*** testing self-registration init pattern (returns NC_Dispatch*)...");

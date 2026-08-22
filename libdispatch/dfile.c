@@ -55,9 +55,16 @@ char UDF_magic_numbers[NC_MAX_UDF_FORMATS][NC_MAX_MAGIC_NUMBER_LEN + 1] = {{0}};
  * A UDF mode is marked by NC_UDF_FLAG; the slot number is held in a
  * 6-bit field at NC_UDF_NUM_SHIFT. Build UDF modes with NC_UDF(n).
  * @param mode_flag The mode flag, e.g. NC_UDF(3)
- * @return Array index 0-63, or -1 if NC_UDF_FLAG is not set */
+ * @return Array index 0-63, or -1 if NC_UDF_FLAG is not set or the
+ * mode has bits set above the slot number field (as produced by
+ * NC_UDF(n) with n outside 0-63) */
 static int udf_mode_to_index(int mode_flag) {
     if (!fIsSet(mode_flag, NC_UDF_FLAG))
+        return -1;
+    /* Reject modes with bits set above the slot number field. These
+     * result from NC_UDF(n) with n outside 0-63 and must not be
+     * silently aliased to a valid slot. */
+    if (mode_flag & ~((1 << (NC_UDF_NUM_SHIFT + 6)) - 1))
         return -1;
     return (mode_flag >> NC_UDF_NUM_SHIFT) & NC_UDF_NUM_MASK;
 }
