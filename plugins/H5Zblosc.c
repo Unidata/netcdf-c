@@ -296,8 +296,9 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     bloscsize = blosc_compress(clevel, doshuffle, typesize, nbytes, *buf, outbuf, nbytes);
 #endif
     if(bloscsize == 0) {
-        fprintf(stderr,"Blosc_Filter Error: blosc_filter: Buffer is uncompressible.\n");
-	goto failed;
+      /* The filter is optional.  Leave the input buffer unchanged so HDF5
+       * can store this chunk without compression. */
+      goto failed;
     } else if(bloscsize < 0) {
       fprintf(stderr,"Blosc Filter Error: blosc_filter: blosc compression error\n");
       goto failed;
@@ -354,8 +355,6 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
 
 failed:
    free(outbuf);
-   *buf = NULL;
-   *buf_size = 0;
    return 0;
 
 } /* End filter function */

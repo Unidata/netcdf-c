@@ -49,7 +49,8 @@ export HDF5_PLUGIN_DIR
 export HDF5_PLUGIN_PATH="$HDF5_PLUGIN_DIR"
 
 localclean() {
-rm -f ./tmp_bloscx3.nc ./tmp_bloscx4.nc ./tmp_bloscx4_fail.nc
+rm -f ./tmp_bloscx3.nc ./tmp_bloscx4.nc ./tmp_bloscx4_fail.nc \
+      ./tmp_bloscx4_fail.cdl
 }
 
 # Execute the specified tests
@@ -59,12 +60,11 @@ localclean
 ${NCGEN} -3 -o tmp_bloscx3.nc ${srcdir}/ref_bloscx.cdl
 # This should pass
 ${NCCOPY} -4 -V three_dmn_rec_var -F *,32001,0,0,0,0,1,1,0 ./tmp_bloscx3.nc ./tmp_bloscx4.nc
-# This should fail because shuffle is off
-if ${NCCOPY} -4 -V three_dmn_rec_var -F *,32001,0,0,0,0,1,0,0 ./tmp_bloscx3.nc ./tmp_bloscx4_fail.nc ; then
-    echo "*** not xfail: nccopy "
-else
-    echo "*** xfail: nccopy "
-fi
+# Without shuffle this data is not compressible.  Since the Blosc filter is
+# optional, HDF5 should store the original chunk instead of failing the write.
+${NCCOPY} -4 -V three_dmn_rec_var -F *,32001,0,0,0,0,1,0,0 ./tmp_bloscx3.nc ./tmp_bloscx4_fail.nc
+${NCDUMP} -n x3 ./tmp_bloscx4_fail.nc > ./tmp_bloscx4_fail.cdl
+diff -b -w -B ${srcdir}/ref_bloscx.cdl ./tmp_bloscx4_fail.cdl
 
 localclean
 
