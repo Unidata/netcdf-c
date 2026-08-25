@@ -276,7 +276,10 @@ kind_string(int kind)
     case NC_FORMAT_NETCDF4_CLASSIC:
 	return "netCDF-4 classic model";
     default:
-       error("unrecognized file format: %d", kind);
+        if(kind == NC_FORMATX_UDF0 || kind == NC_FORMATX_UDF1
+           || (kind >= NC_FORMATX_UDF2 && kind <= NC_FORMATX_UDF9))
+            return "user-defined format";
+        error("unrecognized file format: %d", kind);
 	return "unrecognized";
     }
 }
@@ -315,8 +318,13 @@ kind_string_extended(int kind, int mode)
 	snprintf(text,sizeof(text),"%s mode=%08x", "unknown",mode);
 	break;
     default:
-	error("unrecognized extended format: %d",kind);
-	snprintf(text,sizeof(text),"%s mode=%08x", "unrecognized",mode);
+        if(kind == NC_FORMATX_UDF0 || kind == NC_FORMATX_UDF1
+           || (kind >= NC_FORMATX_UDF2 && kind <= NC_FORMATX_UDF9))
+            snprintf(text,sizeof(text),"%s mode=%08x", "user-defined format",mode);
+        else {
+            error("unrecognized extended format: %d",kind);
+            snprintf(text,sizeof(text),"%s mode=%08x", "unrecognized",mode);
+        }
 	break;
     }
     return text;

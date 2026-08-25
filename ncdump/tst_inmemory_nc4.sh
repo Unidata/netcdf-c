@@ -36,7 +36,7 @@ dotest "3" "$CLASSIC"
 dotest "5" "$EXTENDED5"
 
 if test -f ${top_builddir}/config.h ; then
-  if fgrep -e '#define USE_NETCDF4 1' ${top_builddir}/config.h >/dev/null ; then
+  if grep -F -e '#define USE_NETCDF4 1' ${top_builddir}/config.h >/dev/null ; then
     dotest "4" "$EXTENDED4"
   fi
 fi

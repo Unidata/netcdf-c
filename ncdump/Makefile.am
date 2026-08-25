@@ -122,14 +122,25 @@ tst_vlen_data tst_comp tst_comp2 tst_nans tst_special_atts	\
 tst_unicode tst_fillbug tst_compress tst_chunking tst_h_scalar  \
 tst_enum_undef
 
+if NETCDF_ENABLE_PLUGINS
+check_LTLIBRARIES = tst_udf_format_plugin.la
+tst_udf_format_plugin_la_SOURCES = tst_udf_format_plugin.c
+tst_udf_format_plugin_la_LDFLAGS = -module -avoid-version -shared -no-undefined -rpath /tmp
+tst_udf_format_plugin_la_LIBADD = ${top_builddir}/liblib/libnetcdf.la
+endif # NETCDF_ENABLE_PLUGINS
+
 check_PROGRAMS += tst_vlen_demo
 
 # Tests for netCDF-4 behavior.
 TESTS += tst_fileinfo.sh tst_hdf5_offset.sh tst_inttags4.sh		\
-tst_netcdf4.sh tst_fillbug.sh \
-tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
+tst_netcdf4.sh tst_fillbug.sh tst_grp_spec.sh tst_mud.sh \
+tst_h_scalar.sh tst_formatx4.sh		\
 run_utf8_nc4_tests.sh run_ncgen_nc4_tests.sh	\
 tst_ncgen4.sh test_scope.sh
+
+if NETCDF_ENABLE_PLUGINS
+TESTS += tst_udf_format.sh
+endif # NETCDF_ENABLE_PLUGINS
 
 # Record interscript dependencies so parallel builds work.
 tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
@@ -220,7 +231,8 @@ ref_rcapi.txt ref_tst_enum_undef.cdl tst_calendars_nc4.cdl ref_times_nc4.cdl ref
 EXTRA_DIST += L512.bin
 
 EXTRA_DIST += tst_ctests.sh ref_ctest_small_3.c ref_ctest_small_4.c \
-	ref_ctest_special_atts_4.c test_ncdump.sh
+	ref_ctest_special_atts_4.c test_ncdump.sh tst_udf_format.sh \
+	tst_udf_format_plugin.c
 
 EXTRA_DIST += testpathcvt.sh ref_pathcvt.txt
 
@@ -255,7 +267,8 @@ tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.*                   \
 keyword1.nc keyword2.nc keyword3.nc keyword4.nc                         \
 tmp_keyword1.cdl tmp_keyword2.cdl tmp_keyword3.cdl tmp_keyword4.cdl     \
 type_*.nc copy_type_*.cdl                                               \
-scope_*.nc copy_scope_*.cdl keyword5.nc tst_enum_undef.cdl tst_times_nc4.cdl
+scope_*.nc copy_scope_*.cdl keyword5.nc tst_enum_undef.cdl tst_times_nc4.cdl \
+	tst_udf_format.ncrc tst_udf_format.udf tst_udf_format.out tst_udf_format.err
 
 # Remove directories
 clean-local:
