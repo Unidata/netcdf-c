@@ -157,6 +157,11 @@ extern int NCZMD_update_json_attrs(struct NCZ_FILE_INFO *zfile, const char *key,
 /// @return NO_ERROR on success, error code on failure
 extern int NCZMD_update_json_array(struct NCZ_FILE_INFO *zfile, const char *key, const NCjson *jarrays);
 
+/// @brief Helper to determine if consolidated metadata should be used.
+/// @param zfile 
+/// @return 0 is not, != 0 otherwise
+extern int NCZ_use_consolidated(struct NCZ_FILE_INFO *zfile);
+
 #if defined(__cplusplus)
 }
 #endif

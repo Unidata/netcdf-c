@@ -39,7 +39,7 @@ static const NC_Dispatch HDF4_dispatcher = {
 
     NC_RO_def_dim,
     NC4_inq_dimid,
-    HDF5_inq_dim,
+    NC4_inq_dim,
     NC4_inq_unlimdim,
     NC_RO_rename_dim,
 
