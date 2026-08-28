@@ -10,8 +10,7 @@ Ed Hartnett
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <time.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include "nc_perf_compat.h"
 
 #define MEGABYTE 1048576
 #define HALF_MEG (MEGABYTE/2)

@@ -20,9 +20,6 @@ Create a netcdf-4 file with horrendously large metadata.
 #include <time.h>
 #include <assert.h>
 #include <netcdf.h>
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#endif
 
 #undef DEBUG
 
@@ -86,17 +83,66 @@ static int nvarattrs = NVARATTRS;
 #define OPT_VARRANK 7
 #define OPT_NVARATTRS 8
 
-static struct option options[] = {
-{"treedepth", 1, NULL, OPT_TREEDEPTH},
-{"ngroups", 1, NULL, OPT_NGROUPS},
-{"ngroupattrs", 1, NULL, OPT_NGROUPATTRS},
-{"ndims", 1, NULL, OPT_NDIMS},
-{"ntypes", 1, NULL, OPT_NTYPES},
-{"nvars", 1, NULL, OPT_NVARS},
-{"varrank", 1, NULL, OPT_VARRANK},
-{"nvarattrs", 1, NULL, OPT_NVARATTRS},
-{NULL, 0, NULL, 0}
+/* Every option this program takes names an integer, so the table is just
+   name -> tag.  It used to be a GNU getopt struct option[], parsed with
+   getopt_long_only(); MSVC has neither, which is why bigmeta was one of the
+   19 nc_perf targets that would not compile on Windows.  Nothing else in
+   getopt's interface was being used, so the table describes itself and
+   getoption() below reads it. */
+struct bigmeta_option {
+    const char* name;
+    int tag;
 };
+
+static struct bigmeta_option options[] = {
+{"treedepth", OPT_TREEDEPTH},
+{"ngroups", OPT_NGROUPS},
+{"ngroupattrs", OPT_NGROUPATTRS},
+{"ndims", OPT_NDIMS},
+{"ntypes", OPT_NTYPES},
+{"nvars", OPT_NVARS},
+{"varrank", OPT_VARRANK},
+{"nvarattrs", OPT_NVARATTRS},
+{NULL, OPT_UNKNOWN}
+};
+
+/* Parse one argument spelled -name=value, --name=value, -name value or
+   --name value -- the four forms getopt_long_only() accepted here.
+
+   Returns the option's tag and stores its value in *valuep, advancing *ip
+   past a detached value.  Anything else returns OPT_UNKNOWN, which the
+   caller reports and exits on, exactly as before. */
+static int
+getoption(int argc, char** argv, int* ip, const char** valuep)
+{
+    struct bigmeta_option* opt;
+    const char* arg = argv[*ip];
+    const char* eq;
+    size_t namelen;
+
+    *valuep = NULL;
+    if(arg[0] != '-') return OPT_UNKNOWN;
+    arg++;
+    if(arg[0] == '-') arg++;
+
+    eq = strchr(arg,'=');
+    namelen = (eq == NULL ? strlen(arg) : (size_t)(eq - arg));
+
+    for(opt=options;opt->name != NULL;opt++) {
+	if(strlen(opt->name) != namelen) continue;
+	if(strncmp(opt->name,arg,namelen) != 0) continue;
+	if(eq != NULL) {
+	    *valuep = eq + 1;
+	} else if(*ip + 1 < argc) {
+	    *valuep = argv[++(*ip)];
+	} else {
+	    fprintf(stderr,"missing argument\n");
+	    exit(1);
+	}
+	return opt->tag;
+    }
+    return OPT_UNKNOWN;
+}
 
 /**************************************************/
 
@@ -207,45 +253,43 @@ main(int argc, char **argv)
     time_t starttime, endtime;
     long long delta;
     int tag;
+    int iarg;
+    const char* value;
 
-    if(argc > 1) {
-	while ((tag = getopt_long_only(argc, argv, "", options, NULL)) >= 0) {
+    for(iarg=1;iarg<argc;iarg++) {
+	tag = getoption(argc,argv,&iarg,&value);
 #ifdef DEBUG
-fprintf(stderr,"arg=%s value=%s\n",argv[optind-1],optarg);
+fprintf(stderr,"arg=%s value=%s\n",argv[iarg],(value==NULL?"":value));
 #endif
-	    switch (tag) {
-	    case OPT_TREEDEPTH:
-		treedepth = atoi(optarg);
-		break;
-	    case OPT_NGROUPS:
-		ngroups = atoi(optarg);
-		break;
-	    case OPT_NGROUPATTRS:
-		ngroupattrs = atoi(optarg);
-		break;
-	    case OPT_NDIMS:
-		ndims = atoi(optarg);
-		break;
-	    case OPT_NTYPES:
-		ntypes = atoi(optarg);
-		break;
-	    case OPT_NVARS:
-		nvars = atoi(optarg);
-		break;
-	    case OPT_VARRANK:
-		varrank = atoi(optarg);
-		break;
-	    case OPT_NVARATTRS:
-		nvarattrs = atoi(optarg);
-		break;
-	    case ':':
-		fprintf(stderr,"missing argument\n");
-		exit(1);
-	    case '?':
-	    default:
-		fprintf(stderr,"unknown option\n");
-		exit(1);
-	    }
+	switch (tag) {
+	case OPT_TREEDEPTH:
+	    treedepth = atoi(value);
+	    break;
+	case OPT_NGROUPS:
+	    ngroups = atoi(value);
+	    break;
+	case OPT_NGROUPATTRS:
+	    ngroupattrs = atoi(value);
+	    break;
+	case OPT_NDIMS:
+	    ndims = atoi(value);
+	    break;
+	case OPT_NTYPES:
+	    ntypes = atoi(value);
+	    break;
+	case OPT_NVARS:
+	    nvars = atoi(value);
+	    break;
+	case OPT_VARRANK:
+	    varrank = atoi(value);
+	    break;
+	case OPT_NVARATTRS:
+	    nvarattrs = atoi(value);
+	    break;
+	case OPT_UNKNOWN:
+	default:
+	    fprintf(stderr,"unknown option\n");
+	    exit(1);
 	}
     }
 

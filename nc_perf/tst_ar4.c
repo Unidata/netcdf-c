@@ -10,8 +10,7 @@ Ed Hartnett
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <time.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include "nc_perf_compat.h"
 
 /* Prototype from tst_utils.c. */
 int nc4_timeval_subtract(struct timeval *result, struct timeval *x,

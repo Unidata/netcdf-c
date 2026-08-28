@@ -10,6 +10,7 @@
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "nc_perf_compat.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>		/* for sysconf */

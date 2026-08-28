@@ -12,9 +12,8 @@
 #include <err_macros.h>
 #include "netcdf.h"
 #include <hdf5.h>
-#include <unistd.h>
+#include "nc_perf_compat.h"
 #include <time.h>
-#include <sys/time.h> /* Extra high precision time info. */
 #include <string.h>
 
 #define NDIMS 1
@@ -42,10 +41,17 @@ get_mem_used2(int *mem_used)
       fscanf(pf, "%u %u %u %u %u %u", &size, &resident, &share,
 	     &text, &lib, &data);
       *mem_used = data;
+      fclose(pf);
    }
    else
+   {
+      /* No /proc: any platform but Linux, which now includes Windows, where
+	 this file compiles for the first time.  fclose(NULL) is undefined
+	 behaviour and crashes with the Microsoft runtime; the caller only
+	 compares two readings, so a constant -1 reports "unknown" and the
+	 delta stays zero. */
       *mem_used = -1;
-  fclose(pf);
+   }
 }
 
 int main(void)

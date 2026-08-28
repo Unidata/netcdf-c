@@ -11,9 +11,8 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <hdf5.h>
-#include <unistd.h>
+#include "nc_perf_compat.h"
 #include <time.h>
-#include <sys/time.h> /* Extra high precision time info. */
 
 #define NDIMS1 1
 #define NDIMS 3

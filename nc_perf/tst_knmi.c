@@ -12,8 +12,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <time.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include "nc_perf_compat.h"
 
 #define FILE_NAME_1 "MSGCPP_CWP_NC3.nc"
 #define FILE_NAME_2 "MSGCPP_CWP_NC4.nc"

@@ -10,9 +10,8 @@
 
 #include <nc_tests.h>
 #include "err_macros.h"
-#include <unistd.h>
+#include "nc_perf_compat.h"
 #include <time.h>
-#include <sys/time.h> /* Extra high precision time info. */
 
 #define MAX_LEN 30
 #define TMP_FILE_NAME "tst_files2_tmp.out"
@@ -81,9 +80,17 @@ get_mem_used2(int *mem_used)
 void
 get_mem_used3(int *mem_used)
 {
+#ifdef HAVE_SBRK
    void *vp;
    vp = sbrk(0);
    *mem_used = ((char *)vp - (char *)last_sbrk)/1024;
+#else
+   /* sbrk(2) has no Windows equivalent, and it is deprecated everywhere else:
+      a modern malloc satisfies most requests from mmap, so the break has not
+      tracked heap use for a long time. The reading is printed and not
+      asserted on, so report "unknown" rather than refusing to build. */
+   *mem_used = -1;
+#endif
 }
 
 /* Create a sample file, with num_vars 3D or 4D variables, with dim
@@ -175,7 +182,9 @@ main(int argc, char **argv)
 {
 
    printf("\n*** Testing netcdf-4 file functions, some more.\n");
+#ifdef HAVE_SBRK
    last_sbrk = sbrk(0);
+#endif
    printf("*** testing lots of open files...\n");
    {
 #define NUM_TRIES 6

@@ -18,7 +18,7 @@
 #include <config.h>
 #include <nc_tests.h>
 #include <time.h>
-#include <sys/time.h> /* Extra high precision time info. */
+#include "nc_perf_compat.h"
 #include "err_macros.h"
 #include <mpi.h>
 #include <H5public.h>

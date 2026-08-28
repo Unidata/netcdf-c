@@ -11,7 +11,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <time.h>
-#include <sys/time.h> /* Extra high precision time info. */
+#include "nc_perf_compat.h"
 
 /* We will create this file. */
 #define FILE_NAME "bm_netcdf4_recs.nc"

@@ -14,8 +14,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <time.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include "nc_perf_compat.h"
 
 #define FILE_NAME "tst_wrf_reads.nc"
 

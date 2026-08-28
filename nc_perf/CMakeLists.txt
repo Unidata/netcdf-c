@@ -5,10 +5,18 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
-build_bin_test(bm_file tst_utils.c)
+# bm_file and the three tst_ar4* programs take short options. They used to
+# pick getopt() up from <unistd.h>, which MSVC does not have; nc_perf_compat.h
+# includes the bundled XGetopt there instead, and -- as in ncdump, ncgen and
+# nczarr_test -- the target has to compile it.
+if(USE_X_GETOPT)
+  set(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
+endif()
+
+build_bin_test(bm_file tst_utils.c ${XGETOPTSRC})
 build_bin_test(tst_chunks3 tst_utils.c)
-build_bin_test(tst_ar4 tst_utils.c)
-build_bin_test(tst_ar4_4d tst_utils.c)
+build_bin_test(tst_ar4 tst_utils.c ${XGETOPTSRC})
+build_bin_test(tst_ar4_4d tst_utils.c ${XGETOPTSRC})
 build_bin_test(bm_many_objs tst_utils.c)
 build_bin_test(tst_h_many_atts tst_utils.c)
 build_bin_test(bm_many_atts tst_utils.c)
@@ -18,7 +26,7 @@ build_bin_test(bm_netcdf4_recs tst_utils.c)
 build_bin_test(bigmeta tst_utils.c)
 build_bin_test(openbigmeta tst_utils.c)
 
-add_bin_test(nc_perf tst_ar4_3d tst_utils.c)
+add_bin_test(nc_perf tst_ar4_3d tst_utils.c ${XGETOPTSRC})
 add_bin_test(nc_perf tst_create_files tst_utils.c)
 add_bin_test(nc_perf tst_files3 tst_utils.c)
 add_bin_test(nc_perf tst_mem tst_utils.c)

@@ -15,7 +15,7 @@ See \ref copyright file for more info.
 
 #include <nc_tests.h>
 #include <time.h>
-#include <sys/time.h>
+#include "nc_perf_compat.h"
 
 /** Subtract the `struct timeval' values X and Y, storing the result in
    RESULT.  Return 1 if the difference is negative, otherwise 0.  This

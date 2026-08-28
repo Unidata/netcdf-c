@@ -10,11 +10,10 @@
 #include <nc_tests.h>
 #include <err_macros.h>
 #include <time.h>
-#include <sys/time.h> /* Extra high precision time info. */
+#include "nc_perf_compat.h"
 #include <math.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 /* #define FILE_NAME "gfs.t00z.sfcf024.nc" */
 #define FILE_NAME "tst_bm_rando.nc"

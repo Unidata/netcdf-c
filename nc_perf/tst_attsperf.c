@@ -14,7 +14,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include "nc4internal.h"
-#include <sys/time.h>
+#include "nc_perf_compat.h"
 #include <hdf5.h>
 
 #define TEST "tst_attsperf"

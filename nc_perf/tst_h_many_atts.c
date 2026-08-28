@@ -16,7 +16,7 @@
 #include <hdf5.h>
 #include <H5DSpublic.h>
 #include <time.h>
-#include <sys/time.h> /* Extra high precision time info. */
+#include "nc_perf_compat.h"
 
 #define FILE_NAME "tst_h_many_atts.h5"
 #define GRP_NAME "group1"

@@ -16,11 +16,10 @@
 #include <nc_tests.h> /* The ERR macro is here... */
 #include <err_macros.h>
 #include <time.h>
-#include <sys/time.h> /* Extra high precision time info. */
+#include "nc_perf_compat.h"
 #include <math.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #ifdef USE_PARALLEL
 #include <mpi.h>
 #endif
