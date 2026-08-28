@@ -165,14 +165,6 @@ extern "C" {
 #define NC_UDF(n)        (NC_UDF_FLAG | ((n) << NC_UDF_NUM_SHIFT)) /**< Mode flag for UDF slot n (0-63). */
 #define NC_UDF0          NC_UDF(0) /**< User-defined format 0 (0x0040, value unchanged). */
 #define NC_UDF1          NC_UDF(1) /**< User-defined format 1. */
-#define NC_UDF2          NC_UDF(2) /**< User-defined format 2. */
-#define NC_UDF3          NC_UDF(3) /**< User-defined format 3. */
-#define NC_UDF4          NC_UDF(4) /**< User-defined format 4. */
-#define NC_UDF5          NC_UDF(5) /**< User-defined format 5. */
-#define NC_UDF6          NC_UDF(6) /**< User-defined format 6. */
-#define NC_UDF7          NC_UDF(7) /**< User-defined format 7. */
-#define NC_UDF8          NC_UDF(8) /**< User-defined format 8. */
-#define NC_UDF9          NC_UDF(9) /**< User-defined format 9. */
 /**@}*/
 
 #define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model on netCDF-4. Mode flag for nc_create(). */
