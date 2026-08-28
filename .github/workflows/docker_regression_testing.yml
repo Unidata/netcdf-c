@@ -31,7 +31,7 @@ jobs:
         buildsystem: [ 'both' ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Pull and Run netCDF Regression Tests
         uses: Unidata/netcdf-test-action@v2
         with:
@@ -58,7 +58,7 @@ jobs:
           buildsystem: [ 'both' ]
 
       steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v7
         - name: Pull and Run netCDF Regression Tests
           uses: Unidata/netcdf-test-action@v2
           with:
@@ -89,7 +89,7 @@ jobs:
         buildsystem: [ 'both' ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Pull and Run netCDF Regression Tests
         uses: Unidata/netcdf-test-action@v2
         with:
@@ -122,7 +122,7 @@ jobs:
         buildsystem: [ 'cmake', 'autotools' ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Pull and Run netCDF Regression Tests
         uses: Unidata/netcdf-test-action@v2
         with:
@@ -154,7 +154,7 @@ jobs:
         java-branch: [ 'maint-5.x' ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Pull and Run netCDF Regression Tests
         uses: Unidata/netcdf-test-action@v2
         with:

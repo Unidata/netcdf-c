@@ -31,7 +31,7 @@ jobs:
         shell: pwsh
         run: git config --global core.autocrlf input
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: cygwin/cygwin-install-action@v4
         with:
@@ -129,7 +129,7 @@ jobs:
 
       - run: git config --global core.autocrlf input
         shell: pwsh
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: cygwin/cygwin-install-action@v4
         id: install-cygwin
         with:
