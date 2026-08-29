@@ -34,6 +34,14 @@ int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
 int
 get_mem_used1(int *mem_used)
 {
+#ifdef _WIN32
+   /* No ps(1) that understands -o here: the ps a Windows shell environment
+      provides rejects the option, leaves the redirect file empty, and the
+      sscanf below then leaves *mem_used holding whatever was on the stack.
+      The reading is printed and never asserted on, so report "unknown". */
+   *mem_used = -1;
+   return NC_NOERR;
+#else
    char cmd[NC_MAX_NAME + 1];
    char blob[MAX_LEN + 1] = "";
    FILE *fp;
@@ -45,11 +53,13 @@ get_mem_used1(int *mem_used)
 
    /* Read the results and delete temp file. */
    if (!(fp = NCfopen(TMP_FILE_NAME, "r"))) ERR;
+   *mem_used = -1;
    fread(blob, MAX_LEN, 1, fp);
    sscanf(blob, "%d", mem_used);
    fclose(fp);
    unlink(TMP_FILE_NAME);
    return NC_NOERR;
+#endif
 }
 
 void
@@ -71,10 +81,17 @@ get_mem_used2(int *mem_used)
       fscanf(pf, "%u %u %u %u %u %u", &size, &resident, &share,
 	     &text, &lib, &data);
       *mem_used = data;
+      fclose(pf);
    }
    else
+   {
+      /* No /proc: any platform but Linux, which now includes Windows, where
+	 this file compiles for the first time.  fclose(NULL) is undefined
+	 behaviour and crashes with the Microsoft runtime; the caller only
+	 compares two readings, so a constant -1 reports "unknown" and the
+	 delta stays zero. */
       *mem_used = -1;
-   fclose(pf);
+   }
 }
 
 void

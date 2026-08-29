@@ -179,18 +179,35 @@ get_mem_used2(int *mem_used)
       fscanf(pf, "%u %u %u %u %u %u", &size, &resident, &share,
 	     &text, &lib, &data);
       *mem_used = data;
+      fclose(pf);
    }
    else
+   {
+      /* No /proc: any platform but Linux, which now includes Windows, where
+	 this file compiles for the first time.  fclose(NULL) is undefined
+	 behaviour and crashes with the Microsoft runtime; the caller only
+	 compares two readings, so a constant -1 reports "unknown" and the
+	 delta stays zero. */
       *mem_used = -1;
-  fclose(pf);
+   }
 }
 
 int main(void)
 {
-   float data[X_LEN * Y_LEN * Z_LEN];
+   /* 120 * 64 * 128 floats is 3.75 MB. That does not fit on the default
+      thread stack of every platform -- MSVC reserves 1 MB, so this crashed
+      with STATUS_STACK_BUFFER_OVERRUN before printing anything -- and it is
+      more than musl's 128 KB default too. Put it on the heap. */
+   float *data;
    int i;
 
    printf("\n*** Testing netcdf-4 file functions with caching.\n");
+
+   if (!(data = malloc((size_t)X_LEN * Y_LEN * Z_LEN * sizeof(float))))
+   {
+      fprintf(stderr, "malloc failed\n");
+      return 1;
+   }
 
   /* Initialize data. */
    for (i = 0; i < (X_LEN * Y_LEN * Z_LEN); i++)
@@ -227,6 +244,7 @@ int main(void)
 	    printf("delta %d bytes of memory for try %d\n", mem_used1 - mem_used, i);
       }
    }
+   free(data);
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
