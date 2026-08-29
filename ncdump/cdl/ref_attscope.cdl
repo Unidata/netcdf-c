@@ -1,0 +1,33 @@
+netcdf ref_attscope {
+dimensions:
+  d = 2 ;
+variables:
+  int main_var(d) ;
+
+group: g {
+  variables:
+    int g_var0(d) ;
+    int g_var1 ;
+} // group g
+
+group: f {
+  variables:
+    int f_var0(d) ;
+    byte f_var0:att_local = 1b ;
+    // same-group path reference
+    byte /f/f_var0:att_abs = 2b ;
+    // cross-group path references
+    byte /g/g_var0:att0 = 3b ;
+    byte /g/g_var1:att1 = 4b ;
+    // path reference to a variable in the root group
+    byte /main_var:att_root = 5b ;
+  // group-global attribute (no variable)
+  :att_global = "group f" ;
+} // group f
+
+group: h {
+  variables:
+    // attribute declared in a group containing no variables
+    byte /g/g_var1:att2 = 6b ;
+} // group h
+}

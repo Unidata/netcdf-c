@@ -1,0 +1,40 @@
+netcdf ref_attscope {
+dimensions:
+	d = 2 ;
+variables:
+	int main_var(d) ;
+		main_var:att_root = 5b ;
+data:
+
+ main_var = _, _ ;
+
+group: g {
+  variables:
+  	int g_var0(d) ;
+  		g_var0:att0 = 3b ;
+  	int g_var1 ;
+  		g_var1:att1 = 4b ;
+  		g_var1:att2 = 6b ;
+  data:
+
+   g_var0 = _, _ ;
+
+   g_var1 = _ ;
+  } // group g
+
+group: f {
+  variables:
+  	int f_var0(d) ;
+  		f_var0:att_local = 1b ;
+  		f_var0:att_abs = 2b ;
+
+  // group attributes:
+  		:att_global = "group f" ;
+  data:
+
+   f_var0 = _, _ ;
+  } // group f
+
+group: h {
+  } // group h
+}
