@@ -54,3 +54,17 @@ ENDIF(NETCDF_BUILD_UTILITIES)
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
+# nc_perf_tst_create_files writes tst_<type>2_<n>D.nc, tst_elena_int_3D.nc and
+# tst_simple.nc into the build directory, and these three shell tests read
+# exactly those files. Nothing declared the dependency, so under `ctest -j` a
+# reader was free to run while the writer was still writing -- bm_file would
+# reach a file mid-rewrite and return the netCDF error silently (its
+# `return ret` prints nothing), which is why the log ended mid-table with no
+# message. `if(TEST ...)` keeps this correct when NETCDF_BUILD_UTILITIES is off
+# and the run_bm_* tests do not exist.
+foreach(_nc_perf_reader nc_perf_run_bm_test1 nc_perf_run_bm_test2 nc_perf_run_bm_elena)
+  if(TEST ${_nc_perf_reader})
+    set_tests_properties(${_nc_perf_reader} PROPERTIES DEPENDS nc_perf_tst_create_files)
+  endif()
+endforeach()
+
