@@ -457,7 +457,7 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
     int varid, grpid, typid;
     Symbol* basetype = asym->typ.basetype;
 
-    grpid = asym->container->nc_id;
+    grpid = (asym->att.var == NULL?asym->container->nc_id : asym->att.var->container->nc_id);
     varid = (asym->att.var == NULL?NC_GLOBAL : asym->att.var->nc_id);
     typid = basetype->nc_id;
 
