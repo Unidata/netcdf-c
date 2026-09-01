@@ -331,22 +331,27 @@ extern int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 extern int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 extern int nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
+/* The declarations below that are spelled EXTERNL rather than extern are the
+   ones unit_test/tst_nc4internal.c calls. They are still internal to the
+   library; EXTERNL only makes them leave the DLL on Windows the way they
+   already leave the shared object on every other platform, which is what the
+   test needs in order to run there at all. EXTERNL is a no-op off Windows. */
 /* Find items in the in-memory lists of metadata. */
-extern int nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp,
+EXTERNL int nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp,
                        NC_FILE_INFO_T **h5);
-extern int nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5);
-extern int nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp);
-extern int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
+EXTERNL int nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5);
+EXTERNL int nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp);
+EXTERNL int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
                  NC_GRP_INFO_T **dim_grp);
-extern int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
+EXTERNL int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
 extern int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
-extern int nc4_find_type(const NC_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
+EXTERNL int nc4_find_type(const NC_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
 extern NC_TYPE_INFO_T *nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name);
 extern NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1,
                                         NC_TYPE_INFO_T *type);
 extern int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
                     NC_ATT_INFO_T **att);
-extern int nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
+EXTERNL int nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
                         NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
 extern int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name,
                      int attnum, NC_ATT_INFO_T **att);
@@ -357,30 +362,30 @@ extern int nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype,
 extern int nc4_type_free(NC_TYPE_INFO_T *type);
 
 /* These list functions add and delete vars, atts. */
-extern int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
+EXTERNL int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
 extern int nc4_nc4f_list_del(NC_FILE_INFO_T *h5);
-extern int nc4_file_list_add(int ncid, const char *path, int mode,
+EXTERNL int nc4_file_list_add(int ncid, const char *path, int mode,
                       void **dispatchdata);
-extern int nc4_file_list_get(int ncid, char **path, int *mode,
+EXTERNL int nc4_file_list_get(int ncid, char **path, int *mode,
                       void **dispatchdata);
-extern int nc4_file_list_del(int ncid);
-extern int nc4_file_change_ncid(int ncid, unsigned short new_ncid_index);
-extern int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims,
+EXTERNL int nc4_file_list_del(int ncid);
+EXTERNL int nc4_file_change_ncid(int ncid, unsigned short new_ncid_index);
+EXTERNL int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims,
                      NC_VAR_INFO_T **var);
 extern int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name,
                       NC_VAR_INFO_T **var);
 extern int nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims);
 extern int nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
-extern int nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
+EXTERNL int nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
                      int assignedid, NC_DIM_INFO_T **dim);
 extern int nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim);
 extern int nc4_type_new(size_t size, const char *name, int assignedid,
                  NC_TYPE_INFO_T **type);
-extern int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
+EXTERNL int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
                       NC_TYPE_INFO_T **type);
 extern int nc4_type_list_del(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type);
 extern int nc4_type_free(NC_TYPE_INFO_T *type);
-extern int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
+EXTERNL int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
                        size_t offset, nc_type xtype, int ndims,
                        const int *dim_sizesp);
 extern int nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att);

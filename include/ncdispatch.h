@@ -100,7 +100,10 @@ typedef struct NC_MPI_INFO {
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
-extern const NC_Dispatch* NC3_dispatch_table;
+/* EXTERNL, not extern: unit_test/tst_nc4internal.c reads this table, and a data
+   symbol has to be declared dllimport to be reachable across a Windows DLL
+   boundary. No effect off Windows. */
+EXTERNL const NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 

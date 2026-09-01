@@ -12,10 +12,8 @@ IF(USE_X_GETOPT)
   SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
 ENDIF()
 
-# Currently (August 21, 2019): Some tests will not work with
-# Visual Studio. The unit tests are for internal netCDF functions,
-# so we don't want to make them external, which would be required to
-# run on Windows.
+# The two tests that once needed Visual Studio to be excluded here are
+# tst_nclist and tst_nc4internal; see the comment on them below.
 
 SET(UNIT_TESTS test_ncuri)
 add_bin_test(unit_test test_ncuri)
@@ -24,10 +22,11 @@ SET(UNIT_TESTS test_dauth)
 add_bin_test(unit_test test_dauth)
 
 IF(NETCDF_ENABLE_HDF5)
-  IF(NOT WIN32)
-    add_bin_test(unit_test tst_nclist)
-    add_bin_test(unit_test tst_nc4internal)
-  ENDIF(NOT WIN32)
+  # These two call library-internal functions directly. They run on Windows now
+  # that those entry points are declared EXTERNL (see include/nc.h and
+  # include/nc4internal.h); nothing else about them was platform specific.
+  add_bin_test(unit_test tst_nclist)
+  add_bin_test(unit_test tst_nc4internal)
   build_bin_test(tst_reclaim ${XGETOPTSRC})
   if(NETCDF_BUILD_UTILITIES)
     add_sh_test(unit_test run_reclaim_tests)

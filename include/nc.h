@@ -64,18 +64,22 @@ extern int nc__pseudofd(void);
 /* This function gets a current default create flag */
 extern int nc_get_default_format(void);
 
-extern int add_to_NCList(NC*);
-extern void del_from_NCList(NC*);/* does not free object */
-extern NC* find_in_NCList(int ext_ncid);
-extern NC* find_in_NCList_by_name(const char*);
-extern int move_in_NCList(NC *ncp, int new_id);
-extern void free_NCList(void);/* reclaim whole list */
-extern int count_NCList(void); /* return # of entries in NClist */
-extern int iterate_NCList(int i,NC**); /* Walk from 0 ...; ERANGE return => stop */
+/* The NC list. These are internal, but unit_test/tst_nclist.c links against
+   them, so they have to leave the DLL on Windows the way they leave the shared
+   object everywhere else. EXTERNL is a no-op off Windows. */
+EXTERNL int add_to_NCList(NC*);
+EXTERNL void del_from_NCList(NC*);/* does not free object */
+EXTERNL NC* find_in_NCList(int ext_ncid);
+EXTERNL NC* find_in_NCList_by_name(const char*);
+EXTERNL int move_in_NCList(NC *ncp, int new_id);
+EXTERNL void free_NCList(void);/* reclaim whole list */
+EXTERNL int count_NCList(void); /* return # of entries in NClist */
+EXTERNL int iterate_NCList(int i,NC**); /* Walk from 0 ...; ERANGE return => stop */
 
-/* Defined in nc.c */
-extern void free_NC(NC*);
-extern int new_NC(const struct NC_Dispatch*, const char*, int, NC**);
+/* Defined in nc.c. EXTERNL for the same reason as the NC list above:
+   unit_test/tst_nclist.c and unit_test/tst_nc4internal.c call them. */
+EXTERNL void free_NC(NC*);
+EXTERNL int new_NC(const struct NC_Dispatch*, const char*, int, NC**);
 
 /* Defined in dinstance_intern.c */
 
