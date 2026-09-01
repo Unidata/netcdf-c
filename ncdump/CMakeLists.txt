@@ -258,21 +258,21 @@ endif()
     SET_TESTS_PROPERTIES(ncdump_tst_null_byte_padding PROPERTIES WILL_FAIL TRUE)
   endif(USE_STRICT_NULL_BYTE_HEADER_PADDING)
 
-  if(NOT MSVC AND NOT MINGW)
-    add_sh_test(ncdump tst_output)
-    set_tests_properties(ncdump_tst_output PROPERTIES DEPENDS "ref_ctest;ref_ctest64")
-    add_sh_test(ncdump tst_nccopy3)
-    # Known failure on MSVC; the number of 0's padding
-    # is different, but the result is actually correct.
-    if(USE_HDF5)
-      add_sh_test(ncdump tst_netcdf4)
-    endif()
-
-    set_tests_properties(ncdump_tst_nccopy3 PROPERTIES DEPENDS
-      "ncdump_tst_calendars;ncdump_run_utf8_tests;ncdump_tst_output;ncdump_tst_64bit;ncdump_run_tests;ncdump_tst_lengths")
-    set_tests_properties(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
-
+  # These three were excluded from MSVC builds because ncdump's scientific
+  # notation used to differ there: the pre-VS2015 CRT padded exponents to three
+  # digits (1e+009), so the .cdl comparisons failed on formatting alone. The
+  # UCRT has printed C99-conformant two-digit exponents since VS2015 and all
+  # three now compare clean, so run them everywhere.
+  add_sh_test(ncdump tst_output)
+  set_tests_properties(ncdump_tst_output PROPERTIES DEPENDS "ref_ctest;ref_ctest64")
+  add_sh_test(ncdump tst_nccopy3)
+  if(USE_HDF5)
+    add_sh_test(ncdump tst_netcdf4)
   endif()
+
+  set_tests_properties(ncdump_tst_nccopy3 PROPERTIES DEPENDS
+    "ncdump_tst_calendars;ncdump_run_utf8_tests;ncdump_tst_output;ncdump_tst_64bit;ncdump_run_tests;ncdump_tst_lengths")
+  set_tests_properties(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
 
   if(USE_HDF5)
     add_sh_test(ncdump tst_formatx4)
