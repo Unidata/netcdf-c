@@ -18,8 +18,8 @@ A UDF plugin consists of:
 2. RC file parsing (if configured)
 3. Plugin library loading (`dlopen`/`LoadLibrary`)
 4. Init function location (`dlsym`/`GetProcAddress`)
-5. Init function execution
-6. Dispatch table registration via `nc_def_user_format()`
+5. Init function execution; the init function returns a pointer to the plugin's dispatch table
+6. The loader verifies the dispatch table ABI version and registers the table via `nc_def_user_format()`
 7. Plugin remains loaded for process lifetime
 
 # Dispatch Table Structure {#udf_dev_dispatch}
@@ -30,7 +30,7 @@ The `NC_Dispatch` structure is defined in `include/netcdf_dispatch.h`. It contai
 
 ```c
 typedef struct NC_Dispatch {
-    int model;              /* NC_FORMATX_UDF0 through NC_FORMATX_UDF9 */
+    int model;              /* NC_FORMATX_UDF(n) for slot n (0-63) */
     int dispatch_version;   /* Must be NC_DISPATCH_VERSION */
     
     /* Function pointers for all netCDF operations */
@@ -85,42 +85,39 @@ The initialization function is called when your plugin is loaded.
 ## Function Signature
 
 ```c
-int plugin_init(void);
+NC_Dispatch* plugin_init(void);
 ```
+
+The init function returns a pointer to the plugin's dispatch table. The plugin loader verifies the table's ABI version and registers it with `nc_def_user_format()`. The plugin does not register itself.
 
 ## Requirements
 
 1. Must be exported (not static)
-2. Must call `nc_def_user_format()` to register dispatch table
-3. Should return NC_NOERR on success, error code on failure
+2. Must return a pointer to a fully populated NC_Dispatch structure, or NULL on failure
+3. The dispatch table's `dispatch_version` field must be set to NC_DISPATCH_VERSION
 4. Name must match RC file INIT key
 
 ## Example Implementation
 
 ```c
 #include <netcdf.h>
+#include "netcdf_dispatch.h"
 
 /* Your dispatch table */
 extern NC_Dispatch my_dispatcher;
 
 /* Initialization function - must be exported */
-int my_plugin_init(void)
+NC_Dispatch* my_plugin_init(void)
 {
-    int ret;
-    
-    /* Register dispatch table with magic number */
-    ret = nc_def_user_format(NC_UDF0 | NC_NETCDF4, 
-                             &my_dispatcher,
-                             "MYFMT");
-    if (ret != NC_NOERR)
-        return ret;
-    
     /* Additional initialization if needed */
     /* ... */
-    
-    return NC_NOERR;
+
+    /* Return the dispatch table; the loader registers it. */
+    return &my_dispatcher;
 }
 ```
+
+When registering programmatically instead of through the RC-based loader, call `nc_def_user_format()` directly from your application code.
 
 # Implementing Dispatch Functions {#udf_dev_functions}
 
@@ -216,14 +213,20 @@ install(TARGETS myplugin LIBRARY DESTINATION lib)
 #include <assert.h>
 
 extern NC_Dispatch my_dispatcher;
-extern int my_plugin_init(void);
+extern NC_Dispatch* my_plugin_init(void);
 
 int main() {
     int ret;
+    NC_Dispatch *table;
     NC_Dispatch *disp;
     
     /* Test initialization */
-    ret = my_plugin_init();
+    table = my_plugin_init();
+    assert(table);
+    assert(table->dispatch_version == NC_DISPATCH_VERSION);
+    
+    /* Register, as the plugin loader would */
+    ret = nc_def_user_format(NC_UDF0, table, NULL);
     assert(ret == NC_NOERR);
     
     /* Verify registration */
@@ -341,11 +344,12 @@ gdb ./test_program
 
 # Example Plugin {#udf_dev_example}
 
-See `examples/C/udf_plugin_example/` for a complete working plugin implementation.
+See `nc_test4/tst_udf_self_load_plugin.c` for a complete working plugin that is built as a shared library and loaded through the RC-based loader by `nc_test4/tst_udf_self_load.c`.
 
 # Reference {#udf_dev_ref}
 
 - Dispatch table definition: `include/netcdf_dispatch.h`
 - Pre-defined functions: `libdispatch/dreadonly.c`, `libdispatch/dnotnc*.c`
 - Example implementations: `libhdf5/hdf5dispatch.c`, `libsrc/nc3dispatch.c`
-- Test plugins: `nc_test4/test_plugin_lib.c`
+- Plugin loader: `libdispatch/dudfplugins.c`
+- Test plugins: `nc_test4/tst_udf.c`, `nc_test4/tst_udf_multi.c`, `nc_test4/tst_udf_self_load_plugin.c`
