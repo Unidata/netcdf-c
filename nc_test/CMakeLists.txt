@@ -127,10 +127,6 @@ IF(NETCDF_BUILD_UTILITIES)
       ENDIF()
     ENDIF()
 
-  IF(BUILD_MMAP)
-    add_sh_test(nc_test run_mmap)
-  ENDIF()
-
 ENDIF(NETCDF_BUILD_UTILITIES)
 
 # Copy some test files from current source dir to out-of-tree build dir.

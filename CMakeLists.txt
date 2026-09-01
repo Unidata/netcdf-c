@@ -417,7 +417,9 @@ option(NETCDF_GENERATE_NCGEN "Automatically regenerate ncgen C files if required
 include(CMakeDependentOption)
 
 # Option to use MMAP
-cmake_dependent_option(NETCDF_ENABLE_MMAP "Use MMAP." ON "NOT WIN32" OFF)
+# libsrc/mmapio.c now builds on Windows too: libsrc/ncwinmmap.h supplies the
+# mmap()/munmap() slice it uses, over CreateFileMapping/MapViewOfFile.
+option(NETCDF_ENABLE_MMAP "Use MMAP." ON)
 
 # Option to use examples.
 option(NETCDF_ENABLE_EXAMPLES "Build Examples" ON)
@@ -1382,8 +1384,10 @@ if(NETCDF_ENABLE_ATEXIT_FINALIZE AND NOT HAVE_ATEXIT)
 endif()
 endif()
 
-# Check to see if MAP_ANONYMOUS is defined.
-if(NETCDF_ENABLE_MMAP)
+# Check to see if MAP_ANONYMOUS is defined. Windows has neither <sys/mman.h> nor
+# mmap(); libsrc/ncwinmmap.h provides both for the one file that needs them, so
+# the probe is not the question to ask there.
+if(NETCDF_ENABLE_MMAP AND NOT WIN32)
   CHECK_C_SOURCE_COMPILES("
   #include <sys/mman.h>
   int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)

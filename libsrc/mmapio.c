@@ -29,7 +29,13 @@
 #include <stdio.h>
 #endif
 
+#ifdef _WIN32
+/* Windows has no <sys/mman.h>; ncwinmmap.h supplies the mmap()/munmap() slice
+   this file uses, on top of CreateFileMapping/MapViewOfFile. */
+#include "ncwinmmap.h"
+#else
 #include <sys/mman.h>
+#endif
 
 #ifndef MAP_ANONYMOUS
 #  ifdef MAP_ANON
@@ -55,6 +61,10 @@
 #define SEEK_CUR 1
 #define SEEK_END 2
 #endif
+
+/* mmap() reports failure as MAP_FAILED; parts of this file used to test for
+   NULL, which no implementation returns. Accept either. */
+#define NC_MMAP_FAILED(m) ((m) == NULL || (m) == (void*)MAP_FAILED)
 
 /* Define the mode flags for create: let umask decide */
 #define OPENMODE 0666
@@ -123,7 +133,11 @@ mmapio_new(const char* path, int ioflags, size_t initialsize, ncio** nciopp, NCM
     int openfd = -1;
 
     if(pagesize == 0) {
-#if defined HAVE_SYSCONF
+#if defined _WIN32
+        SYSTEM_INFO info;
+        GetSystemInfo(&info);
+        pagesize = (size_t)info.dwPageSize;
+#elif defined HAVE_SYSCONF
         pagesize = (size_t)sysconf(_SC_PAGE_SIZE);
 #elif defined HAVE_GETPAGESIZE
         pagesize = (size_t)getpagesize();
@@ -233,7 +247,14 @@ mmapio_create(const char* path, int ioflags,
                                     PROT_READ|PROT_WRITE,
 				    MAP_PRIVATE|MAP_ANONYMOUS,
                                     mmapio->mapfd,0);
-	{mmapio->memory[0] = 0;} /* test writing of the mmap'd memory */
+	/* The test for a usable mapping used to be a bare store into
+	   memory[0]; on a failed mmap that is a dereference of NULL or -1. */
+	if(NC_MMAP_FAILED(mmapio->memory)) {
+	    mmapio->memory = NULL;
+	    status = NC_EDISKLESS;
+	    goto unwind_open;
+	}
+	mmapio->memory[0] = 0; /* test writing of the mmap'd memory */
     } else { /*persist */
         /* Open the file to get fd,  but make sure we can write it if needed */
         oflags = O_RDWR;
@@ -256,8 +277,10 @@ mmapio_create(const char* path, int ioflags,
                                     PROT_READ|PROT_WRITE,
 				    MAP_SHARED,
                                     mmapio->mapfd,0);
-	if(mmapio->memory == NULL) {
-	    return NC_EDISKLESS;
+	if(NC_MMAP_FAILED(mmapio->memory)) {
+	    mmapio->memory = NULL;
+	    status = NC_EDISKLESS;
+	    goto unwind_open;
 	}
     } /*!persist*/
 
@@ -355,6 +378,11 @@ mmapio_open(const char* path,
                                     readwrite?(PROT_READ|PROT_WRITE):(PROT_READ),
 				    MAP_SHARED,
                                     mmapio->mapfd,0);
+    if(NC_MMAP_FAILED(mmapio->memory)) {
+	mmapio->memory = NULL;
+	mmapio_close(nciop,0);
+	return NC_EDISKLESS;
+    }
 #ifdef DEBUG
 fprintf(stderr,"mmapio_open: initial memory: %lu/%lu\n",(unsigned long)mmapio->memory,(unsigned long)mmapio->alloc);
 #endif
@@ -436,20 +464,29 @@ mmapio_pad_length(ncio* nciop, off_t length)
 	off_t pos = lseek(mmapio->mapfd,0,SEEK_CUR); /* save current position*/
 	/* cause file to be extended in size */
 	lseek(mmapio->mapfd,(off_t)newsize-1,SEEK_SET);
-        write(mmapio->mapfd,"",mmapio->alloc);
+	/* One byte at newsize-1 is what extends the file; the length used to
+	   be mmapio->alloc, which read that many bytes from a one-byte
+	   literal. */
+        write(mmapio->mapfd,"",1);
 	lseek(mmapio->mapfd,pos,SEEK_SET); /* reset position */
 	}
 
 #ifdef HAVE_MREMAP
 	newmem = (char*)mremap(mmapio->memory,mmapio->alloc,newsize,MREMAP_MAYMOVE);
-	if(newmem == NULL) return NC_ENOMEM;
+	if(NC_MMAP_FAILED(newmem)) return NC_ENOMEM;
 #else
-        /* note: mmapio->mapfd >= 0 => persist */
-        newmem = (char*)mmap(NULL,newsize,
-                                    mmapio->mapfd >= 0?(PROT_READ|PROT_WRITE):(PROT_READ),
-				    MAP_SHARED,
-                                    mmapio->mapfd,0);
-	if(newmem == NULL) return NC_ENOMEM;
+        /* No mremap outside glibc, so map a fresh region and copy. The old
+           form asked for MAP_SHARED on mapfd, which is -1 for a non-persist
+           (anonymous) file, and for PROT_READ only; neither can work, because
+           growing a diskless file has to produce writable anonymous memory,
+           exactly as the initial mapping did. */
+        if(mmapio->mapfd >= 0)
+            newmem = (char*)mmap(NULL,newsize,PROT_READ|PROT_WRITE,
+                                 MAP_SHARED,mmapio->mapfd,0);
+        else
+            newmem = (char*)mmap(NULL,newsize,PROT_READ|PROT_WRITE,
+                                 MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+	if(NC_MMAP_FAILED(newmem)) return NC_ENOMEM;
 	memcpy(newmem,mmapio->memory,mmapio->alloc);
         munmap(mmapio->memory,mmapio->alloc);
 #endif
@@ -484,8 +521,11 @@ mmapio_close(ncio* nciop, int doUnlink)
     mmapio = (NCMMAPIO*)nciop->pvt;
     assert(mmapio != NULL);
 
-    /* Since we are using mmap, persisting to a file should be automatic */
-    status = munmap(mmapio->memory,mmapio->alloc);
+    /* Since we are using mmap, persisting to a file should be automatic.
+       mmapio_create() reaches unwind_open with no mapping when mmap() fails,
+       so guard the unmap. */
+    if(mmapio->memory != NULL)
+	status = munmap(mmapio->memory,mmapio->alloc);
     mmapio->memory = NULL; /* so we do not try to free it */
 
     /* Close file if it was open */
