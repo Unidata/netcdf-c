@@ -88,9 +88,10 @@ ENDIF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
 BUILD_BIN_TEST(tst_empty_vlen_unlim)
 ADD_SH_TEST(nc_test4 run_empty_vlen_test)
 
-IF(NOT WIN32)
-  SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
-ENDIF()
+# tst_camrun and tst_interops5 build on Windows now: tst_camrun needed its
+# <unistd.h> guarded and an fclose(NULL) removed, and tst_interops5 needed its
+# two variable-length arrays given constant bounds, which MSVC requires.
+SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
 
 # UDF self-registration plugin loading test.
 # Build a test plugin as a shared library, then build a test that

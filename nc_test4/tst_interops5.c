@@ -23,8 +23,14 @@ main(int argc, char **argv)
 #define GRPA_NAME "grpa"
 #define VAR_NAME "vara"
 #define NDIMS 2
-      hsize_t nrowCur = 7;               /* current size */
-      hsize_t ncolCur = 3;
+/* amat and xydimMat below were sized from the hsize_t variables, which makes
+   them variable-length arrays. MSVC does not implement those, so the sizes are
+   named as macros and the variables initialised from them: same sizes, no VLA,
+   no change on any other platform. */
+#define NROWCUR 7
+#define NCOLCUR 3
+      hsize_t nrowCur = NROWCUR;          /* current size */
+      hsize_t ncolCur = NCOLCUR;
       hsize_t nrowMax = nrowCur + 0;     /* maximum size */
       hsize_t ncolMax = ncolCur + 0;
 
@@ -43,7 +49,7 @@ main(int argc, char **argv)
 	 = "This is a netCDF dimension but not a netCDF variable.";
       char dimNameBuf[1000];
       char *varaName = "/grpa/vara";
-      short amat[nrowCur][ncolCur];
+      short amat[NROWCUR][NCOLCUR];
       int ii, jj;
 
       xscaleDims[0] = nrowCur;
@@ -135,7 +141,7 @@ main(int argc, char **argv)
 
       /* Write dimension values for both xdim, ydim */
       {
-      short xydimMat[ nrowCur >= ncolCur ? nrowCur : ncolCur];
+      short xydimMat[NROWCUR >= NCOLCUR ? NROWCUR : NCOLCUR];
       for (ii = 0; ii < nrowCur; ii++)
 	 xydimMat[ii] = 0;    /*#### 100 * ii; */
 

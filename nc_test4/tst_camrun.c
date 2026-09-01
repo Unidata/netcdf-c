@@ -15,7 +15,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
+#ifdef _WIN32
+/* getpid() below; on POSIX it comes from <unistd.h> */
+#include <process.h>
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
 #define FILE_NAME "tst_camrun.nc"
    /* rank (number of dimensions) for each variable */
@@ -685,10 +691,16 @@ get_mem_used2(int *mem_used)
       (void)fscanf(pf, "%u %u %u %u %u %u", &size, &resident, &share,
 	     &text, &lib, &data);
       *mem_used = (int)(data * page_size) / MEGABYTE;
+      fclose(pf);
    }
    else
+   {
+      /* No /proc: any platform but Linux, which now includes Windows, where
+	 this file compiles for the first time. The fclose() used to sit here,
+	 outside the if, so this branch called fclose(NULL) -- undefined
+	 behaviour, and a fail-fast (0xC0000409) with the Microsoft runtime. */
       *mem_used = -1;
-  fclose(pf);
+   }
 }
 
 int
