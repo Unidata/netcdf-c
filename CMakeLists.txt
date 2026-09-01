@@ -1418,6 +1418,13 @@ if(MSVC)
   endif()
   set(WINVERMAJOR ${WVM} CACHE STRING "" FORCE)
   set(WINVERBUILD ${WVB} CACHE STRING "" FORCE)
+
+  # Every netCDF-C executable takes UTF-8 for its command line and its file
+  # names. /MANIFESTINPUT is merged into the manifest the linker already
+  # embeds, so this needs no per-target wiring and no mt.exe step.
+  set(NC_UTF8_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/cmake/netcdf_utf8.manifest")
+  set(CMAKE_EXE_LINKER_FLAGS
+      "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:EMBED /MANIFESTINPUT:${NC_UTF8_MANIFEST}")
 endif()
 
 #####

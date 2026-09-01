@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Declare UTF-8 as the process active code page.
+
+  Without this, the UCRT hands main() an argv transcoded from the UTF-16
+  command line into the legacy ANSI code page, so any path the ANSI code page
+  cannot represent arrives as a literal question mark, which is an illegal
+  character in a Windows file name. That is why nc_create() on a non-Latin
+  path used to fail with EINVAL. With the setting, argv, the ANSI CRT file
+  calls and GetACP() are all UTF-8, which is what the rest of netCDF-C already
+  assumes (see WINUTF8 in libdispatch/dpathmgr.c).
+
+  Requires Windows 10 1903 or later. On anything older the setting is ignored
+  and behaviour is exactly what it was before.
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity type="win32" name="Unidata.netCDF" version="1.0.0.0"/>
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings xmlns:ws2019="http://schemas.microsoft.com/SMI/2019/WindowsSettings">
+      <ws2019:activeCodePage>UTF-8</ws2019:activeCodePage>
+    </windowsSettings>
+  </application>
+</assembly>
