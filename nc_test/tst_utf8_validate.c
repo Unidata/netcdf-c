@@ -3,6 +3,18 @@
  *  See the LICENSE file for more information.
  */
 
+/*
+ * NOTE ON ENCODING: every byte above 0x7f in the test data below is written as
+ * a three-digit octal escape, and this file is pure ASCII. That is deliberate
+ * and must stay that way. Most of the cases here are byte sequences that are
+ * *not* valid UTF-8, which is the whole point of the test, and a compiler that
+ * transcodes string literals from a source character set cannot carry them
+ * through unchanged: MSVC rejects the file outright under /utf-8 and silently
+ * rewrites the bytes without it. Escapes are the one spelling every compiler
+ * reproduces exactly, and they are why this test can run on Windows at all.
+ * Do not "restore" the raw characters.
+ */
+
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -87,7 +99,7 @@ struct Test {
 */
 static const struct Test utf8ok[] = {
 {0, "1.1.1", "Greek word 'kosme'",
-"Îºá½¹ÏƒÎ¼Îµ"},
+"\316\272\341\275\271\317\203\316\274\316\265"},
 NULLTEST
 };
 
@@ -96,27 +108,27 @@ static const struct Test utf8boundary[] = {
 /*2  Boundary condition test */
 /*2.1  First possible sequence of a certain length */
 {0,"2.1.1", "1 byte  (U-00000000)",        "\000"},
-{0,"2.1.2", "2 bytes (U-00000080)",        "Â€"},
-{0,"2.1.3", "3 bytes (U-00000800)",        "à €"},
-{0,"2.1.4", "4 bytes (U-00010000)",        "ğ€€"},
-{1,"2.1.5", "5 bytes (U-00200000)",        "øˆ€€€"},
-{1,"2.1.6", "6 bytes (U-04000000)",        "ü„€€€€"},
+{0,"2.1.2", "2 bytes (U-00000080)",        "\302\200"},
+{0,"2.1.3", "3 bytes (U-00000800)",        "\340\240\200"},
+{0,"2.1.4", "4 bytes (U-00010000)",        "\360\220\200\200"},
+{1,"2.1.5", "5 bytes (U-00200000)",        "\370\210\200\200\200"},
+{1,"2.1.6", "6 bytes (U-04000000)",        "\374\204\200\200\200\200"},
 
 /*2.2  Last possible sequence of a certain length*/
 {0,"2.2.1", "1 byte  (U-0000007F)",        ""},
-{0,"2.2.2", "2 bytes (U-000007FF)",        "ß¿"},
-{0,"2.2.3", "3 bytes (U-0000FFFF)",        "ï¿¿"}, /*See 5.3.2 */
-{1,"2.2.4", "4 bytes (U-001FFFFF)",        "÷¿¿¿"},
-{1,"2.2.5", "5 bytes (U-03FFFFFF)",        "û¿¿¿¿"},
-{1,"2.2.6", "6 bytes (U-7FFFFFFF)",        "ı¿¿¿¿¿"},
+{0,"2.2.2", "2 bytes (U-000007FF)",        "\337\277"},
+{0,"2.2.3", "3 bytes (U-0000FFFF)",        "\357\277\277"}, /*See 5.3.2 */
+{1,"2.2.4", "4 bytes (U-001FFFFF)",        "\367\277\277\277"},
+{1,"2.2.5", "5 bytes (U-03FFFFFF)",        "\373\277\277\277\277"},
+{1,"2.2.6", "6 bytes (U-7FFFFFFF)",        "\375\277\277\277\277\277"},
 
 /*2.3  Other boundary conditions*/
 
-{0,"2.3.1", "U-0000D7FF = ed 9f bf", "íŸ¿"},
-{0,"2.3.2", "U-0000E000 = ee 80 80", "î€€"},
-{0,"2.3.3", "U-0000FFFD = ef bf bd", "ï¿½"},
-{0,"2.3.4", "U-0010FFFF = f4 8f bf bf", "ô¿¿"},
-{1,"2.3.5", "U-00110000 = f4 90 80 80", "ô€€"},
+{0,"2.3.1", "U-0000D7FF = ed 9f bf", "\355\237\277"},
+{0,"2.3.2", "U-0000E000 = ee 80 80", "\356\200\200"},
+{0,"2.3.3", "U-0000FFFD = ef bf bd", "\357\277\275"},
+{0,"2.3.4", "U-0010FFFF = f4 8f bf bf", "\364\217\277\277"},
+{1,"2.3.5", "U-00110000 = f4 90 80 80", "\364\220\200\200"},
 NULLTEST
 };
 
@@ -128,17 +140,17 @@ static const struct Test utf8bad[] = {
        Each unexpected continuation byte should be separately signalled
        as a malformed sequence of its own.
 */
-{1,"3.1.1", "First continuation byte 0x80", "€"},
-{1,"3.1.2", "Last  continuation byte 0xbf", "¿"},
+{1,"3.1.1", "First continuation byte 0x80", "\200"},
+{1,"3.1.2", "Last  continuation byte 0xbf", "\277"},
 
-{1,"3.1.3", "2 continuation bytes", "€¿"},
-{1,"3.1.4", "3 continuation bytes", "€¿€"},
-{1,"3.1.5", "4 continuation bytes", "€¿€¿"},
-{1,"3.1.6", "5 continuation bytes", "€¿€¿€"},
-{1,"3.1.7", "6 continuation bytes", "€¿€¿€¿"},
-{1,"3.1.8", "7 continuation bytes", "€¿€¿€¿€"},
+{1,"3.1.3", "2 continuation bytes", "\200\277"},
+{1,"3.1.4", "3 continuation bytes", "\200\277\200"},
+{1,"3.1.5", "4 continuation bytes", "\200\277\200\277"},
+{1,"3.1.6", "5 continuation bytes", "\200\277\200\277\200"},
+{1,"3.1.7", "6 continuation bytes", "\200\277\200\277\200\277"},
+{1,"3.1.8", "7 continuation bytes", "\200\277\200\277\200\277\200"},
 {1,"3.1.9", "Sequence of all 64 possible continuation bytes (0x80-0xbf)",
-   "€‚ƒ„…†‡ˆ‰Š‹Œ‘’“”•–—˜™š›œŸ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿"
+   "\200\201\202\203\204\205\206\207\210\211\212\213\214\215\216\217\220\221\222\223\224\225\226\227\230\231\232\233\234\235\236\237\240\241\242\243\244\245\246\247\250\251\252\253\254\255\256\257\260\261\262\263\264\265\266\267\270\271\272\273\274\275\276\277"
 },
 
 /*3.2  Lonely start characters*/
@@ -147,31 +159,31 @@ static const struct Test utf8bad[] = {
        each followed by a space character*/
 
 {1,"3.2.1", "All 32 first bytes of 2-byte sequences",
-"À Á Â Ã Ä Å Æ Ç È É Ê Ë Ì Í Î Ï Ğ Ñ Ò Ó Ô Õ Ö × Ø Ù Ú Û Ü İ Ş ß "
+"\300 \301 \302 \303 \304 \305 \306 \307 \310 \311 \312 \313 \314 \315 \316 \317 \320 \321 \322 \323 \324 \325 \326 \327 \330 \331 \332 \333 \334 \335 \336 \337 "
 },
 
 /*3.2.2  All 16 first bytes of 3-byte sequences (0xe0-0xef),
        each followed by a space character:*/
 {1,"3.2.2", "All 16 first bytes of 3-byte sequences",
-"à á â ã ä å æ ç è é ê ë ì í î ï "
+"\340 \341 \342 \343 \344 \345 \346 \347 \350 \351 \352 \353 \354 \355 \356 \357 "
 },
 
 /*3.2.3  All 8 first bytes of 4-byte sequences (0xf0-0xf7),
        each followed by a space character:*/
 {1,"3.2.3", "All 8 first bytes of 4-byte sequences",
-   "ğ ñ ò ó ô õ ö ÷ "
+   "\360 \361 \362 \363 \364 \365 \366 \367 "
 },
 
 /*3.2.4  All 4 first bytes of 5-byte sequences (0xf8-0xfb),
        each followed by a space character:*/
 {1,"3.2.4", "All 4 first bytes of 5-byte sequences",
-   "ø ù ú û "
+   "\370 \371 \372 \373 "
 },
 
 /*3.2.5  All 2 first bytes of 6-byte sequences (0xfc-0xfd),
        each followed by a space character:*/
 {1,"3.2.5", "All 2 first bytes of 6-byte sequences",
-   "ü ı "
+   "\374 \375 "
 },
 
 /*3.3  Sequences with last continuation byte missing
@@ -179,32 +191,32 @@ All bytes of an incomplete sequence should be signalled as a single
 malformed sequence, i.e., you should see only a single replacement
 character in each of the next 10 tests. (Characters as in section 2)
 */
-{1,"3.3.1", "2-byte sequence with last byte missing (U+0000)",     "À"},
-{1,"3.3.2", "3-byte sequence with last byte missing (U+0000)",     "à€"},
-{1,"3.3.3", "4-byte sequence with last byte missing (U+0000)",     "ğ€€"},
-{1,"3.3.4", "5-byte sequence with last byte missing (U+0000)",     "ø€€€"},
-{1,"3.3.5", "6-byte sequence with last byte missing (U+0000)",     "ü€€€€"},
-{1,"3.3.6", "2-byte sequence with last byte missing (U-000007FF)", "ß"},
-{1,"3.3.7", "3-byte sequence with last byte missing (U-0000FFFF)", "ï¿"},
-{1,"3.3.8", "4-byte sequence with last byte missing (U-001FFFFF)", "÷¿¿"},
-{1,"3.3.9", "5-byte sequence with last byte missing (U-03FFFFFF)", "û¿¿¿"},
-{1,"3.3.10", "6-byte sequence with last byte missing (U-7FFFFFFF)", "ı¿¿¿¿"},
+{1,"3.3.1", "2-byte sequence with last byte missing (U+0000)",     "\300"},
+{1,"3.3.2", "3-byte sequence with last byte missing (U+0000)",     "\340\200"},
+{1,"3.3.3", "4-byte sequence with last byte missing (U+0000)",     "\360\200\200"},
+{1,"3.3.4", "5-byte sequence with last byte missing (U+0000)",     "\370\200\200\200"},
+{1,"3.3.5", "6-byte sequence with last byte missing (U+0000)",     "\374\200\200\200\200"},
+{1,"3.3.6", "2-byte sequence with last byte missing (U-000007FF)", "\337"},
+{1,"3.3.7", "3-byte sequence with last byte missing (U-0000FFFF)", "\357\277"},
+{1,"3.3.8", "4-byte sequence with last byte missing (U-001FFFFF)", "\367\277\277"},
+{1,"3.3.9", "5-byte sequence with last byte missing (U-03FFFFFF)", "\373\277\277\277"},
+{1,"3.3.10", "6-byte sequence with last byte missing (U-7FFFFFFF)", "\375\277\277\277\277"},
 
 /*3.4 Concatenation of incomplete sequences
 All the 10 sequences of 3.3 concatenated; you should see 10 malformed
 sequences being signalled:
 */
 {1, "3.4.1", "All the 10 sequences of 3.3 concatenated",
-   "Àà€ğ€€ø€€€ü€€€€ßï¿÷¿¿û¿¿¿ı¿¿¿¿"
+   "\300\340\200\360\200\200\370\200\200\200\374\200\200\200\200\337\357\277\367\277\277\373\277\277\277\375\277\277\277\277"
 },
 
 /*3.5  Impossible bytes
 The following two bytes cannot appear in a correct UTF-8 string
 */
 
-{1,"3.5.1", "fe", "ş"},
-{1,"3.5.2", "ff", "ÿ"},
-{1,"3.5.3", "fe fe ff ff", "şşÿÿ"},
+{1,"3.5.1", "fe", "\376"},
+{1,"3.5.2", "ff", "\377"},
+{1,"3.5.3", "fe fe ff ff", "\376\376\377\377"},
 
 /*
 4  Overlong sequences
@@ -237,11 +249,11 @@ a replacement character. If you see a slash below, you do not have a
 safe UTF-8 decoder!
 */
 
-{1,"4.1.1", "U+002F = c0 af             ", "À¯"},
-{1,"4.1.2", "U+002F = e0 80 af          ", "à€¯"},
-{1,"4.1.3", "U+002F = f0 80 80 af       ", "ğ€€¯"},
-{1,"4.1.4", "U+002F = f8 80 80 80 af    ", "ø€€€¯"},
-{1,"4.1.5", "U+002F = fc 80 80 80 80 af ", "ü€€€€¯"},
+{1,"4.1.1", "U+002F = c0 af             ", "\300\257"},
+{1,"4.1.2", "U+002F = e0 80 af          ", "\340\200\257"},
+{1,"4.1.3", "U+002F = f0 80 80 af       ", "\360\200\200\257"},
+{1,"4.1.4", "U+002F = f8 80 80 80 af    ", "\370\200\200\200\257"},
+{1,"4.1.5", "U+002F = fc 80 80 80 80 af ", "\374\200\200\200\200\257"},
 
 /*4.2  Maximum overlong sequences
 
@@ -251,11 +263,11 @@ is a boundary test for safe UTF-8 decoders. All five characters should
 be rejected like malformed UTF-8 sequences.
 */
 
-{1,"4.2.1", "U-0000007F = c1 bf             ", "Á¿"},
-{1,"4.2.2", "U-000007FF = e0 9f bf          ", "àŸ¿"},
-{1,"4.2.3", "U-0000FFFF = f0 8f bf bf       ", "ğ¿¿"},
-{1,"4.2.4", "U-001FFFFF = f8 87 bf bf bf    ", "ø‡¿¿¿"},
-{1,"4.2.5", "U-03FFFFFF = fc 83 bf bf bf bf ", "üƒ¿¿¿¿"},
+{1,"4.2.1", "U-0000007F = c1 bf             ", "\301\277"},
+{1,"4.2.2", "U-000007FF = e0 9f bf          ", "\340\237\277"},
+{1,"4.2.3", "U-0000FFFF = f0 8f bf bf       ", "\360\217\277\277"},
+{1,"4.2.4", "U-001FFFFF = f8 87 bf bf bf    ", "\370\207\277\277\277"},
+{1,"4.2.5", "U-03FFFFFF = fc 83 bf bf bf bf ", "\374\203\277\277\277\277"},
 
 /*
 4.3  Overlong representation of the NUL character
@@ -265,11 +277,11 @@ UTF-8 sequences and should not be treated like the ASCII NUL
 character.
 */
 
-{1,"4.3.1", "U+0000 = c0 80             ", "À€"},
-{1,"4.3.2", "U+0000 = e0 80 80          ", "à€€"},
-{1,"4.3.3", "U+0000 = f0 80 80 80       ", "ğ€€€"},
-{1,"4.3.4", "U+0000 = f8 80 80 80 80    ", "ø€€€€"},
-{1,"4.3.5", "U+0000 = fc 80 80 80 80 80 ", "ü€€€€€"},
+{1,"4.3.1", "U+0000 = c0 80             ", "\300\200"},
+{1,"4.3.2", "U+0000 = e0 80 80          ", "\340\200\200"},
+{1,"4.3.3", "U+0000 = f0 80 80 80       ", "\360\200\200\200"},
+{1,"4.3.4", "U+0000 = f8 80 80 80 80    ", "\370\200\200\200\200"},
+{1,"4.3.5", "U+0000 = fc 80 80 80 80 80 ", "\374\200\200\200\200\200"},
 
 /*
 5  Illegal code positions
@@ -281,24 +293,24 @@ comparable to overlong UTF-8 sequences.
 */
 /*5.1 Single UTF-16 surrogates*/
 
-{1,"5.1.1", "U+D800 = ed a0 80 ", "í €"},
-{1,"5.1.2", "U+DB7F = ed ad bf ", "í­¿"},
-{1,"5.1.3", "U+DB80 = ed ae 80 ", "í®€"},
-{1,"5.1.4", "U+DBFF = ed af bf ", "í¯¿"},
-{1,"5.1.5", "U+DC00 = ed b0 80 ", "í°€"},
-{1,"5.1.6", "U+DF80 = ed be 80 ", "í¾€"},
-{1,"5.1.7", "U+DFFF = ed bf bf ", "í¿¿"},
+{1,"5.1.1", "U+D800 = ed a0 80 ", "\355\240\200"},
+{1,"5.1.2", "U+DB7F = ed ad bf ", "\355\255\277"},
+{1,"5.1.3", "U+DB80 = ed ae 80 ", "\355\256\200"},
+{1,"5.1.4", "U+DBFF = ed af bf ", "\355\257\277"},
+{1,"5.1.5", "U+DC00 = ed b0 80 ", "\355\260\200"},
+{1,"5.1.6", "U+DF80 = ed be 80 ", "\355\276\200"},
+{1,"5.1.7", "U+DFFF = ed bf bf ", "\355\277\277"},
 
 /*5.2 Paired UTF-16 surrogates */
 
-{1,"5.2.1", "U+D800 U+DC00 = ed a0 80 ed b0 80 ", "í €í°€"},
-{1,"5.2.2", "U+D800 U+DFFF = ed a0 80 ed bf bf ", "í €í¿¿"},
-{1,"5.2.3", "U+DB7F U+DC00 = ed ad bf ed b0 80 ", "í­¿í°€"},
-{1,"5.2.4", "U+DB7F U+DFFF = ed ad bf ed bf bf ", "í­¿í¿¿"},
-{1,"5.2.5", "U+DB80 U+DC00 = ed ae 80 ed b0 80 ", "í®€í°€"},
-{1,"5.2.6", "U+DB80 U+DFFF = ed ae 80 ed bf bf ", "í®€í¿¿"},
-{1,"5.2.7", "U+DBFF U+DC00 = ed af bf ed b0 80 ", "í¯¿í°€"},
-{1,"5.2.8", "U+DBFF U+DFFF = ed af bf ed bf bf ", "í¯¿í¿¿"},
+{1,"5.2.1", "U+D800 U+DC00 = ed a0 80 ed b0 80 ", "\355\240\200\355\260\200"},
+{1,"5.2.2", "U+D800 U+DFFF = ed a0 80 ed bf bf ", "\355\240\200\355\277\277"},
+{1,"5.2.3", "U+DB7F U+DC00 = ed ad bf ed b0 80 ", "\355\255\277\355\260\200"},
+{1,"5.2.4", "U+DB7F U+DFFF = ed ad bf ed bf bf ", "\355\255\277\355\277\277"},
+{1,"5.2.5", "U+DB80 U+DC00 = ed ae 80 ed b0 80 ", "\355\256\200\355\260\200"},
+{1,"5.2.6", "U+DB80 U+DFFF = ed ae 80 ed bf bf ", "\355\256\200\355\277\277"},
+{1,"5.2.7", "U+DBFF U+DC00 = ed af bf ed b0 80 ", "\355\257\277\355\260\200"},
+{1,"5.2.8", "U+DBFF U+DFFF = ed af bf ed bf bf ", "\355\257\277\355\277\277"},
 NULLTEST
 };
 
@@ -326,20 +338,20 @@ Particularly problematic noncharacters in 16-bit applications:
 */
 
 static const struct Test utf8problematic[] = {
-{0,"5.3.1", "U+FFFE = ef bf be ", "ï¿¾"},
-{0,"5.3.2", "U+FFFF = ef bf bf ", "ï¿¿"},
+{0,"5.3.1", "U+FFFE = ef bf be ", "\357\277\276"},
+{0,"5.3.2", "U+FFFF = ef bf bf ", "\357\277\277"},
 NULLTEST
 };
 
 /* Other (utf16) noncharacters: */
 static const struct Test utf8nonchars[] = {
 {0,"5.3.3", "U+FDD0 .. U+FDEF ",
-"ï·ï·‘ï·’ï·“ï·”ï·•ï·–ï·—ï·˜ï·™ï·šï·›ï·œï·ï·ï·Ÿï· ï·¡ï·¢ï·£ï·¤ï·¥ï·¦ï·§ï·¨ï·©ï·ªï·«ï·¬ï·­ï·®ï·¯"
+"\357\267\220\357\267\221\357\267\222\357\267\223\357\267\224\357\267\225\357\267\226\357\267\227\357\267\230\357\267\231\357\267\232\357\267\233\357\267\234\357\267\235\357\267\236\357\267\237\357\267\240\357\267\241\357\267\242\357\267\243\357\267\244\357\267\245\357\267\246\357\267\247\357\267\250\357\267\251\357\267\252\357\267\253\357\267\254\357\267\255\357\267\256\357\267\257"
 },
 
 /* Do not understand this test; it passes, but should it? */
 {0,"5.3.4", "U+nFFFE U+nFFFF (for n = 1..10)",
-       "ğŸ¿¾ğŸ¿¿ğ¯¿¾ğ¯¿¿ğ¿¿¾ğ¿¿¿ñ¿¾ñ¿¿ñŸ¿¾ñŸ¿¿ñ¯¿¾ñ¯¿¿ñ¿¿¾ñ¿¿¿ò¿¾ò¿¿òŸ¿¾òŸ¿¿ò¯¿¾ò¯¿¿ò¿¿¾ò¿¿¿ó¿¾ó¿¿óŸ¿¾óŸ¿¿ó¯¿¾ó¯¿¿ó¿¿¾ó¿¿¿ô¿¾ô¿¿"
+       "\360\237\277\276\360\237\277\277\360\257\277\276\360\257\277\277\360\277\277\276\360\277\277\277\361\217\277\276\361\217\277\277\361\237\277\276\361\237\277\277\361\257\277\276\361\257\277\277\361\277\277\276\361\277\277\277\362\217\277\276\362\217\277\277\362\237\277\276\362\237\277\277\362\257\277\276\362\257\277\277\362\277\277\276\362\277\277\277\363\217\277\276\363\217\277\277\363\237\277\276\363\237\277\277\363\257\277\276\363\257\277\277\363\277\277\276\363\277\277\277\364\217\277\276\364\217\277\277"
 },
 NULLTEST
 };

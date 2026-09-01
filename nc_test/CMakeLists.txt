@@ -50,9 +50,11 @@ set_property(TARGET nc_test PROPERTY UNITY_BUILD OFF)
 # Some extra stand-alone tests
 SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta tst_inq_type tst_utf8_phrases tst_global_fillval tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef tst_default_format)
 
-IF(NOT WIN32)
+# tst_utf8_validate's cases are deliberately malformed byte sequences, which
+# used to be raw bytes in the source. MSVC transcodes string literals from the
+# source charset, so those bytes did not survive the compile and the test was
+# excluded here. They are octal escapes now, identical on every compiler.
 SET(TESTS ${TESTS} tst_utf8_validate)
-ENDIF()
 
 IF(NOT HAVE_BASH)
   SET(TESTS ${TESTS} tst_atts3)
