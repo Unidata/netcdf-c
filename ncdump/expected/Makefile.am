@@ -6,6 +6,7 @@
 EXTRA_DIST = \
 c0.dmp example_good.dmp fills.dmp nc_enddef.dmp nc_sync.dmp pres_temp_4D.dmp \
 ref_const_test.dmp ref_ctest1_nc4.dmp ref_ctest1_nc4c.dmp ref_dimscope.dmp \
+ref_attscope.dmp \
 ref_nctst.dmp ref_nctst_64bit_offset.dmp ref_nctst_netcdf4.dmp \
 ref_nctst_netcdf4_classic.dmp \
 ref_tst_comp.dmp ref_tst_comp2.dmp ref_tst_comp3.dmp \
