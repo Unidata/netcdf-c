@@ -101,7 +101,12 @@ endif()
 if(MSVC)
   set(ISMSVC yes)
 endif()
-if(osname MATCHES "MINGW.*" OR osname MATCHES "MSYS.*")
+# `uname -s` reports MINGW64_NT-* / MSYS_NT-* whenever cmake is started from a
+# Git-Bash or MSYS2 shell, which says nothing about the compiler in use. An MSVC
+# build launched from Git Bash therefore set ISMINGW (and CMake's own MINGW), and
+# everything gated on "not MinGW" silently vanished -- the ncdump unicode tests
+# among them. Trust the toolchain, not the shell that started it.
+if(NOT MSVC AND (osname MATCHES "MINGW.*" OR osname MATCHES "MSYS.*"))
   set(ISMINGW yes)
   set(MINGW yes)
 endif()
@@ -136,8 +141,14 @@ endif()
 include(GNUInstallDirs)
 
 if(MSVC)
-  set(GLOBAL PROPERTY USE_FOLDERS ON)
-  target_compile_options(netcdf PRIVATE "/utf-8")
+  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+  # UTF-8 source and execution character sets for the whole tree, not just the
+  # library: nc_test/tst_utf8_validate.c and several ncdump references carry
+  # UTF-8 literals that MSVC would otherwise read in the ANSI code page. The
+  # previous form named the `netcdf` target, which liblib/ does not create until
+  # much later in this file, and set a variable called GLOBAL rather than the
+  # USE_FOLDERS property.
+  add_compile_options("/utf-8")
 endif()
 
 # auto-configure style checks, other CMake modules.
