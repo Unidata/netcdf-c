@@ -132,38 +132,68 @@
  */
 #define X_ALIGN			4	/* a.k.a. BYTES_PER_XDR_UNIT */
 
+/*
+ * These turn a file-supplied element count into an external byte length.  The
+ * product can exceed SIZE_MAX and wrap, so each one saturates instead;
+ * SIZE_MAX is not an allocatable size, so callers reject it rather than being
+ * handed an undersized buffer.  _RNDUP() in include/rnd.h is left alone,
+ * because nc3internal.c also applies it to off_t offsets and it has to stay
+ * type generic.
+ */
 #define ncx_len_char(nelems) \
-	_RNDUP((nelems), X_ALIGN)
+	((size_t)(nelems) > SIZE_MAX - (X_ALIGN - 1) \
+		? SIZE_MAX \
+		: _RNDUP((size_t)(nelems), X_ALIGN))
 
 #define ncx_len_short(nelems) \
-	(((nelems) + (nelems)%2)  * X_SIZEOF_SHORT)
+	((size_t)(nelems) > (SIZE_MAX / X_SIZEOF_SHORT) - 1 \
+		? SIZE_MAX \
+		: ((size_t)(nelems) + (size_t)(nelems) % 2) * X_SIZEOF_SHORT)
 
 #define ncx_len_int(nelems) \
-	((nelems) * X_SIZEOF_INT)
+	((size_t)(nelems) > SIZE_MAX / X_SIZEOF_INT \
+		? SIZE_MAX \
+		: (size_t)(nelems) * X_SIZEOF_INT)
 
 #define ncx_len_long(nelems) \
-	((nelems) * X_SIZEOF_LONG)
+	((size_t)(nelems) > SIZE_MAX / X_SIZEOF_LONG \
+		? SIZE_MAX \
+		: (size_t)(nelems) * X_SIZEOF_LONG)
 
 #define ncx_len_float(nelems) \
-	((nelems) * X_SIZEOF_FLOAT)
+	((size_t)(nelems) > SIZE_MAX / X_SIZEOF_FLOAT \
+		? SIZE_MAX \
+		: (size_t)(nelems) * X_SIZEOF_FLOAT)
 
 #define ncx_len_double(nelems) \
-	((nelems) * X_SIZEOF_DOUBLE)
+	((size_t)(nelems) > SIZE_MAX / X_SIZEOF_DOUBLE \
+		? SIZE_MAX \
+		: (size_t)(nelems) * X_SIZEOF_DOUBLE)
 
 #define ncx_len_ubyte(nelems) \
-	_RNDUP((nelems), X_ALIGN)
+	((size_t)(nelems) > SIZE_MAX - (X_ALIGN - 1) \
+		? SIZE_MAX \
+		: _RNDUP((size_t)(nelems), X_ALIGN))
 
 #define ncx_len_ushort(nelems) \
-	(((nelems) + (nelems)%2)  * X_SIZEOF_USHORT)
+	((size_t)(nelems) > (SIZE_MAX / X_SIZEOF_USHORT) - 1 \
+		? SIZE_MAX \
+		: ((size_t)(nelems) + (size_t)(nelems) % 2) * X_SIZEOF_USHORT)
 
 #define ncx_len_uint(nelems) \
-	((nelems) * X_SIZEOF_UINT)
+	((size_t)(nelems) > SIZE_MAX / X_SIZEOF_UINT \
+		? SIZE_MAX \
+		: (size_t)(nelems) * X_SIZEOF_UINT)
 
 #define ncx_len_int64(nelems) \
-	((nelems) * X_SIZEOF_INT64)
+	((size_t)(nelems) > SIZE_MAX / X_SIZEOF_INT64 \
+		? SIZE_MAX \
+		: (size_t)(nelems) * X_SIZEOF_INT64)
 
 #define ncx_len_uint64(nelems) \
-	((nelems) * X_SIZEOF_UINT64)
+	((size_t)(nelems) > SIZE_MAX / X_SIZEOF_UINT64 \
+		? SIZE_MAX \
+		: (size_t)(nelems) * X_SIZEOF_UINT64)
 
 /* End ncx_len */
 
