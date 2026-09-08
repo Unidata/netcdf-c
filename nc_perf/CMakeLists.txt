@@ -43,6 +43,28 @@ add_sh_test(nc_perf run_par_bm_test)
 ENDIF(TEST_PARALLEL4)
 ENDIF(NETCDF_BUILD_UTILITIES)
 
+# tst_create_files writes the files several of the shell tests read:
+# run_bm_elena reads tst_elena_int_3D.nc, run_bm_test1 reads tst_floats_1D.nc
+# and tst_<type>2_<n>D.nc, run_bm_test2 reads tst_simple.nc, and
+# run_par_bm_test reads what run_bm_test1 leaves behind. Makefile.am states
+# these orderings explicitly (`run_bm_test1.log: tst_create_files.log` and
+# friends); without the same statement here, `ctest -j` is free to start a
+# reader while tst_create_files is still writing.
+#
+# add_sh_test expands to nothing when bash is absent, and run_par_bm_test only
+# exists for parallel builds, so guard on the test rather than on the
+# conditions that created it.
+FOREACH(READER run_bm_elena run_bm_test1 run_bm_test2)
+  IF(TEST nc_perf_${READER})
+    SET_TESTS_PROPERTIES(nc_perf_${READER} PROPERTIES
+                         DEPENDS nc_perf_tst_create_files)
+  ENDIF()
+ENDFOREACH()
+IF(TEST nc_perf_run_par_bm_test)
+  SET_TESTS_PROPERTIES(nc_perf_run_par_bm_test PROPERTIES
+                       DEPENDS "nc_perf_tst_create_files;nc_perf_run_bm_test1")
+ENDIF()
+
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
