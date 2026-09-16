@@ -123,7 +123,7 @@ static void crc64_big_init(void)
 /* Run the init() function exactly once.  If pthread.h is not included, then
    this macro will use a simple static state variable for the purpose, which is
    not thread-safe.  The init function must be of the type void init(void). */
-#ifdef 0
+#if 0
 #  define ONCE(init) \
     do { \
         static pthread_once_t once = PTHREAD_ONCE_INIT; \
