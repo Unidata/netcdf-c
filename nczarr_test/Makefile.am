@@ -90,6 +90,7 @@ endif
 # Unlimited Dimension tests (at least in part)
 TESTS += run_mud.sh
 TESTS += test_unlim_vars
+TESTS += test_nczarr_max_name
 
 if USE_HDF5
 # Unlimited Dimension tests
