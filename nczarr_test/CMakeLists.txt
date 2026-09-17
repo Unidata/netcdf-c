@@ -107,6 +107,7 @@ IF(NETCDF_ENABLE_TESTS)
   build_bin_test_with_util_lib(test_fillonlyz test_utils)
   build_bin_test_with_util_lib(test_quantize test_utils)
   build_bin_test_with_util_lib(test_notzarr test_utils)
+  add_bin_test_with_util_lib(nczarr_test test_nczarr_max_name test_utils)
 
 #  ADD_BIN_TEST(nczarr_test test_endians ${TSTCOMMONSRC})
 
