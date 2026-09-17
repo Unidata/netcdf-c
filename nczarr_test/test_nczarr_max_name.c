@@ -2,14 +2,14 @@
    Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Regression test for GHSA-rw7h-7ph9-2q8f:
-   an over-length attribute-name key in a hand-authored .zattrs must not
-   cause an out-of-bounds write in NCZ_inq_attname. The netCDF write API
-   would reject such a name via nc4_check_name, so the malformed store is
-   constructed directly on disk to reach the vulnerable NCZarr read path.
+   An over-length attribute-name key in a hand-authored .zattrs must not
+   cause an out-of-bounds write in NCZ_inq_attname. Test that this is properly rejected.
+
+   @author Ward Fisher
 */
 
-#include "config.h"
+#include <config.h>
+#include <nc_tests.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
