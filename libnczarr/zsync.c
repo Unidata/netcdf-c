@@ -1244,6 +1244,10 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
     	    int isdfaltmaxstrlen = 0;
        	    int ismaxstrlen = 0;
 	    const char* aname = NCJstring(key);
+        /* Enforce NC_MAX_NAME on untrusted .zattrs keys */
+        if(aname == NULL || strlen(aname) > NC_MAX_NAME)
+            {stat = NC_EMAXNAME; goto done;}
+            
 	    /* See if this is a notable attribute */
 	    if(var != NULL && strcmp(aname,NC_ATT_FILLVALUE)==0) isfillvalue = 1;
 	    if(grp != NULL && grp->parent == NULL && strcmp(aname,NC_NCZARR_DEFAULT_MAXSTRLEN_ATTR)==0)

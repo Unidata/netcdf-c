@@ -884,9 +884,16 @@ NCZ_inq_attname(int ncid, int varid, int attnum, char *name)
 	goto done;
     assert(att);
 
+
+    //if (name)
+    //    strcpy(name, att->hdr.name);
     /* Get the name. */
-    if (name)
-        strcpy(name, att->hdr.name);
+    if (name) {
+        size_t n = (att->hdr.name != NULL) ? strlen(att->hdr.name) : 0;
+        if (n > NC_MAX_NAME) { retval = NC_EMAXNAME; goto done; }
+        if (att->hdr.name != NULL)
+            memcpy(name, att->hdr.name, n+1);
+    }    
 done:
     return ZUNTRACEX(retval,"name=%s",(retval?"":name));
 }
