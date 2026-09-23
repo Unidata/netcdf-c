@@ -152,10 +152,6 @@ if(HAVE_LIBDL)
   set(TLL_LIBS ${LIBDL} ${TLL_LIBS})
 endif()
 
-if(NETCDF_ENABLE_NCZARR_ZIP)
-  set(TLL_LIBS ${TLL_LIBS} ${Zip_LIBRARIES})
-endif()
-
 if(USE_HDF5)
   set(TLL_LIBS HDF5::HDF5 hdf5::hdf5_hl ${TLL_LIBS})
 endif()
