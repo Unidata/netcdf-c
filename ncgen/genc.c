@@ -1137,6 +1137,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
     Symbol* basetype = asym->typ.basetype;
     int typecode = basetype->typ.typecode;
     size_t len = asym->data->length; /* default assumption */
+    Symbol* attgroup = (asym->att.var == NULL?asym->container : asym->att.var->container);
 
     /* define a block to avoid name clashes*/
     codeline("");
@@ -1187,7 +1188,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
         bbprintf0(stmt,"%sstat = nc_put_att_%s(%s, %s, \"%s\", %s, %lu, %s_att);\n",
 		indented(1),
 		ncstype(basetype->typ.typecode),
-		groupncid(asym->container),
+		groupncid(attgroup),
 		(asym->att.var == NULL?"NC_GLOBAL"
 			              :varncid(asym->att.var)),
 		escapifyname(asym->name),
@@ -1202,7 +1203,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
         bbprintf0(stmt,"%sstat = nc_put_att_%s(%s, %s, \"%s\", %lu, %s);\n",
 		indented(1),
 		ncstype(basetype->typ.typecode),
-		groupncid(asym->container),
+		groupncid(attgroup),
 		(asym->att.var == NULL?"NC_GLOBAL"
 			              :varncid(asym->att.var)),
 		escapifyname(asym->name),
@@ -1224,7 +1225,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
         bbprintf0(stmt,"%sstat = nc_put_att_%s(%s, %s, \"%s\", %s, %lu, %s_att);",
 		indented(1),
 		ncstype(basetype->typ.typecode),
-		groupncid(asym->container),
+		groupncid(attgroup),
 		(asym->att.var == NULL?"NC_GLOBAL"
 			              :varncid(asym->att.var)),
 		escapifyname(asym->name),
@@ -1243,7 +1244,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
         bbprintf0(stmt,"%sstat = nc_put_att_%s(%s, %s, \"%s\", %lu, %s_att);",
 		indented(1),
 		ncstype(basetype->typ.typecode),
-		groupncid(asym->container),
+		groupncid(attgroup),
 		(asym->att.var == NULL?"NC_GLOBAL"
 			              :varncid(asym->att.var)),
 		escapifyname(asym->name),
@@ -1262,7 +1263,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
 	}
         bbprintf0(stmt,"%sstat = nc_put_att(%s, %s, \"%s\", %s, %lu, %s_att);\n",
 		indented(1),
-		groupncid(asym->container),
+		groupncid(attgroup),
 		(asym->att.var == NULL?"NC_GLOBAL"
 			              :varncid(asym->att.var)),
 		escapifyname(asym->name),

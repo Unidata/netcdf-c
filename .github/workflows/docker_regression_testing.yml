@@ -28,12 +28,13 @@ jobs:
         c-compiler: [ 'gcc', 'clang' ]
         h5ver: [ '1.14.6' ]
         fortran-branch: [ 'main' ]
+        cxx4-branch: [ 'main' ]
         buildsystem: [ 'both' ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Pull and Run netCDF Regression Tests
-        uses: Unidata/netcdf-test-action@v2
+        uses: Unidata/netcdf-test-action@v3
         with:
           repo-type: '${{ matrix.repo-type }}'
           run-c: 'TRUE'
@@ -43,6 +44,8 @@ jobs:
           c-compiler: '${{ matrix.c-compiler }}'
           run-fortran: 'TRUE'
           fortran-branch: '${{ matrix.fortran-branch }}'
+          run-cxx4: 'TRUE'
+          cxx4-branch: '${{ matrix.cxx4-branch }}'
           autotools-c-options: '--enable-s3 --enable-s3-internal'
           cmake-c-options: '-DNETCDF_ENABLE_S3_INTERNAL=TRUE'
 
@@ -55,12 +58,13 @@ jobs:
           c-compiler: [ 'gcc', 'clang' ]
           h5ver: [ '1.12.1', '1.14.6' ]
           fortran-branch: [ 'v4.6.2', 'main' ]
+          cxx4-branch: [ 'main' ]
           buildsystem: [ 'both' ]
 
       steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v7
         - name: Pull and Run netCDF Regression Tests
-          uses: Unidata/netcdf-test-action@v2
+          uses: Unidata/netcdf-test-action@v3
           with:
             repo-type: '${{ matrix.repo-type }}'
             run-c: 'TRUE'
@@ -70,6 +74,8 @@ jobs:
             c-compiler: '${{ matrix.c-compiler }}'
             run-fortran: 'TRUE'
             fortran-branch: '${{ matrix.fortran-branch }}'
+            run-cxx4: 'TRUE'
+            cxx4-branch: '${{ matrix.cxx4-branch }}'
 
 ###
 # Testing some combinatorics for various options.
@@ -86,12 +92,13 @@ jobs:
         h5ver: [ '1.14.6' ]
         c-compiler: [ 'gcc' ]
         fortran-branch: [ 'main' ]
+        cxx4-branch: [ 'main' ]
         buildsystem: [ 'both' ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Pull and Run netCDF Regression Tests
-        uses: Unidata/netcdf-test-action@v2
+        uses: Unidata/netcdf-test-action@v3
         with:
           repo-type: '${{ matrix.repo-type }}'
           run-c: 'TRUE'
@@ -101,6 +108,8 @@ jobs:
           c-compiler: '${{ matrix.c-compiler }}'
           run-fortran: 'TRUE'
           fortran-branch: '${{ matrix.fortran-branch }}'
+          run-cxx4: 'TRUE'
+          cxx4-branch: '${{ matrix.cxx4-branch }}'
           autotools-c-options: '--disable-dap --disable-dap4 --disable-libxml2 --disable-nczarr'
           cmake-c-options: '-DNETCDF_ENABLE_LIBXML2=OFF -DNETCDF_ENABLE_DAP4=OFF -DNETCDF_ENABLE_NCZARR=OFF'
 ### 
@@ -119,12 +128,13 @@ jobs:
         c-compiler: [ 'mpicc' ]
         mpich-version: [ 'default' ]
         fortran-branch: [ 'v4.6.2', 'main' ]
+        cxx4-branch: [ 'main' ]
         buildsystem: [ 'cmake', 'autotools' ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Pull and Run netCDF Regression Tests
-        uses: Unidata/netcdf-test-action@v2
+        uses: Unidata/netcdf-test-action@v3
         with:
           repo-type: '${{ matrix.repo-type }}'
           run-c: 'TRUE'
@@ -135,6 +145,8 @@ jobs:
           mpich-version: '${{ matrix.mpich-version }}'
           run-fortran: 'TRUE'
           fortran-branch: '${{ matrix.fortran-branch }}'
+          run-cxx4: 'TRUE'
+          cxx4-branch: '${{ matrix.cxx4-branch }}'
 
   ###
   # Test with Java
@@ -154,13 +166,14 @@ jobs:
         java-branch: [ 'maint-5.x' ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Pull and Run netCDF Regression Tests
-        uses: Unidata/netcdf-test-action@v2
+        uses: Unidata/netcdf-test-action@v3
         with:
           repo-type: '${{ matrix.repo-type }}'
           run-c: 'FALSE'
           run-fortran: 'FALSE'
+          run-cxx4: 'FALSE'
           build-system: '${{ matrix.build-system }}'
           hdf5-version: '${{ matrix.h5ver }}'
           ctest-repeat: 3

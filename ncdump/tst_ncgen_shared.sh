@@ -99,6 +99,7 @@ ref_tst_h_scalar \
 ref_tst_nul4 \
 ref_tst_econst \
 ref_tst_econst2 \
+ref_attscope \
 "
 
 TESTS4="$TESTS4 ref_tst_vlen_data2"

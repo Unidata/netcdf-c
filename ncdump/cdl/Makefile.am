@@ -10,6 +10,7 @@
 EXTRA_DIST = \
 c0.cdl example_good.cdl fills.cdl nc_enddef.cdl nc_sync.cdl pres_temp_4D.cdl \
 ref_const_test.cdl ref_ctest1_nc4.cdl ref_ctest1_nc4c.cdl ref_dimscope.cdl \
+ref_attscope.cdl \
 ref_nctst.cdl ref_nctst_64bit_offset.cdl ref_nctst_netcdf4.cdl \
 ref_nctst_netcdf4_classic.cdl \
 ref_tst_comp.cdl ref_tst_comp2.cdl ref_tst_comp3.cdl \

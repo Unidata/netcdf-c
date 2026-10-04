@@ -35,7 +35,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Add swap space
         # QEMU emulation is memory-intensive. The default GitHub Actions runner

@@ -67,6 +67,9 @@ extern "C" {
     NC4_inq_dimid(int ncid, const char *name, int *idp);
 
     EXTERNL int
+    NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp);
+
+    EXTERNL int
     NC4_inq_unlimdim(int ncid, int *unlimdimidp);
 
 /* End _dim */

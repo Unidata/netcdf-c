@@ -47,8 +47,9 @@ ut_zinfer_SOURCES = ut_zinfer.c ${commonsrc}
 TESTS += ut_zinfer
 
 test_fillonlyz_SOURCES = test_fillonlyz.c ${testcommonsrc}
+test_nczarr_max_name_SOURCES = test_nczarr_max_name.c ${testcommonsrc}
 
-check_PROGRAMS += test_fillonlyz test_quantize test_notzarr
+check_PROGRAMS += test_fillonlyz test_quantize test_notzarr test_nczarr_max_name
 
 # Unlimited Dimension tests
 if USE_HDF5
@@ -90,6 +91,8 @@ endif
 # Unlimited Dimension tests (at least in part)
 TESTS += run_mud.sh
 TESTS += test_unlim_vars
+
+TESTS += test_nczarr_max_name
 
 if USE_HDF5
 # Unlimited Dimension tests
@@ -290,6 +293,7 @@ test_put_vars_two_unlim_dim.c: $(top_srcdir)/nc_test4/tst_put_vars_two_unlim_dim
 	rm -f $@
 	echo "#define TESTNCZARR" > $@
 	cat $(top_srcdir)/nc_test4/tst_put_vars_two_unlim_dim.c >> $@
+
 
 test_chunking.c: $(top_srcdir)/ncdump/tst_chunking.c
 	rm -f $@

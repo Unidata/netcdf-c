@@ -1244,6 +1244,10 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
     	    int isdfaltmaxstrlen = 0;
        	    int ismaxstrlen = 0;
 	    const char* aname = NCJstring(key);
+        /* Enforce NC_MAX_NAME on untrusted .zattrs keys */
+        if(aname == NULL || strlen(aname) > NC_MAX_NAME)
+            {stat = NC_EMAXNAME; goto done;}
+            
 	    /* See if this is a notable attribute */
 	    if(var != NULL && strcmp(aname,NC_ATT_FILLVALUE)==0) isfillvalue = 1;
 	    if(grp != NULL && grp->parent == NULL && strcmp(aname,NC_NCZARR_DEFAULT_MAXSTRLEN_ATTR)==0)
@@ -1457,8 +1461,10 @@ define_var1(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, const char* varname)
 	int endianness;
 	if((stat = NCJdictget(jvar,"dtype",&jvalue))<0) {stat = NC_EINVAL; goto done;}
 	/* Convert dtype to nc_type + endianness */
-	if((stat = ncz_dtype2nctype(NCJstring(jvalue),NC_NAT,purezarr,&vtype,&endianness,&vtypelen)))
+	if((stat = ncz_dtype2nctype(NCJstring(jvalue),NC_NAT,purezarr,&vtype,&endianness,&vtypelen))){
+	    ZLOG(NCLOGERR, "Unsupported data type detected in variable \"%s\" (dtype=\"%s\").", varname, NCJstring(jvalue));
 	    goto done;
+	}
 	if(vtype > NC_NAT && vtype <= NC_MAX_ATOMIC_TYPE) {
 	    /* Locate the NC_TYPE_INFO_T object */
 	    if((stat = ncz_gettype(file,grp,vtype,&var->type_info)))
