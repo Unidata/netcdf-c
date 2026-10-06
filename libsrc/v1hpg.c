@@ -8,6 +8,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -307,6 +308,10 @@ v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 {
 	int status = 0;
 	size_t nchars = 0;
+	size_t padded_nchars;
+	off_t filesize;
+	ptrdiff_t consumed;
+	uintmax_t remaining;
 	NC_string *ncstrp = NULL;
 #if USE_STRICT_NULL_BYTE_HEADER_PADDING
         size_t padding = 0;        
@@ -315,6 +320,22 @@ v1h_get_NC_string(v1hs *gsp, NC_string **ncstrpp)
 	status = v1h_get_size_t(gsp, &nchars);
 	if(status != NC_NOERR)
 		return status;
+
+	status = ncio_filesize(gsp->nciop, &filesize);
+	if(status != NC_NOERR)
+		return status;
+	consumed = (char *)gsp->pos - (char *)gsp->base;
+	if(filesize < 0 || gsp->offset < 0 || gsp->offset > filesize || consumed < 0)
+		return NC_ETRUNC;
+	remaining = (uintmax_t)(filesize - gsp->offset);
+	if((uintmax_t)consumed > remaining)
+		return NC_ETRUNC;
+	remaining -= (uintmax_t)consumed;
+	if(nchars > SIZE_MAX - (X_ALIGN - 1))
+		return NC_ETRUNC;
+	padded_nchars = _RNDUP(nchars, X_ALIGN);
+	if((uintmax_t)padded_nchars > remaining)
+		return NC_ETRUNC;
 
 	ncstrp = new_NC_string(nchars, NULL);
 	if(ncstrp == NULL)
