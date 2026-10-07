@@ -175,7 +175,7 @@ nclogtextn(int level, const char* text, size_t count)
 static const char*
 nctagname(int tag)
 {
-    if(tag < NCLOGOFF || tag >= NCLOGDEBUG)
+    if(tag < NCLOGOFF || tag > NCLOGDEBUG)
 	return "unknown";
     return nctagset[tag];
 }
