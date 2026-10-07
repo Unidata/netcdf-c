@@ -22,9 +22,30 @@
 
 /*DO NOT DELETE THIS LINE*/
 
-%token  SCAN_WORD
-%token  SCAN_STRINGCONST
-%token  SCAN_NUMBERCONST
+/* All semantic values are Object (void*) at runtime; using void* directly
+ * here avoids forward-declaring Object before dcetab.h is included by
+ * other modules.  The fields are just tag handles so %destructor can
+ * free orphaned values popped during error recovery without leaking. */
+%union {
+    void* node;   /* DCEnode subclasses; dcefree walks all of them */
+    void* list;   /* NClist of DCEnodes;  dcefreelist handles */
+    void* leaf;   /* lexer-owned token strings; reclaim list frees */
+    void* tag;    /* integer cast in Object*; no allocation */
+}
+
+%token <leaf> SCAN_WORD
+%token <leaf> SCAN_STRINGCONST
+%token <leaf> SCAN_NUMBERCONST
+
+%type <node>  projection function boolfunction segmentlist segment range
+%type <node>  sel_clause value constant var index
+%type <list>  projectionlist rangelist clauselist value_list indexpath
+%type <list>  array_indices arg_list
+%type <leaf>  ident word number string range1
+%type <tag>   rel_op
+
+%destructor { dcefree((DCEnode*)$$); }     <node>
+%destructor { dcefreelist((NClist*)$$); }  <list>
 
 %start constraints
 
@@ -116,7 +137,7 @@ sel_clause:
 	| '&' value rel_op value
 	    {$$=sel_clause(parsestate,2,$2,$3,$4);}
 	| '&' boolfunction
-	    {$$=$1;}
+	    {$$=$2;}
         ;
 
 value_list:

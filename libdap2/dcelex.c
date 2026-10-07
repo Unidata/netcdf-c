@@ -147,10 +147,10 @@ dcelex(YYSTYPE* lvalp, DCEparsestate* state)
     /*Put return value onto Bison stack*/
 
     if(ncbyteslength(lexstate->yytext) == 0)
-        *lvalp = NULL;
+        lvalp->leaf = NULL;
     else {
-        *lvalp = ncbytesdup(lexstate->yytext);
-	nclistpush(lexstate->reclaim,(void*)*lvalp);
+        lvalp->leaf = ncbytesdup(lexstate->yytext);
+	nclistpush(lexstate->reclaim,(void*)lvalp->leaf);
     }
 
     return token;
