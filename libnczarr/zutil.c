@@ -1055,3 +1055,203 @@ NCZ_iscomplexjson(const NCjson* json, nc_type typehint)
 done:
     return stat;
 }
+
+
+/* Convert a JSON singleton or array of strings to a single string */
+static int
+zcharify(const NCjson* src, NCbytes* buf)
+{
+    int stat = NC_NOERR;
+    size_t i;
+    struct NCJconst jstr;
+
+    memset(&jstr,0,sizeof(jstr));
+
+    if(NCJsort(src) != NCJ_ARRAY) { /* singleton */
+        if((stat = NCJcvt(src, NCJ_STRING, &jstr))<0) {stat = NC_EINVAL; goto done;}
+        ncbytescat(buf,jstr.sval);
+    } else for(i=0;i<NCJarraylength(src);i++) {
+	NCjson* value = NCJith(src,i);
+	if((stat = NCJcvt(value, NCJ_STRING, &jstr))<0) {stat = NC_EINVAL; goto done;}
+	ncbytescat(buf,jstr.sval);
+        nullfree(jstr.sval);jstr.sval = NULL;
+    }
+done:
+    nullfree(jstr.sval);
+    return stat;
+}
+
+
+
+/* Convert a json value to actual data values of an attribute. */
+static int
+zconvert(const NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes* dst)
+{
+    int stat = NC_NOERR;
+    int i;
+    int count = 0;
+    
+    ZTRACE(3,"src=%s typeid=%d typelen=%u",NCJtotext(src,0),typeid,typelen);
+	    
+    /* 3 cases:
+       (1) singleton atomic value
+       (2) array of atomic values
+       (3) other JSON expression
+    */
+    switch (NCJsort(src)) {
+    case NCJ_INT: case NCJ_DOUBLE: case NCJ_BOOLEAN: /* case 1 */
+	count = 1;
+	if((stat = NCZ_convert1(src, typeid, dst)))
+	    goto done;
+	break;
+
+    case NCJ_ARRAY:
+        if(typeid == NC_CHAR) {
+	    if((stat = zcharify(src,dst))) goto done;
+	    count = ncbyteslength(dst);
+        } else {
+	    count = NCJarraylength(src);
+	    for(i=0;i<count;i++) {
+	        NCjson* value = NCJith(src,i);
+                if((stat = NCZ_convert1(value, typeid, dst))) goto done;
+	    }
+	}
+	break;
+    case NCJ_STRING:
+	if(typeid == NC_CHAR) {
+	    if((stat = zcharify(src,dst))) goto done;
+	    count = ncbyteslength(dst);
+	    /* Special case for "" */
+	    if(count == 0) {
+	        ncbytesappend(dst,'\0');
+	        count = 1;
+	    }
+	} else {
+	    if((stat = NCZ_convert1(src, typeid, dst))) goto done;
+	    count = 1;
+	}
+	break;
+    default: stat = (THROW(NC_ENCZARR)); goto done;
+    }
+    if(countp) *countp = count;
+
+done:
+    return ZUNTRACE(THROW(stat));
+}
+
+
+/**
+Implement the JSON convention:
+Stringify it as the value and make the attribute be of type "char".
+*/
+
+static int
+json_convention_read(const NCjson* json, NCjson** jtextp)
+{
+    int stat = NC_NOERR;
+    NCjson* jtext = NULL;
+    char* text = NULL;
+
+    if(json == NULL) {stat = NC_EINVAL; goto done;}
+    if(NCJunparse(json,0,&text)) {stat = NC_EINVAL; goto done;}
+    NCJnewstring(NCJ_STRING,text,&jtext);
+    *jtextp = jtext; jtext = NULL;
+done:
+    NCJreclaim(jtext);
+    nullfree(text);
+    return stat;
+}
+/*
+Extract data for an attribute
+*/
+int
+NCZ_computeattrdata(nc_type typehint, nc_type* typeidp, const NCjson* values, size_t* typelenp, size_t* countp, void** datap)
+{
+    int stat = NC_NOERR;
+    NCbytes* buf = ncbytesnew();
+    size_t typelen;
+    nc_type typeid = NC_NAT;
+    NCjson* jtext = NULL;
+    int reclaimvalues = 0;
+    int isjson = 0; /* 1 => attribute value is neither scalar nor array of scalars */
+    int count = 0; /* no. of attribute values */
+
+    ZTRACE(3,"typehint=%d typeid=%d values=|%s|",typehint,*typeidp,NCJtotext(values,0));
+
+    /* Get assumed type */
+    if(typeidp) typeid = *typeidp;
+    if(typeid == NC_NAT && !isjson) {
+        if((stat = NCZ_inferattrtype(values,typehint, &typeid))) goto done;
+    }
+
+    /* See if this is a simple vector (or scalar) of atomic types */
+    isjson = NCZ_iscomplexjson(values,typeid);
+
+    if(isjson) {
+	/* Apply the JSON attribute convention and convert to JSON string */
+	typeid = NC_CHAR;
+	if((stat = json_convention_read(values,&jtext))) goto done;
+	values = jtext; jtext = NULL;
+	reclaimvalues = 1;
+    }
+
+    if((stat = NC4_inq_atomic_type(typeid, NULL, &typelen)))
+        goto done;
+
+    /* Convert the JSON attribute values to the actual netcdf attribute bytes */
+    if((stat = zconvert(values,typeid,typelen,&count,buf))) goto done;
+
+    if(typelenp) *typelenp = typelen;
+    if(typeidp) *typeidp = typeid; /* return possibly inferred type */
+    if(countp) *countp = (size_t)count;
+    if(datap) *datap = ncbytesextract(buf);
+
+done:
+    ncbytesfree(buf);
+    if(reclaimvalues) NCJreclaim((NCjson*)values); /* we created it */
+    return ZUNTRACEX(THROW(stat),"typelen=%d count=%u",(typelenp?*typelenp:0),(countp?*countp:-1));
+}
+/*
+Extract type and data for an attribute
+*/
+int
+NCZ_computeattrinfo(const char* name, const NCjson* jtypes, nc_type typehint, int purezarr, NCjson* values,
+		nc_type* typeidp, size_t* typelenp, size_t* lenp, void** datap)
+{
+    int stat = NC_NOERR;
+    size_t i;
+    size_t len, typelen;
+    void* data = NULL;
+    nc_type typeid;
+
+    ZTRACE(3,"name=%s typehint=%d purezarr=%d values=|%s|",name,typehint,purezarr,NCJtotext(values,0));
+
+    /* Get type info for the given att */
+    typeid = NC_NAT;
+    for(i=0;i<NCJdictlength(jtypes);i++) {
+	NCjson* akey = NCJdictkey(jtypes,i);
+	if(strcmp(NCJstring(akey),name)==0) {
+	    const NCjson* avalue = NULL;
+	    NCJdictget(jtypes,NCJstring(akey),&avalue);
+	    if((stat = ncz_dtype2nctype(NCJstring(avalue),typehint,purezarr,&typeid,NULL,NULL))) goto done;
+//		if((stat = ncz_nctypedecode(atype,&typeid))) goto done;
+	    break;
+	}
+    }
+    if(typeid > NC_MAX_ATOMIC_TYPE)
+	{stat = NC_EINTERNAL; goto done;}
+    /* Use the hint if given one */
+    if(typeid == NC_NAT)
+        typeid = typehint;
+
+    if((stat = NCZ_computeattrdata(typehint, &typeid, values, &typelen, &len, &data))) goto done;
+
+    if(typeidp) *typeidp = typeid;
+    if(lenp) *lenp = len;
+    if(typelenp) *typelenp = typelen;
+    if(datap) {*datap = data; data = NULL;}
+
+done:
+    nullfree(data);
+    return ZUNTRACEX(THROW(stat),"typeid=%d typelen=%d len=%u",*typeidp,*typelenp,*lenp);
+}
