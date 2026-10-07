@@ -4,7 +4,7 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-set(oc_SOURCES oc.c daplex.c dapparse.c dapy.c occompile.c occurlfunctions.c ocdata.c ocdebug.c ocdump.c ocinternal.c ocnode.c ochttp.c ocread.c ocutil.c xxdr.c)
+set(oc_SOURCES oc.c daplex.c dapparse.c dap.tab.c occompile.c occurlfunctions.c ocdata.c ocdebug.c ocdump.c ocinternal.c ocnode.c ochttp.c ocread.c ocutil.c xxdr.c)
 
 add_library(oc2 OBJECT ${oc_SOURCES})
 
