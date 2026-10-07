@@ -6,10 +6,10 @@
    registered UDF dispatch table, even when the file on disk is a valid
    NetCDF-4/HDF5 file that would normally be auto-detected as HDF5.
 
-   This test exercises all 10 UDF slots (UDF0 through UDF9) by
-   registering a minimal dispatch table in each slot and verifying that
-   nc_open() with the matching mode flag dispatches to the UDF handler
-   instead of to the HDF5 handler.
+   This test exercises all NC_MAX_UDF_FORMATS UDF slots by registering
+   a minimal dispatch table in each slot and verifying that nc_open()
+   with the matching mode flag dispatches to the UDF handler instead
+   of to the HDF5 handler.
 
    See https://github.com/Unidata/netcdf-c/issues/3417
 
@@ -26,16 +26,10 @@
 
 #define FILE_NAME "tst_udf_open_mode.nc"
 
-static const int udf_modes[NC_MAX_UDF_FORMATS] = {
-    NC_UDF0, NC_UDF1, NC_UDF2, NC_UDF3, NC_UDF4,
-    NC_UDF5, NC_UDF6, NC_UDF7, NC_UDF8, NC_UDF9
-};
-
-static const int udf_models[NC_MAX_UDF_FORMATS] = {
-    NC_FORMATX_UDF0, NC_FORMATX_UDF1, NC_FORMATX_UDF2, NC_FORMATX_UDF3,
-    NC_FORMATX_UDF4, NC_FORMATX_UDF5, NC_FORMATX_UDF6, NC_FORMATX_UDF7,
-    NC_FORMATX_UDF8, NC_FORMATX_UDF9
-};
+/* Mode flags and format constants for each UDF slot; filled in by
+ * init_dispatchers(). */
+static int udf_modes[NC_MAX_UDF_FORMATS];
+static int udf_models[NC_MAX_UDF_FORMATS];
 
 /* Minimal UDF dispatch stubs. */
 
@@ -89,6 +83,8 @@ init_dispatchers(void)
         NC_Dispatch *dsp = &udf_dispatchers[i];
         memset(dsp, 0, sizeof(NC_Dispatch));
 
+        udf_modes[i] = NC_UDF(i);
+        udf_models[i] = NC_FORMATX_UDF(i);
         dsp->model = udf_models[i];
         dsp->dispatch_version = NC_DISPATCH_VERSION;
 

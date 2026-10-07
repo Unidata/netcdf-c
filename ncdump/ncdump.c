@@ -277,7 +277,7 @@ kind_string(int kind)
 	return "netCDF-4 classic model";
     default:
         if(kind == NC_FORMATX_UDF0 || kind == NC_FORMATX_UDF1
-           || (kind >= NC_FORMATX_UDF2 && kind <= NC_FORMATX_UDF9))
+           || (kind >= NC_FORMATX_UDF2 && kind <= NC_FORMATX_UDF_MAX))
             return "user-defined format";
         error("unrecognized file format: %d", kind);
 	return "unrecognized";
@@ -319,7 +319,7 @@ kind_string_extended(int kind, int mode)
 	break;
     default:
         if(kind == NC_FORMATX_UDF0 || kind == NC_FORMATX_UDF1
-           || (kind >= NC_FORMATX_UDF2 && kind <= NC_FORMATX_UDF9))
+           || (kind >= NC_FORMATX_UDF2 && kind <= NC_FORMATX_UDF_MAX))
             snprintf(text,sizeof(text),"%s mode=%08x", "user-defined format",mode);
         else {
             error("unrecognized extended format: %d",kind);

@@ -67,3 +67,4 @@ build_llvm
 Vagrantfile
 netcdf-fortran
 .windsurf
+.devin

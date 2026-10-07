@@ -129,13 +129,22 @@ EXTERNL int NC_copy_data_all(NC* nc, nc_type xtypeid, const void* memory, size_t
 
 /* Macros to map NC_FORMAT_XX to metadata structure (e.g. NC_FILE_INFO_T) */
 /* Fast test for what file structure is used */
-#define NC3INFOFLAGS ((1<<NC_FORMATX_NC3)|(1<<NC_FORMATX_PNETCDF)|(1<<NC_FORMATX_DAP2))
-#define FILEINFOFLAGS ((1<<NC_FORMATX_NC_HDF5)|(1<<NC_FORMATX_NC_HDF4)|(1<<NC_FORMATX_DAP4)|(1<<NC_FORMATX_UDF1)|(1<<NC_FORMATX_UDF0)|(1<<NC_FORMATX_NCZARR))
 
-#define USENC3INFO(nc) ((1<<(nc->dispatch->model)) & NC3INFOFLAGS)
-#define USEFILEINFO(nc) ((1<<(nc->dispatch->model)) & FILEINFOFLAGS)
-#define USED2INFO(nc) ((1<<(nc->dispatch->model)) & (1<<NC_FORMATX_DAP2))
-#define USED4INFO(nc) ((1<<(nc->dispatch->model)) & (1<<NC_FORMATX_DAP4))
+/* Test whether a model constant is a UDF format constant. The UDF
+   constants form two ranges (NC_FORMATX_UDF0 to NC_FORMATX_UDF1, and
+   NC_FORMATX_UDF2 to NC_FORMATX_UDF_MAX) and can exceed 31, so they
+   must be tested by range: (1<<model) is undefined behavior for
+   model >= 31. All UDF formats use NC_FILE_INFO_T metadata. */
+#define UDFMODEL(model) (((model) >= NC_FORMATX_UDF0 && (model) <= NC_FORMATX_UDF1) \
+                         || ((model) >= NC_FORMATX_UDF2 && (model) <= NC_FORMATX_UDF_MAX))
+
+#define NC3INFOFLAGS ((1<<NC_FORMATX_NC3)|(1<<NC_FORMATX_PNETCDF)|(1<<NC_FORMATX_DAP2))
+#define FILEINFOFLAGS ((1<<NC_FORMATX_NC_HDF5)|(1<<NC_FORMATX_NC_HDF4)|(1<<NC_FORMATX_DAP4)|(1<<NC_FORMATX_NCZARR))
+
+#define USENC3INFO(nc) (!UDFMODEL((nc)->dispatch->model) && ((1<<((nc)->dispatch->model)) & NC3INFOFLAGS))
+#define USEFILEINFO(nc) (UDFMODEL((nc)->dispatch->model) || ((1<<((nc)->dispatch->model)) & FILEINFOFLAGS))
+#define USED2INFO(nc) (!UDFMODEL((nc)->dispatch->model) && ((1<<((nc)->dispatch->model)) & (1<<NC_FORMATX_DAP2)))
+#define USED4INFO(nc) (!UDFMODEL((nc)->dispatch->model) && ((1<<((nc)->dispatch->model)) & (1<<NC_FORMATX_DAP4)))
 
 /* In DAP4 and Zarr (and maybe other places in the future)
    we may have dimensions with a size, but no name.
