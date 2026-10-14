@@ -1343,9 +1343,13 @@ if(MPI_FOUND)
   elseif(MPI_C_INCLUDE_DIRS)
     set(CMAKE_REQUIRED_INCLUDES "${MPI_C_INCLUDE_DIRS}")
   endif()
+  # The functions (Open MPI, MPICH) must link, so link the MPI library too.
+  # See https://github.com/Unidata/netcdf-c/issues/3414
+  set(CMAKE_REQUIRED_LIBRARIES MPI::MPI_C)
   CHECK_SYMBOL_EXISTS(MPI_Comm_f2c "mpi.h" HAVE_MPI_COMM_F2C)
   CHECK_SYMBOL_EXISTS(MPI_Info_f2c "mpi.h" HAVE_MPI_INFO_F2C)
   unset(CMAKE_REQUIRED_INCLUDES)
+  unset(CMAKE_REQUIRED_LIBRARIES)
 endif()
 
 CHECK_FUNCTION_EXISTS(memmove HAVE_MEMMOVE)
