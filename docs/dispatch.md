@@ -25,20 +25,11 @@ and the specific code should be consulted to see the actual parameters.
 <tr><td>PNetCDF<td>libsrcp<td>NC_FORMATX_PNETCDF
 <tr><td>DAP2<td>libdap2<td>NC_FORMATX_DAP2
 <tr><td>DAP4<td>libdap4<td>NC_FORMATX_DAP4
-<tr><td>UDF0<td>N.A.<td>NC_FORMATX_UDF0
-<tr><td>UDF1<td>N.A.<td>NC_FORMATX_UDF1
-<tr><td>UDF2<td>N.A.<td>NC_FORMATX_UDF2
-<tr><td>UDF3<td>N.A.<td>NC_FORMATX_UDF3
-<tr><td>UDF4<td>N.A.<td>NC_FORMATX_UDF4
-<tr><td>UDF5<td>N.A.<td>NC_FORMATX_UDF5
-<tr><td>UDF6<td>N.A.<td>NC_FORMATX_UDF6
-<tr><td>UDF7<td>N.A.<td>NC_FORMATX_UDF7
-<tr><td>UDF8<td>N.A.<td>NC_FORMATX_UDF8
-<tr><td>UDF9<td>N.A.<td>NC_FORMATX_UDF9
+<tr><td>UDF slot n (0-63)<td>N.A.<td>NC_FORMATX_UDF(n)
 <tr><td>NCZarr<td>libnczarr<td>NC_FORMATX_NCZARR
 </table>
 
-Note that UDF0 through UDF9 (10 slots total) allow for user-defined dispatch tables to
+Note that the 64 UDF slots (0 through 63) allow for user-defined dispatch tables to
 be implemented. These can be registered programmatically via nc_def_user_format() or
 automatically loaded from RC file configuration. See [User-Defined Formats](#user_defined_formats)
 for details.

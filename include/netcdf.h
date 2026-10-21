@@ -125,9 +125,13 @@ extern "C" {
 /* Define the ioflags bits for nc_create and nc_open.
    Currently unused in lower 16 bits:
         0x0002
-   All upper 16 bits are unused except
-        0x20000
-        0x40000
+        0x0080
+   Upper 16 bits used:
+        0x20000 (NC_NOATTCREORD)
+        0x40000 (NC_NODIMSCALE_ATTACH)
+        0x80000-0x1000000 (bits 19-24, UDF slot number field)
+   Free upper bits: 16, 25, 26-30. Bit 31 is the sign bit and must
+   not be used.
 */
 
 /* Lower 16 bits */
@@ -144,23 +148,23 @@ extern "C" {
 #define NC_CDF5          NC_64BIT_DATA  /**< Alias NC_CDF5 to NC_64BIT_DATA */
 
 /** @name User-Defined Format Mode Flags
- * Mode flags for user-defined formats (UDF0-UDF9).
+ * Mode flags for user-defined formats (UDF slots 0-63).
+ * A UDF mode is marked by NC_UDF_FLAG (bit 6); the slot number is
+ * held in a 6-bit field at bits 19-24. Use NC_UDF(n) to build the
+ * mode flag for slot n. The convenience macros NC_UDF0 through
+ * NC_UDF9 are retained; their values (except NC_UDF0) changed when
+ * the encoding changed from one bit per slot.
  * Use with nc_def_user_format() to register custom format handlers.
- * Can not be combined with other mode flags (e.g., NC_NETCDF4).
+ * Can not be combined with other format-selection flags (e.g.,
+ * NC_64BIT_OFFSET), except NC_NETCDF4.
  * See @ref user_defined_formats for details.
  * @{ */
-#define NC_UDF0          0x0040  /**< User-defined format 0 (bit 6). */
-#define NC_UDF1          0x0080  /**< User-defined format 1 (bit 7). */
-/* UDF2-UDF9 use bits 16, 19-25 (skipping bits 17-18 which are used by
- * NC_NOATTCREORD=0x20000 and NC_NODIMSCALE_ATTACH=0x40000) */
-#define NC_UDF2          0x10000  /**< User-defined format 2 (bit 16). */
-#define NC_UDF3          0x80000  /**< User-defined format 3 (bit 19). */
-#define NC_UDF4          0x100000  /**< User-defined format 4 (bit 20). */
-#define NC_UDF5          0x200000  /**< User-defined format 5 (bit 21). */
-#define NC_UDF6          0x400000  /**< User-defined format 6 (bit 22). */
-#define NC_UDF7          0x800000  /**< User-defined format 7 (bit 23). */
-#define NC_UDF8          0x1000000  /**< User-defined format 8 (bit 24). */
-#define NC_UDF9          0x2000000  /**< User-defined format 9 (bit 25). */
+#define NC_UDF_FLAG      0x0040 /**< Mode selects a user-defined format (bit 6). */
+#define NC_UDF_NUM_SHIFT 19     /**< Bit position of the UDF slot number field. */
+#define NC_UDF_NUM_MASK  0x3F   /**< 6-bit UDF slot number field: slots 0-63. */
+#define NC_UDF(n)        (NC_UDF_FLAG | ((n) << NC_UDF_NUM_SHIFT)) /**< Mode flag for UDF slot n (0-63). */
+#define NC_UDF0          NC_UDF(0) /**< User-defined format 0 (0x0040, value unchanged). */
+#define NC_UDF1          NC_UDF(1) /**< User-defined format 1. */
 /**@}*/
 
 #define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model on netCDF-4. Mode flag for nc_create(). */
@@ -193,10 +197,10 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_NODIMSCALE_ATTACH 0x40000 /**< Disable the netcdf-4 (hdf5) attaching of dimscales to variables (#2128) */
 
 #define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of user-defined format magic number. */
-/** Maximum number of user-defined format slots (UDF0-UDF9).
+/** Maximum number of user-defined format slots (0-63).
  * @see nc_def_user_format(), nc_inq_user_format()
  * @see @ref user_defined_formats */
-#define NC_MAX_UDF_FORMATS 10
+#define NC_MAX_UDF_FORMATS 64
 
 /** Format specifier for nc_set_default_format() and returned
  *  by nc_inq_format. This returns the format as provided by
@@ -221,7 +225,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMAT_CDF5    NC_FORMAT_64BIT_DATA
 
 /* Define a mask covering format flags only */
-#define NC_FORMAT_ALL (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4|NC_UDF0|NC_UDF1|NC_UDF2|NC_UDF3|NC_UDF4|NC_UDF5|NC_UDF6|NC_UDF7|NC_UDF8|NC_UDF9)
+#define NC_FORMAT_ALL (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4|NC_UDF_FLAG|(NC_UDF_NUM_MASK << NC_UDF_NUM_SHIFT))
 
 /**@}*/
 
@@ -270,6 +274,10 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_UDF7      (16) /**< User-defined format 7 */
 #define NC_FORMATX_UDF8      (17) /**< User-defined format 8 */
 #define NC_FORMATX_UDF9      (18) /**< User-defined format 9 */
+/** Format constant for UDF slot n (0-63). Slots 0-1 map to 8-9;
+ * slots 2-63 map to 11-72, skipping 10 (NC_FORMATX_NCZARR). */
+#define NC_FORMATX_UDF(n)    ((n) < 2 ? NC_FORMATX_UDF0 + (n) : NC_FORMATX_UDF2 + (n) - 2)
+#define NC_FORMATX_UDF_MAX   (NC_FORMATX_UDF2 + NC_MAX_UDF_FORMATS - 3) /**< Largest UDF format constant (72). */
 /**@}*/
 #define NC_FORMATX_UNDEFINED (0)
 

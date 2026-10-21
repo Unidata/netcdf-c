@@ -90,7 +90,7 @@ get_symbol(void* handle, const char* symbol)
 /**
  * Load a single UDF plugin library and call its initialization function.
  *
- * @param udf_number UDF slot number (0-9).
+ * @param udf_number UDF slot number (0 to NC_MAX_UDF_FORMATS - 1).
  * @param library_path Full path to the plugin library.
  * @param init_func Name of the initialization function.
  * @param magic Optional magic number string (can be NULL).
@@ -111,15 +111,8 @@ load_udf_plugin(int udf_number, const char* library_path,
     char magic_check[NC_MAX_MAGIC_NUMBER_LEN + 1];
 #endif
     
-    /* Determine mode flag from UDF number.
-     * Use explicit array to avoid bit-collision bugs from shifting. */
-    {
-        int udf_flags[NC_MAX_UDF_FORMATS] = {
-            NC_UDF0, NC_UDF1, NC_UDF2, NC_UDF3, NC_UDF4,
-            NC_UDF5, NC_UDF6, NC_UDF7, NC_UDF8, NC_UDF9
-        };
-        mode_flag = udf_flags[udf_number];
-    }
+    /* Determine mode flag from UDF number. */
+    mode_flag = NC_UDF(udf_number);
     
     /* Load the library */
     handle = load_library(library_path);
@@ -225,9 +218,9 @@ done:
 /**
  * Load and initialize all UDF plugins from RC file configuration.
  *
- * This function loops through all 10 UDF slots (0-9) and checks for
- * corresponding RC file entries. If both LIBRARY and INIT keys are
- * present for a slot, it attempts to load that plugin.
+ * This function loops through all NC_MAX_UDF_FORMATS UDF slots and
+ * checks for corresponding RC file entries. If both LIBRARY and INIT
+ * keys are present for a slot, it attempts to load that plugin.
  *
  * @return NC_NOERR (always succeeds, even if plugins fail to load).
  *
@@ -239,7 +232,7 @@ NC_udf_load_plugins(void)
 {
     int stat = NC_NOERR;
     
-    /* Loop through all 10 UDF slots */
+    /* Loop through all UDF slots */
     for (int i = 0; i < NC_MAX_UDF_FORMATS; i++) {
         char key_lib[64], key_init[64], key_magic[64];
         const char* lib = NULL;
