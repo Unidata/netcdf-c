@@ -81,6 +81,7 @@ static Test S3TESTS[] = {
 /* Tests that should fail */
 static char* XTESTS[] = {
 "[dap4http://localhost:8081/x",
+"", /* empty url: must fail cleanly, not crash */
 NULL
 };
 

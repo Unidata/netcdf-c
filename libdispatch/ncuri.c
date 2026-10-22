@@ -130,17 +130,18 @@ ncuriparse(const char* uri0, NCURI** durip)
     size_t len0;
     char pathchar;
 
+    /* Create a local NCURI instance to hold
+       pointers into the parsed string.
+       Zero it before any THROW so cleanup never sees garbage.
+    */
+    memset(&tmp,0,sizeof(tmp));
+
     if(uri0 == NULL)
 	{THROW(NC_EURL);}
 
     len0 = strlen(uri0);
     if(len0 == 0)
 	{THROW(NC_EURL);}
-
-    /* Create a local NCURI instance to hold
-       pointers into the parsed string
-    */
-    memset(&tmp,0,sizeof(tmp));
 
     /* make mutable copy. Add some extra space
        because we will need to null terminate the host section
