@@ -123,7 +123,12 @@ fprintf(stderr, "nextread %lu, remaining %lu\n",
 	(unsigned long)nextread,
 	(unsigned long)((char *)gsp->end - (char *)gsp->pos));
 #endif
-    if((char *)gsp->pos + nextread <= (char *)gsp->end)
+    /*
+     * Bound against the space that remains.  Adding nextread to gsp->pos
+     * overflows for a large nextread, and the test then wrongly succeeds.
+     */
+    if((char *)gsp->pos <= (char *)gsp->end
+	&& nextread <= (size_t)((char *)gsp->end - (char *)gsp->pos))
 	return NC_NOERR;
 
     return fault_v1hs(gsp, nextread);
