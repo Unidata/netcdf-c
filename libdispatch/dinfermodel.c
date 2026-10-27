@@ -1617,12 +1617,16 @@ isdaoscontainer(const char* path)
 	    char* xvalue = NULL;
 	    char* p;
 	    char* endp;
-	    if((xlist = (char*)calloc(1,(size_t)xlen))==NULL)
+	    /* Allocate one extra byte so the buffers are always NUL terminated;
+	       the xattr calls do not guarantee that. */
+	    if((xlist = (char*)calloc(1,(size_t)xlen+1))==NULL)
 		{stat = NC_ENOMEM; goto done;}
 	    (void)LISTXATTR(path,xlist,xlen);
 	    p = xlist; endp = p + xlen; /* delimit names */
 	    /* walk the list of xattr names */
 	    for(;p < endp;p += (strlen(p)+1)) {
+		ssize_t vlen;
+		int found;
 		/* The popen version looks for the string ".daos";
                    It would be nice if we know whether that occurred
 		   int the xattr's name or it value.
@@ -1630,14 +1634,18 @@ isdaoscontainer(const char* path)
 		/* Look for '.daos' in the key */
 		if(strstr(p,".daos") != NULL) {rc = 1; break;} /* success */
 		/* Else get the p'th xattr's value size */
-		xlen = GETXATTR(path,p,NULL,0);
-		if((xvalue = (char*)calloc(1,(size_t)xlen))==NULL)
-		    {stat = NC_ENOMEM; goto done;}
+		vlen = GETXATTR(path,p,NULL,0);
+		if(vlen <= 0) continue; /* could not get value size for this xattr; try the next one */
+		if((xvalue = (char*)calloc(1,(size_t)vlen+1))==NULL)
+		    {free(xlist); stat = NC_ENOMEM; goto done;}
 		/* Read the value */
-		(void)GETXATTR(path,p,xvalue,xlen);
+		vlen = GETXATTR(path,p,xvalue,vlen);
 		/* Look for '.daos' in the value */
-		if(strstr(xvalue,".daos") != NULL) {rc = 1; break;} /* success */
+		found = (vlen > 0 && strstr(xvalue,".daos") != NULL);
+		free(xvalue); xvalue = NULL;
+		if(found) {rc = 1; break;} /* success */
 	    }
+	    free(xlist);
         }
 #else /*!HAVE_SYS_XATTR_H*/
 
