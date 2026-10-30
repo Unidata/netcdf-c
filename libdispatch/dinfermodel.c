@@ -1602,6 +1602,9 @@ isdaoscontainer(const char* path)
     htri_t accessible;
     hid_t fapl_id;
     int rc;
+    /* Only a file that already exists can pass the later xattr checks.
+       Return early if the path doesn't exist. */
+    if(NCaccess(path,ACCESS_MODE_EXISTS) != 0) goto done;
     /* Check for a DAOS container */
     if((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {stat = NC_EHDFERR; goto done;}
     H5Pset_fapl_sec2(fapl_id);
