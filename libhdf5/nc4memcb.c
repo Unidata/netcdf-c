@@ -718,7 +718,7 @@ out:
 hid_t
 NC4_image_init(NC_FILE_INFO_T* h5)
 {
-    hid_t		fapl = -1, file_id = -1; /* HDF5 identifiers */
+    hid_t		fapl = -1, fcpl_id = -1, file_id = -1; /* HDF5 identifiers */
     unsigned            file_open_flags = 0;/* Flags for hdf5 open */
     char                file_name[64];	/* Filename buffer */
     size_t              alloc_incr;     /* Buffer allocation increment */
@@ -811,7 +811,18 @@ NC4_image_init(NC_FILE_INFO_T* h5)
 
     /* Assign file image in FAPL to the core file driver */
     if(create) {
-        if ((file_id = nc4_H5Fcreate(file_name, file_open_flags, H5P_DEFAULT, fapl)) < 0)
+        /* Begin setup for the FILE CREATION property list. */
+        if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
+	    goto out;
+	if (H5Pset_obj_track_times(fcpl_id, 0) < 0)
+	    goto out;
+	if (H5Pset_link_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
+                                                 H5P_CRT_ORDER_INDEXED)) < 0)
+	    goto out;
+	if (H5Pset_attr_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
+                                                 H5P_CRT_ORDER_INDEXED)) < 0)
+            goto out;
+        if ((file_id = nc4_H5Fcreate(file_name, file_open_flags, fcpl_id, fapl)) < 0)
             goto out;
     } else {
         if ((file_id = nc4_H5Fopen(file_name, file_open_flags, fapl)) < 0)
@@ -823,6 +834,8 @@ done:
     H5E_BEGIN_TRY {
 	if(fapl >= 0)
             H5Pclose(fapl);
+        if(fcpl_id >= 0)
+            H5Pclose(fcpl_id);
     } H5E_END_TRY;
     /* Return file identifier */
     return file_id;
