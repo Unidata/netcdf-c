@@ -346,6 +346,12 @@ if(NOT WIN32 AND BUILD_SHARED_LIBS)
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
   endif("${isSystemDir}" STREQUAL "-1")
 
+  # The netcdf target is created before this block, so its RPATH
+  # properties were initialized before the variables above were set.
+  set_target_properties(netcdf PROPERTIES
+    INSTALL_RPATH "${CMAKE_INSTALL_RPATH}"
+    INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 endif()
 
 ##

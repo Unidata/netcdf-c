@@ -1713,7 +1713,7 @@ if test "x$enable_hdf5" = xyes; then
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
 
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5Pset_all_coll_metadata_ops H5Literate H5Literate2])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Pset_all_coll_metadata_ops H5Literate H5Literate2])
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1757,10 +1757,15 @@ if test "x$enable_hdf5" = xyes; then
    fi
 
    # Check whether HDF5 was built with the SZLIB library. If so we
-   # must be able to link to szip library.
+   # must be able to link to szip library. Use the H5pubconf.h macro:
+   # newer HDF5 releases no longer export the H5Z_SZIP symbol.
    AC_MSG_CHECKING([whether szlib was used when building HDF5])
-   if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
-      enable_hdf5_szip=yes
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "H5public.h"],
+   [[#ifndef H5_HAVE_FILTER_SZIP
+   # error
+   #endif]
+   ])], [enable_hdf5_szip=yes])
+   if test "x$enable_hdf5_szip" = xyes; then
       AC_DEFINE([HAVE_H5Z_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
    AC_MSG_RESULT([$enable_hdf5_szip])

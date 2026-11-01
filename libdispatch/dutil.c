@@ -297,10 +297,16 @@ NC_readfileF(FILE* stream, NCbytes* content, long long amount)
 #define READ_BLOCK_SIZE 4194304
     int ret = NC_NOERR;
     long long red = 0;
-    char *part = (char*) malloc(READ_BLOCK_SIZE);
+    /* Do not allocate or read more than the caller asked for, so that
+       e.g. checking a magic number does not read the whole file. */
+    size_t blocksize = (amount >= 0 && amount < READ_BLOCK_SIZE) ? (size_t)amount : READ_BLOCK_SIZE;
+    char *part = (char*) malloc(blocksize > 0 ? blocksize : 1);
+
+    if(part == NULL) {ret = NC_ENOMEM; goto done;}
 
     while(amount < 0 || red < amount) {
-	size_t count = fread(part, 1, READ_BLOCK_SIZE, stream);
+	size_t want = (amount >= 0 && (amount - red) < (long long)blocksize) ? (size_t)(amount - red) : blocksize;
+	size_t count = fread(part, 1, want, stream);
 	if(ferror(stream)) {ret = NC_EIO; goto done;}
 	if(count > 0) ncbytesappendn(content,part,(unsigned long)count);
 	red += (long long)count;

@@ -410,7 +410,8 @@ NCZ_load_plugin(const char* path, struct NCZ_Plugin** plugp)
                 h5class = gpi();        
                 /* Verify */
                 if(h5type != H5PL_TYPE_FILTER) {stat = NC_EPLUGIN; goto done;}
-                if(h5class->version != H5Z_CLASS_T_VERS) {stat = NC_EFILTER; goto done;}
+                /* HDF5 accepts either 1 (H5Z_CLASS_T_VERS) or 2 (H5Z_CLASS_T_VERS_2) for H5Z_class2_t */
+                if(h5class->version != H5Z_CLASS_T_VERS && h5class->version != 2) {stat = NC_EFILTER; goto done;}
             }
             if(npi != NULL) {/* get Codec info */
 		codec = npi();
