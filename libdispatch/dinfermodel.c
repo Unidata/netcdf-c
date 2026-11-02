@@ -1631,13 +1631,18 @@ isdaoscontainer(const char* path)
 		if(strstr(p,".daos") != NULL) {rc = 1; break;} /* success */
 		/* Else get the p'th xattr's value size */
 		xlen = GETXATTR(path,p,NULL,0);
-		if((xvalue = (char*)calloc(1,(size_t)xlen))==NULL)
-		    {stat = NC_ENOMEM; goto done;}
+		if(xlen <= 0) continue; /* no value or not readable */
+		nullfree(xvalue);
+		/* +1 because the value is not necessarily nul terminated */
+		if((xvalue = (char*)calloc(1,(size_t)xlen+1))==NULL)
+		    {nullfree(xlist); stat = NC_ENOMEM; goto done;}
 		/* Read the value */
 		(void)GETXATTR(path,p,xvalue,xlen);
 		/* Look for '.daos' in the value */
 		if(strstr(xvalue,".daos") != NULL) {rc = 1; break;} /* success */
 	    }
+	    nullfree(xvalue);
+	    nullfree(xlist);
         }
 #else /*!HAVE_SYS_XATTR_H*/
 
