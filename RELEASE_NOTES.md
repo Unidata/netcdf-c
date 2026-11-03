@@ -5,6 +5,10 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
+## Unreleased
+
+* Expanded user-defined format (UDF) slots from 10 to 64 by changing the mode encoding: NC_UDF_FLAG (bit 6) marks a UDF mode and a 6-bit field at bits 19-24 holds the slot number. Use the new NC_UDF(n) macro for any slot 0-63. The macros NC_UDF0 through NC_UDF9 continue to work, but the numeric values of NC_UDF1 through NC_UDF9 changed; code that uses the macros needs only recompilation, but code that hard-codes the old numeric values, or bit-tests modes against them, must be updated. NC_UDF0 keeps its old value (0x0040). Mode bits 7, 16, and 25 are recovered for future use. NC_MAX_UDF_FORMATS is now 64.
+
 ## 4,10.1 - July 6, 2026
 
 * Fixed outstanding CVE issues. See [Github 3236](https://github.com/Unidata/netcdf-c/issues/3236) and [Github 3402](https://github.com/Unidata/netcdf-c/pull/3402) for more information.

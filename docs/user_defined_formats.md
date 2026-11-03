@@ -3,7 +3,7 @@ User-Defined Formats {#user_defined_formats}
 
 # Introduction {#udf_intro}
 
-NetCDF-C supports user-defined formats (UDFs) that allow developers to extend the library to work with custom file formats. The library provides 10 UDF slots (UDF0 through UDF9) that can be registered either programmatically or via RC file configuration.
+NetCDF-C supports user-defined formats (UDFs) that allow developers to extend the library to work with custom file formats. The library provides 64 UDF slots (0 through 63) that can be registered either programmatically or via RC file configuration.
 
 User-defined formats enable:
 - Support for proprietary or specialized file formats
@@ -11,14 +11,13 @@ User-defined formats enable:
 - Format translation and adaptation layers
 - Integration with domain-specific data formats
 
+The [NetCDF Expansion Pack (NEP)](https://github.com/Intelligent-Data-Design-Inc/NEP) is a working example of this feature. It uses UDF plugins to read GRIB2, FITS, GeoTIFF, PDS4, CDF, DICOM, and PDB files through the standard netCDF API. Consult its source for complete, production UDF dispatch tables and plugin initialization code.
+
 # Available UDF Slots {#udf_slots}
 
-The netCDF-C library provides 10 user-defined format slots:
+There are NC_MAX_UDF_FORMATS (64) slots, numbered 0 through 63. A UDF mode flag is built with the NC_UDF(n) macro: NC_UDF_FLAG (bit 6, 0x0040) marks the mode as user-defined, and the slot number is stored in a 6-bit field at bits 19-24 (NC_UDF_NUM_SHIFT/NC_UDF_NUM_MASK). The convenience macros NC_UDF0 through NC_UDF9 are equivalent to NC_UDF(0) through NC_UDF(9); NC_UDF0 keeps its historic value of 0x0040.
 
-- **UDF0** and **UDF1**: Original slots, mode flags in lower 16 bits
-- **UDF2** through **UDF9**: Extended slots, mode flags in upper 16 bits
-
-Each slot can be independently configured with its own dispatch table, initialization function, and optional magic number for automatic format detection.
+Each slot can be independently configured with its own dispatch table, initialization function, and optional magic number for automatic format detection. Because the slot number is a field rather than individual bits, only one UDF slot can be selected per mode; do not combine two NC_UDF(n) values with bitwise OR, as that produces the flag for a different slot.
 
 # Registering UDFs Programmatically {#udf_programmatic}
 
@@ -32,9 +31,11 @@ int nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table,
 ```
 
 **Parameters:**
-- `mode_flag`: One of NC_UDF0 through NC_UDF9, optionally combined with other mode flags (e.g., NC_NETCDF4)
+- `mode_flag`: NC_UDF(n) for slot n (0-63), optionally combined with other mode flags (e.g., NC_NETCDF4)
 - `dispatch_table`: Pointer to your dispatch table structure
 - `magic_number`: Optional magic number string (max NC_MAX_MAGIC_NUMBER_LEN bytes) for automatic format detection, or NULL
+
+A magic number cannot be registered with a netCDF-3 mode. Combining a magic number with NC_64BIT_OFFSET, NC_64BIT_DATA, or NC_CLASSIC_MODEL (without NC_NETCDF4) returns NC_EINVAL.
 
 **Example:**
 
@@ -89,7 +90,7 @@ Later files override earlier ones. Use `NCRCENV_HOME` to override the home direc
 
 ## RC File Format for UDFs
 
-For each UDF slot (0-9), configure these keys:
+For each UDF slot (0-63), configure these keys:
 
 ```
 NETCDF.UDF<N>.LIBRARY=<full-path-to-library>
@@ -130,10 +131,12 @@ Plugins are loaded during library initialization (`nc_initialize()`):
 2. For each configured UDF slot:
    - Library is loaded using dlopen (Unix) or LoadLibrary (Windows)
    - Init function is located using dlsym or GetProcAddress
-   - Init function is called
-   - Init function must call `nc_def_user_format()` to register the dispatch table
-3. Dispatch table ABI version is verified
-4. Magic number (if provided) is optionally verified
+   - Init function is called; it returns a pointer to the plugin's dispatch table
+   - The loader registers the returned dispatch table by calling `nc_def_user_format()`
+3. Dispatch table ABI version is verified against NC_DISPATCH_VERSION
+4. Magic number (if provided) is registered for automatic format detection
+
+A plugin that fails to load produces a log warning but does not prevent library initialization. The other slots load normally.
 
 **Note:** Library handles are intentionally not closed; they remain loaded for the lifetime of the process.
 
@@ -153,7 +156,7 @@ When `nc_open()` is called without a specific format flag:
 - Use unique, distinctive strings (4-8 bytes recommended)
 - Place at the beginning of your file format
 - Avoid conflicts with existing formats:
-  - NetCDF-3: "CDF\001" or "CDF\002"
+  - NetCDF-3: "CDF\001", "CDF\002", or "CDF\005"
   - HDF5: "\211HDF\r\n\032\n"
   - NetCDF-4: Same as HDF5
 - Maximum length: NC_MAX_MAGIC_NUMBER_LEN bytes
@@ -179,14 +182,14 @@ nc_open("mydata.dat", 0, &ncid);  /* No mode flag needed! */
 
 In addition to automatic detection by magic number, a file can be opened
 explicitly with a UDF mode flag. When `nc_open()` or `nc_create()` is called
-with one of `NC_UDF0` through `NC_UDF9`, the corresponding registered UDF
+with a `NC_UDF(n)` mode flag, the corresponding registered UDF
 dispatch table is used regardless of the file's actual contents. This makes it
 possible to read or write any other file through
 a custom dispatcher.
 
 The UDF mode flag can be combined with behavioral flags such as `NC_WRITE` or
 `NC_DISKLESS`, but it cannot be combined with other format-selection flags such
-as `NC_NETCDF4`, `NC_64BIT_OFFSET`, or another `NC_UDFx` flag. The selected UDF
+as `NC_NETCDF4` or `NC_64BIT_OFFSET`. The selected UDF
 slot must already have been registered, either programmatically with
 `nc_def_user_format()` or from an RC file; otherwise the open call will fail.
 
@@ -288,13 +291,13 @@ Common errors and solutions:
 
 ## Init function fails
 
-**Cause:** Plugin initialization error
+**Cause:** Plugin initialization error; init function returned NULL or a dispatch table with the wrong ABI version
 
-**Solution:** Check plugin logs; verify nc_def_user_format() is called correctly
+**Solution:** Check plugin logs; verify the init function returns a valid NC_Dispatch pointer with dispatch_version set to NC_DISPATCH_VERSION
 
 # Complete Example {#udf_example}
 
-See `examples/C/udf_example.c` for a complete working example of implementing a user-defined format.
+The test suite contains complete working examples. See `nc_test4/tst_udf.c` for programmatic registration, `nc_test4/tst_udf_multi.c` for use of all 10 slots at once, and `nc_test4/tst_udf_self_load_plugin.c` for a plugin loaded from an RC file.
 
 # Troubleshooting {#udf_troubleshooting}
 
@@ -351,10 +354,11 @@ int main() {
 - [Dispatch Table Architecture](dispatch.md) - Internal architecture
 - [UDF Plugin Development Guide](#udf_plugin_development) - Creating plugins
 - [RC File Reference](#auth_support) - RC file format details
+- [NetCDF Expansion Pack (NEP)](https://github.com/Intelligent-Data-Design-Inc/NEP) - Production UDF plugins for GRIB2, FITS, GeoTIFF, PDS4, CDF, DICOM, and PDB
 - API Reference: nc_def_user_format(), nc_inq_user_format()
 
 # References {#udf_references}
 
 - NetCDF-C Dispatch Layer: docs/dispatch.md
-- Example Implementation: examples/C/udf_example.c
+- Plugin Loader Implementation: libdispatch/dudfplugins.c
 - Test Suite: nc_test4/tst_udf*.c

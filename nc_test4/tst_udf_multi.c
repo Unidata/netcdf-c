@@ -2,9 +2,11 @@
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
-   Test that all 10 UDF (User-Defined Format) slots can be used
-   simultaneously. This test verifies the fix for GitHub issue #3372,
-   where UDF code only allowed 2 UDF layers instead of 10.
+   Test that all NC_MAX_UDF_FORMATS UDF (User-Defined Format) slots
+   can be used simultaneously. This test originally verified the fix
+   for GitHub issue #3372, where UDF code only allowed 2 UDF layers;
+   it now also verifies the flag-plus-number mode encoding that
+   provides 64 slots.
 
    Ed Hartnett
 */
@@ -20,31 +22,18 @@
 
 #define FILE_NAME "tst_udf_multi.nc"
 
-/* Each UDF slot gets a unique return code for identification */
-#define UDF0_RETURN 100
-#define UDF1_RETURN 101
-#define UDF2_RETURN 102
-#define UDF3_RETURN 103
-#define UDF4_RETURN 104
-#define UDF5_RETURN 105
-#define UDF6_RETURN 106
-#define UDF7_RETURN 107
-#define UDF8_RETURN 108
-#define UDF9_RETURN 109
+/* Each UDF slot gets a unique return code for identification:
+ * UDF_RETURN_BASE + slot number. */
+#define UDF_RETURN_BASE 100
 
-/* Mode flags for each UDF */
-int udf_modes[NC_MAX_UDF_FORMATS] = {
-    NC_UDF0, NC_UDF1, NC_UDF2, NC_UDF3, NC_UDF4,
-    NC_UDF5, NC_UDF6, NC_UDF7, NC_UDF8, NC_UDF9
-};
+/* Mode flags for each UDF; filled in by init_dispatchers() */
+int udf_modes[NC_MAX_UDF_FORMATS];
 
-/* Expected return codes from each UDF's inq_format function */
-int udf_returns[NC_MAX_UDF_FORMATS] = {
-    UDF0_RETURN, UDF1_RETURN, UDF2_RETURN, UDF3_RETURN, UDF4_RETURN,
-    UDF5_RETURN, UDF6_RETURN, UDF7_RETURN, UDF8_RETURN, UDF9_RETURN
-};
+/* Expected return codes from each UDF's inq_format function;
+ * filled in by init_dispatchers() */
+int udf_returns[NC_MAX_UDF_FORMATS];
 
-/* 10 dispatch tables, one for each UDF slot */
+/* One dispatch table for each UDF slot */
 static NC_Dispatch udf_dispatchers[NC_MAX_UDF_FORMATS];
 
 /* Simple open function that always succeeds */
@@ -70,65 +59,32 @@ tst_get_vara(int ncid, int varid, const size_t *start, const size_t *count,
     return NC_NOERR;
 }
 
-/* inq_format returns unique code per UDF for identification */
-static int
-tst_inq_format_udf0(int ncid, int *formatp)
-{
-    return UDF0_RETURN;
-}
-static int
-tst_inq_format_udf1(int ncid, int *formatp)
-{
-    return UDF1_RETURN;
-}
-static int
-tst_inq_format_udf2(int ncid, int *formatp)
-{
-    return UDF2_RETURN;
-}
-static int
-tst_inq_format_udf3(int ncid, int *formatp)
-{
-    return UDF3_RETURN;
-}
-static int
-tst_inq_format_udf4(int ncid, int *formatp)
-{
-    return UDF4_RETURN;
-}
-static int
-tst_inq_format_udf5(int ncid, int *formatp)
-{
-    return UDF5_RETURN;
-}
-static int
-tst_inq_format_udf6(int ncid, int *formatp)
-{
-    return UDF6_RETURN;
-}
-static int
-tst_inq_format_udf7(int ncid, int *formatp)
-{
-    return UDF7_RETURN;
-}
-static int
-tst_inq_format_udf8(int ncid, int *formatp)
-{
-    return UDF8_RETURN;
-}
-static int
-tst_inq_format_udf9(int ncid, int *formatp)
-{
-    return UDF9_RETURN;
-}
+/* inq_format returns unique code per UDF for identification.
+ * One function is generated per slot with a macro. */
+#define DEFINE_INQ_FORMAT(N)                        \
+    static int                                      \
+    tst_inq_format_udf##N(int ncid, int *formatp)   \
+    {                                               \
+        return UDF_RETURN_BASE + N;                 \
+    }
+
+#define UDF_SLOT_LIST(X)                                        \
+    X(0)  X(1)  X(2)  X(3)  X(4)  X(5)  X(6)  X(7)              \
+    X(8)  X(9)  X(10) X(11) X(12) X(13) X(14) X(15)             \
+    X(16) X(17) X(18) X(19) X(20) X(21) X(22) X(23)             \
+    X(24) X(25) X(26) X(27) X(28) X(29) X(30) X(31)             \
+    X(32) X(33) X(34) X(35) X(36) X(37) X(38) X(39)             \
+    X(40) X(41) X(42) X(43) X(44) X(45) X(46) X(47)             \
+    X(48) X(49) X(50) X(51) X(52) X(53) X(54) X(55)             \
+    X(56) X(57) X(58) X(59) X(60) X(61) X(62) X(63)
+
+UDF_SLOT_LIST(DEFINE_INQ_FORMAT)
 
 /* Array of function pointers for each UDF's inq_format */
 typedef int (*inq_format_func)(int, int*);
+#define INQ_FORMAT_ENTRY(N) tst_inq_format_udf##N,
 static inq_format_func udf_inq_formats[NC_MAX_UDF_FORMATS] = {
-    tst_inq_format_udf0, tst_inq_format_udf1, tst_inq_format_udf2,
-    tst_inq_format_udf3, tst_inq_format_udf4, tst_inq_format_udf5,
-    tst_inq_format_udf6, tst_inq_format_udf7, tst_inq_format_udf8,
-    tst_inq_format_udf9
+    UDF_SLOT_LIST(INQ_FORMAT_ENTRY)
 };
 
 #ifdef _MSC_VER
@@ -141,7 +97,7 @@ NC4_no_show_metadata(int ncid)
 #endif
 
 
-/* Initialize all 10 dispatch tables */
+/* Initialize all dispatch tables */
 static void
 init_dispatchers(void)
 {
@@ -152,12 +108,9 @@ init_dispatchers(void)
 
         memset(dsp, 0, sizeof(NC_Dispatch));
 
-        /* UDF0 and UDF1 use NC_FORMATX_UDF0 and NC_FORMATX_UDF1
-         * UDF2-UDF9 start at NC_FORMATX_UDF2 */
-        if (i <= 1)
-            dsp->model = NC_FORMATX_UDF0 + i;
-        else
-            dsp->model = NC_FORMATX_UDF2 + i - 2;
+        udf_modes[i] = NC_UDF(i);
+        udf_returns[i] = UDF_RETURN_BASE + i;
+        dsp->model = NC_FORMATX_UDF(i);
 
         dsp->dispatch_version = NC_DISPATCH_VERSION;
         dsp->create = NC_RO_create;
@@ -254,20 +207,21 @@ main(int argc, char **argv)
 
     init_dispatchers();
 
-    printf("\n*** Testing all 10 UDF slots can be used simultaneously.\n");
+    printf("\n*** Testing all %d UDF slots can be used simultaneously.\n",
+           NC_MAX_UDF_FORMATS);
 
-    printf("*** testing all 10 UDF slots can be registered...");
+    printf("*** testing all %d UDF slots can be registered...", NC_MAX_UDF_FORMATS);
     {
         /* Create an empty file to play with */
         if (nc_create(FILE_NAME, 0, &ncid)) ERR;
         if (nc_close(ncid)) ERR;
 
-        /* Register all 10 UDF formats */
+        /* Register all UDF formats */
         for (i = 0; i < NC_MAX_UDF_FORMATS; i++) {
             if (nc_def_user_format(udf_modes[i], &udf_dispatchers[i], NULL)) ERR;
         }
 
-        /* Verify all 10 were registered correctly */
+        /* Verify all were registered correctly */
         for (i = 0; i < NC_MAX_UDF_FORMATS; i++) {
             NC_Dispatch *disp_in;
             if (nc_inq_user_format(udf_modes[i], &disp_in, NULL)) ERR;
@@ -312,34 +266,34 @@ main(int argc, char **argv)
     }
     SUMMARIZE_ERR;
 
-    printf("*** testing UDF mode flags don't collide with other flags...");
+    printf("*** testing UDF mode encoding...");
     {
-        /* Verify that NC_UDF2 through NC_UDF9 don't share bits with
-         * important mode flags like NC_NOATTCREORD (0x20000) and
-         * NC_NODIMSCALE_ATTACH (0x40000). This was the root cause of
-         * GitHub issue #3372. */
+        /* Verify the flag-plus-number encoding. The slot number field
+         * must not collide with mode flags that may legally combine
+         * with a UDF open, such as NC_NOATTCREORD (0x20000) and
+         * NC_NODIMSCALE_ATTACH (0x40000). Bit collisions with these
+         * flags were the root cause of GitHub issue #3372. */
+        int critical_flags = NC_NOATTCREORD | NC_NODIMSCALE_ATTACH | NC_NETCDF4;
 
-        /* These flags should not overlap with UDF flags */
-        int critical_flags = NC_NOATTCREORD | NC_NODIMSCALE_ATTACH;
+        /* NC_UDF0 must keep its historic value. */
+        if (NC_UDF0 != 0x0040) ERR;
 
-        for (i = 2; i < NC_MAX_UDF_FORMATS; i++) {
-            /* UDF2+ should not share bits with critical flags */
+        for (i = 0; i < NC_MAX_UDF_FORMATS; i++) {
+            /* Every UDF mode must have the UDF flag set. */
+            if (!(udf_modes[i] & NC_UDF_FLAG)) ERR;
+
+            /* The slot number must round-trip through the field. */
+            if (((udf_modes[i] >> NC_UDF_NUM_SHIFT) & NC_UDF_NUM_MASK) != i) {
+                fprintf(stderr, "UDF%d (0x%x): slot number does not round-trip\n",
+                        i, udf_modes[i]);
+                ERR;
+            }
+
+            /* The encoding must not collide with combinable flags. */
             if (udf_modes[i] & critical_flags) {
                 fprintf(stderr, "UDF%d (0x%x) collides with critical flags\n",
                         i, udf_modes[i]);
                 ERR;
-            }
-        }
-
-        /* Also verify no two UDF flags share bits */
-        for (i = 0; i < NC_MAX_UDF_FORMATS; i++) {
-            int j;
-            for (j = i + 1; j < NC_MAX_UDF_FORMATS; j++) {
-                if (udf_modes[i] & udf_modes[j]) {
-                    fprintf(stderr, "UDF%d (0x%x) and UDF%d (0x%x) share bits\n",
-                            i, udf_modes[i], j, udf_modes[j]);
-                    ERR;
-                }
             }
         }
     }
