@@ -1625,7 +1625,9 @@ endif()
 # Subdirectory CMakeLists.txt files should specify their own
 # 'install' files.
 # Including 'CPack' kicks everything off.
-include(InstallRequiredSystemLibraries)
+if(NOT CMAKE_CROSSCOMPILING)
+    include(InstallRequiredSystemLibraries)
+endif()
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/FixBundle.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
