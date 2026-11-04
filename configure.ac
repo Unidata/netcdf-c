@@ -1423,8 +1423,28 @@ AC_CHECK_HEADERS([ftw.h])
 AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
                 strdup strtoll strtoull \
 		mkstemp mktemp random \
-		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c \
+		getrlimit gettimeofday fsync \
 		strncasecmp strndup])
+
+# MPI_Comm_f2c and MPI_Info_f2c can be macros (MPICH) or functions
+# (Open MPI), so AC_CHECK_FUNCS misses the macro form. Check that a
+# program calling them through mpi.h links instead. The cache variables
+# keep their AC_CHECK_FUNCS names so they can still be overridden.
+# See https://github.com/Unidata/netcdf-c/issues/3414
+AC_CACHE_CHECK([for MPI_Comm_f2c], [ac_cv_func_MPI_Comm_f2c],
+  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
+                                   [[MPI_Comm c = MPI_Comm_f2c((MPI_Fint)0); (void)c;]])],
+                  [ac_cv_func_MPI_Comm_f2c=yes], [ac_cv_func_MPI_Comm_f2c=no])])
+if test "x$ac_cv_func_MPI_Comm_f2c" = xyes; then
+  AC_DEFINE([HAVE_MPI_COMM_F2C], [1], [Define to 1 if you have the `MPI_Comm_f2c' function.])
+fi
+AC_CACHE_CHECK([for MPI_Info_f2c], [ac_cv_func_MPI_Info_f2c],
+  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
+                                   [[MPI_Info i = MPI_Info_f2c((MPI_Fint)0); (void)i;]])],
+                  [ac_cv_func_MPI_Info_f2c=yes], [ac_cv_func_MPI_Info_f2c=no])])
+if test "x$ac_cv_func_MPI_Info_f2c" = xyes; then
+  AC_DEFINE([HAVE_MPI_INFO_F2C], [1], [Define to 1 if you have the `MPI_Info_f2c' function.])
+fi
 
 # See if clock_gettime is available and its arg types.
 AC_CHECK_FUNCS([clock_gettime])
