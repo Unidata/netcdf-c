@@ -87,4 +87,8 @@ done
 
 diff -w ${srcdir}/ref_pathcvt.txt ./tmp_pathcvt.txt
 
+# An empty element in a path list (e.g. "/tmp;${HOME}" with HOME unset)
+# must convert without crashing (Github issue #3415)
+${NCPATHCVT} -S';' -u "/tmp;" >/dev/null
+
 exit 0
