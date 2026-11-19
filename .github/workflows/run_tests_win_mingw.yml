@@ -35,28 +35,29 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           update: true
-          pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p
+          path-type: minimal
+          pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p hdf5:p
           install: diffutils m4 git unzip 
 
 ###
 # Downgrade hdf5 
 ###
 
-      - name: Downgrade hdf5
-        run: |
-          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
-            for attempt in 1 2 3; do
-              pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
-              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
-              sleep 15
-            done
-          else
-            for attempt in 1 2 3; do
-              pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
-              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
-              sleep 15
-            done
-          fi
+#      - name: Downgrade hdf5
+#        run: |
+##          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
+#            for attempt in 1 2 3; do
+#              pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-2-any.pkg.tar.zst --noconfirm && break
+#              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+#              sleep 15
+#            done
+#          else
+#            for attempt in 1 2 3; do
+#              pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-2-any.pkg.tar.zst --noconfirm && break
+#              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+#              sleep 15
+#            done
+#          fi
 ###
 # Configure and build
 ###
@@ -85,9 +86,19 @@ jobs:
           if test -f ./plugins/.libs ; then dir ./plugins/.libs; fi
 
       - name: (Autotools) Build and Run Tests
-        run: make check -j 8 LDFLAGS="-Wl,--export-all-symbols"
+        run: PATH=$PWD:$PWD/liblib:$PWD/liblib/.libs:$PATH make check -j 1 LDFLAGS="-Wl,--export-all-symbols"
         if: ${{ success() }}
         id: tests
+
+      - name: (Autotools) Check test-suite.log files
+        run: | 
+          find . -name 'libnetcdf*'
+          find . -name 'test-suite.log' -exec cat {} \;
+          ldd ncgen3/ncgen3.exe
+          cygcheck ncgen3/ncgen3.exe
+          echo ""
+          echo $PATH
+        if: ${{ failure() }}
 
       - name: Upload autoconf test results
         uses: actions/upload-artifact@v4
@@ -114,28 +125,30 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           update: true
-          pacboy: cc:p cmake:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p
+          path-type: strict
+          pacboy: cc:p cmake:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p hdf5:p
           install: make m4 diffutils git unzip
 
 ###
 # Downgrade hdf5 
 ###
 
-      - name: Downgrade hdf5
-        run: |
-          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
-            for attempt in 1 2 3; do
-              pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
-              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
-              sleep 15
-            done
-          else
-            for attempt in 1 2 3; do
-              pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-1-any.pkg.tar.zst --noconfirm && break
-              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
-              sleep 15
-            done
-          fi
+
+#      - name: Downgrade hdf5
+#        run: |
+#          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
+#            for attempt in 1 2 3; do
+#              pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-2-any.pkg.tar.zst --noconfirm && break
+#              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+#              sleep 15
+#            done
+#          else
+#            for attempt in 1 2 3; do
+#              pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-2-any.pkg.tar.zst --noconfirm && break
+#              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+#              sleep 15
+#            done
+#          fi
 ###
 # Configure and build
 ###
