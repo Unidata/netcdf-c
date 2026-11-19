@@ -1717,7 +1717,8 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     }
     else
     {
-        if (write_dimid && var->ndims)
+        /* Match creation: only dimension scales carry explicit dimension IDs. */
+        if (write_dimid && hdf5_var->dimscale && var->ndims)
             if ((retval = write_netcdf4_dimid(hdf5_var->hdf_datasetid,
                                               var->dimids[0])))
                 return retval;
