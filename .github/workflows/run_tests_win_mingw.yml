@@ -90,7 +90,10 @@ jobs:
         id: tests
 
       - name: (Autotools) Check test-suite.log files
-        run: find . -name 'test-suite.log' -exec cat {} \;
+        run: | 
+          find . -name 'test-suite.log' -exec cat {} \;
+          ldd ncgen3/ncgen3.exe
+          cygcheck ncgen3/ncgen3.exe
         if: ${{ failure() }}
 
       - name: Upload autoconf test results
