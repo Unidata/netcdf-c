@@ -144,7 +144,7 @@ void* memmove(void *dest, const void *src, size_t count);
 #endif /*_WIN32*/
 
 #ifndef nulldup
-#define nulldup(s) ((s)==NULL?s:strdup(s))
+#define nulldup(s) ((s)==NULL?NULL:strdup(s))
 #endif
 
 #ifndef nulllen
