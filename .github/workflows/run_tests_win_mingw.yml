@@ -86,7 +86,7 @@ jobs:
           if test -f ./plugins/.libs ; then dir ./plugins/.libs; fi
 
       - name: (Autotools) Build and Run Tests
-        run: make check -j 1 LDFLAGS="-Wl,--export-all-symbols"
+        run: PATH=$PWD:$PWD/liblib:$PWD/liblib/.libs:$PATH make check -j 1 LDFLAGS="-Wl,--export-all-symbols"
         if: ${{ success() }}
         id: tests
 
