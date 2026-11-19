@@ -50,7 +50,7 @@ static int processerrchunk(NCD4response*, void* errchunk, unsigned int count);
 int
 NCD4_dechunk(NCD4response* resp)
 {
-    unsigned char *praw, *pdmr, *phdr, *pdap, *pappend, *pchunk;
+    unsigned char *praw, *pend, *pdmr, *phdr, *pdap, *pappend, *pchunk;
     NCD4HDR hdr;
     int firstchunk;
 
@@ -84,6 +84,7 @@ NCD4_dechunk(NCD4response* resp)
 
     /* We must be processing a DAP mode packet */
     praw = resp->raw.memory;
+    pend = praw + resp->raw.size;
 
     /* If the raw data looks like xml, then we almost certainly have an error */
     if(memcmp(praw,"<?xml",strlen("<?xml"))==0
@@ -96,6 +97,9 @@ NCD4_dechunk(NCD4response* resp)
     /* Get the first header to get dmr content and endian flags*/
     pdmr = NCD4_getheader(praw,&hdr,resp->controller->platform.hostlittleendian);
     if(hdr.count == 0)
+        return THROW(NC_EDMR);
+    /* The chunk count comes off the wire; it must fit in what we received */
+    if(hdr.count > (size_t)DELTA(pend,pdmr))
         return THROW(NC_EDMR);
     if(hdr.flags & NCD4_ERR_CHUNK)
         return processerrchunk(resp, (void*)pdmr, hdr.count);
@@ -131,11 +135,15 @@ NCD4_dechunk(NCD4response* resp)
 	pappend -- where to append next chunk to the growing dechunked data
     */
     for(firstchunk=1;;firstchunk=0) {	
+        if(DELTA(pend,phdr) < CHUNKHDRSIZE)
+            return THROW(NC_EDATADAP); /* truncated; no LAST chunk seen */
         pchunk = NCD4_getheader(phdr,&hdr,resp->controller->platform.hostlittleendian); /* Process first data chunk header */
 	if(firstchunk) {
 	    pdap = phdr; /* remember start point of the dechunked data */
 	    pappend = phdr; /* start appending here */
         }
+        if(hdr.count > (size_t)DELTA(pend,pchunk))
+            return THROW(NC_EDATADAP);
         if(hdr.flags & NCD4_ERR_CHUNK)
             return processerrchunk(resp, (void*)pchunk, hdr.count);
         /* data chunk; possibly last; possibly empty */
