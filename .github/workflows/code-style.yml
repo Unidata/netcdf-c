@@ -1,0 +1,19 @@
+name: Code Style checks
+on: [pull_request]
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Run code-style check on changes
+        run: |
+          git clang-format-18 \
+            --diff \
+            ${{ github.event.pull_request.head.sha }} \
+            ${{ github.event.pull_request.base.sha }} ||
+          (
+            echo "::error::❌ Code style check failed. See the [contributing guide](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}?tab=contributing-ov-file#codestyle) for formatting requirements."
+            exit 1
+          )

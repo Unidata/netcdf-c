@@ -14,6 +14,7 @@ Thanks for your interest in contributing to the netCDF project.  There are many 
 	* [Spot-checks](#spotcheck)
 	* [Continuous Integration testing](#contint)
 	* [Regression testing with Docker](#regression)
+	* [Code-style](#codestyle)
 * [Final Remarks](#conclusion)
 
 # AI and LLM Policy <A NAME="aiguidelines"></A>
@@ -51,7 +52,7 @@ Many of the pull requests we receive do little other than to fix a typo or corre
 
 # Testing your changes <A NAME="testing"></A>
 
-There are several ways to test your changes to ensure that your pull request passes QA.  There are manual *spot-checks* which test the code "on-the-spot", and there are automated *continuous integration* tests which will run and evaluate any contributes to ensure nothing breaks.  **Advanced** users may also use Unidata-maintained *Docker* images for running *regression* tests.
+There are several ways to test your changes to ensure that your pull request passes QA.  There are manual *spot-checks* which test the code "on-the-spot", and there are automated *continuous integration* tests which will run and evaluate any contributes to ensure nothing breaks.  **Advanced** users may also use Unidata-maintained *Docker* images for running *regression* tests. Code style is also checked but not enforced, however it is ideal that contributions/changes respect them.
 
 ## Spot-check tests <A NAME="spotcheck"></A>
 
@@ -78,6 +79,35 @@ We provide several Docker images for performing regression tests against netCDF-
 By performing these comprehensive tests, we're able to see if any change in the core library results in unexpected behavior with the common interfaces.  For full documentation, please see [this page](https://github.com/Unidata/docker-nctests/tree/master/tests-regression).  
 
 These tests will be run against any pull request submitted; you are encouraged to make use of them if you so like.
+
+## Code-style  <A NAME="codestyle"></A>
+
+If to contribute please format your code. `clang-format` is the right tool to use, as it is [interaged with `git`](https://clang.llvm.org/docs/ClangFormat.html#git-integration). Calling it in the pre-commit hook ensures you add code-style respecting commits.
+
+For that modify `.git/hooks/pre-commit` to include something like:
+```
+set -euo pipefail
+
+tmpfile="$(mktemp)"
+trap 'rm -f "$tmpfile"' EXIT
+
+# Compare staged changes against clang-format output without modifying files.
+if ! git clang-format --staged --diff --style=file >"$tmpfile" 2>&1; then
+    # If there is meaningful output, formatting is required.
+    if [[ -s "$tmpfile" ]]; then
+        echo "ERROR: Staged changes are not clang-formatted."
+        echo
+        cat "$tmpfile"
+        echo
+        echo "Run:"
+        echo "  git clang-format"
+        echo "Then stage the updated files and commit again."
+        exit 1
+    fi
+fi
+
+exit 0
+```
 
 # We are here to help <A NAME="conclusion"></A>
 
