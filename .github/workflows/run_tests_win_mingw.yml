@@ -36,28 +36,28 @@ jobs:
           msystem: ${{ matrix.msystem }}
           update: true
           path-type: minimal
-          pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p
+          pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p hdf5:p
           install: diffutils m4 git unzip 
 
 ###
 # Downgrade hdf5 
 ###
 
-      - name: Downgrade hdf5
-        run: |
-          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
-            for attempt in 1 2 3; do
-              pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-2-any.pkg.tar.zst --noconfirm && break
-              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
-              sleep 15
-            done
-          else
-            for attempt in 1 2 3; do
-              pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-2-any.pkg.tar.zst --noconfirm && break
-              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
-              sleep 15
-            done
-          fi
+#      - name: Downgrade hdf5
+#        run: |
+##          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
+#            for attempt in 1 2 3; do
+#              pacman -U https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-hdf5-1.14.6-2-any.pkg.tar.zst --noconfirm && break
+#              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+#              sleep 15
+#            done
+#          else
+#            for attempt in 1 2 3; do
+#              pacman -U https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-hdf5-1.14.6-2-any.pkg.tar.zst --noconfirm && break
+#              echo "hdf5 download attempt $attempt failed, retrying in 15s..."
+#              sleep 15
+#            done
+#          fi
 ###
 # Configure and build
 ###
