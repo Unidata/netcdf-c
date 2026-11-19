@@ -92,6 +92,7 @@ jobs:
 
       - name: (Autotools) Check test-suite.log files
         run: | 
+          find . -name 'libnetcdf*'
           find . -name 'test-suite.log' -exec cat {} \;
           ldd ncgen3/ncgen3.exe
           cygcheck ncgen3/ncgen3.exe
