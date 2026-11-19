@@ -549,12 +549,12 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    34,    34,    35,    36,    37,    40,    40,    43,    47,
-      51,    53,    58,    60,    65,    67,    72,    74,    79,    81,
-      86,    88,    93,    95,    97,   101,   107,   109,   114,   116,
-     118,   123,   125,   130,   132,   134,   139,   141,   146,   151,
-     153,   158,   160,   165,   167,   172,   174,   179,   181,   186,
-     187,   188,   189,   190,   191,   192,   195,   199,   203,   207
+       0,    55,    55,    56,    57,    58,    61,    61,    64,    68,
+      72,    74,    79,    81,    86,    88,    93,    95,   100,   102,
+     107,   109,   114,   116,   118,   122,   128,   130,   135,   137,
+     139,   144,   146,   151,   153,   155,   160,   162,   167,   172,
+     174,   179,   181,   186,   188,   193,   195,   200,   202,   207,
+     208,   209,   210,   211,   212,   213,   216,   220,   224,   228
 };
 #endif
 
@@ -911,7 +911,119 @@ yydestruct (const char *yymsg,
   YY_SYMBOL_PRINT (yymsg, yykind, yyvaluep, yylocationp);
 
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-  YY_USE (yykind);
+  switch (yykind)
+    {
+    case YYSYMBOL_projectionlist: /* projectionlist  */
+#line 48 "dce.y"
+            { dcefreelist((NClist*)((*yyvaluep).list)); }
+#line 920 "dcetab.c"
+        break;
+
+    case YYSYMBOL_projection: /* projection  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 926 "dcetab.c"
+        break;
+
+    case YYSYMBOL_function: /* function  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 932 "dcetab.c"
+        break;
+
+    case YYSYMBOL_segmentlist: /* segmentlist  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 938 "dcetab.c"
+        break;
+
+    case YYSYMBOL_segment: /* segment  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 944 "dcetab.c"
+        break;
+
+    case YYSYMBOL_rangelist: /* rangelist  */
+#line 48 "dce.y"
+            { dcefreelist((NClist*)((*yyvaluep).list)); }
+#line 950 "dcetab.c"
+        break;
+
+    case YYSYMBOL_range: /* range  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 956 "dcetab.c"
+        break;
+
+    case YYSYMBOL_clauselist: /* clauselist  */
+#line 48 "dce.y"
+            { dcefreelist((NClist*)((*yyvaluep).list)); }
+#line 962 "dcetab.c"
+        break;
+
+    case YYSYMBOL_sel_clause: /* sel_clause  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 968 "dcetab.c"
+        break;
+
+    case YYSYMBOL_value_list: /* value_list  */
+#line 48 "dce.y"
+            { dcefreelist((NClist*)((*yyvaluep).list)); }
+#line 974 "dcetab.c"
+        break;
+
+    case YYSYMBOL_value: /* value  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 980 "dcetab.c"
+        break;
+
+    case YYSYMBOL_constant: /* constant  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 986 "dcetab.c"
+        break;
+
+    case YYSYMBOL_var: /* var  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 992 "dcetab.c"
+        break;
+
+    case YYSYMBOL_indexpath: /* indexpath  */
+#line 48 "dce.y"
+            { dcefreelist((NClist*)((*yyvaluep).list)); }
+#line 998 "dcetab.c"
+        break;
+
+    case YYSYMBOL_index: /* index  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 1004 "dcetab.c"
+        break;
+
+    case YYSYMBOL_array_indices: /* array_indices  */
+#line 48 "dce.y"
+            { dcefreelist((NClist*)((*yyvaluep).list)); }
+#line 1010 "dcetab.c"
+        break;
+
+    case YYSYMBOL_boolfunction: /* boolfunction  */
+#line 47 "dce.y"
+            { dcefree((DCEnode*)((*yyvaluep).node)); }
+#line 1016 "dcetab.c"
+        break;
+
+    case YYSYMBOL_arg_list: /* arg_list  */
+#line 48 "dce.y"
+            { dcefreelist((NClist*)((*yyvaluep).list)); }
+#line 1022 "dcetab.c"
+        break;
+
+      default:
+        break;
+    }
   YY_IGNORE_MAYBE_UNINITIALIZED_END
 }
 
@@ -1180,319 +1292,319 @@ yyreduce:
   switch (yyn)
     {
   case 8: /* projections: projectionlist  */
-#line 43 "dce.y"
-                       {projections(parsestate,yyvsp[0]);}
-#line 1186 "dcetab.c"
+#line 64 "dce.y"
+                       {projections(parsestate,(yyvsp[0].list));}
+#line 1298 "dcetab.c"
     break;
 
   case 9: /* selections: clauselist  */
-#line 47 "dce.y"
-                   {selections(parsestate,yyvsp[0]);}
-#line 1192 "dcetab.c"
+#line 68 "dce.y"
+                   {selections(parsestate,(yyvsp[0].list));}
+#line 1304 "dcetab.c"
     break;
 
   case 10: /* projectionlist: projection  */
-#line 52 "dce.y"
-            {yyval=projectionlist(parsestate,(Object)null,yyvsp[0]);}
-#line 1198 "dcetab.c"
+#line 73 "dce.y"
+            {(yyval.list)=projectionlist(parsestate,(Object)null,(yyvsp[0].node));}
+#line 1310 "dcetab.c"
     break;
 
   case 11: /* projectionlist: projectionlist ',' projection  */
-#line 54 "dce.y"
-            {yyval=projectionlist(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1204 "dcetab.c"
+#line 75 "dce.y"
+            {(yyval.list)=projectionlist(parsestate,(yyvsp[-2].list),(yyvsp[0].node));}
+#line 1316 "dcetab.c"
     break;
 
   case 12: /* projection: segmentlist  */
-#line 59 "dce.y"
-            {yyval=projection(parsestate,yyvsp[0]);}
-#line 1210 "dcetab.c"
+#line 80 "dce.y"
+            {(yyval.node)=projection(parsestate,(yyvsp[0].node));}
+#line 1322 "dcetab.c"
     break;
 
   case 13: /* projection: function  */
-#line 61 "dce.y"
-            {yyval=projection(parsestate,yyvsp[0]);}
-#line 1216 "dcetab.c"
+#line 82 "dce.y"
+            {(yyval.node)=projection(parsestate,(yyvsp[0].node));}
+#line 1328 "dcetab.c"
     break;
 
   case 14: /* function: ident '(' ')'  */
-#line 66 "dce.y"
-            {yyval=function(parsestate,yyvsp[-2],null);}
-#line 1222 "dcetab.c"
+#line 87 "dce.y"
+            {(yyval.node)=function(parsestate,(yyvsp[-2].leaf),null);}
+#line 1334 "dcetab.c"
     break;
 
   case 15: /* function: ident '(' arg_list ')'  */
-#line 68 "dce.y"
-            {yyval=function(parsestate,yyvsp[-3],yyvsp[-1]);}
-#line 1228 "dcetab.c"
+#line 89 "dce.y"
+            {(yyval.node)=function(parsestate,(yyvsp[-3].leaf),(yyvsp[-1].list));}
+#line 1340 "dcetab.c"
     break;
 
   case 16: /* segmentlist: segment  */
-#line 73 "dce.y"
-            {yyval=segmentlist(parsestate,null,yyvsp[0]);}
-#line 1234 "dcetab.c"
+#line 94 "dce.y"
+            {(yyval.node)=segmentlist(parsestate,null,(yyvsp[0].node));}
+#line 1346 "dcetab.c"
     break;
 
   case 17: /* segmentlist: segmentlist '.' segment  */
-#line 75 "dce.y"
-            {yyval=segmentlist(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1240 "dcetab.c"
+#line 96 "dce.y"
+            {(yyval.node)=segmentlist(parsestate,(yyvsp[-2].node),(yyvsp[0].node));}
+#line 1352 "dcetab.c"
     break;
 
   case 18: /* segment: word  */
-#line 80 "dce.y"
-            {yyval=segment(parsestate,yyvsp[0],null);}
-#line 1246 "dcetab.c"
+#line 101 "dce.y"
+            {(yyval.node)=segment(parsestate,(yyvsp[0].leaf),null);}
+#line 1358 "dcetab.c"
     break;
 
   case 19: /* segment: word rangelist  */
-#line 82 "dce.y"
-            {yyval=segment(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1252 "dcetab.c"
+#line 103 "dce.y"
+            {(yyval.node)=segment(parsestate,(yyvsp[-1].leaf),(yyvsp[0].list));}
+#line 1364 "dcetab.c"
     break;
 
   case 20: /* rangelist: range  */
-#line 87 "dce.y"
-            {yyval=rangelist(parsestate,null,yyvsp[0]);}
-#line 1258 "dcetab.c"
+#line 108 "dce.y"
+            {(yyval.list)=rangelist(parsestate,null,(yyvsp[0].node));}
+#line 1370 "dcetab.c"
     break;
 
   case 21: /* rangelist: rangelist range  */
-#line 89 "dce.y"
-            {yyval=rangelist(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1264 "dcetab.c"
+#line 110 "dce.y"
+            {(yyval.list)=rangelist(parsestate,(yyvsp[-1].list),(yyvsp[0].node));}
+#line 1376 "dcetab.c"
     break;
 
   case 22: /* range: '[' number ']'  */
-#line 94 "dce.y"
-            {yyval=range(parsestate,yyvsp[-1],null,null);}
-#line 1270 "dcetab.c"
+#line 115 "dce.y"
+            {(yyval.node)=range(parsestate,(yyvsp[-1].leaf),null,null);}
+#line 1382 "dcetab.c"
     break;
 
   case 23: /* range: '[' number ':' number ']'  */
-#line 96 "dce.y"
-            {yyval=range(parsestate,yyvsp[-3],null,yyvsp[-1]);}
-#line 1276 "dcetab.c"
+#line 117 "dce.y"
+            {(yyval.node)=range(parsestate,(yyvsp[-3].leaf),null,(yyvsp[-1].leaf));}
+#line 1388 "dcetab.c"
     break;
 
   case 24: /* range: '[' number ':' number ':' number ']'  */
-#line 98 "dce.y"
-            {yyval=range(parsestate,yyvsp[-5],yyvsp[-3],yyvsp[-1]);}
-#line 1282 "dcetab.c"
+#line 119 "dce.y"
+            {(yyval.node)=range(parsestate,(yyvsp[-5].leaf),(yyvsp[-3].leaf),(yyvsp[-1].leaf));}
+#line 1394 "dcetab.c"
     break;
 
   case 25: /* range1: '[' number ']'  */
-#line 102 "dce.y"
-            {yyval = range1(parsestate,yyvsp[-1]);}
-#line 1288 "dcetab.c"
+#line 123 "dce.y"
+            {(yyval.leaf) = range1(parsestate,(yyvsp[-1].leaf));}
+#line 1400 "dcetab.c"
     break;
 
   case 26: /* clauselist: sel_clause  */
-#line 108 "dce.y"
-            {yyval=clauselist(parsestate,null,yyvsp[0]);}
-#line 1294 "dcetab.c"
+#line 129 "dce.y"
+            {(yyval.list)=clauselist(parsestate,null,(yyvsp[0].node));}
+#line 1406 "dcetab.c"
     break;
 
   case 27: /* clauselist: clauselist sel_clause  */
-#line 110 "dce.y"
-            {yyval=clauselist(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1300 "dcetab.c"
+#line 131 "dce.y"
+            {(yyval.list)=clauselist(parsestate,(yyvsp[-1].list),(yyvsp[0].node));}
+#line 1412 "dcetab.c"
     break;
 
   case 28: /* sel_clause: '&' value rel_op '{' value_list '}'  */
-#line 115 "dce.y"
-            {yyval=sel_clause(parsestate,1,yyvsp[-4],yyvsp[-3],yyvsp[-1]);}
-#line 1306 "dcetab.c"
+#line 136 "dce.y"
+            {(yyval.node)=sel_clause(parsestate,1,(yyvsp[-4].node),(yyvsp[-3].tag),(yyvsp[-1].list));}
+#line 1418 "dcetab.c"
     break;
 
   case 29: /* sel_clause: '&' value rel_op value  */
-#line 117 "dce.y"
-            {yyval=sel_clause(parsestate,2,yyvsp[-2],yyvsp[-1],yyvsp[0]);}
-#line 1312 "dcetab.c"
+#line 138 "dce.y"
+            {(yyval.node)=sel_clause(parsestate,2,(yyvsp[-2].node),(yyvsp[-1].tag),(yyvsp[0].node));}
+#line 1424 "dcetab.c"
     break;
 
   case 30: /* sel_clause: '&' boolfunction  */
-#line 119 "dce.y"
-            {yyval=yyvsp[-1];}
-#line 1318 "dcetab.c"
+#line 140 "dce.y"
+            {(yyval.node)=(yyvsp[0].node);}
+#line 1430 "dcetab.c"
     break;
 
   case 31: /* value_list: value  */
-#line 124 "dce.y"
-            {yyval=value_list(parsestate,null,yyvsp[0]);}
-#line 1324 "dcetab.c"
+#line 145 "dce.y"
+            {(yyval.list)=value_list(parsestate,null,(yyvsp[0].node));}
+#line 1436 "dcetab.c"
     break;
 
   case 32: /* value_list: value_list ',' value  */
-#line 126 "dce.y"
-            {yyval=value_list(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1330 "dcetab.c"
+#line 147 "dce.y"
+            {(yyval.list)=value_list(parsestate,(yyvsp[-2].list),(yyvsp[0].node));}
+#line 1442 "dcetab.c"
     break;
 
   case 33: /* value: var  */
-#line 131 "dce.y"
-            {yyval=value(parsestate,yyvsp[0]);}
-#line 1336 "dcetab.c"
+#line 152 "dce.y"
+            {(yyval.node)=value(parsestate,(yyvsp[0].node));}
+#line 1448 "dcetab.c"
     break;
 
   case 34: /* value: function  */
-#line 133 "dce.y"
-            {yyval=value(parsestate,yyvsp[0]);}
-#line 1342 "dcetab.c"
+#line 154 "dce.y"
+            {(yyval.node)=value(parsestate,(yyvsp[0].node));}
+#line 1454 "dcetab.c"
     break;
 
   case 35: /* value: constant  */
-#line 135 "dce.y"
-            {yyval=value(parsestate,yyvsp[0]);}
-#line 1348 "dcetab.c"
+#line 156 "dce.y"
+            {(yyval.node)=value(parsestate,(yyvsp[0].node));}
+#line 1460 "dcetab.c"
     break;
 
   case 36: /* constant: number  */
-#line 140 "dce.y"
-            {yyval=constant(parsestate,yyvsp[0],SCAN_NUMBERCONST);}
-#line 1354 "dcetab.c"
+#line 161 "dce.y"
+            {(yyval.node)=constant(parsestate,(yyvsp[0].leaf),SCAN_NUMBERCONST);}
+#line 1466 "dcetab.c"
     break;
 
   case 37: /* constant: string  */
-#line 142 "dce.y"
-            {yyval=constant(parsestate,yyvsp[0],SCAN_STRINGCONST);}
-#line 1360 "dcetab.c"
+#line 163 "dce.y"
+            {(yyval.node)=constant(parsestate,(yyvsp[0].leaf),SCAN_STRINGCONST);}
+#line 1472 "dcetab.c"
     break;
 
   case 38: /* var: indexpath  */
-#line 147 "dce.y"
-            {yyval=var(parsestate,yyvsp[0]);}
-#line 1366 "dcetab.c"
+#line 168 "dce.y"
+            {(yyval.node)=var(parsestate,(yyvsp[0].list));}
+#line 1478 "dcetab.c"
     break;
 
   case 39: /* indexpath: index  */
-#line 152 "dce.y"
-            {yyval=indexpath(parsestate,null,yyvsp[0]);}
-#line 1372 "dcetab.c"
+#line 173 "dce.y"
+            {(yyval.list)=indexpath(parsestate,null,(yyvsp[0].node));}
+#line 1484 "dcetab.c"
     break;
 
   case 40: /* indexpath: indexpath '.' index  */
-#line 154 "dce.y"
-            {yyval=indexpath(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1378 "dcetab.c"
+#line 175 "dce.y"
+            {(yyval.list)=indexpath(parsestate,(yyvsp[-2].list),(yyvsp[0].node));}
+#line 1490 "dcetab.c"
     break;
 
   case 41: /* index: word  */
-#line 159 "dce.y"
-            {yyval=indexer(parsestate,yyvsp[0],null);}
-#line 1384 "dcetab.c"
+#line 180 "dce.y"
+            {(yyval.node)=indexer(parsestate,(yyvsp[0].leaf),null);}
+#line 1496 "dcetab.c"
     break;
 
   case 42: /* index: word array_indices  */
-#line 161 "dce.y"
-            {yyval=indexer(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1390 "dcetab.c"
+#line 182 "dce.y"
+            {(yyval.node)=indexer(parsestate,(yyvsp[-1].leaf),(yyvsp[0].list));}
+#line 1502 "dcetab.c"
     break;
 
   case 43: /* array_indices: range1  */
-#line 166 "dce.y"
-            {yyval=array_indices(parsestate,null,yyvsp[0]);}
-#line 1396 "dcetab.c"
+#line 187 "dce.y"
+            {(yyval.list)=array_indices(parsestate,null,(yyvsp[0].leaf));}
+#line 1508 "dcetab.c"
     break;
 
   case 44: /* array_indices: array_indices range1  */
-#line 168 "dce.y"
-            {yyval=array_indices(parsestate,yyvsp[-1],yyvsp[0]);}
-#line 1402 "dcetab.c"
+#line 189 "dce.y"
+            {(yyval.list)=array_indices(parsestate,(yyvsp[-1].list),(yyvsp[0].leaf));}
+#line 1514 "dcetab.c"
     break;
 
   case 45: /* boolfunction: ident '(' ')'  */
-#line 173 "dce.y"
-            {yyval=function(parsestate,yyvsp[-2],null);}
-#line 1408 "dcetab.c"
+#line 194 "dce.y"
+            {(yyval.node)=function(parsestate,(yyvsp[-2].leaf),null);}
+#line 1520 "dcetab.c"
     break;
 
   case 46: /* boolfunction: ident '(' arg_list ')'  */
-#line 175 "dce.y"
-            {yyval=function(parsestate,yyvsp[-3],yyvsp[-1]);}
-#line 1414 "dcetab.c"
+#line 196 "dce.y"
+            {(yyval.node)=function(parsestate,(yyvsp[-3].leaf),(yyvsp[-1].list));}
+#line 1526 "dcetab.c"
     break;
 
   case 47: /* arg_list: value  */
-#line 180 "dce.y"
-            {yyval=arg_list(parsestate,null,yyvsp[0]);}
-#line 1420 "dcetab.c"
+#line 201 "dce.y"
+            {(yyval.list)=arg_list(parsestate,null,(yyvsp[0].node));}
+#line 1532 "dcetab.c"
     break;
 
   case 48: /* arg_list: value_list ',' value  */
-#line 182 "dce.y"
-            {yyval=arg_list(parsestate,yyvsp[-2],yyvsp[0]);}
-#line 1426 "dcetab.c"
+#line 203 "dce.y"
+            {(yyval.list)=arg_list(parsestate,(yyvsp[-2].list),(yyvsp[0].node));}
+#line 1538 "dcetab.c"
     break;
 
   case 49: /* rel_op: '='  */
-#line 186 "dce.y"
-                  {yyval=makeselectiontag(CEO_EQ);}
-#line 1432 "dcetab.c"
+#line 207 "dce.y"
+                  {(yyval.tag)=makeselectiontag(CEO_EQ);}
+#line 1544 "dcetab.c"
     break;
 
   case 50: /* rel_op: '>'  */
-#line 187 "dce.y"
-                  {yyval=makeselectiontag(CEO_GT);}
-#line 1438 "dcetab.c"
+#line 208 "dce.y"
+                  {(yyval.tag)=makeselectiontag(CEO_GT);}
+#line 1550 "dcetab.c"
     break;
 
   case 51: /* rel_op: '<'  */
-#line 188 "dce.y"
-                  {yyval=makeselectiontag(CEO_LT);}
-#line 1444 "dcetab.c"
+#line 209 "dce.y"
+                  {(yyval.tag)=makeselectiontag(CEO_LT);}
+#line 1556 "dcetab.c"
     break;
 
   case 52: /* rel_op: '!' '='  */
-#line 189 "dce.y"
-                  {yyval=makeselectiontag(CEO_NEQ);}
-#line 1450 "dcetab.c"
+#line 210 "dce.y"
+                  {(yyval.tag)=makeselectiontag(CEO_NEQ);}
+#line 1562 "dcetab.c"
     break;
 
   case 53: /* rel_op: '>' '='  */
-#line 190 "dce.y"
-                  {yyval=makeselectiontag(CEO_GE);}
-#line 1456 "dcetab.c"
+#line 211 "dce.y"
+                  {(yyval.tag)=makeselectiontag(CEO_GE);}
+#line 1568 "dcetab.c"
     break;
 
   case 54: /* rel_op: '<' '='  */
-#line 191 "dce.y"
-                  {yyval=makeselectiontag(CEO_LE);}
-#line 1462 "dcetab.c"
+#line 212 "dce.y"
+                  {(yyval.tag)=makeselectiontag(CEO_LE);}
+#line 1574 "dcetab.c"
     break;
 
   case 55: /* rel_op: '=' '~'  */
-#line 192 "dce.y"
-                  {yyval=makeselectiontag(CEO_RE);}
-#line 1468 "dcetab.c"
+#line 213 "dce.y"
+                  {(yyval.tag)=makeselectiontag(CEO_RE);}
+#line 1580 "dcetab.c"
     break;
 
   case 56: /* ident: word  */
-#line 196 "dce.y"
-            {yyval = yyvsp[0];}
-#line 1474 "dcetab.c"
+#line 217 "dce.y"
+            {(yyval.leaf) = (yyvsp[0].leaf);}
+#line 1586 "dcetab.c"
     break;
 
   case 57: /* word: SCAN_WORD  */
-#line 200 "dce.y"
-            {yyval = checkobject(yyvsp[0]);}
-#line 1480 "dcetab.c"
+#line 221 "dce.y"
+            {(yyval.leaf) = checkobject((yyvsp[0].leaf));}
+#line 1592 "dcetab.c"
     break;
 
   case 58: /* number: SCAN_NUMBERCONST  */
-#line 204 "dce.y"
-            {yyval = checkobject(yyvsp[0]);}
-#line 1486 "dcetab.c"
+#line 225 "dce.y"
+            {(yyval.leaf) = checkobject((yyvsp[0].leaf));}
+#line 1598 "dcetab.c"
     break;
 
   case 59: /* string: SCAN_STRINGCONST  */
-#line 208 "dce.y"
-            {yyval = checkobject(yyvsp[0]);}
-#line 1492 "dcetab.c"
+#line 229 "dce.y"
+            {(yyval.leaf) = checkobject((yyvsp[0].leaf));}
+#line 1604 "dcetab.c"
     break;
 
 
-#line 1496 "dcetab.c"
+#line 1608 "dcetab.c"
 
       default: break;
     }
@@ -1685,5 +1797,5 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 211 "dce.y"
+#line 232 "dce.y"
 

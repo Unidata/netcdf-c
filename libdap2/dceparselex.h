@@ -24,7 +24,7 @@ typedef struct DCEparsestate DCEparsestate;
 
 typedef void* Object;
 
-#define YYSTYPE Object
+/* YYSTYPE is now the union declared in dce.y; see dcetab.h. */
 
 #define MAX_TOKEN_LENGTH 1024
 
