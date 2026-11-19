@@ -35,6 +35,7 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           update: true
+          path-type: strict
           pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p
           install: diffutils m4 git unzip 
 
@@ -94,6 +95,8 @@ jobs:
           find . -name 'test-suite.log' -exec cat {} \;
           ldd ncgen3/ncgen3.exe
           cygcheck ncgen3/ncgen3.exe
+          echo ""
+          echo $PATH
         if: ${{ failure() }}
 
       - name: Upload autoconf test results
