@@ -35,7 +35,7 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           update: true
-          path-type: strict
+          path-type: minimal
           pacboy: cc:p autotools:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p
           install: diffutils m4 git unzip 
 
@@ -124,6 +124,7 @@ jobs:
         with:
           msystem: ${{ matrix.msystem }}
           update: true
+          path-type: strict
           pacboy: cc:p cmake:p curl:p libxml2:p zlib:p blosc:p bzip2:p libzip:p
           install: make m4 diffutils git unzip
 
