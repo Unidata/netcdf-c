@@ -54,6 +54,16 @@ static int skipSeqInstance(NCD4meta*, NCD4node* vlentype, NCD4offset* offset);
 
 static void walk(NCD4node* node, NClist* sorted);
 
+/* Fail if fewer than count*size bytes remain in the serialized data */
+static int
+checkspace(NCD4offset* offset, d4size_t count, d4size_t size)
+{
+    d4size_t avail = (d4size_t)(offset->limit - offset->offset);
+    if(size > 0 && count > avail / size)
+        return THROW(NC_EDATADAP);
+    return NC_NOERR;
+}
+
 #ifdef D4DEBUGDATA
 static void
 ADDNODE(NClist* list, NCD4node* node)
@@ -227,6 +237,7 @@ NCD4_delimit(NCD4meta* compiler, NCD4node* topvar, NCD4offset* offset, int infer
     /* extract the dap4 data checksum, if present */
     if(inferredchecksumming) {
 	union ATOMICS csum;
+        if((ret=checkspace(offset,1,CHECKSUMSIZE))) goto done;
         TRANSFER(csum.u8,offset,CHECKSUMSIZE);
         topvar->data.remotechecksum = csum.u32[0];
 	if(compiler->swap) swapinline32(&topvar->data.remotechecksum);
@@ -260,15 +271,18 @@ delimitAtomicVar(NCD4meta* compiler, NCD4node* var, NCD4offset* offset)
     tid = truetype->subsort;
     size_t typesize = NCD4_typesize(tid);
     if(tid != NC_STRING) {
+	if((ret=checkspace(offset,dimproduct,typesize))) return THROW(ret);
 	INCR(offset,(typesize*dimproduct));
     } else if(tid == NC_STRING) { /* walk the counts */
         unsigned long long count;
         for(i=0;i<dimproduct;i++) {
             /* Get string count */
+            if((ret=checkspace(offset,1,COUNTERSIZE))) return THROW(ret);
             count = GETCOUNTER(offset);
             SKIPCOUNTER(offset);
   	    if(compiler->swap) swapinline64(&count);
             /* skip count bytes */
+            if((ret=checkspace(offset,count,1))) return THROW(ret);
   	    INCR(offset,count);
         }
     }
@@ -285,9 +299,11 @@ delimitOpaqueVar(NCD4meta* compiler,  NCD4node* var, NCD4offset* offset)
 
     for(i=0;i<dimproduct;i++) {
         /* Walk the instances */
+        if((ret=checkspace(offset,1,COUNTERSIZE))) return THROW(ret);
         count = GETCOUNTER(offset);
         SKIPCOUNTER(offset);
         if(compiler->swap) swapinline64(&count);
+        if((ret=checkspace(offset,count,1))) return THROW(ret);
         INCR(offset,count);
     }
     return THROW(ret);
@@ -380,6 +396,7 @@ delimitSeq(NCD4meta* compiler, NCD4node* vlentype, NCD4offset* offset)
     recordtype = vlentype->basetype;
 
     /* Get he record count */
+    if((ret=checkspace(offset,1,COUNTERSIZE))) goto done;
     recordcount = GETCOUNTER(offset);
     SKIPCOUNTER(offset);
     if(compiler->swap) swapinline64(&recordcount);
