@@ -17,6 +17,7 @@ jobs:
         matrix:
             name: 
                 - "Windows MSVC"
+                - "Windows MSVC ARM64"
             hdf5:
                 - "1.14.3"
 
@@ -25,6 +26,8 @@ jobs:
                 - name: "Windows MSVC"
                   os: windows-latest
                   generator: "-G  \"Visual Studio 17 2022\""
+                - name: "Windows MSVC ARM64"
+                  os: windows-11-arm
 
     name: "${{ matrix.name }}"
         
@@ -38,9 +41,18 @@ jobs:
             update: true
         - uses: actions/checkout@v6
         - uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v2
+          if: runner.arch == 'X64'
           with:
             # Name is needed for caching
             micromamba-version: '2.6.0-0'
+            environment-name: CI
+            cache-environment: true
+            cache-environment-key: mamba-${{ matrix.hdf5 }}
+        # v3 / micromamba 2.10 are the first with win-arm64 support.
+        - uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3.2.1
+          if: runner.arch == 'ARM64'
+          with:
+            micromamba-version: '2.10.0-0'
             environment-name: CI
             cache-environment: true
             cache-environment-key: mamba-${{ matrix.hdf5 }}
@@ -62,8 +74,35 @@ jobs:
        
         - name: Install Dependencies using Micromamba
           # Zlib (instead of libzlib) needed to get dev header/cmake file
+          if: runner.arch == 'X64'
           run: |
             micromamba install --yes hdf5=${{ matrix.hdf5 }} m2-m4 libxml2 zlib
+          shell: bash -el {0}
+
+        - name: Cache HDF5 build - ARM64
+          if: runner.arch == 'ARM64'
+          uses: actions/cache@v4
+          with:
+            path: ${{ runner.temp }}/hdf5
+            key: hdf5-${{ matrix.hdf5 }}-win-arm64
+
+        # conda-forge has no win-arm64 hdf5, so build it from source against the conda deps.
+        - name: Install Dependencies using Micromamba - ARM64
+          if: runner.arch == 'ARM64'
+          run: |
+            micromamba install --yes m2-m4 libxml2 zlib libaec libcurl
+            HDF5_PREFIX="$(cygpath -m "$RUNNER_TEMP/hdf5")"
+            if [ ! -f "$HDF5_PREFIX/bin/hdf5.dll" ]; then
+              HDF5_TAG="hdf5-${{ matrix.hdf5 }}"
+              mkdir -p "$RUNNER_TEMP/hdf5-src"
+              curl -sSfL "https://github.com/HDFGroup/hdf5/archive/refs/tags/${HDF5_TAG//./_}.tar.gz" | tar -xz --strip-components=1 -C "$(cygpath -u "$RUNNER_TEMP/hdf5-src")"
+              cmake -S "$RUNNER_TEMP/hdf5-src" -B "$RUNNER_TEMP/hdf5-build" -DCMAKE_INSTALL_PREFIX="$HDF5_PREFIX" -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}/Library" -DONLY_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF -DHDF5_BUILD_CPP_LIB=OFF -DHDF5_BUILD_TOOLS=ON -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DHDF5_ENABLE_SZIP_SUPPORT=ON -DCMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP=ON
+              cmake --build "$RUNNER_TEMP/hdf5-build" --config Release -j 4
+              cmake --install "$RUNNER_TEMP/hdf5-build" --config Release
+              # Shared-only HDF5 builds name the tools <tool>-shared.exe; the tests look for h5dump.
+              [ -f "$HDF5_PREFIX/bin/h5dump.exe" ] || cp "$HDF5_PREFIX/bin/h5dump-shared.exe" "$HDF5_PREFIX/bin/h5dump.exe"
+            fi
+            cp -r "$HDF5_PREFIX"/. "$CONDA_PREFIX/Library/"
           shell: bash -el {0}
 
         # Double-check something
