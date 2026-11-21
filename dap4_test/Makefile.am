@@ -22,10 +22,10 @@ AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
 AM_CPPFLAGS += -DTOPBINDIR=${abs_top_builddir}
 
 # Set up the tests; do the .sh first, then .c
-check_PROGRAMS = test_parse test_meta test_data test_dechunk
+check_PROGRAMS = test_parse test_meta test_data test_dechunk test_delimit
 noinst_PROGRAMS =
 
-TESTS = test_parse.sh test_dechunk
+TESTS = test_parse.sh test_dechunk test_delimit
 if NETCDF_BUILD_UTILITIES
 TESTS += test_meta.sh test_data.sh test_raw.sh
 endif # NETCDF_BUILD_UTILITIES
