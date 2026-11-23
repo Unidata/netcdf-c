@@ -815,6 +815,18 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     }
 #endif
 
+    /* The data is now in its real (unfiltered) form. Make sure it holds at
+       least a full chunk's worth of bytes before anything copies chunkcount
+       elements out of it. A raw chunk shorter than the chunk size (a
+       truncated or hostile store, or a filter chain that yields too few
+       bytes) would otherwise be read past its end. */
+    if(!empty) {
+	size64_t realsize = cache->chunksize;
+	if(tid == NC_STRING && entry->isfixedstring)
+	    realsize = (size64_t)cache->chunkcount * (size64_t)NCZ_get_maxstrlen((NC_OBJ*)cache->var);
+	if(entry->size < realsize) {stat = NC_ENCZARR; goto done;}
+    }
+
     if(tid == NC_STRING && entry->isfixedstring) {
         /* Convert from char[strlen] to char* format */
 	int maxstrlen = NCZ_get_maxstrlen((NC_OBJ*)cache->var);
