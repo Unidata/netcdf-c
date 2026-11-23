@@ -115,8 +115,40 @@ EOF
   return 1;
 }
 
+test_trunc_chunk() {
+  echo "*** testing truncated chunk"
+  name='trunc_chunk'
+  mkdir -p "${name}.zarr/v"
+  cat > "${name}.zarr/.zgroup" <<-EOF
+{"zarr_format":2}
+EOF
+cat > "${name}.zarr/v/.zarray" <<-EOF
+{
+  "chunks": [4],
+  "compressor": null,
+  "dtype": "<i4",
+  "fill_value": 0,
+  "filters": null,
+  "order": "C",
+  "shape": [4],
+  "zarr_format": 2
+}
+EOF
+  # The chunk declares 4 int32 (16 bytes) but only 4 bytes are present.
+  printf '\001\000\000\000' > "${name}.zarr/v/0"
+  set +e
+  "${NCDUMP}" "file://${name}.zarr#mode=zarr" > ncdump_trunc_output.txt 2>&1
+  ret=$?
+  set -e
+  if test $ret -ne 0 && grep -q 'NetCDF: NCZarr error' ncdump_trunc_output.txt; then
+    return 0;
+  fi
+  return 1;
+}
+
 # run tests
 test_bad_dtype
+test_trunc_chunk
 test_numpy_scalars
 testnoshape1
 if test "x$FEATURE_S3TESTS" = xyes && test "x$FEATURE_S3_INTERNAL" = xyes ; then
