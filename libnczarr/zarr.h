@@ -86,6 +86,9 @@ EXTERNL int NCZ_fixed2char(const void* fixed, char** charp, size_t count, int ma
 EXTERNL int NCZ_char2fixed(const char** charp, void* fixed, size_t count, int maxstrlen);
 EXTERNL int NCZ_copy_data(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const void* memory, size_t count, int reading, void* copy);
 EXTERNL int NCZ_iscomplexjson(const NCjson* value, nc_type typehint);
+EXTERNL int NCZ_computeattrinfo(const char *name, const NCjson *jtypes, nc_type typehint, int purezarr, NCjson *values,
+                           nc_type *typeidp, size_t *typelenp, size_t *lenp, void **datap);
+EXTERNL int NCZ_computeattrdata(nc_type typehint, nc_type* typeidp, const NCjson* values, size_t* typelenp, size_t* lenp, void** datap);
 
 /* zwalk.c */
 EXTERNL int NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata);
